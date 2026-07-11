@@ -1023,7 +1023,11 @@ function OrderPage() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
             {logoUrl ? (
-              <img src={logoUrl} alt="" className="h-9 w-9 rounded-md bg-white object-contain" />
+              <img
+                src={logoUrl}
+                alt=""
+                className="h-9 w-9 rounded-md bg-white object-contain p-1"
+              />
             ) : (
               <div className="grid h-9 w-9 place-items-center rounded-md bg-orange-500 text-sm font-bold text-white">
                 {headerTitle.slice(0, 1).toUpperCase()}
@@ -1047,12 +1051,12 @@ function OrderPage() {
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Order on WhatsApp"
-                aria-label="Order on WhatsApp"
-                className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366] px-3 py-2 text-sm font-semibold text-white hover:bg-[#1ebe5d]"
+                title="Try WhatsApp AI ordering"
+                aria-label="Try WhatsApp AI ordering"
+                className="oh-ai-glow inline-flex items-center gap-1 rounded-full bg-[#25D366] px-2.5 py-2 text-xs font-semibold text-white hover:bg-[#1ebe5d] sm:gap-1.5 sm:rounded-md sm:px-3 sm:text-sm"
               >
-                <WhatsAppIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Order on WhatsApp</span>
+                <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                <span className="whitespace-nowrap">Try WhatsApp AI ordering</span>
               </a>
             )}
             <HeaderAuthButton

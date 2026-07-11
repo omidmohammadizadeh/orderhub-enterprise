@@ -94,7 +94,15 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
       .then((res) => {
         // eslint-disable-next-line no-console
         console.log("[customer-auth] /me 200 →", res.data);
-        setCustomer(res.data);
+        // /me re-signs a fresh 90-day token on every call (sliding
+        // session) — persist it over the one we sent so an actively
+        // returning customer's login never actually expires.
+        const { accessToken: freshToken, ...customerData } = res.data ?? {};
+        setCustomer(customerData);
+        if (freshToken) {
+          setToken(freshToken);
+          persistToken(freshToken);
+        }
       })
       .catch((err: any) => {
         const status = err?.response?.status;
@@ -179,7 +187,12 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
       const res = await axios.get(`${API_BASE}/v1/customer-auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCustomer(res.data);
+      const { accessToken: freshToken, ...customerData } = res.data ?? {};
+      setCustomer(customerData);
+      if (freshToken) {
+        setToken(freshToken);
+        persistToken(freshToken);
+      }
     } catch {
       logout();
     }

@@ -85,3 +85,52 @@
     0 0 3px #fff,
     0 1px 2px rgba(255, 255, 255, 0.95);
 }
+
+/* ── AI glow ring (storefront "Try WhatsApp AI ordering" button) ──────────
+   A soft rotating rainbow-ish gradient ring behind the button, like the
+   Gemini/AI-assistant "thinking" halo, plus a gentle breathing pulse so it
+   reads as "AI-powered" rather than a plain WhatsApp deep-link button. */
+@keyframes oh-ai-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes oh-ai-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+.oh-ai-glow {
+  position: relative;
+  isolation: isolate;
+}
+.oh-ai-glow::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    #25d366,
+    #34e8a0,
+    #7c5cf0,
+    #34e8a0,
+    #25d366
+  );
+  filter: blur(6px);
+  animation:
+    oh-ai-spin 3.2s linear infinite,
+    oh-ai-pulse 2.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .oh-ai-glow::before {
+    animation: none;
+  }
+}

@@ -58,12 +58,18 @@ export class CustomerAuthController {
   // AppModule. Without it the staff strategy fires first, fails the
   // customer token's missing `type: "access"` claim, and 401s with
   // "Invalid token type" before our CustomerJwtGuard ever runs.
+  // Sliding session: the storefront calls /me on every app load to
+  // validate the stored token, so re-signing a fresh 90-day token here
+  // means an actively-returning customer's "remembered" login never
+  // actually expires — only real inactivity (90 days with no visit) does.
+  // The frontend persists `accessToken` back over the one it sent.
   @Public()
   @UseGuards(CustomerJwtGuard)
   @Get("me")
-  @ApiOperation({ summary: "Current customer (from JWT)" })
-  me(@CurrentCustomer() customer: any) {
-    return customer;
+  @ApiOperation({ summary: "Current customer (from JWT); returns a refreshed token" })
+  async me(@CurrentCustomer() customer: any) {
+    const accessToken = await this.customerAuth.signCustomerToken(customer);
+    return { ...customer, accessToken };
   }
 
   // Phase AP-5 — customer's order history for the "My Orders" page.

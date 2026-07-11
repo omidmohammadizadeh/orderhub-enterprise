@@ -390,7 +390,7 @@ export class CustomerAuthService {
 
   // ── internals ─────────────────────────────────────────────────────
 
-  private async signCustomerToken(customer: any): Promise<string> {
+  async signCustomerToken(customer: any): Promise<string> {
     // We pass `audience` via the OPTIONS object, not as `aud` in the
     // payload — the shared JwtModule (auth.module.ts) sets a default
     // audience of "orderhub-api" in signOptions. If we also put `aud`
@@ -405,9 +405,14 @@ export class CustomerAuthService {
       },
       {
         audience: CUSTOMER_JWT_AUDIENCE,
-        // 30 days — customer sessions should feel persistent. They're
-        // re-validated on every request anyway via JWT strategy.
-        expiresIn: "30d",
+        // 90 days, and SLIDING — CustomerAuthController.me() re-signs a
+        // fresh 90-day token on every call (the storefront calls /me on
+        // every app load to validate the stored token), so an actively
+        // returning customer effectively never gets logged out. A flat,
+        // non-renewing expiry previously meant "remembered" for exactly
+        // 30 days from the original login regardless of how often the
+        // customer came back — this fixes that.
+        expiresIn: "90d",
       },
     );
   }
