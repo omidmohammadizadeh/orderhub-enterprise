@@ -251,7 +251,7 @@ export class WhatsAppAiService {
 
     // ── Delivery address capture (plain-text replies only) ────────────────
     const plainText =
-      !/^(fulfil:|item:|cat:|opt:|skip:|wizback|rm:|editcart)/.test(text) &&
+      !/^(fulfil:|item:|cat:|more:|catmore:|opt:|skip:|wizback|rm:|editcart)/.test(text) &&
       !MENU_CMDS.has(cmd) &&
       !GREETING_CMDS.has(cmd);
     if (convo.state === "ASK_ADDRESS" && plainText) {
@@ -350,6 +350,41 @@ export class WhatsAppAiService {
         await this.send.sendText(phoneNumberId, from, `Sorry, nothing in ${categoryName} right now.`);
       }
       await this.persistTurn(convo.id, history, `[Customer opened category ${categoryName}]`, `[Showed ${categoryName} items]`, cart, profileName, convo.customerName);
+      return;
+    }
+
+    // Pagination: next page of a category's items (from the "➡️ More" row).
+    // id shape: more:<offset>:<categoryName>.
+    if (text.startsWith("more:")) {
+      cart.pending = undefined;
+      const rest = text.slice(5);
+      const sep = rest.indexOf(":");
+      const offset = Math.max(0, parseInt(rest.slice(0, sep), 10) || 0);
+      const categoryName = rest.slice(sep + 1);
+      const { present } = this.itemsList(
+        ctx,
+        categoryName,
+        `More ${categoryName} 👇 Tap to choose.`,
+        offset,
+      );
+      if (present && present.kind === "list") {
+        await this.send.sendList(phoneNumberId, from, present.body, present.buttonLabel, present.sections, present.header);
+      } else {
+        await this.send.sendText(phoneNumberId, from, `That's everything in ${categoryName}.`);
+      }
+      await this.persistTurn(convo.id, history, `[Customer viewed more ${categoryName}]`, `[Showed more ${categoryName} items]`, cart, profileName, convo.customerName);
+      return;
+    }
+
+    // Pagination: next page of categories (from the "➡️ More categories" row).
+    if (text.startsWith("catmore:")) {
+      cart.pending = undefined;
+      const offset = Math.max(0, parseInt(text.slice(8), 10) || 0);
+      const { present } = this.categoryList(ctx, "More categories 👇", offset);
+      if (present && present.kind === "list") {
+        await this.send.sendList(phoneNumberId, from, present.body, present.buttonLabel, present.sections, present.header);
+      }
+      await this.persistTurn(convo.id, history, `[Customer viewed more categories]`, `[Showed more categories]`, cart, profileName, convo.customerName);
       return;
     }
 
@@ -1683,7 +1718,11 @@ export class WhatsAppAiService {
     return this.categoryList(ctx, String(input.body ?? "Here's our menu — pick a category 👇"));
   }
 
-  private categoryList(ctx: WaMenuContext, body: string): { result: string; present?: Presentation } {
+  private categoryList(
+    ctx: WaMenuContext,
+    body: string,
+    offset = 0,
+  ): { result: string; present?: Presentation } {
     const names: string[] = [];
     const seen = new Set<string>();
     for (const it of ctx.items) {
@@ -1696,13 +1735,25 @@ export class WhatsAppAiService {
     if (names.length <= 1) {
       return this.itemsList(ctx, names[0] ?? "", body);
     }
-    const rows = names.slice(0, 10).map((n) => ({
+    // Same 10-row cap applies to the category list — paginate so a menu with
+    // more than 10 categories doesn't silently hide some.
+    const remaining = names.length - offset;
+    const showCount = remaining > 10 ? 9 : remaining;
+    const rows = names.slice(offset, offset + showCount).map((n) => ({
       id: `cat:${n}`,
       title: n,
       description: `${ctx.items.filter((i) => i.categoryName === n).length} item(s)`,
     }));
+    const nextOffset = offset + showCount;
+    if (nextOffset < names.length) {
+      rows.push({
+        id: `catmore:${nextOffset}`,
+        title: "➡️ More categories",
+        description: `${names.length - nextOffset} more`,
+      });
+    }
     return {
-      result: `Showing ${rows.length} categories${names.length > 10 ? ` (of ${names.length})` : ""}.`,
+      result: `Showing categories ${offset + 1}-${nextOffset} of ${names.length}.`,
       present: {
         kind: "list",
         body,
@@ -1717,21 +1768,43 @@ export class WhatsAppAiService {
     ctx: WaMenuContext,
     categoryName: string,
     body: string,
+    offset = 0,
   ): { result: string; present?: Presentation } {
     const cat = categoryName.toLowerCase();
     const items = cat
       ? ctx.items.filter((i) => i.categoryName.toLowerCase() === cat)
       : ctx.items;
-    const rows = items.slice(0, 10).map((i) => ({
+    if (items.length === 0) {
+      return { result: `No items found in ${categoryName || "the menu"}.`, present: undefined };
+    }
+    // WhatsApp interactive lists allow at most 10 rows. A category with more
+    // than that (e.g. 20 pizzas) previously showed only the first 10 — the
+    // rest were unreachable. Paginate: show 9 items + a "More" row that
+    // loads the next page, so EVERY item is reachable. The final page shows
+    // up to all 10 remaining (no More row needed).
+    const remaining = items.length - offset;
+    const showCount = remaining > 10 ? 9 : remaining;
+    const pageItems = items.slice(offset, offset + showCount);
+    const rows = pageItems.map((i) => ({
       id: `item:${i.id}`,
       title: i.name,
       description: `£${i.price.toFixed(2)}${i.description ? ` — ${i.description}` : ""}`,
     }));
-    if (rows.length === 0) {
-      return { result: `No items found in ${categoryName || "the menu"}.`, present: undefined };
+    const nextOffset = offset + showCount;
+    const hasMore = nextOffset < items.length;
+    if (hasMore) {
+      rows.push({
+        // more:<offset>:<categoryName> — offset first so the category name
+        // (which may contain anything) is just "the rest".
+        id: `more:${nextOffset}:${categoryName}`.slice(0, 200),
+        title: `➡️ More ${categoryName}`.slice(0, 24),
+        description: `${items.length - nextOffset} more item(s)`,
+      });
     }
+    const from = offset + 1;
+    const to = offset + pageItems.length;
     return {
-      result: `Showing ${rows.length} item(s)${items.length > 10 ? ` (of ${items.length})` : ""} in ${categoryName || "the menu"}.`,
+      result: `Showing items ${from}-${to} of ${items.length} in ${categoryName || "the menu"}.`,
       present: {
         kind: "list",
         body,
