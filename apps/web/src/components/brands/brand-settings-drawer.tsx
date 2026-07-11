@@ -287,13 +287,15 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
             <Field label="Logo">
               <p className="mb-2 text-[11px] text-zinc-500">
                 Printed on the receipt header and shown on the storefront.
-                2:1 landscape works best.
+                A square logo works best — the whole image is kept, never
+                cropped.
               </p>
               <ImageUploader
                 value={logoUrl}
                 onChange={(v: string | null) => isAdmin && setLogoUrl(v)}
                 targetWidth={512}
-                targetHeight={256}
+                targetHeight={512}
+                fit="contain"
               />
             </Field>
           </Section>

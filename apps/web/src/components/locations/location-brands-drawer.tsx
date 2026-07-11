@@ -318,14 +318,16 @@ function BrandEditModal({
               Logo
             </label>
             <p className="mb-2 text-[11px] text-zinc-500">
-              Printed on the receipt header. 2:1 landscape works best —
-              colour images are converted to monochrome.
+              Printed on the receipt header and shown on the storefront.
+              A square logo works best — the whole image is kept, never
+              cropped.
             </p>
             <ImageUploader
               value={logoUrl}
               onChange={setLogoUrl}
               targetWidth={512}
-              targetHeight={256}
+              targetHeight={512}
+              fit="contain"
             />
           </div>
 

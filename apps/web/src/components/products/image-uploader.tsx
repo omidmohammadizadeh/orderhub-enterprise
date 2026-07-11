@@ -28,6 +28,14 @@ interface Props {
   /** Width and height the image must end up at — defaults to 1064×768 */
   targetWidth?: number;
   targetHeight?: number;
+  /**
+   * How the source is fitted into the target box:
+   *   "cover"   — fill + centre-crop (default; right for photos/banners).
+   *   "contain" — fit the WHOLE image inside, pad the rest transparent,
+   *               never crop. Use for LOGOS so a square badge isn't sliced
+   *               top/bottom by a landscape target.
+   */
+  fit?: "cover" | "contain";
 }
 
 export function ImageUploader({
@@ -36,7 +44,9 @@ export function ImageUploader({
   required,
   targetWidth = 1064,
   targetHeight = 768,
+  fit = "cover",
 }: Props) {
+  const aspectRatio = `${targetWidth} / ${targetHeight}`;
   const fileInput = useRef<HTMLInputElement>(null);
   const [showUrl, setShowUrl] = useState(false);
   const [urlInput, setUrlInput] = useState(value ?? "");
@@ -61,7 +71,7 @@ export function ImageUploader({
       // Resize/crop client-side, then upload to Supabase Storage via the API
       // and save the public https URL. If storage isn't configured (or the
       // upload fails), fall back to the data URL so the form still works.
-      const dataUrl = await resizeToTarget(file, targetWidth, targetHeight);
+      const dataUrl = await resizeToTarget(file, targetWidth, targetHeight, fit);
       try {
         const { publicUrl } = await uploadsClient.uploadProductImage({ dataUrl });
         onChange(publicUrl);
@@ -79,9 +89,16 @@ export function ImageUploader({
   return (
     <div className="space-y-2">
       {value ? (
-        <div className="relative group rounded-lg overflow-hidden border border-zinc-200 aspect-[1064/768] bg-zinc-50">
+        <div
+          className="relative group rounded-lg overflow-hidden border border-zinc-200 bg-white"
+          style={{ aspectRatio }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="" className="w-full h-full object-cover" />
+          <img
+            src={value}
+            alt=""
+            className={`w-full h-full ${fit === "contain" ? "object-contain" : "object-cover"}`}
+          />
           <button
             type="button"
             onClick={() => {
@@ -97,7 +114,8 @@ export function ImageUploader({
       ) : (
         <div
           onClick={() => fileInput.current?.click()}
-          className="aspect-[1064/768] rounded-lg border-2 border-dashed border-zinc-200 hover:border-orange-400 hover:bg-orange-50/30 transition-colors cursor-pointer grid place-items-center text-center"
+          style={{ aspectRatio }}
+          className="rounded-lg border-2 border-dashed border-zinc-200 hover:border-orange-400 hover:bg-orange-50/30 transition-colors cursor-pointer grid place-items-center text-center"
         >
           <div>
             <ImagePlus className="h-8 w-8 text-zinc-300 mx-auto mb-2" />
@@ -105,7 +123,9 @@ export function ImageUploader({
               Click to upload {required ? "(required)" : "(optional)"}
             </p>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Will be resized to {targetWidth}×{targetHeight} for all platforms
+              {fit === "contain"
+                ? `Padded to ${targetWidth}×${targetHeight} — whole image kept, never cropped`
+                : `Will be resized to ${targetWidth}×${targetHeight} for all platforms`}
             </p>
           </div>
         </div>
@@ -178,12 +198,17 @@ export function ImageUploader({
 }
 
 // Loads the image, draws it into a canvas at exactly targetW×targetH,
-// then returns a data: URL. Aspect-ratio mismatched images are
-// center-cropped so we don't squish/stretch the subject.
+// then returns a data: URL.
+//   "cover"   — aspect-mismatched images are centre-cropped so we don't
+//               squish/stretch the subject (photos, banners).
+//   "contain" — the WHOLE image is scaled to fit inside and centred, with
+//               the leftover area left transparent — nothing is ever
+//               cropped (logos). Exported as PNG to preserve the padding.
 async function resizeToTarget(
   file: File,
   targetW: number,
   targetH: number,
+  fit: "cover" | "contain" = "cover",
 ): Promise<string> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const r = new FileReader();
@@ -204,6 +229,21 @@ async function resizeToTarget(
   canvas.height = targetH;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
+
+  if (fit === "contain") {
+    // Fit the ENTIRE image inside the canvas (no crop), centre it, leave
+    // the rest transparent. This is what a logo needs: a square badge in a
+    // square target keeps all four edges instead of being sliced.
+    const scale = Math.min(targetW / img.width, targetH / img.height);
+    const dw = img.width * scale;
+    const dh = img.height * scale;
+    const dx = (targetW - dw) / 2;
+    const dy = (targetH - dh) / 2;
+    ctx.clearRect(0, 0, targetW, targetH); // transparent background
+    ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, dw, dh);
+    // PNG keeps the transparency; JPEG would fill it black.
+    return canvas.toDataURL("image/png");
+  }
 
   // Cover crop: scale source so it FILLS the canvas, then center it.
   const targetRatio = targetW / targetH;

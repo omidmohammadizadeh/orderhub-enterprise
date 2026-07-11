@@ -998,7 +998,12 @@ function OrderPage() {
     .filter(Boolean)
     .join(", ");
 
-  const logoUrl = storefront.location.logoUrl ?? storefront.brand.logoUrl ?? null;
+  // Brand logo wins over the location logo — the storefront is a BRAND's
+  // customer-facing identity (a kitchen running several brands shows each
+  // brand's own logo, uploaded in Brands → Settings), and receipts already
+  // resolve brand-first. Location logo is only a fallback for a brand that
+  // never set its own.
+  const logoUrl = storefront.brand.logoUrl ?? storefront.location.logoUrl ?? null;
   const headerTitle = storefront.location.name || storefront.brand.name;
   const acceptDelivery = cfg?.acceptsDelivery ?? true;
   const acceptCollection = cfg?.acceptsCollection ?? true;
