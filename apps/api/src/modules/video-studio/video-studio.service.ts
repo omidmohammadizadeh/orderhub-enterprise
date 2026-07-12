@@ -11,9 +11,9 @@ import { ReplicateProvider } from "./replicate.provider";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface GenerateVideoDto {
-  imageUrl: string; // public URL (or data URI) of the product photo
+  imageUrl?: string; // video: source photo (required); image: optional reference
   prompt: string; // the marketing description / scene direction
-  style?: string; // "cinematic" (default) | "spokesperson"
+  style?: string; // "cinematic" (default) | "spokesperson" | "product-photo"
   script?: string; // what the spokesperson says (spokesperson style only)
   format?: string; // "landscape" | "vertical" | "square"
   locationId?: string;
@@ -26,15 +26,23 @@ export interface GenerateVideoDto {
 interface AdStyle {
   id: string;
   label: string;
+  // "video" (default) or "image". Image styles produce a photo and reuse the
+  // exact same credit/debit/refund + reconcile pipeline.
+  kind: "video" | "image";
   model?: string; // undefined = base VIDEO_STUDIO_MODEL (Wan)
   imageKey?: string; // undefined = provider default ("image"); "" = no image
-  // Field name the model uses for aspect ratio (e.g. Veo "aspect_ratio"). When
-  // set, the chosen format is passed through. undefined = model ignores format
-  // (e.g. Wan i2v output follows the input photo's shape).
+  // Some image models take the reference as an ARRAY (e.g. nano-banana's
+  // image_input: [url]) rather than a single string. When set, a provided
+  // reference is passed as [url] under this key (and imageKey is ignored).
+  imageArrayKey?: string;
+  // Field name the model uses for aspect ratio (e.g. Veo/flux "aspect_ratio").
   aspectKey?: string;
   credits: number;
   audio: boolean; // does the model produce a voiceover / sound?
   needsScript: boolean; // does the UI collect a spoken script?
+  // Image styles: the reference sample is optional (text-to-image works with
+  // no upload). Video styles require a source photo.
+  imageOptional: boolean;
 }
 
 // Social formats the UI offers → the aspect-ratio value we pass to the model.
@@ -69,6 +77,7 @@ export class VideoStudioService {
       {
         id: "cinematic",
         label: "Cinematic product video",
+        kind: "video",
         model: undefined, // base Wan i2v
         imageKey: undefined,
         // Wan i2v output follows the input photo's shape; only honour a format
@@ -77,10 +86,12 @@ export class VideoStudioService {
         credits: envInt("VIDEO_STUDIO_CINEMATIC_CREDITS", 1),
         audio: false,
         needsScript: false,
+        imageOptional: false,
       },
       {
         id: "spokesperson",
         label: "Talking spokesperson (voice + sound)",
+        kind: "video",
         model: process.env.VIDEO_STUDIO_SPOKESPERSON_MODEL || "google/veo-3-fast",
         // Veo takes a first-frame "image". Set VIDEO_STUDIO_SPOKESPERSON_IMAGE_KEY=""
         // to fall back to pure text-to-video if a model rejects the image field.
@@ -89,6 +100,25 @@ export class VideoStudioService {
         credits: envInt("VIDEO_STUDIO_SPOKESPERSON_CREDITS", 4),
         audio: true,
         needsScript: true,
+        imageOptional: false,
+      },
+      {
+        id: "product-photo",
+        label: "Product photo (AI image)",
+        kind: "image",
+        // Default nano-banana (Gemini image): prompt + optional image_input[].
+        // Model/keys env-tunable in case the schema differs (Replicate errors
+        // surface on the failed card, same as the video styles).
+        model: process.env.VIDEO_STUDIO_IMAGE_MODEL || "google/nano-banana",
+        // Reference goes in an ARRAY (image_input) for nano-banana; don't also
+        // send a single-image key.
+        imageKey: "",
+        imageArrayKey: process.env.VIDEO_STUDIO_IMAGE_INPUT_KEY ?? "image_input",
+        aspectKey: process.env.VIDEO_STUDIO_IMAGE_ASPECT_KEY ?? "aspect_ratio",
+        credits: envInt("VIDEO_STUDIO_IMAGE_CREDITS", 1),
+        audio: false,
+        needsScript: false,
+        imageOptional: true,
       },
     ];
   }
@@ -131,10 +161,12 @@ export class VideoStudioService {
       styles: this.styles().map((s) => ({
         id: s.id,
         label: s.label,
+        kind: s.kind,
         credits: s.credits,
         audio: s.audio,
         needsScript: s.needsScript,
         supportsFormat: !!s.aspectKey,
+        imageOptional: s.imageOptional,
       })),
     };
   }
@@ -160,19 +192,24 @@ export class VideoStudioService {
 
   // ── Generate ────────────────────────────────────────────────────────────
   async generate(user: AuthenticatedUser, dto: GenerateVideoDto) {
-    if (!dto?.imageUrl || !dto?.prompt) {
-      throw new BadRequestException("A product image and description are required");
+    const style = this.styleById(dto.style);
+    const reference = (dto.imageUrl ?? "").trim();
+    if (!dto?.prompt?.trim()) {
+      throw new BadRequestException("A description is required");
+    }
+    // Video needs a source photo; image generation's reference is optional.
+    if (!style.imageOptional && !reference) {
+      throw new BadRequestException("A product photo is required for this style");
     }
     const acc = await this.getOrCreateAccount(user.tenantId);
     if (!acc.addonActive) {
       throw new ForbiddenException(
-        "The AI Video Studio add-on isn't active for this account.",
+        "The AI Studio add-on isn't active for this account.",
       );
     }
     if (!this.replicate.isConfigured()) {
-      throw new BadRequestException("Video generation isn't configured on the server.");
+      throw new BadRequestException("AI generation isn't configured on the server.");
     }
-    const style = this.styleById(dto.style);
     if (style.needsScript && !dto.script?.trim()) {
       throw new BadRequestException("Add a short script for the spokesperson to say.");
     }
@@ -182,6 +219,10 @@ export class VideoStudioService {
     const extra: Record<string, unknown> = {};
     if (style.aspectKey && dto.format && ASPECT_RATIOS[dto.format]) {
       extra[style.aspectKey] = ASPECT_RATIOS[dto.format];
+    }
+    // Array-style reference input (e.g. nano-banana image_input: [url]).
+    if (style.imageArrayKey && reference) {
+      extra[style.imageArrayKey] = [reference];
     }
 
     // Atomic debit BEFORE we ever call the provider — take from the monthly
@@ -202,7 +243,7 @@ export class VideoStudioService {
         });
         if (top.count === 0) {
           throw new BadRequestException(
-            "You're out of video credits — top up or wait for your monthly reset.",
+            "You're out of credits — top up or wait for your monthly reset.",
           );
         }
         source = "topup";
@@ -214,9 +255,10 @@ export class VideoStudioService {
           locationId: dto.locationId ?? null,
           brandId: dto.brandId ?? null,
           status: "QUEUED",
+          kind: style.kind === "image" ? "IMAGE" : "VIDEO",
           model: style.model || this.replicate.model,
           prompt: finalPrompt,
-          sourceImageUrl: dto.imageUrl,
+          sourceImageUrl: reference,
           creditsCost: cost,
         },
       });
@@ -235,7 +277,7 @@ export class VideoStudioService {
     // Kick off the render. If Replicate rejects the request, refund immediately.
     try {
       const prediction = await this.replicate.createPrediction({
-        image: dto.imageUrl,
+        image: reference || undefined,
         prompt: finalPrompt,
         model: style.model,
         imageKey: style.imageKey,
@@ -249,7 +291,7 @@ export class VideoStudioService {
       this.logger.error(`Replicate create failed for gen ${gen.id}: ${err?.message}`);
       await this.failAndRefund(gen, err?.message ?? "provider rejected the request");
       throw new BadRequestException(
-        "Couldn't start the video render — your credit was refunded. Please try again.",
+        "Couldn't start the render — your credit was refunded. Please try again.",
       );
     }
   }
@@ -268,10 +310,10 @@ export class VideoStudioService {
         if (pred.status === "succeeded") {
           const url = this.replicate.outputUrl(pred.output);
           if (!url) {
-            await this.failAndRefund(gen, "render finished but produced no video");
+            await this.failAndRefund(gen, "finished but produced no output");
             continue;
           }
-          const finalUrl = await this.persist(url);
+          const finalUrl = await this.persist(url, gen.kind);
           await this.db().videoGeneration.update({
             where: { id: gen.id },
             data: { status: "READY", resultUrl: finalUrl },
@@ -289,14 +331,26 @@ export class VideoStudioService {
   }
 
   /** Re-host the provider's (temporary) output to our own storage. */
-  private async persist(providerUrl: string): Promise<string> {
+  private async persist(providerUrl: string, kind?: string): Promise<string> {
     try {
       if (!this.storage.isConfigured()) return providerUrl;
       const res = await fetch(providerUrl);
       if (!res.ok) return providerUrl;
       const buf = Buffer.from(await res.arrayBuffer());
-      const contentType = res.headers.get("content-type") || "video/mp4";
-      return await this.storage.uploadBuffer(buf, contentType, "video-studio", "mp4");
+      const isImage =
+        kind === "IMAGE" ||
+        (res.headers.get("content-type") || "").startsWith("image/");
+      const contentType =
+        res.headers.get("content-type") || (isImage ? "image/png" : "video/mp4");
+      const ext = isImage
+        ? contentType.includes("jpeg") || contentType.includes("jpg")
+          ? "jpg"
+          : contentType.includes("webp")
+            ? "webp"
+            : "png"
+        : "mp4";
+      const folder = isImage ? "image-studio" : "video-studio";
+      return await this.storage.uploadBuffer(buf, contentType, folder, ext);
     } catch (err: any) {
       this.logger.warn(`persist to storage failed, keeping provider URL: ${err?.message}`);
       return providerUrl;

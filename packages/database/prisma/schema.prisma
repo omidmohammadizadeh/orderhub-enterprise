@@ -3790,8 +3790,14 @@ model VideoGeneration {
   locationId            String?
   brandId               String?
   status                VideoGenStatus @default(QUEUED)
+  // "VIDEO" | "IMAGE" — the Studio generates both; images reuse the exact
+  // same credit/debit/refund + reconcile pipeline, only the output type and
+  // the model differ. Plain string (not an enum) to avoid an enum migration.
+  kind                  String         @default("VIDEO")
   model                 String
   prompt                String
+  // For a video this is the source/first-frame photo; for an image it's the
+  // OPTIONAL reference sample (empty string when generating from text only).
   sourceImageUrl        String
   resultUrl             String?
   replicatePredictionId String?

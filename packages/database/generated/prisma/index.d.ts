@@ -121603,6 +121603,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     status: $Enums.VideoGenStatus | null
+    kind: string | null
     model: string | null
     prompt: string | null
     sourceImageUrl: string | null
@@ -121621,6 +121622,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     status: $Enums.VideoGenStatus | null
+    kind: string | null
     model: string | null
     prompt: string | null
     sourceImageUrl: string | null
@@ -121639,6 +121641,7 @@ export namespace Prisma {
     locationId: number
     brandId: number
     status: number
+    kind: number
     model: number
     prompt: number
     sourceImageUrl: number
@@ -121667,6 +121670,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     status?: true
+    kind?: true
     model?: true
     prompt?: true
     sourceImageUrl?: true
@@ -121685,6 +121689,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     status?: true
+    kind?: true
     model?: true
     prompt?: true
     sourceImageUrl?: true
@@ -121703,6 +121708,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     status?: true
+    kind?: true
     model?: true
     prompt?: true
     sourceImageUrl?: true
@@ -121808,6 +121814,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     status: $Enums.VideoGenStatus
+    kind: string
     model: string
     prompt: string
     sourceImageUrl: string
@@ -121845,6 +121852,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     status?: boolean
+    kind?: boolean
     model?: boolean
     prompt?: boolean
     sourceImageUrl?: boolean
@@ -121863,6 +121871,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     status?: boolean
+    kind?: boolean
     model?: boolean
     prompt?: boolean
     sourceImageUrl?: boolean
@@ -121881,6 +121890,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     status?: boolean
+    kind?: boolean
     model?: boolean
     prompt?: boolean
     sourceImageUrl?: boolean
@@ -121903,6 +121913,7 @@ export namespace Prisma {
       locationId: string | null
       brandId: string | null
       status: $Enums.VideoGenStatus
+      kind: string
       model: string
       prompt: string
       sourceImageUrl: string
@@ -122311,6 +122322,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"VideoGeneration", 'String'>
     readonly brandId: FieldRef<"VideoGeneration", 'String'>
     readonly status: FieldRef<"VideoGeneration", 'VideoGenStatus'>
+    readonly kind: FieldRef<"VideoGeneration", 'String'>
     readonly model: FieldRef<"VideoGeneration", 'String'>
     readonly prompt: FieldRef<"VideoGeneration", 'String'>
     readonly sourceImageUrl: FieldRef<"VideoGeneration", 'String'>
@@ -124608,6 +124620,7 @@ export namespace Prisma {
     locationId: 'locationId',
     brandId: 'brandId',
     status: 'status',
+    kind: 'kind',
     model: 'model',
     prompt: 'prompt',
     sourceImageUrl: 'sourceImageUrl',
@@ -126004,6 +126017,7 @@ export namespace Prisma {
     userId: 'userId',
     locationId: 'locationId',
     brandId: 'brandId',
+    kind: 'kind',
     model: 'model',
     prompt: 'prompt',
     sourceImageUrl: 'sourceImageUrl',
@@ -137372,6 +137386,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"VideoGeneration"> | string | null
     brandId?: StringNullableFilter<"VideoGeneration"> | string | null
     status?: EnumVideoGenStatusFilter<"VideoGeneration"> | $Enums.VideoGenStatus
+    kind?: StringFilter<"VideoGeneration"> | string
     model?: StringFilter<"VideoGeneration"> | string
     prompt?: StringFilter<"VideoGeneration"> | string
     sourceImageUrl?: StringFilter<"VideoGeneration"> | string
@@ -137390,6 +137405,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
     status?: SortOrder
+    kind?: SortOrder
     model?: SortOrder
     prompt?: SortOrder
     sourceImageUrl?: SortOrder
@@ -137412,6 +137428,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"VideoGeneration"> | string | null
     brandId?: StringNullableFilter<"VideoGeneration"> | string | null
     status?: EnumVideoGenStatusFilter<"VideoGeneration"> | $Enums.VideoGenStatus
+    kind?: StringFilter<"VideoGeneration"> | string
     model?: StringFilter<"VideoGeneration"> | string
     prompt?: StringFilter<"VideoGeneration"> | string
     sourceImageUrl?: StringFilter<"VideoGeneration"> | string
@@ -137430,6 +137447,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
     status?: SortOrder
+    kind?: SortOrder
     model?: SortOrder
     prompt?: SortOrder
     sourceImageUrl?: SortOrder
@@ -137456,6 +137474,7 @@ export namespace Prisma {
     locationId?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
     brandId?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
     status?: EnumVideoGenStatusWithAggregatesFilter<"VideoGeneration"> | $Enums.VideoGenStatus
+    kind?: StringWithAggregatesFilter<"VideoGeneration"> | string
     model?: StringWithAggregatesFilter<"VideoGeneration"> | string
     prompt?: StringWithAggregatesFilter<"VideoGeneration"> | string
     sourceImageUrl?: StringWithAggregatesFilter<"VideoGeneration"> | string
@@ -149539,6 +149558,7 @@ export namespace Prisma {
     locationId?: string | null
     brandId?: string | null
     status?: $Enums.VideoGenStatus
+    kind?: string
     model: string
     prompt: string
     sourceImageUrl: string
@@ -149557,6 +149577,7 @@ export namespace Prisma {
     locationId?: string | null
     brandId?: string | null
     status?: $Enums.VideoGenStatus
+    kind?: string
     model: string
     prompt: string
     sourceImageUrl: string
@@ -149575,6 +149596,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    kind?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
     prompt?: StringFieldUpdateOperationsInput | string
     sourceImageUrl?: StringFieldUpdateOperationsInput | string
@@ -149593,6 +149615,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    kind?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
     prompt?: StringFieldUpdateOperationsInput | string
     sourceImageUrl?: StringFieldUpdateOperationsInput | string
@@ -149611,6 +149634,7 @@ export namespace Prisma {
     locationId?: string | null
     brandId?: string | null
     status?: $Enums.VideoGenStatus
+    kind?: string
     model: string
     prompt: string
     sourceImageUrl: string
@@ -149629,6 +149653,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    kind?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
     prompt?: StringFieldUpdateOperationsInput | string
     sourceImageUrl?: StringFieldUpdateOperationsInput | string
@@ -149647,6 +149672,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    kind?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
     prompt?: StringFieldUpdateOperationsInput | string
     sourceImageUrl?: StringFieldUpdateOperationsInput | string
@@ -158093,6 +158119,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     status?: SortOrder
+    kind?: SortOrder
     model?: SortOrder
     prompt?: SortOrder
     sourceImageUrl?: SortOrder
@@ -158115,6 +158142,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     status?: SortOrder
+    kind?: SortOrder
     model?: SortOrder
     prompt?: SortOrder
     sourceImageUrl?: SortOrder
@@ -158133,6 +158161,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     status?: SortOrder
+    kind?: SortOrder
     model?: SortOrder
     prompt?: SortOrder
     sourceImageUrl?: SortOrder

@@ -3,10 +3,12 @@ import { apiClient } from "./client";
 export interface VideoStyle {
   id: string;
   label: string;
+  kind: "video" | "image";
   credits: number;
   audio: boolean;
   needsScript: boolean;
   supportsFormat?: boolean;
+  imageOptional?: boolean;
 }
 
 export interface VideoStatus {
@@ -25,6 +27,7 @@ export type VideoGenStatus = "QUEUED" | "RENDERING" | "READY" | "FAILED";
 
 export interface VideoGeneration {
   id: string;
+  kind?: "VIDEO" | "IMAGE";
   status: VideoGenStatus;
   prompt: string;
   sourceImageUrl: string;
@@ -37,7 +40,7 @@ export interface VideoGeneration {
 export const videoStudioClient = {
   status: () => apiClient.get<VideoStatus>("/v1/video-studio").then((r) => r.data),
   generate: (body: {
-    imageUrl: string;
+    imageUrl?: string;
     prompt: string;
     style?: string;
     script?: string;

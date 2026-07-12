@@ -122,7 +122,7 @@ export default function VideoStudioPage() {
   const generate = useMutation({
     mutationFn: () =>
       videoStudioClient.generate({
-        imageUrl: imageUrl!,
+        imageUrl: imageUrl || undefined,
         prompt: prompt.trim(),
         style: styleId,
         script: script.trim() || undefined,
@@ -148,8 +148,9 @@ export default function VideoStudioPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["video-studio"] }),
   });
 
+  const isImage = style?.kind === "image";
   const canGenerate =
-    !!imageUrl &&
+    (!!imageUrl || !!style?.imageOptional) &&
     prompt.trim().length > 3 &&
     (!style?.needsScript || script.trim().length > 3) &&
     (status?.balance ?? 0) >= cost &&
@@ -157,7 +158,7 @@ export default function VideoStudioPage() {
 
   const balanceLabel = useMemo(() => {
     if (!status) return "";
-    return `${status.balance} video${status.balance === 1 ? "" : "s"} left`;
+    return `${status.balance} credit${status.balance === 1 ? "" : "s"} left`;
   }, [status]);
 
   return (
@@ -167,9 +168,9 @@ export default function VideoStudioPage() {
           <Clapperboard className="h-6 w-6" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">AI Video Studio</h1>
+          <h1 className="text-xl font-bold text-zinc-900">AI Studio</h1>
           <p className="text-sm text-zinc-500">
-            Turn a product photo into a short marketing video.
+            Generate marketing videos and photos from a product image or a prompt.
           </p>
         </div>
         {status?.addonActive && (
@@ -184,12 +185,12 @@ export default function VideoStudioPage() {
         <div className="mt-6 rounded-xl border border-violet-200 bg-violet-50/60 p-6 text-center">
           <Sparkles className="mx-auto h-8 w-8 text-violet-600" />
           <h2 className="mt-2 text-lg font-semibold text-zinc-900">
-            Unlock the AI Video Studio
+            Unlock the AI Studio
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-zinc-600">
-            Generate scroll-stopping product videos for your social posts and
-            ads. Add it to your plan to get a monthly batch of videos, plus
-            top-up packs whenever you need more.
+            Generate scroll-stopping product videos AND photos for your social
+            posts and ads. Add it to your plan to get a monthly batch of
+            credits, plus top-up packs whenever you need more.
           </p>
           {canTest ? (
             <button
@@ -236,9 +237,11 @@ export default function VideoStudioPage() {
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-zinc-500">
-                      {s.audio
-                        ? "A presenter speaks your script — with voice + sound."
-                        : "Cinematic motion over your product photo (no audio)."}
+                      {s.kind === "image"
+                        ? "A marketing photo from your prompt — upload a sample as a reference (optional)."
+                        : s.audio
+                          ? "A presenter speaks your script — with voice + sound."
+                          : "Cinematic motion over your product photo (no audio)."}
                     </p>
                   </button>
                 );
@@ -249,7 +252,7 @@ export default function VideoStudioPage() {
             {/* Image */}
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-zinc-800">
-                Product photo
+                {isImage ? "Reference photo (optional)" : "Product photo"}
               </label>
               <div
                 onClick={() => fileRef.current?.click()}
@@ -263,7 +266,7 @@ export default function VideoStudioPage() {
                 ) : (
                   <div className="text-center text-sm text-zinc-400">
                     <Upload className="mx-auto h-6 w-6" />
-                    <span>Tap to upload</span>
+                    <span>{isImage ? "Tap to add a sample" : "Tap to upload"}</span>
                   </div>
                 )}
               </div>
@@ -281,7 +284,11 @@ export default function VideoStudioPage() {
             {/* Prompt + action */}
             <div className="flex flex-col">
               <label className="mb-1.5 block text-sm font-semibold text-zinc-800">
-                {style?.needsScript ? "Scene / setting" : "Describe the video"}
+                {style?.needsScript
+                  ? "Scene / setting"
+                  : isImage
+                    ? "Describe the photo"
+                    : "Describe the video"}
               </label>
               <textarea
                 value={prompt}
@@ -290,7 +297,9 @@ export default function VideoStudioPage() {
                 placeholder={
                   style?.needsScript
                     ? "e.g. Bright modern takeaway counter, friendly young presenter holding the meal"
-                    : "e.g. Cinematic advert of this pizza, steam rising, warm lighting, slow zoom"
+                    : isImage
+                      ? "e.g. A gourmet pizza on a rustic wooden board, dramatic studio lighting, steam, dark moody background"
+                      : "e.g. Cinematic advert of this pizza, steam rising, warm lighting, slow zoom"
                 }
                 className="w-full resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm"
               />
@@ -359,7 +368,7 @@ export default function VideoStudioPage() {
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Generate video ({cost} credit{cost === 1 ? "" : "s"})
+                Generate {isImage ? "photo" : "video"} ({cost} credit{cost === 1 ? "" : "s"})
               </button>
               {(status.balance ?? 0) < cost && (
                 <p className="mt-2 text-xs text-amber-700">
@@ -388,11 +397,11 @@ export default function VideoStudioPage() {
 
           {/* Generations */}
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-zinc-500">
-            Your videos
+            Your creations
           </h2>
           {generations.length === 0 ? (
             <p className="mt-3 text-sm text-zinc-400">
-              No videos yet — generate your first one above.
+              Nothing yet — generate your first one above.
             </p>
           ) : (
             <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -403,11 +412,20 @@ export default function VideoStudioPage() {
                 >
                   <div className="aspect-square bg-zinc-900">
                     {g.status === "READY" && g.resultUrl ? (
-                      <video
-                        src={g.resultUrl}
-                        controls
-                        className="h-full w-full object-contain"
-                      />
+                      g.kind === "IMAGE" ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={g.resultUrl}
+                          alt={g.prompt}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <video
+                          src={g.resultUrl}
+                          controls
+                          className="h-full w-full object-contain"
+                        />
+                      )
                     ) : g.status === "FAILED" ? (
                       <div className="flex h-full flex-col items-center justify-center gap-1 p-3 text-center text-xs text-red-300">
                         <AlertCircle className="h-5 w-5" />
