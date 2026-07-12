@@ -149,12 +149,23 @@ export class WhatsAppAiService {
   }
 
   /**
-   * The native Flow form can only be sent once the Flow is PUBLISHED (which
-   * requires Business Verification — draft sends are "Blocked by Integrity").
-   * Until then we fall back to step-by-step option lists.
+   * The Flow id to use for THIS conversation: the connected number's own
+   * Flow (Integration.settings.flowId) when set, else the global env
+   * WHATSAPP_FLOW_ID. A Flow only works within the WhatsApp Business Account
+   * it was created in, so multi-number / multi-tenant setups MUST store a
+   * per-number id — a single global id would 131009 on every other WABA.
    */
-  private get flowsEnabled(): boolean {
-    return !!this.flowId && this.flowMode === "published";
+  private effectiveFlowId(ctx: WaMenuContext): string | undefined {
+    return ctx.flowId ?? this.flowId;
+  }
+
+  /**
+   * Native Flow form can only be sent once the Flow is PUBLISHED (draft sends
+   * are "Blocked by Integrity") and a Flow id is resolvable for this number.
+   * Otherwise we fall back to the step-by-step option lists.
+   */
+  private flowsEnabledFor(ctx: WaMenuContext): boolean {
+    return !!this.effectiveFlowId(ctx) && this.flowMode === "published";
   }
 
   /** Only send a photo when the menu has a real https image URL (WhatsApp rejects others). */
@@ -426,18 +437,18 @@ export class WhatsAppAiService {
         // Diagnostic: shows in Render logs exactly why the Flow form did or
         // didn't fire — flowsEnabled (env) vs flowEligible (item shape).
         this.logger.log(
-          `WA flow gate "${item.name}": flowsEnabled=${this.flowsEnabled} ` +
-            `(flowId=${!!this.flowId}, mode=${this.flowMode}) ` +
+          `WA flow gate "${item.name}": flowsEnabled=${this.flowsEnabledFor(ctx)} ` +
+            `(flowId=${!!this.effectiveFlowId(ctx)}, perNumber=${!!ctx.flowId}, mode=${this.flowMode}) ` +
             `flowEligible=${this.flowEligible(item)} groups=${item.modifierGroups.length} ` +
             `groupKinds=[${item.modifierGroups.map((g) => `${g.selectionType}/max${g.max}`).join(",")}]`,
         );
         // Native form when published (Business Verification done).
-        if (this.flowsEnabled && this.flowEligible(item)) {
+        if (this.flowsEnabledFor(ctx) && this.flowEligible(item)) {
           for (const img of this.imageFor(item)) {
             await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
           }
           await this.send.sendFlow(phoneNumberId, from, {
-            flowId: this.flowId!,
+            flowId: this.effectiveFlowId(ctx)!,
             flowToken: `item_${item.id}`,
             cta: "Customise",
             header: item.name,
@@ -574,9 +585,9 @@ export class WhatsAppAiService {
     if (presentation && presentation.kind === "flow") {
       assistantRecord = `[Sent the Customise form for ${presentation.header}]`;
       const item = ctx.itemIndex.get(presentation.itemId);
-      if (this.flowId && item) {
+      if (this.effectiveFlowId(ctx) && item) {
         await this.send.sendFlow(phoneNumberId, from, {
-          flowId: this.flowId!,
+          flowId: this.effectiveFlowId(ctx)!,
           flowToken: `item_${item.id}`,
           cta: "Customise",
           header: presentation.header,
@@ -1571,7 +1582,7 @@ export class WhatsAppAiService {
     const item = ctx.itemIndex.get(String(input.itemId));
     if (!item) return { result: `No menu item with id ${input.itemId}.` };
     // Native form when published (after Business Verification).
-    if (this.flowsEnabled && this.flowEligible(item)) {
+    if (this.flowsEnabledFor(ctx) && this.flowEligible(item)) {
       return {
         result: `Opening the Customise form for ${item.name}. The customer picks options and taps Add to cart; you'll be told when it's added.`,
         images: this.imageFor(item),

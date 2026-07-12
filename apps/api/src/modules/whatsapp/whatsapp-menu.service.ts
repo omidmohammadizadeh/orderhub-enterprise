@@ -46,6 +46,11 @@ export interface WaMenuContext {
   locationName: string;
   /** This location's WhatsApp business number (for the wa.me return link). */
   displayPhoneNumber?: string;
+  /** Per-number WhatsApp Flow id (the "Customise" native form). A Flow is
+   *  locked to ONE WhatsApp Business Account, so each connected number stores
+   *  its own Flow id here — resolved from Integration.settings.flowId. Falls
+   *  back to the WHATSAPP_FLOW_ID env for the single-number pilot. */
+  flowId?: string;
   menuId: string;
   items: WaMenuItem[];
   /** id -> item, for O(1) cart validation. */
@@ -341,6 +346,7 @@ export class WhatsAppMenuService {
       brandId: location.brandId ?? undefined,
       locationName: location.name,
       displayPhoneNumber: resolved?.displayPhoneNumber,
+      flowId: resolved?.flowId,
       menuId: menu.id,
       items,
       itemIndex,
@@ -357,7 +363,12 @@ export class WhatsAppMenuService {
    */
   private async resolveConnection(
     phoneNumberId?: string,
-  ): Promise<{ locationId: string; displayPhoneNumber?: string; menuId?: string } | null> {
+  ): Promise<{
+    locationId: string;
+    displayPhoneNumber?: string;
+    menuId?: string;
+    flowId?: string;
+  } | null> {
     if (phoneNumberId) {
       const integrations = await this.prisma.integration.findMany({
         where: { platform: "WHATSAPP" as any, deletedAt: null },
@@ -375,6 +386,9 @@ export class WhatsAppMenuService {
           locationId: match.locationId,
           displayPhoneNumber: s.displayPhoneNumber,
           menuId: s.menuId || undefined,
+          // Per-number Flow id — this number's own published "Customise" Flow
+          // (a Flow only works within the WABA it was created in).
+          flowId: (s.flowId && String(s.flowId).trim()) || undefined,
         };
       }
     }

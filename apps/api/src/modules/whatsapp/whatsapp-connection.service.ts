@@ -16,6 +16,9 @@ export interface WhatsAppConnectionDto {
   wabaId?: string;
   /** Operator-pinned menu for WhatsApp; blank = auto (location then brand). */
   menuId?: string;
+  /** This number's own published "Customise" Flow id. A Flow only works
+   *  inside the WABA it was created in, so each number stores its own. */
+  flowId?: string;
 }
 
 const GRAPH_VERSION = "v21.0";
@@ -85,6 +88,7 @@ export class WhatsAppConnectionService {
       displayPhoneNumber: s.displayPhoneNumber ?? "",
       wabaId: s.wabaId ?? "",
       menuId: s.menuId ?? "",
+      flowId: s.flowId ?? "",
       menus: await this.menusForLocation(locationId),
       verifiedName: s.verifiedName ?? null,
       lastTestedAt: integ?.lastSyncAt ?? null,
@@ -131,6 +135,8 @@ export class WhatsAppConnectionService {
     if (wabaId) settings.wabaId = wabaId;
     const menuId = (dto.menuId ?? "").trim();
     if (menuId) settings.menuId = menuId;
+    const flowId = (dto.flowId ?? "").trim();
+    if (flowId) settings.flowId = flowId;
 
     await this.prisma.integration.upsert({
       where: { locationId_platform: { locationId: dto.locationId, platform: "WHATSAPP" as any } },

@@ -11,6 +11,7 @@ export interface WhatsAppConnection {
   displayPhoneNumber: string;
   wabaId: string;
   menuId: string;
+  flowId: string;
   menus: { id: string; name: string }[];
   verifiedName: string | null;
   lastTestedAt: string | null;
@@ -26,6 +27,7 @@ export interface SaveWhatsAppConnection {
   displayPhoneNumber?: string;
   wabaId?: string;
   menuId?: string;
+  flowId?: string;
 }
 
 export const whatsappClient = {

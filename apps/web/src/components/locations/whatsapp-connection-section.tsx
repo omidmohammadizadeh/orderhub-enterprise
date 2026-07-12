@@ -43,6 +43,7 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState("");
   const [wabaId, setWabaId] = useState("");
   const [menuId, setMenuId] = useState("");
+  const [flowId, setFlowId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -60,6 +61,7 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
         setDisplayPhoneNumber(c.displayPhoneNumber);
         setWabaId(c.wabaId);
         setMenuId(c.menuId);
+        setFlowId(c.flowId ?? "");
       })
       .catch(() => {})
       .finally(() => live && setLoading(false));
@@ -72,11 +74,12 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
     setMsg(null);
     setSaving(true);
     try {
-      const c = await whatsappClient.save({ locationId, enabled, phoneNumberId, displayPhoneNumber, wabaId, menuId });
+      const c = await whatsappClient.save({ locationId, enabled, phoneNumberId, displayPhoneNumber, wabaId, menuId, flowId });
       setConn(c);
       setEnabled(c.enabled);
       setDisplayPhoneNumber(c.displayPhoneNumber);
       setMenuId(c.menuId);
+      setFlowId(c.flowId ?? "");
       setMsg({ kind: "ok", text: "Saved." });
     } catch (err: any) {
       setMsg({ kind: "err", text: err?.response?.data?.message ?? err?.message ?? "Couldn't save." });
@@ -202,6 +205,22 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
                 placeholder="WABA ID"
                 className={inputCls}
               />
+            </div>
+            <div className="mt-2 space-y-1">
+              <span className="text-[11px] font-medium text-zinc-600">Order form Flow ID (optional)</span>
+              <input
+                value={flowId}
+                onChange={(e) => setFlowId(e.target.value)}
+                placeholder="e.g. 1304115405074626"
+                className={inputCls}
+              />
+              <p className="text-[10px] text-zinc-400">
+                The published “Customise” Flow for THIS number's WhatsApp
+                Business Account. Create + publish the Flow in WhatsApp Manager
+                under this number's account, then paste its ID here. Leave blank
+                to use the platform default. A Flow only works inside the account
+                it was created in.
+              </p>
             </div>
           </details>
 
