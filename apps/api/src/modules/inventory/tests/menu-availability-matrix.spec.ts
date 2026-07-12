@@ -57,6 +57,27 @@ describe("MenuAvailabilityService.getBrandMatrix", () => {
     expect(res.items.map((i) => i.id).sort()).toEqual(["i1", "i2"]);
   });
 
+  it("scopes the served menu's items to this brand (master-menu filtering)", async () => {
+    // A master menu holds i1..i3 across several brands. The board for b1 must
+    // request only b1's items, so other brands' items never surface.
+    const svc = makeService({
+      lastPublished: { id: "master", name: "Master Menu" },
+      categories: [{ items: [{ itemId: "i1" }, { itemId: "i2" }, { itemId: "i3" }] }],
+      items: [item("i1", "B1 item")], // Prisma applies the brand filter for real
+    });
+    await svc.getBrandMatrix("b1", "t1");
+
+    const prisma = (svc as any).prisma;
+    const itemsCall = prisma.menuItem.findMany.mock.calls.find(
+      (c: any[]) => c[0]?.where?.id?.in,
+    );
+    expect(itemsCall).toBeDefined();
+    expect(itemsCall[0].where.OR).toEqual([
+      { brandId: "b1" },
+      { brandIds: { has: "b1" } },
+    ]);
+  });
+
   it("falls back to brand-tagged items when the brand has no published menu", async () => {
     const svc = makeService({
       lastPublished: null,

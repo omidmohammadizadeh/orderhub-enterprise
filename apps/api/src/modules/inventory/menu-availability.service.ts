@@ -127,8 +127,18 @@ export class MenuAvailabilityService {
     }
     if (itemIds.length === 0) return { items: [] };
 
+    // Constrain the served menu's items to ONES BELONGING TO THIS BRAND
+    // (own brandId, or shared via brandIds). MenuItem.brandId is required and
+    // a single-brand menu's items all carry that brand, so this is a no-op
+    // there — every item still shows. But when a MASTER/shared menu (one that
+    // holds several brands' items, scoped per-brand by pricing variants) is
+    // published for this brand, the board now shows ONLY this brand's items,
+    // not every other brand's — matching what that brand actually serves.
     const items = await this.prisma.menuItem.findMany({
-      where: { id: { in: itemIds } },
+      where: {
+        id: { in: itemIds },
+        OR: [{ brandId }, { brandIds: { has: brandId } }],
+      },
       select: {
         id: true,
         name: true,
