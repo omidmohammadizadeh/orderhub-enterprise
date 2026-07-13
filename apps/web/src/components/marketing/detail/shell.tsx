@@ -192,7 +192,7 @@ function DetailFooter({ accent }: { accent: string }) {
             items={[
               { label: "Home", href: "/" },
               { label: "Pricing", href: "/#pricing" },
-              { label: "Contact sales", href: "mailto:hello@orderhub.io" },
+              { label: "Contact sales", href: "/contact" },
               { label: "Log in", href: "/login" },
             ]}
           />

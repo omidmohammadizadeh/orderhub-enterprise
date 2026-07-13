@@ -66,7 +66,7 @@ const INTEGRATIONS: MenuItem[] = [
 const RESOURCES: MenuItem[] = [
   { label: "How it works", description: "Three steps to live", href: "/#how" },
   { label: "Features", description: "What's in the box", href: "/#features" },
-  { label: "Contact sales", description: "hello@orderhub.io", href: "mailto:hello@orderhub.io" },
+  { label: "Contact sales", description: "Send us a message", href: "/contact" },
 ];
 
 export async function SiteNav() {

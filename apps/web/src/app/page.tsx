@@ -191,12 +191,12 @@ function Hero({ brand }: { brand: string }) {
               Get started
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <a
-              href="mailto:hello@orderhub.io"
+            <Link
+              href="/contact"
               className="rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
             >
               Talk to sales
-            </a>
+            </Link>
           </div>
           <p className="mt-3 text-xs text-zinc-500">
             No credit card required · Cancel anytime
@@ -302,13 +302,13 @@ function _UnusedPricing() {
               line and we&apos;ll come back with what makes sense for your
               setup.
             </p>
-            <a
-              href="mailto:hello@orderhub.io"
+            <Link
+              href="/contact"
               className="mt-6 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
             >
-              hello@orderhub.io
+              Contact sales
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
         </InView>
       </div>
@@ -412,7 +412,7 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
               { label: "Features", href: "/#features" },
               { label: "How it works", href: "/#how" },
               { label: "Pricing", href: "/#pricing" },
-              { label: "Contact sales", href: "mailto:hello@orderhub.io" },
+              { label: "Contact sales", href: "/contact" },
               { label: "Log in", href: "/login" },
             ]}
           />

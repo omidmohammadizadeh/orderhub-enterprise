@@ -15,30 +15,16 @@
 import { useState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { InView } from "./in-view";
-
-const FALLBACK_EMAIL = "hello@orderhub.io";
+import { apiClient } from "@/lib/api/client";
 
 interface Props {
-  /**
-   * Google Apps Script Web App URL.
-   *
-   * Read server-side by the page (which can see runtime env vars
-   * regardless of whether they're prefixed NEXT_PUBLIC_) and passed
-   * down here as a prop. We deliberately don't read
-   * process.env.NEXT_PUBLIC_CONTACT_WEBHOOK_URL inside this client
-   * file because Render's Docker build doesn't reliably pass
-   * NEXT_PUBLIC_* into `next build`, which left the form silently
-   * falling back to mailto even when the operator had configured
-   * the variable correctly.
-   *
-   * Empty string → form opens the user's mailto fallback instead of
-   * POSTing.
-   */
+  /** @deprecated legacy Google-Sheet webhook — the form now posts straight to
+   *  our own Leads API so submissions land in the dashboard Leads section.
+   *  Kept optional so existing callers don't break. */
   webhookUrl?: string;
 }
 
-export function ContactForm({ webhookUrl = "" }: Props) {
-  const WEBHOOK_URL = webhookUrl;
+export function ContactForm({ webhookUrl: _webhookUrl = "" }: Props) {
   const [name, setName] = useState("");
   const [restaurant, setRestaurant] = useState("");
   const [phone, setPhone] = useState("");
@@ -53,41 +39,24 @@ export function ContactForm({ webhookUrl = "" }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!WEBHOOK_URL) {
-      // No webhook configured — show a clear error rather than
-      // silently launching the mail client (which previous behavior
-      // made the operator believe the form was "broken" when it was
-      // really just unconfigured). The mailto link stays as a manual
-      // escape hatch the visitor can click if they want.
-      setError(
-        `The contact form isn't connected to a database yet. Email us at ${FALLBACK_EMAIL} directly, or check back shortly.`,
-      );
-      return;
-    }
     setStatus("sending");
+    // Split the single "name" field into first/last — the Leads API needs
+    // both. One-word names fall back to a placeholder last name.
+    const parts = name.trim().split(/\s+/);
+    const firstName = parts[0] || name.trim();
+    const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "—";
     try {
-      // Apps Script web apps reject preflight requests, so we use
-      // text/plain on POST + JSON.stringify on the body. The Apps
-      // Script receives e.postData.contents which it JSON.parses on
-      // the server side.
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors", // Apps Script doesn't return CORS headers
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          name,
-          restaurant,
-          phone,
-          email,
-          locations,
-          message,
-          submittedAt: new Date().toISOString(),
-          source: typeof window !== "undefined" ? window.location.hostname : "unknown",
-        }),
+      // Public endpoint — lands directly in the dashboard's Leads section.
+      await apiClient.post("/v1/leads", {
+        firstName,
+        lastName,
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        companyName: restaurant.trim() || undefined,
+        numberOfLocations: locations,
+        message: message.trim() || undefined,
+        source: "MARKETING_SITE",
       });
-      // With no-cors we can't read the response, but Apps Script will
-      // have appended the row. Mark sent on the optimistic assumption
-      // — Apps Script doesn't really fail on well-formed POSTs.
       setStatus("sent");
       setName("");
       setRestaurant("");
@@ -97,7 +66,11 @@ export function ContactForm({ webhookUrl = "" }: Props) {
       setMessage("");
     } catch (err: any) {
       setStatus("error");
-      setError(err?.message ?? "Couldn't send. Please email us instead.");
+      setError(
+        err?.response?.data?.message ??
+          err?.message ??
+          "Couldn't send just now. Please try again in a moment.",
+      );
     }
   };
 

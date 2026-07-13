@@ -97,12 +97,12 @@ export function IntegrationDetail({ slug }: { slug: string }) {
                   {integration.status === "soon" ? "Register interest" : "Connect it"}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <a
-                  href="mailto:hello@orderhub.io"
+                <Link
+                  href="/contact"
                   className="rounded-lg border border-white/15 bg-white/[0.03] px-5 py-2.5 text-sm font-semibold text-zinc-200 hover:bg-white/[0.06]"
                 >
                   Talk to sales
-                </a>
+                </Link>
               </div>
             </Reveal>
           </div>
