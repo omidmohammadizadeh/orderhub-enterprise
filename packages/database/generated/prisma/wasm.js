@@ -1186,8 +1186,29 @@ exports.Prisma.DriverScalarFieldEnum = {
   isActive: 'isActive',
   vehicleType: 'vehicleType',
   metadata: 'metadata',
+  locationId: 'locationId',
+  startupFee: 'startupFee',
+  postcodeFees: 'postcodeFees',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DriverCashUpScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  locationId: 'locationId',
+  periodStart: 'periodStart',
+  periodEnd: 'periodEnd',
+  cashOrders: 'cashOrders',
+  cashCollected: 'cashCollected',
+  cardOrders: 'cardOrders',
+  cardCollected: 'cardCollected',
+  deliveries: 'deliveries',
+  driverEarning: 'driverEarning',
+  cashHandover: 'cashHandover',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.DriverPresenceScalarFieldEnum = {
@@ -2476,7 +2497,16 @@ exports.Prisma.DriverOrderByRelevanceFieldEnum = {
   lastName: 'lastName',
   phone: 'phone',
   email: 'email',
-  vehicleType: 'vehicleType'
+  vehicleType: 'vehicleType',
+  locationId: 'locationId'
+};
+
+exports.Prisma.DriverCashUpOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  locationId: 'locationId',
+  createdBy: 'createdBy'
 };
 
 exports.Prisma.DriverPresenceOrderByRelevanceFieldEnum = {
@@ -3389,6 +3419,7 @@ exports.Prisma.ModelName = {
   MenuCategoryStation: 'MenuCategoryStation',
   PrintTemplate: 'PrintTemplate',
   Driver: 'Driver',
+  DriverCashUp: 'DriverCashUp',
   DriverPresence: 'DriverPresence',
   DriverAssignment: 'DriverAssignment',
   DeliveryTracking: 'DeliveryTracking',

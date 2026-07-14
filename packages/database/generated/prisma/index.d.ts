@@ -309,6 +309,11 @@ export type PrintTemplate = $Result.DefaultSelection<Prisma.$PrintTemplatePayloa
  */
 export type Driver = $Result.DefaultSelection<Prisma.$DriverPayload>
 /**
+ * Model DriverCashUp
+ * 
+ */
+export type DriverCashUp = $Result.DefaultSelection<Prisma.$DriverCashUpPayload>
+/**
  * Model DriverPresence
  * 
  */
@@ -2065,6 +2070,16 @@ export class PrismaClient<
   get driver(): Prisma.DriverDelegate<ExtArgs>;
 
   /**
+   * `prisma.driverCashUp`: Exposes CRUD operations for the **DriverCashUp** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DriverCashUps
+    * const driverCashUps = await prisma.driverCashUp.findMany()
+    * ```
+    */
+  get driverCashUp(): Prisma.DriverCashUpDelegate<ExtArgs>;
+
+  /**
    * `prisma.driverPresence`: Exposes CRUD operations for the **DriverPresence** model.
     * Example usage:
     * ```ts
@@ -3003,6 +3018,7 @@ export namespace Prisma {
     MenuCategoryStation: 'MenuCategoryStation',
     PrintTemplate: 'PrintTemplate',
     Driver: 'Driver',
+    DriverCashUp: 'DriverCashUp',
     DriverPresence: 'DriverPresence',
     DriverAssignment: 'DriverAssignment',
     DeliveryTracking: 'DeliveryTracking',
@@ -3062,7 +3078,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -7196,6 +7212,76 @@ export namespace Prisma {
           }
         }
       }
+      DriverCashUp: {
+        payload: Prisma.$DriverCashUpPayload<ExtArgs>
+        fields: Prisma.DriverCashUpFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DriverCashUpFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DriverCashUpFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>
+          }
+          findFirst: {
+            args: Prisma.DriverCashUpFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DriverCashUpFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>
+          }
+          findMany: {
+            args: Prisma.DriverCashUpFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>[]
+          }
+          create: {
+            args: Prisma.DriverCashUpCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>
+          }
+          createMany: {
+            args: Prisma.DriverCashUpCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DriverCashUpCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>[]
+          }
+          delete: {
+            args: Prisma.DriverCashUpDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>
+          }
+          update: {
+            args: Prisma.DriverCashUpUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>
+          }
+          deleteMany: {
+            args: Prisma.DriverCashUpDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DriverCashUpUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.DriverCashUpUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverCashUpPayload>
+          }
+          aggregate: {
+            args: Prisma.DriverCashUpAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDriverCashUp>
+          }
+          groupBy: {
+            args: Prisma.DriverCashUpGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DriverCashUpGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DriverCashUpCountArgs<ExtArgs>
+            result: $Utils.Optional<DriverCashUpCountAggregateOutputType> | number
+          }
+        }
+      }
       DriverPresence: {
         payload: Prisma.$DriverPresencePayload<ExtArgs>
         fields: Prisma.DriverPresenceFieldRefs
@@ -10870,6 +10956,7 @@ export namespace Prisma {
     channelPauses: number
     menuAssignments: number
     itemChannelSnoozes: number
+    homeDrivers: number
   }
 
   export type LocationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10885,6 +10972,7 @@ export namespace Prisma {
     channelPauses?: boolean | LocationCountOutputTypeCountChannelPausesArgs
     menuAssignments?: boolean | LocationCountOutputTypeCountMenuAssignmentsArgs
     itemChannelSnoozes?: boolean | LocationCountOutputTypeCountItemChannelSnoozesArgs
+    homeDrivers?: boolean | LocationCountOutputTypeCountHomeDriversArgs
   }
 
   // Custom InputTypes
@@ -10980,6 +11068,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountItemChannelSnoozesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MenuItemChannelAvailabilityWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountHomeDriversArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DriverWhereInput
   }
 
 
@@ -11573,10 +11668,12 @@ export namespace Prisma {
 
   export type DriverCountOutputType = {
     assignments: number
+    cashUps: number
   }
 
   export type DriverCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignments?: boolean | DriverCountOutputTypeCountAssignmentsArgs
+    cashUps?: boolean | DriverCountOutputTypeCountCashUpsArgs
   }
 
   // Custom InputTypes
@@ -11595,6 +11692,13 @@ export namespace Prisma {
    */
   export type DriverCountOutputTypeCountAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DriverAssignmentWhereInput
+  }
+
+  /**
+   * DriverCountOutputType without action
+   */
+  export type DriverCountOutputTypeCountCashUpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DriverCashUpWhereInput
   }
 
 
@@ -25987,6 +26091,7 @@ export namespace Prisma {
     merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
     menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
+    homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -26130,6 +26235,7 @@ export namespace Prisma {
     merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
     menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
+    homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -26161,6 +26267,7 @@ export namespace Prisma {
       merchantSubscription: Prisma.$MerchantSubscriptionPayload<ExtArgs> | null
       menuAssignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
       itemChannelSnoozes: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
+      homeDrivers: Prisma.$DriverPayload<ExtArgs>[]
       defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
@@ -26601,6 +26708,7 @@ export namespace Prisma {
     merchantSubscription<T extends Location$merchantSubscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Location$merchantSubscriptionArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     menuAssignments<T extends Location$menuAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$menuAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
     itemChannelSnoozes<T extends Location$itemChannelSnoozesArgs<ExtArgs> = {}>(args?: Subset<T, Location$itemChannelSnoozesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
+    homeDrivers<T extends Location$homeDriversArgs<ExtArgs> = {}>(args?: Subset<T, Location$homeDriversArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findMany"> | Null>
     defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
@@ -27288,6 +27396,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MenuItemChannelAvailabilityScalarFieldEnum | MenuItemChannelAvailabilityScalarFieldEnum[]
+  }
+
+  /**
+   * Location.homeDrivers
+   */
+  export type Location$homeDriversArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Driver
+     */
+    select?: DriverSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverInclude<ExtArgs> | null
+    where?: DriverWhereInput
+    orderBy?: DriverOrderByWithRelationInput | DriverOrderByWithRelationInput[]
+    cursor?: DriverWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DriverScalarFieldEnum | DriverScalarFieldEnum[]
   }
 
   /**
@@ -76521,8 +76649,18 @@ export namespace Prisma {
 
   export type AggregateDriver = {
     _count: DriverCountAggregateOutputType | null
+    _avg: DriverAvgAggregateOutputType | null
+    _sum: DriverSumAggregateOutputType | null
     _min: DriverMinAggregateOutputType | null
     _max: DriverMaxAggregateOutputType | null
+  }
+
+  export type DriverAvgAggregateOutputType = {
+    startupFee: Decimal | null
+  }
+
+  export type DriverSumAggregateOutputType = {
+    startupFee: Decimal | null
   }
 
   export type DriverMinAggregateOutputType = {
@@ -76535,6 +76673,8 @@ export namespace Prisma {
     email: string | null
     isActive: boolean | null
     vehicleType: string | null
+    locationId: string | null
+    startupFee: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -76549,6 +76689,8 @@ export namespace Prisma {
     email: string | null
     isActive: boolean | null
     vehicleType: string | null
+    locationId: string | null
+    startupFee: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -76564,11 +76706,22 @@ export namespace Prisma {
     isActive: number
     vehicleType: number
     metadata: number
+    locationId: number
+    startupFee: number
+    postcodeFees: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type DriverAvgAggregateInputType = {
+    startupFee?: true
+  }
+
+  export type DriverSumAggregateInputType = {
+    startupFee?: true
+  }
 
   export type DriverMinAggregateInputType = {
     id?: true
@@ -76580,6 +76733,8 @@ export namespace Prisma {
     email?: true
     isActive?: true
     vehicleType?: true
+    locationId?: true
+    startupFee?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -76594,6 +76749,8 @@ export namespace Prisma {
     email?: true
     isActive?: true
     vehicleType?: true
+    locationId?: true
+    startupFee?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -76609,6 +76766,9 @@ export namespace Prisma {
     isActive?: true
     vehicleType?: true
     metadata?: true
+    locationId?: true
+    startupFee?: true
+    postcodeFees?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -76652,6 +76812,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: DriverAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DriverSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: DriverMinAggregateInputType
@@ -76682,6 +76854,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: DriverCountAggregateInputType | true
+    _avg?: DriverAvgAggregateInputType
+    _sum?: DriverSumAggregateInputType
     _min?: DriverMinAggregateInputType
     _max?: DriverMaxAggregateInputType
   }
@@ -76697,9 +76871,14 @@ export namespace Prisma {
     isActive: boolean
     vehicleType: string | null
     metadata: JsonValue
+    locationId: string | null
+    startupFee: Decimal
+    postcodeFees: JsonValue
     createdAt: Date
     updatedAt: Date
     _count: DriverCountAggregateOutputType | null
+    _avg: DriverAvgAggregateOutputType | null
+    _sum: DriverSumAggregateOutputType | null
     _min: DriverMinAggregateOutputType | null
     _max: DriverMaxAggregateOutputType | null
   }
@@ -76729,11 +76908,16 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: boolean
     metadata?: boolean
+    locationId?: boolean
+    startupFee?: boolean
+    postcodeFees?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | Driver$locationArgs<ExtArgs>
     assignments?: boolean | Driver$assignmentsArgs<ExtArgs>
     presence?: boolean | Driver$presenceArgs<ExtArgs>
+    cashUps?: boolean | Driver$cashUpsArgs<ExtArgs>
     _count?: boolean | DriverCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["driver"]>
 
@@ -76748,9 +76932,13 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: boolean
     metadata?: boolean
+    locationId?: boolean
+    startupFee?: boolean
+    postcodeFees?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | Driver$locationArgs<ExtArgs>
   }, ExtArgs["result"]["driver"]>
 
   export type DriverSelectScalar = {
@@ -76764,26 +76952,34 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: boolean
     metadata?: boolean
+    locationId?: boolean
+    startupFee?: boolean
+    postcodeFees?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
   export type DriverInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | Driver$locationArgs<ExtArgs>
     assignments?: boolean | Driver$assignmentsArgs<ExtArgs>
     presence?: boolean | Driver$presenceArgs<ExtArgs>
+    cashUps?: boolean | Driver$cashUpsArgs<ExtArgs>
     _count?: boolean | DriverCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type DriverIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | Driver$locationArgs<ExtArgs>
   }
 
   export type $DriverPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Driver"
     objects: {
       tenant: Prisma.$TenantPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs> | null
       assignments: Prisma.$DriverAssignmentPayload<ExtArgs>[]
       presence: Prisma.$DriverPresencePayload<ExtArgs> | null
+      cashUps: Prisma.$DriverCashUpPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -76796,6 +76992,9 @@ export namespace Prisma {
       isActive: boolean
       vehicleType: string | null
       metadata: Prisma.JsonValue
+      locationId: string | null
+      startupFee: Prisma.Decimal
+      postcodeFees: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["driver"]>
@@ -77163,8 +77362,10 @@ export namespace Prisma {
   export interface Prisma__DriverClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends Driver$locationArgs<ExtArgs> = {}>(args?: Subset<T, Driver$locationArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     assignments<T extends Driver$assignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
     presence<T extends Driver$presenceArgs<ExtArgs> = {}>(args?: Subset<T, Driver$presenceArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    cashUps<T extends Driver$cashUpsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$cashUpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -77204,6 +77405,9 @@ export namespace Prisma {
     readonly isActive: FieldRef<"Driver", 'Boolean'>
     readonly vehicleType: FieldRef<"Driver", 'String'>
     readonly metadata: FieldRef<"Driver", 'Json'>
+    readonly locationId: FieldRef<"Driver", 'String'>
+    readonly startupFee: FieldRef<"Driver", 'Decimal'>
+    readonly postcodeFees: FieldRef<"Driver", 'Json'>
     readonly createdAt: FieldRef<"Driver", 'DateTime'>
     readonly updatedAt: FieldRef<"Driver", 'DateTime'>
   }
@@ -77524,6 +77728,21 @@ export namespace Prisma {
   }
 
   /**
+   * Driver.location
+   */
+  export type Driver$locationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
+  }
+
+  /**
    * Driver.assignments
    */
   export type Driver$assignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -77559,6 +77778,26 @@ export namespace Prisma {
   }
 
   /**
+   * Driver.cashUps
+   */
+  export type Driver$cashUpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    where?: DriverCashUpWhereInput
+    orderBy?: DriverCashUpOrderByWithRelationInput | DriverCashUpOrderByWithRelationInput[]
+    cursor?: DriverCashUpWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DriverCashUpScalarFieldEnum | DriverCashUpScalarFieldEnum[]
+  }
+
+  /**
    * Driver without action
    */
   export type DriverDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -77570,6 +77809,1117 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: DriverInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DriverCashUp
+   */
+
+  export type AggregateDriverCashUp = {
+    _count: DriverCashUpCountAggregateOutputType | null
+    _avg: DriverCashUpAvgAggregateOutputType | null
+    _sum: DriverCashUpSumAggregateOutputType | null
+    _min: DriverCashUpMinAggregateOutputType | null
+    _max: DriverCashUpMaxAggregateOutputType | null
+  }
+
+  export type DriverCashUpAvgAggregateOutputType = {
+    cashOrders: number | null
+    cashCollected: Decimal | null
+    cardOrders: number | null
+    cardCollected: Decimal | null
+    deliveries: number | null
+    driverEarning: Decimal | null
+    cashHandover: Decimal | null
+  }
+
+  export type DriverCashUpSumAggregateOutputType = {
+    cashOrders: number | null
+    cashCollected: Decimal | null
+    cardOrders: number | null
+    cardCollected: Decimal | null
+    deliveries: number | null
+    driverEarning: Decimal | null
+    cashHandover: Decimal | null
+  }
+
+  export type DriverCashUpMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    driverId: string | null
+    locationId: string | null
+    periodStart: Date | null
+    periodEnd: Date | null
+    cashOrders: number | null
+    cashCollected: Decimal | null
+    cardOrders: number | null
+    cardCollected: Decimal | null
+    deliveries: number | null
+    driverEarning: Decimal | null
+    cashHandover: Decimal | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type DriverCashUpMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    driverId: string | null
+    locationId: string | null
+    periodStart: Date | null
+    periodEnd: Date | null
+    cashOrders: number | null
+    cashCollected: Decimal | null
+    cardOrders: number | null
+    cardCollected: Decimal | null
+    deliveries: number | null
+    driverEarning: Decimal | null
+    cashHandover: Decimal | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type DriverCashUpCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    driverId: number
+    locationId: number
+    periodStart: number
+    periodEnd: number
+    cashOrders: number
+    cashCollected: number
+    cardOrders: number
+    cardCollected: number
+    deliveries: number
+    driverEarning: number
+    cashHandover: number
+    createdBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type DriverCashUpAvgAggregateInputType = {
+    cashOrders?: true
+    cashCollected?: true
+    cardOrders?: true
+    cardCollected?: true
+    deliveries?: true
+    driverEarning?: true
+    cashHandover?: true
+  }
+
+  export type DriverCashUpSumAggregateInputType = {
+    cashOrders?: true
+    cashCollected?: true
+    cardOrders?: true
+    cardCollected?: true
+    deliveries?: true
+    driverEarning?: true
+    cashHandover?: true
+  }
+
+  export type DriverCashUpMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    locationId?: true
+    periodStart?: true
+    periodEnd?: true
+    cashOrders?: true
+    cashCollected?: true
+    cardOrders?: true
+    cardCollected?: true
+    deliveries?: true
+    driverEarning?: true
+    cashHandover?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type DriverCashUpMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    locationId?: true
+    periodStart?: true
+    periodEnd?: true
+    cashOrders?: true
+    cashCollected?: true
+    cardOrders?: true
+    cardCollected?: true
+    deliveries?: true
+    driverEarning?: true
+    cashHandover?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type DriverCashUpCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    locationId?: true
+    periodStart?: true
+    periodEnd?: true
+    cashOrders?: true
+    cashCollected?: true
+    cardOrders?: true
+    cardCollected?: true
+    deliveries?: true
+    driverEarning?: true
+    cashHandover?: true
+    createdBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type DriverCashUpAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DriverCashUp to aggregate.
+     */
+    where?: DriverCashUpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverCashUps to fetch.
+     */
+    orderBy?: DriverCashUpOrderByWithRelationInput | DriverCashUpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DriverCashUpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverCashUps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverCashUps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DriverCashUps
+    **/
+    _count?: true | DriverCashUpCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DriverCashUpAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DriverCashUpSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DriverCashUpMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DriverCashUpMaxAggregateInputType
+  }
+
+  export type GetDriverCashUpAggregateType<T extends DriverCashUpAggregateArgs> = {
+        [P in keyof T & keyof AggregateDriverCashUp]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDriverCashUp[P]>
+      : GetScalarType<T[P], AggregateDriverCashUp[P]>
+  }
+
+
+
+
+  export type DriverCashUpGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DriverCashUpWhereInput
+    orderBy?: DriverCashUpOrderByWithAggregationInput | DriverCashUpOrderByWithAggregationInput[]
+    by: DriverCashUpScalarFieldEnum[] | DriverCashUpScalarFieldEnum
+    having?: DriverCashUpScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DriverCashUpCountAggregateInputType | true
+    _avg?: DriverCashUpAvgAggregateInputType
+    _sum?: DriverCashUpSumAggregateInputType
+    _min?: DriverCashUpMinAggregateInputType
+    _max?: DriverCashUpMaxAggregateInputType
+  }
+
+  export type DriverCashUpGroupByOutputType = {
+    id: string
+    tenantId: string
+    driverId: string
+    locationId: string | null
+    periodStart: Date
+    periodEnd: Date
+    cashOrders: number
+    cashCollected: Decimal
+    cardOrders: number
+    cardCollected: Decimal
+    deliveries: number
+    driverEarning: Decimal
+    cashHandover: Decimal
+    createdBy: string | null
+    createdAt: Date
+    _count: DriverCashUpCountAggregateOutputType | null
+    _avg: DriverCashUpAvgAggregateOutputType | null
+    _sum: DriverCashUpSumAggregateOutputType | null
+    _min: DriverCashUpMinAggregateOutputType | null
+    _max: DriverCashUpMaxAggregateOutputType | null
+  }
+
+  type GetDriverCashUpGroupByPayload<T extends DriverCashUpGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DriverCashUpGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DriverCashUpGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DriverCashUpGroupByOutputType[P]>
+            : GetScalarType<T[P], DriverCashUpGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DriverCashUpSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    locationId?: boolean
+    periodStart?: boolean
+    periodEnd?: boolean
+    cashOrders?: boolean
+    cashCollected?: boolean
+    cardOrders?: boolean
+    cardCollected?: boolean
+    deliveries?: boolean
+    driverEarning?: boolean
+    cashHandover?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["driverCashUp"]>
+
+  export type DriverCashUpSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    locationId?: boolean
+    periodStart?: boolean
+    periodEnd?: boolean
+    cashOrders?: boolean
+    cashCollected?: boolean
+    cardOrders?: boolean
+    cardCollected?: boolean
+    deliveries?: boolean
+    driverEarning?: boolean
+    cashHandover?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["driverCashUp"]>
+
+  export type DriverCashUpSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    locationId?: boolean
+    periodStart?: boolean
+    periodEnd?: boolean
+    cashOrders?: boolean
+    cashCollected?: boolean
+    cardOrders?: boolean
+    cardCollected?: boolean
+    deliveries?: boolean
+    driverEarning?: boolean
+    cashHandover?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type DriverCashUpInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }
+  export type DriverCashUpIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }
+
+  export type $DriverCashUpPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DriverCashUp"
+    objects: {
+      driver: Prisma.$DriverPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      driverId: string
+      locationId: string | null
+      periodStart: Date
+      periodEnd: Date
+      cashOrders: number
+      cashCollected: Prisma.Decimal
+      cardOrders: number
+      cardCollected: Prisma.Decimal
+      deliveries: number
+      driverEarning: Prisma.Decimal
+      cashHandover: Prisma.Decimal
+      createdBy: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["driverCashUp"]>
+    composites: {}
+  }
+
+  type DriverCashUpGetPayload<S extends boolean | null | undefined | DriverCashUpDefaultArgs> = $Result.GetResult<Prisma.$DriverCashUpPayload, S>
+
+  type DriverCashUpCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<DriverCashUpFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: DriverCashUpCountAggregateInputType | true
+    }
+
+  export interface DriverCashUpDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DriverCashUp'], meta: { name: 'DriverCashUp' } }
+    /**
+     * Find zero or one DriverCashUp that matches the filter.
+     * @param {DriverCashUpFindUniqueArgs} args - Arguments to find a DriverCashUp
+     * @example
+     * // Get one DriverCashUp
+     * const driverCashUp = await prisma.driverCashUp.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DriverCashUpFindUniqueArgs>(args: SelectSubset<T, DriverCashUpFindUniqueArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one DriverCashUp that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {DriverCashUpFindUniqueOrThrowArgs} args - Arguments to find a DriverCashUp
+     * @example
+     * // Get one DriverCashUp
+     * const driverCashUp = await prisma.driverCashUp.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DriverCashUpFindUniqueOrThrowArgs>(args: SelectSubset<T, DriverCashUpFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first DriverCashUp that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverCashUpFindFirstArgs} args - Arguments to find a DriverCashUp
+     * @example
+     * // Get one DriverCashUp
+     * const driverCashUp = await prisma.driverCashUp.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DriverCashUpFindFirstArgs>(args?: SelectSubset<T, DriverCashUpFindFirstArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first DriverCashUp that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverCashUpFindFirstOrThrowArgs} args - Arguments to find a DriverCashUp
+     * @example
+     * // Get one DriverCashUp
+     * const driverCashUp = await prisma.driverCashUp.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DriverCashUpFindFirstOrThrowArgs>(args?: SelectSubset<T, DriverCashUpFindFirstOrThrowArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more DriverCashUps that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverCashUpFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DriverCashUps
+     * const driverCashUps = await prisma.driverCashUp.findMany()
+     * 
+     * // Get first 10 DriverCashUps
+     * const driverCashUps = await prisma.driverCashUp.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const driverCashUpWithIdOnly = await prisma.driverCashUp.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DriverCashUpFindManyArgs>(args?: SelectSubset<T, DriverCashUpFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a DriverCashUp.
+     * @param {DriverCashUpCreateArgs} args - Arguments to create a DriverCashUp.
+     * @example
+     * // Create one DriverCashUp
+     * const DriverCashUp = await prisma.driverCashUp.create({
+     *   data: {
+     *     // ... data to create a DriverCashUp
+     *   }
+     * })
+     * 
+     */
+    create<T extends DriverCashUpCreateArgs>(args: SelectSubset<T, DriverCashUpCreateArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many DriverCashUps.
+     * @param {DriverCashUpCreateManyArgs} args - Arguments to create many DriverCashUps.
+     * @example
+     * // Create many DriverCashUps
+     * const driverCashUp = await prisma.driverCashUp.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DriverCashUpCreateManyArgs>(args?: SelectSubset<T, DriverCashUpCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DriverCashUps and returns the data saved in the database.
+     * @param {DriverCashUpCreateManyAndReturnArgs} args - Arguments to create many DriverCashUps.
+     * @example
+     * // Create many DriverCashUps
+     * const driverCashUp = await prisma.driverCashUp.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DriverCashUps and only return the `id`
+     * const driverCashUpWithIdOnly = await prisma.driverCashUp.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DriverCashUpCreateManyAndReturnArgs>(args?: SelectSubset<T, DriverCashUpCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a DriverCashUp.
+     * @param {DriverCashUpDeleteArgs} args - Arguments to delete one DriverCashUp.
+     * @example
+     * // Delete one DriverCashUp
+     * const DriverCashUp = await prisma.driverCashUp.delete({
+     *   where: {
+     *     // ... filter to delete one DriverCashUp
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DriverCashUpDeleteArgs>(args: SelectSubset<T, DriverCashUpDeleteArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one DriverCashUp.
+     * @param {DriverCashUpUpdateArgs} args - Arguments to update one DriverCashUp.
+     * @example
+     * // Update one DriverCashUp
+     * const driverCashUp = await prisma.driverCashUp.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DriverCashUpUpdateArgs>(args: SelectSubset<T, DriverCashUpUpdateArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more DriverCashUps.
+     * @param {DriverCashUpDeleteManyArgs} args - Arguments to filter DriverCashUps to delete.
+     * @example
+     * // Delete a few DriverCashUps
+     * const { count } = await prisma.driverCashUp.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DriverCashUpDeleteManyArgs>(args?: SelectSubset<T, DriverCashUpDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DriverCashUps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverCashUpUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DriverCashUps
+     * const driverCashUp = await prisma.driverCashUp.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DriverCashUpUpdateManyArgs>(args: SelectSubset<T, DriverCashUpUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one DriverCashUp.
+     * @param {DriverCashUpUpsertArgs} args - Arguments to update or create a DriverCashUp.
+     * @example
+     * // Update or create a DriverCashUp
+     * const driverCashUp = await prisma.driverCashUp.upsert({
+     *   create: {
+     *     // ... data to create a DriverCashUp
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DriverCashUp we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DriverCashUpUpsertArgs>(args: SelectSubset<T, DriverCashUpUpsertArgs<ExtArgs>>): Prisma__DriverCashUpClient<$Result.GetResult<Prisma.$DriverCashUpPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of DriverCashUps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverCashUpCountArgs} args - Arguments to filter DriverCashUps to count.
+     * @example
+     * // Count the number of DriverCashUps
+     * const count = await prisma.driverCashUp.count({
+     *   where: {
+     *     // ... the filter for the DriverCashUps we want to count
+     *   }
+     * })
+    **/
+    count<T extends DriverCashUpCountArgs>(
+      args?: Subset<T, DriverCashUpCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DriverCashUpCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DriverCashUp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverCashUpAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DriverCashUpAggregateArgs>(args: Subset<T, DriverCashUpAggregateArgs>): Prisma.PrismaPromise<GetDriverCashUpAggregateType<T>>
+
+    /**
+     * Group by DriverCashUp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverCashUpGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DriverCashUpGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DriverCashUpGroupByArgs['orderBy'] }
+        : { orderBy?: DriverCashUpGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DriverCashUpGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDriverCashUpGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DriverCashUp model
+   */
+  readonly fields: DriverCashUpFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DriverCashUp.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DriverCashUpClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    driver<T extends DriverDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DriverDefaultArgs<ExtArgs>>): Prisma__DriverClient<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DriverCashUp model
+   */ 
+  interface DriverCashUpFieldRefs {
+    readonly id: FieldRef<"DriverCashUp", 'String'>
+    readonly tenantId: FieldRef<"DriverCashUp", 'String'>
+    readonly driverId: FieldRef<"DriverCashUp", 'String'>
+    readonly locationId: FieldRef<"DriverCashUp", 'String'>
+    readonly periodStart: FieldRef<"DriverCashUp", 'DateTime'>
+    readonly periodEnd: FieldRef<"DriverCashUp", 'DateTime'>
+    readonly cashOrders: FieldRef<"DriverCashUp", 'Int'>
+    readonly cashCollected: FieldRef<"DriverCashUp", 'Decimal'>
+    readonly cardOrders: FieldRef<"DriverCashUp", 'Int'>
+    readonly cardCollected: FieldRef<"DriverCashUp", 'Decimal'>
+    readonly deliveries: FieldRef<"DriverCashUp", 'Int'>
+    readonly driverEarning: FieldRef<"DriverCashUp", 'Decimal'>
+    readonly cashHandover: FieldRef<"DriverCashUp", 'Decimal'>
+    readonly createdBy: FieldRef<"DriverCashUp", 'String'>
+    readonly createdAt: FieldRef<"DriverCashUp", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DriverCashUp findUnique
+   */
+  export type DriverCashUpFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverCashUp to fetch.
+     */
+    where: DriverCashUpWhereUniqueInput
+  }
+
+  /**
+   * DriverCashUp findUniqueOrThrow
+   */
+  export type DriverCashUpFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverCashUp to fetch.
+     */
+    where: DriverCashUpWhereUniqueInput
+  }
+
+  /**
+   * DriverCashUp findFirst
+   */
+  export type DriverCashUpFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverCashUp to fetch.
+     */
+    where?: DriverCashUpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverCashUps to fetch.
+     */
+    orderBy?: DriverCashUpOrderByWithRelationInput | DriverCashUpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DriverCashUps.
+     */
+    cursor?: DriverCashUpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverCashUps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverCashUps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DriverCashUps.
+     */
+    distinct?: DriverCashUpScalarFieldEnum | DriverCashUpScalarFieldEnum[]
+  }
+
+  /**
+   * DriverCashUp findFirstOrThrow
+   */
+  export type DriverCashUpFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverCashUp to fetch.
+     */
+    where?: DriverCashUpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverCashUps to fetch.
+     */
+    orderBy?: DriverCashUpOrderByWithRelationInput | DriverCashUpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DriverCashUps.
+     */
+    cursor?: DriverCashUpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverCashUps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverCashUps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DriverCashUps.
+     */
+    distinct?: DriverCashUpScalarFieldEnum | DriverCashUpScalarFieldEnum[]
+  }
+
+  /**
+   * DriverCashUp findMany
+   */
+  export type DriverCashUpFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverCashUps to fetch.
+     */
+    where?: DriverCashUpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverCashUps to fetch.
+     */
+    orderBy?: DriverCashUpOrderByWithRelationInput | DriverCashUpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DriverCashUps.
+     */
+    cursor?: DriverCashUpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverCashUps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverCashUps.
+     */
+    skip?: number
+    distinct?: DriverCashUpScalarFieldEnum | DriverCashUpScalarFieldEnum[]
+  }
+
+  /**
+   * DriverCashUp create
+   */
+  export type DriverCashUpCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DriverCashUp.
+     */
+    data: XOR<DriverCashUpCreateInput, DriverCashUpUncheckedCreateInput>
+  }
+
+  /**
+   * DriverCashUp createMany
+   */
+  export type DriverCashUpCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DriverCashUps.
+     */
+    data: DriverCashUpCreateManyInput | DriverCashUpCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DriverCashUp createManyAndReturn
+   */
+  export type DriverCashUpCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many DriverCashUps.
+     */
+    data: DriverCashUpCreateManyInput | DriverCashUpCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DriverCashUp update
+   */
+  export type DriverCashUpUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DriverCashUp.
+     */
+    data: XOR<DriverCashUpUpdateInput, DriverCashUpUncheckedUpdateInput>
+    /**
+     * Choose, which DriverCashUp to update.
+     */
+    where: DriverCashUpWhereUniqueInput
+  }
+
+  /**
+   * DriverCashUp updateMany
+   */
+  export type DriverCashUpUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DriverCashUps.
+     */
+    data: XOR<DriverCashUpUpdateManyMutationInput, DriverCashUpUncheckedUpdateManyInput>
+    /**
+     * Filter which DriverCashUps to update
+     */
+    where?: DriverCashUpWhereInput
+  }
+
+  /**
+   * DriverCashUp upsert
+   */
+  export type DriverCashUpUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DriverCashUp to update in case it exists.
+     */
+    where: DriverCashUpWhereUniqueInput
+    /**
+     * In case the DriverCashUp found by the `where` argument doesn't exist, create a new DriverCashUp with this data.
+     */
+    create: XOR<DriverCashUpCreateInput, DriverCashUpUncheckedCreateInput>
+    /**
+     * In case the DriverCashUp was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DriverCashUpUpdateInput, DriverCashUpUncheckedUpdateInput>
+  }
+
+  /**
+   * DriverCashUp delete
+   */
+  export type DriverCashUpDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
+    /**
+     * Filter which DriverCashUp to delete.
+     */
+    where: DriverCashUpWhereUniqueInput
+  }
+
+  /**
+   * DriverCashUp deleteMany
+   */
+  export type DriverCashUpDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DriverCashUps to delete
+     */
+    where?: DriverCashUpWhereInput
+  }
+
+  /**
+   * DriverCashUp without action
+   */
+  export type DriverCashUpDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverCashUp
+     */
+    select?: DriverCashUpSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverCashUpInclude<ExtArgs> | null
   }
 
 
@@ -123872,11 +125222,35 @@ export namespace Prisma {
     isActive: 'isActive',
     vehicleType: 'vehicleType',
     metadata: 'metadata',
+    locationId: 'locationId',
+    startupFee: 'startupFee',
+    postcodeFees: 'postcodeFees',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type DriverScalarFieldEnum = (typeof DriverScalarFieldEnum)[keyof typeof DriverScalarFieldEnum]
+
+
+  export const DriverCashUpScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    driverId: 'driverId',
+    locationId: 'locationId',
+    periodStart: 'periodStart',
+    periodEnd: 'periodEnd',
+    cashOrders: 'cashOrders',
+    cashCollected: 'cashCollected',
+    cardOrders: 'cardOrders',
+    cardCollected: 'cardCollected',
+    deliveries: 'deliveries',
+    driverEarning: 'driverEarning',
+    cashHandover: 'cashHandover',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt'
+  };
+
+  export type DriverCashUpScalarFieldEnum = (typeof DriverCashUpScalarFieldEnum)[keyof typeof DriverCashUpScalarFieldEnum]
 
 
   export const DriverPresenceScalarFieldEnum: {
@@ -125489,10 +126863,22 @@ export namespace Prisma {
     lastName: 'lastName',
     phone: 'phone',
     email: 'email',
-    vehicleType: 'vehicleType'
+    vehicleType: 'vehicleType',
+    locationId: 'locationId'
   };
 
   export type DriverOrderByRelevanceFieldEnum = (typeof DriverOrderByRelevanceFieldEnum)[keyof typeof DriverOrderByRelevanceFieldEnum]
+
+
+  export const DriverCashUpOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    driverId: 'driverId',
+    locationId: 'locationId',
+    createdBy: 'createdBy'
+  };
+
+  export type DriverCashUpOrderByRelevanceFieldEnum = (typeof DriverCashUpOrderByRelevanceFieldEnum)[keyof typeof DriverCashUpOrderByRelevanceFieldEnum]
 
 
   export const DriverPresenceOrderByRelevanceFieldEnum: {
@@ -128182,6 +129568,7 @@ export namespace Prisma {
     merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
     menuAssignments?: MenuChannelAssignmentListRelationFilter
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
+    homeDrivers?: DriverListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -128259,6 +129646,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionOrderByWithRelationInput
     menuAssignments?: MenuChannelAssignmentOrderByRelationAggregateInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
+    homeDrivers?: DriverOrderByRelationAggregateInput
     defaultKitchenStation?: PrinterStationOrderByWithRelationInput
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
@@ -128340,6 +129728,7 @@ export namespace Prisma {
     merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
     menuAssignments?: MenuChannelAssignmentListRelationFilter
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
+    homeDrivers?: DriverListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -133488,11 +134877,16 @@ export namespace Prisma {
     isActive?: BoolFilter<"Driver"> | boolean
     vehicleType?: StringNullableFilter<"Driver"> | string | null
     metadata?: JsonFilter<"Driver">
+    locationId?: StringNullableFilter<"Driver"> | string | null
+    startupFee?: DecimalFilter<"Driver"> | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonFilter<"Driver">
     createdAt?: DateTimeFilter<"Driver"> | Date | string
     updatedAt?: DateTimeFilter<"Driver"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
     assignments?: DriverAssignmentListRelationFilter
     presence?: XOR<DriverPresenceNullableRelationFilter, DriverPresenceWhereInput> | null
+    cashUps?: DriverCashUpListRelationFilter
   }
 
   export type DriverOrderByWithRelationInput = {
@@ -133506,11 +134900,16 @@ export namespace Prisma {
     isActive?: SortOrder
     vehicleType?: SortOrderInput | SortOrder
     metadata?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    startupFee?: SortOrder
+    postcodeFees?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
     assignments?: DriverAssignmentOrderByRelationAggregateInput
     presence?: DriverPresenceOrderByWithRelationInput
+    cashUps?: DriverCashUpOrderByRelationAggregateInput
     _relevance?: DriverOrderByRelevanceInput
   }
 
@@ -133528,11 +134927,16 @@ export namespace Prisma {
     isActive?: BoolFilter<"Driver"> | boolean
     vehicleType?: StringNullableFilter<"Driver"> | string | null
     metadata?: JsonFilter<"Driver">
+    locationId?: StringNullableFilter<"Driver"> | string | null
+    startupFee?: DecimalFilter<"Driver"> | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonFilter<"Driver">
     createdAt?: DateTimeFilter<"Driver"> | Date | string
     updatedAt?: DateTimeFilter<"Driver"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
     assignments?: DriverAssignmentListRelationFilter
     presence?: XOR<DriverPresenceNullableRelationFilter, DriverPresenceWhereInput> | null
+    cashUps?: DriverCashUpListRelationFilter
   }, "id">
 
   export type DriverOrderByWithAggregationInput = {
@@ -133546,11 +134950,16 @@ export namespace Prisma {
     isActive?: SortOrder
     vehicleType?: SortOrderInput | SortOrder
     metadata?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    startupFee?: SortOrder
+    postcodeFees?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: DriverCountOrderByAggregateInput
+    _avg?: DriverAvgOrderByAggregateInput
     _max?: DriverMaxOrderByAggregateInput
     _min?: DriverMinOrderByAggregateInput
+    _sum?: DriverSumOrderByAggregateInput
   }
 
   export type DriverScalarWhereWithAggregatesInput = {
@@ -133567,8 +134976,119 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"Driver"> | boolean
     vehicleType?: StringNullableWithAggregatesFilter<"Driver"> | string | null
     metadata?: JsonWithAggregatesFilter<"Driver">
+    locationId?: StringNullableWithAggregatesFilter<"Driver"> | string | null
+    startupFee?: DecimalWithAggregatesFilter<"Driver"> | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonWithAggregatesFilter<"Driver">
     createdAt?: DateTimeWithAggregatesFilter<"Driver"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Driver"> | Date | string
+  }
+
+  export type DriverCashUpWhereInput = {
+    AND?: DriverCashUpWhereInput | DriverCashUpWhereInput[]
+    OR?: DriverCashUpWhereInput[]
+    NOT?: DriverCashUpWhereInput | DriverCashUpWhereInput[]
+    id?: StringFilter<"DriverCashUp"> | string
+    tenantId?: StringFilter<"DriverCashUp"> | string
+    driverId?: StringFilter<"DriverCashUp"> | string
+    locationId?: StringNullableFilter<"DriverCashUp"> | string | null
+    periodStart?: DateTimeFilter<"DriverCashUp"> | Date | string
+    periodEnd?: DateTimeFilter<"DriverCashUp"> | Date | string
+    cashOrders?: IntFilter<"DriverCashUp"> | number
+    cashCollected?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFilter<"DriverCashUp"> | number
+    cardCollected?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFilter<"DriverCashUp"> | number
+    driverEarning?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    createdBy?: StringNullableFilter<"DriverCashUp"> | string | null
+    createdAt?: DateTimeFilter<"DriverCashUp"> | Date | string
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+  }
+
+  export type DriverCashUpOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    periodStart?: SortOrder
+    periodEnd?: SortOrder
+    cashOrders?: SortOrder
+    cashCollected?: SortOrder
+    cardOrders?: SortOrder
+    cardCollected?: SortOrder
+    deliveries?: SortOrder
+    driverEarning?: SortOrder
+    cashHandover?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    driver?: DriverOrderByWithRelationInput
+    _relevance?: DriverCashUpOrderByRelevanceInput
+  }
+
+  export type DriverCashUpWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: DriverCashUpWhereInput | DriverCashUpWhereInput[]
+    OR?: DriverCashUpWhereInput[]
+    NOT?: DriverCashUpWhereInput | DriverCashUpWhereInput[]
+    tenantId?: StringFilter<"DriverCashUp"> | string
+    driverId?: StringFilter<"DriverCashUp"> | string
+    locationId?: StringNullableFilter<"DriverCashUp"> | string | null
+    periodStart?: DateTimeFilter<"DriverCashUp"> | Date | string
+    periodEnd?: DateTimeFilter<"DriverCashUp"> | Date | string
+    cashOrders?: IntFilter<"DriverCashUp"> | number
+    cashCollected?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFilter<"DriverCashUp"> | number
+    cardCollected?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFilter<"DriverCashUp"> | number
+    driverEarning?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    createdBy?: StringNullableFilter<"DriverCashUp"> | string | null
+    createdAt?: DateTimeFilter<"DriverCashUp"> | Date | string
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+  }, "id">
+
+  export type DriverCashUpOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    periodStart?: SortOrder
+    periodEnd?: SortOrder
+    cashOrders?: SortOrder
+    cashCollected?: SortOrder
+    cardOrders?: SortOrder
+    cardCollected?: SortOrder
+    deliveries?: SortOrder
+    driverEarning?: SortOrder
+    cashHandover?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: DriverCashUpCountOrderByAggregateInput
+    _avg?: DriverCashUpAvgOrderByAggregateInput
+    _max?: DriverCashUpMaxOrderByAggregateInput
+    _min?: DriverCashUpMinOrderByAggregateInput
+    _sum?: DriverCashUpSumOrderByAggregateInput
+  }
+
+  export type DriverCashUpScalarWhereWithAggregatesInput = {
+    AND?: DriverCashUpScalarWhereWithAggregatesInput | DriverCashUpScalarWhereWithAggregatesInput[]
+    OR?: DriverCashUpScalarWhereWithAggregatesInput[]
+    NOT?: DriverCashUpScalarWhereWithAggregatesInput | DriverCashUpScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DriverCashUp"> | string
+    tenantId?: StringWithAggregatesFilter<"DriverCashUp"> | string
+    driverId?: StringWithAggregatesFilter<"DriverCashUp"> | string
+    locationId?: StringNullableWithAggregatesFilter<"DriverCashUp"> | string | null
+    periodStart?: DateTimeWithAggregatesFilter<"DriverCashUp"> | Date | string
+    periodEnd?: DateTimeWithAggregatesFilter<"DriverCashUp"> | Date | string
+    cashOrders?: IntWithAggregatesFilter<"DriverCashUp"> | number
+    cashCollected?: DecimalWithAggregatesFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntWithAggregatesFilter<"DriverCashUp"> | number
+    cardCollected?: DecimalWithAggregatesFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    deliveries?: IntWithAggregatesFilter<"DriverCashUp"> | number
+    driverEarning?: DecimalWithAggregatesFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalWithAggregatesFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    createdBy?: StringNullableWithAggregatesFilter<"DriverCashUp"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DriverCashUp"> | Date | string
   }
 
   export type DriverPresenceWhereInput = {
@@ -139027,6 +140547,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -139103,6 +140624,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -139173,6 +140695,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -139249,6 +140772,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -145173,11 +146697,15 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutDriversInput
+    location?: LocationCreateNestedOneWithoutHomeDriversInput
     assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
     presence?: DriverPresenceCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateInput = {
@@ -145191,10 +146719,14 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: string | null
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
     presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUpdateInput = {
@@ -145207,11 +146739,15 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    location?: LocationUpdateOneWithoutHomeDriversNestedInput
     assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
     presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateInput = {
@@ -145225,10 +146761,14 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
     presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverCreateManyInput = {
@@ -145242,6 +146782,9 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: string | null
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -145256,6 +146799,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -145271,8 +146816,136 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverCashUpCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    periodStart: Date | string
+    periodEnd: Date | string
+    cashOrders?: number
+    cashCollected?: Decimal | DecimalJsLike | number | string
+    cardOrders?: number
+    cardCollected?: Decimal | DecimalJsLike | number | string
+    deliveries?: number
+    driverEarning?: Decimal | DecimalJsLike | number | string
+    cashHandover?: Decimal | DecimalJsLike | number | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    driver: DriverCreateNestedOneWithoutCashUpsInput
+  }
+
+  export type DriverCashUpUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    locationId?: string | null
+    periodStart: Date | string
+    periodEnd: Date | string
+    cashOrders?: number
+    cashCollected?: Decimal | DecimalJsLike | number | string
+    cardOrders?: number
+    cardCollected?: Decimal | DecimalJsLike | number | string
+    deliveries?: number
+    driverEarning?: Decimal | DecimalJsLike | number | string
+    cashHandover?: Decimal | DecimalJsLike | number | string
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DriverCashUpUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    periodStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    periodEnd?: DateTimeFieldUpdateOperationsInput | Date | string
+    cashOrders?: IntFieldUpdateOperationsInput | number
+    cashCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFieldUpdateOperationsInput | number
+    cardCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFieldUpdateOperationsInput | number
+    driverEarning?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    driver?: DriverUpdateOneRequiredWithoutCashUpsNestedInput
+  }
+
+  export type DriverCashUpUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    periodStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    periodEnd?: DateTimeFieldUpdateOperationsInput | Date | string
+    cashOrders?: IntFieldUpdateOperationsInput | number
+    cashCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFieldUpdateOperationsInput | number
+    cardCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFieldUpdateOperationsInput | number
+    driverEarning?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverCashUpCreateManyInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    locationId?: string | null
+    periodStart: Date | string
+    periodEnd: Date | string
+    cashOrders?: number
+    cashCollected?: Decimal | DecimalJsLike | number | string
+    cardOrders?: number
+    cardCollected?: Decimal | DecimalJsLike | number | string
+    deliveries?: number
+    driverEarning?: Decimal | DecimalJsLike | number | string
+    cashHandover?: Decimal | DecimalJsLike | number | string
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DriverCashUpUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    periodStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    periodEnd?: DateTimeFieldUpdateOperationsInput | Date | string
+    cashOrders?: IntFieldUpdateOperationsInput | number
+    cashCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFieldUpdateOperationsInput | number
+    cardCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFieldUpdateOperationsInput | number
+    driverEarning?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverCashUpUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    periodStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    periodEnd?: DateTimeFieldUpdateOperationsInput | Date | string
+    cashOrders?: IntFieldUpdateOperationsInput | number
+    cashCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFieldUpdateOperationsInput | number
+    cardCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFieldUpdateOperationsInput | number
+    driverEarning?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DriverPresenceCreateInput = {
@@ -155167,7 +156840,17 @@ export namespace Prisma {
     isNot?: DriverPresenceWhereInput | null
   }
 
+  export type DriverCashUpListRelationFilter = {
+    every?: DriverCashUpWhereInput
+    some?: DriverCashUpWhereInput
+    none?: DriverCashUpWhereInput
+  }
+
   export type DriverAssignmentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DriverCashUpOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -155188,8 +156871,15 @@ export namespace Prisma {
     isActive?: SortOrder
     vehicleType?: SortOrder
     metadata?: SortOrder
+    locationId?: SortOrder
+    startupFee?: SortOrder
+    postcodeFees?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type DriverAvgOrderByAggregateInput = {
+    startupFee?: SortOrder
   }
 
   export type DriverMaxOrderByAggregateInput = {
@@ -155202,6 +156892,8 @@ export namespace Prisma {
     email?: SortOrder
     isActive?: SortOrder
     vehicleType?: SortOrder
+    locationId?: SortOrder
+    startupFee?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -155216,8 +156908,99 @@ export namespace Prisma {
     email?: SortOrder
     isActive?: SortOrder
     vehicleType?: SortOrder
+    locationId?: SortOrder
+    startupFee?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type DriverSumOrderByAggregateInput = {
+    startupFee?: SortOrder
+  }
+
+  export type DriverRelationFilter = {
+    is?: DriverWhereInput
+    isNot?: DriverWhereInput
+  }
+
+  export type DriverCashUpOrderByRelevanceInput = {
+    fields: DriverCashUpOrderByRelevanceFieldEnum | DriverCashUpOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type DriverCashUpCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    locationId?: SortOrder
+    periodStart?: SortOrder
+    periodEnd?: SortOrder
+    cashOrders?: SortOrder
+    cashCollected?: SortOrder
+    cardOrders?: SortOrder
+    cardCollected?: SortOrder
+    deliveries?: SortOrder
+    driverEarning?: SortOrder
+    cashHandover?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DriverCashUpAvgOrderByAggregateInput = {
+    cashOrders?: SortOrder
+    cashCollected?: SortOrder
+    cardOrders?: SortOrder
+    cardCollected?: SortOrder
+    deliveries?: SortOrder
+    driverEarning?: SortOrder
+    cashHandover?: SortOrder
+  }
+
+  export type DriverCashUpMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    locationId?: SortOrder
+    periodStart?: SortOrder
+    periodEnd?: SortOrder
+    cashOrders?: SortOrder
+    cashCollected?: SortOrder
+    cardOrders?: SortOrder
+    cardCollected?: SortOrder
+    deliveries?: SortOrder
+    driverEarning?: SortOrder
+    cashHandover?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DriverCashUpMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    locationId?: SortOrder
+    periodStart?: SortOrder
+    periodEnd?: SortOrder
+    cashOrders?: SortOrder
+    cashCollected?: SortOrder
+    cardOrders?: SortOrder
+    cardCollected?: SortOrder
+    deliveries?: SortOrder
+    driverEarning?: SortOrder
+    cashHandover?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DriverCashUpSumOrderByAggregateInput = {
+    cashOrders?: SortOrder
+    cashCollected?: SortOrder
+    cardOrders?: SortOrder
+    cardCollected?: SortOrder
+    deliveries?: SortOrder
+    driverEarning?: SortOrder
+    cashHandover?: SortOrder
   }
 
   export type EnumDriverPresenceStatusFilter<$PrismaModel = never> = {
@@ -155225,11 +157008,6 @@ export namespace Prisma {
     in?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumDriverPresenceStatusFilter<$PrismaModel> | $Enums.DriverPresenceStatus
-  }
-
-  export type DriverRelationFilter = {
-    is?: DriverWhereInput
-    isNot?: DriverWhereInput
   }
 
   export type DriverPresenceOrderByRelevanceInput = {
@@ -160277,6 +162055,13 @@ export namespace Prisma {
     connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
   }
 
+  export type DriverCreateNestedManyWithoutLocationInput = {
+    create?: XOR<DriverCreateWithoutLocationInput, DriverUncheckedCreateWithoutLocationInput> | DriverCreateWithoutLocationInput[] | DriverUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DriverCreateOrConnectWithoutLocationInput | DriverCreateOrConnectWithoutLocationInput[]
+    createMany?: DriverCreateManyLocationInputEnvelope
+    connect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutLocationDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -160395,6 +162180,13 @@ export namespace Prisma {
     connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput | MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput[]
     createMany?: MenuItemChannelAvailabilityCreateManyLocationInputEnvelope
     connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+  }
+
+  export type DriverUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<DriverCreateWithoutLocationInput, DriverUncheckedCreateWithoutLocationInput> | DriverCreateWithoutLocationInput[] | DriverUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DriverCreateOrConnectWithoutLocationInput | DriverCreateOrConnectWithoutLocationInput[]
+    createMany?: DriverCreateManyLocationInputEnvelope
+    connect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -160613,6 +162405,20 @@ export namespace Prisma {
     update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+  }
+
+  export type DriverUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<DriverCreateWithoutLocationInput, DriverUncheckedCreateWithoutLocationInput> | DriverCreateWithoutLocationInput[] | DriverUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DriverCreateOrConnectWithoutLocationInput | DriverCreateOrConnectWithoutLocationInput[]
+    upsert?: DriverUpsertWithWhereUniqueWithoutLocationInput | DriverUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: DriverCreateManyLocationInputEnvelope
+    set?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    disconnect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    delete?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    connect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    update?: DriverUpdateWithWhereUniqueWithoutLocationInput | DriverUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: DriverUpdateManyWithWhereWithoutLocationInput | DriverUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: DriverScalarWhereInput | DriverScalarWhereInput[]
   }
 
   export type PrinterStationUpdateOneWithoutLocationDefaultsNestedInput = {
@@ -160841,6 +162647,20 @@ export namespace Prisma {
     update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+  }
+
+  export type DriverUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<DriverCreateWithoutLocationInput, DriverUncheckedCreateWithoutLocationInput> | DriverCreateWithoutLocationInput[] | DriverUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DriverCreateOrConnectWithoutLocationInput | DriverCreateOrConnectWithoutLocationInput[]
+    upsert?: DriverUpsertWithWhereUniqueWithoutLocationInput | DriverUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: DriverCreateManyLocationInputEnvelope
+    set?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    disconnect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    delete?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    connect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+    update?: DriverUpdateWithWhereUniqueWithoutLocationInput | DriverUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: DriverUpdateManyWithWhereWithoutLocationInput | DriverUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: DriverScalarWhereInput | DriverScalarWhereInput[]
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -163766,6 +165586,12 @@ export namespace Prisma {
     connect?: TenantWhereUniqueInput
   }
 
+  export type LocationCreateNestedOneWithoutHomeDriversInput = {
+    create?: XOR<LocationCreateWithoutHomeDriversInput, LocationUncheckedCreateWithoutHomeDriversInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutHomeDriversInput
+    connect?: LocationWhereUniqueInput
+  }
+
   export type DriverAssignmentCreateNestedManyWithoutDriverInput = {
     create?: XOR<DriverAssignmentCreateWithoutDriverInput, DriverAssignmentUncheckedCreateWithoutDriverInput> | DriverAssignmentCreateWithoutDriverInput[] | DriverAssignmentUncheckedCreateWithoutDriverInput[]
     connectOrCreate?: DriverAssignmentCreateOrConnectWithoutDriverInput | DriverAssignmentCreateOrConnectWithoutDriverInput[]
@@ -163777,6 +165603,13 @@ export namespace Prisma {
     create?: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
     connectOrCreate?: DriverPresenceCreateOrConnectWithoutDriverInput
     connect?: DriverPresenceWhereUniqueInput
+  }
+
+  export type DriverCashUpCreateNestedManyWithoutDriverInput = {
+    create?: XOR<DriverCashUpCreateWithoutDriverInput, DriverCashUpUncheckedCreateWithoutDriverInput> | DriverCashUpCreateWithoutDriverInput[] | DriverCashUpUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: DriverCashUpCreateOrConnectWithoutDriverInput | DriverCashUpCreateOrConnectWithoutDriverInput[]
+    createMany?: DriverCashUpCreateManyDriverInputEnvelope
+    connect?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
   }
 
   export type DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput = {
@@ -163792,12 +165625,29 @@ export namespace Prisma {
     connect?: DriverPresenceWhereUniqueInput
   }
 
+  export type DriverCashUpUncheckedCreateNestedManyWithoutDriverInput = {
+    create?: XOR<DriverCashUpCreateWithoutDriverInput, DriverCashUpUncheckedCreateWithoutDriverInput> | DriverCashUpCreateWithoutDriverInput[] | DriverCashUpUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: DriverCashUpCreateOrConnectWithoutDriverInput | DriverCashUpCreateOrConnectWithoutDriverInput[]
+    createMany?: DriverCashUpCreateManyDriverInputEnvelope
+    connect?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+  }
+
   export type TenantUpdateOneRequiredWithoutDriversNestedInput = {
     create?: XOR<TenantCreateWithoutDriversInput, TenantUncheckedCreateWithoutDriversInput>
     connectOrCreate?: TenantCreateOrConnectWithoutDriversInput
     upsert?: TenantUpsertWithoutDriversInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutDriversInput, TenantUpdateWithoutDriversInput>, TenantUncheckedUpdateWithoutDriversInput>
+  }
+
+  export type LocationUpdateOneWithoutHomeDriversNestedInput = {
+    create?: XOR<LocationCreateWithoutHomeDriversInput, LocationUncheckedCreateWithoutHomeDriversInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutHomeDriversInput
+    upsert?: LocationUpsertWithoutHomeDriversInput
+    disconnect?: LocationWhereInput | boolean
+    delete?: LocationWhereInput | boolean
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutHomeDriversInput, LocationUpdateWithoutHomeDriversInput>, LocationUncheckedUpdateWithoutHomeDriversInput>
   }
 
   export type DriverAssignmentUpdateManyWithoutDriverNestedInput = {
@@ -163824,6 +165674,20 @@ export namespace Prisma {
     update?: XOR<XOR<DriverPresenceUpdateToOneWithWhereWithoutDriverInput, DriverPresenceUpdateWithoutDriverInput>, DriverPresenceUncheckedUpdateWithoutDriverInput>
   }
 
+  export type DriverCashUpUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<DriverCashUpCreateWithoutDriverInput, DriverCashUpUncheckedCreateWithoutDriverInput> | DriverCashUpCreateWithoutDriverInput[] | DriverCashUpUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: DriverCashUpCreateOrConnectWithoutDriverInput | DriverCashUpCreateOrConnectWithoutDriverInput[]
+    upsert?: DriverCashUpUpsertWithWhereUniqueWithoutDriverInput | DriverCashUpUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: DriverCashUpCreateManyDriverInputEnvelope
+    set?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    disconnect?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    delete?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    connect?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    update?: DriverCashUpUpdateWithWhereUniqueWithoutDriverInput | DriverCashUpUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: DriverCashUpUpdateManyWithWhereWithoutDriverInput | DriverCashUpUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: DriverCashUpScalarWhereInput | DriverCashUpScalarWhereInput[]
+  }
+
   export type DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput = {
     create?: XOR<DriverAssignmentCreateWithoutDriverInput, DriverAssignmentUncheckedCreateWithoutDriverInput> | DriverAssignmentCreateWithoutDriverInput[] | DriverAssignmentUncheckedCreateWithoutDriverInput[]
     connectOrCreate?: DriverAssignmentCreateOrConnectWithoutDriverInput | DriverAssignmentCreateOrConnectWithoutDriverInput[]
@@ -163846,6 +165710,34 @@ export namespace Prisma {
     delete?: DriverPresenceWhereInput | boolean
     connect?: DriverPresenceWhereUniqueInput
     update?: XOR<XOR<DriverPresenceUpdateToOneWithWhereWithoutDriverInput, DriverPresenceUpdateWithoutDriverInput>, DriverPresenceUncheckedUpdateWithoutDriverInput>
+  }
+
+  export type DriverCashUpUncheckedUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<DriverCashUpCreateWithoutDriverInput, DriverCashUpUncheckedCreateWithoutDriverInput> | DriverCashUpCreateWithoutDriverInput[] | DriverCashUpUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: DriverCashUpCreateOrConnectWithoutDriverInput | DriverCashUpCreateOrConnectWithoutDriverInput[]
+    upsert?: DriverCashUpUpsertWithWhereUniqueWithoutDriverInput | DriverCashUpUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: DriverCashUpCreateManyDriverInputEnvelope
+    set?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    disconnect?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    delete?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    connect?: DriverCashUpWhereUniqueInput | DriverCashUpWhereUniqueInput[]
+    update?: DriverCashUpUpdateWithWhereUniqueWithoutDriverInput | DriverCashUpUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: DriverCashUpUpdateManyWithWhereWithoutDriverInput | DriverCashUpUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: DriverCashUpScalarWhereInput | DriverCashUpScalarWhereInput[]
+  }
+
+  export type DriverCreateNestedOneWithoutCashUpsInput = {
+    create?: XOR<DriverCreateWithoutCashUpsInput, DriverUncheckedCreateWithoutCashUpsInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutCashUpsInput
+    connect?: DriverWhereUniqueInput
+  }
+
+  export type DriverUpdateOneRequiredWithoutCashUpsNestedInput = {
+    create?: XOR<DriverCreateWithoutCashUpsInput, DriverUncheckedCreateWithoutCashUpsInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutCashUpsInput
+    upsert?: DriverUpsertWithoutCashUpsInput
+    connect?: DriverWhereUniqueInput
+    update?: XOR<XOR<DriverUpdateToOneWithWhereWithoutCashUpsInput, DriverUpdateWithoutCashUpsInput>, DriverUncheckedUpdateWithoutCashUpsInput>
   }
 
   export type DriverCreateNestedOneWithoutPresenceInput = {
@@ -167047,10 +168939,14 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+    location?: LocationCreateNestedOneWithoutHomeDriversInput
     assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
     presence?: DriverPresenceCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutTenantInput = {
@@ -167063,10 +168959,14 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: string | null
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
     presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutTenantInput = {
@@ -167895,6 +169795,9 @@ export namespace Prisma {
     isActive?: BoolFilter<"Driver"> | boolean
     vehicleType?: StringNullableFilter<"Driver"> | string | null
     metadata?: JsonFilter<"Driver">
+    locationId?: StringNullableFilter<"Driver"> | string | null
+    startupFee?: DecimalFilter<"Driver"> | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonFilter<"Driver">
     createdAt?: DateTimeFilter<"Driver"> | Date | string
     updatedAt?: DateTimeFilter<"Driver"> | Date | string
   }
@@ -169149,6 +171052,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -169224,6 +171128,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -169372,6 +171277,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -169447,6 +171353,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -170994,6 +172901,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -171069,6 +172977,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -173173,6 +175082,56 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DriverCreateWithoutLocationInput = {
+    id?: string
+    userId?: string | null
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string | null
+    isActive?: boolean
+    vehicleType?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutDriversInput
+    assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string | null
+    isActive?: boolean
+    vehicleType?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpUncheckedCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverCreateOrConnectWithoutLocationInput = {
+    where: DriverWhereUniqueInput
+    create: XOR<DriverCreateWithoutLocationInput, DriverUncheckedCreateWithoutLocationInput>
+  }
+
+  export type DriverCreateManyLocationInputEnvelope = {
+    data: DriverCreateManyLocationInput | DriverCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutLocationDefaultsInput = {
     id?: string
     name: string
@@ -173942,6 +175901,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
   }
 
+  export type DriverUpsertWithWhereUniqueWithoutLocationInput = {
+    where: DriverWhereUniqueInput
+    update: XOR<DriverUpdateWithoutLocationInput, DriverUncheckedUpdateWithoutLocationInput>
+    create: XOR<DriverCreateWithoutLocationInput, DriverUncheckedCreateWithoutLocationInput>
+  }
+
+  export type DriverUpdateWithWhereUniqueWithoutLocationInput = {
+    where: DriverWhereUniqueInput
+    data: XOR<DriverUpdateWithoutLocationInput, DriverUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type DriverUpdateManyWithWhereWithoutLocationInput = {
+    where: DriverScalarWhereInput
+    data: XOR<DriverUpdateManyMutationInput, DriverUncheckedUpdateManyWithoutLocationInput>
+  }
+
   export type PrinterStationUpsertWithoutLocationDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
     create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
@@ -174335,6 +176310,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -174410,6 +176386,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -174602,6 +176579,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -174677,6 +176655,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -174746,6 +176725,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -174821,6 +176801,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -174906,6 +176887,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -174981,6 +176963,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -175588,6 +177571,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -175663,6 +177647,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMenuAssignmentsInput = {
@@ -175839,6 +177824,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -175914,6 +177900,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutChannelSourcesInput = {
@@ -176942,6 +178929,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -177017,6 +179005,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutChannelPausesInput = {
@@ -177102,6 +179091,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -177177,6 +179167,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -177345,6 +179336,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -177420,6 +179412,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutItemChannelSnoozesInput = {
@@ -177610,6 +179603,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -177685,6 +179679,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type MenuCategoryCreateWithoutItemsInput = {
@@ -180496,6 +182491,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -180571,6 +182567,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -180757,6 +182754,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -180832,6 +182830,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -182197,6 +184196,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -182272,6 +184272,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -182458,6 +184459,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -182533,6 +184535,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDeliveryZonesInput = {
@@ -182709,6 +184712,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -182784,6 +184788,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -182869,6 +184874,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -182944,6 +184950,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -183076,6 +185083,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -183151,6 +185159,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -183771,6 +185780,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -183846,6 +185856,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -184975,6 +186986,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -185050,6 +187062,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -185163,6 +187176,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -185238,6 +187252,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -185715,6 +187730,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -185790,6 +187806,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -186026,6 +188043,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -186100,6 +188118,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -186180,6 +188199,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
   }
@@ -186254,6 +188274,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -186344,6 +188365,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -186419,6 +188441,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -187494,6 +189517,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -187569,6 +189593,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -187899,6 +189924,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -187973,6 +189999,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -188198,6 +190225,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -188273,6 +190301,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -188590,6 +190619,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -188665,6 +190695,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -188973,6 +191004,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -189048,6 +191080,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -189853,6 +191886,157 @@ export namespace Prisma {
     create: XOR<TenantCreateWithoutDriversInput, TenantUncheckedCreateWithoutDriversInput>
   }
 
+  export type LocationCreateWithoutHomeDriversInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutHomeDriversInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutHomeDriversInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutHomeDriversInput, LocationUncheckedCreateWithoutHomeDriversInput>
+  }
+
   export type DriverAssignmentCreateWithoutDriverInput = {
     id?: string
     status?: $Enums.DriverAssignmentStatus
@@ -189928,6 +192112,50 @@ export namespace Prisma {
     create: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
   }
 
+  export type DriverCashUpCreateWithoutDriverInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    periodStart: Date | string
+    periodEnd: Date | string
+    cashOrders?: number
+    cashCollected?: Decimal | DecimalJsLike | number | string
+    cardOrders?: number
+    cardCollected?: Decimal | DecimalJsLike | number | string
+    deliveries?: number
+    driverEarning?: Decimal | DecimalJsLike | number | string
+    cashHandover?: Decimal | DecimalJsLike | number | string
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DriverCashUpUncheckedCreateWithoutDriverInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    periodStart: Date | string
+    periodEnd: Date | string
+    cashOrders?: number
+    cashCollected?: Decimal | DecimalJsLike | number | string
+    cardOrders?: number
+    cardCollected?: Decimal | DecimalJsLike | number | string
+    deliveries?: number
+    driverEarning?: Decimal | DecimalJsLike | number | string
+    cashHandover?: Decimal | DecimalJsLike | number | string
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DriverCashUpCreateOrConnectWithoutDriverInput = {
+    where: DriverCashUpWhereUniqueInput
+    create: XOR<DriverCashUpCreateWithoutDriverInput, DriverCashUpUncheckedCreateWithoutDriverInput>
+  }
+
+  export type DriverCashUpCreateManyDriverInputEnvelope = {
+    data: DriverCashUpCreateManyDriverInput | DriverCashUpCreateManyDriverInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutDriversInput = {
     update: XOR<TenantUpdateWithoutDriversInput, TenantUncheckedUpdateWithoutDriversInput>
     create: XOR<TenantCreateWithoutDriversInput, TenantUncheckedCreateWithoutDriversInput>
@@ -189995,6 +192223,163 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type LocationUpsertWithoutHomeDriversInput = {
+    update: XOR<LocationUpdateWithoutHomeDriversInput, LocationUncheckedUpdateWithoutHomeDriversInput>
+    create: XOR<LocationCreateWithoutHomeDriversInput, LocationUncheckedCreateWithoutHomeDriversInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutHomeDriversInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutHomeDriversInput, LocationUncheckedUpdateWithoutHomeDriversInput>
+  }
+
+  export type LocationUpdateWithoutHomeDriversInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutHomeDriversInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type DriverAssignmentUpsertWithWhereUniqueWithoutDriverInput = {
@@ -190074,6 +192459,139 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DriverCashUpUpsertWithWhereUniqueWithoutDriverInput = {
+    where: DriverCashUpWhereUniqueInput
+    update: XOR<DriverCashUpUpdateWithoutDriverInput, DriverCashUpUncheckedUpdateWithoutDriverInput>
+    create: XOR<DriverCashUpCreateWithoutDriverInput, DriverCashUpUncheckedCreateWithoutDriverInput>
+  }
+
+  export type DriverCashUpUpdateWithWhereUniqueWithoutDriverInput = {
+    where: DriverCashUpWhereUniqueInput
+    data: XOR<DriverCashUpUpdateWithoutDriverInput, DriverCashUpUncheckedUpdateWithoutDriverInput>
+  }
+
+  export type DriverCashUpUpdateManyWithWhereWithoutDriverInput = {
+    where: DriverCashUpScalarWhereInput
+    data: XOR<DriverCashUpUpdateManyMutationInput, DriverCashUpUncheckedUpdateManyWithoutDriverInput>
+  }
+
+  export type DriverCashUpScalarWhereInput = {
+    AND?: DriverCashUpScalarWhereInput | DriverCashUpScalarWhereInput[]
+    OR?: DriverCashUpScalarWhereInput[]
+    NOT?: DriverCashUpScalarWhereInput | DriverCashUpScalarWhereInput[]
+    id?: StringFilter<"DriverCashUp"> | string
+    tenantId?: StringFilter<"DriverCashUp"> | string
+    driverId?: StringFilter<"DriverCashUp"> | string
+    locationId?: StringNullableFilter<"DriverCashUp"> | string | null
+    periodStart?: DateTimeFilter<"DriverCashUp"> | Date | string
+    periodEnd?: DateTimeFilter<"DriverCashUp"> | Date | string
+    cashOrders?: IntFilter<"DriverCashUp"> | number
+    cashCollected?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFilter<"DriverCashUp"> | number
+    cardCollected?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFilter<"DriverCashUp"> | number
+    driverEarning?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFilter<"DriverCashUp"> | Decimal | DecimalJsLike | number | string
+    createdBy?: StringNullableFilter<"DriverCashUp"> | string | null
+    createdAt?: DateTimeFilter<"DriverCashUp"> | Date | string
+  }
+
+  export type DriverCreateWithoutCashUpsInput = {
+    id?: string
+    userId?: string | null
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string | null
+    isActive?: boolean
+    vehicleType?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutDriversInput
+    location?: LocationCreateNestedOneWithoutHomeDriversInput
+    assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceCreateNestedOneWithoutDriverInput
+  }
+
+  export type DriverUncheckedCreateWithoutCashUpsInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string | null
+    isActive?: boolean
+    vehicleType?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: string | null
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
+  }
+
+  export type DriverCreateOrConnectWithoutCashUpsInput = {
+    where: DriverWhereUniqueInput
+    create: XOR<DriverCreateWithoutCashUpsInput, DriverUncheckedCreateWithoutCashUpsInput>
+  }
+
+  export type DriverUpsertWithoutCashUpsInput = {
+    update: XOR<DriverUpdateWithoutCashUpsInput, DriverUncheckedUpdateWithoutCashUpsInput>
+    create: XOR<DriverCreateWithoutCashUpsInput, DriverUncheckedCreateWithoutCashUpsInput>
+    where?: DriverWhereInput
+  }
+
+  export type DriverUpdateToOneWithWhereWithoutCashUpsInput = {
+    where?: DriverWhereInput
+    data: XOR<DriverUpdateWithoutCashUpsInput, DriverUncheckedUpdateWithoutCashUpsInput>
+  }
+
+  export type DriverUpdateWithoutCashUpsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    location?: LocationUpdateOneWithoutHomeDriversNestedInput
+    assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
+  }
+
+  export type DriverUncheckedUpdateWithoutCashUpsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
+  }
+
   export type DriverCreateWithoutPresenceInput = {
     id?: string
     userId?: string | null
@@ -190084,10 +192602,14 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutDriversInput
+    location?: LocationCreateNestedOneWithoutHomeDriversInput
     assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
+    cashUps?: DriverCashUpCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutPresenceInput = {
@@ -190101,9 +192623,13 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: string | null
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
+    cashUps?: DriverCashUpUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutPresenceInput = {
@@ -190132,10 +192658,14 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    location?: LocationUpdateOneWithoutHomeDriversNestedInput
     assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
+    cashUps?: DriverCashUpUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutPresenceInput = {
@@ -190149,9 +192679,13 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
+    cashUps?: DriverCashUpUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type OrderCreateWithoutDriverAssignmentInput = {
@@ -190325,10 +192859,14 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutDriversInput
+    location?: LocationCreateNestedOneWithoutHomeDriversInput
     presence?: DriverPresenceCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAssignmentsInput = {
@@ -190342,9 +192880,13 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: string | null
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
+    cashUps?: DriverCashUpUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAssignmentsInput = {
@@ -190572,10 +193114,14 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    location?: LocationUpdateOneWithoutHomeDriversNestedInput
     presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAssignmentsInput = {
@@ -190589,9 +193135,13 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DeliveryTrackingUpsertWithWhereUniqueWithoutAssignmentInput = {
@@ -194446,6 +196996,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -194521,6 +197072,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMerchantSubscriptionInput = {
@@ -194675,6 +197227,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -194750,6 +197303,7 @@ export namespace Prisma {
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantSubscriptionCreateWithoutInvoicesInput = {
@@ -195700,6 +198254,9 @@ export namespace Prisma {
     isActive?: boolean
     vehicleType?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: string | null
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -196559,10 +199116,14 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneWithoutHomeDriversNestedInput
     assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
     presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutTenantInput = {
@@ -196575,10 +199136,14 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
     presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateManyWithoutTenantInput = {
@@ -196591,6 +199156,9 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -198049,6 +200617,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -198124,6 +200693,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -199190,6 +201760,23 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type DriverCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string | null
+    isActive?: boolean
+    vehicleType?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type IntegrationUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
@@ -199946,6 +202533,63 @@ export namespace Prisma {
     snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
     snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUpdateManyWithoutDriverNestedInput
+  }
+
+  export type DriverUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
+    cashUps?: DriverCashUpUncheckedUpdateManyWithoutDriverNestedInput
+  }
+
+  export type DriverUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    startupFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -201898,6 +204542,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -201972,6 +204617,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -202099,6 +204745,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
   }
@@ -202173,6 +204820,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -202625,6 +205273,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -202699,6 +205348,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -203114,6 +205764,23 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
   }
 
+  export type DriverCashUpCreateManyDriverInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    periodStart: Date | string
+    periodEnd: Date | string
+    cashOrders?: number
+    cashCollected?: Decimal | DecimalJsLike | number | string
+    cardOrders?: number
+    cardCollected?: Decimal | DecimalJsLike | number | string
+    deliveries?: number
+    driverEarning?: Decimal | DecimalJsLike | number | string
+    cashHandover?: Decimal | DecimalJsLike | number | string
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
   export type DriverAssignmentUpdateWithoutDriverInput = {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
@@ -203150,6 +205817,57 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type DriverCashUpUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    periodStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    periodEnd?: DateTimeFieldUpdateOperationsInput | Date | string
+    cashOrders?: IntFieldUpdateOperationsInput | number
+    cashCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFieldUpdateOperationsInput | number
+    cardCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFieldUpdateOperationsInput | number
+    driverEarning?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverCashUpUncheckedUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    periodStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    periodEnd?: DateTimeFieldUpdateOperationsInput | Date | string
+    cashOrders?: IntFieldUpdateOperationsInput | number
+    cashCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFieldUpdateOperationsInput | number
+    cardCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFieldUpdateOperationsInput | number
+    driverEarning?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverCashUpUncheckedUpdateManyWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    periodStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    periodEnd?: DateTimeFieldUpdateOperationsInput | Date | string
+    cashOrders?: IntFieldUpdateOperationsInput | number
+    cashCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cardOrders?: IntFieldUpdateOperationsInput | number
+    cardCollected?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveries?: IntFieldUpdateOperationsInput | number
+    driverEarning?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    cashHandover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DeliveryTrackingCreateManyAssignmentInput = {
@@ -204451,6 +207169,10 @@ export namespace Prisma {
      * @deprecated Use DriverDefaultArgs instead
      */
     export type DriverArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DriverDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use DriverCashUpDefaultArgs instead
+     */
+    export type DriverCashUpArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DriverCashUpDefaultArgs<ExtArgs>
     /**
      * @deprecated Use DriverPresenceDefaultArgs instead
      */

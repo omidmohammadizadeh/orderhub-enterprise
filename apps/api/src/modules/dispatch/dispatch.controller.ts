@@ -1,15 +1,40 @@
-import { Body, Controller, Get, Post, Query, HttpCode, HttpStatus } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { DispatchService } from "./dispatch.service";
+import {
+  DriverEarningsService,
+  type PostcodeFee,
+} from "./driver-earnings.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+
+const DISPATCH_ROLES = [
+  "MANAGER",
+  "TENANT_OWNER",
+  "PLATFORM_ADMIN",
+  "OWNER",
+  "DARK_KITCHEN_MANAGER",
+] as const;
 
 @ApiTags("dispatch")
 @ApiBearerAuth()
 @Controller({ path: "dispatch", version: "1" })
 export class DispatchController {
-  constructor(private readonly dispatch: DispatchService) {}
+  constructor(
+    private readonly dispatch: DispatchService,
+    private readonly earnings: DriverEarningsService,
+  ) {}
 
   @Get("feed")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
@@ -54,5 +79,51 @@ export class DispatchController {
   @ApiOperation({ summary: "Remove an order from its driver and return it to the board" })
   unassign(@CurrentUser() user: AuthenticatedUser, @Body() body: { orderId: string }) {
     return this.dispatch.unassign(user, body.orderId);
+  }
+
+  // ── Driver pay + cash-up (Phase BG) ──────────────────────────────────────
+  @Patch("drivers/:driverId/earnings")
+  @Roles(...DISPATCH_ROLES)
+  @ApiOperation({ summary: "Set a driver's home location + pay (start-up fee + per-postcode fees)" })
+  updateEarnings(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("driverId") driverId: string,
+    @Body()
+    body: { locationId?: string | null; startupFee?: number; postcodeFees?: PostcodeFee[] },
+  ) {
+    return this.earnings.updateEarningsConfig(user, driverId, body);
+  }
+
+  @Get("drivers/:driverId/cashup")
+  @Roles(...DISPATCH_ROLES)
+  @ApiOperation({ summary: "Cash-up figures: outstanding (no dates) or a date range" })
+  cashUpView(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("driverId") driverId: string,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    return this.earnings.cashUpView(user, driverId, { from, to });
+  }
+
+  @Post("drivers/:driverId/cashup")
+  @HttpCode(HttpStatus.OK)
+  @Roles(...DISPATCH_ROLES)
+  @ApiOperation({ summary: "Settle the driver's outstanding cash-up (clears the balance)" })
+  settleCashUp(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("driverId") driverId: string,
+  ) {
+    return this.earnings.settleCashUp(user, driverId);
+  }
+
+  @Get("drivers/:driverId/cashups")
+  @Roles(...DISPATCH_ROLES)
+  @ApiOperation({ summary: "History of settled cash-ups for a driver" })
+  listCashUps(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("driverId") driverId: string,
+  ) {
+    return this.earnings.listCashUps(user, driverId);
   }
 }

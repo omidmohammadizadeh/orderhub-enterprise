@@ -13,6 +13,7 @@ import {
 } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import { coercePostcodeFees, matchPostcodeFee } from "./driver-earnings.service";
 import { GeocodingService } from "./geocoding.service";
 import { ExpoPushService } from "../driver-app/expo-push.service";
 
@@ -132,6 +133,12 @@ export interface OperatorDriverRow {
   cashTotal: string;
   cardTotal: string;
   total: string;
+  // Phase BG — home location + pay config (for the Manage/earnings panel) and
+  // the driver's computed earning so far today.
+  homeLocationId: string | null;
+  startupFee: string;
+  postcodeFees: { postcode: string; fee: number }[];
+  earningToday: string;
 }
 export interface OperatorFailedRow {
   id: string;
@@ -664,7 +671,16 @@ export class DispatchService {
         orderBy: { updatedAt: "desc" },
       }),
       this.prisma.driver.findMany({
-        where: { tenantId: user.tenantId, isActive: true },
+        // Phase BG — drivers belong to a home location. A specific location
+        // shows only its own drivers; "All" shows every driver across the
+        // operator's accessible locations plus any still-unassigned ones.
+        where: {
+          tenantId: user.tenantId,
+          isActive: true,
+          ...(locationParam && locationParam !== "all"
+            ? { locationId: locationParam }
+            : { OR: [{ locationId: { in: scope } }, { locationId: null }] }),
+        },
         include: {
           presence: { select: { status: true, lastPingAt: true } },
           assignments: {
@@ -730,43 +746,47 @@ export class DispatchService {
       .filter((o) => OUT_FOR_DELIVERY_STATUSES.includes(o.status))
       .map(toRow);
 
-    const driverRows: OperatorDriverRow[] = drivers
-      .filter(
-        (d) =>
-          d.presence?.status === DriverPresenceStatus.ONLINE ||
-          d.presence?.status === DriverPresenceStatus.ON_JOB ||
-          d.assignments.length > 0,
-      )
-      .map((d) => {
-        const active = d.assignments.filter((a) => a.status !== DriverAssignmentStatus.DELIVERED);
-        const delivered = d.assignments.filter((a) => a.status === DriverAssignmentStatus.DELIVERED);
-        let cash = 0;
-        let card = 0;
-        for (const a of delivered) {
-          const t = Number(a.order.total);
-          const method = (a.order.paymentMethod ?? "").toUpperCase();
-          if (method.includes("CASH")) cash += t;
-          else card += t;
-        }
-        return {
-          id: d.id,
-          name: `${d.firstName} ${d.lastName}`.trim(),
-          status: d.presence?.status ?? DriverPresenceStatus.OFFLINE,
-          lastPingAt: d.presence?.lastPingAt ? d.presence.lastPingAt.toISOString() : null,
-          activeJobs: active.map((a) => ({
-            orderId: a.orderId,
-            ref: ref(a.order, a.orderId),
-            customerName: a.order.customerName,
-            status: a.status,
-            sequence: a.sequence,
-            address: addr(a.order),
-          })),
-          delivered: delivered.length,
-          cashTotal: cash.toFixed(2),
-          cardTotal: card.toFixed(2),
-          total: (cash + card).toFixed(2),
-        };
-      });
+    // Phase BG — show EVERY driver of the location (not just online ones) so
+    // the operator can open Manage and set up pay for any of them.
+    const driverRows: OperatorDriverRow[] = drivers.map((d) => {
+      const active = d.assignments.filter((a) => a.status !== DriverAssignmentStatus.DELIVERED);
+      const delivered = d.assignments.filter((a) => a.status === DriverAssignmentStatus.DELIVERED);
+      const fees = coercePostcodeFees((d as any).postcodeFees);
+      let cash = 0;
+      let card = 0;
+      let deliveryFees = 0;
+      for (const a of delivered) {
+        const t = Number(a.order.total);
+        const method = (a.order.paymentMethod ?? "").toUpperCase();
+        if (method.includes("CASH") || method === "") cash += t;
+        else card += t;
+        deliveryFees += matchPostcodeFee(fees, a.order.postcode);
+      }
+      const startup = Number((d as any).startupFee) || 0;
+      const earningToday = (delivered.length > 0 ? startup : 0) + deliveryFees;
+      return {
+        id: d.id,
+        name: `${d.firstName} ${d.lastName}`.trim(),
+        status: d.presence?.status ?? DriverPresenceStatus.OFFLINE,
+        lastPingAt: d.presence?.lastPingAt ? d.presence.lastPingAt.toISOString() : null,
+        activeJobs: active.map((a) => ({
+          orderId: a.orderId,
+          ref: ref(a.order, a.orderId),
+          customerName: a.order.customerName,
+          status: a.status,
+          sequence: a.sequence,
+          address: addr(a.order),
+        })),
+        delivered: delivered.length,
+        cashTotal: cash.toFixed(2),
+        cardTotal: card.toFixed(2),
+        total: (cash + card).toFixed(2),
+        homeLocationId: (d as any).locationId ?? null,
+        startupFee: startup.toFixed(2),
+        postcodeFees: fees,
+        earningToday: earningToday.toFixed(2),
+      };
+    });
 
     const stats: OperatorStats = {
       online: driverRows.filter((d) => d.status === DriverPresenceStatus.ONLINE).length,
