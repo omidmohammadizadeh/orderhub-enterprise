@@ -72,6 +72,15 @@ export function Drawer({
           </Text>
         </View>
 
+        {/* Live earnings so far today — updates as each delivery completes. */}
+        <Pressable style={styles.earnCard} onPress={onOpenCashUp}>
+          <Text style={styles.earnLabel}>Today's earnings</Text>
+          <Text style={styles.earnValue}>£{day?.cashUp?.earning ?? "0.00"}</Text>
+          <Text style={styles.earnSub}>
+            {day?.cashUp?.deliveries ?? 0} deliveries · £{day?.cashUp?.total ?? "0.00"} collected
+          </Text>
+        </Pressable>
+
         <Item label="Chat with operator" badge={chatUnread} onPress={onOpenChat} />
         <Item label="Active orders" badge={activeCount} onPress={() => onOpenOrders("active")} />
         <Item label="Delivered" onPress={() => onOpenOrders("delivered")} />
@@ -119,6 +128,10 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   header: { borderBottomWidth: 1, borderBottomColor: "#1e293b", paddingBottom: 16, marginBottom: 8 },
+  earnCard: { backgroundColor: "#f97316", borderRadius: 14, padding: 16, marginBottom: 10 },
+  earnLabel: { color: "#fff", fontWeight: "700", opacity: 0.9, fontSize: 12 },
+  earnValue: { color: "#fff", fontSize: 32, fontWeight: "900", marginTop: 2 },
+  earnSub: { color: "#fff", opacity: 0.9, fontSize: 12, marginTop: 2 },
   name: { color: "#fff", fontSize: 20, fontWeight: "800" },
   status: { fontSize: 13, fontWeight: "700", marginTop: 4 },
   item: {

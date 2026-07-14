@@ -235,7 +235,16 @@ export interface Job {
 export interface MyDay {
   active: Job[];
   history: Job[];
-  cashUp: { deliveries: number; cashTotal: string; cardTotal: string; total: string };
+  cashUp: {
+    deliveries: number;
+    cashTotal: string;
+    cardTotal: string;
+    total: string;
+    // Phase BG — the driver's own pay so far today.
+    startupFee: string;
+    deliveryFees: string;
+    earning: string;
+  };
 }
 
 export async function getMe() {
@@ -256,6 +265,10 @@ export interface CashUp {
   cashTotal: string;
   cardTotal: string;
   total: string;
+  // Phase BG — driver pay for the period.
+  startupFee: string;
+  deliveryFees: string;
+  earning: string;
 }
 export async function getCashUp(from?: string, to?: string) {
   const res = await api.get<CashUp>("/v1/driver/cash-up", { params: { from, to } });

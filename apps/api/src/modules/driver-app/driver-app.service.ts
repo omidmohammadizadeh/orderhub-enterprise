@@ -12,6 +12,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
 import { ChatService } from "../chat/chat.service";
+import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface PingDto {
@@ -308,12 +309,19 @@ export class DriverAppService {
     );
     let cashTotal = 0;
     let cardTotal = 0;
+    let deliveryFees = 0;
+    const rules = coercePostcodeFees((driver as any).postcodeFees);
     for (const a of deliveredToday) {
       const total = Number(a.order.total);
       const method = (a.order.paymentMethod ?? "").toUpperCase();
       if (method.includes("CASH")) cashTotal += total;
       else cardTotal += total;
+      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
     }
+    // Phase BG — the driver's own live earning: start-up fee (once, when
+    // they've done at least one delivery today) + per-postcode delivery fees.
+    const startupFee = Number((driver as any).startupFee) || 0;
+    const earning = (deliveredToday.length > 0 ? startupFee : 0) + deliveryFees;
 
     return {
       active,
@@ -323,6 +331,10 @@ export class DriverAppService {
         cashTotal: cashTotal.toFixed(2),
         cardTotal: cardTotal.toFixed(2),
         total: (cashTotal + cardTotal).toFixed(2),
+        // Driver pay so far today.
+        startupFee: (deliveredToday.length > 0 ? startupFee : 0).toFixed(2),
+        deliveryFees: deliveryFees.toFixed(2),
+        earning: earning.toFixed(2),
       },
     };
   }
@@ -345,13 +357,16 @@ export class DriverAppService {
         status: DriverAssignmentStatus.DELIVERED,
         deliveredAt: { gte: start, lte: end },
       },
-      include: { order: { select: { total: true, paymentMethod: true } } },
+      include: { order: { select: { total: true, paymentMethod: true, postcode: true } } },
     });
 
     let cashCount = 0;
     let cardCount = 0;
     let cashTotal = 0;
     let cardTotal = 0;
+    let deliveryFees = 0;
+    const rules = coercePostcodeFees((driver as any).postcodeFees);
+    const workedDays = new Set<string>();
     for (const a of delivered) {
       const t = Number(a.order.total);
       const method = (a.order.paymentMethod ?? "").toUpperCase();
@@ -362,7 +377,14 @@ export class DriverAppService {
         cardCount += 1;
         cardTotal += t;
       }
+      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
+      if (a.deliveredAt) workedDays.add(new Date(a.deliveredAt).toISOString().slice(0, 10));
     }
+    // Phase BG — start-up fee is charged once per day the driver worked in
+    // the range; delivery fees accrue per drop.
+    const startupFee = Number((driver as any).startupFee) || 0;
+    const startupTotal = startupFee * workedDays.size;
+    const earning = startupTotal + deliveryFees;
 
     return {
       from: start.toISOString(),
@@ -373,6 +395,9 @@ export class DriverAppService {
       cashTotal: cashTotal.toFixed(2),
       cardTotal: cardTotal.toFixed(2),
       total: (cashTotal + cardTotal).toFixed(2),
+      startupFee: startupTotal.toFixed(2),
+      deliveryFees: deliveryFees.toFixed(2),
+      earning: earning.toFixed(2),
     };
   }
 

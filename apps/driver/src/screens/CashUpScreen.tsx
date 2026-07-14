@@ -68,9 +68,17 @@ export function CashUpScreen({ onBack }: { onBack: () => void }) {
           <ActivityIndicator style={{ marginTop: 40 }} />
         ) : (
           <>
+            <View style={styles.earnCard}>
+              <Text style={styles.earnLabel}>Your earnings</Text>
+              <Text style={styles.earnValue}>£{data?.earning ?? "0.00"}</Text>
+              <Text style={styles.earnBreakdown}>
+                £{data?.startupFee ?? "0.00"} start-up + £{data?.deliveryFees ?? "0.00"} delivery
+              </Text>
+            </View>
+
             <View style={styles.totalCard}>
               <Text style={styles.totalValue}>£{data?.total ?? "0.00"}</Text>
-              <Text style={styles.totalLabel}>{data?.deliveries ?? 0} deliveries</Text>
+              <Text style={styles.totalLabel}>collected · {data?.deliveries ?? 0} deliveries</Text>
             </View>
 
             <View style={styles.row}>
@@ -114,6 +122,10 @@ const styles = StyleSheet.create({
   periodActive: { backgroundColor: "#f97316" },
   periodText: { color: "#cbd5e1", fontWeight: "600", fontSize: 12 },
   periodTextActive: { color: "#fff" },
+  earnCard: { backgroundColor: "#f97316", borderRadius: 16, padding: 22, alignItems: "center", marginBottom: 14 },
+  earnLabel: { color: "#fff", fontWeight: "700", opacity: 0.9 },
+  earnValue: { color: "#fff", fontSize: 42, fontWeight: "900", marginTop: 2 },
+  earnBreakdown: { color: "#fff", opacity: 0.9, marginTop: 4, fontSize: 12 },
   totalCard: { backgroundColor: "#0F172A", borderRadius: 16, padding: 22, alignItems: "center", marginBottom: 14 },
   totalValue: { color: "#fff", fontSize: 38, fontWeight: "900" },
   totalLabel: { color: "#cbd5e1", marginTop: 4 },
