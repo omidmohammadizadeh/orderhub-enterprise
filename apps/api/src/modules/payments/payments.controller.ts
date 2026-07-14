@@ -67,6 +67,19 @@ export class PaymentsController {
     return this.payments.getPaymentsByOrder(orderId, user.tenantId);
   }
 
+  // POST /v1/payments/orders/:orderId/payment-link
+  @Post("orders/:orderId/payment-link")
+  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "POS Payment Link — hosted Stripe checkout URL for an unpaid order",
+  })
+  createOrderPaymentLink(
+    @Param("orderId") orderId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.payments.createOrderPaymentLink(user.tenantId, orderId);
+  }
+
   // POST /v1/payments/:paymentId/refund
   @Post(":paymentId/refund")
   @Roles("MANAGER", "TENANT_OWNER")

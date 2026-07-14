@@ -695,6 +695,11 @@ export class PaymentsService {
     successUrl: string;
     cancelUrl: string;
     customerEmail?: string;
+    // "manual" (default) authorises and waits for staff Accept before
+    // capture — the storefront/online flow. "automatic" captures as soon
+    // as the customer pays, flipping the order straight to PAID — used by
+    // the POS "Payment Link" flow where there's no separate Accept step.
+    captureMethod?: "manual" | "automatic";
   }): Promise<{ url: string; sessionId: string }> {
     const order = await this.prisma.order.findFirst({
       where: { id: params.orderId, tenantId: params.tenantId },
@@ -831,7 +836,7 @@ export class PaymentsService {
       success_url: params.successUrl,
       cancel_url: params.cancelUrl,
       payment_intent_data: {
-        capture_method: "manual",
+        capture_method: params.captureMethod ?? "manual",
         application_fee_amount: applicationFeePence,
         metadata: {
           orderId: order.id,
@@ -902,6 +907,48 @@ export class PaymentsService {
       `Stripe Checkout Session created for order ${order.id} -> ${session.id}`,
     );
     return { url: session.url, sessionId: session.id };
+  }
+
+  /**
+   * POS "Payment Link" — generate a hosted Stripe checkout URL for an
+   * existing (unpaid) order, captured automatically so that when the
+   * customer pays, the order flips straight to PAID (no staff Accept step).
+   * The URL is shown as a QR / copyable link / SMS at the till. Reuses the
+   * same brand-Connect direct-charge path as the storefront checkout.
+   */
+  async createOrderPaymentLink(
+    tenantId: string,
+    orderId: string,
+  ): Promise<{ url: string }> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      include: {
+        location: { select: { onlineOrderingSlug: true } },
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      throw new BadRequestException("This order is already paid");
+    }
+
+    const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(
+      /\/+$/,
+      "",
+    );
+    const slug = (order as any).location?.onlineOrderingSlug ?? null;
+    const successUrl = slug
+      ? `${origin}/order/${slug}/confirmation?orderId=${order.id}&session_id={CHECKOUT_SESSION_ID}`
+      : `${origin}/?paidOrderId=${order.id}`;
+    const cancelUrl = slug ? `${origin}/order/${slug}` : origin;
+
+    const { url } = await this.createCheckoutSession({
+      tenantId,
+      orderId,
+      successUrl,
+      cancelUrl,
+      captureMethod: "automatic",
+    });
+    return { url };
   }
 
   /**
@@ -2165,6 +2212,12 @@ export class PaymentsService {
             this.logger.error(`settleTerminalPi via webhook failed: ${err.message}`),
           );
         } else if (tenantId) {
+          // Automatic-capture flows (POS Payment Link) fire succeeded with
+          // no prior amount_capturable_updated, so our Payment row still has
+          // a null PI id. Resolve + backfill it from the order metadata first
+          // so confirmPayment's PI lookup finds the row and flips it to PAID.
+          // No-op for the online flow (markAuthorized already backfilled).
+          await this.findPaymentForPi(pi).catch(() => null);
           await this.confirmPayment(tenantId, pi.id).catch((err: any) =>
             this.logger.error(`confirmPayment via webhook failed: ${err.message}`),
           );

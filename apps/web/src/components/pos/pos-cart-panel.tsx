@@ -37,7 +37,15 @@ export interface CartLine {
 }
 
 export type FulfillmentType = "PICKUP" | "DELIVERY";
-export type PaymentMethod = "CASH" | "CARD_TERMINAL" | "ONLINE_CARD" | "EXTERNAL";
+export type PaymentMethod =
+  | "CASH"
+  | "CARD_TERMINAL"
+  | "ONLINE_CARD"
+  | "EXTERNAL"
+  // Phase — POS Payment Link: order placed as "pending payment", a Stripe
+  // checkout link is shown (QR / copy / SMS) for the customer to pay
+  // remotely; the order auto-flips to PAID when they do.
+  | "PAYMENT_LINK";
 export type DiscountType = null | "PROMO_CODE" | "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
 
 // What the panel hands the parent when "Place order" is clicked.
@@ -1016,6 +1024,7 @@ export function PosCartPanel(props: CartPanelProps) {
                 { value: "CASH", label: "Cash" },
                 { value: "CARD_TERMINAL", label: "Card terminal" },
                 { value: "ONLINE_CARD", label: "Online card" },
+                { value: "PAYMENT_LINK", label: "Payment link" },
                 { value: "EXTERNAL", label: "External" },
               ] as const
             ).map((opt) => (
@@ -1035,8 +1044,8 @@ export function PosCartPanel(props: CartPanelProps) {
             ))}
           </div>
           <p className="mt-1 text-[10px] text-zinc-500">
-            Online card requires a payment provider. Cash and card terminal
-            are always available.
+            Online card &amp; Payment link require Stripe. Payment link places the
+            order as pending and shows a QR/link for the customer to pay.
           </p>
         </Section>
       </div>

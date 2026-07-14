@@ -29,6 +29,7 @@ import {
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
 import { CallerIdPopup } from "@/components/pos/caller-id-popup";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
+import { PaymentLinkModal } from "@/components/pos/payment-link-modal";
 import { PromosModal } from "@/components/pos/promos-modal";
 // Phase AP follow-up (AP-NAV-1): Direct online ordering moved to its
 // own sidebar entry (/dashboard/direct-ordering). The modal import and
@@ -69,6 +70,9 @@ export default function PosPage() {
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showPromosModal, setShowPromosModal] = useState(false);
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
+  const [payLinkOrder, setPayLinkOrder] = useState<
+    { id: string; amount: number; number: string } | null
+  >(null);
   // Phase AW-22 — Edit-mode. When set from ?editOrderId=, we replace
   // the create flow with a PATCH /:id/edit that swaps the order's
   // items + customer in place and triggers a reprint. The banner
@@ -305,6 +309,15 @@ export default function PosPage() {
       if (!edited && paymentMethod === "CARD_TERMINAL" && id) {
         setChargeOrder({ id, amount: Number(total ?? 0) });
       }
+      // Payment-link orders: pop the QR / copy-link modal for the customer
+      // to pay remotely (order stays pending until the webhook flips it).
+      if (!edited && paymentMethod === "PAYMENT_LINK" && id) {
+        setPayLinkOrder({
+          id,
+          amount: Number(total ?? 0),
+          number: `#${id.slice(-6)}`,
+        });
+      }
       setSubmitFeedback(
         edited
           ? `Order ${editOrderNumber ?? `#${id.slice(-6)}`} updated. Reprint queued.`
@@ -535,6 +548,16 @@ export default function PosPage() {
           onClose={() => setChargeOrder(null)}
         />
       )}
+
+      {/* Payment Link modal — QR + copy link for the customer to pay
+          remotely; the order auto-flips to Paid via the Stripe webhook. */}
+      <PaymentLinkModal
+        open={!!payLinkOrder}
+        orderId={payLinkOrder?.id ?? null}
+        orderNumber={payLinkOrder?.number ?? null}
+        amount={payLinkOrder?.amount ?? 0}
+        onClose={() => setPayLinkOrder(null)}
+      />
 
       {showFeeModal && selectedLocationId && (
         <DeliveryFeeModal

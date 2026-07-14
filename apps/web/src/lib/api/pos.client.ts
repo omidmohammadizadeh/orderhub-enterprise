@@ -238,3 +238,13 @@ export const addressLookupClient = {
       )
       .then((r) => r.data),
 };
+
+// ── POS Payment Link ─────────────────────────────────────────────────────────
+// Generate a hosted Stripe checkout URL for an unpaid order (shown as a QR /
+// copyable link / SMS). The order auto-flips to PAID via webhook when paid.
+export const paymentLinkClient = {
+  create: (orderId: string) =>
+    apiClient
+      .post<{ url: string }>(`/v1/payments/orders/${orderId}/payment-link`)
+      .then((r) => r.data),
+};
