@@ -22,6 +22,7 @@ import {
   type OperatorOrderRow,
 } from "@/lib/api/dispatch.client";
 import { DispatchChatWidget } from "@/components/dispatch/chat-widget";
+import { DriverManageModal } from "@/components/dispatch/driver-manage-modal";
 
 // Phase AX-3b — Operator Dashboard. Live delivery ops: analytics, overdue
 // attention, out-for-delivery, per-driver active jobs + cash-up, reassignment,
@@ -30,6 +31,7 @@ export default function OperatorDashboardPage() {
   const queryClient = useQueryClient();
   const [location, setLocation] = useState("all");
   const [busyOrder, setBusyOrder] = useState<string | null>(null);
+  const [manageDriver, setManageDriver] = useState<OperatorDriverRow | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["operator-dashboard", location],
@@ -166,6 +168,7 @@ export default function OperatorDashboardPage() {
                     busyOrder={busyOrder}
                     onReturn={handleReturn}
                     onReassign={handleReassign}
+                    onManage={() => setManageDriver(d)}
                   />
                 ))}
               </div>
@@ -199,6 +202,16 @@ export default function OperatorDashboardPage() {
 
       {/* Floating driver chat */}
       <DispatchChatWidget />
+
+      {manageDriver && (
+        <DriverManageModal
+          driver={manageDriver}
+          locations={locationOptions}
+          open={!!manageDriver}
+          onClose={() => setManageDriver(null)}
+          onSaved={refresh}
+        />
+      )}
     </div>
   );
 }
@@ -297,12 +310,14 @@ function DriverCard({
   busyOrder,
   onReturn,
   onReassign,
+  onManage,
 }: {
   d: OperatorDriverRow;
   onlineDrivers: OperatorDriverRow[];
   busyOrder: string | null;
   onReturn: (orderId: string) => void;
   onReassign: (orderId: string, driverId: string) => void;
+  onManage: () => void;
 }) {
   const dot =
     d.status === "ONLINE" ? "bg-green-500" : d.status === "ON_JOB" ? "bg-amber-500" : "bg-slate-300";
@@ -316,16 +331,27 @@ function DriverCard({
           <span className="font-semibold">{d.name}</span>
           <span className="text-xs text-muted-foreground">{statusLabel}</span>
         </div>
-        <div className="text-right text-xs">
-          <span className="font-semibold">{d.delivered}</span>
-          <span className="text-muted-foreground"> today · £{d.total}</span>
+        <div className="flex items-center gap-2">
+          <div className="text-right text-xs">
+            <span className="font-semibold">{d.delivered}</span>
+            <span className="text-muted-foreground"> today · £{d.total}</span>
+          </div>
+          <button
+            onClick={onManage}
+            className="rounded-md border border-zinc-300 px-2 py-1 text-[11px] font-medium hover:bg-zinc-50"
+          >
+            Manage
+          </button>
         </div>
       </div>
 
-      {/* Cash-up split */}
-      <div className="mt-2 flex gap-2 text-[11px]">
+      {/* Cash-up split + driver earning */}
+      <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
         <span className="rounded bg-green-50 px-2 py-0.5 text-green-700">Cash £{d.cashTotal}</span>
         <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-700">Card £{d.cardTotal}</span>
+        <span className="rounded bg-violet-50 px-2 py-0.5 font-medium text-violet-700">
+          Driver earned £{d.earningToday}
+        </span>
       </div>
 
       {/* Active jobs */}

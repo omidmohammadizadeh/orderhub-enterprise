@@ -111,6 +111,10 @@ export interface OperatorDriverJob {
   sequence: number | null;
   address: string | null;
 }
+export interface PostcodeFee {
+  postcode: string;
+  fee: number;
+}
 export interface OperatorDriverRow {
   id: string;
   name: string;
@@ -121,6 +125,10 @@ export interface OperatorDriverRow {
   cashTotal: string;
   cardTotal: string;
   total: string;
+  homeLocationId: string | null;
+  startupFee: string;
+  postcodeFees: PostcodeFee[];
+  earningToday: string;
 }
 export interface OperatorFailedRow {
   id: string;
@@ -150,6 +158,47 @@ export async function getOperatorDashboard(location?: string): Promise<OperatorD
 export async function reassignOrder(orderId: string, driverId: string): Promise<void> {
   await unassignOrder(orderId);
   await assignOrders(driverId, [orderId]);
+}
+
+// ── Driver pay + cash-up (Phase BG) ──────────────────────────────────────────
+export interface CashUpView {
+  driverId: string;
+  driverName: string;
+  periodStart: string | null;
+  periodEnd: string;
+  outstanding: boolean;
+  startupFee: number;
+  deliveries: number;
+  cashOrders: number;
+  cashCollected: number;
+  cardOrders: number;
+  cardCollected: number;
+  daysWorked: number;
+  startupFeeTotal: number;
+  deliveryFeeTotal: number;
+  driverEarning: number;
+  cashHandover: number; // negative = restaurant owes the driver
+}
+
+export async function updateDriverEarnings(
+  driverId: string,
+  body: { locationId?: string | null; startupFee?: number; postcodeFees?: PostcodeFee[] },
+): Promise<void> {
+  await apiClient.patch(`/v1/dispatch/drivers/${driverId}/earnings`, body);
+}
+
+export async function getDriverCashUp(
+  driverId: string,
+  range?: { from?: string; to?: string },
+): Promise<CashUpView> {
+  const res = await apiClient.get<CashUpView>(`/v1/dispatch/drivers/${driverId}/cashup`, {
+    params: range && (range.from || range.to) ? range : undefined,
+  });
+  return res.data;
+}
+
+export async function settleDriverCashUp(driverId: string): Promise<void> {
+  await apiClient.post(`/v1/dispatch/drivers/${driverId}/cashup`);
 }
 
 // ── Operator ↔ driver chat ────────────────────────────────────────────────────
