@@ -136,18 +136,20 @@ export class MenuAvailabilityService {
     }
     if (itemIds.length === 0) return { items: [] };
 
-    // Constrain the served menu's items to ONES BELONGING TO THIS BRAND
-    // (own brandId, or shared via brandIds). MenuItem.brandId is required and
-    // a single-brand menu's items all carry that brand, so this is a no-op
-    // there — every item still shows. But when a MASTER/shared menu (one that
-    // holds several brands' items, scoped per-brand by pricing variants) is
-    // published for this brand, the board now shows ONLY this brand's items,
-    // not every other brand's — matching what that brand actually serves.
-    const items = await this.prisma.menuItem.findMany({
-      where: {
-        id: { in: itemIds },
-        OR: [{ brandId }, { brandIds: { has: brandId } }],
-      },
+    // Fetch the served menu's items, then decide whether to brand-scope them.
+    //
+    // ROOT-CAUSE FIX: the old code ALWAYS filtered items to the selected
+    // brand (own brandId or brandIds). That silently emptied the board when a
+    // menu's items belong to a brand OTHER than this location's brand chip —
+    // e.g. a menu imported/cloned under one brand but published to SERVE at a
+    // location whose brand is different. Every item was filtered out.
+    //
+    // The rule (per the operator): if the menu mixes MULTIPLE brands (a
+    // master/variant menu), scope to this brand's items only; if it's a
+    // single-brand menu, show ALL its items — even if that brand differs from
+    // the location's brand chip, because the whole menu is what's served here.
+    const allItems = await this.prisma.menuItem.findMany({
+      where: { id: { in: itemIds } },
       select: {
         id: true,
         name: true,
@@ -157,9 +159,19 @@ export class MenuAvailabilityService {
         hasMultipleSkus: true,
         productSkus: true,
         isAvailable: true,
+        brandId: true,
+        brandIds: true,
       },
       orderBy: { name: "asc" },
     });
+    const distinctBrands = new Set(allItems.map((i) => i.brandId));
+    const items =
+      distinctBrands.size > 1
+        ? allItems.filter(
+            (i) =>
+              i.brandId === brandId || (i.brandIds ?? []).includes(brandId),
+          )
+        : allItems;
     if (items.length === 0) return { items: [] };
 
     const now = new Date();
