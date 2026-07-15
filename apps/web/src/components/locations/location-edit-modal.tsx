@@ -166,6 +166,17 @@ function GeneralTab({
   );
   const [slug, setSlug] = useState(location?.onlineOrderingSlug ?? "");
   const [status, setStatus] = useState<LocationStatus>(location?.status ?? "active");
+  // POS display name — which brand's name POS + receipts show for this
+  // location's walk-in/phone orders. Empty = use the order's own brand.
+  const [posBrandId, setPosBrandId] = useState<string>(
+    (location as any)?.settings?.posBrandId ?? "",
+  );
+  const posBrandsQuery = useQuery({
+    queryKey: ["brands", "location", location?.id, "pos-display"],
+    queryFn: () => brandsClient.list(location!.id),
+    enabled: !!location?.id,
+  });
+  const posBrands = posBrandsQuery.data ?? [];
   // Phase AU — HubRise per-location settings. We never load the raw
   // access token back from the server (it's encrypted and write-only).
   // `hubriseConnected` is the boolean the API returns so we can show
@@ -257,6 +268,8 @@ function GeneralTab({
           : {}),
         hubriseCatalogId: hubriseCatalogId || null,
         hubriseLocationId: hubriseLocationId || null,
+        // POS display name — shallow-merged into Location.settings.
+        settings: { posBrandId: posBrandId || null },
       } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["locations"] });
@@ -337,6 +350,28 @@ function GeneralTab({
           className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
         />
       </Field>
+
+      {/* POS display name — brand whose name POS + receipts show for this
+          location's walk-in/phone orders. Only when editing (needs brands). */}
+      {location?.id && (
+        <Field
+          label="POS display name"
+          help="Which brand's name POS and printed receipts show for this location's walk-in & phone orders. Leave as 'Order's own brand' to use whichever brand the menu belongs to."
+        >
+          <select
+            value={posBrandId}
+            onChange={(e) => setPosBrandId(e.target.value)}
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          >
+            <option value="">Order&rsquo;s own brand (default)</option>
+            {posBrands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
       <Field
         label="Logo"
         help="Optional. Recommended square aspect; we resize to 1064×768 with letterboxing if needed."

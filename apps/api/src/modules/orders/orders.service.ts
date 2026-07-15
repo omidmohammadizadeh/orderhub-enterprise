@@ -732,6 +732,24 @@ export class OrdersService {
       | "DIRECT"
       | "PHONE";
     const idPrefix = resolvedSource.toLowerCase();
+
+    // POS display brand: a location can pin a "POS display name" brand in its
+    // settings (Location settings → POS display name). POS/phone orders are
+    // then attributed to that brand so the ticket, Orders board, and receipt
+    // all show that name regardless of which menu built the cart. Storefront
+    // (DIRECT) orders keep their own brand pin from the checkout.
+    let effectiveBrandId = (dto as any).brandId as string | undefined;
+    if (resolvedSource !== "DIRECT" && dto.locationId) {
+      const loc = await this.prisma.location.findFirst({
+        where: { id: dto.locationId },
+        select: { settings: true },
+      });
+      const posBrandId = (loc?.settings as any)?.posBrandId as
+        | string
+        | undefined;
+      if (posBrandId) effectiveBrandId = posBrandId;
+    }
+
     const canonical = {
       externalId: `${idPrefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       platform: resolvedSource as any,
@@ -785,7 +803,8 @@ export class OrdersService {
       // Phase AW — brand pin from the storefront. ingestCanonical
       // reads this off the canonical envelope and writes it onto the
       // Order row so receipts, board, and payouts pick up the brand.
-      brandId: (dto as any).brandId,
+      // For POS/phone this is the location's POS display brand when set.
+      brandId: effectiveBrandId,
     };
 
     const order = await this.ingestCanonical(canonical as any, tenantId, dto.locationId);
