@@ -215,6 +215,44 @@ export function DispatchMap({
         scale: 15,
       });
       m.setLabel({ text: "🚗", fontSize: "16px" });
+
+      // Click a driver dot → name, status, last-seen time, and their current
+      // location (reverse-geocoded from the live GPS ping). Re-bound each pass
+      // so it reads the freshest coordinates.
+      const dLat = d.lat;
+      const dLng = d.lng;
+      const pingLabel = d.lastPingAt
+        ? new Date(d.lastPingAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : null;
+      g.maps.event.clearListeners(m, "click");
+      m.addListener("click", () => {
+        infoRef.current.setContent(
+          `<div style="font-family:system-ui;font-size:13px;min-width:200px">
+            <strong>${d.name || "Driver"}</strong><br/>
+            <span style="color:${d.status === "ON_JOB" ? "#dc2626" : "#16a34a"};font-weight:700">${d.status === "ON_JOB" ? "On a job" : "Online"}</span>${pingLabel ? ` · seen ${pingLabel}` : ""}<br/>
+            <span id="oh-drv-loc" style="color:#475569">Locating…</span>
+          </div>`,
+        );
+        infoRef.current.open(map, m);
+        try {
+          new g.maps.Geocoder().geocode(
+            { location: { lat: dLat, lng: dLng } },
+            (results: any, status: any) => {
+              const el = document.getElementById("oh-drv-loc");
+              if (!el) return;
+              el.textContent =
+                status === "OK" && results?.[0]
+                  ? results[0].formatted_address
+                  : `${dLat.toFixed(4)}, ${dLng.toFixed(4)}`;
+            },
+          );
+        } catch {
+          /* geocoder unavailable — coords shown as fallback on next open */
+        }
+      });
     }
 
     // Remove stale markers (e.g. completed orders that left the feed).
@@ -229,16 +267,20 @@ export function DispatchMap({
     // resets fittedRef). Pads the bounds and clamps zoom for single points.
     if (!fittedRef.current && markersRef.current.size > 0) {
       const bounds = new g.maps.LatLngBounds();
-      let any = false;
-      for (const m of markersRef.current.values()) {
+      let count = 0;
+      for (const [key, m] of markersRef.current.entries()) {
+        // Fit to the location(s) + their orders only. Driver dots are
+        // transient and can be far from the shop (or carry stale/test GPS),
+        // so including them would zoom the map all the way out.
+        if (key.startsWith("drv:")) continue;
         const pos = m.getPosition?.();
         if (pos) {
           bounds.extend(pos);
-          any = true;
+          count++;
         }
       }
-      if (any) {
-        if (markersRef.current.size === 1) {
+      if (count > 0) {
+        if (count === 1) {
           map.setCenter(bounds.getCenter());
           map.setZoom(15);
         } else {

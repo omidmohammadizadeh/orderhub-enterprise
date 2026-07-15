@@ -331,14 +331,15 @@ export class DispatchService {
    */
   async getFeed(user: AuthenticatedUser, locationParam?: string): Promise<DispatchFeed> {
     const accessible = await this.resolveAccessibleLocationIds(user);
+    const specificLocation = !!locationParam && locationParam !== "all";
     let scope: string[];
-    if (!locationParam || locationParam === "all") {
+    if (!specificLocation) {
       scope = accessible;
     } else {
-      if (!accessible.includes(locationParam)) {
+      if (!accessible.includes(locationParam!)) {
         throw new ForbiddenException("No access to that location");
       }
-      scope = [locationParam];
+      scope = [locationParam!];
     }
     if (scope.length === 0) {
       return { scope: [], locations: [], orders: [], drivers: [] };
@@ -399,24 +400,29 @@ export class DispatchService {
         select: orderSelect,
         orderBy: { updatedAt: "desc" },
       }),
-      // Which online drivers to show for the selected scope. A driver
-      // qualifies when the scope matches EITHER where they clocked in
-      // (DriverPresence.locationId) OR their home location
-      // (Driver.locationId, Phase BG). Drivers with NO home location are an
-      // unassigned shared fleet — dispatchable from any location, so they
-      // always show. Previously this filtered only on the clock-in location,
-      // which hid every driver whose clock-in location differed from the
-      // operator's selection (they clock into the tenant's default location),
-      // leaving "0 drivers online" and nothing to dispatch to.
+      // Which online drivers to show for the selected scope.
+      //   * Specific location  → only drivers whose HOME location
+      //     (Driver.locationId, Phase BG) is that location. Strict — the
+      //     operator sees exactly that location's fleet.
+      //   * All locations      → every online driver they can see: homed to
+      //     an accessible location, unassigned (no home = shared fleet), or
+      //     clocked into an accessible location (legacy presence pin).
+      // (Clock-in location is NOT used to scope a specific location because
+      // drivers clock into the tenant's default location, which would dump the
+      // whole fleet onto that one location.)
       this.prisma.driverPresence.findMany({
         where: {
           tenantId: user.tenantId,
           status: { in: [DriverPresenceStatus.ONLINE, DriverPresenceStatus.ON_JOB] },
-          OR: [
-            { locationId: { in: scope } },
-            { driver: { locationId: { in: scope } } },
-            { driver: { locationId: null } },
-          ],
+          ...(specificLocation
+            ? { driver: { locationId: { in: scope } } }
+            : {
+                OR: [
+                  { driver: { locationId: { in: scope } } },
+                  { driver: { locationId: null } },
+                  { locationId: { in: scope } },
+                ],
+              }),
         },
         include: { driver: { select: { firstName: true, lastName: true } } },
       }),
