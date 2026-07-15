@@ -291,10 +291,24 @@ export default function PosPage() {
       // Scheduled orders fire the print pipeline straight away with the
       // scheduled date/time on the ticket, so the kitchen knows when
       // it's for, rather than being parked until their slot.
-      await apiClient.patch(`/v1/orders/${created.id}/status`, {
-        status: "ACCEPTED",
-        note: "POS auto-accept",
-      });
+      //
+      // Best-effort: if the location has auto-accept ON, the order is already
+      // ACCEPTED server-side and this PATCH would 400 with "ACCEPTED →
+      // ACCEPTED". That must NOT fail the placement (it would show an error
+      // and skip the cart/payment reset), so swallow an already-accepted
+      // response and only surface genuinely unexpected failures.
+      try {
+        await apiClient.patch(`/v1/orders/${created.id}/status`, {
+          status: "ACCEPTED",
+          note: "POS auto-accept",
+        });
+      } catch (err: any) {
+        const msg = String(err?.response?.data?.message ?? "");
+        if (!/ACCEPTED\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) {
+          throw err;
+        }
+        // Already accepted (location auto-accept) — nothing to do.
+      }
 
       return {
         id: created.id,
