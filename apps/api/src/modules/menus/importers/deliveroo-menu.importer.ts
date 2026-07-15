@@ -45,6 +45,26 @@ export const relativiseImage = (url: string | null | undefined): string | null =
   return u; // relative already, or a genuinely external host
 };
 
+// Marketplace CDN hosts whose images the browser can't load directly
+// (cross-origin + hotlink/short-lived tokens). When we couldn't rehost an
+// imported image to our own storage, we serve it through the same-origin
+// proxy endpoint (GET /api/v1/menus/import-image) instead. Only these hosts
+// are proxied — storage URLs and our own relative paths are left untouched.
+const PROXY_IMAGE_HOSTS =
+  /(?:^|\.)(hubrise-apps\.com|deliveroo\.co\.uk|deliveroo\.com)$/i;
+export const proxyMarketplaceImage = (
+  url: string | null | undefined,
+): string | null => {
+  const u = (url ?? "").trim();
+  if (!u || !/^https?:\/\//i.test(u)) return u || null; // relative/our-origin
+  try {
+    if (!PROXY_IMAGE_HOSTS.test(new URL(u).hostname)) return u; // storage etc.
+  } catch {
+    return u;
+  }
+  return `/api/v1/menus/import-image?u=${encodeURIComponent(u)}`;
+};
+
 interface ImportArgs {
   menuId: string;
   tenantId: string;
@@ -162,6 +182,11 @@ export class DeliverooMenuImporter {
     // relativiseImage above for why absolute breaks in the browser).
     for (const p of normalized.products) {
       p.imageUrl = relativiseImage(p.imageUrl);
+      // Fallback when storage isn't configured (rehostImages was skipped) or a
+      // single image failed to rehost: the URL is still an external Deliveroo/
+      // HubRise CDN URL the browser can't render (cross-origin + hotlink
+      // protection). Route it through our same-origin proxy so it loads.
+      p.imageUrl = proxyMarketplaceImage(p.imageUrl);
     }
 
     // Diagnostic: how many products carried an image, plus a sample of what we

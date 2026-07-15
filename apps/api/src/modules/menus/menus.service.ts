@@ -1762,4 +1762,38 @@ export class MenusService {
 
     throw new NotFoundException("No usable cover image for this menu");
   }
+
+  /**
+   * Same-origin proxy for imported marketplace images (Deliveroo/HubRise CDN)
+   * that couldn't be rehosted to our own storage. Fetches the image
+   * server-side and returns the bytes so the browser loads it same-origin.
+   * SSRF-guarded: only https on the whitelisted marketplace CDN hosts.
+   */
+  async proxyImportImage(
+    rawUrl: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    let url: URL;
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      throw new BadRequestException("Invalid image url");
+    }
+    const allowedHost =
+      /(?:^|\.)(hubrise-apps\.com|deliveroo\.co\.uk|deliveroo\.com)$/i;
+    if (url.protocol !== "https:" || !allowedHost.test(url.hostname)) {
+      throw new BadRequestException("Image host not allowed");
+    }
+    const res = await fetch(url.toString(), {
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) {
+      throw new NotFoundException(`Image fetch failed (${res.status})`);
+    }
+    const contentType = res.headers.get("content-type") ?? "image/jpeg";
+    if (!contentType.startsWith("image/")) {
+      throw new BadRequestException("Not an image");
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    return { buffer, contentType };
+  }
 }

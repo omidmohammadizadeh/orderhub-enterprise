@@ -190,6 +190,22 @@ export class MenusController {
     res.send(buffer);
   }
 
+  // Same-origin proxy for imported marketplace (Deliveroo/HubRise CDN) images
+  // that couldn't be rehosted to our own storage. The browser can't load those
+  // CDN URLs directly (cross-origin + hotlink protection), so items imported
+  // from Deliveroo point their imageUrl here. Declared BEFORE menus/:menuId so
+  // the static path wins over the param route. Public — storefront/POS render
+  // these unauthenticated; the host is whitelisted server-side (SSRF guard).
+  @Public()
+  @Get("menus/import-image")
+  @ApiOperation({ summary: "Proxy an imported marketplace image to the browser" })
+  async importImage(@Query("u") u: string, @Res() res: Response) {
+    const { buffer, contentType } = await this.menus.proxyImportImage(u);
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+    res.send(buffer);
+  }
+
   @Post("menus/:menuId/publish/hubrise")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
