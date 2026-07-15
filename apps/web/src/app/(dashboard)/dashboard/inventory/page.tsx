@@ -66,8 +66,11 @@ export default function InventoryPage() {
 
   // ── Brand picker ─────────────────────────────────────────────────────
   const brandsQuery = useQuery({
-    queryKey: ["brands", locationId],
-    queryFn: () => brandsClient.list(locationId ?? undefined),
+    queryKey: ["brands", locationId, "served"],
+    // served: include brands whose menu is served here via an assignment, not
+    // just brands homed at this location — so a shared/imported menu published
+    // to serve here shows up and its availability can be managed.
+    queryFn: () => brandsClient.list(locationId ?? undefined, { served: true }),
     enabled: !!locationId,
   });
   const brands = brandsQuery.data ?? [];

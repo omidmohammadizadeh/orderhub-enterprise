@@ -108,7 +108,12 @@ export class BrandsService {
    *  scoped to "pizza uno pelton" sees the brands at that location
    *  but not brands at a sibling location). Empty scope falls back
    *  to tenant-wide so a freshly-created operator isn't locked out. */
-  async findAll(tenantId: string, locationId?: string, userId?: string) {
+  async findAll(
+    tenantId: string,
+    locationId?: string,
+    userId?: string,
+    served = false,
+  ) {
     let allowedBrandIds: string[] | null = null;
     if (userId) {
       const [explicit, scopedLocations] = await Promise.all([
@@ -162,11 +167,29 @@ export class BrandsService {
     // tenant's default "Main" / franchise parent brand here — the
     // operator wants this list to be "brands that operate FROM this
     // physical kitchen" only.
+    //
+    // `served` (used by Inventory) widens this to brands that actually have a
+    // menu SERVED here — homed at this location OR with a menu-channel
+    // assignment here. A menu belonging to a brand homed elsewhere but
+    // published to serve at this location must be manageable in this
+    // location's inventory, which the primaryLocationId-only list missed.
+    let servedBrandIds: string[] = [];
+    if (served) {
+      const rows = await (this.prisma as any).menuChannelAssignment.findMany({
+        where: { locationId, menu: { deletedAt: null } },
+        select: { brandId: true },
+        distinct: ["brandId"],
+      });
+      servedBrandIds = rows.map((r: any) => r.brandId).filter(Boolean);
+    }
+
     return this.prisma.brand.findMany({
       where: {
         tenantId,
         deletedAt: null,
-        primaryLocationId: locationId,
+        ...(served && servedBrandIds.length
+          ? { OR: [{ primaryLocationId: locationId }, { id: { in: servedBrandIds } }] }
+          : { primaryLocationId: locationId }),
         ...(allowedBrandIds && { id: { in: allowedBrandIds } }),
       },
       include: { _count: { select: { platformConnections: true } } },

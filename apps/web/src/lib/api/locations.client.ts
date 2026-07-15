@@ -172,9 +172,14 @@ export interface Brand {
 }
 
 export const brandsClient = {
-  list: (locationId?: string) =>
+  list: (locationId?: string, opts?: { served?: boolean }) =>
     apiClient
-      .get<Brand[]>("/v1/brands", { params: locationId ? { locationId } : undefined })
+      .get<Brand[]>("/v1/brands", {
+        params: {
+          ...(locationId ? { locationId } : {}),
+          ...(opts?.served ? { served: "true" } : {}),
+        },
+      })
       .then((r) => r.data),
   get: (id: string) =>
     apiClient.get<Brand>(`/v1/brands/${id}`).then((r) => r.data),
