@@ -400,27 +400,21 @@ export class DispatchService {
         select: orderSelect,
         orderBy: { updatedAt: "desc" },
       }),
-      // Which online drivers to show for the selected scope. Shared-fleet
-      // model based on the driver's HOME location (Driver.locationId, Phase BG):
-      //   * A driver WITH a home location → shows ONLY at that location.
-      //   * A driver WITHOUT a home location → unassigned shared fleet, shown
-      //     at EVERY location (and under "All") so there's always someone to
-      //     dispatch to until the operator assigns them.
-      // So a specific location shows its own homed drivers + the shared fleet,
-      // but never another location's assigned drivers. (Clock-in location is
-      // only used under "All" as a legacy fallback — drivers clock into the
-      // tenant's default location, so it can't scope a specific one.)
+      // Which online drivers to show for the selected scope, by the driver's
+      // HOME location (Driver.locationId, Phase BG):
+      //   * Specific location → ONLY drivers assigned to that location. The
+      //     map + the Dispatch "Assign delivery" panel then list exactly that
+      //     shop's drivers. A driver with no home location does NOT appear
+      //     here — assign their home location to make them show.
+      //   * All locations → the whole online fleet the operator can see:
+      //     homed to an accessible location, unassigned (no home), or clocked
+      //     into an accessible location (legacy presence fallback).
       this.prisma.driverPresence.findMany({
         where: {
           tenantId: user.tenantId,
           status: { in: [DriverPresenceStatus.ONLINE, DriverPresenceStatus.ON_JOB] },
           ...(specificLocation
-            ? {
-                OR: [
-                  { driver: { locationId: { in: scope } } },
-                  { driver: { locationId: null } },
-                ],
-              }
+            ? { driver: { locationId: { in: scope } } }
             : {
                 OR: [
                   { driver: { locationId: { in: scope } } },
