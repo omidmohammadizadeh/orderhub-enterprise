@@ -133,7 +133,11 @@ export class TeamService {
 
   // ── Members ────────────────────────────────────────────────────
 
-  async listMembers(tenantId: string, callerRole?: string) {
+  async listMembers(
+    tenantId: string,
+    callerRole?: string,
+    callerUserId?: string,
+  ) {
     const users = await this.prisma.user.findMany({
       where: { tenantId, isActive: true },
       select: {
@@ -171,6 +175,40 @@ export class TeamService {
     const isPlatformOrOnboarding =
       callerRole === "PLATFORM_ADMIN" || callerRole === "ONBOARDING_AGENT";
     const hidePlatform = callerRole !== "PLATFORM_ADMIN";
+
+    // Location/brand SCOPE: tenant-wide roles see every member; everyone else
+    // (OWNER, MANAGER, …) only sees members who share at least one of THEIR
+    // OWN locations or brands. Without this a location OWNER saw the whole
+    // tenant's staff. PLATFORM_ADMIN / TENANT_OWNER / ONBOARDING_AGENT are
+    // tenant-wide by design.
+    const callerIsTenantWide =
+      callerRole === "PLATFORM_ADMIN" ||
+      callerRole === "TENANT_OWNER" ||
+      callerRole === "ONBOARDING_AGENT";
+    let scopeLocationIds = new Set<string>();
+    let scopeBrandIds = new Set<string>();
+    if (!callerIsTenantWide && callerUserId) {
+      const [ls, bs] = await Promise.all([
+        (this.prisma as any).userLocation.findMany({
+          where: { userId: callerUserId },
+          select: { locationId: true },
+        }),
+        (this.prisma as any).userBrand.findMany({
+          where: { userId: callerUserId },
+          select: { brandId: true },
+        }),
+      ]);
+      scopeLocationIds = new Set(ls.map((l: any) => l.locationId));
+      scopeBrandIds = new Set(bs.map((b: any) => b.brandId));
+    }
+    const sharesScope = (u: any): boolean => {
+      if (callerIsTenantWide || !callerUserId) return true;
+      if (u.id === callerUserId) return true; // always see yourself
+      return (
+        u.locations.some((l: any) => scopeLocationIds.has(l.location.id)) ||
+        u.brands.some((b: any) => scopeBrandIds.has(b.brand.id))
+      );
+    };
     // Admin accounts (TENANT_OWNER / PLATFORM_ADMIN) are hidden from
     // non-admin team members — a location manager shouldn't see the account
     // owner's details in Team Roles. Admins still see everyone.
@@ -182,7 +220,8 @@ export class TeamService {
           (callerIsAdmin || !PROTECTED_ADMIN_ROLES.has(u.role)) &&
           (isPlatformOrOnboarding ||
             u.locations.length > 0 ||
-            u.brands.length > 0),
+            u.brands.length > 0) &&
+          sharesScope(u),
       )
       .map((u: any) => ({
         id: u.id,

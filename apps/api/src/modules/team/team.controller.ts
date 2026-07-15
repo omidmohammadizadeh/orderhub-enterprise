@@ -48,7 +48,11 @@ export class TeamController {
   @Roles(...MANAGE_TEAM_ROLES)
   @ApiOperation({ summary: "List team members in this tenant" })
   listMembers(@CurrentUser() user: AuthenticatedUser) {
-    return this.team.listMembers(user.tenantId, user.role as string);
+    return this.team.listMembers(
+      user.tenantId,
+      user.role as string,
+      user.userId,
+    );
   }
 
   @Get("grantable-roles")

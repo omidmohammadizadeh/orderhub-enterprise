@@ -291,7 +291,14 @@ export class LocationsService {
     ]);
     const ids = new Set<string>(locRows.map((r: any) => r.locationId));
     const brandIds: string[] = brandRows.map((r: any) => r.brandId);
-    if (brandIds.length) {
+    // Explicit location assignments are AUTHORITATIVE. A user scoped to
+    // specific locations (e.g. an OWNER assigned to just "Pizza Uno") must NOT
+    // be broadened to every location their brands happen to operate at —
+    // otherwise assigning them "all Pizza Uno brands" would leak every other
+    // location those brands are served at. Only fall back to brand→location
+    // expansion when the user has NO explicit location scope at all (a
+    // brand-only account, where the brand's locations are the only signal).
+    if (ids.size === 0 && brandIds.length) {
       const brands = await this.prisma.brand.findMany({
         where: { id: { in: brandIds }, tenantId },
         select: {
