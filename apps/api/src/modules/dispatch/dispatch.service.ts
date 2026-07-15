@@ -399,16 +399,24 @@ export class DispatchService {
         select: orderSelect,
         orderBy: { updatedAt: "desc" },
       }),
-      // Only show drivers clocked into a location in the current scope —
-      // DriverPresence.locationId is the location a driver is clocked into
-      // (null when offline). So the map for location A shows A's drivers,
-      // not the whole tenant fleet, and a scoped operator never sees other
-      // locations' drivers.
+      // Which online drivers to show for the selected scope. A driver
+      // qualifies when the scope matches EITHER where they clocked in
+      // (DriverPresence.locationId) OR their home location
+      // (Driver.locationId, Phase BG). Drivers with NO home location are an
+      // unassigned shared fleet — dispatchable from any location, so they
+      // always show. Previously this filtered only on the clock-in location,
+      // which hid every driver whose clock-in location differed from the
+      // operator's selection (they clock into the tenant's default location),
+      // leaving "0 drivers online" and nothing to dispatch to.
       this.prisma.driverPresence.findMany({
         where: {
           tenantId: user.tenantId,
-          locationId: { in: scope },
           status: { in: [DriverPresenceStatus.ONLINE, DriverPresenceStatus.ON_JOB] },
+          OR: [
+            { locationId: { in: scope } },
+            { driver: { locationId: { in: scope } } },
+            { driver: { locationId: null } },
+          ],
         },
         include: { driver: { select: { firstName: true, lastName: true } } },
       }),
