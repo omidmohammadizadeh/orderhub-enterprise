@@ -82,21 +82,30 @@ export class MenuAvailabilityService {
     // behaviour — items tagged to the brand (primary brandId or shared via
     // brandIds) — so the board isn't empty before the first publish.
     let lastPublished: { id: string; name: string } | null = null;
-    if (locationId) {
-      const assignment = await (
-        this.prisma as any
-      ).menuChannelAssignment.findFirst({
-        where: {
-          locationId,
-          brandId,
-          menu: { deletedAt: null, isActive: true },
-        },
-        orderBy: { publishedAt: "desc" },
-        select: { menu: { select: { id: true, name: true } } },
-      });
-      lastPublished = assignment?.menu ?? null;
-    }
+    // Primary: the most recent serving assignment for this BRAND. Assignments
+    // stamp the brand at publish time, so this resolves the menu even when it's
+    // a master/shared/variant menu whose own menu.brandId differs from this
+    // brand (e.g. a variant menu published for this brand on Online/HubRise —
+    // the exact case where the brand-only fallback below missed it). Scope to
+    // the location when one is supplied; otherwise take the brand's latest
+    // across every location/channel. isActive is intentionally NOT required —
+    // inventory shows the LAST PUBLISHED menu, even if the auto-schedule worker
+    // has it toggled off right now.
+    const assignment = await (
+      this.prisma as any
+    ).menuChannelAssignment.findFirst({
+      where: {
+        brandId,
+        ...(locationId ? { locationId } : {}),
+        menu: { deletedAt: null },
+      },
+      orderBy: { publishedAt: "desc" },
+      select: { menu: { select: { id: true, name: true } } },
+    });
+    lastPublished = assignment?.menu ?? null;
     if (!lastPublished) {
+      // Fallback for menus published before assignments existed (or via a path
+      // that doesn't write them): the brand's own most-recently-published menu.
       lastPublished = await this.prisma.menu.findFirst({
         where: { brandId, deletedAt: null, lastPublishedAt: { not: null } },
         orderBy: { lastPublishedAt: "desc" },
