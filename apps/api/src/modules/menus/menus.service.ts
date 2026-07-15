@@ -448,7 +448,20 @@ export class MenusService {
     // item↔group link rows are re-created for the new items.
     return this.prisma.$transaction(async (tx) => {
       const cloned = await tx.menu.create({
-        data: { brandId: source.brandId, name, status: "DRAFT" },
+        // Inherit the source's home location so the clone shows up on the
+        // location-scoped menu page. Without this the clone was created
+        // brand-only (locationId null) and never appeared in the list — the
+        // clone "did nothing" from the operator's point of view even though
+        // it succeeded. menuType carried over so the copy is a true duplicate.
+        data: {
+          brandId: source.brandId,
+          locationId: (source as any).locationId ?? null,
+          name,
+          status: "DRAFT",
+          ...((source as any).menuType && {
+            menuType: (source as any).menuType,
+          }),
+        },
       });
 
       // Same item can appear under multiple categories — copy it once.
