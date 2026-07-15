@@ -693,6 +693,19 @@ function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, on
           </span>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400">
+          {/* Menu id — click to copy, for support / bug reports. */}
+          <button
+            type="button"
+            title={`Menu ID: ${menu.id} (click to copy)`}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard?.writeText(menu.id).catch(() => {});
+            }}
+            className="font-mono text-[10px] text-zinc-400 hover:text-zinc-600"
+          >
+            ID:{menu.id.slice(-8)}
+          </button>
+          <span className="text-zinc-300">·</span>
           <span>{menu._count?.categories ?? 0} categories</span>
           {liveByLocation.size > 0 ? (
             // Phase BA — one chip per serving location with its channels.

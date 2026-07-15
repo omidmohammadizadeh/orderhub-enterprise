@@ -439,10 +439,20 @@ export class MenusService {
   async clone(menuId: string, tenantId: string, name: string) {
     const source = await this.findOne(menuId, tenantId);
 
+    // DEEP clone — every MenuItem is duplicated so the copy is completely
+    // independent of the source: deleting or editing an item in the clone
+    // never affects the original menu (the old clone linked the SAME itemId,
+    // so a delete hit both). PLUs (item + per-SKU) are cleared so the copy
+    // carries no colliding codes — run "Generate missing PLUs" to assign
+    // fresh ones. Modifier GROUPS stay shared (referenced by id); only the
+    // item↔group link rows are re-created for the new items.
     return this.prisma.$transaction(async (tx) => {
       const cloned = await tx.menu.create({
         data: { brandId: source.brandId, name, status: "DRAFT" },
       });
+
+      // Same item can appear under multiple categories — copy it once.
+      const itemIdMap = new Map<string, string>();
 
       for (const cat of source.categories) {
         const newCat = await tx.menuCategory.create({
@@ -454,14 +464,68 @@ export class MenusService {
           },
         });
         for (const link of cat.items) {
-          await tx.menuItemOnCategory.create({
-            data: {
-              categoryId: newCat.id,
-              itemId: link.itemId,
-              sortOrder: link.sortOrder,
-              priceOverride: link.priceOverride,
-            },
-          });
+          const src = (link as any).item;
+          let newItemId = itemIdMap.get(link.itemId);
+          if (!newItemId && src) {
+            const skus = Array.isArray(src.productSkus)
+              ? src.productSkus.map((s: any) => ({ ...s, plu: null }))
+              : (src.productSkus ?? []);
+            const created = await tx.menuItem.create({
+              data: {
+                brandId: src.brandId,
+                locationId: src.locationId ?? null,
+                name: src.name,
+                description: src.description ?? null,
+                basePrice: src.basePrice,
+                imageUrl: src.imageUrl ?? null,
+                sku: null,
+                plu: null,
+                isAvailable: src.isAvailable,
+                visibleToCustomers: src.visibleToCustomers,
+                outOfStock: false,
+                allergens: src.allergens ?? [],
+                dietaryTags: src.dietaryTags ?? [],
+                dietary: src.dietary ?? [],
+                calories: src.calories ?? null,
+                prepTime: src.prepTime ?? null,
+                metadata: src.metadata ?? {},
+                hasMultipleSkus: src.hasMultipleSkus,
+                productSkus: skus,
+                deliveryTax: src.deliveryTax,
+                takeawayTax: src.takeawayTax,
+                eatInTax: src.eatInTax,
+                brandIds: src.brandIds ?? [],
+                sortOrder: src.sortOrder,
+                isInventoryTracked: src.isInventoryTracked,
+                platformPricingOverrides: src.platformPricingOverrides ?? {},
+              },
+            });
+            if (
+              Array.isArray(src.modifierGroupLinks) &&
+              src.modifierGroupLinks.length > 0
+            ) {
+              await tx.modifierGroupOnItem.createMany({
+                data: src.modifierGroupLinks.map((l: any) => ({
+                  itemId: created.id,
+                  groupId: l.groupId,
+                  sortOrder: l.sortOrder ?? 0,
+                })),
+                skipDuplicates: true,
+              });
+            }
+            newItemId = created.id;
+            itemIdMap.set(link.itemId, newItemId);
+          }
+          if (newItemId) {
+            await tx.menuItemOnCategory.create({
+              data: {
+                categoryId: newCat.id,
+                itemId: newItemId,
+                sortOrder: link.sortOrder,
+                priceOverride: link.priceOverride,
+              },
+            });
+          }
         }
       }
 
