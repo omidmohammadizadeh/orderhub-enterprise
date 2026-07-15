@@ -28,10 +28,6 @@ export class BrandsController {
   findAll(
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId?: string,
-    // served=true also includes brands whose menu is only SERVED at this
-    // location (via an assignment), not just brands homed here — used by
-    // Inventory so a shared menu published to this location is manageable.
-    @Query("served") served?: string,
   ) {
     // Phase AR — tenant-wide roles see every brand; everyone else
     // gets narrowed by UserBrand + brands at their UserLocation set.
@@ -39,12 +35,7 @@ export class BrandsController {
     const userId = TENANT_WIDE_ROLES.has(user.role as string)
       ? undefined
       : user.userId;
-    return this.brands.findAll(
-      user.tenantId,
-      locationId,
-      userId,
-      served === "true" || served === "1",
-    );
+    return this.brands.findAll(user.tenantId, locationId, userId);
   }
 
   @Get(":brandId")
