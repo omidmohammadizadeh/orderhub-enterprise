@@ -18,6 +18,9 @@ interface FleetDriver {
   phone: string | null;
   vehicleType: string | null;
   isActive: boolean;
+  // Phase BG home location — which location this driver belongs to (null =
+  // unassigned shared fleet). Drives dispatch scoping.
+  locationId?: string | null;
   presence?: { status: "OFFLINE" | "ONLINE" | "ON_JOB"; locationId: string | null } | null;
 }
 
@@ -55,6 +58,19 @@ export default function DispatchPage() {
   async function toggleDriver(driverId: string, online: boolean) {
     try {
       await apiClient.patch(`/v1/drivers/${driverId}/presence`, { online });
+      queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
+      queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Assign a driver's home location straight from the Fleet tab, so the
+  // operator can scope the fleet without opening each driver's earnings modal.
+  // Reuses the earnings endpoint (sets only locationId, leaving fees intact).
+  async function assignDriverLocation(driverId: string, locationId: string | null) {
+    try {
+      await apiClient.patch(`/v1/dispatch/drivers/${driverId}/earnings`, { locationId });
       queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
       queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
     } catch {
@@ -295,7 +311,13 @@ export default function DispatchPage() {
           </div>
         </>
       ) : (
-        <FleetTab drivers={fleetQuery.data} loading={fleetQuery.isLoading} onToggle={toggleDriver} />
+        <FleetTab
+          drivers={fleetQuery.data}
+          loading={fleetQuery.isLoading}
+          onToggle={toggleDriver}
+          locations={locationOptions}
+          onAssignLocation={assignDriverLocation}
+        />
       )}
 
       {/* Floating driver chat */}
@@ -317,10 +339,14 @@ function FleetTab({
   drivers,
   loading,
   onToggle,
+  locations,
+  onAssignLocation,
 }: {
   drivers?: FleetDriver[];
   loading: boolean;
   onToggle: (id: string, online: boolean) => void;
+  locations: { id: string; name: string }[];
+  onAssignLocation: (id: string, locationId: string | null) => void;
 }) {
   if (loading) {
     return (
@@ -338,6 +364,7 @@ function FleetTab({
             <th className="px-4 py-2">Driver</th>
             <th className="px-4 py-2">Phone</th>
             <th className="px-4 py-2">Vehicle</th>
+            <th className="px-4 py-2">Location</th>
             <th className="px-4 py-2">Status</th>
             <th className="px-4 py-2"></th>
           </tr>
@@ -345,7 +372,7 @@ function FleetTab({
         <tbody>
           {list.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
+              <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
                 No drivers yet. Add your fleet to start dispatching.
               </td>
             </tr>
@@ -360,6 +387,21 @@ function FleetTab({
                 <td className="px-4 py-2">{d.name ?? `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim()}</td>
                 <td className="px-4 py-2">{d.phone ?? "—"}</td>
                 <td className="px-4 py-2">{d.vehicleType ?? "—"}</td>
+                <td className="px-4 py-2">
+                  <select
+                    value={d.locationId ?? ""}
+                    onChange={(e) => onAssignLocation(d.id, e.target.value || null)}
+                    className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs"
+                    title="Which location this driver belongs to. Unassigned drivers only show under 'All locations'."
+                  >
+                    <option value="">Unassigned (all)</option>
+                    {locations.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
                 <td className="px-4 py-2">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full" style={{ background: dot }} />
