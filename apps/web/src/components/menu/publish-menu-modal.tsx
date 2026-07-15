@@ -244,11 +244,14 @@ export function PublishMenuModal({
 
   const canContinue = selected.size > 0;
   const canPublish = !!brandId && selected.size > 0 && !saveMutation.isPending;
-  // HubRise self-routes to each brand via catalog variants, and WhatsApp
-  // serves the location's active menu at default prices — neither needs a
-  // single brand picked, so skip Step 2 when either is selected.
-  const needsBrandStep =
-    !selected.has("HUBRISE") && !selected.has("WHATSAPP");
+  // Channels that DON'T need a brand picked: HubRise self-routes per brand via
+  // catalog variants; WhatsApp serves the location's active menu at default
+  // prices; POS now shows the location's "POS display name" brand (Location
+  // settings), so it no longer asks which brand at publish time. Skip Step 2
+  // unless at least one OTHER selected channel (Online / Uber / Deliveroo /
+  // Just Eat) genuinely needs a single brand.
+  const NO_BRAND_CHANNELS = new Set(["POS", "HUBRISE", "WHATSAPP"]);
+  const needsBrandStep = [...selected].some((c) => !NO_BRAND_CHANNELS.has(c));
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4">
