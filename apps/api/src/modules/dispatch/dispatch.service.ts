@@ -202,7 +202,11 @@ export class DispatchService {
     ]);
     const ids = new Set<string>(locRows.map((a) => a.locationId));
     const brandIds: string[] = brandRows.map((b: any) => b.brandId);
-    if (brandIds.length) {
+    // Explicit location assignments are authoritative — a user scoped to
+    // specific locations must NOT be broadened to every location their brands
+    // operate at. Only expand brands→locations for brand-only accounts (no
+    // explicit location scope). Mirrors LocationsService.accessibleLocationIds.
+    if (ids.size === 0 && brandIds.length) {
       const brands = await this.prisma.brand.findMany({
         where: { id: { in: brandIds }, tenantId: user.tenantId },
         select: {

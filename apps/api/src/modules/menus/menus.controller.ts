@@ -59,7 +59,7 @@ export class MenusController {
   // ── Phase AK — PLU + Imports ──────────────────────────────────────────────
 
   @Post("menus/generate-missing-plus")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary: "Generate PLUs for any product/group/option that's missing one",
   })
@@ -68,7 +68,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/import/uber")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Import Uber Eats menu into the selected menu" })
   importUber(
     @Param("menuId") menuId: string,
@@ -87,7 +87,7 @@ export class MenusController {
   // ── AI menu import (upload a PDF/photo, AI builds the menu) ───────────
 
   @Post("brands/:brandId/menus/import/ai/parse")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Parse an uploaded menu (PDF/JPEG/PNG) with AI into a structured draft for review — no DB writes",
@@ -100,7 +100,7 @@ export class MenusController {
   }
 
   @Post("brands/:brandId/menus/import/ai/commit")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary: "Create a menu from a reviewed AI-parsed draft",
   })
@@ -128,7 +128,7 @@ export class MenusController {
   // ── Phase AW-11 — HubRise catalog import + publish ────────────────────
 
   @Post("brands/:brandId/menus/import/hubrise")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Import the location's HubRise catalog into a new (or existing) menu under this brand",
@@ -191,7 +191,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/publish/hubrise")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Push this menu to HubRise as a catalog. Overwrites the location's existing catalog when one is already configured.",
@@ -209,7 +209,7 @@ export class MenusController {
   // Additive-publish counterpart: remove a menu from ONE channel at a
   // location without touching its other channels.
   @Post("menus/:menuId/unpublish-channel")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary: "Remove this menu from a single channel at a location",
   })
@@ -227,7 +227,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/publish/deliveroo")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Push this menu directly to Deliveroo (create-or-update + publish) for the brand's connected Deliveroo store.",
@@ -246,7 +246,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/publish/ubereats")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Push this menu directly to Uber Eats (v2 upsert) for the brand's connected Uber Eats store.",
@@ -265,7 +265,7 @@ export class MenusController {
   }
 
   @Post("menus/import/ubereats")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Create a new menu for the brand/location and import it live from the brand's connected Uber Eats store (GET /v2/eats/stores/{id}/menus).",
@@ -282,7 +282,7 @@ export class MenusController {
   }
 
   @Post("menus/import/deliveroo")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Create a new menu for the brand/location and import it from the brand's connected Deliveroo store.",
@@ -299,7 +299,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/import/deliveroo")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Import Deliveroo menu into the selected menu" })
   importDeliveroo(
     @Param("menuId") menuId: string,
@@ -378,7 +378,7 @@ export class MenusController {
   }
 
   @Post("brands/:brandId/menus")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Create a menu" })
   create(
     @Param("brandId") brandId: string,
@@ -392,7 +392,7 @@ export class MenusController {
   // (typically one per brand) into one new menu, so a single HubRise
   // connection (one menu per location) can carry every brand's catalog.
   @Post("locations/:locationId/menus/master")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Create a Master Menu combining several existing menus at a location" })
   createMasterMenu(
     @Param("locationId") locationId: string,
@@ -403,7 +403,7 @@ export class MenusController {
   }
 
   @Patch("menus/:menuId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
       "Update menu metadata. Phase BA: publishedTo + locationIds together rewrite the selected locations' serving assignments (replace semantics per slot).",
@@ -417,7 +417,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/publish")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Publish a menu" })
   publish(
     @Param("menuId") menuId: string,
@@ -427,7 +427,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/archive")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Archive a menu" })
   archive(
     @Param("menuId") menuId: string,
@@ -437,7 +437,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/clone")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Clone a menu to a new draft" })
   clone(
     @Param("menuId") menuId: string,
@@ -448,7 +448,7 @@ export class MenusController {
   }
 
   @Delete("menus/:menuId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Soft-delete a menu" })
   remove(
@@ -461,7 +461,7 @@ export class MenusController {
   // ── Categories ────────────────────────────────────────────────────────────
 
   @Post("menus/:menuId/categories")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Add a category to a menu" })
   createCategory(
     @Param("menuId") menuId: string,
@@ -472,7 +472,7 @@ export class MenusController {
   }
 
   @Patch("categories/:categoryId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update a category" })
   updateCategory(
     @Param("categoryId") categoryId: string,
@@ -483,7 +483,7 @@ export class MenusController {
   }
 
   @Delete("categories/:categoryId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove a category" })
   removeCategory(
@@ -494,7 +494,7 @@ export class MenusController {
   }
 
   @Post("menus/:menuId/categories/reorder")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Reorder categories" })
   reorderCategories(
@@ -542,7 +542,7 @@ export class MenusController {
   }
 
   @Post("brands/:brandId/items")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Create a menu item" })
   createItem(
     @Param("brandId") brandId: string,
@@ -553,7 +553,7 @@ export class MenusController {
   }
 
   @Patch("items/:itemId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update a menu item" })
   updateItem(
     @Param("itemId") itemId: string,
@@ -574,7 +574,7 @@ export class MenusController {
   }
 
   @Delete("items/:itemId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a menu item" })
   removeItem(
@@ -587,7 +587,7 @@ export class MenusController {
   // ── Category ↔ Item links ─────────────────────────────────────────────────
 
   @Post("categories/:categoryId/items")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Add existing item to a category" })
   addItemToCategory(
     @Param("categoryId") categoryId: string,
@@ -598,7 +598,7 @@ export class MenusController {
   }
 
   @Delete("categories/:categoryId/items/:itemId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove item from category" })
   removeItemFromCategory(
@@ -610,7 +610,7 @@ export class MenusController {
   }
 
   @Patch("categories/:categoryId/items/reorder")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Reorder items within a category" })
   reorderItems(
@@ -624,7 +624,7 @@ export class MenusController {
   // ── Bulk operations ───────────────────────────────────────────────────────
 
   @Post("items/bulk/availability")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Bulk toggle availability for multiple items" })
   bulkAvailability(
@@ -635,7 +635,7 @@ export class MenusController {
   }
 
   @Post("items/bulk/price")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Bulk price adjustment" })
   bulkPrice(
@@ -648,7 +648,7 @@ export class MenusController {
   // ── Item variants ─────────────────────────────────────────────────────────
 
   @Post("items/:itemId/variants")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Add a size/variant to an item" })
   createVariant(
     @Param("itemId") itemId: string,
@@ -659,7 +659,7 @@ export class MenusController {
   }
 
   @Patch("items/variants/:variantId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update a variant" })
   updateVariant(
     @Param("variantId") variantId: string,
@@ -670,7 +670,7 @@ export class MenusController {
   }
 
   @Delete("items/variants/:variantId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove a variant" })
   removeVariant(
@@ -692,7 +692,7 @@ export class MenusController {
   }
 
   @Post(":menuId/rollback/:versionId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Rollback menu to a previous version" })
   rollback(
@@ -745,7 +745,7 @@ export class MenusController {
   }
 
   @Post("brands/:brandId/modifier-groups")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Create a modifier group" })
   createModifierGroup(
     @Param("brandId") brandId: string,
@@ -765,7 +765,7 @@ export class MenusController {
   }
 
   @Patch("modifier-groups/:groupId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update a modifier group" })
   updateModifierGroup(
     @Param("groupId") groupId: string,
@@ -776,7 +776,7 @@ export class MenusController {
   }
 
   @Delete("modifier-groups/:groupId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a modifier group" })
   removeModifierGroup(
@@ -787,7 +787,7 @@ export class MenusController {
   }
 
   @Post("modifier-groups/:groupId/options")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Add an option to a modifier group" })
   addModifierOption(
     @Param("groupId") groupId: string,
@@ -798,7 +798,7 @@ export class MenusController {
   }
 
   @Patch("modifier-options/:optionId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update a modifier option" })
   updateModifierOption(
     @Param("optionId") optionId: string,
@@ -809,7 +809,7 @@ export class MenusController {
   }
 
   @Delete("modifier-options/:optionId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove a modifier option" })
   removeModifierOption(
@@ -820,7 +820,7 @@ export class MenusController {
   }
 
   @Post("items/:itemId/modifier-groups/:groupId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Link a modifier group to an item" })
   linkModifierGroup(
@@ -833,7 +833,7 @@ export class MenusController {
   }
 
   @Delete("items/:itemId/modifier-groups/:groupId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Unlink a modifier group from an item" })
   unlinkModifierGroup(

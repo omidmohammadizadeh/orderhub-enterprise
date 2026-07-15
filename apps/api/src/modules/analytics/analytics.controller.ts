@@ -68,6 +68,11 @@ export class AnalyticsController {
       fulfillmentTypes: fulfillmentTypes
         ? fulfillmentTypes.split(",").filter(Boolean)
         : undefined,
+      // Scope the dashboard to the caller's own locations (tenant-wide roles
+      // are unrestricted). "All locations" then means "all locations I can
+      // access", not the whole system.
+      userId: user.userId,
+      role: user.role as string,
     });
   }
 

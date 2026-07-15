@@ -1067,6 +1067,40 @@ export class AnalyticsService {
   //   separately so the operator sees lost-opportunity money without
   //   it inflating the headline revenue.
 
+  /**
+   * The locations a scoped user may see analytics for: explicit UserLocation
+   * rows are authoritative; only brand-only accounts fall back to their
+   * brands' locations. Mirrors LocationsService.accessibleLocationIds.
+   */
+  private async accessibleLocationIds(
+    tenantId: string,
+    userId: string,
+  ): Promise<string[]> {
+    const [locRows, brandRows] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({
+        where: { userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const ids = new Set<string>(locRows.map((r: any) => r.locationId));
+    const brandIds: string[] = brandRows.map((r: any) => r.brandId);
+    if (ids.size === 0 && brandIds.length) {
+      const brands = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId },
+        select: { primaryLocationId: true, locations: { select: { id: true } } },
+      });
+      for (const b of brands) {
+        if (b.primaryLocationId) ids.add(b.primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
+  }
+
   async getOverview(
     tenantId: string,
     opts: {
@@ -1076,12 +1110,33 @@ export class AnalyticsService {
       brandId?: string;
       channels?: string[]; // matches Order.orderSource
       fulfillmentTypes?: string[]; // DELIVERY | PICKUP
+      // Caller identity for location scoping. Tenant-wide roles see the whole
+      // tenant; a scoped role (OWNER/MANAGER) only sees THEIR locations even
+      // when "All locations" is selected.
+      userId?: string;
+      role?: string;
     },
   ) {
+    const tenantWide =
+      opts.role === "PLATFORM_ADMIN" || opts.role === "TENANT_OWNER";
+    const scopeIds =
+      !tenantWide && opts.userId
+        ? await this.accessibleLocationIds(tenantId, opts.userId)
+        : null;
+    // Effective location filter: a specific pick (validated against scope), or
+    // the whole accessible set for a scoped user, or unrestricted tenant-wide.
+    let locationWhere: Prisma.OrderWhereInput = {};
+    if (opts.locationId) {
+      const inScope = !scopeIds || scopeIds.includes(opts.locationId);
+      locationWhere = { locationId: inScope ? opts.locationId : "__no_access__" };
+    } else if (scopeIds) {
+      locationWhere = { locationId: { in: scopeIds } };
+    }
+
     const baseWhere: Prisma.OrderWhereInput = {
       tenantId,
       isSandbox: false,
-      ...(opts.locationId && { locationId: opts.locationId }),
+      ...locationWhere,
       ...(opts.brandId && { brandId: opts.brandId }),
       ...(opts.channels?.length && {
         orderSource: { in: opts.channels as any },
@@ -1119,7 +1174,12 @@ export class AnalyticsService {
         select: { id: true, name: true },
       }),
       this.prisma.location.findMany({
-        where: { brand: { tenantId }, deletedAt: null },
+        where: {
+          brand: { tenantId },
+          deletedAt: null,
+          // Scoped users only get their own locations in the picker.
+          ...(scopeIds ? { id: { in: scopeIds } } : {}),
+        },
         select: { id: true, name: true },
       }),
     ]);
