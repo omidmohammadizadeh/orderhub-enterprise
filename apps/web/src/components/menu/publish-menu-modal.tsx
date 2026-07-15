@@ -140,12 +140,16 @@ export function PublishMenuModal({
     enabled: open && step === "location",
   });
 
-  // Brand picker is scoped by location; with multi-select we key it off
-  // the first picked location (brands are shared per kitchen anyway).
-  const firstSelLocation = Array.from(selLocations)[0] ?? "";
+  // Brand picker: the brands the user can publish this menu UNDER — i.e. the
+  // brands they have access to (their own for a scoped OWNER; all tenant brands
+  // for an admin). NOT filtered by the serving location: you pick which brand
+  // owns the menu, then which locations to serve it at — the brand doesn't have
+  // to be primary-homed at a serving location. The old location-filter hid an
+  // OWNER's own brands whenever the menu's brand wasn't homed at the picked
+  // location, leaving "No brands at this location yet".
   const brandsQuery = useQuery({
-    queryKey: ["brands", firstSelLocation || locationId || "tenant"],
-    queryFn: () => brandsClient.list(firstSelLocation || locationId),
+    queryKey: ["brands", "publishable"],
+    queryFn: () => brandsClient.list(),
     enabled: open && step === "brand",
   });
 
@@ -409,8 +413,8 @@ export function PublishMenuModal({
             </div>
           ) : (brandsQuery.data ?? []).length === 0 ? (
             <p className="py-12 text-center text-sm text-zinc-500">
-              No brands at this location yet. Create one under Locations →
-              Brands first.
+              No brands available for your account. Create one under Locations →
+              Brands, or ask an admin to assign you a brand.
             </p>
           ) : (
             (brandsQuery.data ?? []).map((b: Brand) => {
