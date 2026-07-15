@@ -206,6 +206,26 @@ export class MenusController {
     });
   }
 
+  // Additive-publish counterpart: remove a menu from ONE channel at a
+  // location without touching its other channels.
+  @Post("menus/:menuId/unpublish-channel")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Remove this menu from a single channel at a location",
+  })
+  unpublishFromChannel(
+    @Param("menuId") menuId: string,
+    @Body() body: { locationId: string; channel: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.unpublishFromChannel(
+      menuId,
+      user.tenantId,
+      body.locationId,
+      body.channel,
+    );
+  }
+
   @Post("menus/:menuId/publish/deliveroo")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({

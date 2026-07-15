@@ -307,6 +307,15 @@ export class MenusService {
 
     const now = new Date();
     const channels = dto.publishedTo;
+    // ADDITIVE publish (per operator request): upsert one serving assignment
+    // per (location × channel) for the channels in THIS publish. The unique
+    // key (locationId, channel, brandId) still makes the upsert REPLACE
+    // whatever menu held that slot — so publishing a *different* menu to a
+    // channel swaps it. What we deliberately DON'T do any more is delete this
+    // menu's rows for channels not in the current publish: publishing a menu
+    // to Online must not remove it from POS. Removing a menu from a specific
+    // channel is now an explicit action (unpublishFromChannel), not a
+    // side effect of publishing to a different channel.
     const [updated] = await this.prisma.$transaction([
       menuUpdate,
       ...locationIds.flatMap((locationId) =>
@@ -332,19 +341,28 @@ export class MenusService {
           }),
         ),
       ),
-      ...(locationIds.length > 0
-        ? [
-            (this.prisma as any).menuChannelAssignment.deleteMany({
-              where: {
-                menuId,
-                locationId: { in: locationIds },
-                channel: { notIn: channels },
-              },
-            }),
-          ]
-        : []),
     ]);
     return updated;
+  }
+
+  /**
+   * Explicitly remove a menu from a channel at a location (the additive
+   * counterpart to publish — see the publish transaction above). Deletes only
+   * that (menu, location, channel) serving assignment; other channels/menus
+   * are untouched.
+   */
+  async unpublishFromChannel(
+    menuId: string,
+    tenantId: string,
+    locationId: string,
+    channel: string,
+  ): Promise<{ removed: number }> {
+    await this.assertMenuAccess(menuId, tenantId);
+    await this.assertLocationAccess(locationId, tenantId);
+    const res = await (this.prisma as any).menuChannelAssignment.deleteMany({
+      where: { menuId, locationId, channel },
+    });
+    return { removed: res.count ?? 0 };
   }
 
   async publish(menuId: string, tenantId: string, userId?: string) {
