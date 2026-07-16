@@ -1460,11 +1460,19 @@ export class OrdersService {
    * array means the (non-admin) user has no assignments → sees nothing.
    */
   private async resolveOrderScope(user: AuthenticatedUser): Promise<{
-    locationIds: string[] | null;
+    admin: boolean;
+    // Locations the user is DIRECTLY assigned to (owns the board here → sees
+    // every brand's orders at these locations).
+    directLocationIds: string[];
+    // Brands the user is assigned to (sees these brands' orders wherever they
+    // trade). null = no brand assignments.
     brandIds: string[] | null;
+    // Every location the user may view at all (direct + brand-derived) — used
+    // only to validate a requested-location filter, NOT to filter orders.
+    allowedLocationIds: string[];
   }> {
     if (ORDER_ADMIN_ROLES.includes(String(user.role))) {
-      return { locationIds: null, brandIds: null };
+      return { admin: true, directLocationIds: [], brandIds: null, allowedLocationIds: [] };
     }
     const [locs, brands] = await Promise.all([
       (this.prisma as any).userLocation.findMany({
@@ -1476,12 +1484,12 @@ export class OrdersService {
         select: { brandId: true },
       }),
     ]);
-    const brandIds: string[] = brands.map((b: any) => b.brandId);
-    const locationIds = new Set<string>(
-      locs.map((l: any) => l.locationId as string),
-    );
-    // A brand-scoped user with no explicit location row still needs to see
-    // the locations their assigned brands operate at.
+    const directLocationIds: string[] = locs.map((l: any) => l.locationId as string);
+    const brandIds: string[] = brands.map((b: any) => b.brandId as string);
+
+    // Brand-derived locations only widen the *viewable* set (so a requested
+    // location filter validates); they don't force a brand filter on orders.
+    const allowed = new Set<string>(directLocationIds);
     if (brandIds.length) {
       const brandRows = await this.prisma.brand.findMany({
         where: { id: { in: brandIds }, tenantId: user.tenantId },
@@ -1491,23 +1499,32 @@ export class OrdersService {
         },
       });
       for (const b of brandRows) {
-        if (b.primaryLocationId) locationIds.add(b.primaryLocationId);
-        for (const l of b.locations) locationIds.add(l.id);
+        if (b.primaryLocationId) allowed.add(b.primaryLocationId);
+        for (const l of b.locations) allowed.add(l.id);
       }
     }
+
     return {
-      locationIds: Array.from(locationIds),
-      // Only constrain by brand when the user has explicit brand
-      // assignments; no UserBrand rows = every brand at their locations.
+      admin: false,
+      directLocationIds,
       brandIds: brandIds.length ? brandIds : null,
+      allowedLocationIds: Array.from(allowed),
     };
   }
 
   /**
-   * Build the tenant + location + brand access constraint for an orders
-   * query. Returns null when a non-admin user has no assignments at all
-   * (caller returns an empty result rather than leaking the tenant). A
-   * requested locationId is honoured only when it's inside the allowlist.
+   * Build the tenant + location + brand access constraint for an orders query.
+   * Returns null when a non-admin user has no assignments at all (caller returns
+   * an empty result rather than leaking the tenant). A requested locationId is
+   * honoured only when it's inside the allowlist.
+   *
+   * Visibility is a UNION, not an intersection:
+   *   • every order at a location the user is directly assigned to (ALL brands
+   *     trading there — a location owner sees the whole board), OR
+   *   • every order for a brand the user is assigned to (wherever it trades).
+   * Intersecting the two used to hide marketplace orders homed to a different
+   * brand (e.g. an Uber Eats order under the "Order Hub" brand) from the owner
+   * of the location those orders physically arrive at.
    */
   private async resolveOrderAccessWhere(
     user: AuthenticatedUser,
@@ -1516,20 +1533,31 @@ export class OrdersService {
     const scope = await this.resolveOrderScope(user);
     const where: Prisma.OrderWhereInput = { tenantId: user.tenantId };
 
-    if (scope.locationIds === null) {
+    if (scope.admin) {
       // Admin — whole tenant; honour an explicit location filter if given.
       if (requestedLocationId) where.locationId = requestedLocationId;
-    } else {
-      if (scope.locationIds.length === 0) return null; // no access → nothing
-      if (requestedLocationId) {
-        if (!scope.locationIds.includes(requestedLocationId)) return null;
-        where.locationId = requestedLocationId;
-      } else {
-        where.locationId = { in: scope.locationIds };
-      }
+      return where;
     }
-    // Brand scoping always applies, even for a single selected location.
-    if (scope.brandIds) where.brandId = { in: scope.brandIds };
+
+    const or: Prisma.OrderWhereInput[] = [];
+    if (scope.directLocationIds.length) {
+      or.push({ locationId: { in: scope.directLocationIds } });
+    }
+    if (scope.brandIds) {
+      or.push({ brandId: { in: scope.brandIds } });
+    }
+    if (!or.length) return null; // no assignments → nothing
+    where.OR = or;
+
+    // A requested location narrows the board to that one location — but only if
+    // it's in the allowlist. ANDed with the union above: a directly-owned
+    // location shows all its orders; a brand-derived location shows only the
+    // user's brand orders there.
+    if (requestedLocationId) {
+      if (!scope.allowedLocationIds.includes(requestedLocationId)) return null;
+      where.locationId = requestedLocationId;
+    }
+
     return where;
   }
 
