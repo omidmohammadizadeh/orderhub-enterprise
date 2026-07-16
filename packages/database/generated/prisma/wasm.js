@@ -1843,11 +1843,99 @@ exports.Prisma.SmsMessageScalarFieldEnum = {
   orderId: 'orderId',
   toNumber: 'toNumber',
   purpose: 'purpose',
+  campaignId: 'campaignId',
   segments: 'segments',
   provider: 'provider',
   providerSid: 'providerSid',
   status: 'status',
   error: 'error',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MarketingContactScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  phone: 'phone',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  source: 'source',
+  customerId: 'customerId',
+  consentStatus: 'consentStatus',
+  consentSource: 'consentSource',
+  consentAt: 'consentAt',
+  unsubscribedAt: 'unsubscribedAt',
+  tags: 'tags',
+  lastCampaignAt: 'lastCampaignAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingSmsCampaignScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  senderHeader: 'senderHeader',
+  body: 'body',
+  status: 'status',
+  audience: 'audience',
+  recipientCount: 'recipientCount',
+  sentCount: 'sentCount',
+  failedCount: 'failedCount',
+  skippedCount: 'skippedCount',
+  segments: 'segments',
+  costMinor: 'costMinor',
+  createdBy: 'createdBy',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingSmsRecipientScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  tenantId: 'tenantId',
+  contactId: 'contactId',
+  phone: 'phone',
+  status: 'status',
+  reason: 'reason',
+  segments: 'segments',
+  smsMessageId: 'smsMessageId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WalletScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  balanceMinor: 'balanceMinor',
+  currency: 'currency',
+  smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
+  lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
+  stripeCustomerId: 'stripeCustomerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WalletTransactionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  walletId: 'walletId',
+  type: 'type',
+  amountMinor: 'amountMinor',
+  balanceAfterMinor: 'balanceAfterMinor',
+  currency: 'currency',
+  purpose: 'purpose',
+  segments: 'segments',
+  smsMessageId: 'smsMessageId',
+  locationId: 'locationId',
+  stripeCheckoutId: 'stripeCheckoutId',
+  stripePaymentIntentId: 'stripePaymentIntentId',
+  description: 'description',
   createdBy: 'createdBy',
   createdAt: 'createdAt'
 };
@@ -2936,10 +3024,71 @@ exports.Prisma.SmsMessageOrderByRelevanceFieldEnum = {
   orderId: 'orderId',
   toNumber: 'toNumber',
   purpose: 'purpose',
+  campaignId: 'campaignId',
   provider: 'provider',
   providerSid: 'providerSid',
   status: 'status',
   error: 'error',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.MarketingContactOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  phone: 'phone',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  source: 'source',
+  customerId: 'customerId',
+  consentStatus: 'consentStatus',
+  consentSource: 'consentSource',
+  tags: 'tags',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.MarketingSmsCampaignOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  senderHeader: 'senderHeader',
+  body: 'body',
+  status: 'status',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.MarketingSmsRecipientOrderByRelevanceFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  tenantId: 'tenantId',
+  contactId: 'contactId',
+  phone: 'phone',
+  status: 'status',
+  reason: 'reason',
+  smsMessageId: 'smsMessageId'
+};
+
+exports.Prisma.WalletOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  currency: 'currency',
+  stripeCustomerId: 'stripeCustomerId'
+};
+
+exports.Prisma.WalletTransactionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  walletId: 'walletId',
+  type: 'type',
+  currency: 'currency',
+  purpose: 'purpose',
+  smsMessageId: 'smsMessageId',
+  locationId: 'locationId',
+  stripeCheckoutId: 'stripeCheckoutId',
+  stripePaymentIntentId: 'stripePaymentIntentId',
+  description: 'description',
   createdBy: 'createdBy'
 };
 exports.TenantPlan = exports.$Enums.TenantPlan = {
@@ -3496,7 +3645,12 @@ exports.Prisma.ModelName = {
   VideoStudioAccount: 'VideoStudioAccount',
   VideoCreditTxn: 'VideoCreditTxn',
   VideoGeneration: 'VideoGeneration',
-  SmsMessage: 'SmsMessage'
+  SmsMessage: 'SmsMessage',
+  MarketingContact: 'MarketingContact',
+  MarketingSmsCampaign: 'MarketingSmsCampaign',
+  MarketingSmsRecipient: 'MarketingSmsRecipient',
+  Wallet: 'Wallet',
+  WalletTransaction: 'WalletTransaction'
 };
 
 /**

@@ -538,6 +538,31 @@ export type VideoGeneration = $Result.DefaultSelection<Prisma.$VideoGenerationPa
  * 
  */
 export type SmsMessage = $Result.DefaultSelection<Prisma.$SmsMessagePayload>
+/**
+ * Model MarketingContact
+ * 
+ */
+export type MarketingContact = $Result.DefaultSelection<Prisma.$MarketingContactPayload>
+/**
+ * Model MarketingSmsCampaign
+ * 
+ */
+export type MarketingSmsCampaign = $Result.DefaultSelection<Prisma.$MarketingSmsCampaignPayload>
+/**
+ * Model MarketingSmsRecipient
+ * 
+ */
+export type MarketingSmsRecipient = $Result.DefaultSelection<Prisma.$MarketingSmsRecipientPayload>
+/**
+ * Model Wallet
+ * 
+ */
+export type Wallet = $Result.DefaultSelection<Prisma.$WalletPayload>
+/**
+ * Model WalletTransaction
+ * 
+ */
+export type WalletTransaction = $Result.DefaultSelection<Prisma.$WalletTransactionPayload>
 
 /**
  * Enums
@@ -2533,6 +2558,56 @@ export class PrismaClient<
     * ```
     */
   get smsMessage(): Prisma.SmsMessageDelegate<ExtArgs>;
+
+  /**
+   * `prisma.marketingContact`: Exposes CRUD operations for the **MarketingContact** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingContacts
+    * const marketingContacts = await prisma.marketingContact.findMany()
+    * ```
+    */
+  get marketingContact(): Prisma.MarketingContactDelegate<ExtArgs>;
+
+  /**
+   * `prisma.marketingSmsCampaign`: Exposes CRUD operations for the **MarketingSmsCampaign** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingSmsCampaigns
+    * const marketingSmsCampaigns = await prisma.marketingSmsCampaign.findMany()
+    * ```
+    */
+  get marketingSmsCampaign(): Prisma.MarketingSmsCampaignDelegate<ExtArgs>;
+
+  /**
+   * `prisma.marketingSmsRecipient`: Exposes CRUD operations for the **MarketingSmsRecipient** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingSmsRecipients
+    * const marketingSmsRecipients = await prisma.marketingSmsRecipient.findMany()
+    * ```
+    */
+  get marketingSmsRecipient(): Prisma.MarketingSmsRecipientDelegate<ExtArgs>;
+
+  /**
+   * `prisma.wallet`: Exposes CRUD operations for the **Wallet** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Wallets
+    * const wallets = await prisma.wallet.findMany()
+    * ```
+    */
+  get wallet(): Prisma.WalletDelegate<ExtArgs>;
+
+  /**
+   * `prisma.walletTransaction`: Exposes CRUD operations for the **WalletTransaction** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WalletTransactions
+    * const walletTransactions = await prisma.walletTransaction.findMany()
+    * ```
+    */
+  get walletTransaction(): Prisma.WalletTransactionDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3078,7 +3153,12 @@ export namespace Prisma {
     VideoStudioAccount: 'VideoStudioAccount',
     VideoCreditTxn: 'VideoCreditTxn',
     VideoGeneration: 'VideoGeneration',
-    SmsMessage: 'SmsMessage'
+    SmsMessage: 'SmsMessage',
+    MarketingContact: 'MarketingContact',
+    MarketingSmsCampaign: 'MarketingSmsCampaign',
+    MarketingSmsRecipient: 'MarketingSmsRecipient',
+    Wallet: 'Wallet',
+    WalletTransaction: 'WalletTransaction'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3094,7 +3174,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -10448,6 +10528,356 @@ export namespace Prisma {
           }
         }
       }
+      MarketingContact: {
+        payload: Prisma.$MarketingContactPayload<ExtArgs>
+        fields: Prisma.MarketingContactFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingContactFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingContactFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingContactFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingContactFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingContactFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingContactCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingContactCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingContactCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingContactDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>
+          }
+          update: {
+            args: Prisma.MarketingContactUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingContactDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingContactUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MarketingContactUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingContactPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingContactAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingContact>
+          }
+          groupBy: {
+            args: Prisma.MarketingContactGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingContactGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingContactCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingContactCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingSmsCampaign: {
+        payload: Prisma.$MarketingSmsCampaignPayload<ExtArgs>
+        fields: Prisma.MarketingSmsCampaignFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingSmsCampaignFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingSmsCampaignFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingSmsCampaignFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingSmsCampaignFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingSmsCampaignFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingSmsCampaignCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingSmsCampaignCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingSmsCampaignCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingSmsCampaignDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>
+          }
+          update: {
+            args: Prisma.MarketingSmsCampaignUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingSmsCampaignDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingSmsCampaignUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MarketingSmsCampaignUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsCampaignPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingSmsCampaignAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingSmsCampaign>
+          }
+          groupBy: {
+            args: Prisma.MarketingSmsCampaignGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingSmsCampaignGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingSmsCampaignCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingSmsCampaignCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingSmsRecipient: {
+        payload: Prisma.$MarketingSmsRecipientPayload<ExtArgs>
+        fields: Prisma.MarketingSmsRecipientFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingSmsRecipientFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingSmsRecipientFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingSmsRecipientFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingSmsRecipientFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingSmsRecipientFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingSmsRecipientCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingSmsRecipientCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingSmsRecipientCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingSmsRecipientDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>
+          }
+          update: {
+            args: Prisma.MarketingSmsRecipientUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingSmsRecipientDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingSmsRecipientUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MarketingSmsRecipientUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingSmsRecipientPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingSmsRecipientAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingSmsRecipient>
+          }
+          groupBy: {
+            args: Prisma.MarketingSmsRecipientGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingSmsRecipientGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingSmsRecipientCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingSmsRecipientCountAggregateOutputType> | number
+          }
+        }
+      }
+      Wallet: {
+        payload: Prisma.$WalletPayload<ExtArgs>
+        fields: Prisma.WalletFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WalletFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WalletFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>
+          }
+          findFirst: {
+            args: Prisma.WalletFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WalletFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>
+          }
+          findMany: {
+            args: Prisma.WalletFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>[]
+          }
+          create: {
+            args: Prisma.WalletCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>
+          }
+          createMany: {
+            args: Prisma.WalletCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WalletCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>[]
+          }
+          delete: {
+            args: Prisma.WalletDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>
+          }
+          update: {
+            args: Prisma.WalletUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>
+          }
+          deleteMany: {
+            args: Prisma.WalletDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WalletUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.WalletUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletPayload>
+          }
+          aggregate: {
+            args: Prisma.WalletAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWallet>
+          }
+          groupBy: {
+            args: Prisma.WalletGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WalletGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WalletCountArgs<ExtArgs>
+            result: $Utils.Optional<WalletCountAggregateOutputType> | number
+          }
+        }
+      }
+      WalletTransaction: {
+        payload: Prisma.$WalletTransactionPayload<ExtArgs>
+        fields: Prisma.WalletTransactionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WalletTransactionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WalletTransactionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>
+          }
+          findFirst: {
+            args: Prisma.WalletTransactionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WalletTransactionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>
+          }
+          findMany: {
+            args: Prisma.WalletTransactionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>[]
+          }
+          create: {
+            args: Prisma.WalletTransactionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>
+          }
+          createMany: {
+            args: Prisma.WalletTransactionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WalletTransactionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>[]
+          }
+          delete: {
+            args: Prisma.WalletTransactionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>
+          }
+          update: {
+            args: Prisma.WalletTransactionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>
+          }
+          deleteMany: {
+            args: Prisma.WalletTransactionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WalletTransactionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.WalletTransactionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletTransactionPayload>
+          }
+          aggregate: {
+            args: Prisma.WalletTransactionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWalletTransaction>
+          }
+          groupBy: {
+            args: Prisma.WalletTransactionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WalletTransactionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WalletTransactionCountArgs<ExtArgs>
+            result: $Utils.Optional<WalletTransactionCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -12224,6 +12654,68 @@ export namespace Prisma {
 
 
   /**
+   * Count Type MarketingSmsCampaignCountOutputType
+   */
+
+  export type MarketingSmsCampaignCountOutputType = {
+    recipients: number
+  }
+
+  export type MarketingSmsCampaignCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    recipients?: boolean | MarketingSmsCampaignCountOutputTypeCountRecipientsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MarketingSmsCampaignCountOutputType without action
+   */
+  export type MarketingSmsCampaignCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaignCountOutputType
+     */
+    select?: MarketingSmsCampaignCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MarketingSmsCampaignCountOutputType without action
+   */
+  export type MarketingSmsCampaignCountOutputTypeCountRecipientsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingSmsRecipientWhereInput
+  }
+
+
+  /**
+   * Count Type WalletCountOutputType
+   */
+
+  export type WalletCountOutputType = {
+    transactions: number
+  }
+
+  export type WalletCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    transactions?: boolean | WalletCountOutputTypeCountTransactionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WalletCountOutputType without action
+   */
+  export type WalletCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletCountOutputType
+     */
+    select?: WalletCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WalletCountOutputType without action
+   */
+  export type WalletCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WalletTransactionWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -12433,6 +12925,7 @@ export namespace Prisma {
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
+    wallet?: boolean | Tenant$walletArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -12479,6 +12972,7 @@ export namespace Prisma {
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
+    wallet?: boolean | Tenant$walletArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -12504,6 +12998,7 @@ export namespace Prisma {
       invitations: Prisma.$InvitationPayload<ExtArgs>[]
       printerStations: Prisma.$PrinterStationPayload<ExtArgs>[]
       printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
+      wallet: Prisma.$WalletPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -12897,6 +13392,7 @@ export namespace Prisma {
     invitations<T extends Tenant$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany"> | Null>
     printerStations<T extends Tenant$printerStationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printerStationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
     printAgents<T extends Tenant$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
+    wallet<T extends Tenant$walletArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$walletArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -13596,6 +14092,21 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PrintAgentScalarFieldEnum | PrintAgentScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.wallet
+   */
+  export type Tenant$walletArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    where?: WalletWhereInput
   }
 
   /**
@@ -124084,6 +124595,7 @@ export namespace Prisma {
     orderId: string | null
     toNumber: string | null
     purpose: string | null
+    campaignId: string | null
     segments: number | null
     provider: string | null
     providerSid: string | null
@@ -124101,6 +124613,7 @@ export namespace Prisma {
     orderId: string | null
     toNumber: string | null
     purpose: string | null
+    campaignId: string | null
     segments: number | null
     provider: string | null
     providerSid: string | null
@@ -124118,6 +124631,7 @@ export namespace Prisma {
     orderId: number
     toNumber: number
     purpose: number
+    campaignId: number
     segments: number
     provider: number
     providerSid: number
@@ -124145,6 +124659,7 @@ export namespace Prisma {
     orderId?: true
     toNumber?: true
     purpose?: true
+    campaignId?: true
     segments?: true
     provider?: true
     providerSid?: true
@@ -124162,6 +124677,7 @@ export namespace Prisma {
     orderId?: true
     toNumber?: true
     purpose?: true
+    campaignId?: true
     segments?: true
     provider?: true
     providerSid?: true
@@ -124179,6 +124695,7 @@ export namespace Prisma {
     orderId?: true
     toNumber?: true
     purpose?: true
+    campaignId?: true
     segments?: true
     provider?: true
     providerSid?: true
@@ -124283,6 +124800,7 @@ export namespace Prisma {
     orderId: string | null
     toNumber: string
     purpose: string
+    campaignId: string | null
     segments: number
     provider: string
     providerSid: string | null
@@ -124319,6 +124837,7 @@ export namespace Prisma {
     orderId?: boolean
     toNumber?: boolean
     purpose?: boolean
+    campaignId?: boolean
     segments?: boolean
     provider?: boolean
     providerSid?: boolean
@@ -124336,6 +124855,7 @@ export namespace Prisma {
     orderId?: boolean
     toNumber?: boolean
     purpose?: boolean
+    campaignId?: boolean
     segments?: boolean
     provider?: boolean
     providerSid?: boolean
@@ -124353,6 +124873,7 @@ export namespace Prisma {
     orderId?: boolean
     toNumber?: boolean
     purpose?: boolean
+    campaignId?: boolean
     segments?: boolean
     provider?: boolean
     providerSid?: boolean
@@ -124374,6 +124895,7 @@ export namespace Prisma {
       orderId: string | null
       toNumber: string
       purpose: string
+      campaignId: string | null
       segments: number
       provider: string
       providerSid: string | null
@@ -124781,6 +125303,7 @@ export namespace Prisma {
     readonly orderId: FieldRef<"SmsMessage", 'String'>
     readonly toNumber: FieldRef<"SmsMessage", 'String'>
     readonly purpose: FieldRef<"SmsMessage", 'String'>
+    readonly campaignId: FieldRef<"SmsMessage", 'String'>
     readonly segments: FieldRef<"SmsMessage", 'Int'>
     readonly provider: FieldRef<"SmsMessage", 'String'>
     readonly providerSid: FieldRef<"SmsMessage", 'String'>
@@ -125073,6 +125596,5385 @@ export namespace Prisma {
      * Select specific fields to fetch from the SmsMessage
      */
     select?: SmsMessageSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingContact
+   */
+
+  export type AggregateMarketingContact = {
+    _count: MarketingContactCountAggregateOutputType | null
+    _min: MarketingContactMinAggregateOutputType | null
+    _max: MarketingContactMaxAggregateOutputType | null
+  }
+
+  export type MarketingContactMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    phone: string | null
+    firstName: string | null
+    lastName: string | null
+    email: string | null
+    source: string | null
+    customerId: string | null
+    consentStatus: string | null
+    consentSource: string | null
+    consentAt: Date | null
+    unsubscribedAt: Date | null
+    lastCampaignAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingContactMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    phone: string | null
+    firstName: string | null
+    lastName: string | null
+    email: string | null
+    source: string | null
+    customerId: string | null
+    consentStatus: string | null
+    consentSource: string | null
+    consentAt: Date | null
+    unsubscribedAt: Date | null
+    lastCampaignAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingContactCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    phone: number
+    firstName: number
+    lastName: number
+    email: number
+    source: number
+    customerId: number
+    consentStatus: number
+    consentSource: number
+    consentAt: number
+    unsubscribedAt: number
+    tags: number
+    lastCampaignAt: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingContactMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    phone?: true
+    firstName?: true
+    lastName?: true
+    email?: true
+    source?: true
+    customerId?: true
+    consentStatus?: true
+    consentSource?: true
+    consentAt?: true
+    unsubscribedAt?: true
+    lastCampaignAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingContactMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    phone?: true
+    firstName?: true
+    lastName?: true
+    email?: true
+    source?: true
+    customerId?: true
+    consentStatus?: true
+    consentSource?: true
+    consentAt?: true
+    unsubscribedAt?: true
+    lastCampaignAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingContactCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    phone?: true
+    firstName?: true
+    lastName?: true
+    email?: true
+    source?: true
+    customerId?: true
+    consentStatus?: true
+    consentSource?: true
+    consentAt?: true
+    unsubscribedAt?: true
+    tags?: true
+    lastCampaignAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingContactAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingContact to aggregate.
+     */
+    where?: MarketingContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingContacts to fetch.
+     */
+    orderBy?: MarketingContactOrderByWithRelationInput | MarketingContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingContacts
+    **/
+    _count?: true | MarketingContactCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingContactMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingContactMaxAggregateInputType
+  }
+
+  export type GetMarketingContactAggregateType<T extends MarketingContactAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingContact]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingContact[P]>
+      : GetScalarType<T[P], AggregateMarketingContact[P]>
+  }
+
+
+
+
+  export type MarketingContactGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingContactWhereInput
+    orderBy?: MarketingContactOrderByWithAggregationInput | MarketingContactOrderByWithAggregationInput[]
+    by: MarketingContactScalarFieldEnum[] | MarketingContactScalarFieldEnum
+    having?: MarketingContactScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingContactCountAggregateInputType | true
+    _min?: MarketingContactMinAggregateInputType
+    _max?: MarketingContactMaxAggregateInputType
+  }
+
+  export type MarketingContactGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string | null
+    phone: string
+    firstName: string | null
+    lastName: string | null
+    email: string | null
+    source: string | null
+    customerId: string | null
+    consentStatus: string
+    consentSource: string | null
+    consentAt: Date | null
+    unsubscribedAt: Date | null
+    tags: string[]
+    lastCampaignAt: Date | null
+    createdBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingContactCountAggregateOutputType | null
+    _min: MarketingContactMinAggregateOutputType | null
+    _max: MarketingContactMaxAggregateOutputType | null
+  }
+
+  type GetMarketingContactGroupByPayload<T extends MarketingContactGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingContactGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingContactGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingContactGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingContactGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingContactSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    phone?: boolean
+    firstName?: boolean
+    lastName?: boolean
+    email?: boolean
+    source?: boolean
+    customerId?: boolean
+    consentStatus?: boolean
+    consentSource?: boolean
+    consentAt?: boolean
+    unsubscribedAt?: boolean
+    tags?: boolean
+    lastCampaignAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["marketingContact"]>
+
+  export type MarketingContactSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    phone?: boolean
+    firstName?: boolean
+    lastName?: boolean
+    email?: boolean
+    source?: boolean
+    customerId?: boolean
+    consentStatus?: boolean
+    consentSource?: boolean
+    consentAt?: boolean
+    unsubscribedAt?: boolean
+    tags?: boolean
+    lastCampaignAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["marketingContact"]>
+
+  export type MarketingContactSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    phone?: boolean
+    firstName?: boolean
+    lastName?: boolean
+    email?: boolean
+    source?: boolean
+    customerId?: boolean
+    consentStatus?: boolean
+    consentSource?: boolean
+    consentAt?: boolean
+    unsubscribedAt?: boolean
+    tags?: boolean
+    lastCampaignAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $MarketingContactPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingContact"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string | null
+      phone: string
+      firstName: string | null
+      lastName: string | null
+      email: string | null
+      source: string | null
+      customerId: string | null
+      consentStatus: string
+      consentSource: string | null
+      consentAt: Date | null
+      unsubscribedAt: Date | null
+      tags: string[]
+      lastCampaignAt: Date | null
+      createdBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingContact"]>
+    composites: {}
+  }
+
+  type MarketingContactGetPayload<S extends boolean | null | undefined | MarketingContactDefaultArgs> = $Result.GetResult<Prisma.$MarketingContactPayload, S>
+
+  type MarketingContactCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MarketingContactFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MarketingContactCountAggregateInputType | true
+    }
+
+  export interface MarketingContactDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingContact'], meta: { name: 'MarketingContact' } }
+    /**
+     * Find zero or one MarketingContact that matches the filter.
+     * @param {MarketingContactFindUniqueArgs} args - Arguments to find a MarketingContact
+     * @example
+     * // Get one MarketingContact
+     * const marketingContact = await prisma.marketingContact.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingContactFindUniqueArgs>(args: SelectSubset<T, MarketingContactFindUniqueArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MarketingContact that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MarketingContactFindUniqueOrThrowArgs} args - Arguments to find a MarketingContact
+     * @example
+     * // Get one MarketingContact
+     * const marketingContact = await prisma.marketingContact.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingContactFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingContactFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MarketingContact that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingContactFindFirstArgs} args - Arguments to find a MarketingContact
+     * @example
+     * // Get one MarketingContact
+     * const marketingContact = await prisma.marketingContact.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingContactFindFirstArgs>(args?: SelectSubset<T, MarketingContactFindFirstArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MarketingContact that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingContactFindFirstOrThrowArgs} args - Arguments to find a MarketingContact
+     * @example
+     * // Get one MarketingContact
+     * const marketingContact = await prisma.marketingContact.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingContactFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingContactFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MarketingContacts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingContactFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingContacts
+     * const marketingContacts = await prisma.marketingContact.findMany()
+     * 
+     * // Get first 10 MarketingContacts
+     * const marketingContacts = await prisma.marketingContact.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingContactWithIdOnly = await prisma.marketingContact.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingContactFindManyArgs>(args?: SelectSubset<T, MarketingContactFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MarketingContact.
+     * @param {MarketingContactCreateArgs} args - Arguments to create a MarketingContact.
+     * @example
+     * // Create one MarketingContact
+     * const MarketingContact = await prisma.marketingContact.create({
+     *   data: {
+     *     // ... data to create a MarketingContact
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingContactCreateArgs>(args: SelectSubset<T, MarketingContactCreateArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MarketingContacts.
+     * @param {MarketingContactCreateManyArgs} args - Arguments to create many MarketingContacts.
+     * @example
+     * // Create many MarketingContacts
+     * const marketingContact = await prisma.marketingContact.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingContactCreateManyArgs>(args?: SelectSubset<T, MarketingContactCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingContacts and returns the data saved in the database.
+     * @param {MarketingContactCreateManyAndReturnArgs} args - Arguments to create many MarketingContacts.
+     * @example
+     * // Create many MarketingContacts
+     * const marketingContact = await prisma.marketingContact.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingContacts and only return the `id`
+     * const marketingContactWithIdOnly = await prisma.marketingContact.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingContactCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingContactCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MarketingContact.
+     * @param {MarketingContactDeleteArgs} args - Arguments to delete one MarketingContact.
+     * @example
+     * // Delete one MarketingContact
+     * const MarketingContact = await prisma.marketingContact.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingContact
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingContactDeleteArgs>(args: SelectSubset<T, MarketingContactDeleteArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MarketingContact.
+     * @param {MarketingContactUpdateArgs} args - Arguments to update one MarketingContact.
+     * @example
+     * // Update one MarketingContact
+     * const marketingContact = await prisma.marketingContact.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingContactUpdateArgs>(args: SelectSubset<T, MarketingContactUpdateArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MarketingContacts.
+     * @param {MarketingContactDeleteManyArgs} args - Arguments to filter MarketingContacts to delete.
+     * @example
+     * // Delete a few MarketingContacts
+     * const { count } = await prisma.marketingContact.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingContactDeleteManyArgs>(args?: SelectSubset<T, MarketingContactDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingContactUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingContacts
+     * const marketingContact = await prisma.marketingContact.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingContactUpdateManyArgs>(args: SelectSubset<T, MarketingContactUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MarketingContact.
+     * @param {MarketingContactUpsertArgs} args - Arguments to update or create a MarketingContact.
+     * @example
+     * // Update or create a MarketingContact
+     * const marketingContact = await prisma.marketingContact.upsert({
+     *   create: {
+     *     // ... data to create a MarketingContact
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingContact we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingContactUpsertArgs>(args: SelectSubset<T, MarketingContactUpsertArgs<ExtArgs>>): Prisma__MarketingContactClient<$Result.GetResult<Prisma.$MarketingContactPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MarketingContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingContactCountArgs} args - Arguments to filter MarketingContacts to count.
+     * @example
+     * // Count the number of MarketingContacts
+     * const count = await prisma.marketingContact.count({
+     *   where: {
+     *     // ... the filter for the MarketingContacts we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingContactCountArgs>(
+      args?: Subset<T, MarketingContactCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingContactCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingContactAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingContactAggregateArgs>(args: Subset<T, MarketingContactAggregateArgs>): Prisma.PrismaPromise<GetMarketingContactAggregateType<T>>
+
+    /**
+     * Group by MarketingContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingContactGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingContactGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingContactGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingContactGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingContactGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingContactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingContact model
+   */
+  readonly fields: MarketingContactFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingContact.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingContactClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingContact model
+   */ 
+  interface MarketingContactFieldRefs {
+    readonly id: FieldRef<"MarketingContact", 'String'>
+    readonly tenantId: FieldRef<"MarketingContact", 'String'>
+    readonly locationId: FieldRef<"MarketingContact", 'String'>
+    readonly phone: FieldRef<"MarketingContact", 'String'>
+    readonly firstName: FieldRef<"MarketingContact", 'String'>
+    readonly lastName: FieldRef<"MarketingContact", 'String'>
+    readonly email: FieldRef<"MarketingContact", 'String'>
+    readonly source: FieldRef<"MarketingContact", 'String'>
+    readonly customerId: FieldRef<"MarketingContact", 'String'>
+    readonly consentStatus: FieldRef<"MarketingContact", 'String'>
+    readonly consentSource: FieldRef<"MarketingContact", 'String'>
+    readonly consentAt: FieldRef<"MarketingContact", 'DateTime'>
+    readonly unsubscribedAt: FieldRef<"MarketingContact", 'DateTime'>
+    readonly tags: FieldRef<"MarketingContact", 'String[]'>
+    readonly lastCampaignAt: FieldRef<"MarketingContact", 'DateTime'>
+    readonly createdBy: FieldRef<"MarketingContact", 'String'>
+    readonly createdAt: FieldRef<"MarketingContact", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingContact", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingContact findUnique
+   */
+  export type MarketingContactFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * Filter, which MarketingContact to fetch.
+     */
+    where: MarketingContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingContact findUniqueOrThrow
+   */
+  export type MarketingContactFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * Filter, which MarketingContact to fetch.
+     */
+    where: MarketingContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingContact findFirst
+   */
+  export type MarketingContactFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * Filter, which MarketingContact to fetch.
+     */
+    where?: MarketingContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingContacts to fetch.
+     */
+    orderBy?: MarketingContactOrderByWithRelationInput | MarketingContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingContacts.
+     */
+    cursor?: MarketingContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingContacts.
+     */
+    distinct?: MarketingContactScalarFieldEnum | MarketingContactScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingContact findFirstOrThrow
+   */
+  export type MarketingContactFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * Filter, which MarketingContact to fetch.
+     */
+    where?: MarketingContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingContacts to fetch.
+     */
+    orderBy?: MarketingContactOrderByWithRelationInput | MarketingContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingContacts.
+     */
+    cursor?: MarketingContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingContacts.
+     */
+    distinct?: MarketingContactScalarFieldEnum | MarketingContactScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingContact findMany
+   */
+  export type MarketingContactFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * Filter, which MarketingContacts to fetch.
+     */
+    where?: MarketingContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingContacts to fetch.
+     */
+    orderBy?: MarketingContactOrderByWithRelationInput | MarketingContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingContacts.
+     */
+    cursor?: MarketingContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingContacts.
+     */
+    skip?: number
+    distinct?: MarketingContactScalarFieldEnum | MarketingContactScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingContact create
+   */
+  export type MarketingContactCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingContact.
+     */
+    data: XOR<MarketingContactCreateInput, MarketingContactUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingContact createMany
+   */
+  export type MarketingContactCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingContacts.
+     */
+    data: MarketingContactCreateManyInput | MarketingContactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingContact createManyAndReturn
+   */
+  export type MarketingContactCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MarketingContacts.
+     */
+    data: MarketingContactCreateManyInput | MarketingContactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingContact update
+   */
+  export type MarketingContactUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingContact.
+     */
+    data: XOR<MarketingContactUpdateInput, MarketingContactUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingContact to update.
+     */
+    where: MarketingContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingContact updateMany
+   */
+  export type MarketingContactUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingContacts.
+     */
+    data: XOR<MarketingContactUpdateManyMutationInput, MarketingContactUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingContacts to update
+     */
+    where?: MarketingContactWhereInput
+  }
+
+  /**
+   * MarketingContact upsert
+   */
+  export type MarketingContactUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingContact to update in case it exists.
+     */
+    where: MarketingContactWhereUniqueInput
+    /**
+     * In case the MarketingContact found by the `where` argument doesn't exist, create a new MarketingContact with this data.
+     */
+    create: XOR<MarketingContactCreateInput, MarketingContactUncheckedCreateInput>
+    /**
+     * In case the MarketingContact was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingContactUpdateInput, MarketingContactUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingContact delete
+   */
+  export type MarketingContactDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+    /**
+     * Filter which MarketingContact to delete.
+     */
+    where: MarketingContactWhereUniqueInput
+  }
+
+  /**
+   * MarketingContact deleteMany
+   */
+  export type MarketingContactDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingContacts to delete
+     */
+    where?: MarketingContactWhereInput
+  }
+
+  /**
+   * MarketingContact without action
+   */
+  export type MarketingContactDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingContact
+     */
+    select?: MarketingContactSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingSmsCampaign
+   */
+
+  export type AggregateMarketingSmsCampaign = {
+    _count: MarketingSmsCampaignCountAggregateOutputType | null
+    _avg: MarketingSmsCampaignAvgAggregateOutputType | null
+    _sum: MarketingSmsCampaignSumAggregateOutputType | null
+    _min: MarketingSmsCampaignMinAggregateOutputType | null
+    _max: MarketingSmsCampaignMaxAggregateOutputType | null
+  }
+
+  export type MarketingSmsCampaignAvgAggregateOutputType = {
+    recipientCount: number | null
+    sentCount: number | null
+    failedCount: number | null
+    skippedCount: number | null
+    segments: number | null
+    costMinor: number | null
+  }
+
+  export type MarketingSmsCampaignSumAggregateOutputType = {
+    recipientCount: number | null
+    sentCount: number | null
+    failedCount: number | null
+    skippedCount: number | null
+    segments: number | null
+    costMinor: number | null
+  }
+
+  export type MarketingSmsCampaignMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    senderHeader: string | null
+    body: string | null
+    status: string | null
+    recipientCount: number | null
+    sentCount: number | null
+    failedCount: number | null
+    skippedCount: number | null
+    segments: number | null
+    costMinor: number | null
+    createdBy: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingSmsCampaignMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    senderHeader: string | null
+    body: string | null
+    status: string | null
+    recipientCount: number | null
+    sentCount: number | null
+    failedCount: number | null
+    skippedCount: number | null
+    segments: number | null
+    costMinor: number | null
+    createdBy: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MarketingSmsCampaignCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    name: number
+    senderHeader: number
+    body: number
+    status: number
+    audience: number
+    recipientCount: number
+    sentCount: number
+    failedCount: number
+    skippedCount: number
+    segments: number
+    costMinor: number
+    createdBy: number
+    startedAt: number
+    completedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MarketingSmsCampaignAvgAggregateInputType = {
+    recipientCount?: true
+    sentCount?: true
+    failedCount?: true
+    skippedCount?: true
+    segments?: true
+    costMinor?: true
+  }
+
+  export type MarketingSmsCampaignSumAggregateInputType = {
+    recipientCount?: true
+    sentCount?: true
+    failedCount?: true
+    skippedCount?: true
+    segments?: true
+    costMinor?: true
+  }
+
+  export type MarketingSmsCampaignMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    senderHeader?: true
+    body?: true
+    status?: true
+    recipientCount?: true
+    sentCount?: true
+    failedCount?: true
+    skippedCount?: true
+    segments?: true
+    costMinor?: true
+    createdBy?: true
+    startedAt?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingSmsCampaignMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    senderHeader?: true
+    body?: true
+    status?: true
+    recipientCount?: true
+    sentCount?: true
+    failedCount?: true
+    skippedCount?: true
+    segments?: true
+    costMinor?: true
+    createdBy?: true
+    startedAt?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MarketingSmsCampaignCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    senderHeader?: true
+    body?: true
+    status?: true
+    audience?: true
+    recipientCount?: true
+    sentCount?: true
+    failedCount?: true
+    skippedCount?: true
+    segments?: true
+    costMinor?: true
+    createdBy?: true
+    startedAt?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MarketingSmsCampaignAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingSmsCampaign to aggregate.
+     */
+    where?: MarketingSmsCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsCampaigns to fetch.
+     */
+    orderBy?: MarketingSmsCampaignOrderByWithRelationInput | MarketingSmsCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingSmsCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingSmsCampaigns
+    **/
+    _count?: true | MarketingSmsCampaignCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingSmsCampaignAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingSmsCampaignSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingSmsCampaignMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingSmsCampaignMaxAggregateInputType
+  }
+
+  export type GetMarketingSmsCampaignAggregateType<T extends MarketingSmsCampaignAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingSmsCampaign]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingSmsCampaign[P]>
+      : GetScalarType<T[P], AggregateMarketingSmsCampaign[P]>
+  }
+
+
+
+
+  export type MarketingSmsCampaignGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingSmsCampaignWhereInput
+    orderBy?: MarketingSmsCampaignOrderByWithAggregationInput | MarketingSmsCampaignOrderByWithAggregationInput[]
+    by: MarketingSmsCampaignScalarFieldEnum[] | MarketingSmsCampaignScalarFieldEnum
+    having?: MarketingSmsCampaignScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingSmsCampaignCountAggregateInputType | true
+    _avg?: MarketingSmsCampaignAvgAggregateInputType
+    _sum?: MarketingSmsCampaignSumAggregateInputType
+    _min?: MarketingSmsCampaignMinAggregateInputType
+    _max?: MarketingSmsCampaignMaxAggregateInputType
+  }
+
+  export type MarketingSmsCampaignGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string | null
+    name: string
+    senderHeader: string | null
+    body: string
+    status: string
+    audience: JsonValue
+    recipientCount: number
+    sentCount: number
+    failedCount: number
+    skippedCount: number
+    segments: number
+    costMinor: number
+    createdBy: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MarketingSmsCampaignCountAggregateOutputType | null
+    _avg: MarketingSmsCampaignAvgAggregateOutputType | null
+    _sum: MarketingSmsCampaignSumAggregateOutputType | null
+    _min: MarketingSmsCampaignMinAggregateOutputType | null
+    _max: MarketingSmsCampaignMaxAggregateOutputType | null
+  }
+
+  type GetMarketingSmsCampaignGroupByPayload<T extends MarketingSmsCampaignGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingSmsCampaignGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingSmsCampaignGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingSmsCampaignGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingSmsCampaignGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingSmsCampaignSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    senderHeader?: boolean
+    body?: boolean
+    status?: boolean
+    audience?: boolean
+    recipientCount?: boolean
+    sentCount?: boolean
+    failedCount?: boolean
+    skippedCount?: boolean
+    segments?: boolean
+    costMinor?: boolean
+    createdBy?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    recipients?: boolean | MarketingSmsCampaign$recipientsArgs<ExtArgs>
+    _count?: boolean | MarketingSmsCampaignCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingSmsCampaign"]>
+
+  export type MarketingSmsCampaignSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    senderHeader?: boolean
+    body?: boolean
+    status?: boolean
+    audience?: boolean
+    recipientCount?: boolean
+    sentCount?: boolean
+    failedCount?: boolean
+    skippedCount?: boolean
+    segments?: boolean
+    costMinor?: boolean
+    createdBy?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["marketingSmsCampaign"]>
+
+  export type MarketingSmsCampaignSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    senderHeader?: boolean
+    body?: boolean
+    status?: boolean
+    audience?: boolean
+    recipientCount?: boolean
+    sentCount?: boolean
+    failedCount?: boolean
+    skippedCount?: boolean
+    segments?: boolean
+    costMinor?: boolean
+    createdBy?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MarketingSmsCampaignInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    recipients?: boolean | MarketingSmsCampaign$recipientsArgs<ExtArgs>
+    _count?: boolean | MarketingSmsCampaignCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MarketingSmsCampaignIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $MarketingSmsCampaignPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingSmsCampaign"
+    objects: {
+      recipients: Prisma.$MarketingSmsRecipientPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string | null
+      name: string
+      senderHeader: string | null
+      body: string
+      status: string
+      audience: Prisma.JsonValue
+      recipientCount: number
+      sentCount: number
+      failedCount: number
+      skippedCount: number
+      segments: number
+      costMinor: number
+      createdBy: string | null
+      startedAt: Date | null
+      completedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["marketingSmsCampaign"]>
+    composites: {}
+  }
+
+  type MarketingSmsCampaignGetPayload<S extends boolean | null | undefined | MarketingSmsCampaignDefaultArgs> = $Result.GetResult<Prisma.$MarketingSmsCampaignPayload, S>
+
+  type MarketingSmsCampaignCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MarketingSmsCampaignFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MarketingSmsCampaignCountAggregateInputType | true
+    }
+
+  export interface MarketingSmsCampaignDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingSmsCampaign'], meta: { name: 'MarketingSmsCampaign' } }
+    /**
+     * Find zero or one MarketingSmsCampaign that matches the filter.
+     * @param {MarketingSmsCampaignFindUniqueArgs} args - Arguments to find a MarketingSmsCampaign
+     * @example
+     * // Get one MarketingSmsCampaign
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingSmsCampaignFindUniqueArgs>(args: SelectSubset<T, MarketingSmsCampaignFindUniqueArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MarketingSmsCampaign that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MarketingSmsCampaignFindUniqueOrThrowArgs} args - Arguments to find a MarketingSmsCampaign
+     * @example
+     * // Get one MarketingSmsCampaign
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingSmsCampaignFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingSmsCampaignFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MarketingSmsCampaign that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsCampaignFindFirstArgs} args - Arguments to find a MarketingSmsCampaign
+     * @example
+     * // Get one MarketingSmsCampaign
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingSmsCampaignFindFirstArgs>(args?: SelectSubset<T, MarketingSmsCampaignFindFirstArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MarketingSmsCampaign that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsCampaignFindFirstOrThrowArgs} args - Arguments to find a MarketingSmsCampaign
+     * @example
+     * // Get one MarketingSmsCampaign
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingSmsCampaignFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingSmsCampaignFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MarketingSmsCampaigns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsCampaignFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingSmsCampaigns
+     * const marketingSmsCampaigns = await prisma.marketingSmsCampaign.findMany()
+     * 
+     * // Get first 10 MarketingSmsCampaigns
+     * const marketingSmsCampaigns = await prisma.marketingSmsCampaign.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingSmsCampaignWithIdOnly = await prisma.marketingSmsCampaign.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingSmsCampaignFindManyArgs>(args?: SelectSubset<T, MarketingSmsCampaignFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MarketingSmsCampaign.
+     * @param {MarketingSmsCampaignCreateArgs} args - Arguments to create a MarketingSmsCampaign.
+     * @example
+     * // Create one MarketingSmsCampaign
+     * const MarketingSmsCampaign = await prisma.marketingSmsCampaign.create({
+     *   data: {
+     *     // ... data to create a MarketingSmsCampaign
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingSmsCampaignCreateArgs>(args: SelectSubset<T, MarketingSmsCampaignCreateArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MarketingSmsCampaigns.
+     * @param {MarketingSmsCampaignCreateManyArgs} args - Arguments to create many MarketingSmsCampaigns.
+     * @example
+     * // Create many MarketingSmsCampaigns
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingSmsCampaignCreateManyArgs>(args?: SelectSubset<T, MarketingSmsCampaignCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingSmsCampaigns and returns the data saved in the database.
+     * @param {MarketingSmsCampaignCreateManyAndReturnArgs} args - Arguments to create many MarketingSmsCampaigns.
+     * @example
+     * // Create many MarketingSmsCampaigns
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingSmsCampaigns and only return the `id`
+     * const marketingSmsCampaignWithIdOnly = await prisma.marketingSmsCampaign.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingSmsCampaignCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingSmsCampaignCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MarketingSmsCampaign.
+     * @param {MarketingSmsCampaignDeleteArgs} args - Arguments to delete one MarketingSmsCampaign.
+     * @example
+     * // Delete one MarketingSmsCampaign
+     * const MarketingSmsCampaign = await prisma.marketingSmsCampaign.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingSmsCampaign
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingSmsCampaignDeleteArgs>(args: SelectSubset<T, MarketingSmsCampaignDeleteArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MarketingSmsCampaign.
+     * @param {MarketingSmsCampaignUpdateArgs} args - Arguments to update one MarketingSmsCampaign.
+     * @example
+     * // Update one MarketingSmsCampaign
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingSmsCampaignUpdateArgs>(args: SelectSubset<T, MarketingSmsCampaignUpdateArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MarketingSmsCampaigns.
+     * @param {MarketingSmsCampaignDeleteManyArgs} args - Arguments to filter MarketingSmsCampaigns to delete.
+     * @example
+     * // Delete a few MarketingSmsCampaigns
+     * const { count } = await prisma.marketingSmsCampaign.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingSmsCampaignDeleteManyArgs>(args?: SelectSubset<T, MarketingSmsCampaignDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingSmsCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsCampaignUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingSmsCampaigns
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingSmsCampaignUpdateManyArgs>(args: SelectSubset<T, MarketingSmsCampaignUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MarketingSmsCampaign.
+     * @param {MarketingSmsCampaignUpsertArgs} args - Arguments to update or create a MarketingSmsCampaign.
+     * @example
+     * // Update or create a MarketingSmsCampaign
+     * const marketingSmsCampaign = await prisma.marketingSmsCampaign.upsert({
+     *   create: {
+     *     // ... data to create a MarketingSmsCampaign
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingSmsCampaign we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingSmsCampaignUpsertArgs>(args: SelectSubset<T, MarketingSmsCampaignUpsertArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MarketingSmsCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsCampaignCountArgs} args - Arguments to filter MarketingSmsCampaigns to count.
+     * @example
+     * // Count the number of MarketingSmsCampaigns
+     * const count = await prisma.marketingSmsCampaign.count({
+     *   where: {
+     *     // ... the filter for the MarketingSmsCampaigns we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingSmsCampaignCountArgs>(
+      args?: Subset<T, MarketingSmsCampaignCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingSmsCampaignCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingSmsCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsCampaignAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingSmsCampaignAggregateArgs>(args: Subset<T, MarketingSmsCampaignAggregateArgs>): Prisma.PrismaPromise<GetMarketingSmsCampaignAggregateType<T>>
+
+    /**
+     * Group by MarketingSmsCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsCampaignGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingSmsCampaignGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingSmsCampaignGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingSmsCampaignGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingSmsCampaignGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingSmsCampaignGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingSmsCampaign model
+   */
+  readonly fields: MarketingSmsCampaignFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingSmsCampaign.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingSmsCampaignClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    recipients<T extends MarketingSmsCampaign$recipientsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingSmsCampaign$recipientsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingSmsCampaign model
+   */ 
+  interface MarketingSmsCampaignFieldRefs {
+    readonly id: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly tenantId: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly locationId: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly name: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly senderHeader: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly body: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly status: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly audience: FieldRef<"MarketingSmsCampaign", 'Json'>
+    readonly recipientCount: FieldRef<"MarketingSmsCampaign", 'Int'>
+    readonly sentCount: FieldRef<"MarketingSmsCampaign", 'Int'>
+    readonly failedCount: FieldRef<"MarketingSmsCampaign", 'Int'>
+    readonly skippedCount: FieldRef<"MarketingSmsCampaign", 'Int'>
+    readonly segments: FieldRef<"MarketingSmsCampaign", 'Int'>
+    readonly costMinor: FieldRef<"MarketingSmsCampaign", 'Int'>
+    readonly createdBy: FieldRef<"MarketingSmsCampaign", 'String'>
+    readonly startedAt: FieldRef<"MarketingSmsCampaign", 'DateTime'>
+    readonly completedAt: FieldRef<"MarketingSmsCampaign", 'DateTime'>
+    readonly createdAt: FieldRef<"MarketingSmsCampaign", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingSmsCampaign", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingSmsCampaign findUnique
+   */
+  export type MarketingSmsCampaignFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsCampaign to fetch.
+     */
+    where: MarketingSmsCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsCampaign findUniqueOrThrow
+   */
+  export type MarketingSmsCampaignFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsCampaign to fetch.
+     */
+    where: MarketingSmsCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsCampaign findFirst
+   */
+  export type MarketingSmsCampaignFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsCampaign to fetch.
+     */
+    where?: MarketingSmsCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsCampaigns to fetch.
+     */
+    orderBy?: MarketingSmsCampaignOrderByWithRelationInput | MarketingSmsCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingSmsCampaigns.
+     */
+    cursor?: MarketingSmsCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingSmsCampaigns.
+     */
+    distinct?: MarketingSmsCampaignScalarFieldEnum | MarketingSmsCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingSmsCampaign findFirstOrThrow
+   */
+  export type MarketingSmsCampaignFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsCampaign to fetch.
+     */
+    where?: MarketingSmsCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsCampaigns to fetch.
+     */
+    orderBy?: MarketingSmsCampaignOrderByWithRelationInput | MarketingSmsCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingSmsCampaigns.
+     */
+    cursor?: MarketingSmsCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingSmsCampaigns.
+     */
+    distinct?: MarketingSmsCampaignScalarFieldEnum | MarketingSmsCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingSmsCampaign findMany
+   */
+  export type MarketingSmsCampaignFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsCampaigns to fetch.
+     */
+    where?: MarketingSmsCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsCampaigns to fetch.
+     */
+    orderBy?: MarketingSmsCampaignOrderByWithRelationInput | MarketingSmsCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingSmsCampaigns.
+     */
+    cursor?: MarketingSmsCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsCampaigns.
+     */
+    skip?: number
+    distinct?: MarketingSmsCampaignScalarFieldEnum | MarketingSmsCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingSmsCampaign create
+   */
+  export type MarketingSmsCampaignCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingSmsCampaign.
+     */
+    data: XOR<MarketingSmsCampaignCreateInput, MarketingSmsCampaignUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingSmsCampaign createMany
+   */
+  export type MarketingSmsCampaignCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingSmsCampaigns.
+     */
+    data: MarketingSmsCampaignCreateManyInput | MarketingSmsCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingSmsCampaign createManyAndReturn
+   */
+  export type MarketingSmsCampaignCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MarketingSmsCampaigns.
+     */
+    data: MarketingSmsCampaignCreateManyInput | MarketingSmsCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingSmsCampaign update
+   */
+  export type MarketingSmsCampaignUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingSmsCampaign.
+     */
+    data: XOR<MarketingSmsCampaignUpdateInput, MarketingSmsCampaignUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingSmsCampaign to update.
+     */
+    where: MarketingSmsCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsCampaign updateMany
+   */
+  export type MarketingSmsCampaignUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingSmsCampaigns.
+     */
+    data: XOR<MarketingSmsCampaignUpdateManyMutationInput, MarketingSmsCampaignUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingSmsCampaigns to update
+     */
+    where?: MarketingSmsCampaignWhereInput
+  }
+
+  /**
+   * MarketingSmsCampaign upsert
+   */
+  export type MarketingSmsCampaignUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingSmsCampaign to update in case it exists.
+     */
+    where: MarketingSmsCampaignWhereUniqueInput
+    /**
+     * In case the MarketingSmsCampaign found by the `where` argument doesn't exist, create a new MarketingSmsCampaign with this data.
+     */
+    create: XOR<MarketingSmsCampaignCreateInput, MarketingSmsCampaignUncheckedCreateInput>
+    /**
+     * In case the MarketingSmsCampaign was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingSmsCampaignUpdateInput, MarketingSmsCampaignUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingSmsCampaign delete
+   */
+  export type MarketingSmsCampaignDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingSmsCampaign to delete.
+     */
+    where: MarketingSmsCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsCampaign deleteMany
+   */
+  export type MarketingSmsCampaignDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingSmsCampaigns to delete
+     */
+    where?: MarketingSmsCampaignWhereInput
+  }
+
+  /**
+   * MarketingSmsCampaign.recipients
+   */
+  export type MarketingSmsCampaign$recipientsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    where?: MarketingSmsRecipientWhereInput
+    orderBy?: MarketingSmsRecipientOrderByWithRelationInput | MarketingSmsRecipientOrderByWithRelationInput[]
+    cursor?: MarketingSmsRecipientWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingSmsRecipientScalarFieldEnum | MarketingSmsRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingSmsCampaign without action
+   */
+  export type MarketingSmsCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsCampaign
+     */
+    select?: MarketingSmsCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsCampaignInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingSmsRecipient
+   */
+
+  export type AggregateMarketingSmsRecipient = {
+    _count: MarketingSmsRecipientCountAggregateOutputType | null
+    _avg: MarketingSmsRecipientAvgAggregateOutputType | null
+    _sum: MarketingSmsRecipientSumAggregateOutputType | null
+    _min: MarketingSmsRecipientMinAggregateOutputType | null
+    _max: MarketingSmsRecipientMaxAggregateOutputType | null
+  }
+
+  export type MarketingSmsRecipientAvgAggregateOutputType = {
+    segments: number | null
+  }
+
+  export type MarketingSmsRecipientSumAggregateOutputType = {
+    segments: number | null
+  }
+
+  export type MarketingSmsRecipientMinAggregateOutputType = {
+    id: string | null
+    campaignId: string | null
+    tenantId: string | null
+    contactId: string | null
+    phone: string | null
+    status: string | null
+    reason: string | null
+    segments: number | null
+    smsMessageId: string | null
+    createdAt: Date | null
+  }
+
+  export type MarketingSmsRecipientMaxAggregateOutputType = {
+    id: string | null
+    campaignId: string | null
+    tenantId: string | null
+    contactId: string | null
+    phone: string | null
+    status: string | null
+    reason: string | null
+    segments: number | null
+    smsMessageId: string | null
+    createdAt: Date | null
+  }
+
+  export type MarketingSmsRecipientCountAggregateOutputType = {
+    id: number
+    campaignId: number
+    tenantId: number
+    contactId: number
+    phone: number
+    status: number
+    reason: number
+    segments: number
+    smsMessageId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MarketingSmsRecipientAvgAggregateInputType = {
+    segments?: true
+  }
+
+  export type MarketingSmsRecipientSumAggregateInputType = {
+    segments?: true
+  }
+
+  export type MarketingSmsRecipientMinAggregateInputType = {
+    id?: true
+    campaignId?: true
+    tenantId?: true
+    contactId?: true
+    phone?: true
+    status?: true
+    reason?: true
+    segments?: true
+    smsMessageId?: true
+    createdAt?: true
+  }
+
+  export type MarketingSmsRecipientMaxAggregateInputType = {
+    id?: true
+    campaignId?: true
+    tenantId?: true
+    contactId?: true
+    phone?: true
+    status?: true
+    reason?: true
+    segments?: true
+    smsMessageId?: true
+    createdAt?: true
+  }
+
+  export type MarketingSmsRecipientCountAggregateInputType = {
+    id?: true
+    campaignId?: true
+    tenantId?: true
+    contactId?: true
+    phone?: true
+    status?: true
+    reason?: true
+    segments?: true
+    smsMessageId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MarketingSmsRecipientAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingSmsRecipient to aggregate.
+     */
+    where?: MarketingSmsRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsRecipients to fetch.
+     */
+    orderBy?: MarketingSmsRecipientOrderByWithRelationInput | MarketingSmsRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingSmsRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsRecipients.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingSmsRecipients
+    **/
+    _count?: true | MarketingSmsRecipientCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingSmsRecipientAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingSmsRecipientSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingSmsRecipientMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingSmsRecipientMaxAggregateInputType
+  }
+
+  export type GetMarketingSmsRecipientAggregateType<T extends MarketingSmsRecipientAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingSmsRecipient]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingSmsRecipient[P]>
+      : GetScalarType<T[P], AggregateMarketingSmsRecipient[P]>
+  }
+
+
+
+
+  export type MarketingSmsRecipientGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingSmsRecipientWhereInput
+    orderBy?: MarketingSmsRecipientOrderByWithAggregationInput | MarketingSmsRecipientOrderByWithAggregationInput[]
+    by: MarketingSmsRecipientScalarFieldEnum[] | MarketingSmsRecipientScalarFieldEnum
+    having?: MarketingSmsRecipientScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingSmsRecipientCountAggregateInputType | true
+    _avg?: MarketingSmsRecipientAvgAggregateInputType
+    _sum?: MarketingSmsRecipientSumAggregateInputType
+    _min?: MarketingSmsRecipientMinAggregateInputType
+    _max?: MarketingSmsRecipientMaxAggregateInputType
+  }
+
+  export type MarketingSmsRecipientGroupByOutputType = {
+    id: string
+    campaignId: string
+    tenantId: string
+    contactId: string | null
+    phone: string
+    status: string
+    reason: string | null
+    segments: number
+    smsMessageId: string | null
+    createdAt: Date
+    _count: MarketingSmsRecipientCountAggregateOutputType | null
+    _avg: MarketingSmsRecipientAvgAggregateOutputType | null
+    _sum: MarketingSmsRecipientSumAggregateOutputType | null
+    _min: MarketingSmsRecipientMinAggregateOutputType | null
+    _max: MarketingSmsRecipientMaxAggregateOutputType | null
+  }
+
+  type GetMarketingSmsRecipientGroupByPayload<T extends MarketingSmsRecipientGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingSmsRecipientGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingSmsRecipientGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingSmsRecipientGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingSmsRecipientGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingSmsRecipientSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    tenantId?: boolean
+    contactId?: boolean
+    phone?: boolean
+    status?: boolean
+    reason?: boolean
+    segments?: boolean
+    smsMessageId?: boolean
+    createdAt?: boolean
+    campaign?: boolean | MarketingSmsCampaignDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingSmsRecipient"]>
+
+  export type MarketingSmsRecipientSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    campaignId?: boolean
+    tenantId?: boolean
+    contactId?: boolean
+    phone?: boolean
+    status?: boolean
+    reason?: boolean
+    segments?: boolean
+    smsMessageId?: boolean
+    createdAt?: boolean
+    campaign?: boolean | MarketingSmsCampaignDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingSmsRecipient"]>
+
+  export type MarketingSmsRecipientSelectScalar = {
+    id?: boolean
+    campaignId?: boolean
+    tenantId?: boolean
+    contactId?: boolean
+    phone?: boolean
+    status?: boolean
+    reason?: boolean
+    segments?: boolean
+    smsMessageId?: boolean
+    createdAt?: boolean
+  }
+
+  export type MarketingSmsRecipientInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingSmsCampaignDefaultArgs<ExtArgs>
+  }
+  export type MarketingSmsRecipientIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingSmsCampaignDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingSmsRecipientPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingSmsRecipient"
+    objects: {
+      campaign: Prisma.$MarketingSmsCampaignPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      campaignId: string
+      tenantId: string
+      contactId: string | null
+      phone: string
+      status: string
+      reason: string | null
+      segments: number
+      smsMessageId: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["marketingSmsRecipient"]>
+    composites: {}
+  }
+
+  type MarketingSmsRecipientGetPayload<S extends boolean | null | undefined | MarketingSmsRecipientDefaultArgs> = $Result.GetResult<Prisma.$MarketingSmsRecipientPayload, S>
+
+  type MarketingSmsRecipientCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MarketingSmsRecipientFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MarketingSmsRecipientCountAggregateInputType | true
+    }
+
+  export interface MarketingSmsRecipientDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingSmsRecipient'], meta: { name: 'MarketingSmsRecipient' } }
+    /**
+     * Find zero or one MarketingSmsRecipient that matches the filter.
+     * @param {MarketingSmsRecipientFindUniqueArgs} args - Arguments to find a MarketingSmsRecipient
+     * @example
+     * // Get one MarketingSmsRecipient
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingSmsRecipientFindUniqueArgs>(args: SelectSubset<T, MarketingSmsRecipientFindUniqueArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MarketingSmsRecipient that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MarketingSmsRecipientFindUniqueOrThrowArgs} args - Arguments to find a MarketingSmsRecipient
+     * @example
+     * // Get one MarketingSmsRecipient
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingSmsRecipientFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingSmsRecipientFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MarketingSmsRecipient that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsRecipientFindFirstArgs} args - Arguments to find a MarketingSmsRecipient
+     * @example
+     * // Get one MarketingSmsRecipient
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingSmsRecipientFindFirstArgs>(args?: SelectSubset<T, MarketingSmsRecipientFindFirstArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MarketingSmsRecipient that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsRecipientFindFirstOrThrowArgs} args - Arguments to find a MarketingSmsRecipient
+     * @example
+     * // Get one MarketingSmsRecipient
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingSmsRecipientFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingSmsRecipientFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MarketingSmsRecipients that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsRecipientFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingSmsRecipients
+     * const marketingSmsRecipients = await prisma.marketingSmsRecipient.findMany()
+     * 
+     * // Get first 10 MarketingSmsRecipients
+     * const marketingSmsRecipients = await prisma.marketingSmsRecipient.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingSmsRecipientWithIdOnly = await prisma.marketingSmsRecipient.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingSmsRecipientFindManyArgs>(args?: SelectSubset<T, MarketingSmsRecipientFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MarketingSmsRecipient.
+     * @param {MarketingSmsRecipientCreateArgs} args - Arguments to create a MarketingSmsRecipient.
+     * @example
+     * // Create one MarketingSmsRecipient
+     * const MarketingSmsRecipient = await prisma.marketingSmsRecipient.create({
+     *   data: {
+     *     // ... data to create a MarketingSmsRecipient
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingSmsRecipientCreateArgs>(args: SelectSubset<T, MarketingSmsRecipientCreateArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MarketingSmsRecipients.
+     * @param {MarketingSmsRecipientCreateManyArgs} args - Arguments to create many MarketingSmsRecipients.
+     * @example
+     * // Create many MarketingSmsRecipients
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingSmsRecipientCreateManyArgs>(args?: SelectSubset<T, MarketingSmsRecipientCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingSmsRecipients and returns the data saved in the database.
+     * @param {MarketingSmsRecipientCreateManyAndReturnArgs} args - Arguments to create many MarketingSmsRecipients.
+     * @example
+     * // Create many MarketingSmsRecipients
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingSmsRecipients and only return the `id`
+     * const marketingSmsRecipientWithIdOnly = await prisma.marketingSmsRecipient.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingSmsRecipientCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingSmsRecipientCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MarketingSmsRecipient.
+     * @param {MarketingSmsRecipientDeleteArgs} args - Arguments to delete one MarketingSmsRecipient.
+     * @example
+     * // Delete one MarketingSmsRecipient
+     * const MarketingSmsRecipient = await prisma.marketingSmsRecipient.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingSmsRecipient
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingSmsRecipientDeleteArgs>(args: SelectSubset<T, MarketingSmsRecipientDeleteArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MarketingSmsRecipient.
+     * @param {MarketingSmsRecipientUpdateArgs} args - Arguments to update one MarketingSmsRecipient.
+     * @example
+     * // Update one MarketingSmsRecipient
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingSmsRecipientUpdateArgs>(args: SelectSubset<T, MarketingSmsRecipientUpdateArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MarketingSmsRecipients.
+     * @param {MarketingSmsRecipientDeleteManyArgs} args - Arguments to filter MarketingSmsRecipients to delete.
+     * @example
+     * // Delete a few MarketingSmsRecipients
+     * const { count } = await prisma.marketingSmsRecipient.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingSmsRecipientDeleteManyArgs>(args?: SelectSubset<T, MarketingSmsRecipientDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingSmsRecipients.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsRecipientUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingSmsRecipients
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingSmsRecipientUpdateManyArgs>(args: SelectSubset<T, MarketingSmsRecipientUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MarketingSmsRecipient.
+     * @param {MarketingSmsRecipientUpsertArgs} args - Arguments to update or create a MarketingSmsRecipient.
+     * @example
+     * // Update or create a MarketingSmsRecipient
+     * const marketingSmsRecipient = await prisma.marketingSmsRecipient.upsert({
+     *   create: {
+     *     // ... data to create a MarketingSmsRecipient
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingSmsRecipient we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingSmsRecipientUpsertArgs>(args: SelectSubset<T, MarketingSmsRecipientUpsertArgs<ExtArgs>>): Prisma__MarketingSmsRecipientClient<$Result.GetResult<Prisma.$MarketingSmsRecipientPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MarketingSmsRecipients.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsRecipientCountArgs} args - Arguments to filter MarketingSmsRecipients to count.
+     * @example
+     * // Count the number of MarketingSmsRecipients
+     * const count = await prisma.marketingSmsRecipient.count({
+     *   where: {
+     *     // ... the filter for the MarketingSmsRecipients we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingSmsRecipientCountArgs>(
+      args?: Subset<T, MarketingSmsRecipientCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingSmsRecipientCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingSmsRecipient.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsRecipientAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingSmsRecipientAggregateArgs>(args: Subset<T, MarketingSmsRecipientAggregateArgs>): Prisma.PrismaPromise<GetMarketingSmsRecipientAggregateType<T>>
+
+    /**
+     * Group by MarketingSmsRecipient.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingSmsRecipientGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingSmsRecipientGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingSmsRecipientGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingSmsRecipientGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingSmsRecipientGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingSmsRecipientGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingSmsRecipient model
+   */
+  readonly fields: MarketingSmsRecipientFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingSmsRecipient.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingSmsRecipientClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    campaign<T extends MarketingSmsCampaignDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingSmsCampaignDefaultArgs<ExtArgs>>): Prisma__MarketingSmsCampaignClient<$Result.GetResult<Prisma.$MarketingSmsCampaignPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingSmsRecipient model
+   */ 
+  interface MarketingSmsRecipientFieldRefs {
+    readonly id: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly campaignId: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly tenantId: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly contactId: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly phone: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly status: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly reason: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly segments: FieldRef<"MarketingSmsRecipient", 'Int'>
+    readonly smsMessageId: FieldRef<"MarketingSmsRecipient", 'String'>
+    readonly createdAt: FieldRef<"MarketingSmsRecipient", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingSmsRecipient findUnique
+   */
+  export type MarketingSmsRecipientFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsRecipient to fetch.
+     */
+    where: MarketingSmsRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsRecipient findUniqueOrThrow
+   */
+  export type MarketingSmsRecipientFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsRecipient to fetch.
+     */
+    where: MarketingSmsRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsRecipient findFirst
+   */
+  export type MarketingSmsRecipientFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsRecipient to fetch.
+     */
+    where?: MarketingSmsRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsRecipients to fetch.
+     */
+    orderBy?: MarketingSmsRecipientOrderByWithRelationInput | MarketingSmsRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingSmsRecipients.
+     */
+    cursor?: MarketingSmsRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsRecipients.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingSmsRecipients.
+     */
+    distinct?: MarketingSmsRecipientScalarFieldEnum | MarketingSmsRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingSmsRecipient findFirstOrThrow
+   */
+  export type MarketingSmsRecipientFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsRecipient to fetch.
+     */
+    where?: MarketingSmsRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsRecipients to fetch.
+     */
+    orderBy?: MarketingSmsRecipientOrderByWithRelationInput | MarketingSmsRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingSmsRecipients.
+     */
+    cursor?: MarketingSmsRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsRecipients.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingSmsRecipients.
+     */
+    distinct?: MarketingSmsRecipientScalarFieldEnum | MarketingSmsRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingSmsRecipient findMany
+   */
+  export type MarketingSmsRecipientFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingSmsRecipients to fetch.
+     */
+    where?: MarketingSmsRecipientWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingSmsRecipients to fetch.
+     */
+    orderBy?: MarketingSmsRecipientOrderByWithRelationInput | MarketingSmsRecipientOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingSmsRecipients.
+     */
+    cursor?: MarketingSmsRecipientWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingSmsRecipients from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingSmsRecipients.
+     */
+    skip?: number
+    distinct?: MarketingSmsRecipientScalarFieldEnum | MarketingSmsRecipientScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingSmsRecipient create
+   */
+  export type MarketingSmsRecipientCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingSmsRecipient.
+     */
+    data: XOR<MarketingSmsRecipientCreateInput, MarketingSmsRecipientUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingSmsRecipient createMany
+   */
+  export type MarketingSmsRecipientCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingSmsRecipients.
+     */
+    data: MarketingSmsRecipientCreateManyInput | MarketingSmsRecipientCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingSmsRecipient createManyAndReturn
+   */
+  export type MarketingSmsRecipientCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MarketingSmsRecipients.
+     */
+    data: MarketingSmsRecipientCreateManyInput | MarketingSmsRecipientCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingSmsRecipient update
+   */
+  export type MarketingSmsRecipientUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingSmsRecipient.
+     */
+    data: XOR<MarketingSmsRecipientUpdateInput, MarketingSmsRecipientUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingSmsRecipient to update.
+     */
+    where: MarketingSmsRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsRecipient updateMany
+   */
+  export type MarketingSmsRecipientUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingSmsRecipients.
+     */
+    data: XOR<MarketingSmsRecipientUpdateManyMutationInput, MarketingSmsRecipientUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingSmsRecipients to update
+     */
+    where?: MarketingSmsRecipientWhereInput
+  }
+
+  /**
+   * MarketingSmsRecipient upsert
+   */
+  export type MarketingSmsRecipientUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingSmsRecipient to update in case it exists.
+     */
+    where: MarketingSmsRecipientWhereUniqueInput
+    /**
+     * In case the MarketingSmsRecipient found by the `where` argument doesn't exist, create a new MarketingSmsRecipient with this data.
+     */
+    create: XOR<MarketingSmsRecipientCreateInput, MarketingSmsRecipientUncheckedCreateInput>
+    /**
+     * In case the MarketingSmsRecipient was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingSmsRecipientUpdateInput, MarketingSmsRecipientUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingSmsRecipient delete
+   */
+  export type MarketingSmsRecipientDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingSmsRecipient to delete.
+     */
+    where: MarketingSmsRecipientWhereUniqueInput
+  }
+
+  /**
+   * MarketingSmsRecipient deleteMany
+   */
+  export type MarketingSmsRecipientDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingSmsRecipients to delete
+     */
+    where?: MarketingSmsRecipientWhereInput
+  }
+
+  /**
+   * MarketingSmsRecipient without action
+   */
+  export type MarketingSmsRecipientDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingSmsRecipient
+     */
+    select?: MarketingSmsRecipientSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingSmsRecipientInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Wallet
+   */
+
+  export type AggregateWallet = {
+    _count: WalletCountAggregateOutputType | null
+    _avg: WalletAvgAggregateOutputType | null
+    _sum: WalletSumAggregateOutputType | null
+    _min: WalletMinAggregateOutputType | null
+    _max: WalletMaxAggregateOutputType | null
+  }
+
+  export type WalletAvgAggregateOutputType = {
+    balanceMinor: number | null
+    smsPricePerSegmentMinor: number | null
+    lowBalanceThresholdMinor: number | null
+  }
+
+  export type WalletSumAggregateOutputType = {
+    balanceMinor: number | null
+    smsPricePerSegmentMinor: number | null
+    lowBalanceThresholdMinor: number | null
+  }
+
+  export type WalletMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    balanceMinor: number | null
+    currency: string | null
+    smsPricePerSegmentMinor: number | null
+    lowBalanceThresholdMinor: number | null
+    stripeCustomerId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WalletMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    balanceMinor: number | null
+    currency: string | null
+    smsPricePerSegmentMinor: number | null
+    lowBalanceThresholdMinor: number | null
+    stripeCustomerId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WalletCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    balanceMinor: number
+    currency: number
+    smsPricePerSegmentMinor: number
+    lowBalanceThresholdMinor: number
+    stripeCustomerId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type WalletAvgAggregateInputType = {
+    balanceMinor?: true
+    smsPricePerSegmentMinor?: true
+    lowBalanceThresholdMinor?: true
+  }
+
+  export type WalletSumAggregateInputType = {
+    balanceMinor?: true
+    smsPricePerSegmentMinor?: true
+    lowBalanceThresholdMinor?: true
+  }
+
+  export type WalletMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    balanceMinor?: true
+    currency?: true
+    smsPricePerSegmentMinor?: true
+    lowBalanceThresholdMinor?: true
+    stripeCustomerId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WalletMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    balanceMinor?: true
+    currency?: true
+    smsPricePerSegmentMinor?: true
+    lowBalanceThresholdMinor?: true
+    stripeCustomerId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WalletCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    balanceMinor?: true
+    currency?: true
+    smsPricePerSegmentMinor?: true
+    lowBalanceThresholdMinor?: true
+    stripeCustomerId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type WalletAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Wallet to aggregate.
+     */
+    where?: WalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Wallets to fetch.
+     */
+    orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Wallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Wallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Wallets
+    **/
+    _count?: true | WalletCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: WalletAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WalletSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WalletMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WalletMaxAggregateInputType
+  }
+
+  export type GetWalletAggregateType<T extends WalletAggregateArgs> = {
+        [P in keyof T & keyof AggregateWallet]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWallet[P]>
+      : GetScalarType<T[P], AggregateWallet[P]>
+  }
+
+
+
+
+  export type WalletGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WalletWhereInput
+    orderBy?: WalletOrderByWithAggregationInput | WalletOrderByWithAggregationInput[]
+    by: WalletScalarFieldEnum[] | WalletScalarFieldEnum
+    having?: WalletScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WalletCountAggregateInputType | true
+    _avg?: WalletAvgAggregateInputType
+    _sum?: WalletSumAggregateInputType
+    _min?: WalletMinAggregateInputType
+    _max?: WalletMaxAggregateInputType
+  }
+
+  export type WalletGroupByOutputType = {
+    id: string
+    tenantId: string
+    balanceMinor: number
+    currency: string
+    smsPricePerSegmentMinor: number | null
+    lowBalanceThresholdMinor: number
+    stripeCustomerId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: WalletCountAggregateOutputType | null
+    _avg: WalletAvgAggregateOutputType | null
+    _sum: WalletSumAggregateOutputType | null
+    _min: WalletMinAggregateOutputType | null
+    _max: WalletMaxAggregateOutputType | null
+  }
+
+  type GetWalletGroupByPayload<T extends WalletGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WalletGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WalletGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WalletGroupByOutputType[P]>
+            : GetScalarType<T[P], WalletGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WalletSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    balanceMinor?: boolean
+    currency?: boolean
+    smsPricePerSegmentMinor?: boolean
+    lowBalanceThresholdMinor?: boolean
+    stripeCustomerId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    transactions?: boolean | Wallet$transactionsArgs<ExtArgs>
+    _count?: boolean | WalletCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["wallet"]>
+
+  export type WalletSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    balanceMinor?: boolean
+    currency?: boolean
+    smsPricePerSegmentMinor?: boolean
+    lowBalanceThresholdMinor?: boolean
+    stripeCustomerId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["wallet"]>
+
+  export type WalletSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    balanceMinor?: boolean
+    currency?: boolean
+    smsPricePerSegmentMinor?: boolean
+    lowBalanceThresholdMinor?: boolean
+    stripeCustomerId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type WalletInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    transactions?: boolean | Wallet$transactionsArgs<ExtArgs>
+    _count?: boolean | WalletCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type WalletIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $WalletPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Wallet"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      transactions: Prisma.$WalletTransactionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      balanceMinor: number
+      currency: string
+      smsPricePerSegmentMinor: number | null
+      lowBalanceThresholdMinor: number
+      stripeCustomerId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["wallet"]>
+    composites: {}
+  }
+
+  type WalletGetPayload<S extends boolean | null | undefined | WalletDefaultArgs> = $Result.GetResult<Prisma.$WalletPayload, S>
+
+  type WalletCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<WalletFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: WalletCountAggregateInputType | true
+    }
+
+  export interface WalletDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Wallet'], meta: { name: 'Wallet' } }
+    /**
+     * Find zero or one Wallet that matches the filter.
+     * @param {WalletFindUniqueArgs} args - Arguments to find a Wallet
+     * @example
+     * // Get one Wallet
+     * const wallet = await prisma.wallet.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WalletFindUniqueArgs>(args: SelectSubset<T, WalletFindUniqueArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Wallet that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {WalletFindUniqueOrThrowArgs} args - Arguments to find a Wallet
+     * @example
+     * // Get one Wallet
+     * const wallet = await prisma.wallet.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WalletFindUniqueOrThrowArgs>(args: SelectSubset<T, WalletFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Wallet that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletFindFirstArgs} args - Arguments to find a Wallet
+     * @example
+     * // Get one Wallet
+     * const wallet = await prisma.wallet.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WalletFindFirstArgs>(args?: SelectSubset<T, WalletFindFirstArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Wallet that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletFindFirstOrThrowArgs} args - Arguments to find a Wallet
+     * @example
+     * // Get one Wallet
+     * const wallet = await prisma.wallet.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WalletFindFirstOrThrowArgs>(args?: SelectSubset<T, WalletFindFirstOrThrowArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Wallets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Wallets
+     * const wallets = await prisma.wallet.findMany()
+     * 
+     * // Get first 10 Wallets
+     * const wallets = await prisma.wallet.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const walletWithIdOnly = await prisma.wallet.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WalletFindManyArgs>(args?: SelectSubset<T, WalletFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Wallet.
+     * @param {WalletCreateArgs} args - Arguments to create a Wallet.
+     * @example
+     * // Create one Wallet
+     * const Wallet = await prisma.wallet.create({
+     *   data: {
+     *     // ... data to create a Wallet
+     *   }
+     * })
+     * 
+     */
+    create<T extends WalletCreateArgs>(args: SelectSubset<T, WalletCreateArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Wallets.
+     * @param {WalletCreateManyArgs} args - Arguments to create many Wallets.
+     * @example
+     * // Create many Wallets
+     * const wallet = await prisma.wallet.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WalletCreateManyArgs>(args?: SelectSubset<T, WalletCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Wallets and returns the data saved in the database.
+     * @param {WalletCreateManyAndReturnArgs} args - Arguments to create many Wallets.
+     * @example
+     * // Create many Wallets
+     * const wallet = await prisma.wallet.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Wallets and only return the `id`
+     * const walletWithIdOnly = await prisma.wallet.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WalletCreateManyAndReturnArgs>(args?: SelectSubset<T, WalletCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Wallet.
+     * @param {WalletDeleteArgs} args - Arguments to delete one Wallet.
+     * @example
+     * // Delete one Wallet
+     * const Wallet = await prisma.wallet.delete({
+     *   where: {
+     *     // ... filter to delete one Wallet
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WalletDeleteArgs>(args: SelectSubset<T, WalletDeleteArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Wallet.
+     * @param {WalletUpdateArgs} args - Arguments to update one Wallet.
+     * @example
+     * // Update one Wallet
+     * const wallet = await prisma.wallet.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WalletUpdateArgs>(args: SelectSubset<T, WalletUpdateArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Wallets.
+     * @param {WalletDeleteManyArgs} args - Arguments to filter Wallets to delete.
+     * @example
+     * // Delete a few Wallets
+     * const { count } = await prisma.wallet.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WalletDeleteManyArgs>(args?: SelectSubset<T, WalletDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Wallets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Wallets
+     * const wallet = await prisma.wallet.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WalletUpdateManyArgs>(args: SelectSubset<T, WalletUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Wallet.
+     * @param {WalletUpsertArgs} args - Arguments to update or create a Wallet.
+     * @example
+     * // Update or create a Wallet
+     * const wallet = await prisma.wallet.upsert({
+     *   create: {
+     *     // ... data to create a Wallet
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Wallet we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WalletUpsertArgs>(args: SelectSubset<T, WalletUpsertArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Wallets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletCountArgs} args - Arguments to filter Wallets to count.
+     * @example
+     * // Count the number of Wallets
+     * const count = await prisma.wallet.count({
+     *   where: {
+     *     // ... the filter for the Wallets we want to count
+     *   }
+     * })
+    **/
+    count<T extends WalletCountArgs>(
+      args?: Subset<T, WalletCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WalletCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Wallet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WalletAggregateArgs>(args: Subset<T, WalletAggregateArgs>): Prisma.PrismaPromise<GetWalletAggregateType<T>>
+
+    /**
+     * Group by Wallet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WalletGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WalletGroupByArgs['orderBy'] }
+        : { orderBy?: WalletGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WalletGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWalletGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Wallet model
+   */
+  readonly fields: WalletFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Wallet.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WalletClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    transactions<T extends Wallet$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Wallet model
+   */ 
+  interface WalletFieldRefs {
+    readonly id: FieldRef<"Wallet", 'String'>
+    readonly tenantId: FieldRef<"Wallet", 'String'>
+    readonly balanceMinor: FieldRef<"Wallet", 'Int'>
+    readonly currency: FieldRef<"Wallet", 'String'>
+    readonly smsPricePerSegmentMinor: FieldRef<"Wallet", 'Int'>
+    readonly lowBalanceThresholdMinor: FieldRef<"Wallet", 'Int'>
+    readonly stripeCustomerId: FieldRef<"Wallet", 'String'>
+    readonly createdAt: FieldRef<"Wallet", 'DateTime'>
+    readonly updatedAt: FieldRef<"Wallet", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Wallet findUnique
+   */
+  export type WalletFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * Filter, which Wallet to fetch.
+     */
+    where: WalletWhereUniqueInput
+  }
+
+  /**
+   * Wallet findUniqueOrThrow
+   */
+  export type WalletFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * Filter, which Wallet to fetch.
+     */
+    where: WalletWhereUniqueInput
+  }
+
+  /**
+   * Wallet findFirst
+   */
+  export type WalletFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * Filter, which Wallet to fetch.
+     */
+    where?: WalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Wallets to fetch.
+     */
+    orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Wallets.
+     */
+    cursor?: WalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Wallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Wallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Wallets.
+     */
+    distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
+  }
+
+  /**
+   * Wallet findFirstOrThrow
+   */
+  export type WalletFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * Filter, which Wallet to fetch.
+     */
+    where?: WalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Wallets to fetch.
+     */
+    orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Wallets.
+     */
+    cursor?: WalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Wallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Wallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Wallets.
+     */
+    distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
+  }
+
+  /**
+   * Wallet findMany
+   */
+  export type WalletFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * Filter, which Wallets to fetch.
+     */
+    where?: WalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Wallets to fetch.
+     */
+    orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Wallets.
+     */
+    cursor?: WalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Wallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Wallets.
+     */
+    skip?: number
+    distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
+  }
+
+  /**
+   * Wallet create
+   */
+  export type WalletCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Wallet.
+     */
+    data: XOR<WalletCreateInput, WalletUncheckedCreateInput>
+  }
+
+  /**
+   * Wallet createMany
+   */
+  export type WalletCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Wallets.
+     */
+    data: WalletCreateManyInput | WalletCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Wallet createManyAndReturn
+   */
+  export type WalletCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Wallets.
+     */
+    data: WalletCreateManyInput | WalletCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Wallet update
+   */
+  export type WalletUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Wallet.
+     */
+    data: XOR<WalletUpdateInput, WalletUncheckedUpdateInput>
+    /**
+     * Choose, which Wallet to update.
+     */
+    where: WalletWhereUniqueInput
+  }
+
+  /**
+   * Wallet updateMany
+   */
+  export type WalletUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Wallets.
+     */
+    data: XOR<WalletUpdateManyMutationInput, WalletUncheckedUpdateManyInput>
+    /**
+     * Filter which Wallets to update
+     */
+    where?: WalletWhereInput
+  }
+
+  /**
+   * Wallet upsert
+   */
+  export type WalletUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Wallet to update in case it exists.
+     */
+    where: WalletWhereUniqueInput
+    /**
+     * In case the Wallet found by the `where` argument doesn't exist, create a new Wallet with this data.
+     */
+    create: XOR<WalletCreateInput, WalletUncheckedCreateInput>
+    /**
+     * In case the Wallet was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WalletUpdateInput, WalletUncheckedUpdateInput>
+  }
+
+  /**
+   * Wallet delete
+   */
+  export type WalletDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    /**
+     * Filter which Wallet to delete.
+     */
+    where: WalletWhereUniqueInput
+  }
+
+  /**
+   * Wallet deleteMany
+   */
+  export type WalletDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Wallets to delete
+     */
+    where?: WalletWhereInput
+  }
+
+  /**
+   * Wallet.transactions
+   */
+  export type Wallet$transactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    where?: WalletTransactionWhereInput
+    orderBy?: WalletTransactionOrderByWithRelationInput | WalletTransactionOrderByWithRelationInput[]
+    cursor?: WalletTransactionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WalletTransactionScalarFieldEnum | WalletTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * Wallet without action
+   */
+  export type WalletDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WalletTransaction
+   */
+
+  export type AggregateWalletTransaction = {
+    _count: WalletTransactionCountAggregateOutputType | null
+    _avg: WalletTransactionAvgAggregateOutputType | null
+    _sum: WalletTransactionSumAggregateOutputType | null
+    _min: WalletTransactionMinAggregateOutputType | null
+    _max: WalletTransactionMaxAggregateOutputType | null
+  }
+
+  export type WalletTransactionAvgAggregateOutputType = {
+    amountMinor: number | null
+    balanceAfterMinor: number | null
+    segments: number | null
+  }
+
+  export type WalletTransactionSumAggregateOutputType = {
+    amountMinor: number | null
+    balanceAfterMinor: number | null
+    segments: number | null
+  }
+
+  export type WalletTransactionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    walletId: string | null
+    type: string | null
+    amountMinor: number | null
+    balanceAfterMinor: number | null
+    currency: string | null
+    purpose: string | null
+    segments: number | null
+    smsMessageId: string | null
+    locationId: string | null
+    stripeCheckoutId: string | null
+    stripePaymentIntentId: string | null
+    description: string | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type WalletTransactionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    walletId: string | null
+    type: string | null
+    amountMinor: number | null
+    balanceAfterMinor: number | null
+    currency: string | null
+    purpose: string | null
+    segments: number | null
+    smsMessageId: string | null
+    locationId: string | null
+    stripeCheckoutId: string | null
+    stripePaymentIntentId: string | null
+    description: string | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type WalletTransactionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    walletId: number
+    type: number
+    amountMinor: number
+    balanceAfterMinor: number
+    currency: number
+    purpose: number
+    segments: number
+    smsMessageId: number
+    locationId: number
+    stripeCheckoutId: number
+    stripePaymentIntentId: number
+    description: number
+    createdBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type WalletTransactionAvgAggregateInputType = {
+    amountMinor?: true
+    balanceAfterMinor?: true
+    segments?: true
+  }
+
+  export type WalletTransactionSumAggregateInputType = {
+    amountMinor?: true
+    balanceAfterMinor?: true
+    segments?: true
+  }
+
+  export type WalletTransactionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    walletId?: true
+    type?: true
+    amountMinor?: true
+    balanceAfterMinor?: true
+    currency?: true
+    purpose?: true
+    segments?: true
+    smsMessageId?: true
+    locationId?: true
+    stripeCheckoutId?: true
+    stripePaymentIntentId?: true
+    description?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type WalletTransactionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    walletId?: true
+    type?: true
+    amountMinor?: true
+    balanceAfterMinor?: true
+    currency?: true
+    purpose?: true
+    segments?: true
+    smsMessageId?: true
+    locationId?: true
+    stripeCheckoutId?: true
+    stripePaymentIntentId?: true
+    description?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type WalletTransactionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    walletId?: true
+    type?: true
+    amountMinor?: true
+    balanceAfterMinor?: true
+    currency?: true
+    purpose?: true
+    segments?: true
+    smsMessageId?: true
+    locationId?: true
+    stripeCheckoutId?: true
+    stripePaymentIntentId?: true
+    description?: true
+    createdBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type WalletTransactionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WalletTransaction to aggregate.
+     */
+    where?: WalletTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WalletTransactions to fetch.
+     */
+    orderBy?: WalletTransactionOrderByWithRelationInput | WalletTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WalletTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WalletTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WalletTransactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WalletTransactions
+    **/
+    _count?: true | WalletTransactionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: WalletTransactionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WalletTransactionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WalletTransactionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WalletTransactionMaxAggregateInputType
+  }
+
+  export type GetWalletTransactionAggregateType<T extends WalletTransactionAggregateArgs> = {
+        [P in keyof T & keyof AggregateWalletTransaction]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWalletTransaction[P]>
+      : GetScalarType<T[P], AggregateWalletTransaction[P]>
+  }
+
+
+
+
+  export type WalletTransactionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WalletTransactionWhereInput
+    orderBy?: WalletTransactionOrderByWithAggregationInput | WalletTransactionOrderByWithAggregationInput[]
+    by: WalletTransactionScalarFieldEnum[] | WalletTransactionScalarFieldEnum
+    having?: WalletTransactionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WalletTransactionCountAggregateInputType | true
+    _avg?: WalletTransactionAvgAggregateInputType
+    _sum?: WalletTransactionSumAggregateInputType
+    _min?: WalletTransactionMinAggregateInputType
+    _max?: WalletTransactionMaxAggregateInputType
+  }
+
+  export type WalletTransactionGroupByOutputType = {
+    id: string
+    tenantId: string
+    walletId: string
+    type: string
+    amountMinor: number
+    balanceAfterMinor: number
+    currency: string
+    purpose: string | null
+    segments: number | null
+    smsMessageId: string | null
+    locationId: string | null
+    stripeCheckoutId: string | null
+    stripePaymentIntentId: string | null
+    description: string | null
+    createdBy: string | null
+    createdAt: Date
+    _count: WalletTransactionCountAggregateOutputType | null
+    _avg: WalletTransactionAvgAggregateOutputType | null
+    _sum: WalletTransactionSumAggregateOutputType | null
+    _min: WalletTransactionMinAggregateOutputType | null
+    _max: WalletTransactionMaxAggregateOutputType | null
+  }
+
+  type GetWalletTransactionGroupByPayload<T extends WalletTransactionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WalletTransactionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WalletTransactionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WalletTransactionGroupByOutputType[P]>
+            : GetScalarType<T[P], WalletTransactionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WalletTransactionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    walletId?: boolean
+    type?: boolean
+    amountMinor?: boolean
+    balanceAfterMinor?: boolean
+    currency?: boolean
+    purpose?: boolean
+    segments?: boolean
+    smsMessageId?: boolean
+    locationId?: boolean
+    stripeCheckoutId?: boolean
+    stripePaymentIntentId?: boolean
+    description?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["walletTransaction"]>
+
+  export type WalletTransactionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    walletId?: boolean
+    type?: boolean
+    amountMinor?: boolean
+    balanceAfterMinor?: boolean
+    currency?: boolean
+    purpose?: boolean
+    segments?: boolean
+    smsMessageId?: boolean
+    locationId?: boolean
+    stripeCheckoutId?: boolean
+    stripePaymentIntentId?: boolean
+    description?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["walletTransaction"]>
+
+  export type WalletTransactionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    walletId?: boolean
+    type?: boolean
+    amountMinor?: boolean
+    balanceAfterMinor?: boolean
+    currency?: boolean
+    purpose?: boolean
+    segments?: boolean
+    smsMessageId?: boolean
+    locationId?: boolean
+    stripeCheckoutId?: boolean
+    stripePaymentIntentId?: boolean
+    description?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type WalletTransactionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+  }
+  export type WalletTransactionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+  }
+
+  export type $WalletTransactionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WalletTransaction"
+    objects: {
+      wallet: Prisma.$WalletPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      walletId: string
+      type: string
+      amountMinor: number
+      balanceAfterMinor: number
+      currency: string
+      purpose: string | null
+      segments: number | null
+      smsMessageId: string | null
+      locationId: string | null
+      stripeCheckoutId: string | null
+      stripePaymentIntentId: string | null
+      description: string | null
+      createdBy: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["walletTransaction"]>
+    composites: {}
+  }
+
+  type WalletTransactionGetPayload<S extends boolean | null | undefined | WalletTransactionDefaultArgs> = $Result.GetResult<Prisma.$WalletTransactionPayload, S>
+
+  type WalletTransactionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<WalletTransactionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: WalletTransactionCountAggregateInputType | true
+    }
+
+  export interface WalletTransactionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WalletTransaction'], meta: { name: 'WalletTransaction' } }
+    /**
+     * Find zero or one WalletTransaction that matches the filter.
+     * @param {WalletTransactionFindUniqueArgs} args - Arguments to find a WalletTransaction
+     * @example
+     * // Get one WalletTransaction
+     * const walletTransaction = await prisma.walletTransaction.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WalletTransactionFindUniqueArgs>(args: SelectSubset<T, WalletTransactionFindUniqueArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one WalletTransaction that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {WalletTransactionFindUniqueOrThrowArgs} args - Arguments to find a WalletTransaction
+     * @example
+     * // Get one WalletTransaction
+     * const walletTransaction = await prisma.walletTransaction.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WalletTransactionFindUniqueOrThrowArgs>(args: SelectSubset<T, WalletTransactionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first WalletTransaction that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletTransactionFindFirstArgs} args - Arguments to find a WalletTransaction
+     * @example
+     * // Get one WalletTransaction
+     * const walletTransaction = await prisma.walletTransaction.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WalletTransactionFindFirstArgs>(args?: SelectSubset<T, WalletTransactionFindFirstArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first WalletTransaction that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletTransactionFindFirstOrThrowArgs} args - Arguments to find a WalletTransaction
+     * @example
+     * // Get one WalletTransaction
+     * const walletTransaction = await prisma.walletTransaction.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WalletTransactionFindFirstOrThrowArgs>(args?: SelectSubset<T, WalletTransactionFindFirstOrThrowArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more WalletTransactions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletTransactionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WalletTransactions
+     * const walletTransactions = await prisma.walletTransaction.findMany()
+     * 
+     * // Get first 10 WalletTransactions
+     * const walletTransactions = await prisma.walletTransaction.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const walletTransactionWithIdOnly = await prisma.walletTransaction.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WalletTransactionFindManyArgs>(args?: SelectSubset<T, WalletTransactionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a WalletTransaction.
+     * @param {WalletTransactionCreateArgs} args - Arguments to create a WalletTransaction.
+     * @example
+     * // Create one WalletTransaction
+     * const WalletTransaction = await prisma.walletTransaction.create({
+     *   data: {
+     *     // ... data to create a WalletTransaction
+     *   }
+     * })
+     * 
+     */
+    create<T extends WalletTransactionCreateArgs>(args: SelectSubset<T, WalletTransactionCreateArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many WalletTransactions.
+     * @param {WalletTransactionCreateManyArgs} args - Arguments to create many WalletTransactions.
+     * @example
+     * // Create many WalletTransactions
+     * const walletTransaction = await prisma.walletTransaction.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WalletTransactionCreateManyArgs>(args?: SelectSubset<T, WalletTransactionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WalletTransactions and returns the data saved in the database.
+     * @param {WalletTransactionCreateManyAndReturnArgs} args - Arguments to create many WalletTransactions.
+     * @example
+     * // Create many WalletTransactions
+     * const walletTransaction = await prisma.walletTransaction.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WalletTransactions and only return the `id`
+     * const walletTransactionWithIdOnly = await prisma.walletTransaction.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WalletTransactionCreateManyAndReturnArgs>(args?: SelectSubset<T, WalletTransactionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a WalletTransaction.
+     * @param {WalletTransactionDeleteArgs} args - Arguments to delete one WalletTransaction.
+     * @example
+     * // Delete one WalletTransaction
+     * const WalletTransaction = await prisma.walletTransaction.delete({
+     *   where: {
+     *     // ... filter to delete one WalletTransaction
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WalletTransactionDeleteArgs>(args: SelectSubset<T, WalletTransactionDeleteArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one WalletTransaction.
+     * @param {WalletTransactionUpdateArgs} args - Arguments to update one WalletTransaction.
+     * @example
+     * // Update one WalletTransaction
+     * const walletTransaction = await prisma.walletTransaction.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WalletTransactionUpdateArgs>(args: SelectSubset<T, WalletTransactionUpdateArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more WalletTransactions.
+     * @param {WalletTransactionDeleteManyArgs} args - Arguments to filter WalletTransactions to delete.
+     * @example
+     * // Delete a few WalletTransactions
+     * const { count } = await prisma.walletTransaction.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WalletTransactionDeleteManyArgs>(args?: SelectSubset<T, WalletTransactionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WalletTransactions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletTransactionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WalletTransactions
+     * const walletTransaction = await prisma.walletTransaction.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WalletTransactionUpdateManyArgs>(args: SelectSubset<T, WalletTransactionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one WalletTransaction.
+     * @param {WalletTransactionUpsertArgs} args - Arguments to update or create a WalletTransaction.
+     * @example
+     * // Update or create a WalletTransaction
+     * const walletTransaction = await prisma.walletTransaction.upsert({
+     *   create: {
+     *     // ... data to create a WalletTransaction
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WalletTransaction we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WalletTransactionUpsertArgs>(args: SelectSubset<T, WalletTransactionUpsertArgs<ExtArgs>>): Prisma__WalletTransactionClient<$Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of WalletTransactions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletTransactionCountArgs} args - Arguments to filter WalletTransactions to count.
+     * @example
+     * // Count the number of WalletTransactions
+     * const count = await prisma.walletTransaction.count({
+     *   where: {
+     *     // ... the filter for the WalletTransactions we want to count
+     *   }
+     * })
+    **/
+    count<T extends WalletTransactionCountArgs>(
+      args?: Subset<T, WalletTransactionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WalletTransactionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WalletTransaction.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletTransactionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WalletTransactionAggregateArgs>(args: Subset<T, WalletTransactionAggregateArgs>): Prisma.PrismaPromise<GetWalletTransactionAggregateType<T>>
+
+    /**
+     * Group by WalletTransaction.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletTransactionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WalletTransactionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WalletTransactionGroupByArgs['orderBy'] }
+        : { orderBy?: WalletTransactionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WalletTransactionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWalletTransactionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WalletTransaction model
+   */
+  readonly fields: WalletTransactionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WalletTransaction.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WalletTransactionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    wallet<T extends WalletDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WalletDefaultArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WalletTransaction model
+   */ 
+  interface WalletTransactionFieldRefs {
+    readonly id: FieldRef<"WalletTransaction", 'String'>
+    readonly tenantId: FieldRef<"WalletTransaction", 'String'>
+    readonly walletId: FieldRef<"WalletTransaction", 'String'>
+    readonly type: FieldRef<"WalletTransaction", 'String'>
+    readonly amountMinor: FieldRef<"WalletTransaction", 'Int'>
+    readonly balanceAfterMinor: FieldRef<"WalletTransaction", 'Int'>
+    readonly currency: FieldRef<"WalletTransaction", 'String'>
+    readonly purpose: FieldRef<"WalletTransaction", 'String'>
+    readonly segments: FieldRef<"WalletTransaction", 'Int'>
+    readonly smsMessageId: FieldRef<"WalletTransaction", 'String'>
+    readonly locationId: FieldRef<"WalletTransaction", 'String'>
+    readonly stripeCheckoutId: FieldRef<"WalletTransaction", 'String'>
+    readonly stripePaymentIntentId: FieldRef<"WalletTransaction", 'String'>
+    readonly description: FieldRef<"WalletTransaction", 'String'>
+    readonly createdBy: FieldRef<"WalletTransaction", 'String'>
+    readonly createdAt: FieldRef<"WalletTransaction", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WalletTransaction findUnique
+   */
+  export type WalletTransactionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletTransaction to fetch.
+     */
+    where: WalletTransactionWhereUniqueInput
+  }
+
+  /**
+   * WalletTransaction findUniqueOrThrow
+   */
+  export type WalletTransactionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletTransaction to fetch.
+     */
+    where: WalletTransactionWhereUniqueInput
+  }
+
+  /**
+   * WalletTransaction findFirst
+   */
+  export type WalletTransactionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletTransaction to fetch.
+     */
+    where?: WalletTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WalletTransactions to fetch.
+     */
+    orderBy?: WalletTransactionOrderByWithRelationInput | WalletTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WalletTransactions.
+     */
+    cursor?: WalletTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WalletTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WalletTransactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WalletTransactions.
+     */
+    distinct?: WalletTransactionScalarFieldEnum | WalletTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * WalletTransaction findFirstOrThrow
+   */
+  export type WalletTransactionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletTransaction to fetch.
+     */
+    where?: WalletTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WalletTransactions to fetch.
+     */
+    orderBy?: WalletTransactionOrderByWithRelationInput | WalletTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WalletTransactions.
+     */
+    cursor?: WalletTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WalletTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WalletTransactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WalletTransactions.
+     */
+    distinct?: WalletTransactionScalarFieldEnum | WalletTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * WalletTransaction findMany
+   */
+  export type WalletTransactionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletTransactions to fetch.
+     */
+    where?: WalletTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WalletTransactions to fetch.
+     */
+    orderBy?: WalletTransactionOrderByWithRelationInput | WalletTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WalletTransactions.
+     */
+    cursor?: WalletTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WalletTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WalletTransactions.
+     */
+    skip?: number
+    distinct?: WalletTransactionScalarFieldEnum | WalletTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * WalletTransaction create
+   */
+  export type WalletTransactionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WalletTransaction.
+     */
+    data: XOR<WalletTransactionCreateInput, WalletTransactionUncheckedCreateInput>
+  }
+
+  /**
+   * WalletTransaction createMany
+   */
+  export type WalletTransactionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WalletTransactions.
+     */
+    data: WalletTransactionCreateManyInput | WalletTransactionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WalletTransaction createManyAndReturn
+   */
+  export type WalletTransactionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many WalletTransactions.
+     */
+    data: WalletTransactionCreateManyInput | WalletTransactionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WalletTransaction update
+   */
+  export type WalletTransactionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WalletTransaction.
+     */
+    data: XOR<WalletTransactionUpdateInput, WalletTransactionUncheckedUpdateInput>
+    /**
+     * Choose, which WalletTransaction to update.
+     */
+    where: WalletTransactionWhereUniqueInput
+  }
+
+  /**
+   * WalletTransaction updateMany
+   */
+  export type WalletTransactionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WalletTransactions.
+     */
+    data: XOR<WalletTransactionUpdateManyMutationInput, WalletTransactionUncheckedUpdateManyInput>
+    /**
+     * Filter which WalletTransactions to update
+     */
+    where?: WalletTransactionWhereInput
+  }
+
+  /**
+   * WalletTransaction upsert
+   */
+  export type WalletTransactionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WalletTransaction to update in case it exists.
+     */
+    where: WalletTransactionWhereUniqueInput
+    /**
+     * In case the WalletTransaction found by the `where` argument doesn't exist, create a new WalletTransaction with this data.
+     */
+    create: XOR<WalletTransactionCreateInput, WalletTransactionUncheckedCreateInput>
+    /**
+     * In case the WalletTransaction was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WalletTransactionUpdateInput, WalletTransactionUncheckedUpdateInput>
+  }
+
+  /**
+   * WalletTransaction delete
+   */
+  export type WalletTransactionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
+    /**
+     * Filter which WalletTransaction to delete.
+     */
+    where: WalletTransactionWhereUniqueInput
+  }
+
+  /**
+   * WalletTransaction deleteMany
+   */
+  export type WalletTransactionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WalletTransactions to delete
+     */
+    where?: WalletTransactionWhereInput
+  }
+
+  /**
+   * WalletTransaction without action
+   */
+  export type WalletTransactionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletTransaction
+     */
+    select?: WalletTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletTransactionInclude<ExtArgs> | null
   }
 
 
@@ -127123,6 +133025,7 @@ export namespace Prisma {
     orderId: 'orderId',
     toNumber: 'toNumber',
     purpose: 'purpose',
+    campaignId: 'campaignId',
     segments: 'segments',
     provider: 'provider',
     providerSid: 'providerSid',
@@ -127133,6 +133036,108 @@ export namespace Prisma {
   };
 
   export type SmsMessageScalarFieldEnum = (typeof SmsMessageScalarFieldEnum)[keyof typeof SmsMessageScalarFieldEnum]
+
+
+  export const MarketingContactScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    phone: 'phone',
+    firstName: 'firstName',
+    lastName: 'lastName',
+    email: 'email',
+    source: 'source',
+    customerId: 'customerId',
+    consentStatus: 'consentStatus',
+    consentSource: 'consentSource',
+    consentAt: 'consentAt',
+    unsubscribedAt: 'unsubscribedAt',
+    tags: 'tags',
+    lastCampaignAt: 'lastCampaignAt',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingContactScalarFieldEnum = (typeof MarketingContactScalarFieldEnum)[keyof typeof MarketingContactScalarFieldEnum]
+
+
+  export const MarketingSmsCampaignScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    senderHeader: 'senderHeader',
+    body: 'body',
+    status: 'status',
+    audience: 'audience',
+    recipientCount: 'recipientCount',
+    sentCount: 'sentCount',
+    failedCount: 'failedCount',
+    skippedCount: 'skippedCount',
+    segments: 'segments',
+    costMinor: 'costMinor',
+    createdBy: 'createdBy',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MarketingSmsCampaignScalarFieldEnum = (typeof MarketingSmsCampaignScalarFieldEnum)[keyof typeof MarketingSmsCampaignScalarFieldEnum]
+
+
+  export const MarketingSmsRecipientScalarFieldEnum: {
+    id: 'id',
+    campaignId: 'campaignId',
+    tenantId: 'tenantId',
+    contactId: 'contactId',
+    phone: 'phone',
+    status: 'status',
+    reason: 'reason',
+    segments: 'segments',
+    smsMessageId: 'smsMessageId',
+    createdAt: 'createdAt'
+  };
+
+  export type MarketingSmsRecipientScalarFieldEnum = (typeof MarketingSmsRecipientScalarFieldEnum)[keyof typeof MarketingSmsRecipientScalarFieldEnum]
+
+
+  export const WalletScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    balanceMinor: 'balanceMinor',
+    currency: 'currency',
+    smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
+    lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
+    stripeCustomerId: 'stripeCustomerId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type WalletScalarFieldEnum = (typeof WalletScalarFieldEnum)[keyof typeof WalletScalarFieldEnum]
+
+
+  export const WalletTransactionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    walletId: 'walletId',
+    type: 'type',
+    amountMinor: 'amountMinor',
+    balanceAfterMinor: 'balanceAfterMinor',
+    currency: 'currency',
+    purpose: 'purpose',
+    segments: 'segments',
+    smsMessageId: 'smsMessageId',
+    locationId: 'locationId',
+    stripeCheckoutId: 'stripeCheckoutId',
+    stripePaymentIntentId: 'stripePaymentIntentId',
+    description: 'description',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt'
+  };
+
+  export type WalletTransactionScalarFieldEnum = (typeof WalletTransactionScalarFieldEnum)[keyof typeof WalletTransactionScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -128549,6 +134554,7 @@ export namespace Prisma {
     orderId: 'orderId',
     toNumber: 'toNumber',
     purpose: 'purpose',
+    campaignId: 'campaignId',
     provider: 'provider',
     providerSid: 'providerSid',
     status: 'status',
@@ -128557,6 +134563,81 @@ export namespace Prisma {
   };
 
   export type SmsMessageOrderByRelevanceFieldEnum = (typeof SmsMessageOrderByRelevanceFieldEnum)[keyof typeof SmsMessageOrderByRelevanceFieldEnum]
+
+
+  export const MarketingContactOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    phone: 'phone',
+    firstName: 'firstName',
+    lastName: 'lastName',
+    email: 'email',
+    source: 'source',
+    customerId: 'customerId',
+    consentStatus: 'consentStatus',
+    consentSource: 'consentSource',
+    tags: 'tags',
+    createdBy: 'createdBy'
+  };
+
+  export type MarketingContactOrderByRelevanceFieldEnum = (typeof MarketingContactOrderByRelevanceFieldEnum)[keyof typeof MarketingContactOrderByRelevanceFieldEnum]
+
+
+  export const MarketingSmsCampaignOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    senderHeader: 'senderHeader',
+    body: 'body',
+    status: 'status',
+    createdBy: 'createdBy'
+  };
+
+  export type MarketingSmsCampaignOrderByRelevanceFieldEnum = (typeof MarketingSmsCampaignOrderByRelevanceFieldEnum)[keyof typeof MarketingSmsCampaignOrderByRelevanceFieldEnum]
+
+
+  export const MarketingSmsRecipientOrderByRelevanceFieldEnum: {
+    id: 'id',
+    campaignId: 'campaignId',
+    tenantId: 'tenantId',
+    contactId: 'contactId',
+    phone: 'phone',
+    status: 'status',
+    reason: 'reason',
+    smsMessageId: 'smsMessageId'
+  };
+
+  export type MarketingSmsRecipientOrderByRelevanceFieldEnum = (typeof MarketingSmsRecipientOrderByRelevanceFieldEnum)[keyof typeof MarketingSmsRecipientOrderByRelevanceFieldEnum]
+
+
+  export const WalletOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    currency: 'currency',
+    stripeCustomerId: 'stripeCustomerId'
+  };
+
+  export type WalletOrderByRelevanceFieldEnum = (typeof WalletOrderByRelevanceFieldEnum)[keyof typeof WalletOrderByRelevanceFieldEnum]
+
+
+  export const WalletTransactionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    walletId: 'walletId',
+    type: 'type',
+    currency: 'currency',
+    purpose: 'purpose',
+    smsMessageId: 'smsMessageId',
+    locationId: 'locationId',
+    stripeCheckoutId: 'stripeCheckoutId',
+    stripePaymentIntentId: 'stripePaymentIntentId',
+    description: 'description',
+    createdBy: 'createdBy'
+  };
+
+  export type WalletTransactionOrderByRelevanceFieldEnum = (typeof WalletTransactionOrderByRelevanceFieldEnum)[keyof typeof WalletTransactionOrderByRelevanceFieldEnum]
 
 
   /**
@@ -129396,6 +135477,7 @@ export namespace Prisma {
     invitations?: InvitationListRelationFilter
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
+    wallet?: XOR<WalletNullableRelationFilter, WalletWhereInput> | null
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -129426,6 +135508,7 @@ export namespace Prisma {
     invitations?: InvitationOrderByRelationAggregateInput
     printerStations?: PrinterStationOrderByRelationAggregateInput
     printAgents?: PrintAgentOrderByRelationAggregateInput
+    wallet?: WalletOrderByWithRelationInput
     _relevance?: TenantOrderByRelevanceInput
   }
 
@@ -129460,6 +135543,7 @@ export namespace Prisma {
     invitations?: InvitationListRelationFilter
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
+    wallet?: XOR<WalletNullableRelationFilter, WalletWhereInput> | null
   }, "id" | "slug">
 
   export type TenantOrderByWithAggregationInput = {
@@ -140161,6 +146245,7 @@ export namespace Prisma {
     orderId?: StringNullableFilter<"SmsMessage"> | string | null
     toNumber?: StringFilter<"SmsMessage"> | string
     purpose?: StringFilter<"SmsMessage"> | string
+    campaignId?: StringNullableFilter<"SmsMessage"> | string | null
     segments?: IntFilter<"SmsMessage"> | number
     provider?: StringFilter<"SmsMessage"> | string
     providerSid?: StringNullableFilter<"SmsMessage"> | string | null
@@ -140178,6 +146263,7 @@ export namespace Prisma {
     orderId?: SortOrderInput | SortOrder
     toNumber?: SortOrder
     purpose?: SortOrder
+    campaignId?: SortOrderInput | SortOrder
     segments?: SortOrder
     provider?: SortOrder
     providerSid?: SortOrderInput | SortOrder
@@ -140199,6 +146285,7 @@ export namespace Prisma {
     orderId?: StringNullableFilter<"SmsMessage"> | string | null
     toNumber?: StringFilter<"SmsMessage"> | string
     purpose?: StringFilter<"SmsMessage"> | string
+    campaignId?: StringNullableFilter<"SmsMessage"> | string | null
     segments?: IntFilter<"SmsMessage"> | number
     provider?: StringFilter<"SmsMessage"> | string
     providerSid?: StringNullableFilter<"SmsMessage"> | string | null
@@ -140216,6 +146303,7 @@ export namespace Prisma {
     orderId?: SortOrderInput | SortOrder
     toNumber?: SortOrder
     purpose?: SortOrder
+    campaignId?: SortOrderInput | SortOrder
     segments?: SortOrder
     provider?: SortOrder
     providerSid?: SortOrderInput | SortOrder
@@ -140241,6 +146329,7 @@ export namespace Prisma {
     orderId?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
     toNumber?: StringWithAggregatesFilter<"SmsMessage"> | string
     purpose?: StringWithAggregatesFilter<"SmsMessage"> | string
+    campaignId?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
     segments?: IntWithAggregatesFilter<"SmsMessage"> | number
     provider?: StringWithAggregatesFilter<"SmsMessage"> | string
     providerSid?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
@@ -140248,6 +146337,531 @@ export namespace Prisma {
     error?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
     createdBy?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"SmsMessage"> | Date | string
+  }
+
+  export type MarketingContactWhereInput = {
+    AND?: MarketingContactWhereInput | MarketingContactWhereInput[]
+    OR?: MarketingContactWhereInput[]
+    NOT?: MarketingContactWhereInput | MarketingContactWhereInput[]
+    id?: StringFilter<"MarketingContact"> | string
+    tenantId?: StringFilter<"MarketingContact"> | string
+    locationId?: StringNullableFilter<"MarketingContact"> | string | null
+    phone?: StringFilter<"MarketingContact"> | string
+    firstName?: StringNullableFilter<"MarketingContact"> | string | null
+    lastName?: StringNullableFilter<"MarketingContact"> | string | null
+    email?: StringNullableFilter<"MarketingContact"> | string | null
+    source?: StringNullableFilter<"MarketingContact"> | string | null
+    customerId?: StringNullableFilter<"MarketingContact"> | string | null
+    consentStatus?: StringFilter<"MarketingContact"> | string
+    consentSource?: StringNullableFilter<"MarketingContact"> | string | null
+    consentAt?: DateTimeNullableFilter<"MarketingContact"> | Date | string | null
+    unsubscribedAt?: DateTimeNullableFilter<"MarketingContact"> | Date | string | null
+    tags?: StringNullableListFilter<"MarketingContact">
+    lastCampaignAt?: DateTimeNullableFilter<"MarketingContact"> | Date | string | null
+    createdBy?: StringNullableFilter<"MarketingContact"> | string | null
+    createdAt?: DateTimeFilter<"MarketingContact"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingContact"> | Date | string
+  }
+
+  export type MarketingContactOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    phone?: SortOrder
+    firstName?: SortOrderInput | SortOrder
+    lastName?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    customerId?: SortOrderInput | SortOrder
+    consentStatus?: SortOrder
+    consentSource?: SortOrderInput | SortOrder
+    consentAt?: SortOrderInput | SortOrder
+    unsubscribedAt?: SortOrderInput | SortOrder
+    tags?: SortOrder
+    lastCampaignAt?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: MarketingContactOrderByRelevanceInput
+  }
+
+  export type MarketingContactWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_locationId_phone?: MarketingContactTenantIdLocationIdPhoneCompoundUniqueInput
+    AND?: MarketingContactWhereInput | MarketingContactWhereInput[]
+    OR?: MarketingContactWhereInput[]
+    NOT?: MarketingContactWhereInput | MarketingContactWhereInput[]
+    tenantId?: StringFilter<"MarketingContact"> | string
+    locationId?: StringNullableFilter<"MarketingContact"> | string | null
+    phone?: StringFilter<"MarketingContact"> | string
+    firstName?: StringNullableFilter<"MarketingContact"> | string | null
+    lastName?: StringNullableFilter<"MarketingContact"> | string | null
+    email?: StringNullableFilter<"MarketingContact"> | string | null
+    source?: StringNullableFilter<"MarketingContact"> | string | null
+    customerId?: StringNullableFilter<"MarketingContact"> | string | null
+    consentStatus?: StringFilter<"MarketingContact"> | string
+    consentSource?: StringNullableFilter<"MarketingContact"> | string | null
+    consentAt?: DateTimeNullableFilter<"MarketingContact"> | Date | string | null
+    unsubscribedAt?: DateTimeNullableFilter<"MarketingContact"> | Date | string | null
+    tags?: StringNullableListFilter<"MarketingContact">
+    lastCampaignAt?: DateTimeNullableFilter<"MarketingContact"> | Date | string | null
+    createdBy?: StringNullableFilter<"MarketingContact"> | string | null
+    createdAt?: DateTimeFilter<"MarketingContact"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingContact"> | Date | string
+  }, "id" | "tenantId_locationId_phone">
+
+  export type MarketingContactOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    phone?: SortOrder
+    firstName?: SortOrderInput | SortOrder
+    lastName?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    customerId?: SortOrderInput | SortOrder
+    consentStatus?: SortOrder
+    consentSource?: SortOrderInput | SortOrder
+    consentAt?: SortOrderInput | SortOrder
+    unsubscribedAt?: SortOrderInput | SortOrder
+    tags?: SortOrder
+    lastCampaignAt?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingContactCountOrderByAggregateInput
+    _max?: MarketingContactMaxOrderByAggregateInput
+    _min?: MarketingContactMinOrderByAggregateInput
+  }
+
+  export type MarketingContactScalarWhereWithAggregatesInput = {
+    AND?: MarketingContactScalarWhereWithAggregatesInput | MarketingContactScalarWhereWithAggregatesInput[]
+    OR?: MarketingContactScalarWhereWithAggregatesInput[]
+    NOT?: MarketingContactScalarWhereWithAggregatesInput | MarketingContactScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MarketingContact"> | string
+    tenantId?: StringWithAggregatesFilter<"MarketingContact"> | string
+    locationId?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    phone?: StringWithAggregatesFilter<"MarketingContact"> | string
+    firstName?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    lastName?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    email?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    source?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    customerId?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    consentStatus?: StringWithAggregatesFilter<"MarketingContact"> | string
+    consentSource?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    consentAt?: DateTimeNullableWithAggregatesFilter<"MarketingContact"> | Date | string | null
+    unsubscribedAt?: DateTimeNullableWithAggregatesFilter<"MarketingContact"> | Date | string | null
+    tags?: StringNullableListFilter<"MarketingContact">
+    lastCampaignAt?: DateTimeNullableWithAggregatesFilter<"MarketingContact"> | Date | string | null
+    createdBy?: StringNullableWithAggregatesFilter<"MarketingContact"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingContact"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingContact"> | Date | string
+  }
+
+  export type MarketingSmsCampaignWhereInput = {
+    AND?: MarketingSmsCampaignWhereInput | MarketingSmsCampaignWhereInput[]
+    OR?: MarketingSmsCampaignWhereInput[]
+    NOT?: MarketingSmsCampaignWhereInput | MarketingSmsCampaignWhereInput[]
+    id?: StringFilter<"MarketingSmsCampaign"> | string
+    tenantId?: StringFilter<"MarketingSmsCampaign"> | string
+    locationId?: StringNullableFilter<"MarketingSmsCampaign"> | string | null
+    name?: StringFilter<"MarketingSmsCampaign"> | string
+    senderHeader?: StringNullableFilter<"MarketingSmsCampaign"> | string | null
+    body?: StringFilter<"MarketingSmsCampaign"> | string
+    status?: StringFilter<"MarketingSmsCampaign"> | string
+    audience?: JsonFilter<"MarketingSmsCampaign">
+    recipientCount?: IntFilter<"MarketingSmsCampaign"> | number
+    sentCount?: IntFilter<"MarketingSmsCampaign"> | number
+    failedCount?: IntFilter<"MarketingSmsCampaign"> | number
+    skippedCount?: IntFilter<"MarketingSmsCampaign"> | number
+    segments?: IntFilter<"MarketingSmsCampaign"> | number
+    costMinor?: IntFilter<"MarketingSmsCampaign"> | number
+    createdBy?: StringNullableFilter<"MarketingSmsCampaign"> | string | null
+    startedAt?: DateTimeNullableFilter<"MarketingSmsCampaign"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"MarketingSmsCampaign"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingSmsCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingSmsCampaign"> | Date | string
+    recipients?: MarketingSmsRecipientListRelationFilter
+  }
+
+  export type MarketingSmsCampaignOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    senderHeader?: SortOrderInput | SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    recipientCount?: SortOrder
+    sentCount?: SortOrder
+    failedCount?: SortOrder
+    skippedCount?: SortOrder
+    segments?: SortOrder
+    costMinor?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    recipients?: MarketingSmsRecipientOrderByRelationAggregateInput
+    _relevance?: MarketingSmsCampaignOrderByRelevanceInput
+  }
+
+  export type MarketingSmsCampaignWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MarketingSmsCampaignWhereInput | MarketingSmsCampaignWhereInput[]
+    OR?: MarketingSmsCampaignWhereInput[]
+    NOT?: MarketingSmsCampaignWhereInput | MarketingSmsCampaignWhereInput[]
+    tenantId?: StringFilter<"MarketingSmsCampaign"> | string
+    locationId?: StringNullableFilter<"MarketingSmsCampaign"> | string | null
+    name?: StringFilter<"MarketingSmsCampaign"> | string
+    senderHeader?: StringNullableFilter<"MarketingSmsCampaign"> | string | null
+    body?: StringFilter<"MarketingSmsCampaign"> | string
+    status?: StringFilter<"MarketingSmsCampaign"> | string
+    audience?: JsonFilter<"MarketingSmsCampaign">
+    recipientCount?: IntFilter<"MarketingSmsCampaign"> | number
+    sentCount?: IntFilter<"MarketingSmsCampaign"> | number
+    failedCount?: IntFilter<"MarketingSmsCampaign"> | number
+    skippedCount?: IntFilter<"MarketingSmsCampaign"> | number
+    segments?: IntFilter<"MarketingSmsCampaign"> | number
+    costMinor?: IntFilter<"MarketingSmsCampaign"> | number
+    createdBy?: StringNullableFilter<"MarketingSmsCampaign"> | string | null
+    startedAt?: DateTimeNullableFilter<"MarketingSmsCampaign"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"MarketingSmsCampaign"> | Date | string | null
+    createdAt?: DateTimeFilter<"MarketingSmsCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingSmsCampaign"> | Date | string
+    recipients?: MarketingSmsRecipientListRelationFilter
+  }, "id">
+
+  export type MarketingSmsCampaignOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    senderHeader?: SortOrderInput | SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    recipientCount?: SortOrder
+    sentCount?: SortOrder
+    failedCount?: SortOrder
+    skippedCount?: SortOrder
+    segments?: SortOrder
+    costMinor?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MarketingSmsCampaignCountOrderByAggregateInput
+    _avg?: MarketingSmsCampaignAvgOrderByAggregateInput
+    _max?: MarketingSmsCampaignMaxOrderByAggregateInput
+    _min?: MarketingSmsCampaignMinOrderByAggregateInput
+    _sum?: MarketingSmsCampaignSumOrderByAggregateInput
+  }
+
+  export type MarketingSmsCampaignScalarWhereWithAggregatesInput = {
+    AND?: MarketingSmsCampaignScalarWhereWithAggregatesInput | MarketingSmsCampaignScalarWhereWithAggregatesInput[]
+    OR?: MarketingSmsCampaignScalarWhereWithAggregatesInput[]
+    NOT?: MarketingSmsCampaignScalarWhereWithAggregatesInput | MarketingSmsCampaignScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MarketingSmsCampaign"> | string
+    tenantId?: StringWithAggregatesFilter<"MarketingSmsCampaign"> | string
+    locationId?: StringNullableWithAggregatesFilter<"MarketingSmsCampaign"> | string | null
+    name?: StringWithAggregatesFilter<"MarketingSmsCampaign"> | string
+    senderHeader?: StringNullableWithAggregatesFilter<"MarketingSmsCampaign"> | string | null
+    body?: StringWithAggregatesFilter<"MarketingSmsCampaign"> | string
+    status?: StringWithAggregatesFilter<"MarketingSmsCampaign"> | string
+    audience?: JsonWithAggregatesFilter<"MarketingSmsCampaign">
+    recipientCount?: IntWithAggregatesFilter<"MarketingSmsCampaign"> | number
+    sentCount?: IntWithAggregatesFilter<"MarketingSmsCampaign"> | number
+    failedCount?: IntWithAggregatesFilter<"MarketingSmsCampaign"> | number
+    skippedCount?: IntWithAggregatesFilter<"MarketingSmsCampaign"> | number
+    segments?: IntWithAggregatesFilter<"MarketingSmsCampaign"> | number
+    costMinor?: IntWithAggregatesFilter<"MarketingSmsCampaign"> | number
+    createdBy?: StringNullableWithAggregatesFilter<"MarketingSmsCampaign"> | string | null
+    startedAt?: DateTimeNullableWithAggregatesFilter<"MarketingSmsCampaign"> | Date | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"MarketingSmsCampaign"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingSmsCampaign"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingSmsCampaign"> | Date | string
+  }
+
+  export type MarketingSmsRecipientWhereInput = {
+    AND?: MarketingSmsRecipientWhereInput | MarketingSmsRecipientWhereInput[]
+    OR?: MarketingSmsRecipientWhereInput[]
+    NOT?: MarketingSmsRecipientWhereInput | MarketingSmsRecipientWhereInput[]
+    id?: StringFilter<"MarketingSmsRecipient"> | string
+    campaignId?: StringFilter<"MarketingSmsRecipient"> | string
+    tenantId?: StringFilter<"MarketingSmsRecipient"> | string
+    contactId?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    phone?: StringFilter<"MarketingSmsRecipient"> | string
+    status?: StringFilter<"MarketingSmsRecipient"> | string
+    reason?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    segments?: IntFilter<"MarketingSmsRecipient"> | number
+    smsMessageId?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    createdAt?: DateTimeFilter<"MarketingSmsRecipient"> | Date | string
+    campaign?: XOR<MarketingSmsCampaignRelationFilter, MarketingSmsCampaignWhereInput>
+  }
+
+  export type MarketingSmsRecipientOrderByWithRelationInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    tenantId?: SortOrder
+    contactId?: SortOrderInput | SortOrder
+    phone?: SortOrder
+    status?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    campaign?: MarketingSmsCampaignOrderByWithRelationInput
+    _relevance?: MarketingSmsRecipientOrderByRelevanceInput
+  }
+
+  export type MarketingSmsRecipientWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    campaignId_phone?: MarketingSmsRecipientCampaignIdPhoneCompoundUniqueInput
+    AND?: MarketingSmsRecipientWhereInput | MarketingSmsRecipientWhereInput[]
+    OR?: MarketingSmsRecipientWhereInput[]
+    NOT?: MarketingSmsRecipientWhereInput | MarketingSmsRecipientWhereInput[]
+    campaignId?: StringFilter<"MarketingSmsRecipient"> | string
+    tenantId?: StringFilter<"MarketingSmsRecipient"> | string
+    contactId?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    phone?: StringFilter<"MarketingSmsRecipient"> | string
+    status?: StringFilter<"MarketingSmsRecipient"> | string
+    reason?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    segments?: IntFilter<"MarketingSmsRecipient"> | number
+    smsMessageId?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    createdAt?: DateTimeFilter<"MarketingSmsRecipient"> | Date | string
+    campaign?: XOR<MarketingSmsCampaignRelationFilter, MarketingSmsCampaignWhereInput>
+  }, "id" | "campaignId_phone">
+
+  export type MarketingSmsRecipientOrderByWithAggregationInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    tenantId?: SortOrder
+    contactId?: SortOrderInput | SortOrder
+    phone?: SortOrder
+    status?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: MarketingSmsRecipientCountOrderByAggregateInput
+    _avg?: MarketingSmsRecipientAvgOrderByAggregateInput
+    _max?: MarketingSmsRecipientMaxOrderByAggregateInput
+    _min?: MarketingSmsRecipientMinOrderByAggregateInput
+    _sum?: MarketingSmsRecipientSumOrderByAggregateInput
+  }
+
+  export type MarketingSmsRecipientScalarWhereWithAggregatesInput = {
+    AND?: MarketingSmsRecipientScalarWhereWithAggregatesInput | MarketingSmsRecipientScalarWhereWithAggregatesInput[]
+    OR?: MarketingSmsRecipientScalarWhereWithAggregatesInput[]
+    NOT?: MarketingSmsRecipientScalarWhereWithAggregatesInput | MarketingSmsRecipientScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MarketingSmsRecipient"> | string
+    campaignId?: StringWithAggregatesFilter<"MarketingSmsRecipient"> | string
+    tenantId?: StringWithAggregatesFilter<"MarketingSmsRecipient"> | string
+    contactId?: StringNullableWithAggregatesFilter<"MarketingSmsRecipient"> | string | null
+    phone?: StringWithAggregatesFilter<"MarketingSmsRecipient"> | string
+    status?: StringWithAggregatesFilter<"MarketingSmsRecipient"> | string
+    reason?: StringNullableWithAggregatesFilter<"MarketingSmsRecipient"> | string | null
+    segments?: IntWithAggregatesFilter<"MarketingSmsRecipient"> | number
+    smsMessageId?: StringNullableWithAggregatesFilter<"MarketingSmsRecipient"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingSmsRecipient"> | Date | string
+  }
+
+  export type WalletWhereInput = {
+    AND?: WalletWhereInput | WalletWhereInput[]
+    OR?: WalletWhereInput[]
+    NOT?: WalletWhereInput | WalletWhereInput[]
+    id?: StringFilter<"Wallet"> | string
+    tenantId?: StringFilter<"Wallet"> | string
+    balanceMinor?: IntFilter<"Wallet"> | number
+    currency?: StringFilter<"Wallet"> | string
+    smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
+    lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
+    stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
+    createdAt?: DateTimeFilter<"Wallet"> | Date | string
+    updatedAt?: DateTimeFilter<"Wallet"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    transactions?: WalletTransactionListRelationFilter
+  }
+
+  export type WalletOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    balanceMinor?: SortOrder
+    currency?: SortOrder
+    smsPricePerSegmentMinor?: SortOrderInput | SortOrder
+    lowBalanceThresholdMinor?: SortOrder
+    stripeCustomerId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    transactions?: WalletTransactionOrderByRelationAggregateInput
+    _relevance?: WalletOrderByRelevanceInput
+  }
+
+  export type WalletWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId?: string
+    AND?: WalletWhereInput | WalletWhereInput[]
+    OR?: WalletWhereInput[]
+    NOT?: WalletWhereInput | WalletWhereInput[]
+    balanceMinor?: IntFilter<"Wallet"> | number
+    currency?: StringFilter<"Wallet"> | string
+    smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
+    lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
+    stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
+    createdAt?: DateTimeFilter<"Wallet"> | Date | string
+    updatedAt?: DateTimeFilter<"Wallet"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    transactions?: WalletTransactionListRelationFilter
+  }, "id" | "tenantId">
+
+  export type WalletOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    balanceMinor?: SortOrder
+    currency?: SortOrder
+    smsPricePerSegmentMinor?: SortOrderInput | SortOrder
+    lowBalanceThresholdMinor?: SortOrder
+    stripeCustomerId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: WalletCountOrderByAggregateInput
+    _avg?: WalletAvgOrderByAggregateInput
+    _max?: WalletMaxOrderByAggregateInput
+    _min?: WalletMinOrderByAggregateInput
+    _sum?: WalletSumOrderByAggregateInput
+  }
+
+  export type WalletScalarWhereWithAggregatesInput = {
+    AND?: WalletScalarWhereWithAggregatesInput | WalletScalarWhereWithAggregatesInput[]
+    OR?: WalletScalarWhereWithAggregatesInput[]
+    NOT?: WalletScalarWhereWithAggregatesInput | WalletScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Wallet"> | string
+    tenantId?: StringWithAggregatesFilter<"Wallet"> | string
+    balanceMinor?: IntWithAggregatesFilter<"Wallet"> | number
+    currency?: StringWithAggregatesFilter<"Wallet"> | string
+    smsPricePerSegmentMinor?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
+    lowBalanceThresholdMinor?: IntWithAggregatesFilter<"Wallet"> | number
+    stripeCustomerId?: StringNullableWithAggregatesFilter<"Wallet"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
+  }
+
+  export type WalletTransactionWhereInput = {
+    AND?: WalletTransactionWhereInput | WalletTransactionWhereInput[]
+    OR?: WalletTransactionWhereInput[]
+    NOT?: WalletTransactionWhereInput | WalletTransactionWhereInput[]
+    id?: StringFilter<"WalletTransaction"> | string
+    tenantId?: StringFilter<"WalletTransaction"> | string
+    walletId?: StringFilter<"WalletTransaction"> | string
+    type?: StringFilter<"WalletTransaction"> | string
+    amountMinor?: IntFilter<"WalletTransaction"> | number
+    balanceAfterMinor?: IntFilter<"WalletTransaction"> | number
+    currency?: StringFilter<"WalletTransaction"> | string
+    purpose?: StringNullableFilter<"WalletTransaction"> | string | null
+    segments?: IntNullableFilter<"WalletTransaction"> | number | null
+    smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
+    locationId?: StringNullableFilter<"WalletTransaction"> | string | null
+    stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
+    stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
+    description?: StringNullableFilter<"WalletTransaction"> | string | null
+    createdBy?: StringNullableFilter<"WalletTransaction"> | string | null
+    createdAt?: DateTimeFilter<"WalletTransaction"> | Date | string
+    wallet?: XOR<WalletRelationFilter, WalletWhereInput>
+  }
+
+  export type WalletTransactionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    walletId?: SortOrder
+    type?: SortOrder
+    amountMinor?: SortOrder
+    balanceAfterMinor?: SortOrder
+    currency?: SortOrder
+    purpose?: SortOrderInput | SortOrder
+    segments?: SortOrderInput | SortOrder
+    smsMessageId?: SortOrderInput | SortOrder
+    locationId?: SortOrderInput | SortOrder
+    stripeCheckoutId?: SortOrderInput | SortOrder
+    stripePaymentIntentId?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    wallet?: WalletOrderByWithRelationInput
+    _relevance?: WalletTransactionOrderByRelevanceInput
+  }
+
+  export type WalletTransactionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WalletTransactionWhereInput | WalletTransactionWhereInput[]
+    OR?: WalletTransactionWhereInput[]
+    NOT?: WalletTransactionWhereInput | WalletTransactionWhereInput[]
+    tenantId?: StringFilter<"WalletTransaction"> | string
+    walletId?: StringFilter<"WalletTransaction"> | string
+    type?: StringFilter<"WalletTransaction"> | string
+    amountMinor?: IntFilter<"WalletTransaction"> | number
+    balanceAfterMinor?: IntFilter<"WalletTransaction"> | number
+    currency?: StringFilter<"WalletTransaction"> | string
+    purpose?: StringNullableFilter<"WalletTransaction"> | string | null
+    segments?: IntNullableFilter<"WalletTransaction"> | number | null
+    smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
+    locationId?: StringNullableFilter<"WalletTransaction"> | string | null
+    stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
+    stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
+    description?: StringNullableFilter<"WalletTransaction"> | string | null
+    createdBy?: StringNullableFilter<"WalletTransaction"> | string | null
+    createdAt?: DateTimeFilter<"WalletTransaction"> | Date | string
+    wallet?: XOR<WalletRelationFilter, WalletWhereInput>
+  }, "id">
+
+  export type WalletTransactionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    walletId?: SortOrder
+    type?: SortOrder
+    amountMinor?: SortOrder
+    balanceAfterMinor?: SortOrder
+    currency?: SortOrder
+    purpose?: SortOrderInput | SortOrder
+    segments?: SortOrderInput | SortOrder
+    smsMessageId?: SortOrderInput | SortOrder
+    locationId?: SortOrderInput | SortOrder
+    stripeCheckoutId?: SortOrderInput | SortOrder
+    stripePaymentIntentId?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: WalletTransactionCountOrderByAggregateInput
+    _avg?: WalletTransactionAvgOrderByAggregateInput
+    _max?: WalletTransactionMaxOrderByAggregateInput
+    _min?: WalletTransactionMinOrderByAggregateInput
+    _sum?: WalletTransactionSumOrderByAggregateInput
+  }
+
+  export type WalletTransactionScalarWhereWithAggregatesInput = {
+    AND?: WalletTransactionScalarWhereWithAggregatesInput | WalletTransactionScalarWhereWithAggregatesInput[]
+    OR?: WalletTransactionScalarWhereWithAggregatesInput[]
+    NOT?: WalletTransactionScalarWhereWithAggregatesInput | WalletTransactionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WalletTransaction"> | string
+    tenantId?: StringWithAggregatesFilter<"WalletTransaction"> | string
+    walletId?: StringWithAggregatesFilter<"WalletTransaction"> | string
+    type?: StringWithAggregatesFilter<"WalletTransaction"> | string
+    amountMinor?: IntWithAggregatesFilter<"WalletTransaction"> | number
+    balanceAfterMinor?: IntWithAggregatesFilter<"WalletTransaction"> | number
+    currency?: StringWithAggregatesFilter<"WalletTransaction"> | string
+    purpose?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    segments?: IntNullableWithAggregatesFilter<"WalletTransaction"> | number | null
+    smsMessageId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    locationId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    stripeCheckoutId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    stripePaymentIntentId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    description?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    createdBy?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"WalletTransaction"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -140278,6 +146892,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -140308,6 +146923,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -140338,6 +146954,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -140368,6 +146985,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -152609,6 +159227,7 @@ export namespace Prisma {
     orderId?: string | null
     toNumber: string
     purpose: string
+    campaignId?: string | null
     segments?: number
     provider?: string
     providerSid?: string | null
@@ -152626,6 +159245,7 @@ export namespace Prisma {
     orderId?: string | null
     toNumber: string
     purpose: string
+    campaignId?: string | null
     segments?: number
     provider?: string
     providerSid?: string | null
@@ -152643,6 +159263,7 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     toNumber?: StringFieldUpdateOperationsInput | string
     purpose?: StringFieldUpdateOperationsInput | string
+    campaignId?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: IntFieldUpdateOperationsInput | number
     provider?: StringFieldUpdateOperationsInput | string
     providerSid?: NullableStringFieldUpdateOperationsInput | string | null
@@ -152660,6 +159281,7 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     toNumber?: StringFieldUpdateOperationsInput | string
     purpose?: StringFieldUpdateOperationsInput | string
+    campaignId?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: IntFieldUpdateOperationsInput | number
     provider?: StringFieldUpdateOperationsInput | string
     providerSid?: NullableStringFieldUpdateOperationsInput | string | null
@@ -152677,6 +159299,7 @@ export namespace Prisma {
     orderId?: string | null
     toNumber: string
     purpose: string
+    campaignId?: string | null
     segments?: number
     provider?: string
     providerSid?: string | null
@@ -152694,6 +159317,7 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     toNumber?: StringFieldUpdateOperationsInput | string
     purpose?: StringFieldUpdateOperationsInput | string
+    campaignId?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: IntFieldUpdateOperationsInput | number
     provider?: StringFieldUpdateOperationsInput | string
     providerSid?: NullableStringFieldUpdateOperationsInput | string | null
@@ -152711,11 +159335,626 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     toNumber?: StringFieldUpdateOperationsInput | string
     purpose?: StringFieldUpdateOperationsInput | string
+    campaignId?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: IntFieldUpdateOperationsInput | number
     provider?: StringFieldUpdateOperationsInput | string
     providerSid?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingContactCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    phone: string
+    firstName?: string | null
+    lastName?: string | null
+    email?: string | null
+    source?: string | null
+    customerId?: string | null
+    consentStatus?: string
+    consentSource?: string | null
+    consentAt?: Date | string | null
+    unsubscribedAt?: Date | string | null
+    tags?: MarketingContactCreatetagsInput | string[]
+    lastCampaignAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingContactUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    phone: string
+    firstName?: string | null
+    lastName?: string | null
+    email?: string | null
+    source?: string | null
+    customerId?: string | null
+    consentStatus?: string
+    consentSource?: string | null
+    consentAt?: Date | string | null
+    unsubscribedAt?: Date | string | null
+    tags?: MarketingContactCreatetagsInput | string[]
+    lastCampaignAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingContactUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    consentStatus?: StringFieldUpdateOperationsInput | string
+    consentSource?: NullableStringFieldUpdateOperationsInput | string | null
+    consentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: MarketingContactUpdatetagsInput | string[]
+    lastCampaignAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingContactUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    consentStatus?: StringFieldUpdateOperationsInput | string
+    consentSource?: NullableStringFieldUpdateOperationsInput | string | null
+    consentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: MarketingContactUpdatetagsInput | string[]
+    lastCampaignAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingContactCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    phone: string
+    firstName?: string | null
+    lastName?: string | null
+    email?: string | null
+    source?: string | null
+    customerId?: string | null
+    consentStatus?: string
+    consentSource?: string | null
+    consentAt?: Date | string | null
+    unsubscribedAt?: Date | string | null
+    tags?: MarketingContactCreatetagsInput | string[]
+    lastCampaignAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingContactUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    consentStatus?: StringFieldUpdateOperationsInput | string
+    consentSource?: NullableStringFieldUpdateOperationsInput | string | null
+    consentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: MarketingContactUpdatetagsInput | string[]
+    lastCampaignAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingContactUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    consentStatus?: StringFieldUpdateOperationsInput | string
+    consentSource?: NullableStringFieldUpdateOperationsInput | string | null
+    consentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: MarketingContactUpdatetagsInput | string[]
+    lastCampaignAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsCampaignCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    name: string
+    senderHeader?: string | null
+    body: string
+    status?: string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: number
+    sentCount?: number
+    failedCount?: number
+    skippedCount?: number
+    segments?: number
+    costMinor?: number
+    createdBy?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MarketingSmsRecipientCreateNestedManyWithoutCampaignInput
+  }
+
+  export type MarketingSmsCampaignUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    name: string
+    senderHeader?: string | null
+    body: string
+    status?: string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: number
+    sentCount?: number
+    failedCount?: number
+    skippedCount?: number
+    segments?: number
+    costMinor?: number
+    createdBy?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    recipients?: MarketingSmsRecipientUncheckedCreateNestedManyWithoutCampaignInput
+  }
+
+  export type MarketingSmsCampaignUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    senderHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    sentCount?: IntFieldUpdateOperationsInput | number
+    failedCount?: IntFieldUpdateOperationsInput | number
+    skippedCount?: IntFieldUpdateOperationsInput | number
+    segments?: IntFieldUpdateOperationsInput | number
+    costMinor?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MarketingSmsRecipientUpdateManyWithoutCampaignNestedInput
+  }
+
+  export type MarketingSmsCampaignUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    senderHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    sentCount?: IntFieldUpdateOperationsInput | number
+    failedCount?: IntFieldUpdateOperationsInput | number
+    skippedCount?: IntFieldUpdateOperationsInput | number
+    segments?: IntFieldUpdateOperationsInput | number
+    costMinor?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    recipients?: MarketingSmsRecipientUncheckedUpdateManyWithoutCampaignNestedInput
+  }
+
+  export type MarketingSmsCampaignCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    name: string
+    senderHeader?: string | null
+    body: string
+    status?: string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: number
+    sentCount?: number
+    failedCount?: number
+    skippedCount?: number
+    segments?: number
+    costMinor?: number
+    createdBy?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingSmsCampaignUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    senderHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    sentCount?: IntFieldUpdateOperationsInput | number
+    failedCount?: IntFieldUpdateOperationsInput | number
+    skippedCount?: IntFieldUpdateOperationsInput | number
+    segments?: IntFieldUpdateOperationsInput | number
+    costMinor?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsCampaignUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    senderHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    sentCount?: IntFieldUpdateOperationsInput | number
+    failedCount?: IntFieldUpdateOperationsInput | number
+    skippedCount?: IntFieldUpdateOperationsInput | number
+    segments?: IntFieldUpdateOperationsInput | number
+    costMinor?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsRecipientCreateInput = {
+    id?: string
+    tenantId: string
+    contactId?: string | null
+    phone: string
+    status: string
+    reason?: string | null
+    segments?: number
+    smsMessageId?: string | null
+    createdAt?: Date | string
+    campaign: MarketingSmsCampaignCreateNestedOneWithoutRecipientsInput
+  }
+
+  export type MarketingSmsRecipientUncheckedCreateInput = {
+    id?: string
+    campaignId: string
+    tenantId: string
+    contactId?: string | null
+    phone: string
+    status: string
+    reason?: string | null
+    segments?: number
+    smsMessageId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingSmsRecipientUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: IntFieldUpdateOperationsInput | number
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingSmsCampaignUpdateOneRequiredWithoutRecipientsNestedInput
+  }
+
+  export type MarketingSmsRecipientUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: IntFieldUpdateOperationsInput | number
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsRecipientCreateManyInput = {
+    id?: string
+    campaignId: string
+    tenantId: string
+    contactId?: string | null
+    phone: string
+    status: string
+    reason?: string | null
+    segments?: number
+    smsMessageId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingSmsRecipientUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: IntFieldUpdateOperationsInput | number
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsRecipientUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: IntFieldUpdateOperationsInput | number
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletCreateInput = {
+    id?: string
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutWalletInput
+    transactions?: WalletTransactionCreateNestedManyWithoutWalletInput
+  }
+
+  export type WalletUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: WalletTransactionUncheckedCreateNestedManyWithoutWalletInput
+  }
+
+  export type WalletUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutWalletNestedInput
+    transactions?: WalletTransactionUpdateManyWithoutWalletNestedInput
+  }
+
+  export type WalletUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: WalletTransactionUncheckedUpdateManyWithoutWalletNestedInput
+  }
+
+  export type WalletCreateManyInput = {
+    id?: string
+    tenantId: string
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WalletUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletTransactionCreateInput = {
+    id?: string
+    tenantId: string
+    type: string
+    amountMinor: number
+    balanceAfterMinor: number
+    currency?: string
+    purpose?: string | null
+    segments?: number | null
+    smsMessageId?: string | null
+    locationId?: string | null
+    stripeCheckoutId?: string | null
+    stripePaymentIntentId?: string | null
+    description?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    wallet: WalletCreateNestedOneWithoutTransactionsInput
+  }
+
+  export type WalletTransactionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    walletId: string
+    type: string
+    amountMinor: number
+    balanceAfterMinor: number
+    currency?: string
+    purpose?: string | null
+    segments?: number | null
+    smsMessageId?: string | null
+    locationId?: string | null
+    stripeCheckoutId?: string | null
+    stripePaymentIntentId?: string | null
+    description?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WalletTransactionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    amountMinor?: IntFieldUpdateOperationsInput | number
+    balanceAfterMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: NullableIntFieldUpdateOperationsInput | number | null
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
+  }
+
+  export type WalletTransactionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    amountMinor?: IntFieldUpdateOperationsInput | number
+    balanceAfterMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: NullableIntFieldUpdateOperationsInput | number | null
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletTransactionCreateManyInput = {
+    id?: string
+    tenantId: string
+    walletId: string
+    type: string
+    amountMinor: number
+    balanceAfterMinor: number
+    currency?: string
+    purpose?: string | null
+    segments?: number | null
+    smsMessageId?: string | null
+    locationId?: string | null
+    stripeCheckoutId?: string | null
+    stripePaymentIntentId?: string | null
+    description?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WalletTransactionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    amountMinor?: IntFieldUpdateOperationsInput | number
+    balanceAfterMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: NullableIntFieldUpdateOperationsInput | number | null
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletTransactionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    amountMinor?: IntFieldUpdateOperationsInput | number
+    balanceAfterMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: NullableIntFieldUpdateOperationsInput | number | null
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -152887,6 +160126,11 @@ export namespace Prisma {
     every?: PrintAgentWhereInput
     some?: PrintAgentWhereInput
     none?: PrintAgentWhereInput
+  }
+
+  export type WalletNullableRelationFilter = {
+    is?: WalletWhereInput | null
+    isNot?: WalletWhereInput | null
   }
 
   export type BrandOrderByRelationAggregateInput = {
@@ -161342,6 +168586,7 @@ export namespace Prisma {
     orderId?: SortOrder
     toNumber?: SortOrder
     purpose?: SortOrder
+    campaignId?: SortOrder
     segments?: SortOrder
     provider?: SortOrder
     providerSid?: SortOrder
@@ -161363,6 +168608,7 @@ export namespace Prisma {
     orderId?: SortOrder
     toNumber?: SortOrder
     purpose?: SortOrder
+    campaignId?: SortOrder
     segments?: SortOrder
     provider?: SortOrder
     providerSid?: SortOrder
@@ -161380,6 +168626,7 @@ export namespace Prisma {
     orderId?: SortOrder
     toNumber?: SortOrder
     purpose?: SortOrder
+    campaignId?: SortOrder
     segments?: SortOrder
     provider?: SortOrder
     providerSid?: SortOrder
@@ -161390,6 +168637,384 @@ export namespace Prisma {
   }
 
   export type SmsMessageSumOrderByAggregateInput = {
+    segments?: SortOrder
+  }
+
+  export type MarketingContactOrderByRelevanceInput = {
+    fields: MarketingContactOrderByRelevanceFieldEnum | MarketingContactOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MarketingContactTenantIdLocationIdPhoneCompoundUniqueInput = {
+    tenantId: string
+    locationId: string
+    phone: string
+  }
+
+  export type MarketingContactCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    phone?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    email?: SortOrder
+    source?: SortOrder
+    customerId?: SortOrder
+    consentStatus?: SortOrder
+    consentSource?: SortOrder
+    consentAt?: SortOrder
+    unsubscribedAt?: SortOrder
+    tags?: SortOrder
+    lastCampaignAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingContactMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    phone?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    email?: SortOrder
+    source?: SortOrder
+    customerId?: SortOrder
+    consentStatus?: SortOrder
+    consentSource?: SortOrder
+    consentAt?: SortOrder
+    unsubscribedAt?: SortOrder
+    lastCampaignAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingContactMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    phone?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    email?: SortOrder
+    source?: SortOrder
+    customerId?: SortOrder
+    consentStatus?: SortOrder
+    consentSource?: SortOrder
+    consentAt?: SortOrder
+    unsubscribedAt?: SortOrder
+    lastCampaignAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingSmsRecipientListRelationFilter = {
+    every?: MarketingSmsRecipientWhereInput
+    some?: MarketingSmsRecipientWhereInput
+    none?: MarketingSmsRecipientWhereInput
+  }
+
+  export type MarketingSmsRecipientOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingSmsCampaignOrderByRelevanceInput = {
+    fields: MarketingSmsCampaignOrderByRelevanceFieldEnum | MarketingSmsCampaignOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MarketingSmsCampaignCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    senderHeader?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    recipientCount?: SortOrder
+    sentCount?: SortOrder
+    failedCount?: SortOrder
+    skippedCount?: SortOrder
+    segments?: SortOrder
+    costMinor?: SortOrder
+    createdBy?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingSmsCampaignAvgOrderByAggregateInput = {
+    recipientCount?: SortOrder
+    sentCount?: SortOrder
+    failedCount?: SortOrder
+    skippedCount?: SortOrder
+    segments?: SortOrder
+    costMinor?: SortOrder
+  }
+
+  export type MarketingSmsCampaignMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    senderHeader?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    recipientCount?: SortOrder
+    sentCount?: SortOrder
+    failedCount?: SortOrder
+    skippedCount?: SortOrder
+    segments?: SortOrder
+    costMinor?: SortOrder
+    createdBy?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingSmsCampaignMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    senderHeader?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    recipientCount?: SortOrder
+    sentCount?: SortOrder
+    failedCount?: SortOrder
+    skippedCount?: SortOrder
+    segments?: SortOrder
+    costMinor?: SortOrder
+    createdBy?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MarketingSmsCampaignSumOrderByAggregateInput = {
+    recipientCount?: SortOrder
+    sentCount?: SortOrder
+    failedCount?: SortOrder
+    skippedCount?: SortOrder
+    segments?: SortOrder
+    costMinor?: SortOrder
+  }
+
+  export type MarketingSmsCampaignRelationFilter = {
+    is?: MarketingSmsCampaignWhereInput
+    isNot?: MarketingSmsCampaignWhereInput
+  }
+
+  export type MarketingSmsRecipientOrderByRelevanceInput = {
+    fields: MarketingSmsRecipientOrderByRelevanceFieldEnum | MarketingSmsRecipientOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MarketingSmsRecipientCampaignIdPhoneCompoundUniqueInput = {
+    campaignId: string
+    phone: string
+  }
+
+  export type MarketingSmsRecipientCountOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    tenantId?: SortOrder
+    contactId?: SortOrder
+    phone?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingSmsRecipientAvgOrderByAggregateInput = {
+    segments?: SortOrder
+  }
+
+  export type MarketingSmsRecipientMaxOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    tenantId?: SortOrder
+    contactId?: SortOrder
+    phone?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingSmsRecipientMinOrderByAggregateInput = {
+    id?: SortOrder
+    campaignId?: SortOrder
+    tenantId?: SortOrder
+    contactId?: SortOrder
+    phone?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MarketingSmsRecipientSumOrderByAggregateInput = {
+    segments?: SortOrder
+  }
+
+  export type WalletTransactionListRelationFilter = {
+    every?: WalletTransactionWhereInput
+    some?: WalletTransactionWhereInput
+    none?: WalletTransactionWhereInput
+  }
+
+  export type WalletTransactionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WalletOrderByRelevanceInput = {
+    fields: WalletOrderByRelevanceFieldEnum | WalletOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type WalletCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    balanceMinor?: SortOrder
+    currency?: SortOrder
+    smsPricePerSegmentMinor?: SortOrder
+    lowBalanceThresholdMinor?: SortOrder
+    stripeCustomerId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WalletAvgOrderByAggregateInput = {
+    balanceMinor?: SortOrder
+    smsPricePerSegmentMinor?: SortOrder
+    lowBalanceThresholdMinor?: SortOrder
+  }
+
+  export type WalletMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    balanceMinor?: SortOrder
+    currency?: SortOrder
+    smsPricePerSegmentMinor?: SortOrder
+    lowBalanceThresholdMinor?: SortOrder
+    stripeCustomerId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WalletMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    balanceMinor?: SortOrder
+    currency?: SortOrder
+    smsPricePerSegmentMinor?: SortOrder
+    lowBalanceThresholdMinor?: SortOrder
+    stripeCustomerId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WalletSumOrderByAggregateInput = {
+    balanceMinor?: SortOrder
+    smsPricePerSegmentMinor?: SortOrder
+    lowBalanceThresholdMinor?: SortOrder
+  }
+
+  export type WalletRelationFilter = {
+    is?: WalletWhereInput
+    isNot?: WalletWhereInput
+  }
+
+  export type WalletTransactionOrderByRelevanceInput = {
+    fields: WalletTransactionOrderByRelevanceFieldEnum | WalletTransactionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type WalletTransactionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    walletId?: SortOrder
+    type?: SortOrder
+    amountMinor?: SortOrder
+    balanceAfterMinor?: SortOrder
+    currency?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrder
+    locationId?: SortOrder
+    stripeCheckoutId?: SortOrder
+    stripePaymentIntentId?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WalletTransactionAvgOrderByAggregateInput = {
+    amountMinor?: SortOrder
+    balanceAfterMinor?: SortOrder
+    segments?: SortOrder
+  }
+
+  export type WalletTransactionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    walletId?: SortOrder
+    type?: SortOrder
+    amountMinor?: SortOrder
+    balanceAfterMinor?: SortOrder
+    currency?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrder
+    locationId?: SortOrder
+    stripeCheckoutId?: SortOrder
+    stripePaymentIntentId?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WalletTransactionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    walletId?: SortOrder
+    type?: SortOrder
+    amountMinor?: SortOrder
+    balanceAfterMinor?: SortOrder
+    currency?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    smsMessageId?: SortOrder
+    locationId?: SortOrder
+    stripeCheckoutId?: SortOrder
+    stripePaymentIntentId?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WalletTransactionSumOrderByAggregateInput = {
+    amountMinor?: SortOrder
+    balanceAfterMinor?: SortOrder
     segments?: SortOrder
   }
 
@@ -161517,6 +169142,12 @@ export namespace Prisma {
     connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
   }
 
+  export type WalletCreateNestedOneWithoutTenantInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
+    connect?: WalletWhereUniqueInput
+  }
+
   export type BrandUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -161639,6 +169270,12 @@ export namespace Prisma {
     connectOrCreate?: PrintAgentCreateOrConnectWithoutTenantInput | PrintAgentCreateOrConnectWithoutTenantInput[]
     createMany?: PrintAgentCreateManyTenantInputEnvelope
     connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+  }
+
+  export type WalletUncheckedCreateNestedOneWithoutTenantInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
+    connect?: WalletWhereUniqueInput
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -161901,6 +169538,16 @@ export namespace Prisma {
     deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
   }
 
+  export type WalletUpdateOneWithoutTenantNestedInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
+    upsert?: WalletUpsertWithoutTenantInput
+    disconnect?: WalletWhereInput | boolean
+    delete?: WalletWhereInput | boolean
+    connect?: WalletWhereUniqueInput
+    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutTenantInput, WalletUpdateWithoutTenantInput>, WalletUncheckedUpdateWithoutTenantInput>
+  }
+
   export type BrandUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -162143,6 +169790,16 @@ export namespace Prisma {
     update?: PrintAgentUpdateWithWhereUniqueWithoutTenantInput | PrintAgentUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: PrintAgentUpdateManyWithWhereWithoutTenantInput | PrintAgentUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
+  }
+
+  export type WalletUncheckedUpdateOneWithoutTenantNestedInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
+    upsert?: WalletUpsertWithoutTenantInput
+    disconnect?: WalletWhereInput | boolean
+    delete?: WalletWhereInput | boolean
+    connect?: WalletWhereUniqueInput
+    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutTenantInput, WalletUpdateWithoutTenantInput>, WalletUncheckedUpdateWithoutTenantInput>
   }
 
   export type UserCreatepermissionsInput = {
@@ -168542,6 +176199,141 @@ export namespace Prisma {
     set?: $Enums.VideoGenStatus
   }
 
+  export type MarketingContactCreatetagsInput = {
+    set: string[]
+  }
+
+  export type MarketingContactUpdatetagsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MarketingSmsRecipientCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<MarketingSmsRecipientCreateWithoutCampaignInput, MarketingSmsRecipientUncheckedCreateWithoutCampaignInput> | MarketingSmsRecipientCreateWithoutCampaignInput[] | MarketingSmsRecipientUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingSmsRecipientCreateOrConnectWithoutCampaignInput | MarketingSmsRecipientCreateOrConnectWithoutCampaignInput[]
+    createMany?: MarketingSmsRecipientCreateManyCampaignInputEnvelope
+    connect?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+  }
+
+  export type MarketingSmsRecipientUncheckedCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<MarketingSmsRecipientCreateWithoutCampaignInput, MarketingSmsRecipientUncheckedCreateWithoutCampaignInput> | MarketingSmsRecipientCreateWithoutCampaignInput[] | MarketingSmsRecipientUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingSmsRecipientCreateOrConnectWithoutCampaignInput | MarketingSmsRecipientCreateOrConnectWithoutCampaignInput[]
+    createMany?: MarketingSmsRecipientCreateManyCampaignInputEnvelope
+    connect?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+  }
+
+  export type MarketingSmsRecipientUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<MarketingSmsRecipientCreateWithoutCampaignInput, MarketingSmsRecipientUncheckedCreateWithoutCampaignInput> | MarketingSmsRecipientCreateWithoutCampaignInput[] | MarketingSmsRecipientUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingSmsRecipientCreateOrConnectWithoutCampaignInput | MarketingSmsRecipientCreateOrConnectWithoutCampaignInput[]
+    upsert?: MarketingSmsRecipientUpsertWithWhereUniqueWithoutCampaignInput | MarketingSmsRecipientUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: MarketingSmsRecipientCreateManyCampaignInputEnvelope
+    set?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    disconnect?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    delete?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    connect?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    update?: MarketingSmsRecipientUpdateWithWhereUniqueWithoutCampaignInput | MarketingSmsRecipientUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: MarketingSmsRecipientUpdateManyWithWhereWithoutCampaignInput | MarketingSmsRecipientUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: MarketingSmsRecipientScalarWhereInput | MarketingSmsRecipientScalarWhereInput[]
+  }
+
+  export type MarketingSmsRecipientUncheckedUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<MarketingSmsRecipientCreateWithoutCampaignInput, MarketingSmsRecipientUncheckedCreateWithoutCampaignInput> | MarketingSmsRecipientCreateWithoutCampaignInput[] | MarketingSmsRecipientUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: MarketingSmsRecipientCreateOrConnectWithoutCampaignInput | MarketingSmsRecipientCreateOrConnectWithoutCampaignInput[]
+    upsert?: MarketingSmsRecipientUpsertWithWhereUniqueWithoutCampaignInput | MarketingSmsRecipientUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: MarketingSmsRecipientCreateManyCampaignInputEnvelope
+    set?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    disconnect?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    delete?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    connect?: MarketingSmsRecipientWhereUniqueInput | MarketingSmsRecipientWhereUniqueInput[]
+    update?: MarketingSmsRecipientUpdateWithWhereUniqueWithoutCampaignInput | MarketingSmsRecipientUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: MarketingSmsRecipientUpdateManyWithWhereWithoutCampaignInput | MarketingSmsRecipientUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: MarketingSmsRecipientScalarWhereInput | MarketingSmsRecipientScalarWhereInput[]
+  }
+
+  export type MarketingSmsCampaignCreateNestedOneWithoutRecipientsInput = {
+    create?: XOR<MarketingSmsCampaignCreateWithoutRecipientsInput, MarketingSmsCampaignUncheckedCreateWithoutRecipientsInput>
+    connectOrCreate?: MarketingSmsCampaignCreateOrConnectWithoutRecipientsInput
+    connect?: MarketingSmsCampaignWhereUniqueInput
+  }
+
+  export type MarketingSmsCampaignUpdateOneRequiredWithoutRecipientsNestedInput = {
+    create?: XOR<MarketingSmsCampaignCreateWithoutRecipientsInput, MarketingSmsCampaignUncheckedCreateWithoutRecipientsInput>
+    connectOrCreate?: MarketingSmsCampaignCreateOrConnectWithoutRecipientsInput
+    upsert?: MarketingSmsCampaignUpsertWithoutRecipientsInput
+    connect?: MarketingSmsCampaignWhereUniqueInput
+    update?: XOR<XOR<MarketingSmsCampaignUpdateToOneWithWhereWithoutRecipientsInput, MarketingSmsCampaignUpdateWithoutRecipientsInput>, MarketingSmsCampaignUncheckedUpdateWithoutRecipientsInput>
+  }
+
+  export type TenantCreateNestedOneWithoutWalletInput = {
+    create?: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWalletInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type WalletTransactionCreateNestedManyWithoutWalletInput = {
+    create?: XOR<WalletTransactionCreateWithoutWalletInput, WalletTransactionUncheckedCreateWithoutWalletInput> | WalletTransactionCreateWithoutWalletInput[] | WalletTransactionUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletTransactionCreateOrConnectWithoutWalletInput | WalletTransactionCreateOrConnectWithoutWalletInput[]
+    createMany?: WalletTransactionCreateManyWalletInputEnvelope
+    connect?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+  }
+
+  export type WalletTransactionUncheckedCreateNestedManyWithoutWalletInput = {
+    create?: XOR<WalletTransactionCreateWithoutWalletInput, WalletTransactionUncheckedCreateWithoutWalletInput> | WalletTransactionCreateWithoutWalletInput[] | WalletTransactionUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletTransactionCreateOrConnectWithoutWalletInput | WalletTransactionCreateOrConnectWithoutWalletInput[]
+    createMany?: WalletTransactionCreateManyWalletInputEnvelope
+    connect?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutWalletNestedInput = {
+    create?: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWalletInput
+    upsert?: TenantUpsertWithoutWalletInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutWalletInput, TenantUpdateWithoutWalletInput>, TenantUncheckedUpdateWithoutWalletInput>
+  }
+
+  export type WalletTransactionUpdateManyWithoutWalletNestedInput = {
+    create?: XOR<WalletTransactionCreateWithoutWalletInput, WalletTransactionUncheckedCreateWithoutWalletInput> | WalletTransactionCreateWithoutWalletInput[] | WalletTransactionUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletTransactionCreateOrConnectWithoutWalletInput | WalletTransactionCreateOrConnectWithoutWalletInput[]
+    upsert?: WalletTransactionUpsertWithWhereUniqueWithoutWalletInput | WalletTransactionUpsertWithWhereUniqueWithoutWalletInput[]
+    createMany?: WalletTransactionCreateManyWalletInputEnvelope
+    set?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    disconnect?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    delete?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    connect?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    update?: WalletTransactionUpdateWithWhereUniqueWithoutWalletInput | WalletTransactionUpdateWithWhereUniqueWithoutWalletInput[]
+    updateMany?: WalletTransactionUpdateManyWithWhereWithoutWalletInput | WalletTransactionUpdateManyWithWhereWithoutWalletInput[]
+    deleteMany?: WalletTransactionScalarWhereInput | WalletTransactionScalarWhereInput[]
+  }
+
+  export type WalletTransactionUncheckedUpdateManyWithoutWalletNestedInput = {
+    create?: XOR<WalletTransactionCreateWithoutWalletInput, WalletTransactionUncheckedCreateWithoutWalletInput> | WalletTransactionCreateWithoutWalletInput[] | WalletTransactionUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletTransactionCreateOrConnectWithoutWalletInput | WalletTransactionCreateOrConnectWithoutWalletInput[]
+    upsert?: WalletTransactionUpsertWithWhereUniqueWithoutWalletInput | WalletTransactionUpsertWithWhereUniqueWithoutWalletInput[]
+    createMany?: WalletTransactionCreateManyWalletInputEnvelope
+    set?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    disconnect?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    delete?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    connect?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
+    update?: WalletTransactionUpdateWithWhereUniqueWithoutWalletInput | WalletTransactionUpdateWithWhereUniqueWithoutWalletInput[]
+    updateMany?: WalletTransactionUpdateManyWithWhereWithoutWalletInput | WalletTransactionUpdateManyWithWhereWithoutWalletInput[]
+    deleteMany?: WalletTransactionScalarWhereInput | WalletTransactionScalarWhereInput[]
+  }
+
+  export type WalletCreateNestedOneWithoutTransactionsInput = {
+    create?: XOR<WalletCreateWithoutTransactionsInput, WalletUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutTransactionsInput
+    connect?: WalletWhereUniqueInput
+  }
+
+  export type WalletUpdateOneRequiredWithoutTransactionsNestedInput = {
+    create?: XOR<WalletCreateWithoutTransactionsInput, WalletUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutTransactionsInput
+    upsert?: WalletUpsertWithoutTransactionsInput
+    connect?: WalletWhereUniqueInput
+    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutTransactionsInput, WalletUpdateWithoutTransactionsInput>, WalletUncheckedUpdateWithoutTransactionsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -170809,6 +178601,35 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type WalletCreateWithoutTenantInput = {
+    id?: string
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: WalletTransactionCreateNestedManyWithoutWalletInput
+  }
+
+  export type WalletUncheckedCreateWithoutTenantInput = {
+    id?: string
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: WalletTransactionUncheckedCreateNestedManyWithoutWalletInput
+  }
+
+  export type WalletCreateOrConnectWithoutTenantInput = {
+    where: WalletWhereUniqueInput
+    create: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
+  }
+
   export type BrandUpsertWithWhereUniqueWithoutTenantInput = {
     where: BrandWhereUniqueInput
     update: XOR<BrandUpdateWithoutTenantInput, BrandUncheckedUpdateWithoutTenantInput>
@@ -171585,6 +179406,41 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"PrintAgent"> | Date | string
   }
 
+  export type WalletUpsertWithoutTenantInput = {
+    update: XOR<WalletUpdateWithoutTenantInput, WalletUncheckedUpdateWithoutTenantInput>
+    create: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
+    where?: WalletWhereInput
+  }
+
+  export type WalletUpdateToOneWithWhereWithoutTenantInput = {
+    where?: WalletWhereInput
+    data: XOR<WalletUpdateWithoutTenantInput, WalletUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type WalletUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: WalletTransactionUpdateManyWithoutWalletNestedInput
+  }
+
+  export type WalletUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: WalletTransactionUncheckedUpdateManyWithoutWalletNestedInput
+  }
+
   export type TenantCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -171612,6 +179468,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutUsersInput = {
@@ -171641,6 +179498,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutUsersInput = {
@@ -172023,6 +179881,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutUsersInput = {
@@ -172052,6 +179911,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type RefreshTokenUpsertWithWhereUniqueWithoutUserInput = {
@@ -173139,6 +180999,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutInvitationsInput = {
@@ -173168,6 +181029,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutInvitationsInput = {
@@ -173270,6 +181132,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutInvitationsInput = {
@@ -173299,6 +181162,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutInvitationsSentInput = {
@@ -173933,6 +181797,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutApiKeysInput = {
@@ -173962,6 +181827,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutApiKeysInput = {
@@ -174007,6 +181873,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutApiKeysInput = {
@@ -174036,6 +181903,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutAuditLogsInput = {
@@ -174185,6 +182053,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandsInput = {
@@ -174214,6 +182083,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandsInput = {
@@ -175119,6 +182989,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandsInput = {
@@ -175148,6 +183019,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type DirectOrderingConfigUpsertWithoutBrandInput = {
@@ -183366,6 +191238,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCustomersInput = {
@@ -183395,6 +191268,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCustomersInput = {
@@ -183705,6 +191579,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCustomersInput = {
@@ -183734,6 +191609,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type CustomerAddressUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -184587,6 +192463,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPromoCodesInput = {
@@ -184616,6 +192493,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPromoCodesInput = {
@@ -184661,6 +192539,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPromoCodesInput = {
@@ -184690,6 +192569,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutMarketingCampaignsInput = {
@@ -184719,6 +192599,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMarketingCampaignsInput = {
@@ -184748,6 +192629,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMarketingCampaignsInput = {
@@ -184930,6 +192812,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMarketingCampaignsInput = {
@@ -184959,6 +192842,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type BrandUpsertWithoutMarketingCampaignsInput = {
@@ -186408,6 +194292,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutOrdersInput = {
@@ -186437,6 +194322,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutOrdersInput = {
@@ -187099,6 +194985,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutOrdersInput = {
@@ -187128,6 +195015,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutOrdersInput = {
@@ -190018,6 +197906,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintJobsInput = {
@@ -190047,6 +197936,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintJobsInput = {
@@ -190426,6 +198316,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintJobsInput = {
@@ -190455,6 +198346,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type PrinterUpsertWithoutPrintJobsInput = {
@@ -190842,6 +198734,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrinterStationsInput = {
@@ -190871,6 +198764,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrinterStationsInput = {
@@ -191544,6 +199438,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrinterStationsInput = {
@@ -191573,6 +199468,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutPrinterStationsInput = {
@@ -191944,6 +199840,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintAgentsInput = {
@@ -191973,6 +199870,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintAgentsInput = {
@@ -192323,6 +200221,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintAgentsInput = {
@@ -192352,6 +200251,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutPrintAgentsInput = {
@@ -193278,6 +201178,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutDriversInput = {
@@ -193307,6 +201208,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutDriversInput = {
@@ -193622,6 +201524,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutDriversInput = {
@@ -193651,6 +201554,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutHomeDriversInput = {
@@ -194698,6 +202602,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutConnectAccountInput = {
@@ -194727,6 +202632,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutConnectAccountInput = {
@@ -194858,6 +202764,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutConnectAccountInput = {
@@ -194887,6 +202794,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type PaymentUpsertWithWhereUniqueWithoutConnectAccountInput = {
@@ -196021,6 +203929,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSuppliersInput = {
@@ -196050,6 +203959,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSuppliersInput = {
@@ -196181,6 +204091,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSuppliersInput = {
@@ -196210,6 +204121,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type IngredientUpsertWithWhereUniqueWithoutSupplierInput = {
@@ -197565,6 +205477,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandingInput = {
@@ -197594,6 +205507,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandingInput = {
@@ -197673,6 +205587,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandingInput = {
@@ -197702,6 +205617,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type CustomDomainUpsertWithWhereUniqueWithoutBrandingInput = {
@@ -197961,6 +205877,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSubscriptionInput = {
@@ -197990,6 +205907,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSubscriptionInput = {
@@ -198152,6 +206070,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSubscriptionInput = {
@@ -198181,6 +206100,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type SubscriptionPlanUpsertWithoutSubscriptionsInput = {
@@ -198321,6 +206241,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMerchantSubscriptionsInput = {
@@ -198350,6 +206271,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMerchantSubscriptionsInput = {
@@ -198546,6 +206468,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMerchantSubscriptionsInput = {
@@ -198575,6 +206498,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutMerchantSubscriptionInput = {
@@ -199223,6 +207147,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallet?: WalletCreateNestedOneWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutIpAllowlistsInput = {
@@ -199252,6 +207177,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutIpAllowlistsInput = {
@@ -199297,6 +207223,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUpdateOneWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutIpAllowlistsInput = {
@@ -199326,6 +207253,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutDeviceSessionsInput = {
@@ -199446,6 +207374,460 @@ export namespace Prisma {
     brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
     invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
     leadsSubmitted?: LeadUncheckedUpdateManyWithoutSubmittedByNestedInput
+  }
+
+  export type MarketingSmsRecipientCreateWithoutCampaignInput = {
+    id?: string
+    tenantId: string
+    contactId?: string | null
+    phone: string
+    status: string
+    reason?: string | null
+    segments?: number
+    smsMessageId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingSmsRecipientUncheckedCreateWithoutCampaignInput = {
+    id?: string
+    tenantId: string
+    contactId?: string | null
+    phone: string
+    status: string
+    reason?: string | null
+    segments?: number
+    smsMessageId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingSmsRecipientCreateOrConnectWithoutCampaignInput = {
+    where: MarketingSmsRecipientWhereUniqueInput
+    create: XOR<MarketingSmsRecipientCreateWithoutCampaignInput, MarketingSmsRecipientUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type MarketingSmsRecipientCreateManyCampaignInputEnvelope = {
+    data: MarketingSmsRecipientCreateManyCampaignInput | MarketingSmsRecipientCreateManyCampaignInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingSmsRecipientUpsertWithWhereUniqueWithoutCampaignInput = {
+    where: MarketingSmsRecipientWhereUniqueInput
+    update: XOR<MarketingSmsRecipientUpdateWithoutCampaignInput, MarketingSmsRecipientUncheckedUpdateWithoutCampaignInput>
+    create: XOR<MarketingSmsRecipientCreateWithoutCampaignInput, MarketingSmsRecipientUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type MarketingSmsRecipientUpdateWithWhereUniqueWithoutCampaignInput = {
+    where: MarketingSmsRecipientWhereUniqueInput
+    data: XOR<MarketingSmsRecipientUpdateWithoutCampaignInput, MarketingSmsRecipientUncheckedUpdateWithoutCampaignInput>
+  }
+
+  export type MarketingSmsRecipientUpdateManyWithWhereWithoutCampaignInput = {
+    where: MarketingSmsRecipientScalarWhereInput
+    data: XOR<MarketingSmsRecipientUpdateManyMutationInput, MarketingSmsRecipientUncheckedUpdateManyWithoutCampaignInput>
+  }
+
+  export type MarketingSmsRecipientScalarWhereInput = {
+    AND?: MarketingSmsRecipientScalarWhereInput | MarketingSmsRecipientScalarWhereInput[]
+    OR?: MarketingSmsRecipientScalarWhereInput[]
+    NOT?: MarketingSmsRecipientScalarWhereInput | MarketingSmsRecipientScalarWhereInput[]
+    id?: StringFilter<"MarketingSmsRecipient"> | string
+    campaignId?: StringFilter<"MarketingSmsRecipient"> | string
+    tenantId?: StringFilter<"MarketingSmsRecipient"> | string
+    contactId?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    phone?: StringFilter<"MarketingSmsRecipient"> | string
+    status?: StringFilter<"MarketingSmsRecipient"> | string
+    reason?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    segments?: IntFilter<"MarketingSmsRecipient"> | number
+    smsMessageId?: StringNullableFilter<"MarketingSmsRecipient"> | string | null
+    createdAt?: DateTimeFilter<"MarketingSmsRecipient"> | Date | string
+  }
+
+  export type MarketingSmsCampaignCreateWithoutRecipientsInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    name: string
+    senderHeader?: string | null
+    body: string
+    status?: string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: number
+    sentCount?: number
+    failedCount?: number
+    skippedCount?: number
+    segments?: number
+    costMinor?: number
+    createdBy?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingSmsCampaignUncheckedCreateWithoutRecipientsInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    name: string
+    senderHeader?: string | null
+    body: string
+    status?: string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: number
+    sentCount?: number
+    failedCount?: number
+    skippedCount?: number
+    segments?: number
+    costMinor?: number
+    createdBy?: string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MarketingSmsCampaignCreateOrConnectWithoutRecipientsInput = {
+    where: MarketingSmsCampaignWhereUniqueInput
+    create: XOR<MarketingSmsCampaignCreateWithoutRecipientsInput, MarketingSmsCampaignUncheckedCreateWithoutRecipientsInput>
+  }
+
+  export type MarketingSmsCampaignUpsertWithoutRecipientsInput = {
+    update: XOR<MarketingSmsCampaignUpdateWithoutRecipientsInput, MarketingSmsCampaignUncheckedUpdateWithoutRecipientsInput>
+    create: XOR<MarketingSmsCampaignCreateWithoutRecipientsInput, MarketingSmsCampaignUncheckedCreateWithoutRecipientsInput>
+    where?: MarketingSmsCampaignWhereInput
+  }
+
+  export type MarketingSmsCampaignUpdateToOneWithWhereWithoutRecipientsInput = {
+    where?: MarketingSmsCampaignWhereInput
+    data: XOR<MarketingSmsCampaignUpdateWithoutRecipientsInput, MarketingSmsCampaignUncheckedUpdateWithoutRecipientsInput>
+  }
+
+  export type MarketingSmsCampaignUpdateWithoutRecipientsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    senderHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    sentCount?: IntFieldUpdateOperationsInput | number
+    failedCount?: IntFieldUpdateOperationsInput | number
+    skippedCount?: IntFieldUpdateOperationsInput | number
+    segments?: IntFieldUpdateOperationsInput | number
+    costMinor?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsCampaignUncheckedUpdateWithoutRecipientsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    senderHeader?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    audience?: JsonNullValueInput | InputJsonValue
+    recipientCount?: IntFieldUpdateOperationsInput | number
+    sentCount?: IntFieldUpdateOperationsInput | number
+    failedCount?: IntFieldUpdateOperationsInput | number
+    skippedCount?: IntFieldUpdateOperationsInput | number
+    segments?: IntFieldUpdateOperationsInput | number
+    costMinor?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TenantCreateWithoutWalletInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutWalletInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutWalletInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
+  }
+
+  export type WalletTransactionCreateWithoutWalletInput = {
+    id?: string
+    tenantId: string
+    type: string
+    amountMinor: number
+    balanceAfterMinor: number
+    currency?: string
+    purpose?: string | null
+    segments?: number | null
+    smsMessageId?: string | null
+    locationId?: string | null
+    stripeCheckoutId?: string | null
+    stripePaymentIntentId?: string | null
+    description?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WalletTransactionUncheckedCreateWithoutWalletInput = {
+    id?: string
+    tenantId: string
+    type: string
+    amountMinor: number
+    balanceAfterMinor: number
+    currency?: string
+    purpose?: string | null
+    segments?: number | null
+    smsMessageId?: string | null
+    locationId?: string | null
+    stripeCheckoutId?: string | null
+    stripePaymentIntentId?: string | null
+    description?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WalletTransactionCreateOrConnectWithoutWalletInput = {
+    where: WalletTransactionWhereUniqueInput
+    create: XOR<WalletTransactionCreateWithoutWalletInput, WalletTransactionUncheckedCreateWithoutWalletInput>
+  }
+
+  export type WalletTransactionCreateManyWalletInputEnvelope = {
+    data: WalletTransactionCreateManyWalletInput | WalletTransactionCreateManyWalletInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TenantUpsertWithoutWalletInput = {
+    update: XOR<TenantUpdateWithoutWalletInput, TenantUncheckedUpdateWithoutWalletInput>
+    create: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutWalletInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutWalletInput, TenantUncheckedUpdateWithoutWalletInput>
+  }
+
+  export type TenantUpdateWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type WalletTransactionUpsertWithWhereUniqueWithoutWalletInput = {
+    where: WalletTransactionWhereUniqueInput
+    update: XOR<WalletTransactionUpdateWithoutWalletInput, WalletTransactionUncheckedUpdateWithoutWalletInput>
+    create: XOR<WalletTransactionCreateWithoutWalletInput, WalletTransactionUncheckedCreateWithoutWalletInput>
+  }
+
+  export type WalletTransactionUpdateWithWhereUniqueWithoutWalletInput = {
+    where: WalletTransactionWhereUniqueInput
+    data: XOR<WalletTransactionUpdateWithoutWalletInput, WalletTransactionUncheckedUpdateWithoutWalletInput>
+  }
+
+  export type WalletTransactionUpdateManyWithWhereWithoutWalletInput = {
+    where: WalletTransactionScalarWhereInput
+    data: XOR<WalletTransactionUpdateManyMutationInput, WalletTransactionUncheckedUpdateManyWithoutWalletInput>
+  }
+
+  export type WalletTransactionScalarWhereInput = {
+    AND?: WalletTransactionScalarWhereInput | WalletTransactionScalarWhereInput[]
+    OR?: WalletTransactionScalarWhereInput[]
+    NOT?: WalletTransactionScalarWhereInput | WalletTransactionScalarWhereInput[]
+    id?: StringFilter<"WalletTransaction"> | string
+    tenantId?: StringFilter<"WalletTransaction"> | string
+    walletId?: StringFilter<"WalletTransaction"> | string
+    type?: StringFilter<"WalletTransaction"> | string
+    amountMinor?: IntFilter<"WalletTransaction"> | number
+    balanceAfterMinor?: IntFilter<"WalletTransaction"> | number
+    currency?: StringFilter<"WalletTransaction"> | string
+    purpose?: StringNullableFilter<"WalletTransaction"> | string | null
+    segments?: IntNullableFilter<"WalletTransaction"> | number | null
+    smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
+    locationId?: StringNullableFilter<"WalletTransaction"> | string | null
+    stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
+    stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
+    description?: StringNullableFilter<"WalletTransaction"> | string | null
+    createdBy?: StringNullableFilter<"WalletTransaction"> | string | null
+    createdAt?: DateTimeFilter<"WalletTransaction"> | Date | string
+  }
+
+  export type WalletCreateWithoutTransactionsInput = {
+    id?: string
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutWalletInput
+  }
+
+  export type WalletUncheckedCreateWithoutTransactionsInput = {
+    id?: string
+    tenantId: string
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WalletCreateOrConnectWithoutTransactionsInput = {
+    where: WalletWhereUniqueInput
+    create: XOR<WalletCreateWithoutTransactionsInput, WalletUncheckedCreateWithoutTransactionsInput>
+  }
+
+  export type WalletUpsertWithoutTransactionsInput = {
+    update: XOR<WalletUpdateWithoutTransactionsInput, WalletUncheckedUpdateWithoutTransactionsInput>
+    create: XOR<WalletCreateWithoutTransactionsInput, WalletUncheckedCreateWithoutTransactionsInput>
+    where?: WalletWhereInput
+  }
+
+  export type WalletUpdateToOneWithWhereWithoutTransactionsInput = {
+    where?: WalletWhereInput
+    data: XOR<WalletUpdateWithoutTransactionsInput, WalletUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type WalletUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutWalletNestedInput
+  }
+
+  export type WalletUncheckedUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BrandCreateManyTenantInput = {
@@ -208240,6 +216622,126 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
   }
 
+  export type MarketingSmsRecipientCreateManyCampaignInput = {
+    id?: string
+    tenantId: string
+    contactId?: string | null
+    phone: string
+    status: string
+    reason?: string | null
+    segments?: number
+    smsMessageId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type MarketingSmsRecipientUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: IntFieldUpdateOperationsInput | number
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsRecipientUncheckedUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: IntFieldUpdateOperationsInput | number
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingSmsRecipientUncheckedUpdateManyWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    contactId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: IntFieldUpdateOperationsInput | number
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletTransactionCreateManyWalletInput = {
+    id?: string
+    tenantId: string
+    type: string
+    amountMinor: number
+    balanceAfterMinor: number
+    currency?: string
+    purpose?: string | null
+    segments?: number | null
+    smsMessageId?: string | null
+    locationId?: string | null
+    stripeCheckoutId?: string | null
+    stripePaymentIntentId?: string | null
+    description?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type WalletTransactionUpdateWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    amountMinor?: IntFieldUpdateOperationsInput | number
+    balanceAfterMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: NullableIntFieldUpdateOperationsInput | number | null
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletTransactionUncheckedUpdateWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    amountMinor?: IntFieldUpdateOperationsInput | number
+    balanceAfterMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: NullableIntFieldUpdateOperationsInput | number | null
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletTransactionUncheckedUpdateManyWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    amountMinor?: IntFieldUpdateOperationsInput | number
+    balanceAfterMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    segments?: NullableIntFieldUpdateOperationsInput | number | null
+    smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -208361,6 +216863,14 @@ export namespace Prisma {
      * @deprecated Use InvoiceCountOutputTypeDefaultArgs instead
      */
     export type InvoiceCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = InvoiceCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MarketingSmsCampaignCountOutputTypeDefaultArgs instead
+     */
+    export type MarketingSmsCampaignCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingSmsCampaignCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WalletCountOutputTypeDefaultArgs instead
+     */
+    export type WalletCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WalletCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TenantDefaultArgs instead
      */
@@ -208781,6 +217291,26 @@ export namespace Prisma {
      * @deprecated Use SmsMessageDefaultArgs instead
      */
     export type SmsMessageArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SmsMessageDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MarketingContactDefaultArgs instead
+     */
+    export type MarketingContactArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingContactDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MarketingSmsCampaignDefaultArgs instead
+     */
+    export type MarketingSmsCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingSmsCampaignDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MarketingSmsRecipientDefaultArgs instead
+     */
+    export type MarketingSmsRecipientArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingSmsRecipientDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WalletDefaultArgs instead
+     */
+    export type WalletArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WalletDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WalletTransactionDefaultArgs instead
+     */
+    export type WalletTransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WalletTransactionDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany
