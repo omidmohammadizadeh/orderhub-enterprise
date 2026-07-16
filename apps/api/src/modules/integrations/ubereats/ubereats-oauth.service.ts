@@ -35,9 +35,13 @@ export class UberEatsOauthService {
   ) {}
 
   get redirectUri(): string {
-    return (
-      this.config.get<string>("app.platforms.uberEats.redirectUri") ?? ""
-    );
+    const raw =
+      this.config.get<string>("app.platforms.uberEats.redirectUri") ?? "";
+    // OAuth sends exactly ONE redirect_uri, but operators sometimes paste a
+    // comma-separated list of all the URIs registered on the Uber app. Sending
+    // the whole list as a single value makes it match none → Uber's "Sorry"
+    // error. Use the first entry, trimmed, so a list can't break the flow.
+    return raw.split(",")[0]?.trim() ?? "";
   }
 
   buildAuthorizeUrl(args: {
