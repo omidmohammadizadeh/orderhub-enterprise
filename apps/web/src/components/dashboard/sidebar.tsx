@@ -71,6 +71,10 @@ const MANAGER_TIER = [
 ];
 const STAFF_TIER = [...MANAGER_TIER, "MANAGER", "STAFF"];
 const DRIVER_TIER = [...STAFF_TIER, "DRIVER"];
+// Money features — SMS Marketing, Wallet, Payments, Subscription. Visible only
+// to platform admin, tenant/location owners, and financial agents. NOT managers
+// or general staff. (DARK_KITCHEN_MANAGER excluded — it's an operations role.)
+const FINANCE_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT"];
 
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
@@ -89,7 +93,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: STAFF_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
-  { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: MANAGER_TIER },
+  { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
@@ -128,9 +132,9 @@ const financeNav: NavItem[] = [
   // Phase AR — finance is reserved for top-of-tenant ownership +
   // platform admin. Operators (OWNER) don't get finance unless we
   // later add a finance-delegate role.
-  { href: "/dashboard/payments", label: "Payments", icon: DollarSign, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
-  { href: "/dashboard/wallet", label: "SMS Wallet", icon: Wallet, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
-  { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
+  { href: "/dashboard/payments", label: "Payments", icon: DollarSign, roles: FINANCE_ROLES },
+  { href: "/dashboard/wallet", label: "SMS Wallet", icon: Wallet, roles: FINANCE_ROLES },
+  { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard, roles: FINANCE_ROLES },
 ];
 
 const secondaryNav: NavItem[] = [

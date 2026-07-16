@@ -20,11 +20,13 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
+// SMS marketing is a money feature — restricted to owners/admin/financial agent,
+// NOT managers or general staff.
 const MARKETING_ROLES = [
   "PLATFORM_ADMIN",
   "TENANT_OWNER",
   "OWNER",
-  "MANAGER",
+  "FINANCIAL_AGENT",
 ] as const;
 
 @ApiTags("marketing-sms")
@@ -163,7 +165,7 @@ export class MarketingSmsController {
   }
 
   @Post("campaigns/:id/send")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   sendCampaign(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
     return this.svc.sendCampaign(user.tenantId, id, user.userId);
   }

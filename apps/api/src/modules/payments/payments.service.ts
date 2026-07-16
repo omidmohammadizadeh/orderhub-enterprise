@@ -97,6 +97,10 @@ export interface GetLedgerOpts {
   endDate?: Date;
   limit?: number;
   offset?: number;
+  // When set (and the role isn't tenant-wide) the ledger is scoped to the
+  // caller's accessible locations via payment → order → locationId.
+  userId?: string;
+  role?: string;
 }
 
 // Platform fee rate (1.5%)
@@ -1627,6 +1631,41 @@ export class PaymentsService {
     });
   }
 
+  // PLATFORM_ADMIN + TENANT_OWNER see the whole tenant's ledger. OWNER and
+  // FINANCIAL_AGENT are scoped to their assigned locations (direct + brand).
+  private async ledgerAccessibleLocationIds(
+    tenantId: string,
+    userId?: string,
+    role?: string,
+  ): Promise<string[] | null> {
+    if (!userId || !role || role === "PLATFORM_ADMIN" || role === "TENANT_OWNER") {
+      return null;
+    }
+    const [locs, brands] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({
+        where: { userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const ids = new Set<string>(locs.map((l: any) => l.locationId as string));
+    const brandIds = brands.map((b: any) => b.brandId as string);
+    if (brandIds.length) {
+      const brandRows = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId },
+        select: { primaryLocationId: true, locations: { select: { id: true } } },
+      });
+      for (const b of brandRows) {
+        if (b.primaryLocationId) ids.add(b.primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
+  }
+
   async getLedger(tenantId: string, opts: GetLedgerOpts = {}) {
     const { startDate, endDate, limit = 50, offset = 0 } = opts;
 
@@ -1635,6 +1674,14 @@ export class PaymentsService {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = startDate;
       if (endDate) where.createdAt.lte = endDate;
+    }
+
+    // Location scoping for non-tenant-wide roles: only ledger entries whose
+    // payment's order is at an accessible location.
+    const allowed = await this.ledgerAccessibleLocationIds(tenantId, opts.userId, opts.role);
+    if (allowed) {
+      if (allowed.length === 0) return { data: [], total: 0, limit, offset };
+      where.payment = { order: { locationId: { in: allowed } } };
     }
 
     const [data, total] = await this.prisma.$transaction([

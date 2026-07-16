@@ -13,7 +13,7 @@ export class WalletController {
 
   // GET /v1/wallet — balance, rate, low-balance flag.
   @Get()
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "MANAGER", "FINANCIAL_AGENT")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "SMS wallet summary (balance, per-segment price)" })
   getWallet(@CurrentUser() user: AuthenticatedUser) {
     return this.wallet.getSummary(user.tenantId);
@@ -21,7 +21,7 @@ export class WalletController {
 
   // GET /v1/wallet/transactions — statement (top-ups + SMS debits).
   @Get("transactions")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "MANAGER", "FINANCIAL_AGENT")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Wallet statement — top-ups and SMS debits" })
   getTransactions(
     @CurrentUser() user: AuthenticatedUser,

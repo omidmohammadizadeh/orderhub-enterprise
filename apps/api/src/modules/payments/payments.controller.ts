@@ -118,7 +118,7 @@ export class PaymentsController {
 
   // GET /v1/payments/ledger
   @Get("ledger")
-  @Roles("MANAGER", "TENANT_OWNER")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Paginated ledger entries for the tenant" })
   getLedger(
     @CurrentUser() user: AuthenticatedUser,
@@ -132,13 +132,15 @@ export class PaymentsController {
       endDate: endDate ? new Date(endDate) : undefined,
       limit: limit ? parseInt(limit, 10) : 50,
       offset: offset ? parseInt(offset, 10) : 0,
+      userId: user.userId,
+      role: user.role,
     };
     return this.payments.getLedger(user.tenantId, opts);
   }
 
   // GET /v1/payments/payouts
   @Get("payouts")
-  @Roles("MANAGER", "TENANT_OWNER")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Get Stripe payout history" })
   getPayouts(
     @CurrentUser() user: AuthenticatedUser,
@@ -152,7 +154,7 @@ export class PaymentsController {
 
   // GET /v1/payments/reconcile?date=YYYY-MM-DD
   @Get("reconcile")
-  @Roles("MANAGER", "TENANT_OWNER")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Daily financial reconciliation summary" })
   reconcile(
     @CurrentUser() user: AuthenticatedUser,
@@ -166,7 +168,7 @@ export class PaymentsController {
 
   // GET /v1/payments/connect/account
   @Get("connect/account")
-  @Roles("MANAGER", "TENANT_OWNER")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Get Stripe Connect account for the tenant" })
   getConnectAccount(@CurrentUser() user: AuthenticatedUser) {
     return this.payments.getConnectAccount(user.tenantId);
@@ -217,7 +219,7 @@ export class PaymentsController {
 
   // GET /v1/payments/connect/brands — one row per brand with status.
   @Get("connect/brands")
-  @Roles("MANAGER", "TENANT_OWNER", "FINANCIAL_AGENT")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({
     summary:
       "List Connect status for every brand. Pass ?locationId= to scope to a single location's brands.",

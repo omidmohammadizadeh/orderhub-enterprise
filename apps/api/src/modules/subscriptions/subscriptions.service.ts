@@ -60,14 +60,71 @@ export class SubscriptionsService {
     ).replace(/\/+$/, "");
   }
 
+  // PLATFORM_ADMIN + TENANT_OWNER see every location's subscription. OWNER and
+  // FINANCIAL_AGENT are scoped to the locations they're assigned to (direct
+  // UserLocation rows + their brands' locations).
+  private static readonly TENANT_WIDE = ["PLATFORM_ADMIN", "TENANT_OWNER"];
+
+  /** null = all locations (tenant-wide role); array = the scoped allowlist. */
+  private async accessibleLocationIds(
+    tenantId: string,
+    userId?: string,
+    role?: string,
+  ): Promise<string[] | null> {
+    if (!userId || !role || SubscriptionsService.TENANT_WIDE.includes(role)) {
+      return null;
+    }
+    const [locs, brands] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({
+        where: { userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const ids = new Set<string>(locs.map((l: any) => l.locationId as string));
+    const brandIds = brands.map((b: any) => b.brandId as string);
+    if (brandIds.length) {
+      const brandRows = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId },
+        select: { primaryLocationId: true, locations: { select: { id: true } } },
+      });
+      for (const b of brandRows) {
+        if (b.primaryLocationId) ids.add(b.primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
+  }
+
+  private async assertLocationAccess(
+    tenantId: string,
+    locationId: string,
+    userId?: string,
+    role?: string,
+  ): Promise<void> {
+    const allowed = await this.accessibleLocationIds(tenantId, userId, role);
+    if (allowed && !allowed.includes(locationId)) {
+      throw new NotFoundException("Subscription not found");
+    }
+  }
+
   /**
    * List every subscription in the tenant — used by the platform-
    * admin overview page so the staff member can see who's paying,
    * who's overdue, and who hasn't started a subscription yet.
    */
-  async listForTenant(tenantId: string) {
+  async listForTenant(tenantId: string, userId?: string, role?: string) {
+    const allowed = await this.accessibleLocationIds(tenantId, userId, role);
+    const where: any = { tenantId };
+    if (allowed) {
+      if (allowed.length === 0) return []; // scoped user with no locations
+      where.locationId = { in: allowed };
+    }
     const subs = await (this.prisma as any).merchantSubscription.findMany({
-      where: { tenantId },
+      where,
       include: {
         location: { select: { id: true, name: true } },
       },
@@ -76,7 +133,8 @@ export class SubscriptionsService {
     return subs.map((s: any) => this.serialise(s));
   }
 
-  async getForLocation(tenantId: string, locationId: string) {
+  async getForLocation(tenantId: string, locationId: string, userId?: string, role?: string) {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
     const sub = await (this.prisma as any).merchantSubscription.findFirst({
       where: { tenantId, locationId },
       include: { location: { select: { id: true, name: true } } },
@@ -96,7 +154,10 @@ export class SubscriptionsService {
     locationId: string,
     monthlyAmountPence: number,
     billingEmail?: string,
+    userId?: string,
+    role?: string,
   ) {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
     if (!Number.isFinite(monthlyAmountPence) || monthlyAmountPence < 100) {
       throw new BadRequestException(
         "monthlyAmountPence must be a number >= 100 (i.e. >= £1.00)",
@@ -243,7 +304,8 @@ export class SubscriptionsService {
    * view invoices, download PDFs, etc. The portal is HOSTED by Stripe
    * and configured once in the dashboard.
    */
-  async createPortalSession(tenantId: string, locationId: string) {
+  async createPortalSession(tenantId: string, locationId: string, userId?: string, role?: string) {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
     const sub = await (this.prisma as any).merchantSubscription.findFirst({
       where: { tenantId, locationId },
     });
@@ -274,7 +336,8 @@ export class SubscriptionsService {
    * a subscription that's still `incomplete` — i.e. card never went
    * through the first time.
    */
-  async restartCheckout(tenantId: string, locationId: string) {
+  async restartCheckout(tenantId: string, locationId: string, userId?: string, role?: string) {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
     const sub = await (this.prisma as any).merchantSubscription.findFirst({
       where: { tenantId, locationId },
       include: { location: { select: { id: true, name: true } } },
@@ -320,7 +383,10 @@ export class SubscriptionsService {
     tenantId: string,
     locationId: string,
     immediate: boolean,
+    userId?: string,
+    role?: string,
   ) {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
     const sub = await (this.prisma as any).merchantSubscription.findFirst({
       where: { tenantId, locationId },
     });
@@ -366,7 +432,8 @@ export class SubscriptionsService {
    * the fields our UI needs plus the hosted invoice URL (paid receipt
    * or open invoice) and the PDF download URL.
    */
-  async listInvoices(tenantId: string, locationId: string) {
+  async listInvoices(tenantId: string, locationId: string, userId?: string, role?: string) {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
     const sub = await (this.prisma as any).merchantSubscription.findFirst({
       where: { tenantId, locationId },
     });
