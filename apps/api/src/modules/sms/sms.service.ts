@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { WalletService } from "../wallet/wallet.service";
 
 export type SmsPurpose = "PAYMENT_LINK" | "MARKETING" | "OTHER";
 
@@ -12,7 +13,17 @@ export interface SendSmsArgs {
   brandId?: string | null;
   orderId?: string | null;
   createdBy?: string | null;
+  // Bill the tenant's prepaid wallet (default true). Set false only for
+  // system/internal sends we don't charge for.
+  bill?: boolean;
 }
+
+// Map the send purpose to the wallet ledger purpose.
+const WALLET_PURPOSE: Record<SmsPurpose, string> = {
+  PAYMENT_LINK: "SMS_PAYMENT_LINK",
+  MARKETING: "SMS_MARKETING",
+  OTHER: "SMS_OTHER",
+};
 
 /**
  * Single billable SMS send path. Every message we send on a tenant's behalf
@@ -26,7 +37,10 @@ export interface SendSmsArgs {
 export class SmsService {
   private readonly logger = new Logger(SmsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly wallet: WalletService,
+  ) {}
 
   /** True when Twilio credentials are set so the operator UI can offer SMS. */
   isConfigured(): boolean {
@@ -49,6 +63,13 @@ export class SmsService {
       throw new BadRequestException(
         "SMS isn't set up yet. Add your Twilio credentials (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_FROM) to enable sending.",
       );
+    }
+
+    // Prepaid-wallet gate: refuse a billable send the balance can't cover BEFORE
+    // hitting Twilio, so we never pay for a text the tenant hasn't funded.
+    const bill = args.bill !== false;
+    if (bill) {
+      await this.wallet.assertCanAffordSms(args.tenantId, args.body);
     }
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID!;
@@ -83,7 +104,23 @@ export class SmsService {
       }
       const json = JSON.parse(text) as { sid?: string; num_segments?: string };
       const segments = Number(json.num_segments) || 1;
-      await this.log(args, { status: "SENT", providerSid: json.sid, segments });
+      const smsMessageId = await this.log(args, {
+        status: "SENT",
+        providerSid: json.sid,
+        segments,
+      });
+      // Charge the wallet for exactly what Twilio reported (num_segments). Never
+      // throws — the message already went out; a debit failure is logged only.
+      if (bill) {
+        await this.wallet.debitForSms({
+          tenantId: args.tenantId,
+          segments,
+          purpose: WALLET_PURPOSE[args.purpose],
+          smsMessageId,
+          locationId: args.locationId ?? null,
+          createdBy: args.createdBy ?? null,
+        });
+      }
       return { ok: true, sid: json.sid, segments };
     } catch (err: any) {
       if (err instanceof BadRequestException) throw err;
@@ -95,9 +132,9 @@ export class SmsService {
   private async log(
     args: SendSmsArgs,
     meta: { status: string; providerSid?: string; segments?: number; error?: string },
-  ): Promise<void> {
+  ): Promise<string | null> {
     try {
-      await (this.prisma as any).smsMessage.create({
+      const row = await (this.prisma as any).smsMessage.create({
         data: {
           tenantId: args.tenantId,
           locationId: args.locationId ?? null,
@@ -112,10 +149,13 @@ export class SmsService {
           error: meta.error ?? null,
           createdBy: args.createdBy ?? null,
         },
+        select: { id: true },
       });
+      return row.id as string;
     } catch (e: any) {
       // Never let a metering-log failure break the actual send.
       this.logger.warn(`sms_messages log failed: ${e?.message ?? e}`);
+      return null;
     }
   }
 }

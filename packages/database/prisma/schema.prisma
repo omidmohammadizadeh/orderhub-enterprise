@@ -70,6 +70,7 @@ model Tenant {
   invitations           Invitation[]
   printerStations       PrinterStation[]
   printAgents           PrintAgent[]
+  wallet                Wallet?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3879,4 +3880,66 @@ model SmsMessage {
   @@index([tenantId, createdAt])
   @@index([tenantId, locationId, createdAt])
   @@map("sms_messages")
+}
+
+// Phase — Prepaid SMS wallet. Restaurants top up a GBP balance up front; every
+// billable SMS (payment links, marketing) debits it per Twilio segment. This is
+// how OrderHub charges for SMS WITHOUT fronting Twilio costs — no send happens
+// unless the balance covers it. Balance is stored in MINOR units (pennies) as an
+// integer to avoid float drift. One wallet per tenant.
+model Wallet {
+  id       String @id @default(cuid())
+  tenantId String @unique
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  balanceMinor Int    @default(0) // pennies (GBP); may dip slightly negative on a rare multi-segment send
+  currency     String @default("GBP")
+
+  // Per-tenant price per SMS segment (pennies). null → the platform default
+  // (SMS_PRICE_PER_SEGMENT_MINOR env, default 7p). Lets us give bespoke rates.
+  smsPricePerSegmentMinor  Int?
+  // Warn the operator when balance drops below this (pennies). Default £2.
+  lowBalanceThresholdMinor Int  @default(200)
+
+  // Platform-account Stripe customer, reused across top-ups (created lazily).
+  stripeCustomerId String?
+
+  transactions WalletTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("wallets")
+}
+
+// Immutable ledger of every wallet movement. amountMinor is SIGNED: credits
+// (top-ups) positive, debits (SMS sends) negative. balanceAfterMinor snapshots
+// the running balance for an at-a-glance statement + reconciliation.
+model WalletTransaction {
+  id       String @id @default(cuid())
+  tenantId String
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  type              String // TOPUP | DEBIT | REFUND | ADJUSTMENT
+  amountMinor       Int // signed pennies (+credit / -debit)
+  balanceAfterMinor Int
+  currency          String @default("GBP")
+
+  // Context for statement lines + reconciliation.
+  purpose               String? // SMS_PAYMENT_LINK | SMS_MARKETING | SMS_OTHER | TOPUP
+  segments              Int? // for SMS debits — how many parts were charged
+  smsMessageId          String? // links to the sms_messages row
+  locationId            String?
+  stripeCheckoutId      String?
+  stripePaymentIntentId String? // top-ups — idempotency key for webhook credit
+  description           String?
+  createdBy             String?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([walletId, createdAt])
+  @@index([stripePaymentIntentId])
+  @@map("wallet_transactions")
 }

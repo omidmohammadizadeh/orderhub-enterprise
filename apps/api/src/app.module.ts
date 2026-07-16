@@ -50,6 +50,7 @@ import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { DriverAppModule } from "./modules/driver-app/driver-app.module";
 import { ExpoPushModule } from "./modules/driver-app/expo-push.module";
 import { SmsModule } from "./modules/sms/sms.module";
+import { WalletModule } from "./modules/wallet/wallet.module";
 import { ChatModule } from "./modules/chat/chat.module";
 import { WhatsAppModule } from "./modules/whatsapp/whatsapp.module";
 import { UploadsModule } from "./modules/uploads/uploads.module";
@@ -211,6 +212,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     // ── Infrastructure ───────────────────────────────────
     DatabaseModule,
     SmsModule,
+    WalletModule,
     SocketModule,
     EmailModule,
 

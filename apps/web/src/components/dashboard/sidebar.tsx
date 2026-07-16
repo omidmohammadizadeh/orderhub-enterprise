@@ -33,6 +33,7 @@ import {
   Activity,
  MonitorCheck,
   ScrollText,
+  Wallet,
   Clapperboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -126,6 +127,7 @@ const financeNav: NavItem[] = [
   // platform admin. Operators (OWNER) don't get finance unless we
   // later add a finance-delegate role.
   { href: "/dashboard/payments", label: "Payments", icon: DollarSign, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
+  { href: "/dashboard/wallet", label: "SMS Wallet", icon: Wallet, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
   { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
 ];
 

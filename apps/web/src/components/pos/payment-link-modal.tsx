@@ -208,7 +208,22 @@ export function PaymentLinkModal({
                         </button>
                       </div>
                       {smsError && (
-                        <p className="mt-1.5 text-xs text-red-600">{smsError}</p>
+                        <p className="mt-1.5 text-xs text-red-600">
+                          {smsError}
+                          {/wallet|balance|top up/i.test(smsError) && (
+                            <>
+                              {" "}
+                              <a
+                                href="/dashboard/wallet"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold underline"
+                              >
+                                Top up wallet ↗
+                              </a>
+                            </>
+                          )}
+                        </p>
                       )}
                     </>
                   )}

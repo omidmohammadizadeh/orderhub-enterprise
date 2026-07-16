@@ -10,6 +10,7 @@ import { Decimal } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { SmsService } from "../sms/sms.service";
+import { WalletService } from "../wallet/wallet.service";
 
 // Lazy-imported only if STRIPE_SECRET_KEY is present
 let Stripe: any;
@@ -115,6 +116,7 @@ export class PaymentsService {
     private readonly config: ConfigService,
     private readonly events: EventEmitter2,
     private readonly sms: SmsService,
+    private readonly wallet: WalletService,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -2249,6 +2251,14 @@ export class PaymentsService {
       case "payment_intent.succeeded": {
         const pi = event.data.object;
         const tenantId = pi.metadata?.tenantId;
+        // SMS wallet top-up (not an order payment) — credit the prepaid balance
+        // and stop; there's no Order/Payment row to confirm. Idempotent on PI id.
+        if (pi.metadata?.purpose === "wallet_topup") {
+          await this.wallet.creditFromStripePi(pi).catch((err: any) =>
+            this.logger.error(`wallet top-up credit failed: ${err.message}`),
+          );
+          break;
+        }
         // Card-present (Terminal) charges capture immediately → mark PAID.
         // Online charges keep their hold→AUTHORIZED→capture flow.
         if (pi.metadata?.source === "terminal") {
