@@ -70,7 +70,7 @@ model Tenant {
   invitations           Invitation[]
   printerStations       PrinterStation[]
   printAgents           PrintAgent[]
-  wallet                Wallet?
+  wallets               Wallet[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -900,7 +900,7 @@ model MenuItem {
   prepTime           Int?
   metadata           Json      @default("{}")
 
-  // ── Multi-SKU pricing ──────────���───────────────────────────────────────
+  // ── Multi-SKU pricing ──────────────────────────────────────────────────
   // Base44's signature feature: a single product with multiple sizes,
   // each carrying its own price, PLU, AND its own modifier group list.
   // We store the whole SKU array as JSON to match Base44 1:1 (the
@@ -1084,7 +1084,7 @@ model MenuItemOnCategory {
   @@map("menu_items_on_categories")
 }
 
-// ── Modifier Groups ───────────────────────────────────────────────────────────
+// ── Modifier Groups ────────────────────────────────────��──────────────────────
 model ModifierGroup {
   id                       String        @id @default(cuid())
   brandId                  String
@@ -2941,7 +2941,7 @@ model CustomDomain {
   @@map("custom_domains")
 }
 
-// ═══════════════════════════════════════════════════════════════════��══════════
+// ═══════════════════════════════════════════════════════════════════���══════════
 // PHASE F — SUBSCRIPTIONS & BILLING
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -3332,7 +3332,7 @@ model SystemSecret {
   @@map("system_secrets")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════��═════════════════════════════════════════════
 // PHASE I — TRANSACTIONAL OUTBOX
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -3984,9 +3984,13 @@ model MarketingSmsRecipient {
 // unless the balance covers it. Balance is stored in MINOR units (pennies) as an
 // integer to avoid float drift. One wallet per tenant.
 model Wallet {
-  id       String @id @default(cuid())
-  tenantId String @unique
-  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id         String  @id @default(cuid())
+  tenantId   String
+  // Location this wallet funds. null = the tenant-wide wallet (admin / sends
+  // with no location). SMS marketing + payment-link SMS are location-scoped, so
+  // each site funds and spends its own balance.
+  locationId String?
+  tenant     Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   balanceMinor Int    @default(0) // pennies (GBP); may dip slightly negative on a rare multi-segment send
   currency     String @default("GBP")
@@ -4005,6 +4009,7 @@ model Wallet {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([tenantId, locationId])
   @@map("wallets")
 }
 

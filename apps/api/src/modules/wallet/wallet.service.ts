@@ -86,15 +86,19 @@ export class WalletService {
     return false;
   }
 
-  /** Fetch (or lazily create) the tenant's wallet row. */
-  async getOrCreate(tenantId: string): Promise<any> {
-    const existing = await this.db().wallet.findUnique({ where: { tenantId } });
+  /**
+   * Fetch (or lazily create) a wallet for (tenant, location). Each location
+   * funds its own SMS; locationId null = the tenant-wide wallet.
+   */
+  async getOrCreate(tenantId: string, locationId?: string | null): Promise<any> {
+    const loc = locationId ?? null;
+    const existing = await this.db().wallet.findFirst({ where: { tenantId, locationId: loc } });
     if (existing) return existing;
-    return this.db().wallet.create({ data: { tenantId } });
+    return this.db().wallet.create({ data: { tenantId, locationId: loc } });
   }
 
-  async getSummary(tenantId: string): Promise<WalletSummary> {
-    const wallet = await this.getOrCreate(tenantId);
+  async getSummary(tenantId: string, locationId?: string | null): Promise<WalletSummary> {
+    const wallet = await this.getOrCreate(tenantId, locationId);
     const rate = this.pricePerSegment(wallet);
     return {
       balanceMinor: wallet.balanceMinor,
@@ -106,9 +110,11 @@ export class WalletService {
     };
   }
 
-  async listTransactions(tenantId: string, limit = 50): Promise<any[]> {
+  async listTransactions(tenantId: string, locationId?: string | null, limit = 50): Promise<any[]> {
+    const where: any = { tenantId };
+    if (locationId !== undefined) where.locationId = locationId ?? null;
     return this.db().walletTransaction.findMany({
-      where: { tenantId },
+      where,
       orderBy: { createdAt: "desc" },
       take: Math.min(Math.max(limit, 1), 200),
     });
@@ -155,8 +161,12 @@ export class WalletService {
    * hit Twilio so a send with no funds fails cleanly (operator sees a "top up"
    * message) rather than us paying for it.
    */
-  async assertCanAffordSms(tenantId: string, body: string): Promise<void> {
-    const wallet = await this.getOrCreate(tenantId);
+  async assertCanAffordSms(
+    tenantId: string,
+    body: string,
+    locationId?: string | null,
+  ): Promise<void> {
+    const wallet = await this.getOrCreate(tenantId, locationId);
     const rate = this.pricePerSegment(wallet);
     const estCost = this.estimateSegments(body) * rate;
     if (wallet.balanceMinor < estCost) {
@@ -180,7 +190,7 @@ export class WalletService {
     createdBy?: string | null;
   }): Promise<void> {
     try {
-      const wallet = await this.getOrCreate(args.tenantId);
+      const wallet = await this.getOrCreate(args.tenantId, args.locationId);
       const rate = this.pricePerSegment(wallet);
       const cost = Math.max(args.segments, 1) * rate;
       await this.prisma.$transaction(async (tx: any) => {
@@ -221,6 +231,7 @@ export class WalletService {
     tenantId: string,
     amountMinor: number,
     userId?: string,
+    locationId?: string | null,
   ): Promise<{ url: string }> {
     if (!Number.isInteger(amountMinor) || amountMinor < 500) {
       throw new BadRequestException("Minimum top-up is £5.");
@@ -234,7 +245,7 @@ export class WalletService {
       );
     }
 
-    const wallet = await this.getOrCreate(tenantId);
+    const wallet = await this.getOrCreate(tenantId, locationId);
 
     // Reuse (or lazily create) a platform Stripe customer for this tenant.
     let stripeCustomerId = wallet.stripeCustomerId as string | null;
@@ -278,10 +289,16 @@ export class WalletService {
           purpose: "wallet_topup",
           tenantId,
           walletId: wallet.id,
+          locationId: wallet.locationId ?? "",
           createdBy: userId ?? "",
         },
       },
-      metadata: { purpose: "wallet_topup", tenantId, walletId: wallet.id },
+      metadata: {
+        purpose: "wallet_topup",
+        tenantId,
+        walletId: wallet.id,
+        locationId: wallet.locationId ?? "",
+      },
       success_url: `${this.webBase()}/dashboard/wallet?topup=success`,
       cancel_url: `${this.webBase()}/dashboard/wallet?topup=cancel`,
     });
@@ -313,7 +330,16 @@ export class WalletService {
       return;
     }
 
-    const wallet = await this.getOrCreate(tenantId);
+    // Credit the EXACT wallet the top-up was started for (walletId is stamped on
+    // the PI). Falls back to resolving by (tenant, location) metadata.
+    const walletId = pi?.metadata?.walletId as string | undefined;
+    const wallet = walletId
+      ? await this.db().wallet.findUnique({ where: { id: walletId } })
+      : await this.getOrCreate(tenantId, pi?.metadata?.locationId || null);
+    if (!wallet) {
+      this.logger.warn(`wallet_topup PI ${pi.id}: wallet ${walletId} not found — skipping`);
+      return;
+    }
     await this.prisma.$transaction(async (tx: any) => {
       const updated = await tx.wallet.update({
         where: { id: wallet.id },
@@ -323,6 +349,7 @@ export class WalletService {
         data: {
           tenantId,
           walletId: wallet.id,
+          locationId: wallet.locationId ?? null,
           type: "TOPUP",
           amountMinor: amount,
           balanceAfterMinor: updated.balanceMinor,

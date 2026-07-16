@@ -15,8 +15,11 @@ export class WalletController {
   @Get()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "SMS wallet summary (balance, per-segment price)" })
-  getWallet(@CurrentUser() user: AuthenticatedUser) {
-    return this.wallet.getSummary(user.tenantId);
+  getWallet(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.wallet.getSummary(user.tenantId, locationId ?? null);
   }
 
   // GET /v1/wallet/transactions — statement (top-ups + SMS debits).
@@ -26,9 +29,11 @@ export class WalletController {
   getTransactions(
     @CurrentUser() user: AuthenticatedUser,
     @Query("limit") limit?: string,
+    @Query("locationId") locationId?: string,
   ) {
     return this.wallet.listTransactions(
       user.tenantId,
+      locationId ?? null,
       limit ? parseInt(limit, 10) : 50,
     );
   }
@@ -39,12 +44,13 @@ export class WalletController {
   @ApiOperation({ summary: "Start a wallet top-up (returns a Stripe Checkout URL)" })
   topup(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { amountMinor?: number },
+    @Body() body: { amountMinor?: number; locationId?: string },
   ) {
     return this.wallet.startTopup(
       user.tenantId,
       Number(body?.amountMinor ?? 0),
       user.userId,
+      body?.locationId ?? null,
     );
   }
 }

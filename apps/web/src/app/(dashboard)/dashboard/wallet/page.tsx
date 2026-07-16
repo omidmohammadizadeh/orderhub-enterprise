@@ -22,6 +22,7 @@ import {
   formatGbp,
   type WalletTransaction,
 } from "@/lib/api/wallet.client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { cn } from "@/lib/utils";
 
 const TOPUP_PRESETS = [1000, 2000, 5000, 10000]; // £10 / £20 / £50 / £100 in pennies
@@ -31,24 +32,25 @@ function WalletInner() {
   const params = useSearchParams();
   const topupStatus = params.get("topup"); // success | cancel
 
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const [selected, setSelected] = useState<number>(2000);
   const [custom, setCustom] = useState<string>("");
 
   const { data: wallet, isLoading } = useQuery({
-    queryKey: ["wallet"],
-    queryFn: () => walletClient.get(),
+    queryKey: ["wallet", locationId],
+    queryFn: () => walletClient.get(locationId),
     // Poll briefly after a successful top-up so the credited balance shows up
     // once the Stripe webhook lands (a few seconds).
     refetchInterval: topupStatus === "success" ? 4000 : false,
   });
 
   const { data: txns } = useQuery({
-    queryKey: ["wallet-transactions"],
-    queryFn: () => walletClient.transactions(50),
+    queryKey: ["wallet-transactions", locationId],
+    queryFn: () => walletClient.transactions(50, locationId),
   });
 
   const topup = useMutation({
-    mutationFn: (amountMinor: number) => walletClient.topup(amountMinor),
+    mutationFn: (amountMinor: number) => walletClient.topup(amountMinor, locationId),
     onSuccess: ({ url }) => {
       window.location.href = url; // to Stripe Checkout
     },

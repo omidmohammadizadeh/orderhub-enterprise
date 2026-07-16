@@ -26,17 +26,28 @@ export interface WalletTransaction {
 }
 
 export const walletClient = {
-  get: () => apiClient.get<WalletSummary>("/v1/wallet").then((r) => r.data),
-
-  transactions: (limit = 50) =>
+  get: (locationId?: string | null) =>
     apiClient
-      .get<WalletTransaction[]>(`/v1/wallet/transactions?limit=${limit}`)
+      .get<WalletSummary>("/v1/wallet", {
+        params: locationId ? { locationId } : undefined,
+      })
       .then((r) => r.data),
 
+  transactions: (limit = 50, locationId?: string | null) => {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (locationId) q.set("locationId", locationId);
+    return apiClient
+      .get<WalletTransaction[]>(`/v1/wallet/transactions?${q.toString()}`)
+      .then((r) => r.data);
+  },
+
   // Returns a Stripe Checkout URL to open for payment.
-  topup: (amountMinor: number) =>
+  topup: (amountMinor: number, locationId?: string | null) =>
     apiClient
-      .post<{ url: string }>("/v1/wallet/topup", { amountMinor })
+      .post<{ url: string }>("/v1/wallet/topup", {
+        amountMinor,
+        locationId: locationId ?? undefined,
+      })
       .then((r) => r.data),
 };
 

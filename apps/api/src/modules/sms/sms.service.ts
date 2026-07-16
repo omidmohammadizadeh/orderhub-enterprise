@@ -70,7 +70,7 @@ export class SmsService {
     // hitting Twilio, so we never pay for a text the tenant hasn't funded.
     const bill = args.bill !== false;
     if (bill) {
-      await this.wallet.assertCanAffordSms(args.tenantId, args.body);
+      await this.wallet.assertCanAffordSms(args.tenantId, args.body, args.locationId);
     }
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID!;

@@ -1912,6 +1912,7 @@ exports.Prisma.MarketingSmsRecipientScalarFieldEnum = {
 exports.Prisma.WalletScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  locationId: 'locationId',
   balanceMinor: 'balanceMinor',
   currency: 'currency',
   smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
@@ -3073,6 +3074,7 @@ exports.Prisma.MarketingSmsRecipientOrderByRelevanceFieldEnum = {
 exports.Prisma.WalletOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  locationId: 'locationId',
   currency: 'currency',
   stripeCustomerId: 'stripeCustomerId'
 };

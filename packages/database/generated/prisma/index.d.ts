@@ -11055,6 +11055,7 @@ export namespace Prisma {
     invitations: number
     printerStations: number
     printAgents: number
+    wallets: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11074,6 +11075,7 @@ export namespace Prisma {
     invitations?: boolean | TenantCountOutputTypeCountInvitationsArgs
     printerStations?: boolean | TenantCountOutputTypeCountPrinterStationsArgs
     printAgents?: boolean | TenantCountOutputTypeCountPrintAgentsArgs
+    wallets?: boolean | TenantCountOutputTypeCountWalletsArgs
   }
 
   // Custom InputTypes
@@ -11197,6 +11199,13 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountPrintAgentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PrintAgentWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountWalletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WalletWhereInput
   }
 
 
@@ -12925,7 +12934,7 @@ export namespace Prisma {
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
-    wallet?: boolean | Tenant$walletArgs<ExtArgs>
+    wallets?: boolean | Tenant$walletsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -12972,7 +12981,7 @@ export namespace Prisma {
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
-    wallet?: boolean | Tenant$walletArgs<ExtArgs>
+    wallets?: boolean | Tenant$walletsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -12998,7 +13007,7 @@ export namespace Prisma {
       invitations: Prisma.$InvitationPayload<ExtArgs>[]
       printerStations: Prisma.$PrinterStationPayload<ExtArgs>[]
       printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
-      wallet: Prisma.$WalletPayload<ExtArgs> | null
+      wallets: Prisma.$WalletPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -13392,7 +13401,7 @@ export namespace Prisma {
     invitations<T extends Tenant$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany"> | Null>
     printerStations<T extends Tenant$printerStationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printerStationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
     printAgents<T extends Tenant$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
-    wallet<T extends Tenant$walletArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$walletArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    wallets<T extends Tenant$walletsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$walletsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14095,9 +14104,9 @@ export namespace Prisma {
   }
 
   /**
-   * Tenant.wallet
+   * Tenant.wallets
    */
-  export type Tenant$walletArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Tenant$walletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Wallet
      */
@@ -14107,6 +14116,11 @@ export namespace Prisma {
      */
     include?: WalletInclude<ExtArgs> | null
     where?: WalletWhereInput
+    orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
+    cursor?: WalletWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
   }
 
   /**
@@ -128849,6 +128863,7 @@ export namespace Prisma {
   export type WalletMinAggregateOutputType = {
     id: string | null
     tenantId: string | null
+    locationId: string | null
     balanceMinor: number | null
     currency: string | null
     smsPricePerSegmentMinor: number | null
@@ -128861,6 +128876,7 @@ export namespace Prisma {
   export type WalletMaxAggregateOutputType = {
     id: string | null
     tenantId: string | null
+    locationId: string | null
     balanceMinor: number | null
     currency: string | null
     smsPricePerSegmentMinor: number | null
@@ -128873,6 +128889,7 @@ export namespace Prisma {
   export type WalletCountAggregateOutputType = {
     id: number
     tenantId: number
+    locationId: number
     balanceMinor: number
     currency: number
     smsPricePerSegmentMinor: number
@@ -128899,6 +128916,7 @@ export namespace Prisma {
   export type WalletMinAggregateInputType = {
     id?: true
     tenantId?: true
+    locationId?: true
     balanceMinor?: true
     currency?: true
     smsPricePerSegmentMinor?: true
@@ -128911,6 +128929,7 @@ export namespace Prisma {
   export type WalletMaxAggregateInputType = {
     id?: true
     tenantId?: true
+    locationId?: true
     balanceMinor?: true
     currency?: true
     smsPricePerSegmentMinor?: true
@@ -128923,6 +128942,7 @@ export namespace Prisma {
   export type WalletCountAggregateInputType = {
     id?: true
     tenantId?: true
+    locationId?: true
     balanceMinor?: true
     currency?: true
     smsPricePerSegmentMinor?: true
@@ -129022,6 +129042,7 @@ export namespace Prisma {
   export type WalletGroupByOutputType = {
     id: string
     tenantId: string
+    locationId: string | null
     balanceMinor: number
     currency: string
     smsPricePerSegmentMinor: number | null
@@ -129053,6 +129074,7 @@ export namespace Prisma {
   export type WalletSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
+    locationId?: boolean
     balanceMinor?: boolean
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
@@ -129068,6 +129090,7 @@ export namespace Prisma {
   export type WalletSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
+    locationId?: boolean
     balanceMinor?: boolean
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
@@ -129081,6 +129104,7 @@ export namespace Prisma {
   export type WalletSelectScalar = {
     id?: boolean
     tenantId?: boolean
+    locationId?: boolean
     balanceMinor?: boolean
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
@@ -129108,6 +129132,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       tenantId: string
+      locationId: string | null
       balanceMinor: number
       currency: string
       smsPricePerSegmentMinor: number | null
@@ -129512,6 +129537,7 @@ export namespace Prisma {
   interface WalletFieldRefs {
     readonly id: FieldRef<"Wallet", 'String'>
     readonly tenantId: FieldRef<"Wallet", 'String'>
+    readonly locationId: FieldRef<"Wallet", 'String'>
     readonly balanceMinor: FieldRef<"Wallet", 'Int'>
     readonly currency: FieldRef<"Wallet", 'String'>
     readonly smsPricePerSegmentMinor: FieldRef<"Wallet", 'Int'>
@@ -133106,6 +133132,7 @@ export namespace Prisma {
   export const WalletScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
+    locationId: 'locationId',
     balanceMinor: 'balanceMinor',
     currency: 'currency',
     smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
@@ -134615,6 +134642,7 @@ export namespace Prisma {
   export const WalletOrderByRelevanceFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
+    locationId: 'locationId',
     currency: 'currency',
     stripeCustomerId: 'stripeCustomerId'
   };
@@ -135477,7 +135505,7 @@ export namespace Prisma {
     invitations?: InvitationListRelationFilter
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
-    wallet?: XOR<WalletNullableRelationFilter, WalletWhereInput> | null
+    wallets?: WalletListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -135508,7 +135536,7 @@ export namespace Prisma {
     invitations?: InvitationOrderByRelationAggregateInput
     printerStations?: PrinterStationOrderByRelationAggregateInput
     printAgents?: PrintAgentOrderByRelationAggregateInput
-    wallet?: WalletOrderByWithRelationInput
+    wallets?: WalletOrderByRelationAggregateInput
     _relevance?: TenantOrderByRelevanceInput
   }
 
@@ -135543,7 +135571,7 @@ export namespace Prisma {
     invitations?: InvitationListRelationFilter
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
-    wallet?: XOR<WalletNullableRelationFilter, WalletWhereInput> | null
+    wallets?: WalletListRelationFilter
   }, "id" | "slug">
 
   export type TenantOrderByWithAggregationInput = {
@@ -146676,6 +146704,7 @@ export namespace Prisma {
     NOT?: WalletWhereInput | WalletWhereInput[]
     id?: StringFilter<"Wallet"> | string
     tenantId?: StringFilter<"Wallet"> | string
+    locationId?: StringNullableFilter<"Wallet"> | string | null
     balanceMinor?: IntFilter<"Wallet"> | number
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
@@ -146690,6 +146719,7 @@ export namespace Prisma {
   export type WalletOrderByWithRelationInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrderInput | SortOrder
@@ -146704,10 +146734,12 @@ export namespace Prisma {
 
   export type WalletWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    tenantId?: string
+    tenantId_locationId?: WalletTenantIdLocationIdCompoundUniqueInput
     AND?: WalletWhereInput | WalletWhereInput[]
     OR?: WalletWhereInput[]
     NOT?: WalletWhereInput | WalletWhereInput[]
+    tenantId?: StringFilter<"Wallet"> | string
+    locationId?: StringNullableFilter<"Wallet"> | string | null
     balanceMinor?: IntFilter<"Wallet"> | number
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
@@ -146717,11 +146749,12 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     transactions?: WalletTransactionListRelationFilter
-  }, "id" | "tenantId">
+  }, "id" | "tenantId_locationId">
 
   export type WalletOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrderInput | SortOrder
@@ -146742,6 +146775,7 @@ export namespace Prisma {
     NOT?: WalletScalarWhereWithAggregatesInput | WalletScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Wallet"> | string
     tenantId?: StringWithAggregatesFilter<"Wallet"> | string
+    locationId?: StringNullableWithAggregatesFilter<"Wallet"> | string | null
     balanceMinor?: IntWithAggregatesFilter<"Wallet"> | number
     currency?: StringWithAggregatesFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
@@ -146892,7 +146926,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -146923,7 +146957,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -146954,7 +146988,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -146985,7 +147019,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -159742,6 +159776,7 @@ export namespace Prisma {
 
   export type WalletCreateInput = {
     id?: string
+    locationId?: string | null
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
@@ -159749,13 +159784,14 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    tenant: TenantCreateNestedOneWithoutWalletInput
+    tenant: TenantCreateNestedOneWithoutWalletsInput
     transactions?: WalletTransactionCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUncheckedCreateInput = {
     id?: string
     tenantId: string
+    locationId?: string | null
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
@@ -159768,6 +159804,7 @@ export namespace Prisma {
 
   export type WalletUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
@@ -159775,13 +159812,14 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    tenant?: TenantUpdateOneRequiredWithoutWalletNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutWalletsNestedInput
     transactions?: WalletTransactionUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
@@ -159795,6 +159833,7 @@ export namespace Prisma {
   export type WalletCreateManyInput = {
     id?: string
     tenantId: string
+    locationId?: string | null
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
@@ -159806,6 +159845,7 @@ export namespace Prisma {
 
   export type WalletUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
@@ -159818,6 +159858,7 @@ export namespace Prisma {
   export type WalletUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
@@ -160128,9 +160169,10 @@ export namespace Prisma {
     none?: PrintAgentWhereInput
   }
 
-  export type WalletNullableRelationFilter = {
-    is?: WalletWhereInput | null
-    isNot?: WalletWhereInput | null
+  export type WalletListRelationFilter = {
+    every?: WalletWhereInput
+    some?: WalletWhereInput
+    none?: WalletWhereInput
   }
 
   export type BrandOrderByRelationAggregateInput = {
@@ -160194,6 +160236,10 @@ export namespace Prisma {
   }
 
   export type PrintAgentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WalletOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -168890,9 +168936,15 @@ export namespace Prisma {
     search: string
   }
 
+  export type WalletTenantIdLocationIdCompoundUniqueInput = {
+    tenantId: string
+    locationId: string
+  }
+
   export type WalletCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    locationId?: SortOrder
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
@@ -168911,6 +168963,7 @@ export namespace Prisma {
   export type WalletMaxOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    locationId?: SortOrder
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
@@ -168923,6 +168976,7 @@ export namespace Prisma {
   export type WalletMinOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    locationId?: SortOrder
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
@@ -169142,10 +169196,11 @@ export namespace Prisma {
     connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
   }
 
-  export type WalletCreateNestedOneWithoutTenantInput = {
-    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
-    connect?: WalletWhereUniqueInput
+  export type WalletCreateNestedManyWithoutTenantInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput> | WalletCreateWithoutTenantInput[] | WalletUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput | WalletCreateOrConnectWithoutTenantInput[]
+    createMany?: WalletCreateManyTenantInputEnvelope
+    connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
   export type BrandUncheckedCreateNestedManyWithoutTenantInput = {
@@ -169272,10 +169327,11 @@ export namespace Prisma {
     connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
   }
 
-  export type WalletUncheckedCreateNestedOneWithoutTenantInput = {
-    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
-    connect?: WalletWhereUniqueInput
+  export type WalletUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput> | WalletCreateWithoutTenantInput[] | WalletUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput | WalletCreateOrConnectWithoutTenantInput[]
+    createMany?: WalletCreateManyTenantInputEnvelope
+    connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -169538,14 +169594,18 @@ export namespace Prisma {
     deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
   }
 
-  export type WalletUpdateOneWithoutTenantNestedInput = {
-    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
-    upsert?: WalletUpsertWithoutTenantInput
-    disconnect?: WalletWhereInput | boolean
-    delete?: WalletWhereInput | boolean
-    connect?: WalletWhereUniqueInput
-    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutTenantInput, WalletUpdateWithoutTenantInput>, WalletUncheckedUpdateWithoutTenantInput>
+  export type WalletUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput> | WalletCreateWithoutTenantInput[] | WalletUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput | WalletCreateOrConnectWithoutTenantInput[]
+    upsert?: WalletUpsertWithWhereUniqueWithoutTenantInput | WalletUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: WalletCreateManyTenantInputEnvelope
+    set?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    disconnect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    delete?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    update?: WalletUpdateWithWhereUniqueWithoutTenantInput | WalletUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: WalletUpdateManyWithWhereWithoutTenantInput | WalletUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantNestedInput = {
@@ -169792,14 +169852,18 @@ export namespace Prisma {
     deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
   }
 
-  export type WalletUncheckedUpdateOneWithoutTenantNestedInput = {
-    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput
-    upsert?: WalletUpsertWithoutTenantInput
-    disconnect?: WalletWhereInput | boolean
-    delete?: WalletWhereInput | boolean
-    connect?: WalletWhereUniqueInput
-    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutTenantInput, WalletUpdateWithoutTenantInput>, WalletUncheckedUpdateWithoutTenantInput>
+  export type WalletUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput> | WalletCreateWithoutTenantInput[] | WalletUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WalletCreateOrConnectWithoutTenantInput | WalletCreateOrConnectWithoutTenantInput[]
+    upsert?: WalletUpsertWithWhereUniqueWithoutTenantInput | WalletUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: WalletCreateManyTenantInputEnvelope
+    set?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    disconnect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    delete?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+    update?: WalletUpdateWithWhereUniqueWithoutTenantInput | WalletUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: WalletUpdateManyWithWhereWithoutTenantInput | WalletUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
   }
 
   export type UserCreatepermissionsInput = {
@@ -176264,9 +176328,9 @@ export namespace Prisma {
     update?: XOR<XOR<MarketingSmsCampaignUpdateToOneWithWhereWithoutRecipientsInput, MarketingSmsCampaignUpdateWithoutRecipientsInput>, MarketingSmsCampaignUncheckedUpdateWithoutRecipientsInput>
   }
 
-  export type TenantCreateNestedOneWithoutWalletInput = {
-    create?: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
-    connectOrCreate?: TenantCreateOrConnectWithoutWalletInput
+  export type TenantCreateNestedOneWithoutWalletsInput = {
+    create?: XOR<TenantCreateWithoutWalletsInput, TenantUncheckedCreateWithoutWalletsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWalletsInput
     connect?: TenantWhereUniqueInput
   }
 
@@ -176284,12 +176348,12 @@ export namespace Prisma {
     connect?: WalletTransactionWhereUniqueInput | WalletTransactionWhereUniqueInput[]
   }
 
-  export type TenantUpdateOneRequiredWithoutWalletNestedInput = {
-    create?: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
-    connectOrCreate?: TenantCreateOrConnectWithoutWalletInput
-    upsert?: TenantUpsertWithoutWalletInput
+  export type TenantUpdateOneRequiredWithoutWalletsNestedInput = {
+    create?: XOR<TenantCreateWithoutWalletsInput, TenantUncheckedCreateWithoutWalletsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWalletsInput
+    upsert?: TenantUpsertWithoutWalletsInput
     connect?: TenantWhereUniqueInput
-    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutWalletInput, TenantUpdateWithoutWalletInput>, TenantUncheckedUpdateWithoutWalletInput>
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutWalletsInput, TenantUpdateWithoutWalletsInput>, TenantUncheckedUpdateWithoutWalletsInput>
   }
 
   export type WalletTransactionUpdateManyWithoutWalletNestedInput = {
@@ -178603,6 +178667,7 @@ export namespace Prisma {
 
   export type WalletCreateWithoutTenantInput = {
     id?: string
+    locationId?: string | null
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
@@ -178615,6 +178680,7 @@ export namespace Prisma {
 
   export type WalletUncheckedCreateWithoutTenantInput = {
     id?: string
+    locationId?: string | null
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
@@ -178628,6 +178694,11 @@ export namespace Prisma {
   export type WalletCreateOrConnectWithoutTenantInput = {
     where: WalletWhereUniqueInput
     create: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
+  }
+
+  export type WalletCreateManyTenantInputEnvelope = {
+    data: WalletCreateManyTenantInput | WalletCreateManyTenantInput[]
+    skipDuplicates?: boolean
   }
 
   export type BrandUpsertWithWhereUniqueWithoutTenantInput = {
@@ -179406,39 +179477,36 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"PrintAgent"> | Date | string
   }
 
-  export type WalletUpsertWithoutTenantInput = {
+  export type WalletUpsertWithWhereUniqueWithoutTenantInput = {
+    where: WalletWhereUniqueInput
     update: XOR<WalletUpdateWithoutTenantInput, WalletUncheckedUpdateWithoutTenantInput>
     create: XOR<WalletCreateWithoutTenantInput, WalletUncheckedCreateWithoutTenantInput>
-    where?: WalletWhereInput
   }
 
-  export type WalletUpdateToOneWithWhereWithoutTenantInput = {
-    where?: WalletWhereInput
+  export type WalletUpdateWithWhereUniqueWithoutTenantInput = {
+    where: WalletWhereUniqueInput
     data: XOR<WalletUpdateWithoutTenantInput, WalletUncheckedUpdateWithoutTenantInput>
   }
 
-  export type WalletUpdateWithoutTenantInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    balanceMinor?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
-    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
-    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
-    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    transactions?: WalletTransactionUpdateManyWithoutWalletNestedInput
+  export type WalletUpdateManyWithWhereWithoutTenantInput = {
+    where: WalletScalarWhereInput
+    data: XOR<WalletUpdateManyMutationInput, WalletUncheckedUpdateManyWithoutTenantInput>
   }
 
-  export type WalletUncheckedUpdateWithoutTenantInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    balanceMinor?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
-    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
-    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
-    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    transactions?: WalletTransactionUncheckedUpdateManyWithoutWalletNestedInput
+  export type WalletScalarWhereInput = {
+    AND?: WalletScalarWhereInput | WalletScalarWhereInput[]
+    OR?: WalletScalarWhereInput[]
+    NOT?: WalletScalarWhereInput | WalletScalarWhereInput[]
+    id?: StringFilter<"Wallet"> | string
+    tenantId?: StringFilter<"Wallet"> | string
+    locationId?: StringNullableFilter<"Wallet"> | string | null
+    balanceMinor?: IntFilter<"Wallet"> | number
+    currency?: StringFilter<"Wallet"> | string
+    smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
+    lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
+    stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
+    createdAt?: DateTimeFilter<"Wallet"> | Date | string
+    updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
 
   export type TenantCreateWithoutUsersInput = {
@@ -179468,7 +179536,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutUsersInput = {
@@ -179498,7 +179566,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutUsersInput = {
@@ -179881,7 +179949,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutUsersInput = {
@@ -179911,7 +179979,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type RefreshTokenUpsertWithWhereUniqueWithoutUserInput = {
@@ -180999,7 +181067,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutInvitationsInput = {
@@ -181029,7 +181097,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutInvitationsInput = {
@@ -181132,7 +181200,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutInvitationsInput = {
@@ -181162,7 +181230,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutInvitationsSentInput = {
@@ -181797,7 +181865,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutApiKeysInput = {
@@ -181827,7 +181895,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutApiKeysInput = {
@@ -181873,7 +181941,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutApiKeysInput = {
@@ -181903,7 +181971,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutAuditLogsInput = {
@@ -182053,7 +182121,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandsInput = {
@@ -182083,7 +182151,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandsInput = {
@@ -182989,7 +183057,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandsInput = {
@@ -183019,7 +183087,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DirectOrderingConfigUpsertWithoutBrandInput = {
@@ -191238,7 +191306,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCustomersInput = {
@@ -191268,7 +191336,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCustomersInput = {
@@ -191579,7 +191647,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCustomersInput = {
@@ -191609,7 +191677,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomerAddressUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -192463,7 +192531,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPromoCodesInput = {
@@ -192493,7 +192561,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPromoCodesInput = {
@@ -192539,7 +192607,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPromoCodesInput = {
@@ -192569,7 +192637,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutMarketingCampaignsInput = {
@@ -192599,7 +192667,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMarketingCampaignsInput = {
@@ -192629,7 +192697,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMarketingCampaignsInput = {
@@ -192812,7 +192880,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMarketingCampaignsInput = {
@@ -192842,7 +192910,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type BrandUpsertWithoutMarketingCampaignsInput = {
@@ -194292,7 +194360,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutOrdersInput = {
@@ -194322,7 +194390,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutOrdersInput = {
@@ -194985,7 +195053,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutOrdersInput = {
@@ -195015,7 +195083,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutOrdersInput = {
@@ -197906,7 +197974,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintJobsInput = {
@@ -197936,7 +198004,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintJobsInput = {
@@ -198316,7 +198384,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintJobsInput = {
@@ -198346,7 +198414,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PrinterUpsertWithoutPrintJobsInput = {
@@ -198734,7 +198802,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrinterStationsInput = {
@@ -198764,7 +198832,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrinterStationsInput = {
@@ -199438,7 +199506,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrinterStationsInput = {
@@ -199468,7 +199536,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutPrinterStationsInput = {
@@ -199840,7 +199908,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintAgentsInput = {
@@ -199870,7 +199938,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintAgentsInput = {
@@ -200221,7 +200289,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintAgentsInput = {
@@ -200251,7 +200319,7 @@ export namespace Prisma {
     merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutPrintAgentsInput = {
@@ -201178,7 +201246,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutDriversInput = {
@@ -201208,7 +201276,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutDriversInput = {
@@ -201524,7 +201592,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutDriversInput = {
@@ -201554,7 +201622,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutHomeDriversInput = {
@@ -202602,7 +202670,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutConnectAccountInput = {
@@ -202632,7 +202700,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutConnectAccountInput = {
@@ -202764,7 +202832,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutConnectAccountInput = {
@@ -202794,7 +202862,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PaymentUpsertWithWhereUniqueWithoutConnectAccountInput = {
@@ -203929,7 +203997,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSuppliersInput = {
@@ -203959,7 +204027,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSuppliersInput = {
@@ -204091,7 +204159,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSuppliersInput = {
@@ -204121,7 +204189,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type IngredientUpsertWithWhereUniqueWithoutSupplierInput = {
@@ -205477,7 +205545,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandingInput = {
@@ -205507,7 +205575,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandingInput = {
@@ -205587,7 +205655,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandingInput = {
@@ -205617,7 +205685,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomDomainUpsertWithWhereUniqueWithoutBrandingInput = {
@@ -205877,7 +205945,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSubscriptionInput = {
@@ -205907,7 +205975,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSubscriptionInput = {
@@ -206070,7 +206138,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSubscriptionInput = {
@@ -206100,7 +206168,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SubscriptionPlanUpsertWithoutSubscriptionsInput = {
@@ -206241,7 +206309,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMerchantSubscriptionsInput = {
@@ -206271,7 +206339,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMerchantSubscriptionsInput = {
@@ -206468,7 +206536,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMerchantSubscriptionsInput = {
@@ -206498,7 +206566,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutMerchantSubscriptionInput = {
@@ -207147,7 +207215,7 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
-    wallet?: WalletCreateNestedOneWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutIpAllowlistsInput = {
@@ -207177,7 +207245,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
-    wallet?: WalletUncheckedCreateNestedOneWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutIpAllowlistsInput = {
@@ -207223,7 +207291,7 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutIpAllowlistsInput = {
@@ -207253,7 +207321,7 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
-    wallet?: WalletUncheckedUpdateOneWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutDeviceSessionsInput = {
@@ -207546,7 +207614,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type TenantCreateWithoutWalletInput = {
+  export type TenantCreateWithoutWalletsInput = {
     id?: string
     name: string
     slug: string
@@ -207576,7 +207644,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
-  export type TenantUncheckedCreateWithoutWalletInput = {
+  export type TenantUncheckedCreateWithoutWalletsInput = {
     id?: string
     name: string
     slug: string
@@ -207606,9 +207674,9 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
-  export type TenantCreateOrConnectWithoutWalletInput = {
+  export type TenantCreateOrConnectWithoutWalletsInput = {
     where: TenantWhereUniqueInput
-    create: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
+    create: XOR<TenantCreateWithoutWalletsInput, TenantUncheckedCreateWithoutWalletsInput>
   }
 
   export type WalletTransactionCreateWithoutWalletInput = {
@@ -207657,18 +207725,18 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type TenantUpsertWithoutWalletInput = {
-    update: XOR<TenantUpdateWithoutWalletInput, TenantUncheckedUpdateWithoutWalletInput>
-    create: XOR<TenantCreateWithoutWalletInput, TenantUncheckedCreateWithoutWalletInput>
+  export type TenantUpsertWithoutWalletsInput = {
+    update: XOR<TenantUpdateWithoutWalletsInput, TenantUncheckedUpdateWithoutWalletsInput>
+    create: XOR<TenantCreateWithoutWalletsInput, TenantUncheckedCreateWithoutWalletsInput>
     where?: TenantWhereInput
   }
 
-  export type TenantUpdateToOneWithWhereWithoutWalletInput = {
+  export type TenantUpdateToOneWithWhereWithoutWalletsInput = {
     where?: TenantWhereInput
-    data: XOR<TenantUpdateWithoutWalletInput, TenantUncheckedUpdateWithoutWalletInput>
+    data: XOR<TenantUpdateWithoutWalletsInput, TenantUncheckedUpdateWithoutWalletsInput>
   }
 
-  export type TenantUpdateWithoutWalletInput = {
+  export type TenantUpdateWithoutWalletsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
@@ -207698,7 +207766,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
-  export type TenantUncheckedUpdateWithoutWalletInput = {
+  export type TenantUncheckedUpdateWithoutWalletsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
@@ -207768,6 +207836,7 @@ export namespace Prisma {
 
   export type WalletCreateWithoutTransactionsInput = {
     id?: string
+    locationId?: string | null
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
@@ -207775,12 +207844,13 @@ export namespace Prisma {
     stripeCustomerId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    tenant: TenantCreateNestedOneWithoutWalletInput
+    tenant: TenantCreateNestedOneWithoutWalletsInput
   }
 
   export type WalletUncheckedCreateWithoutTransactionsInput = {
     id?: string
     tenantId: string
+    locationId?: string | null
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
@@ -207808,6 +207878,7 @@ export namespace Prisma {
 
   export type WalletUpdateWithoutTransactionsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
@@ -207815,12 +207886,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    tenant?: TenantUpdateOneRequiredWithoutWalletNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutWalletsNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutTransactionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
@@ -208172,6 +208244,18 @@ export namespace Prisma {
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WalletCreateManyTenantInput = {
+    id?: string
+    locationId?: string | null
+    balanceMinor?: number
+    currency?: string
+    smsPricePerSegmentMinor?: number | null
+    lowBalanceThresholdMinor?: number
+    stripeCustomerId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -209308,6 +209392,44 @@ export namespace Prisma {
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: WalletTransactionUpdateManyWithoutWalletNestedInput
+  }
+
+  export type WalletUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: WalletTransactionUncheckedUpdateManyWithoutWalletNestedInput
+  }
+
+  export type WalletUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    balanceMinor?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

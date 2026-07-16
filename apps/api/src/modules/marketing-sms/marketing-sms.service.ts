@@ -444,7 +444,7 @@ export class MarketingSmsService {
     const sample = this.personalize(this.composeMessage(args.senderHeader, args.body), {
       firstName: "there",
     });
-    const summary = await this.wallet.getSummary(tenantId);
+    const summary = await this.wallet.getSummary(tenantId, args.locationId ?? null);
     const segmentsPer = this.wallet.estimateSegments(sample);
     const totalSegments = recipients * segmentsPer;
     const costMinor = totalSegments * summary.pricePerSegmentMinor;
@@ -557,7 +557,7 @@ export class MarketingSmsService {
   private async runBroadcast(tenantId: string, id: string, userId?: string) {
     const campaign = await this.db().marketingSmsCampaign.findUnique({ where: { id } });
     if (!campaign) return;
-    const rate = (await this.wallet.getSummary(tenantId)).pricePerSegmentMinor;
+    const rate = (await this.wallet.getSummary(tenantId, campaign.locationId ?? null)).pricePerSegmentMinor;
 
     const contacts = await this.db().marketingContact.findMany({
       where: this.audienceWhere(tenantId, campaign.audience, campaign.locationId),
@@ -587,7 +587,8 @@ export class MarketingSmsService {
       const msg = this.personalize(this.composeMessage(campaign.senderHeader, campaign.body), c);
       try {
         const res = await this.sms.send({
-          tenantId, to: c.phone, body: msg, purpose: "MARKETING", campaignId: id, createdBy: userId,
+          tenantId, to: c.phone, body: msg, purpose: "MARKETING",
+          campaignId: id, locationId: campaign.locationId ?? null, createdBy: userId,
         });
         segments += res.segments;
         cost += res.segments * rate;
