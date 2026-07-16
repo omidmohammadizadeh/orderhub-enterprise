@@ -233,7 +233,7 @@ export class MarketingSmsService {
       if (seen.has(phone)) { report.duplicatesInFile++; continue; }
       seen.add(phone);
 
-      const cust = o.customerId ? custById.get(o.customerId) : null;
+      const cust: any = o.customerId ? custById.get(o.customerId) : null;
       const consented = !!cust?.marketingConsent;
       if (args.consentedOnly && !consented) { report.invalid++; continue; }
 
@@ -259,7 +259,7 @@ export class MarketingSmsService {
     const n = (customerName ?? "").trim();
     if (!n) return [null, null];
     const parts = n.split(/\s+/);
-    return [parts[0], parts.slice(1).join(" ") || null];
+    return [parts[0] ?? null, parts.slice(1).join(" ") || null];
   }
 
   /**
