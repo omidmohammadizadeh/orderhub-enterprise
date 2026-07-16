@@ -9,6 +9,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Decimal } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+import { SmsService } from "../sms/sms.service";
 
 // Lazy-imported only if STRIPE_SECRET_KEY is present
 let Stripe: any;
@@ -113,6 +114,7 @@ export class PaymentsService {
     private readonly socket: SocketService,
     private readonly config: ConfigService,
     private readonly events: EventEmitter2,
+    private readonly sms: SmsService,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -949,6 +951,48 @@ export class PaymentsService {
       captureMethod: "automatic",
     });
     return { url };
+  }
+
+  /** True when the server can send SMS — lets the POS show/hide "Send SMS". */
+  smsConfigured(): boolean {
+    return this.sms.isConfigured();
+  }
+
+  /**
+   * Text the order's hosted payment link to the customer. Generates the link
+   * (same as the QR/copy flow), then sends it via Twilio and meters the send
+   * per restaurant. Throws a clear message if SMS isn't configured or the send
+   * fails (e.g. a trial account texting an unverified number).
+   */
+  async sendOrderPaymentLinkSms(
+    tenantId: string,
+    orderId: string,
+    phone: string,
+    userId?: string,
+  ): Promise<{ ok: true }> {
+    const to = (phone ?? "").trim();
+    if (!to) throw new BadRequestException("A customer phone number is required");
+
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: { id: true, locationId: true, brandId: true, total: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+
+    const { url } = await this.createOrderPaymentLink(tenantId, orderId);
+    const body = `Your payment link: pay £${Number(order.total).toFixed(2)} securely here — ${url}`;
+
+    await this.sms.send({
+      tenantId,
+      to,
+      body,
+      purpose: "PAYMENT_LINK",
+      locationId: order.locationId,
+      brandId: (order as any).brandId ?? null,
+      orderId: order.id,
+      createdBy: userId ?? null,
+    });
+    return { ok: true };
   }
 
   /**

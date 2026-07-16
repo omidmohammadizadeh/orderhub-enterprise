@@ -3855,3 +3855,28 @@ model VideoGeneration {
   @@index([status])
   @@map("video_generations")
 }
+
+// Phase — SMS metering. One row per SMS we send on a tenant's behalf (payment
+// links, marketing). This is the billable ledger: pass-through billing totals
+// each restaurant's usage per period from here. Body is intentionally NOT
+// stored (privacy) — only the recipient, purpose, and segment count for cost.
+model SmsMessage {
+  id          String   @id @default(cuid())
+  tenantId    String
+  locationId  String?
+  brandId     String?
+  orderId     String?
+  toNumber    String
+  purpose     String // PAYMENT_LINK | MARKETING | OTHER
+  segments    Int      @default(1) // SMS parts (drives cost)
+  provider    String   @default("TWILIO")
+  providerSid String? // Twilio message SID
+  status      String // SENT | FAILED
+  error       String?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, locationId, createdAt])
+  @@map("sms_messages")
+}

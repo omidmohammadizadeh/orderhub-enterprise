@@ -1835,6 +1835,23 @@ exports.Prisma.VideoGenerationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SmsMessageScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  orderId: 'orderId',
+  toNumber: 'toNumber',
+  purpose: 'purpose',
+  segments: 'segments',
+  provider: 'provider',
+  providerSid: 'providerSid',
+  status: 'status',
+  error: 'error',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2910,6 +2927,21 @@ exports.Prisma.VideoGenerationOrderByRelevanceFieldEnum = {
   replicatePredictionId: 'replicatePredictionId',
   error: 'error'
 };
+
+exports.Prisma.SmsMessageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  orderId: 'orderId',
+  toNumber: 'toNumber',
+  purpose: 'purpose',
+  provider: 'provider',
+  providerSid: 'providerSid',
+  status: 'status',
+  error: 'error',
+  createdBy: 'createdBy'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3463,7 +3495,8 @@ exports.Prisma.ModelName = {
   OutboxEvent: 'OutboxEvent',
   VideoStudioAccount: 'VideoStudioAccount',
   VideoCreditTxn: 'VideoCreditTxn',
-  VideoGeneration: 'VideoGeneration'
+  VideoGeneration: 'VideoGeneration',
+  SmsMessage: 'SmsMessage'
 };
 
 /**

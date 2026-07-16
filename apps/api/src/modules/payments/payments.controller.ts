@@ -73,11 +73,35 @@ export class PaymentsController {
   @ApiOperation({
     summary: "POS Payment Link — hosted Stripe checkout URL for an unpaid order",
   })
-  createOrderPaymentLink(
+  async createOrderPaymentLink(
     @Param("orderId") orderId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.payments.createOrderPaymentLink(user.tenantId, orderId);
+    const { url } = await this.payments.createOrderPaymentLink(
+      user.tenantId,
+      orderId,
+    );
+    // smsConfigured lets the POS modal show/hide the "Text link to customer" row.
+    return { url, smsConfigured: this.payments.smsConfigured() };
+  }
+
+  // POST /v1/payments/orders/:orderId/payment-link/sms
+  @Post("orders/:orderId/payment-link/sms")
+  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Text the order's hosted payment link to the customer (billable SMS)",
+  })
+  sendOrderPaymentLinkSms(
+    @Param("orderId") orderId: string,
+    @Body() body: { phone?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.payments.sendOrderPaymentLinkSms(
+      user.tenantId,
+      orderId,
+      body?.phone ?? "",
+      user.userId,
+    );
   }
 
   // POST /v1/payments/:paymentId/refund

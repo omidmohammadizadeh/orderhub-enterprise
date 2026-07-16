@@ -71,7 +71,7 @@ export default function PosPage() {
   const [showPromosModal, setShowPromosModal] = useState(false);
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
   const [payLinkOrder, setPayLinkOrder] = useState<
-    { id: string; amount: number; number: string } | null
+    { id: string; amount: number; number: string; customerPhone?: string } | null
   >(null);
   // Phase AW-22 — Edit-mode. When set from ?editOrderId=, we replace
   // the create flow with a PATCH /:id/edit that swaps the order's
@@ -318,7 +318,10 @@ export default function PosPage() {
         total: payload.total,
       };
     },
-    onSuccess: ({ id, scheduled, edited, paymentMethod, total }) => {
+    onSuccess: (
+      { id, scheduled, edited, paymentMethod, total },
+      variables,
+    ) => {
       // Card-terminal orders: pop the reader charge modal for the new order.
       if (!edited && paymentMethod === "CARD_TERMINAL" && id) {
         setChargeOrder({ id, amount: Number(total ?? 0) });
@@ -330,6 +333,7 @@ export default function PosPage() {
           id,
           amount: Number(total ?? 0),
           number: `#${id.slice(-6)}`,
+          customerPhone: variables?.customerPhone || undefined,
         });
       }
       setSubmitFeedback(
@@ -570,6 +574,7 @@ export default function PosPage() {
         orderId={payLinkOrder?.id ?? null}
         orderNumber={payLinkOrder?.number ?? null}
         amount={payLinkOrder?.amount ?? 0}
+        customerPhone={payLinkOrder?.customerPhone ?? null}
         onClose={() => setPayLinkOrder(null)}
       />
 

@@ -533,6 +533,11 @@ export type VideoCreditTxn = $Result.DefaultSelection<Prisma.$VideoCreditTxnPayl
  * 
  */
 export type VideoGeneration = $Result.DefaultSelection<Prisma.$VideoGenerationPayload>
+/**
+ * Model SmsMessage
+ * 
+ */
+export type SmsMessage = $Result.DefaultSelection<Prisma.$SmsMessagePayload>
 
 /**
  * Enums
@@ -2518,6 +2523,16 @@ export class PrismaClient<
     * ```
     */
   get videoGeneration(): Prisma.VideoGenerationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.smsMessage`: Exposes CRUD operations for the **SmsMessage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SmsMessages
+    * const smsMessages = await prisma.smsMessage.findMany()
+    * ```
+    */
+  get smsMessage(): Prisma.SmsMessageDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3062,7 +3077,8 @@ export namespace Prisma {
     OutboxEvent: 'OutboxEvent',
     VideoStudioAccount: 'VideoStudioAccount',
     VideoCreditTxn: 'VideoCreditTxn',
-    VideoGeneration: 'VideoGeneration'
+    VideoGeneration: 'VideoGeneration',
+    SmsMessage: 'SmsMessage'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3078,7 +3094,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -10359,6 +10375,76 @@ export namespace Prisma {
           count: {
             args: Prisma.VideoGenerationCountArgs<ExtArgs>
             result: $Utils.Optional<VideoGenerationCountAggregateOutputType> | number
+          }
+        }
+      }
+      SmsMessage: {
+        payload: Prisma.$SmsMessagePayload<ExtArgs>
+        fields: Prisma.SmsMessageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SmsMessageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SmsMessageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>
+          }
+          findFirst: {
+            args: Prisma.SmsMessageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SmsMessageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>
+          }
+          findMany: {
+            args: Prisma.SmsMessageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>[]
+          }
+          create: {
+            args: Prisma.SmsMessageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>
+          }
+          createMany: {
+            args: Prisma.SmsMessageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SmsMessageCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>[]
+          }
+          delete: {
+            args: Prisma.SmsMessageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>
+          }
+          update: {
+            args: Prisma.SmsMessageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>
+          }
+          deleteMany: {
+            args: Prisma.SmsMessageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SmsMessageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SmsMessageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessagePayload>
+          }
+          aggregate: {
+            args: Prisma.SmsMessageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSmsMessage>
+          }
+          groupBy: {
+            args: Prisma.SmsMessageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SmsMessageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SmsMessageCountArgs<ExtArgs>
+            result: $Utils.Optional<SmsMessageCountAggregateOutputType> | number
           }
         }
       }
@@ -123971,6 +124057,1026 @@ export namespace Prisma {
 
 
   /**
+   * Model SmsMessage
+   */
+
+  export type AggregateSmsMessage = {
+    _count: SmsMessageCountAggregateOutputType | null
+    _avg: SmsMessageAvgAggregateOutputType | null
+    _sum: SmsMessageSumAggregateOutputType | null
+    _min: SmsMessageMinAggregateOutputType | null
+    _max: SmsMessageMaxAggregateOutputType | null
+  }
+
+  export type SmsMessageAvgAggregateOutputType = {
+    segments: number | null
+  }
+
+  export type SmsMessageSumAggregateOutputType = {
+    segments: number | null
+  }
+
+  export type SmsMessageMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    orderId: string | null
+    toNumber: string | null
+    purpose: string | null
+    segments: number | null
+    provider: string | null
+    providerSid: string | null
+    status: string | null
+    error: string | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type SmsMessageMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    orderId: string | null
+    toNumber: string | null
+    purpose: string | null
+    segments: number | null
+    provider: string | null
+    providerSid: string | null
+    status: string | null
+    error: string | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type SmsMessageCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    orderId: number
+    toNumber: number
+    purpose: number
+    segments: number
+    provider: number
+    providerSid: number
+    status: number
+    error: number
+    createdBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type SmsMessageAvgAggregateInputType = {
+    segments?: true
+  }
+
+  export type SmsMessageSumAggregateInputType = {
+    segments?: true
+  }
+
+  export type SmsMessageMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    orderId?: true
+    toNumber?: true
+    purpose?: true
+    segments?: true
+    provider?: true
+    providerSid?: true
+    status?: true
+    error?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type SmsMessageMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    orderId?: true
+    toNumber?: true
+    purpose?: true
+    segments?: true
+    provider?: true
+    providerSid?: true
+    status?: true
+    error?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type SmsMessageCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    orderId?: true
+    toNumber?: true
+    purpose?: true
+    segments?: true
+    provider?: true
+    providerSid?: true
+    status?: true
+    error?: true
+    createdBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type SmsMessageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SmsMessage to aggregate.
+     */
+    where?: SmsMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessages to fetch.
+     */
+    orderBy?: SmsMessageOrderByWithRelationInput | SmsMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SmsMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SmsMessages
+    **/
+    _count?: true | SmsMessageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SmsMessageAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SmsMessageSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SmsMessageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SmsMessageMaxAggregateInputType
+  }
+
+  export type GetSmsMessageAggregateType<T extends SmsMessageAggregateArgs> = {
+        [P in keyof T & keyof AggregateSmsMessage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSmsMessage[P]>
+      : GetScalarType<T[P], AggregateSmsMessage[P]>
+  }
+
+
+
+
+  export type SmsMessageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SmsMessageWhereInput
+    orderBy?: SmsMessageOrderByWithAggregationInput | SmsMessageOrderByWithAggregationInput[]
+    by: SmsMessageScalarFieldEnum[] | SmsMessageScalarFieldEnum
+    having?: SmsMessageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SmsMessageCountAggregateInputType | true
+    _avg?: SmsMessageAvgAggregateInputType
+    _sum?: SmsMessageSumAggregateInputType
+    _min?: SmsMessageMinAggregateInputType
+    _max?: SmsMessageMaxAggregateInputType
+  }
+
+  export type SmsMessageGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string | null
+    brandId: string | null
+    orderId: string | null
+    toNumber: string
+    purpose: string
+    segments: number
+    provider: string
+    providerSid: string | null
+    status: string
+    error: string | null
+    createdBy: string | null
+    createdAt: Date
+    _count: SmsMessageCountAggregateOutputType | null
+    _avg: SmsMessageAvgAggregateOutputType | null
+    _sum: SmsMessageSumAggregateOutputType | null
+    _min: SmsMessageMinAggregateOutputType | null
+    _max: SmsMessageMaxAggregateOutputType | null
+  }
+
+  type GetSmsMessageGroupByPayload<T extends SmsMessageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SmsMessageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SmsMessageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SmsMessageGroupByOutputType[P]>
+            : GetScalarType<T[P], SmsMessageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SmsMessageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    orderId?: boolean
+    toNumber?: boolean
+    purpose?: boolean
+    segments?: boolean
+    provider?: boolean
+    providerSid?: boolean
+    status?: boolean
+    error?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["smsMessage"]>
+
+  export type SmsMessageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    orderId?: boolean
+    toNumber?: boolean
+    purpose?: boolean
+    segments?: boolean
+    provider?: boolean
+    providerSid?: boolean
+    status?: boolean
+    error?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["smsMessage"]>
+
+  export type SmsMessageSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    orderId?: boolean
+    toNumber?: boolean
+    purpose?: boolean
+    segments?: boolean
+    provider?: boolean
+    providerSid?: boolean
+    status?: boolean
+    error?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $SmsMessagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SmsMessage"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string | null
+      brandId: string | null
+      orderId: string | null
+      toNumber: string
+      purpose: string
+      segments: number
+      provider: string
+      providerSid: string | null
+      status: string
+      error: string | null
+      createdBy: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["smsMessage"]>
+    composites: {}
+  }
+
+  type SmsMessageGetPayload<S extends boolean | null | undefined | SmsMessageDefaultArgs> = $Result.GetResult<Prisma.$SmsMessagePayload, S>
+
+  type SmsMessageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SmsMessageFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SmsMessageCountAggregateInputType | true
+    }
+
+  export interface SmsMessageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SmsMessage'], meta: { name: 'SmsMessage' } }
+    /**
+     * Find zero or one SmsMessage that matches the filter.
+     * @param {SmsMessageFindUniqueArgs} args - Arguments to find a SmsMessage
+     * @example
+     * // Get one SmsMessage
+     * const smsMessage = await prisma.smsMessage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SmsMessageFindUniqueArgs>(args: SelectSubset<T, SmsMessageFindUniqueArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SmsMessage that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SmsMessageFindUniqueOrThrowArgs} args - Arguments to find a SmsMessage
+     * @example
+     * // Get one SmsMessage
+     * const smsMessage = await prisma.smsMessage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SmsMessageFindUniqueOrThrowArgs>(args: SelectSubset<T, SmsMessageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SmsMessage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageFindFirstArgs} args - Arguments to find a SmsMessage
+     * @example
+     * // Get one SmsMessage
+     * const smsMessage = await prisma.smsMessage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SmsMessageFindFirstArgs>(args?: SelectSubset<T, SmsMessageFindFirstArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SmsMessage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageFindFirstOrThrowArgs} args - Arguments to find a SmsMessage
+     * @example
+     * // Get one SmsMessage
+     * const smsMessage = await prisma.smsMessage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SmsMessageFindFirstOrThrowArgs>(args?: SelectSubset<T, SmsMessageFindFirstOrThrowArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SmsMessages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SmsMessages
+     * const smsMessages = await prisma.smsMessage.findMany()
+     * 
+     * // Get first 10 SmsMessages
+     * const smsMessages = await prisma.smsMessage.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const smsMessageWithIdOnly = await prisma.smsMessage.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SmsMessageFindManyArgs>(args?: SelectSubset<T, SmsMessageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SmsMessage.
+     * @param {SmsMessageCreateArgs} args - Arguments to create a SmsMessage.
+     * @example
+     * // Create one SmsMessage
+     * const SmsMessage = await prisma.smsMessage.create({
+     *   data: {
+     *     // ... data to create a SmsMessage
+     *   }
+     * })
+     * 
+     */
+    create<T extends SmsMessageCreateArgs>(args: SelectSubset<T, SmsMessageCreateArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SmsMessages.
+     * @param {SmsMessageCreateManyArgs} args - Arguments to create many SmsMessages.
+     * @example
+     * // Create many SmsMessages
+     * const smsMessage = await prisma.smsMessage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SmsMessageCreateManyArgs>(args?: SelectSubset<T, SmsMessageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SmsMessages and returns the data saved in the database.
+     * @param {SmsMessageCreateManyAndReturnArgs} args - Arguments to create many SmsMessages.
+     * @example
+     * // Create many SmsMessages
+     * const smsMessage = await prisma.smsMessage.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SmsMessages and only return the `id`
+     * const smsMessageWithIdOnly = await prisma.smsMessage.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SmsMessageCreateManyAndReturnArgs>(args?: SelectSubset<T, SmsMessageCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SmsMessage.
+     * @param {SmsMessageDeleteArgs} args - Arguments to delete one SmsMessage.
+     * @example
+     * // Delete one SmsMessage
+     * const SmsMessage = await prisma.smsMessage.delete({
+     *   where: {
+     *     // ... filter to delete one SmsMessage
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SmsMessageDeleteArgs>(args: SelectSubset<T, SmsMessageDeleteArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SmsMessage.
+     * @param {SmsMessageUpdateArgs} args - Arguments to update one SmsMessage.
+     * @example
+     * // Update one SmsMessage
+     * const smsMessage = await prisma.smsMessage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SmsMessageUpdateArgs>(args: SelectSubset<T, SmsMessageUpdateArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SmsMessages.
+     * @param {SmsMessageDeleteManyArgs} args - Arguments to filter SmsMessages to delete.
+     * @example
+     * // Delete a few SmsMessages
+     * const { count } = await prisma.smsMessage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SmsMessageDeleteManyArgs>(args?: SelectSubset<T, SmsMessageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SmsMessages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SmsMessages
+     * const smsMessage = await prisma.smsMessage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SmsMessageUpdateManyArgs>(args: SelectSubset<T, SmsMessageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SmsMessage.
+     * @param {SmsMessageUpsertArgs} args - Arguments to update or create a SmsMessage.
+     * @example
+     * // Update or create a SmsMessage
+     * const smsMessage = await prisma.smsMessage.upsert({
+     *   create: {
+     *     // ... data to create a SmsMessage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SmsMessage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SmsMessageUpsertArgs>(args: SelectSubset<T, SmsMessageUpsertArgs<ExtArgs>>): Prisma__SmsMessageClient<$Result.GetResult<Prisma.$SmsMessagePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SmsMessages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageCountArgs} args - Arguments to filter SmsMessages to count.
+     * @example
+     * // Count the number of SmsMessages
+     * const count = await prisma.smsMessage.count({
+     *   where: {
+     *     // ... the filter for the SmsMessages we want to count
+     *   }
+     * })
+    **/
+    count<T extends SmsMessageCountArgs>(
+      args?: Subset<T, SmsMessageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SmsMessageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SmsMessage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SmsMessageAggregateArgs>(args: Subset<T, SmsMessageAggregateArgs>): Prisma.PrismaPromise<GetSmsMessageAggregateType<T>>
+
+    /**
+     * Group by SmsMessage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SmsMessageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SmsMessageGroupByArgs['orderBy'] }
+        : { orderBy?: SmsMessageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SmsMessageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSmsMessageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SmsMessage model
+   */
+  readonly fields: SmsMessageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SmsMessage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SmsMessageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SmsMessage model
+   */ 
+  interface SmsMessageFieldRefs {
+    readonly id: FieldRef<"SmsMessage", 'String'>
+    readonly tenantId: FieldRef<"SmsMessage", 'String'>
+    readonly locationId: FieldRef<"SmsMessage", 'String'>
+    readonly brandId: FieldRef<"SmsMessage", 'String'>
+    readonly orderId: FieldRef<"SmsMessage", 'String'>
+    readonly toNumber: FieldRef<"SmsMessage", 'String'>
+    readonly purpose: FieldRef<"SmsMessage", 'String'>
+    readonly segments: FieldRef<"SmsMessage", 'Int'>
+    readonly provider: FieldRef<"SmsMessage", 'String'>
+    readonly providerSid: FieldRef<"SmsMessage", 'String'>
+    readonly status: FieldRef<"SmsMessage", 'String'>
+    readonly error: FieldRef<"SmsMessage", 'String'>
+    readonly createdBy: FieldRef<"SmsMessage", 'String'>
+    readonly createdAt: FieldRef<"SmsMessage", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SmsMessage findUnique
+   */
+  export type SmsMessageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which SmsMessage to fetch.
+     */
+    where: SmsMessageWhereUniqueInput
+  }
+
+  /**
+   * SmsMessage findUniqueOrThrow
+   */
+  export type SmsMessageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which SmsMessage to fetch.
+     */
+    where: SmsMessageWhereUniqueInput
+  }
+
+  /**
+   * SmsMessage findFirst
+   */
+  export type SmsMessageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which SmsMessage to fetch.
+     */
+    where?: SmsMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessages to fetch.
+     */
+    orderBy?: SmsMessageOrderByWithRelationInput | SmsMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SmsMessages.
+     */
+    cursor?: SmsMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SmsMessages.
+     */
+    distinct?: SmsMessageScalarFieldEnum | SmsMessageScalarFieldEnum[]
+  }
+
+  /**
+   * SmsMessage findFirstOrThrow
+   */
+  export type SmsMessageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which SmsMessage to fetch.
+     */
+    where?: SmsMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessages to fetch.
+     */
+    orderBy?: SmsMessageOrderByWithRelationInput | SmsMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SmsMessages.
+     */
+    cursor?: SmsMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SmsMessages.
+     */
+    distinct?: SmsMessageScalarFieldEnum | SmsMessageScalarFieldEnum[]
+  }
+
+  /**
+   * SmsMessage findMany
+   */
+  export type SmsMessageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which SmsMessages to fetch.
+     */
+    where?: SmsMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessages to fetch.
+     */
+    orderBy?: SmsMessageOrderByWithRelationInput | SmsMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SmsMessages.
+     */
+    cursor?: SmsMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessages.
+     */
+    skip?: number
+    distinct?: SmsMessageScalarFieldEnum | SmsMessageScalarFieldEnum[]
+  }
+
+  /**
+   * SmsMessage create
+   */
+  export type SmsMessageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * The data needed to create a SmsMessage.
+     */
+    data: XOR<SmsMessageCreateInput, SmsMessageUncheckedCreateInput>
+  }
+
+  /**
+   * SmsMessage createMany
+   */
+  export type SmsMessageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SmsMessages.
+     */
+    data: SmsMessageCreateManyInput | SmsMessageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SmsMessage createManyAndReturn
+   */
+  export type SmsMessageCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SmsMessages.
+     */
+    data: SmsMessageCreateManyInput | SmsMessageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SmsMessage update
+   */
+  export type SmsMessageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * The data needed to update a SmsMessage.
+     */
+    data: XOR<SmsMessageUpdateInput, SmsMessageUncheckedUpdateInput>
+    /**
+     * Choose, which SmsMessage to update.
+     */
+    where: SmsMessageWhereUniqueInput
+  }
+
+  /**
+   * SmsMessage updateMany
+   */
+  export type SmsMessageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SmsMessages.
+     */
+    data: XOR<SmsMessageUpdateManyMutationInput, SmsMessageUncheckedUpdateManyInput>
+    /**
+     * Filter which SmsMessages to update
+     */
+    where?: SmsMessageWhereInput
+  }
+
+  /**
+   * SmsMessage upsert
+   */
+  export type SmsMessageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * The filter to search for the SmsMessage to update in case it exists.
+     */
+    where: SmsMessageWhereUniqueInput
+    /**
+     * In case the SmsMessage found by the `where` argument doesn't exist, create a new SmsMessage with this data.
+     */
+    create: XOR<SmsMessageCreateInput, SmsMessageUncheckedCreateInput>
+    /**
+     * In case the SmsMessage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SmsMessageUpdateInput, SmsMessageUncheckedUpdateInput>
+  }
+
+  /**
+   * SmsMessage delete
+   */
+  export type SmsMessageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+    /**
+     * Filter which SmsMessage to delete.
+     */
+    where: SmsMessageWhereUniqueInput
+  }
+
+  /**
+   * SmsMessage deleteMany
+   */
+  export type SmsMessageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SmsMessages to delete
+     */
+    where?: SmsMessageWhereInput
+  }
+
+  /**
+   * SmsMessage without action
+   */
+  export type SmsMessageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessage
+     */
+    select?: SmsMessageSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -126009,6 +127115,26 @@ export namespace Prisma {
   export type VideoGenerationScalarFieldEnum = (typeof VideoGenerationScalarFieldEnum)[keyof typeof VideoGenerationScalarFieldEnum]
 
 
+  export const SmsMessageScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    orderId: 'orderId',
+    toNumber: 'toNumber',
+    purpose: 'purpose',
+    segments: 'segments',
+    provider: 'provider',
+    providerSid: 'providerSid',
+    status: 'status',
+    error: 'error',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt'
+  };
+
+  export type SmsMessageScalarFieldEnum = (typeof SmsMessageScalarFieldEnum)[keyof typeof SmsMessageScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -127413,6 +128539,24 @@ export namespace Prisma {
   };
 
   export type VideoGenerationOrderByRelevanceFieldEnum = (typeof VideoGenerationOrderByRelevanceFieldEnum)[keyof typeof VideoGenerationOrderByRelevanceFieldEnum]
+
+
+  export const SmsMessageOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    orderId: 'orderId',
+    toNumber: 'toNumber',
+    purpose: 'purpose',
+    provider: 'provider',
+    providerSid: 'providerSid',
+    status: 'status',
+    error: 'error',
+    createdBy: 'createdBy'
+  };
+
+  export type SmsMessageOrderByRelevanceFieldEnum = (typeof SmsMessageOrderByRelevanceFieldEnum)[keyof typeof SmsMessageOrderByRelevanceFieldEnum]
 
 
   /**
@@ -139004,6 +140148,106 @@ export namespace Prisma {
     error?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"VideoGeneration"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"VideoGeneration"> | Date | string
+  }
+
+  export type SmsMessageWhereInput = {
+    AND?: SmsMessageWhereInput | SmsMessageWhereInput[]
+    OR?: SmsMessageWhereInput[]
+    NOT?: SmsMessageWhereInput | SmsMessageWhereInput[]
+    id?: StringFilter<"SmsMessage"> | string
+    tenantId?: StringFilter<"SmsMessage"> | string
+    locationId?: StringNullableFilter<"SmsMessage"> | string | null
+    brandId?: StringNullableFilter<"SmsMessage"> | string | null
+    orderId?: StringNullableFilter<"SmsMessage"> | string | null
+    toNumber?: StringFilter<"SmsMessage"> | string
+    purpose?: StringFilter<"SmsMessage"> | string
+    segments?: IntFilter<"SmsMessage"> | number
+    provider?: StringFilter<"SmsMessage"> | string
+    providerSid?: StringNullableFilter<"SmsMessage"> | string | null
+    status?: StringFilter<"SmsMessage"> | string
+    error?: StringNullableFilter<"SmsMessage"> | string | null
+    createdBy?: StringNullableFilter<"SmsMessage"> | string | null
+    createdAt?: DateTimeFilter<"SmsMessage"> | Date | string
+  }
+
+  export type SmsMessageOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    toNumber?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    provider?: SortOrder
+    providerSid?: SortOrderInput | SortOrder
+    status?: SortOrder
+    error?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _relevance?: SmsMessageOrderByRelevanceInput
+  }
+
+  export type SmsMessageWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SmsMessageWhereInput | SmsMessageWhereInput[]
+    OR?: SmsMessageWhereInput[]
+    NOT?: SmsMessageWhereInput | SmsMessageWhereInput[]
+    tenantId?: StringFilter<"SmsMessage"> | string
+    locationId?: StringNullableFilter<"SmsMessage"> | string | null
+    brandId?: StringNullableFilter<"SmsMessage"> | string | null
+    orderId?: StringNullableFilter<"SmsMessage"> | string | null
+    toNumber?: StringFilter<"SmsMessage"> | string
+    purpose?: StringFilter<"SmsMessage"> | string
+    segments?: IntFilter<"SmsMessage"> | number
+    provider?: StringFilter<"SmsMessage"> | string
+    providerSid?: StringNullableFilter<"SmsMessage"> | string | null
+    status?: StringFilter<"SmsMessage"> | string
+    error?: StringNullableFilter<"SmsMessage"> | string | null
+    createdBy?: StringNullableFilter<"SmsMessage"> | string | null
+    createdAt?: DateTimeFilter<"SmsMessage"> | Date | string
+  }, "id">
+
+  export type SmsMessageOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    toNumber?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    provider?: SortOrder
+    providerSid?: SortOrderInput | SortOrder
+    status?: SortOrder
+    error?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: SmsMessageCountOrderByAggregateInput
+    _avg?: SmsMessageAvgOrderByAggregateInput
+    _max?: SmsMessageMaxOrderByAggregateInput
+    _min?: SmsMessageMinOrderByAggregateInput
+    _sum?: SmsMessageSumOrderByAggregateInput
+  }
+
+  export type SmsMessageScalarWhereWithAggregatesInput = {
+    AND?: SmsMessageScalarWhereWithAggregatesInput | SmsMessageScalarWhereWithAggregatesInput[]
+    OR?: SmsMessageScalarWhereWithAggregatesInput[]
+    NOT?: SmsMessageScalarWhereWithAggregatesInput | SmsMessageScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SmsMessage"> | string
+    tenantId?: StringWithAggregatesFilter<"SmsMessage"> | string
+    locationId?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
+    toNumber?: StringWithAggregatesFilter<"SmsMessage"> | string
+    purpose?: StringWithAggregatesFilter<"SmsMessage"> | string
+    segments?: IntWithAggregatesFilter<"SmsMessage"> | number
+    provider?: StringWithAggregatesFilter<"SmsMessage"> | string
+    providerSid?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
+    status?: StringWithAggregatesFilter<"SmsMessage"> | string
+    error?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
+    createdBy?: StringNullableWithAggregatesFilter<"SmsMessage"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SmsMessage"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -151357,6 +152601,125 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type SmsMessageCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    orderId?: string | null
+    toNumber: string
+    purpose: string
+    segments?: number
+    provider?: string
+    providerSid?: string | null
+    status: string
+    error?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SmsMessageUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    orderId?: string | null
+    toNumber: string
+    purpose: string
+    segments?: number
+    provider?: string
+    providerSid?: string | null
+    status: string
+    error?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SmsMessageUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    segments?: IntFieldUpdateOperationsInput | number
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSid?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SmsMessageUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    segments?: IntFieldUpdateOperationsInput | number
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSid?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SmsMessageCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    orderId?: string | null
+    toNumber: string
+    purpose: string
+    segments?: number
+    provider?: string
+    providerSid?: string | null
+    status: string
+    error?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SmsMessageUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    segments?: IntFieldUpdateOperationsInput | number
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSid?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SmsMessageUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    segments?: IntFieldUpdateOperationsInput | number
+    provider?: StringFieldUpdateOperationsInput | string
+    providerSid?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -159963,6 +161326,71 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumVideoGenStatusFilter<$PrismaModel>
     _max?: NestedEnumVideoGenStatusFilter<$PrismaModel>
+  }
+
+  export type SmsMessageOrderByRelevanceInput = {
+    fields: SmsMessageOrderByRelevanceFieldEnum | SmsMessageOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SmsMessageCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    toNumber?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    provider?: SortOrder
+    providerSid?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SmsMessageAvgOrderByAggregateInput = {
+    segments?: SortOrder
+  }
+
+  export type SmsMessageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    toNumber?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    provider?: SortOrder
+    providerSid?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SmsMessageMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    toNumber?: SortOrder
+    purpose?: SortOrder
+    segments?: SortOrder
+    provider?: SortOrder
+    providerSid?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SmsMessageSumOrderByAggregateInput = {
+    segments?: SortOrder
   }
 
   export type BrandCreateNestedManyWithoutTenantInput = {
@@ -207349,6 +208777,10 @@ export namespace Prisma {
      * @deprecated Use VideoGenerationDefaultArgs instead
      */
     export type VideoGenerationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = VideoGenerationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SmsMessageDefaultArgs instead
+     */
+    export type SmsMessageArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SmsMessageDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

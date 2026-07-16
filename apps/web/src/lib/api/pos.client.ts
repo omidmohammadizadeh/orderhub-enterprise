@@ -245,6 +245,16 @@ export const addressLookupClient = {
 export const paymentLinkClient = {
   create: (orderId: string) =>
     apiClient
-      .post<{ url: string }>(`/v1/payments/orders/${orderId}/payment-link`)
+      .post<{ url: string; smsConfigured: boolean }>(
+        `/v1/payments/orders/${orderId}/payment-link`,
+      )
+      .then((r) => r.data),
+  // Text the link to the customer. Billable — meters an sms_messages row.
+  sendSms: (orderId: string, phone: string) =>
+    apiClient
+      .post<{ ok: true }>(
+        `/v1/payments/orders/${orderId}/payment-link/sms`,
+        { phone },
+      )
       .then((r) => r.data),
 };

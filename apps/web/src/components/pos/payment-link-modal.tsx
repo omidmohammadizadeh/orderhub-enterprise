@@ -6,7 +6,8 @@
 // stays "pending payment" and flips to PAID automatically via the Stripe
 // webhook (which pushes an order:updated socket event to the board).
 //
-// Phase 2 will add a "Send SMS" button here (reuses the Twilio path).
+// Phase 2 adds "Text link to customer" — sends the same link over SMS via
+// Twilio (a billable send, metered per restaurant in sms_messages).
 
 import { useCallback, useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
@@ -17,18 +18,25 @@ export function PaymentLinkModal({
   orderId,
   orderNumber,
   amount,
+  customerPhone,
   onClose,
 }: {
   open: boolean;
   orderId: string | null;
   orderNumber?: string | null;
   amount: number;
+  customerPhone?: string | null;
   onClose: () => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [smsConfigured, setSmsConfigured] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [smsState, setSmsState] = useState<"idle" | "sending" | "sent">("idle");
+  const [smsError, setSmsError] = useState<string | null>(null);
 
   const load = useCallback(async (id: string) => {
     setLoading(true);
@@ -37,6 +45,7 @@ export function PaymentLinkModal({
     try {
       const res = await paymentLinkClient.create(id);
       setUrl(res.url);
+      setSmsConfigured(!!res.smsConfigured);
     } catch (err: any) {
       setError(
         err?.response?.data?.message ??
@@ -49,8 +58,35 @@ export function PaymentLinkModal({
   }, []);
 
   useEffect(() => {
-    if (open && orderId) load(orderId);
-  }, [open, orderId, load]);
+    if (open && orderId) {
+      load(orderId);
+      setPhone(customerPhone ?? "");
+      setSmsState("idle");
+      setSmsError(null);
+    }
+  }, [open, orderId, customerPhone, load]);
+
+  const sendSms = async () => {
+    if (!orderId) return;
+    const to = phone.trim();
+    if (!to) {
+      setSmsError("Enter the customer's mobile number");
+      return;
+    }
+    setSmsState("sending");
+    setSmsError(null);
+    try {
+      await paymentLinkClient.sendSms(orderId, to);
+      setSmsState("sent");
+    } catch (err: any) {
+      setSmsState("idle");
+      setSmsError(
+        err?.response?.data?.message ??
+          err?.message ??
+          "Couldn't send the text",
+      );
+    }
+  };
 
   const copy = async () => {
     if (!url) return;
@@ -141,6 +177,43 @@ export function PaymentLinkModal({
               >
                 Open payment page ↗
               </a>
+
+              {smsConfigured && (
+                <div className="mt-4 w-full border-t border-zinc-100 pt-4">
+                  {smsState === "sent" ? (
+                    <p className="text-center text-sm font-medium text-emerald-700">
+                      ✓ Link texted to {phone}
+                    </p>
+                  ) : (
+                    <>
+                      <label className="mb-1 block text-xs font-medium text-zinc-600">
+                        Text link to customer
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="tel"
+                          inputMode="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="07… mobile number"
+                          className="min-w-0 flex-1 rounded-md border border-zinc-300 px-2 py-1.5 text-sm text-zinc-800 placeholder:text-zinc-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={sendSms}
+                          disabled={smsState === "sending"}
+                          className="shrink-0 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {smsState === "sending" ? "Sending…" : "Send"}
+                        </button>
+                      </div>
+                      {smsError && (
+                        <p className="mt-1.5 text-xs text-red-600">{smsError}</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
