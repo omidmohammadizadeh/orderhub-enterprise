@@ -29,6 +29,7 @@ import {
   type ImportReport,
 } from "@/lib/api/marketing-sms.client";
 import { formatGbp } from "@/lib/api/wallet.client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { estimateSegments } from "@/lib/marketing-sms/segments";
 import {
   parseContactFile,
@@ -41,9 +42,10 @@ type Tab = "compose" | "contacts" | "history";
 
 export default function SmsMarketingPage() {
   const [tab, setTab] = useState<Tab>("compose");
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const { data: contactStats } = useQuery({
-    queryKey: ["sms-contacts", "stats"],
-    queryFn: () => marketingSmsClient.contacts({ limit: 1 }),
+    queryKey: ["sms-contacts", "stats", locationId],
+    queryFn: () => marketingSmsClient.contacts({ limit: 1, locationId }),
   });
 
   return (
@@ -107,6 +109,7 @@ export default function SmsMarketingPage() {
 
 function ComposeTab() {
   const qc = useQueryClient();
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const [name, setName] = useState("");
   const [header, setHeader] = useState("");
   const [body, setBody] = useState("");
@@ -115,8 +118,8 @@ function ComposeTab() {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: channels } = useQuery({
-    queryKey: ["sms-channels"],
-    queryFn: () => marketingSmsClient.channels(),
+    queryKey: ["sms-channels", locationId],
+    queryFn: () => marketingSmsClient.channels(locationId),
   });
 
   // Debounce message/audience → live preview.
@@ -127,12 +130,13 @@ function ComposeTab() {
   }, [header, body, sources]);
 
   const { data: preview, isFetching: previewing } = useQuery({
-    queryKey: ["sms-preview", debounced],
+    queryKey: ["sms-preview", debounced, locationId],
     queryFn: () =>
       marketingSmsClient.preview({
         senderHeader: debounced.header,
         body: debounced.body,
         audience: { sources: debounced.sources },
+        locationId,
       }),
     enabled: debounced.body.trim().length > 0,
   });
@@ -153,6 +157,7 @@ function ComposeTab() {
         senderHeader: header,
         body,
         audience: { sources },
+        locationId,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sms-campaigns"] }),
   });
@@ -169,6 +174,7 @@ function ComposeTab() {
         senderHeader: header,
         body,
         audience: { sources },
+        locationId,
       });
       return marketingSmsClient.send(c.id);
     },
@@ -423,14 +429,20 @@ function consentPill(status: string) {
 
 function ContactsTab() {
   const qc = useQueryClient();
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const [consent, setConsent] = useState("");
   const [search, setSearch] = useState("");
   const [showImport, setShowImport] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["sms-contacts", consent, search],
+    queryKey: ["sms-contacts", consent, search, locationId],
     queryFn: () =>
-      marketingSmsClient.contacts({ consent: consent || undefined, search: search || undefined, limit: 300 }),
+      marketingSmsClient.contacts({
+        consent: consent || undefined,
+        search: search || undefined,
+        limit: 300,
+        locationId,
+      }),
   });
 
   const toggle = useMutation({
@@ -539,6 +551,7 @@ function ContactsTab() {
 
 function ImportWizard({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const [mode, setMode] = useState<"channels" | "file">("channels");
   const [report, setReport] = useState<ImportReport | null>(null);
 
@@ -546,8 +559,8 @@ function ImportWizard({ onClose }: { onClose: () => void }) {
   const [picked, setPicked] = useState<string[]>([]);
   const [consentedOnly, setConsentedOnly] = useState(true);
   const { data: channels } = useQuery({
-    queryKey: ["sms-channels"],
-    queryFn: () => marketingSmsClient.channels(),
+    queryKey: ["sms-channels", locationId],
+    queryFn: () => marketingSmsClient.channels(locationId),
   });
 
   // File / paste state
@@ -564,13 +577,18 @@ function ImportWizard({ onClose }: { onClose: () => void }) {
   };
 
   const importChannels = useMutation({
-    mutationFn: () => marketingSmsClient.importFromCustomers(picked, consentedOnly),
+    mutationFn: () => marketingSmsClient.importFromCustomers(picked, consentedOnly, locationId),
     onSuccess: done,
   });
 
   const importRows = useMutation({
     mutationFn: () =>
-      marketingSmsClient.importRows(parsed?.rows ?? [], fileName ? "FILE" : "PASTE", assertConsent),
+      marketingSmsClient.importRows(
+        parsed?.rows ?? [],
+        fileName ? "FILE" : "PASTE",
+        assertConsent,
+        locationId,
+      ),
     onSuccess: done,
   });
 
@@ -779,9 +797,10 @@ function ImportWizard({ onClose }: { onClose: () => void }) {
 /* ─────────────────────────── History ─────────────────────────── */
 
 function HistoryTab() {
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const { data, isLoading } = useQuery({
-    queryKey: ["sms-campaigns"],
-    queryFn: () => marketingSmsClient.campaigns(),
+    queryKey: ["sms-campaigns", locationId],
+    queryFn: () => marketingSmsClient.campaigns(locationId),
     refetchInterval: (q) =>
       (q.state.data ?? []).some((c: any) => c.status === "SENDING") ? 3000 : false,
   });

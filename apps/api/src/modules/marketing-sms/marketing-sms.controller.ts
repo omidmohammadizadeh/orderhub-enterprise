@@ -38,8 +38,11 @@ export class MarketingSmsController {
   @Get("channels")
   @Roles(...MARKETING_ROLES)
   @ApiOperation({ summary: "Channels available to import from, with contact counts" })
-  channels(@CurrentUser() user: AuthenticatedUser) {
-    return this.svc.channelCounts(user.tenantId);
+  channels(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.svc.channelCounts(user.tenantId, locationId);
   }
 
   @Get("contacts")
@@ -50,9 +53,11 @@ export class MarketingSmsController {
     @Query("source") source?: string,
     @Query("search") search?: string,
     @Query("limit") limit?: string,
+    @Query("locationId") locationId?: string,
   ) {
     return this.svc.listContacts(user.tenantId, {
-      consent, source, search, limit: limit ? parseInt(limit, 10) : undefined,
+      consent, source, search, locationId,
+      limit: limit ? parseInt(limit, 10) : undefined,
     });
   }
 
@@ -61,11 +66,12 @@ export class MarketingSmsController {
   @ApiOperation({ summary: "Import contacts from the CRM by channel" })
   importFromCustomers(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { sources: string[]; consentedOnly?: boolean },
+    @Body() body: { sources: string[]; consentedOnly?: boolean; locationId?: string },
   ) {
     return this.svc.importFromCustomers(user.tenantId, {
       sources: body?.sources ?? [],
       consentedOnly: body?.consentedOnly,
+      locationId: body?.locationId,
       createdBy: user.userId,
     });
   }
@@ -75,11 +81,12 @@ export class MarketingSmsController {
   @ApiOperation({ summary: "Import a parsed list (CSV/Excel/Sheet/paste)" })
   importRows(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { rows: ImportRow[]; source?: string; assertConsent?: boolean },
+    @Body() body: { rows: ImportRow[]; source?: string; assertConsent?: boolean; locationId?: string },
   ) {
     return this.svc.importRows(user.tenantId, body?.rows ?? [], {
       source: body?.source,
       assertConsent: !!body?.assertConsent,
+      locationId: body?.locationId,
       createdBy: user.userId,
     });
   }
@@ -88,7 +95,7 @@ export class MarketingSmsController {
   @Roles(...MARKETING_ROLES)
   addManual(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { phone: string; firstName?: string; lastName?: string },
+    @Body() body: { phone: string; firstName?: string; lastName?: string; locationId?: string },
   ) {
     return this.svc.addManual(user.tenantId, { ...body, createdBy: user.userId });
   }
@@ -107,8 +114,11 @@ export class MarketingSmsController {
 
   @Get("campaigns")
   @Roles(...MARKETING_ROLES)
-  listCampaigns(@CurrentUser() user: AuthenticatedUser) {
-    return this.svc.listCampaigns(user.tenantId);
+  listCampaigns(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.svc.listCampaigns(user.tenantId, locationId);
   }
 
   @Get("campaigns/:id")
@@ -122,7 +132,10 @@ export class MarketingSmsController {
   upsertCampaign(
     @CurrentUser() user: AuthenticatedUser,
     @Body()
-    body: { id?: string; name: string; senderHeader?: string; body: string; audience?: any },
+    body: {
+      id?: string; name: string; senderHeader?: string; body: string;
+      audience?: any; locationId?: string;
+    },
   ) {
     return this.svc.createOrUpdateCampaign(user.tenantId, { ...body, createdBy: user.userId });
   }
@@ -132,10 +145,11 @@ export class MarketingSmsController {
   @ApiOperation({ summary: "Live audience size + segment/cost estimate vs wallet" })
   preview(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { senderHeader?: string; body: string; audience?: any },
+    @Body() body: { senderHeader?: string; body: string; audience?: any; locationId?: string },
   ) {
     return this.svc.previewAudience(user.tenantId, {
-      senderHeader: body?.senderHeader, body: body?.body ?? "", audience: body?.audience ?? {},
+      senderHeader: body?.senderHeader, body: body?.body ?? "",
+      audience: body?.audience ?? {}, locationId: body?.locationId,
     });
   }
 

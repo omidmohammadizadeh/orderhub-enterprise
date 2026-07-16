@@ -92,25 +92,40 @@ export class MarketingSmsService {
 
   // ── Contacts ────────────────────────────────────────────────────────────────
 
-  async channelCounts(tenantId: string): Promise<{ channel: string; count: number }[]> {
+  async channelCounts(
+    tenantId: string,
+    locationId?: string,
+  ): Promise<{ channel: string; count: number }[]> {
     // Distinct customer phones per order source — what "import from POS" etc.
-    // would actually pull in.
-    const rows: { orderSource: string; count: bigint }[] = await this.prisma.$queryRawUnsafe(
-      `SELECT "orderSource", COUNT(DISTINCT "customerPhone")::bigint AS count
-       FROM "orders"
-       WHERE "tenantId" = $1 AND "customerPhone" IS NOT NULL AND "customerPhone" <> ''
-       GROUP BY "orderSource"`,
-      tenantId,
-    );
+    // would actually pull in. Scoped to the selected location when given.
+    const rows: { orderSource: string; count: bigint }[] = locationId
+      ? await this.prisma.$queryRawUnsafe(
+          `SELECT "orderSource", COUNT(DISTINCT "customerPhone")::bigint AS count
+           FROM "orders"
+           WHERE "tenantId" = $1 AND "locationId" = $2
+             AND "customerPhone" IS NOT NULL AND "customerPhone" <> ''
+           GROUP BY "orderSource"`,
+          tenantId,
+          locationId,
+        )
+      : await this.prisma.$queryRawUnsafe(
+          `SELECT "orderSource", COUNT(DISTINCT "customerPhone")::bigint AS count
+           FROM "orders"
+           WHERE "tenantId" = $1 AND "customerPhone" IS NOT NULL AND "customerPhone" <> ''
+           GROUP BY "orderSource"`,
+          tenantId,
+        );
     const map = new Map(rows.map((r) => [r.orderSource, Number(r.count)]));
     return MarketingSmsService.CHANNELS.map((c) => ({ channel: c, count: map.get(c) ?? 0 }));
   }
 
   async listContacts(
     tenantId: string,
-    opts: { consent?: string; source?: string; search?: string; limit?: number } = {},
+    opts: { consent?: string; source?: string; search?: string; limit?: number; locationId?: string } = {},
   ) {
-    const where: any = { tenantId };
+    const scope: any = { tenantId };
+    if (opts.locationId) scope.locationId = opts.locationId;
+    const where: any = { ...scope };
     if (opts.consent) where.consentStatus = opts.consent;
     if (opts.source) where.source = opts.source;
     if (opts.search) {
@@ -127,8 +142,8 @@ export class MarketingSmsService {
         orderBy: { createdAt: "desc" },
         take: Math.min(opts.limit ?? 200, 1000),
       }),
-      this.db().marketingContact.count({ where: { tenantId } }),
-      this.db().marketingContact.count({ where: { tenantId, consentStatus: "OPTED_IN" } }),
+      this.db().marketingContact.count({ where: scope }),
+      this.db().marketingContact.count({ where: { ...scope, consentStatus: "OPTED_IN" } }),
     ]);
     return { items, total, optedIn };
   }
@@ -140,6 +155,7 @@ export class MarketingSmsService {
    */
   private async upsertContact(args: {
     tenantId: string;
+    locationId?: string | null;
     phone: string;
     firstName?: string | null;
     lastName?: string | null;
@@ -150,8 +166,13 @@ export class MarketingSmsService {
     consentSource?: string | null;
     createdBy?: string | null;
   }): Promise<"added" | "updated" | "suppressed"> {
-    const existing = await this.db().marketingContact.findUnique({
-      where: { tenantId_phone: { tenantId: args.tenantId, phone: args.phone } },
+    // findFirst (not findUnique) so nullable locationId is handled cleanly.
+    const existing = await this.db().marketingContact.findFirst({
+      where: {
+        tenantId: args.tenantId,
+        phone: args.phone,
+        locationId: args.locationId ?? null,
+      },
     });
 
     if (existing) {
@@ -176,6 +197,7 @@ export class MarketingSmsService {
     await this.db().marketingContact.create({
       data: {
         tenantId: args.tenantId,
+        locationId: args.locationId ?? null,
         phone: args.phone,
         firstName: args.firstName ?? null,
         lastName: args.lastName ?? null,
@@ -198,16 +220,24 @@ export class MarketingSmsService {
    */
   async importFromCustomers(
     tenantId: string,
-    args: { sources: string[]; consentedOnly?: boolean; createdBy?: string },
+    args: { sources: string[]; consentedOnly?: boolean; locationId?: string; createdBy?: string },
   ): Promise<ImportReport> {
     const sources = (args.sources ?? []).filter((s) =>
       MarketingSmsService.CHANNELS.includes(s),
     );
     if (!sources.length) throw new BadRequestException("Pick at least one channel to import from.");
 
+    // Only pull orders from the selected location so a site markets to its own
+    // customers. Imported contacts are homed to that location too.
+    const orderWhere: any = { tenantId, orderSource: { in: sources }, customerPhone: { not: null } };
+    if (args.locationId) orderWhere.locationId = args.locationId;
+
     const orders = await this.db().order.findMany({
-      where: { tenantId, orderSource: { in: sources }, customerPhone: { not: null } },
-      select: { customerPhone: true, customerName: true, customerId: true, orderSource: true },
+      where: orderWhere,
+      select: {
+        customerPhone: true, customerName: true, customerId: true,
+        orderSource: true, locationId: true,
+      },
       distinct: ["customerPhone"],
       take: 50_000,
     });
@@ -240,6 +270,7 @@ export class MarketingSmsService {
       const [firstName, lastName] = this.splitName(o.customerName, cust);
       const res = await this.upsertContact({
         tenantId,
+        locationId: args.locationId ?? o.locationId ?? null,
         phone,
         firstName,
         lastName,
@@ -270,7 +301,7 @@ export class MarketingSmsService {
   async importRows(
     tenantId: string,
     rows: ImportRow[],
-    args: { source?: string; assertConsent: boolean; createdBy?: string },
+    args: { source?: string; assertConsent: boolean; locationId?: string; createdBy?: string },
   ): Promise<ImportReport> {
     if (!Array.isArray(rows) || !rows.length) {
       throw new BadRequestException("No rows to import.");
@@ -294,6 +325,7 @@ export class MarketingSmsService {
 
       const res = await this.upsertContact({
         tenantId,
+        locationId: args.locationId ?? null,
         phone,
         firstName,
         lastName,
@@ -310,12 +342,13 @@ export class MarketingSmsService {
 
   async addManual(
     tenantId: string,
-    args: { phone: string; firstName?: string; lastName?: string; createdBy?: string },
+    args: { phone: string; firstName?: string; lastName?: string; locationId?: string; createdBy?: string },
   ) {
     const phone = this.normalizePhone(args.phone);
     if (!phone) throw new BadRequestException("That doesn't look like a valid phone number.");
     await this.upsertContact({
-      tenantId, phone, firstName: args.firstName, lastName: args.lastName,
+      tenantId, locationId: args.locationId ?? null, phone,
+      firstName: args.firstName, lastName: args.lastName,
       source: "MANUAL", consentStatus: "OPTED_IN", consentSource: "manual", createdBy: args.createdBy,
     });
     return { ok: true, phone };
@@ -361,9 +394,11 @@ export class MarketingSmsService {
 
   // ── Campaigns ────────────────────────────────────────────────────────────────
 
-  async listCampaigns(tenantId: string) {
+  async listCampaigns(tenantId: string, locationId?: string) {
+    const where: any = { tenantId };
+    if (locationId) where.locationId = locationId;
     return this.db().marketingSmsCampaign.findMany({
-      where: { tenantId },
+      where,
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -383,8 +418,9 @@ export class MarketingSmsService {
     return msg;
   }
 
-  private audienceWhere(tenantId: string, audience: any): any {
+  private audienceWhere(tenantId: string, audience: any, locationId?: string | null): any {
     const where: any = { tenantId, consentStatus: "OPTED_IN" };
+    if (locationId) where.locationId = locationId;
     const sources: string[] = audience?.sources ?? [];
     if (sources.length) where.source = { in: sources };
     const tags: string[] = audience?.tags ?? [];
@@ -399,10 +435,10 @@ export class MarketingSmsService {
    */
   async previewAudience(
     tenantId: string,
-    args: { senderHeader?: string; body: string; audience: any },
+    args: { senderHeader?: string; body: string; audience: any; locationId?: string },
   ) {
     const recipients = await this.db().marketingContact.count({
-      where: this.audienceWhere(tenantId, args.audience),
+      where: this.audienceWhere(tenantId, args.audience, args.locationId),
     });
     // Segment estimate uses the composed message with a sample name substituted.
     const sample = this.personalize(this.composeMessage(args.senderHeader, args.body), {
@@ -434,10 +470,13 @@ export class MarketingSmsService {
 
   async createOrUpdateCampaign(
     tenantId: string,
-    args: { id?: string; name: string; senderHeader?: string; body: string; audience?: any; createdBy?: string },
+    args: {
+      id?: string; name: string; senderHeader?: string; body: string;
+      audience?: any; locationId?: string; createdBy?: string;
+    },
   ) {
     if (!args.body?.trim()) throw new BadRequestException("Message body is required.");
-    const data = {
+    const data: any = {
       name: args.name?.trim() || "Untitled campaign",
       senderHeader: args.senderHeader?.trim() || null,
       body: args.body,
@@ -449,7 +488,7 @@ export class MarketingSmsService {
       return this.db().marketingSmsCampaign.update({ where: { id: args.id }, data });
     }
     return this.db().marketingSmsCampaign.create({
-      data: { tenantId, ...data, createdBy: args.createdBy ?? null },
+      data: { tenantId, locationId: args.locationId ?? null, ...data, createdBy: args.createdBy ?? null },
     });
   }
 
@@ -486,6 +525,7 @@ export class MarketingSmsService {
       senderHeader: campaign.senderHeader,
       body: campaign.body,
       audience: campaign.audience,
+      locationId: campaign.locationId ?? undefined,
     });
     if (preview.recipients === 0) {
       throw new BadRequestException("No opted-in contacts match this audience.");
@@ -520,7 +560,7 @@ export class MarketingSmsService {
     const rate = (await this.wallet.getSummary(tenantId)).pricePerSegmentMinor;
 
     const contacts = await this.db().marketingContact.findMany({
-      where: this.audienceWhere(tenantId, campaign.audience),
+      where: this.audienceWhere(tenantId, campaign.audience, campaign.locationId),
       select: { id: true, phone: true, firstName: true },
     });
 

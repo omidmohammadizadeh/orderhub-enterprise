@@ -140,16 +140,24 @@ export function PublishMenuModal({
     enabled: open && step === "location",
   });
 
-  // Brand picker: the brands the user can publish this menu UNDER — i.e. the
-  // brands they have access to (their own for a scoped OWNER; all tenant brands
-  // for an admin). NOT filtered by the serving location: you pick which brand
-  // owns the menu, then which locations to serve it at — the brand doesn't have
-  // to be primary-homed at a serving location. The old location-filter hid an
-  // OWNER's own brands whenever the menu's brand wasn't homed at the picked
-  // location, leaving "No brands at this location yet".
+  // Brand picker: only the brands that operate AT the picked location(s) —
+  // brands homed there via primaryLocationId (the marketplace/virtual brands for
+  // that kitchen). Publishing to a marketplace under a brand from a different
+  // location makes no sense, and showing every tenant brand here was confusing.
+  // The menu's current brand is merged in so it stays selectable even if it
+  // isn't homed at the picked location.
+  const pickedLocationsForBrands = Array.from(selLocations);
   const brandsQuery = useQuery({
-    queryKey: ["brands", "publishable"],
-    queryFn: () => brandsClient.list(),
+    queryKey: ["brands", "publishable", pickedLocationsForBrands],
+    queryFn: async () => {
+      if (!pickedLocationsForBrands.length) return brandsClient.list();
+      const lists = await Promise.all(
+        pickedLocationsForBrands.map((loc) => brandsClient.list(loc)),
+      );
+      const byId = new Map<string, any>();
+      for (const list of lists) for (const b of list) byId.set(b.id, b);
+      return Array.from(byId.values());
+    },
     enabled: open && step === "brand",
   });
 

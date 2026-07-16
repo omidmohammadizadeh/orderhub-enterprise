@@ -3891,6 +3891,10 @@ model SmsMessage {
 model MarketingContact {
   id         String  @id @default(cuid())
   tenantId   String
+  // The location this contact belongs to — SMS marketing is location-scoped so
+  // each site markets to its own customers. null = tenant-wide (admin imports
+  // with no location selected). Part of the dedupe key.
+  locationId String?
   phone      String // E.164, e.g. +447700900123 — the dedupe key
   firstName  String?
   lastName   String?
@@ -3912,8 +3916,9 @@ model MarketingContact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([tenantId, phone])
+  @@unique([tenantId, locationId, phone])
   @@index([tenantId, consentStatus])
+  @@index([tenantId, locationId, consentStatus])
   @@index([tenantId, source])
   @@map("marketing_contacts")
 }
@@ -3921,8 +3926,9 @@ model MarketingContact {
 // A broadcast. Composed as a draft, then sent to the matching opted-in audience
 // with per-recipient wallet debits. Counts + cost snapshot the send for history.
 model MarketingSmsCampaign {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   tenantId     String
+  locationId   String? // the location this campaign markets to (audience scope)
   name         String
   senderHeader String? // prepended to the body, e.g. "Pizza Uno"
   body         String
