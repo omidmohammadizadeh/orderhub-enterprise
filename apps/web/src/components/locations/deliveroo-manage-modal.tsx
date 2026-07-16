@@ -77,7 +77,20 @@ export function DeliverooManageModal({
   });
   const publishHours = useMutation({
     mutationFn: () => deliverooClient.publishHours(connectionId),
-    onSuccess: () => toast.success("Opening hours + prep pushed to Deliveroo"),
+    onSuccess: (res: any) => {
+      // Hours always land; prep/workload is best-effort — some Deliveroo sites
+      // reject it. Show that as an info note, not a failure.
+      if (res?.prepPushed === false) {
+        toast.success("Opening hours published to Deliveroo");
+        toast(
+          res?.prepWarning ??
+            "Prep/busy times aren't settable on this Deliveroo site.",
+          { icon: "ℹ️", duration: 6000 },
+        );
+      } else {
+        toast.success("Opening hours + prep pushed to Deliveroo");
+      }
+    },
     onError: err,
   });
   const reconnect = useMutation({

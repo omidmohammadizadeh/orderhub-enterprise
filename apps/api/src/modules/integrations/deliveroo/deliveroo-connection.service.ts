@@ -222,19 +222,49 @@ export class DeliverooConnectionService {
         `Deliveroo publishHours conn=${connectionId}: no opening hours to send (location + brand both empty) — pushing prep only`,
       );
     }
-    await this.pushPrepTime(c, loc);
-    return { ok: true, daysPublished: days.length };
+    // Prep/workload times are a best-effort SECOND step. Some Deliveroo sites
+    // (e.g. managed-prep or certain fulfilment types) reject setting workload
+    // tiers with "this site cannot set 'moderate'". That must NOT fail the whole
+    // publish — the opening hours above already landed (200).
+    const prep = await this.pushPrepTime(c, loc);
+    return { ok: true, daysPublished: days.length, prepPushed: prep.ok, prepWarning: prep.warning };
   }
 
-  private async pushPrepTime(c: any, loc: any) {
+  private async pushPrepTime(
+    c: any,
+    loc: any,
+  ): Promise<{ ok: boolean; warning?: string }> {
     const base =
       (loc?.prepTime ?? null) ?? (loc?.brand?.prepTime ?? null) ?? 15;
     const busy = base + (loc?.busyExtraPrepTime ?? 5);
-    await this.client.request(
-      "PUT",
-      `/site/v1/brands/${c.externalBrandId}/sites/${c.externalStoreId}/workload/times`,
+    const path = `/site/v1/brands/${c.externalBrandId}/sites/${c.externalStoreId}/workload/times`;
+
+    // Try the full 3-tier payload; if the site rejects a tier it "cannot set"
+    // (typically 'moderate'), retry with just quiet + busy; then give up quietly.
+    const attempts: Record<string, number>[] = [
       { quiet: base, moderate: base, busy },
+      { quiet: base, busy },
+    ];
+    let lastErr = "";
+    for (const body of attempts) {
+      try {
+        await this.client.request("PUT", path, body);
+        return { ok: true };
+      } catch (err: any) {
+        lastErr = String(err?.message ?? err);
+        // Only bother retrying the reduced payload when the site rejected a
+        // specific tier; other errors won't be fixed by dropping a key.
+        if (!/cannot set/i.test(lastErr)) break;
+      }
+    }
+    this.logger.warn(
+      `Deliveroo prep/workload not set for site=${c.externalStoreId}: ${lastErr}`,
     );
+    return {
+      ok: false,
+      warning:
+        "Opening hours were published, but this Deliveroo site doesn't allow setting prep/busy times from here.",
+    };
   }
 
   private async connected(tenantId: string, connectionId: string) {
