@@ -12,6 +12,7 @@ export interface SendSmsArgs {
   locationId?: string | null;
   brandId?: string | null;
   orderId?: string | null;
+  campaignId?: string | null;
   createdBy?: string | null;
   // Bill the tenant's prepaid wallet (default true). Set false only for
   // system/internal sends we don't charge for.
@@ -140,6 +141,7 @@ export class SmsService {
           locationId: args.locationId ?? null,
           brandId: args.brandId ?? null,
           orderId: args.orderId ?? null,
+          campaignId: args.campaignId ?? null,
           toNumber: args.to,
           purpose: args.purpose,
           segments: meta.segments ?? 1,

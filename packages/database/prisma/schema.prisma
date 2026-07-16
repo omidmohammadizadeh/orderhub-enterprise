@@ -3869,6 +3869,7 @@ model SmsMessage {
   orderId     String?
   toNumber    String
   purpose     String // PAYMENT_LINK | MARKETING | OTHER
+  campaignId  String? // marketing_sms_campaigns.id for MARKETING sends
   segments    Int      @default(1) // SMS parts (drives cost)
   provider    String   @default("TWILIO")
   providerSid String? // Twilio message SID
@@ -3880,6 +3881,95 @@ model SmsMessage {
   @@index([tenantId, createdAt])
   @@index([tenantId, locationId, createdAt])
   @@map("sms_messages")
+}
+
+// Phase — Marketing SMS. A consented audience the tenant can broadcast to.
+// One row per unique phone (E.164) per tenant. Consent is first-class: only
+// OPTED_IN contacts are ever messaged, STOP replies flip to OPTED_OUT for good,
+// and imports never re-opt-in someone who opted out. This is what keeps the
+// channel UK PECR / ICO compliant.
+model MarketingContact {
+  id         String  @id @default(cuid())
+  tenantId   String
+  phone      String // E.164, e.g. +447700900123 — the dedupe key
+  firstName  String?
+  lastName   String?
+  email      String?
+  // Where this contact came from: an OrderSource channel (POS/ONLINE/WHATSAPP/…)
+  // or an import (CSV/EXCEL/GOOGLE_SHEET/PDF/PASTE/MANUAL).
+  source     String?
+  customerId String? // links to the CRM Customer row when imported from the DB
+
+  consentStatus  String    @default("OPTED_IN") // OPTED_IN | OPTED_OUT | UNKNOWN
+  consentSource  String? // how consent was captured (channel / import / manual)
+  consentAt      DateTime?
+  unsubscribedAt DateTime? // set when they reply STOP — suppression is permanent
+
+  tags           String[]
+  lastCampaignAt DateTime?
+  createdBy      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, phone])
+  @@index([tenantId, consentStatus])
+  @@index([tenantId, source])
+  @@map("marketing_contacts")
+}
+
+// A broadcast. Composed as a draft, then sent to the matching opted-in audience
+// with per-recipient wallet debits. Counts + cost snapshot the send for history.
+model MarketingSmsCampaign {
+  id           String @id @default(cuid())
+  tenantId     String
+  name         String
+  senderHeader String? // prepended to the body, e.g. "Pizza Uno"
+  body         String
+
+  status   String @default("DRAFT") // DRAFT | SENDING | SENT | FAILED
+  audience Json   @default("{}") // { sources?: string[], tags?: string[] }
+
+  recipientCount Int @default(0)
+  sentCount      Int @default(0)
+  failedCount    Int @default(0)
+  skippedCount   Int @default(0)
+  segments       Int @default(0) // total segments actually sent
+  costMinor      Int @default(0) // total wallet spend (pennies)
+
+  createdBy   String?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  recipients MarketingSmsRecipient[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@map("marketing_sms_campaigns")
+}
+
+// One row per intended recipient of a campaign — the send log + in-campaign
+// dedupe (unique [campaignId, phone] means a number can't be texted twice by
+// the same blast even if it appears in the audience more than once).
+model MarketingSmsRecipient {
+  id         String               @id @default(cuid())
+  campaignId String
+  campaign   MarketingSmsCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tenantId   String
+  contactId  String?
+  phone      String
+  status     String // SENT | FAILED | SKIPPED
+  reason     String? // opted_out | duplicate | insufficient_balance | error text
+  segments   Int     @default(0)
+  smsMessageId String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([campaignId, phone])
+  @@index([campaignId])
+  @@map("marketing_sms_recipients")
 }
 
 // Phase — Prepaid SMS wallet. Restaurants top up a GBP balance up front; every

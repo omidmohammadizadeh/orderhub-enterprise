@@ -34,6 +34,7 @@ import {
  MonitorCheck,
   ScrollText,
   Wallet,
+  MessageSquare,
   Clapperboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -88,6 +89,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: STAFF_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
+  { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: MANAGER_TIER },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
