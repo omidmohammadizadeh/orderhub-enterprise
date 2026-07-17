@@ -173,14 +173,15 @@ export class MenuAvailabilityService {
           )
         : allItems;
 
-    // Collapse duplicate products into one row. A menu that was combined from
-    // several source menus (master menu) or re-imported can carry multiple
-    // MenuItem records for the SAME product — e.g. four "9 Chicken Strips Box"
-    // rows. Key on name + price; keep the copy that has a real PLU/SKU (the
-    // original import) so its identity/snoozes are preserved.
+    // Collapse duplicate products into one row. A menu combined from several
+    // source menus (master menu) or re-imported can carry multiple MenuItem
+    // records for the SAME product — sometimes at slightly different prices, so
+    // we key on BRAND + name (not price). Same name under different brands
+    // (e.g. each brand's "Fries") is kept separate. Keep the copy that has a
+    // real PLU/SKU (the original import) so its identity/snoozes survive.
     const seen = new Map<string, (typeof scoped)[number]>();
     for (const it of scoped) {
-      const key = `${(it.name ?? "").trim().toLowerCase()}|${String(it.basePrice ?? "")}`;
+      const key = `${it.brandId ?? ""}|${(it.name ?? "").trim().toLowerCase()}`;
       const existing = seen.get(key);
       if (!existing) {
         seen.set(key, it);

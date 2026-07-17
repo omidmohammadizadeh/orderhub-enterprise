@@ -535,7 +535,7 @@ export class MenusService {
           // Reuse an already-cloned copy of the SAME product (brand+name+price)
           // so duplicate source items collapse into one.
           if (!newItemId && src) {
-            const identity = `${src.brandId ?? ""}|${(src.name ?? "").trim().toLowerCase()}|${String(src.basePrice ?? "")}`;
+            const identity = `${src.brandId ?? ""}|${(src.name ?? "").trim().toLowerCase()}`;
             const dupNewId = identityMap.get(identity);
             if (dupNewId) {
               newItemId = dupNewId;
@@ -592,7 +592,7 @@ export class MenusService {
             newItemId = created.id;
             itemIdMap.set(link.itemId, newItemId);
             identityMap.set(
-              `${src.brandId ?? ""}|${(src.name ?? "").trim().toLowerCase()}|${String(src.basePrice ?? "")}`,
+              `${src.brandId ?? ""}|${(src.name ?? "").trim().toLowerCase()}`,
               newItemId,
             );
           }
