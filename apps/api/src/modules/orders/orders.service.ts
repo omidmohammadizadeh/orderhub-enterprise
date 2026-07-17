@@ -330,18 +330,23 @@ export class OrdersService {
             this.logger.log(
               `Matched ${canonical.platform} order to brand "${match.name}" (${match.id}) from hint "${hint}"`,
             );
-            // Re-route to the brand's real home location. Without this, an
-            // order for a brand that has no connection at this webhook's
-            // location (e.g. two brands share one HubRise catalog/callback
-            // but operate from genuinely different kitchens) stayed
-            // permanently mis-attributed to whichever location's webhook
-            // happened to fire — showing up on the wrong location's board
-            // with no way to correct it after the fact. Only reassign when
-            // we found the brand with NO location evidence at all
-            // (byConnectionHere is null) and it has a distinct home to send
-            // it to; a brand that's confirmed to operate here, or has no
-            // configured home location of its own, is left exactly as-is.
+            // Re-route to the brand's real home location — but NEVER for a
+            // HubRise order. A HubRise order arrives at the webhook of the
+            // location whose HubRise connection RECEIVED it (here, Clifton's
+            // account w7nq4), and that connection location IS the kitchen that
+            // fulfils it — authoritative regardless of the brand's stored
+            // primaryLocationId. Rerouting on primaryLocationId sent Clifton's
+            // "monster burgerz" orders to a stale/other location ("Order Hub
+            // Test Account") the brand no longer operates from. The brand match
+            // above still sets the brand badge; it must not relocate the order.
+            //
+            // The reroute stays for non-HubRise paths where the webhook's
+            // location genuinely carries no connection for the brand.
+            const viaHubrise =
+              (canonical as any).viaHubrise === true ||
+              canonical.platform === "HUBRISE";
             if (
+              !viaHubrise &&
               !byConnectionHere &&
               match.primaryLocationId &&
               match.primaryLocationId !== locationId
