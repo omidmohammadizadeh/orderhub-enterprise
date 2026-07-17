@@ -935,36 +935,67 @@ export class MenuAvailabilityService {
     }
     if (skuRefs.size === 0) return;
 
-    // Phase BA — a location-scoped 86 patches THAT location's HubRise catalog
-    // only. NEVER a deleted location (deletedAt filter) — a stale/removed
-    // location can still hold an orphaned catalog id and would swallow the
-    // update. Global writes fall back to the brand's live connected location.
-    const location = await this.prisma.location.findFirst({
-      where: {
-        ...(locationId ? { id: locationId } : { brandId: item.brandId }),
-        deletedAt: null,
-        hubriseCatalogId: { not: null },
-        hubriseLocationId: { not: null },
-      },
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        hubriseCredentials: true,
-        hubriseCatalogId: true,
-        hubriseLocationId: true,
-      },
-    });
-    if (!location) return;
+    // Resolve the HubRise-connected location to patch — using the SAME two-step
+    // rule publishMenu uses, so the 86 always targets the exact catalog that
+    // publish wrote to. This was the silent-no-op bug: when scoped to a location
+    // (e.g. a cloned menu's Clifton) whose OWN row isn't HubRise-connected, the
+    // old query required that row to hold the catalog id, found nothing, and
+    // returned without ever sending the PATCH. The brand's real connection often
+    // sits on a different location row (the one cloned FROM).
+    //   1. Never a deleted location (deletedAt: null).
+    //   2. Prefer the scoped location; fall back to any same-brand connected one.
+    const locationSelect = {
+      id: true,
+      hubriseCredentials: true,
+      hubriseCatalogId: true,
+      hubriseLocationId: true,
+    } as const;
+    let location = locationId
+      ? await this.prisma.location.findFirst({
+          where: {
+            id: locationId,
+            deletedAt: null,
+            hubriseCatalogId: { not: null },
+            hubriseLocationId: { not: null },
+          },
+          select: locationSelect,
+        })
+      : null;
+    if (!location && item.brandId) {
+      location = await this.prisma.location.findFirst({
+        where: {
+          brandId: item.brandId,
+          deletedAt: null,
+          hubriseCatalogId: { not: null },
+          hubriseLocationId: { not: null },
+        },
+        orderBy: { updatedAt: "desc" },
+        select: locationSelect,
+      });
+    }
+    if (!location) {
+      this.logger.warn(
+        `HubRise 86 skipped for item ${item.id} (${item.name ?? "?"}): no HubRise-connected location found (locationId=${locationId ?? "none"}, brandId=${item.brandId ?? "none"}). Connect HubRise on a location or re-publish.`,
+      );
+      return;
+    }
 
+    const entries = Array.from(skuRefs).map((sku_ref) => ({
+      sku_ref,
+      stock: mode === "OUT" ? "0" : null,
+      // HubRise: expires_at is only valid when stock is 0. Omit it otherwise.
+      ...(mode === "OUT" && expiresAt
+        ? { expires_at: expiresAt.toISOString() }
+        : {}),
+    }));
+    this.logger.log(
+      `HubRise 86 -> catalog ${location.hubriseCatalogId} loc ${location.hubriseLocationId}: ${mode} ${entries.map((e) => e.sku_ref).join(", ")}`,
+    );
     await this.hubrise.patchInventory({
       catalogId: location.hubriseCatalogId!,
       hubriseLocationId: location.hubriseLocationId!,
       credentialsBlob: location.hubriseCredentials,
-      entries: Array.from(skuRefs).map((sku_ref) => ({
-        sku_ref,
-        stock: mode === "OUT" ? "0" : null,
-        expires_at: mode === "OUT" && expiresAt ? expiresAt.toISOString() : null,
-      })),
+      entries,
     });
   }
 }
