@@ -220,15 +220,26 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
     // order's brandId so the ticket/board show the right brand instead
     // of the location's default. All raw candidates are kept in metadata
     // so we can see which field actually carried it if a match misses.
+    // ORDER MATTERS — brandHint takes the FIRST non-empty candidate.
+    // `connection_name` is HubRise's authoritative per-brand field (the
+    // connection is named per brand, e.g. "monster burgerz") and MUST rank
+    // ahead of the store/catalog/location fields below. Those get populated
+    // with NON-brand values once we enrich the envelope with the full order
+    // (webhook-ingestion.enrichHubRiseOrderPayload) — before enrichment only
+    // connection_name was present, so it drove the hint; after enrichment
+    // catalog_name/store_name/location_name started winning and dropped the
+    // order onto the location's default brand ("Order Hub"). Keep the explicit
+    // brand_name/brand first (if a marketplace ever sets them), then
+    // connection_name, then the weaker fallbacks.
     const brandCandidates: Record<string, unknown> = {
       brand_name: order.brand_name,
       brand: typeof order.brand === "string" ? order.brand : order.brand?.name,
+      connection_name: order.connection_name,
       customer_list_name: order.customer_list_name,
       catalog_name: order.catalog_name,
       store_name: order.store_name,
       location_name: order.location_name,
       seller_name: order.seller_name,
-      connection_name: order.connection_name,
     };
     const brandHint =
       Object.values(brandCandidates)
