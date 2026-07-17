@@ -694,20 +694,38 @@ export class HubRiseCatalogService {
     });
     if (!menu) throw new NotFoundException("Menu not found");
 
-    const location = await (this.prisma as any).location.findFirst({
-      where: {
-        OR: [
-          { id: menu.locationId ?? "" },
-          { brandId: menu.brandId, hubriseCatalogId: { not: null } },
-        ],
-      },
-      select: {
-        id: true,
-        hubriseCredentials: true,
-        hubriseCatalogId: true,
-        hubriseLocationId: true,
-      },
-    });
+    // Resolve the HubRise-connected location to publish INTO. Two hard rules,
+    // both learned from a live bug where publishes 200'd against an orphaned
+    // catalog on a DELETED location while the real (order-receiving) connection
+    // sat on another location and never updated:
+    //   1. Never a deleted location (deletedAt must be null).
+    //   2. Prefer the menu's OWN location; only fall back to a same-brand
+    //      HubRise-connected location when the menu's location isn't connected.
+    const locationSelect = {
+      id: true,
+      hubriseCredentials: true,
+      hubriseCatalogId: true,
+      hubriseLocationId: true,
+    };
+    let location = menu.locationId
+      ? await (this.prisma as any).location.findFirst({
+          where: { id: menu.locationId, deletedAt: null },
+          select: locationSelect,
+        })
+      : null;
+    // Fall back to a live, HubRise-connected location for the menu's brand only
+    // when the menu's own location isn't itself connected.
+    if (!location?.hubriseLocationId) {
+      location = await (this.prisma as any).location.findFirst({
+        where: {
+          brandId: menu.brandId,
+          hubriseLocationId: { not: null },
+          deletedAt: null,
+        },
+        orderBy: { updatedAt: "desc" },
+        select: locationSelect,
+      });
+    }
     if (!location || !location.hubriseLocationId) {
       throw new BadRequestException(
         "No HubRise-connected location for this menu's brand. Connect HubRise on a location first.",
