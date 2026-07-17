@@ -42,6 +42,7 @@ import {
 } from "recharts";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth.store";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import {
   analyticsClient,
   type CustomerInsights,
@@ -177,10 +178,14 @@ export default function CustomersPage() {
 // ── Insights tab ─────────────────────────────────────────────────────────────
 
 function InsightsTab() {
+  const globalLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const [preset, setPreset] = useState<DatePreset>("7d");
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
-  const [locationId, setLocationId] = useState<string>("");
+  // Seed the in-page location filter from the dashboard's selected location so
+  // the page matches the header. "All" still resolves to only the user's
+  // accessible locations (enforced server-side).
+  const [locationId, setLocationId] = useState<string>(globalLocationId ?? "");
   const [trendFilter, setTrendFilter] = useState<
     "all" | "new" | "occasional" | "frequent"
   >("all");
@@ -690,13 +695,15 @@ function CrmListTab() {
     return () => clearTimeout(t);
   }, [search]);
 
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const { data, isLoading } = useQuery({
-    queryKey: ["customers-directory", segment, channel, debouncedSearch],
+    queryKey: ["customers-directory", segment, channel, debouncedSearch, locationId],
     queryFn: () => {
       const params = new URLSearchParams();
       if (segment !== "all") params.set("segment", segment);
       if (channel !== "ALL") params.set("channel", channel);
       if (debouncedSearch) params.set("search", debouncedSearch);
+      if (locationId) params.set("locationId", locationId);
       const qs = params.toString();
       return apiClient
         .get(`/v1/customers/directory${qs ? `?${qs}` : ""}`)

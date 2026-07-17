@@ -1452,7 +1452,15 @@ export class AnalyticsService {
 
   async getCustomerInsights(
     tenantId: string,
-    opts: { from: Date; to: Date; locationId?: string },
+    opts: {
+      from: Date;
+      to: Date;
+      locationId?: string;
+      // Caller identity for location scoping. Tenant-wide roles see the whole
+      // tenant; a scoped role only sees THEIR locations even on "All locations".
+      userId?: string;
+      role?: string;
+    },
   ) {
     type GroupKey = "NEW" | "OCCASIONAL" | "FREQUENT";
     type ClassifiedOrder = {
@@ -1474,13 +1482,29 @@ export class AnalyticsService {
     const lookbackStart = new Date(
       Math.min(opts.from.getTime(), prevFrom.getTime()) - ninetyMs,
     );
+    // Location scoping: tenant-wide roles see everything; a scoped user only
+    // their accessible locations, even when the in-page filter is "All".
+    const tenantWide =
+      opts.role === "PLATFORM_ADMIN" || opts.role === "TENANT_OWNER";
+    const scopeIds =
+      !tenantWide && opts.userId
+        ? await this.accessibleLocationIds(tenantId, opts.userId)
+        : null;
+    let locationWhere: Prisma.OrderWhereInput = {};
+    if (opts.locationId) {
+      const inScope = !scopeIds || scopeIds.includes(opts.locationId);
+      locationWhere = { locationId: inScope ? opts.locationId : "__no_access__" };
+    } else if (scopeIds) {
+      locationWhere = { locationId: { in: scopeIds } };
+    }
+
     const orderRows = await this.prisma.order.findMany({
       where: {
         tenantId,
         isSandbox: false,
         status: "COMPLETED",
         createdAt: { gte: lookbackStart, lt: opts.to },
-        ...(opts.locationId && { locationId: opts.locationId }),
+        ...locationWhere,
       },
       select: {
         id: true,

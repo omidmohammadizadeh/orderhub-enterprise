@@ -97,6 +97,8 @@ export class AnalyticsController {
       from: parseDate(from, sevenDaysAgo()),
       to: parseDate(to, now),
       locationId,
+      userId: user.userId,
+      role: user.role,
     });
   }
 

@@ -123,8 +123,12 @@ export class CustomersController {
     @Query("channel") channel?: string,
     @Query("segment") segment?: string,
     @Query("search") search?: string,
+    @Query("locationId") locationId?: string,
   ) {
-    return this.customers.directory(user.tenantId, { channel, segment, search });
+    return this.customers.directory(user.tenantId, {
+      channel, segment, search, locationId,
+      userId: user.userId, role: user.role,
+    });
   }
 
   @Get(":customerId")

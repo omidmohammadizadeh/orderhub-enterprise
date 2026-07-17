@@ -100,9 +100,43 @@ export class CustomersService {
   // Identity mirrors OrdersService.attachCustomerVisitCounts: marketplaces
   // rotate a masked phone per order, so those key on name+postcode; our own
   // channels key on name+phone+postcode.
+  /**
+   * Locations a scoped user may see (direct UserLocation + brand-derived).
+   * Tenant-wide roles → null (no restriction).
+   */
+  private async accessibleLocationIds(
+    tenantId: string,
+    userId?: string,
+    role?: string,
+  ): Promise<string[] | null> {
+    if (!userId || !role || role === "PLATFORM_ADMIN" || role === "TENANT_OWNER") {
+      return null;
+    }
+    const [locs, brands] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({ where: { userId }, select: { locationId: true } }),
+      (this.prisma as any).userBrand.findMany({ where: { userId }, select: { brandId: true } }),
+    ]);
+    const ids = new Set<string>(locs.map((l: any) => l.locationId as string));
+    const brandIds = brands.map((b: any) => b.brandId as string);
+    if (ids.size === 0 && brandIds.length) {
+      const brandRows = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId },
+        select: { primaryLocationId: true, locations: { select: { id: true } } },
+      });
+      for (const b of brandRows) {
+        if (b.primaryLocationId) ids.add(b.primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
+  }
+
   async directory(
     tenantId: string,
-    opts: { channel?: string; segment?: string; search?: string } = {},
+    opts: {
+      channel?: string; segment?: string; search?: string;
+      locationId?: string; userId?: string; role?: string;
+    } = {},
   ) {
     const MARKETPLACES = new Set(["JUST_EAT", "UBER_EATS", "DELIVEROO", "HUBRISE"]);
     const channel = (opts.channel ?? "").toUpperCase();
@@ -116,6 +150,17 @@ export class CustomersService {
       WHATSAPP: ["WHATSAPP"],
     };
 
+    // Location scoping: a scoped user only sees customers from their accessible
+    // locations, even on "All locations"; an explicit pick is validated.
+    const scopeIds = await this.accessibleLocationIds(tenantId, opts.userId, opts.role);
+    let locationWhere: any = {};
+    if (opts.locationId) {
+      const inScope = !scopeIds || scopeIds.includes(opts.locationId);
+      locationWhere = { locationId: inScope ? opts.locationId : "__no_access__" };
+    } else if (scopeIds) {
+      locationWhere = { locationId: { in: scopeIds } };
+    }
+
     const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
     const orders = await this.prisma.order.findMany({
       where: {
@@ -123,6 +168,7 @@ export class CustomersService {
         isSandbox: false,
         status: { notIn: ["CANCELLED", "REJECTED", "FAILED"] },
         createdAt: { gte: oneYearAgo },
+        ...locationWhere,
         ...(channelSources[channel]
           ? { orderSource: { in: channelSources[channel] as any } }
           : {}),
