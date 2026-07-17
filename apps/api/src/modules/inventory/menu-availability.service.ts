@@ -935,32 +935,66 @@ export class MenuAvailabilityService {
     }
     if (skuRefs.size === 0) return;
 
-    // Resolve the HubRise-connected location to patch — using the SAME two-step
-    // rule publishMenu uses, so the 86 always targets the exact catalog that
-    // publish wrote to. This was the silent-no-op bug: when scoped to a location
-    // (e.g. a cloned menu's Clifton) whose OWN row isn't HubRise-connected, the
-    // old query required that row to hold the catalog id, found nothing, and
-    // returned without ever sending the PATCH. The brand's real connection often
-    // sits on a different location row (the one cloned FROM).
-    //   1. Never a deleted location (deletedAt: null).
-    //   2. Prefer the scoped location; fall back to any same-brand connected one.
     const locationSelect = {
       id: true,
       hubriseCredentials: true,
       hubriseCatalogId: true,
       hubriseLocationId: true,
     } as const;
-    let location = locationId
-      ? await this.prisma.location.findFirst({
+
+    // PRIMARY resolution — patch the catalog the item's MENU was actually
+    // published to. A brand can carry MULTIPLE HubRise connections at once: a
+    // stale one on an old location (catalog e.g. 1273j) AND the live one the
+    // marketplaces read (e.g. we3gg). Resolving the catalog from the LOCATION
+    // can pick the stale connection (that was the bug — 86 200'd against 1273j
+    // while orders flowed through we3gg). `menu.externalId` is stamped at
+    // publish time and points at the REAL catalog, so take the most recently
+    // published menu that contains this item and patch THAT catalog.
+    let location:
+      | {
+          id: string;
+          hubriseCredentials: unknown;
+          hubriseCatalogId: string | null;
+          hubriseLocationId: string | null;
+        }
+      | null = null;
+    const itemMenuIds: string[] = Array.isArray(item.menuIds) ? item.menuIds : [];
+    if (itemMenuIds.length) {
+      const publishedMenu = await (this.prisma as any).menu.findFirst({
+        where: {
+          id: { in: itemMenuIds },
+          deletedAt: null,
+          externalId: { not: null },
+        },
+        orderBy: { lastPublishedAt: "desc" },
+        select: { externalId: true },
+      });
+      if (publishedMenu?.externalId) {
+        location = await this.prisma.location.findFirst({
           where: {
-            id: locationId,
+            hubriseCatalogId: publishedMenu.externalId,
             deletedAt: null,
-            hubriseCatalogId: { not: null },
             hubriseLocationId: { not: null },
           },
           select: locationSelect,
-        })
-      : null;
+        });
+      }
+    }
+
+    // FALLBACK resolution — mirror publishMenu: prefer the scoped (non-deleted)
+    // connected location, else any same-brand non-deleted connected location.
+    // Used when the item's menu has no HubRise catalog stamped yet.
+    if (!location && locationId) {
+      location = await this.prisma.location.findFirst({
+        where: {
+          id: locationId,
+          deletedAt: null,
+          hubriseCatalogId: { not: null },
+          hubriseLocationId: { not: null },
+        },
+        select: locationSelect,
+      });
+    }
     if (!location && item.brandId) {
       location = await this.prisma.location.findFirst({
         where: {
