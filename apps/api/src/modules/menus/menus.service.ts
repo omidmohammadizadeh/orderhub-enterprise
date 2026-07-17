@@ -436,6 +436,33 @@ export class MenusService {
     ]);
   }
 
+  /**
+   * Bulk-tag every item in a menu to a single brand. Replaces each item's brand
+   * set with just [brandId] (so a previously-tagged brand is unticked) and sets
+   * the primary brandId. Saves the operator opening every product to tick a box.
+   */
+  async tagAllItemsBrand(menuId: string, tenantId: string, brandId: string) {
+    await this.findOne(menuId, tenantId); // 404s if the menu isn't in the tenant
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, tenantId },
+      select: { id: true },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+
+    const links = await this.prisma.menuItemOnCategory.findMany({
+      where: { category: { menuId } },
+      select: { itemId: true },
+    });
+    const itemIds = Array.from(new Set(links.map((l) => l.itemId)));
+    if (!itemIds.length) return { updated: 0 };
+
+    await this.prisma.menuItem.updateMany({
+      where: { id: { in: itemIds } },
+      data: { brandId, brandIds: [brandId] },
+    });
+    return { updated: itemIds.length };
+  }
+
   async clone(
     menuId: string,
     tenantId: string,

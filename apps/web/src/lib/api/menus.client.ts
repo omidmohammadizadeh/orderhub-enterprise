@@ -363,6 +363,12 @@ export const menusClient = {
   archiveMenu: (menuId: string) =>
     apiClient.post<Menu>(`/v1/menus/${menuId}/archive`, {}).then((r) => r.data),
 
+  // Bulk-tag every item in a menu to one brand (replaces existing brand tags).
+  tagMenuBrand: (menuId: string, brandId: string) =>
+    apiClient
+      .post<{ updated: number }>(`/v1/menus/${menuId}/tag-brand`, { brandId })
+      .then((r) => r.data),
+
   cloneMenu: (menuId: string, name: string, targetLocationId?: string) =>
     apiClient
       .post<MenuWithCategories>(`/v1/menus/${menuId}/clone`, {

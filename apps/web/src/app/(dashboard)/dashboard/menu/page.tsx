@@ -31,7 +31,8 @@ import { CloneFromLocationModal } from "@/components/menu/clone-from-location-mo
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
 import { PublishHoursModal } from "@/components/menu/publish-hours-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
-import { Send, CheckCircle2, Clock } from "lucide-react";
+import { Send, CheckCircle2, Clock, Tag } from "lucide-react";
+import { TagBrandModal } from "@/components/menu/tag-brand-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { locationsClient } from "@/lib/api/locations.client";
 
@@ -66,6 +67,7 @@ export default function MenuPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   // Phase AM — publish target picker per menu card.
   const [publishingMenu, setPublishingMenu] = useState<Menu | null>(null);
+  const [taggingMenu, setTaggingMenu] = useState<Menu | null>(null);
   const [publishHoursOpen, setPublishHoursOpen] = useState(false);
   // Phase AM — transient success toast after a publish, dismissed
   // after 4s or on next user interaction.
@@ -572,6 +574,7 @@ export default function MenuPage() {
               onArchive={() => { archiveMutation.mutate(menu.id); setOpenMenuId(null); }}
               onClone={() => { cloneMutation.mutate({ menuId: menu.id, name: `${menu.name} (copy)` }); setOpenMenuId(null); }}
               onDelete={() => { deleteMutation.mutate(menu.id); setOpenMenuId(null); }}
+              onTag={() => { setTaggingMenu(menu); setOpenMenuId(null); }}
             />
           ))}
         </div>
@@ -581,6 +584,19 @@ export default function MenuPage() {
         open={publishHoursOpen}
         locationId={selectedLocationId ?? undefined}
         onClose={() => setPublishHoursOpen(false)}
+      />
+
+      <TagBrandModal
+        open={!!taggingMenu}
+        menuId={taggingMenu?.id ?? ""}
+        menuName={taggingMenu?.name ?? ""}
+        brands={brands}
+        onClose={() => setTaggingMenu(null)}
+        onTagged={(count) => {
+          qc.invalidateQueries({ queryKey: ["menus"] });
+          toast.success(`Tagged ${count} item${count === 1 ? "" : "s"} to the brand.`);
+          setTaggingMenu(null);
+        }}
       />
 
       <PublishMenuModal
@@ -671,9 +687,10 @@ interface MenuCardProps {
   onArchive: () => void;
   onClone: () => void;
   onDelete: () => void;
+  onTag: () => void;
 }
 
-function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete }: MenuCardProps) {
+function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete, onTag }: MenuCardProps) {
   // Phase AM — show the Live badge only when the menu is actually
   // published to at least one target. status=PUBLISHED alone isn't
   // enough; an operator might toggle every target off and that needs
@@ -782,6 +799,16 @@ function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, on
         >
           <Send className="h-3 w-3" />
           Publish
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onTag}
+          className="h-8 gap-1.5 text-xs"
+          title="Assign every item in this menu to a brand"
+        >
+          <Tag className="h-3 w-3" />
+          Tag brand
         </Button>
         <Link href={`/dashboard/menu/${menu.id}`}>
           <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">

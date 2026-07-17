@@ -436,6 +436,17 @@ export class MenusController {
     return this.menus.archive(menuId, user.tenantId);
   }
 
+  @Post("menus/:menuId/tag-brand")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Tag every item in a menu to a single brand" })
+  tagBrand(
+    @Param("menuId") menuId: string,
+    @Body() body: { brandId: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.tagAllItemsBrand(menuId, user.tenantId, body.brandId);
+  }
+
   @Post("menus/:menuId/clone")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Clone a menu to a new draft (optionally into another location)" })
