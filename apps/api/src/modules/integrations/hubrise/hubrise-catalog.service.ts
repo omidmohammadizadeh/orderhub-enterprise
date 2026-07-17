@@ -669,19 +669,14 @@ export class HubRiseCatalogService {
    * Any failure is logged and skipped — an image must never break the publish.
    */
   private async attachProductImages(
-    products: HubRiseProduct[],
+    jobs: Array<{ product: HubRiseProduct; src: string; itemId?: string }>,
     catalogId: string,
     accessToken: string,
-  ): Promise<void> {
+  ): Promise<number> {
     const cache = new Map<string, string | null>(); // source URL → new image id
     let uploaded = 0;
-    for (const p of products) {
-      const src = p._srcImageUrl;
-      const itemId = p._itemId;
-      delete p._srcImageUrl;
-      delete p._itemId;
-      if (!src) continue;
-
+    for (const job of jobs) {
+      const { product, src, itemId } = job;
       let newId = cache.get(src);
       if (newId === undefined) {
         try {
@@ -698,7 +693,7 @@ export class HubRiseCatalogService {
       }
 
       if (newId) {
-        p.image_ids = [newId];
+        product.image_ids = [newId];
         if (itemId) {
           await (this.prisma as any).menuItem
             .update({
@@ -709,8 +704,29 @@ export class HubRiseCatalogService {
         }
       }
     }
+    return uploaded;
+  }
+
+  /**
+   * Background: upload each product's image into the catalog, then re-PUT so the
+   * new image_ids land. Runs AFTER the publish response so a big image set never
+   * blocks (or times out) the operator's publish click.
+   */
+  private async uploadImagesThenRepublish(
+    catalogId: string,
+    accessToken: string,
+    credentials: unknown,
+    jobs: Array<{ product: HubRiseProduct; src: string; itemId?: string }>,
+    menuName: string,
+    data: HubRiseCatalogData,
+  ): Promise<void> {
+    const uploaded = await this.attachProductImages(jobs, catalogId, accessToken);
     if (uploaded > 0) {
-      this.logger.log(`HubRise images uploaded to catalog ${catalogId}: ${uploaded}`);
+      await this.callHubRise("PUT", `/catalogs/${catalogId}`, credentials, {
+        name: menuName,
+        data,
+      });
+      this.logger.log(`HubRise images: re-published catalog ${catalogId} with ${uploaded} image(s)`);
     }
   }
 
@@ -734,7 +750,21 @@ export class HubRiseCatalogService {
     return null;
   }
 
-  /** Upload image bytes to a HubRise catalog; returns the new image id. */
+  /** Sniff an image's real mime type from its magic bytes (S3 often mislabels). */
+  private sniffImageMime(buf: Buffer): string | null {
+    if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "image/jpeg";
+    if (buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "image/png";
+    if (buf.length >= 3 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return "image/gif";
+    if (buf.length >= 12 && buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP") return "image/webp";
+    return null;
+  }
+
+  /**
+   * Upload image bytes to a HubRise catalog; returns the new image id. HubRise's
+   * images API takes JSON { mime_type, data: <base64> } — NOT multipart — and
+   * only accepts real image mime types, so we sniff the bytes (S3 frequently
+   * serves image files as application/octet-stream, which HubRise rejects).
+   */
   private async uploadImageToCatalog(
     catalogId: string,
     accessToken: string,
@@ -744,13 +774,15 @@ export class HubRiseCatalogService {
     const baseUrl =
       this.config.get<string>("app.platforms.hubrise.baseUrl") ??
       "https://api.hubrise.com/v1";
-    const ext = contentType.includes("png") ? "png" : "jpg";
-    const form = new FormData();
-    form.append("image", new Blob([new Uint8Array(buffer)], { type: contentType }), `image.${ext}`);
+    let mime = ((contentType || "").toLowerCase().split(";")[0] ?? "").trim();
+    if (mime === "image/jpg") mime = "image/jpeg";
+    if (!/^image\/(jpeg|png|gif|webp)$/.test(mime)) {
+      mime = this.sniffImageMime(buffer) ?? "image/jpeg";
+    }
     const res = await fetch(`${baseUrl}/catalogs/${catalogId}/images`, {
       method: "POST",
-      headers: { "X-Access-Token": accessToken },
-      body: form,
+      headers: { "X-Access-Token": accessToken, "Content-Type": "application/json" },
+      body: JSON.stringify({ mime_type: mime, data: buffer.toString("base64") }),
     });
     const text = await res.text();
     if (!res.ok) {
@@ -762,9 +794,7 @@ export class HubRiseCatalogService {
     } catch {
       /* some deployments return an empty body on 201 */
     }
-    const id = json?.image_id ?? json?.id ?? null;
-    this.logger.log(`HubRise POST /catalogs/${catalogId}/images → ${res.status} id=${id}`);
-    return id;
+    return json?.image_id ?? json?.id ?? null;
   }
 
   // ─────────────────────────────────────────────────────────────────────
@@ -923,6 +953,16 @@ export class HubRiseCatalogService {
       }
     })();
 
+    // Capture the images that need uploading, THEN strip the internal fields so
+    // they never reach HubRise. Uploads happen in the background after the PUT.
+    const imageJobs = products
+      .filter((p) => p._srcImageUrl)
+      .map((p) => ({ product: p, src: p._srcImageUrl as string, itemId: p._itemId }));
+    for (const p of products) {
+      delete p._srcImageUrl;
+      delete p._itemId;
+    }
+
     const data: HubRiseCatalogData = {
       // Only send variants[] when the menu actually defines some — an
       // empty array is harmless but noise in HubRise's UI.
@@ -933,17 +973,23 @@ export class HubRiseCatalogService {
     };
 
     if (location.hubriseCatalogId) {
-      // Upload any images that aren't yet in this catalog, then overwrite.
-      // (Mutates products in place; `data.products` is the same array.)
-      if (hubriseToken) {
-        await this.attachProductImages(products, location.hubriseCatalogId, hubriseToken);
-      }
+      // Publish the catalog immediately (fast). Images upload in the background
+      // and re-publish once done — never blocking the operator's click.
       await this.callHubRise(
         `PUT`,
         `/catalogs/${location.hubriseCatalogId}`,
         location.hubriseCredentials,
         { name: menu.name, data },
       );
+      if (hubriseToken && imageJobs.length) {
+        const catId = location.hubriseCatalogId;
+        const creds = location.hubriseCredentials;
+        setImmediate(() =>
+          this.uploadImagesThenRepublish(catId, hubriseToken, creds, imageJobs, menu.name, data).catch(
+            (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
+          ),
+        );
+      }
       await this.markPublished(args.menuId, location.hubriseCatalogId);
       this.activity?.record({
         tenantId: args.tenantId,
@@ -966,26 +1012,21 @@ export class HubRiseCatalogService {
       { name: menu.name, data },
     )) as { id: string };
 
-    // Images can only be uploaded once the catalog exists. Upload them into the
-    // freshly-created catalog and, if any landed, push a follow-up update.
-    if (hubriseToken) {
-      await this.attachProductImages(products, created.id, hubriseToken);
-      if (products.some((p) => p.image_ids?.length)) {
-        await this.callHubRise(
-          "PUT",
-          `/catalogs/${created.id}`,
-          location.hubriseCredentials,
-          { name: menu.name, data },
-        ).catch((err: any) =>
-          this.logger.warn(`HubRise image-update PUT failed: ${err?.message ?? err}`),
-        );
-      }
-    }
-
     await (this.prisma as any).location.update({
       where: { id: location.id },
       data: { hubriseCatalogId: created.id },
     });
+
+    // Images can only be uploaded once the catalog exists. Do it in the
+    // background and re-publish once done — never blocking the publish response.
+    if (hubriseToken && imageJobs.length) {
+      const creds = location.hubriseCredentials;
+      setImmediate(() =>
+        this.uploadImagesThenRepublish(created.id, hubriseToken, creds, imageJobs, menu.name, data).catch(
+          (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
+        ),
+      );
+    }
     await this.markPublished(args.menuId, created.id);
     this.activity?.record({
       tenantId: args.tenantId,
