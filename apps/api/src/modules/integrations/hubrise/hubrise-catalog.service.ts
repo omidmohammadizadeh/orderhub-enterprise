@@ -746,7 +746,11 @@ export class HubRiseCatalogService {
     );
 
     const { categories, products, optionLists, variants } =
-      transformMenuToCatalog(menu, groupById);
+      transformMenuToCatalog(
+        menu,
+        groupById,
+        location.hubriseCatalogId ?? undefined,
+      );
 
     this.logger.log(
       `HubRise publish: menu=${args.menuId} categories=${categories.length} ` +
@@ -978,6 +982,12 @@ const catalogTransformLogger = new Logger("HubRiseCatalogService");
 export function transformMenuToCatalog(
   menu: any,
   groupById: Map<string, any>,
+  // The catalog we're publishing INTO. A HubRise image id only exists inside the
+  // catalog it was uploaded to, so we only reference an item's image when it
+  // belongs to THIS catalog — otherwise HubRise 422s "image not found" and the
+  // whole publish fails (e.g. a master/cloned menu carrying images from other
+  // catalogs). Undefined (fresh catalog) → send no image ids.
+  targetCatalogId?: string,
 ): {
   categories: HubRiseCategory[];
   products: HubRiseProduct[];
@@ -1142,9 +1152,14 @@ export function transformMenuToCatalog(
       // POST /catalogs/:id/images binary upload path (separate phase).
       const hubriseImageMatch =
         typeof item.imageUrl === "string"
-          ? item.imageUrl.match(/hubrise-image\/[^/]+\/([^/?#]+)/)
+          ? item.imageUrl.match(/hubrise-image\/([^/]+)\/([^/?#]+)/)
           : null;
-      const image_ids = hubriseImageMatch ? [hubriseImageMatch[1]] : undefined;
+      // Only re-reference the image when it lives in the catalog we're
+      // publishing to; a mismatched (or fresh-catalog) id would 422 the push.
+      const image_ids =
+        hubriseImageMatch && hubriseImageMatch[1] === targetCatalogId
+          ? [hubriseImageMatch[2]]
+          : undefined;
 
       products.push({
         ref: item.externalId ?? `prod_${item.id}`,
