@@ -758,7 +758,10 @@ export class HubRiseCatalogService {
       0,
     );
     this.logger.log(
-      `HubRise publish: menu=${args.menuId} categories=${categories.length} ` +
+      `HubRise publish: menu=${args.menuId} → location=${location.id} ` +
+        `catalog=${location.hubriseCatalogId ?? "NEW"} ` +
+        `hubriseLocation=${location.hubriseLocationId} ` +
+        `categories=${categories.length} ` +
         `products=${products.length} optionLists=${optionLists.length} ` +
         `variants=${variants.length} skusWithPriceOverrides=${skuOverrideCount} ` +
         `referencedGroups=${referencedGroupIds.size}`,
@@ -942,6 +945,11 @@ export class HubRiseCatalogService {
       throw new BadRequestException(
         `HubRise ${method} ${path} → ${res.status}: ${text.slice(0, 500)}`,
       );
+    }
+    // Log write calls so a "published but HubRise didn't change" report can be
+    // traced to the exact catalog + HTTP status that HubRise returned.
+    if (method !== "GET") {
+      this.logger.log(`HubRise ${method} ${path} → ${res.status}`);
     }
     if (res.status === 204) return undefined as T;
     return (await res.json()) as T;
