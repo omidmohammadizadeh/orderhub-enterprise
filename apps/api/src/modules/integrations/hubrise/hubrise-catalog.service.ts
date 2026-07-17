@@ -18,6 +18,7 @@
 // HubRise expects the token in the `X-Access-Token` header.
 
 import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from "@nestjs/common";
+import { createHash } from "crypto";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
@@ -681,8 +682,10 @@ export class HubRiseCatalogService {
       if (newId === undefined) {
         try {
           const bytes = await this.resolveImageBytes(src);
+          // Stable ref so HubRise dedupes if the same image is re-uploaded.
+          const privateRef = createHash("md5").update(src).digest("hex").slice(0, 24);
           newId = bytes
-            ? await this.uploadImageToCatalog(catalogId, accessToken, bytes.buffer, bytes.contentType)
+            ? await this.uploadImageToCatalog(catalogId, accessToken, bytes.buffer, bytes.contentType, privateRef)
             : null;
         } catch (e: any) {
           this.logger.warn(`HubRise image upload failed for ${src}: ${e?.message ?? e}`);
@@ -759,30 +762,38 @@ export class HubRiseCatalogService {
     return null;
   }
 
+  // HubRise caps catalog images at 1 MB.
+  private static readonly HUBRISE_MAX_IMAGE_BYTES = 1_000_000;
+
   /**
-   * Upload image bytes to a HubRise catalog; returns the new image id. HubRise's
-   * images API takes JSON { mime_type, data: <base64> } — NOT multipart — and
-   * only accepts real image mime types, so we sniff the bytes (S3 frequently
-   * serves image files as application/octet-stream, which HubRise rejects).
+   * Upload image bytes to a HubRise catalog; returns the new image id. Per the
+   * HubRise Catalog API, the image binary is the RAW request body and the mime
+   * type goes in the Content-Type header (NOT JSON, NOT multipart). Accepted:
+   * jpeg/png/webp/gif/bmp, max 1 MB. A stable private_ref dedupes re-uploads.
    */
   private async uploadImageToCatalog(
     catalogId: string,
     accessToken: string,
     buffer: Buffer,
     contentType: string,
+    privateRef?: string,
   ): Promise<string | null> {
     const baseUrl =
       this.config.get<string>("app.platforms.hubrise.baseUrl") ??
       "https://api.hubrise.com/v1";
     let mime = ((contentType || "").toLowerCase().split(";")[0] ?? "").trim();
     if (mime === "image/jpg") mime = "image/jpeg";
-    if (!/^image\/(jpeg|png|gif|webp)$/.test(mime)) {
+    if (!/^image\/(jpeg|png|gif|webp|bmp)$/.test(mime)) {
       mime = this.sniffImageMime(buffer) ?? "image/jpeg";
     }
-    const res = await fetch(`${baseUrl}/catalogs/${catalogId}/images`, {
+    if (buffer.length > HubRiseCatalogService.HUBRISE_MAX_IMAGE_BYTES) {
+      throw new Error(`image is ${Math.round(buffer.length / 1024)}KB — HubRise max is 1MB`);
+    }
+    const qs = privateRef ? `?private_ref=${encodeURIComponent(privateRef)}` : "";
+    const res = await fetch(`${baseUrl}/catalogs/${catalogId}/images${qs}`, {
       method: "POST",
-      headers: { "X-Access-Token": accessToken, "Content-Type": "application/json" },
-      body: JSON.stringify({ mime_type: mime, data: buffer.toString("base64") }),
+      headers: { "X-Access-Token": accessToken, "Content-Type": mime },
+      body: new Uint8Array(buffer),
     });
     const text = await res.text();
     if (!res.ok) {
@@ -792,9 +803,9 @@ export class HubRiseCatalogService {
     try {
       json = JSON.parse(text);
     } catch {
-      /* some deployments return an empty body on 201 */
+      /* empty body on some responses */
     }
-    return json?.image_id ?? json?.id ?? null;
+    return json?.id ?? json?.image_id ?? null;
   }
 
   // ─────────────────────────────────────────────────────────────────────
