@@ -116,6 +116,41 @@ export function variantRefsForBrands(
   return variants.filter((v) => v.brandId && set.has(v.brandId)).map((v) => v.ref);
 }
 
+/**
+ * Resolve an item/SKU/option's stored overrides onto a set of variants, keyed
+ * by each variant's full ref. Handles the legacy case where prices are stored
+ * under the BARE channel key ("UBER_EATS") but the variant is brand-scoped
+ * ("<brandId>__UBER_EATS") — as Master Menus seed. For each variant:
+ *   1. exact ref hit wins ({ "<brandId>__UBER_EATS": 11.99 }); else
+ *   2. the bare channelKey price ({ "UBER_EATS": 11.99 }) maps onto that
+ *      variant when the variant belongs to one of the item's brands (or the
+ *      caller passes no brands, e.g. shared modifier options).
+ * Without this, a Master Menu's per-variant prices silently vanish on publish.
+ */
+export function resolveOverridesForVariants(
+  rawOverrides: Record<string, number> | null | undefined,
+  variants: ReadonlyArray<PricingVariant>,
+  brandIds: ReadonlyArray<string | null | undefined>,
+): Record<string, number> {
+  if (!rawOverrides || typeof rawOverrides !== "object") return {};
+  const brands = new Set(brandIds.filter((b): b is string => !!b));
+  const out: Record<string, number> = {};
+  for (const v of variants) {
+    if (Object.prototype.hasOwnProperty.call(rawOverrides, v.ref)) {
+      out[v.ref] = Number(rawOverrides[v.ref]);
+      continue;
+    }
+    if (
+      v.channelKey &&
+      Object.prototype.hasOwnProperty.call(rawOverrides, v.channelKey) &&
+      (!v.brandId || brands.size === 0 || brands.has(v.brandId))
+    ) {
+      out[v.ref] = Number(rawOverrides[v.channelKey]);
+    }
+  }
+  return out;
+}
+
 /** One HubRise price-override rule. */
 export interface HubRisePriceOverride {
   variant_refs: string[];

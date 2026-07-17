@@ -25,6 +25,7 @@ import { ActivityLogService } from "../../logs/activity-log.service";
 import {
   normalizePricingVariants,
   buildHubRisePriceOverrides,
+  resolveOverridesForVariants,
   variantRefsForBrands,
   type HubRisePriceOverride,
 } from "@orderhub/shared";
@@ -752,10 +753,15 @@ export class HubRiseCatalogService {
         location.hubriseCatalogId ?? undefined,
       );
 
+    const skuOverrideCount = products.reduce(
+      (n, p) => n + (p.skus ?? []).filter((s: any) => s.price_overrides?.length).length,
+      0,
+    );
     this.logger.log(
       `HubRise publish: menu=${args.menuId} categories=${categories.length} ` +
         `products=${products.length} optionLists=${optionLists.length} ` +
-        `variants=${variants.length} referencedGroups=${referencedGroupIds.size}`,
+        `variants=${variants.length} skusWithPriceOverrides=${skuOverrideCount} ` +
+        `referencedGroups=${referencedGroupIds.size}`,
     );
 
     // Sample the first product + its SKUs so we can verify the
@@ -1065,7 +1071,11 @@ export function transformMenuToCatalog(
       options: (g.options ?? []).map((o: any) => {
         const optBase = Number(o.priceAdjustment ?? 0);
         const overrides = buildHubRisePriceOverrides(
-          o.platformPricingOverrides as Record<string, number> | undefined,
+          resolveOverridesForVariants(
+            o.platformPricingOverrides as Record<string, number> | undefined,
+            variants,
+            [], // shared modifier option → map bare channel keys to all brands
+          ),
           variantRefs,
           optBase,
           fmtPrice,
@@ -1090,10 +1100,11 @@ export function transformMenuToCatalog(
       // Brand scoping: restrict this product to the variants of the brand(s)
       // it belongs to, so a brand's connector only sees its own products in
       // the shared catalog. Empty (untagged product) → left unrestricted.
-      const restrictRefs = variantRefsForBrands(variants, [
+      const itemBrands = [
         item.brandId,
         ...(Array.isArray(item.brandIds) ? item.brandIds : []),
-      ]);
+      ];
+      const restrictRefs = variantRefsForBrands(variants, itemBrands);
       const restrictions = restrictRefs.length
         ? { restrictions: { variant_refs: restrictRefs } }
         : {};
@@ -1103,7 +1114,11 @@ export function transformMenuToCatalog(
             const base = Number(s.price ?? 0);
             // Per-size overrides live on the SKU row itself.
             const overrides = buildHubRisePriceOverrides(
-              s.priceOverrides as Record<string, number> | undefined,
+              resolveOverridesForVariants(
+                s.priceOverrides as Record<string, number> | undefined,
+                variants,
+                itemBrands,
+              ),
               variantRefs,
               base,
               fmtPrice,
@@ -1125,7 +1140,11 @@ export function transformMenuToCatalog(
             // Single-SKU items carry their per-channel prices at the item
             // level (MenuItem.platformPricingOverrides).
             const overrides = buildHubRisePriceOverrides(
-              item.platformPricingOverrides as Record<string, number> | undefined,
+              resolveOverridesForVariants(
+                item.platformPricingOverrides as Record<string, number> | undefined,
+                variants,
+                itemBrands,
+              ),
               variantRefs,
               base,
               fmtPrice,
