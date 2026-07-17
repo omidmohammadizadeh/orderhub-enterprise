@@ -91,6 +91,11 @@ interface HubRiseProduct {
   image_ids?: string[];
   skus?: HubRiseSku[];
   tax_rate?: { delivery?: string; collection?: string; eat_in?: string } | null;
+  // Internal-only (stripped before the payload is sent): the item's image URL
+  // and id, so the publish step can upload the image INTO the target catalog and
+  // set image_ids when it isn't already there.
+  _srcImageUrl?: string;
+  _itemId?: string;
 }
 
 interface HubRiseSku {
@@ -655,6 +660,113 @@ export class HubRiseCatalogService {
     return { buffer, contentType };
   }
 
+  /**
+   * Ensure each product's image exists in the TARGET catalog. Products flagged
+   * with _srcImageUrl carry an image that lives elsewhere (another HubRise
+   * catalog, or an external URL) — fetch its bytes and upload them into this
+   * catalog, then set image_ids. On success the item's imageUrl is re-pointed at
+   * the new catalog so future publishes reference it directly (no re-upload).
+   * Any failure is logged and skipped — an image must never break the publish.
+   */
+  private async attachProductImages(
+    products: HubRiseProduct[],
+    catalogId: string,
+    accessToken: string,
+  ): Promise<void> {
+    const cache = new Map<string, string | null>(); // source URL → new image id
+    let uploaded = 0;
+    for (const p of products) {
+      const src = p._srcImageUrl;
+      const itemId = p._itemId;
+      delete p._srcImageUrl;
+      delete p._itemId;
+      if (!src) continue;
+
+      let newId = cache.get(src);
+      if (newId === undefined) {
+        try {
+          const bytes = await this.resolveImageBytes(src);
+          newId = bytes
+            ? await this.uploadImageToCatalog(catalogId, accessToken, bytes.buffer, bytes.contentType)
+            : null;
+        } catch (e: any) {
+          this.logger.warn(`HubRise image upload failed for ${src}: ${e?.message ?? e}`);
+          newId = null;
+        }
+        cache.set(src, newId);
+        if (newId) uploaded++;
+      }
+
+      if (newId) {
+        p.image_ids = [newId];
+        if (itemId) {
+          await (this.prisma as any).menuItem
+            .update({
+              where: { id: itemId },
+              data: { imageUrl: `/api/v1/menus/hubrise-image/${catalogId}/${newId}` },
+            })
+            .catch(() => null);
+        }
+      }
+    }
+    if (uploaded > 0) {
+      this.logger.log(`HubRise images uploaded to catalog ${catalogId}: ${uploaded}`);
+    }
+  }
+
+  /** Fetch the raw bytes of an image referenced by a HubRise-proxy or http(s) URL. */
+  private async resolveImageBytes(
+    src: string,
+  ): Promise<{ buffer: Buffer; contentType: string } | null> {
+    const m = src.match(/hubrise-image\/([^/]+)\/([^/?#]+)/);
+    if (m && m[1] && m[2]) {
+      return this.fetchHubRiseImage(m[1], m[2]);
+    }
+    if (/^https?:\/\//i.test(src)) {
+      const res = await fetch(src);
+      if (!res.ok) throw new Error(`fetch image ${src} → ${res.status}`);
+      return {
+        buffer: Buffer.from(await res.arrayBuffer()),
+        contentType: res.headers.get("content-type") ?? "image/jpeg",
+      };
+    }
+    // A relative, non-HubRise URL we can't resolve to bytes — skip.
+    return null;
+  }
+
+  /** Upload image bytes to a HubRise catalog; returns the new image id. */
+  private async uploadImageToCatalog(
+    catalogId: string,
+    accessToken: string,
+    buffer: Buffer,
+    contentType: string,
+  ): Promise<string | null> {
+    const baseUrl =
+      this.config.get<string>("app.platforms.hubrise.baseUrl") ??
+      "https://api.hubrise.com/v1";
+    const ext = contentType.includes("png") ? "png" : "jpg";
+    const form = new FormData();
+    form.append("image", new Blob([new Uint8Array(buffer)], { type: contentType }), `image.${ext}`);
+    const res = await fetch(`${baseUrl}/catalogs/${catalogId}/images`, {
+      method: "POST",
+      headers: { "X-Access-Token": accessToken },
+      body: form,
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(`HubRise POST /catalogs/${catalogId}/images → ${res.status}: ${text.slice(0, 300)}`);
+    }
+    let json: any = {};
+    try {
+      json = JSON.parse(text);
+    } catch {
+      /* some deployments return an empty body on 201 */
+    }
+    const id = json?.image_id ?? json?.id ?? null;
+    this.logger.log(`HubRise POST /catalogs/${catalogId}/images → ${res.status} id=${id}`);
+    return id;
+  }
+
   // ─────────────────────────────────────────────────────────────────────
   // PUBLISH
   // ─────────────────────────────────────────────────────────────────────
@@ -799,6 +911,18 @@ export class HubRiseCatalogService {
       );
     }
 
+    // Decrypt the HubRise token once — used to upload images into the catalog.
+    const hubriseToken = (() => {
+      try {
+        const d = this.credentialEncryption.decrypt(
+          (location.hubriseCredentials ?? {}) as Record<string, unknown>,
+        ) as Record<string, string>;
+        return d.accessToken ?? null;
+      } catch {
+        return null;
+      }
+    })();
+
     const data: HubRiseCatalogData = {
       // Only send variants[] when the menu actually defines some — an
       // empty array is harmless but noise in HubRise's UI.
@@ -809,7 +933,11 @@ export class HubRiseCatalogService {
     };
 
     if (location.hubriseCatalogId) {
-      // Overwrite.
+      // Upload any images that aren't yet in this catalog, then overwrite.
+      // (Mutates products in place; `data.products` is the same array.)
+      if (hubriseToken) {
+        await this.attachProductImages(products, location.hubriseCatalogId, hubriseToken);
+      }
       await this.callHubRise(
         `PUT`,
         `/catalogs/${location.hubriseCatalogId}`,
@@ -837,6 +965,22 @@ export class HubRiseCatalogService {
       location.hubriseCredentials,
       { name: menu.name, data },
     )) as { id: string };
+
+    // Images can only be uploaded once the catalog exists. Upload them into the
+    // freshly-created catalog and, if any landed, push a follow-up update.
+    if (hubriseToken) {
+      await this.attachProductImages(products, created.id, hubriseToken);
+      if (products.some((p) => p.image_ids?.length)) {
+        await this.callHubRise(
+          "PUT",
+          `/catalogs/${created.id}`,
+          location.hubriseCredentials,
+          { name: menu.name, data },
+        ).catch((err: any) =>
+          this.logger.warn(`HubRise image-update PUT failed: ${err?.message ?? err}`),
+        );
+      }
+    }
 
     await (this.prisma as any).location.update({
       where: { id: location.id },
@@ -1199,19 +1343,23 @@ export function transformMenuToCatalog(
         typeof item.imageUrl === "string"
           ? item.imageUrl.match(/hubrise-image\/([^/]+)\/([^/?#]+)/)
           : null;
-      // Only re-reference the image when it lives in the catalog we're
-      // publishing to; a mismatched (or fresh-catalog) id would 422 the push.
-      const image_ids =
+      // If the image already lives in the catalog we're publishing to, reference
+      // it directly. Otherwise (image from another catalog, or an external URL)
+      // stash the source so the publish step uploads it INTO the target catalog.
+      const directId =
         hubriseImageMatch && hubriseImageMatch[1] === targetCatalogId
-          ? [hubriseImageMatch[2]]
-          : undefined;
+          ? hubriseImageMatch[2]
+          : null;
 
       products.push({
         ref: item.externalId ?? `prod_${item.id}`,
         category_ref: catRef,
         name: item.name,
         description: item.description ?? null,
-        ...(image_ids && { image_ids }),
+        ...(directId ? { image_ids: [directId] } : {}),
+        ...(!directId && item.imageUrl
+          ? { _srcImageUrl: item.imageUrl as string, _itemId: item.id as string }
+          : {}),
         skus,
       });
     }
