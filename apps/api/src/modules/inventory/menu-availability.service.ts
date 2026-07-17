@@ -916,24 +916,37 @@ export class MenuAvailabilityService {
     expiresAt: Date | null,
     locationId?: string,
   ) {
+    // Build the SKU refs EXACTLY as transformMenuToCatalog does when it
+    // publishes the catalog — otherwise the 86 targets a ref HubRise doesn't
+    // have and silently no-ops. That's the bug for cloned menus: cloning clears
+    // PLUs, so the catalog falls back to `<itemId>_sku`, but this sync only knew
+    // how to send `item.plu`. Match the publish path ref-for-ref.
     const skuRefs = new Set<string>();
-    if (item.plu) skuRefs.add(item.plu);
-    if (item.hasMultipleSkus && Array.isArray(item.productSkus)) {
-      for (const s of item.productSkus as any[]) {
-        if (s?.plu) skuRefs.add(s.plu);
-      }
+    if (
+      item.hasMultipleSkus &&
+      Array.isArray(item.productSkus) &&
+      item.productSkus.length > 0
+    ) {
+      (item.productSkus as any[]).forEach((s, i) => {
+        skuRefs.add(s?.plu ?? `${item.id}_sku_${i}`);
+      });
+    } else {
+      skuRefs.add(item.plu ?? item.externalId ?? `${item.id}_sku`);
     }
     if (skuRefs.size === 0) return;
 
-    // Phase BA — a location-scoped 86 patches THAT location's HubRise
-    // catalog only (skip when it has none); global writes keep the old
-    // first-connected-location behaviour.
+    // Phase BA — a location-scoped 86 patches THAT location's HubRise catalog
+    // only. NEVER a deleted location (deletedAt filter) — a stale/removed
+    // location can still hold an orphaned catalog id and would swallow the
+    // update. Global writes fall back to the brand's live connected location.
     const location = await this.prisma.location.findFirst({
       where: {
         ...(locationId ? { id: locationId } : { brandId: item.brandId }),
+        deletedAt: null,
         hubriseCatalogId: { not: null },
         hubriseLocationId: { not: null },
       },
+      orderBy: { updatedAt: "desc" },
       select: {
         id: true,
         hubriseCredentials: true,
