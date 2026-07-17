@@ -97,7 +97,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
-  { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: MANAGER_TIER },
+  { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: [...MANAGER_TIER, "MANAGER"] },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
   { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: [...MANAGER_TIER, "MANAGER"] },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin, roles: MANAGER_TIER },
