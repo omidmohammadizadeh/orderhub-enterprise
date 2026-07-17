@@ -49,6 +49,9 @@ import { forwardRef } from "@nestjs/common";
     HubRiseOrderSyncService,
     HubRiseCatalogService,
     HubRiseLocationPauseService,
+    // Consumed by WebhooksModule's per-location receiver to apply courier
+    // (driver name/phone/PIN + stage) updates from delivery webhooks.
+    HubRiseDeliverySyncService,
   ],
 })
 export class HubRiseModule {}

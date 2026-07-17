@@ -124,6 +124,48 @@ export class WebhookIngestionService {
       this.logger.log(
         `HubRise webhook envelope: ${JSON.stringify(payload).slice(0, 700)}`,
       );
+      const env = (payload ?? {}) as Record<string, any>;
+
+      // Courier/driver updates arrive as their OWN resource_type:"delivery"
+      // webhook (driver name, phone, PIN, ETA + stage: pending → pickup_* →
+      // dropoff_* → delivered). They must NOT go through the order-enrich
+      // path below — that fetches the order and dedups the event against the
+      // order-create (extractEventId collapses to the order id), silently
+      // dropping every rider update. Route them straight to the courier sync
+      // (Phase AV-2), the same handler the global receiver uses.
+      if (
+        env.resource_type === "delivery" &&
+        (env.event_type === "create" || env.event_type === "update")
+      ) {
+        if (!hubriseLocationId) {
+          this.logger.warn(
+            `HubRise delivery webhook for location ${locationId} has no hubriseLocationId — ignoring`,
+          );
+          return { ignored: true };
+        }
+        try {
+          const result = await this.orders.handleHubriseDelivery({
+            hubriseOrderId: env.order_id ?? env.new_state?.order_id,
+            // The delivery's own id lives in new_state.id — the envelope's
+            // top-level `id` is the EVENT id, not the delivery id.
+            hubriseDeliveryId:
+              env.new_state?.id ?? env.delivery_id ?? env.resource_id,
+            ourLocationId: locationId,
+            hubriseLocationId,
+            credentialsBlob: hubriseCredentialsBlob,
+            inlineDelivery: env.new_state ?? null,
+          });
+          return { duplicate: false, ...result };
+        } catch (err: any) {
+          // 200 + reason so HubRise stops retrying a malformed event; the
+          // error is logged for the operator.
+          this.logger.error(
+            `HubRise delivery webhook failed: ${err?.message ?? err}`,
+          );
+          return { ignored: true, reason: err?.message ?? String(err) };
+        }
+      }
+
       payload = await this.enrichHubRiseOrderPayload(
         payload,
         hubriseCredentialsBlob,

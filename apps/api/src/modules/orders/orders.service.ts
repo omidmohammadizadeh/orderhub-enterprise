@@ -20,6 +20,7 @@ import { OutboxService } from "../outbox/outbox.service";
 import { PrintQueueService } from "../printers/print-queue.service";
 import { PrintJobsService } from "../printers/print-jobs.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
+import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-delivery-sync.service";
 import { PaymentsService } from "../payments/payments.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { assertTransition, getTimestampField } from "./order-state-machine";
@@ -94,8 +95,27 @@ export class OrdersService {
     // HubRiseModule transitively imports OrdersModule (via WebhooksModule).
     @Inject(forwardRef(() => HubRiseOrderSyncService))
     private readonly hubriseSync: HubRiseOrderSyncService,
+    // Inbound courier/driver updates from HubRise delivery webhooks.
+    // forwardRef mirrors hubriseSync — same OrdersModule ↔ HubRiseModule
+    // cycle. The webhook ingestion service calls handleHubriseDelivery()
+    // (below) rather than importing HubRiseModule itself, which would add a
+    // WebhooksModule → HubRiseModule edge and a fresh boot-time cycle.
+    @Inject(forwardRef(() => HubRiseDeliverySyncService))
+    private readonly hubriseDelivery: HubRiseDeliverySyncService,
     private readonly events: EventEmitter2,
   ) {}
+
+  /**
+   * Apply a HubRise courier/delivery webhook (driver name/phone/PIN +
+   * stage) to the matching order. Thin passthrough so WebhookIngestionService
+   * can reach HubRiseDeliverySyncService without WebhooksModule importing
+   * HubRiseModule (that edge would create a boot-time module cycle).
+   */
+  handleHubriseDelivery(
+    args: Parameters<HubRiseDeliverySyncService["handleDeliveryWebhook"]>[0],
+  ) {
+    return this.hubriseDelivery.handleDeliveryWebhook(args);
+  }
 
   /**
    * Phase AW-30 — short, customer-friendly order code.
