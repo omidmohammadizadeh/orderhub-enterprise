@@ -363,8 +363,13 @@ export const menusClient = {
   archiveMenu: (menuId: string) =>
     apiClient.post<Menu>(`/v1/menus/${menuId}/archive`, {}).then((r) => r.data),
 
-  cloneMenu: (menuId: string, name: string) =>
-    apiClient.post<MenuWithCategories>(`/v1/menus/${menuId}/clone`, { name }).then((r) => r.data),
+  cloneMenu: (menuId: string, name: string, targetLocationId?: string) =>
+    apiClient
+      .post<MenuWithCategories>(`/v1/menus/${menuId}/clone`, {
+        name,
+        targetLocationId,
+      })
+      .then((r) => r.data),
 
   // Phase BC — Master Menu: combine several existing menus at a location
   // (typically one per brand) into one new menu for a single HubRise

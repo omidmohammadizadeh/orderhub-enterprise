@@ -436,8 +436,26 @@ export class MenusService {
     ]);
   }
 
-  async clone(menuId: string, tenantId: string, name: string) {
+  async clone(
+    menuId: string,
+    tenantId: string,
+    name: string,
+    opts?: { targetLocationId?: string },
+  ) {
     const source = await this.findOne(menuId, tenantId);
+
+    // Cross-location clone: home the copy (and its items) to the target
+    // location so it shows up under that location and belongs to it. Validate
+    // the target belongs to this tenant.
+    let targetLocationId: string | null = (source as any).locationId ?? null;
+    if (opts?.targetLocationId) {
+      const loc = await this.prisma.location.findFirst({
+        where: { id: opts.targetLocationId, brand: { tenantId } },
+        select: { id: true },
+      });
+      if (!loc) throw new NotFoundException("Target location not found");
+      targetLocationId = opts.targetLocationId;
+    }
 
     // DEEP clone — every MenuItem is duplicated so the copy is completely
     // independent of the source: deleting or editing an item in the clone
@@ -455,7 +473,7 @@ export class MenusService {
         // it succeeded. menuType carried over so the copy is a true duplicate.
         data: {
           brandId: source.brandId,
-          locationId: (source as any).locationId ?? null,
+          locationId: targetLocationId,
           name,
           status: "DRAFT",
           ...((source as any).menuType && {
@@ -486,7 +504,7 @@ export class MenusService {
             const created = await tx.menuItem.create({
               data: {
                 brandId: src.brandId,
-                locationId: src.locationId ?? null,
+                locationId: targetLocationId ?? src.locationId ?? null,
                 name: src.name,
                 description: src.description ?? null,
                 basePrice: src.basePrice,

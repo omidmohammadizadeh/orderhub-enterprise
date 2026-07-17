@@ -438,13 +438,15 @@ export class MenusController {
 
   @Post("menus/:menuId/clone")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
-  @ApiOperation({ summary: "Clone a menu to a new draft" })
+  @ApiOperation({ summary: "Clone a menu to a new draft (optionally into another location)" })
   clone(
     @Param("menuId") menuId: string,
-    @Body("name") name: string,
+    @Body() body: { name: string; targetLocationId?: string },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menus.clone(menuId, user.tenantId, name);
+    return this.menus.clone(menuId, user.tenantId, body.name, {
+      targetLocationId: body.targetLocationId,
+    });
   }
 
   @Delete("menus/:menuId")

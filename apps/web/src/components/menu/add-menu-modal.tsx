@@ -4,9 +4,15 @@
 // Selecting one routes to the matching follow-up modal (which the
 // parent renders) — we just emit the chosen kind here.
 
-import { X, BookOpen, Folder, Calculator, Sparkles, Layers } from "lucide-react";
+import { X, BookOpen, Folder, Calculator, Sparkles, Layers, Copy } from "lucide-react";
 
-type MenuKind = "create" | "import-ai" | "import-channel" | "import-pos" | "master";
+type MenuKind =
+  | "create"
+  | "import-ai"
+  | "import-channel"
+  | "import-pos"
+  | "master"
+  | "clone-location";
 
 interface Props {
   open: boolean;
@@ -60,6 +66,12 @@ export function AddMenuModal({ open, onPick, onCancel }: Props) {
             title="Master menu"
             description="Combine several of this location's menus (one per brand) into one — for a single HubRise catalog serving every brand"
             onClick={() => onPick("master")}
+          />
+          <Card
+            icon={<Copy className="h-5 w-5" />}
+            title="Clone from another location"
+            description="Copy a menu from one of your other locations into this location as a new, independent menu"
+            onClick={() => onPick("clone-location")}
           />
         </div>
       </div>

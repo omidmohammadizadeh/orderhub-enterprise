@@ -27,6 +27,7 @@ import { CreateMenuModal } from "@/components/menu/create-menu-modal";
 import { AiImportMenuModal } from "@/components/menu/ai-import-menu-modal";
 import { ImportMenuModal } from "@/components/menu/import-menu-modal";
 import { MasterMenuModal } from "@/components/menu/master-menu-modal";
+import { CloneFromLocationModal } from "@/components/menu/clone-from-location-modal";
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
 import { PublishHoursModal } from "@/components/menu/publish-hours-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
@@ -53,7 +54,14 @@ export default function MenuPage() {
   //   addStep "import-pos"       → ImportMenuModal sourced from POS
   //   addStep null               → no modal showing
   const [addStep, setAddStep] = useState<
-    null | "chooser" | "create" | "import-ai" | "import-channel" | "import-pos" | "master"
+    | null
+    | "chooser"
+    | "create"
+    | "import-ai"
+    | "import-channel"
+    | "import-pos"
+    | "master"
+    | "clone-location"
   >(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   // Phase AM — publish target picker per menu card.
@@ -439,6 +447,12 @@ export default function MenuPage() {
               return;
             }
             setAddStep("master");
+          } else if (kind === "clone-location") {
+            if (!selectedLocationId) {
+              toast.error("Select a single location first (not \"All locations\").");
+              return;
+            }
+            setAddStep("clone-location");
           }
         }}
         onCancel={() => setAddStep(null)}
@@ -476,6 +490,17 @@ export default function MenuPage() {
         source="pos"
         onCancel={() => setAddStep(null)}
       />
+      {selectedLocationId && (
+        <CloneFromLocationModal
+          open={addStep === "clone-location"}
+          targetLocationId={selectedLocationId}
+          onClose={() => setAddStep(null)}
+          onCloned={() => {
+            qc.invalidateQueries({ queryKey: ["menus"] });
+            toast.success("Menu cloned into this location.");
+          }}
+        />
+      )}
       {selectedLocationId && (
         <MasterMenuModal
           open={addStep === "master"}
