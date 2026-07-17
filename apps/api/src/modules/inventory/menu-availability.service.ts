@@ -165,13 +165,31 @@ export class MenuAvailabilityService {
       orderBy: { name: "asc" },
     });
     const distinctBrands = new Set(allItems.map((i) => i.brandId));
-    const items =
+    const scoped =
       distinctBrands.size > 1
         ? allItems.filter(
             (i) =>
               i.brandId === brandId || (i.brandIds ?? []).includes(brandId),
           )
         : allItems;
+
+    // Collapse duplicate products into one row. A menu that was combined from
+    // several source menus (master menu) or re-imported can carry multiple
+    // MenuItem records for the SAME product — e.g. four "9 Chicken Strips Box"
+    // rows. Key on name + price; keep the copy that has a real PLU/SKU (the
+    // original import) so its identity/snoozes are preserved.
+    const seen = new Map<string, (typeof scoped)[number]>();
+    for (const it of scoped) {
+      const key = `${(it.name ?? "").trim().toLowerCase()}|${String(it.basePrice ?? "")}`;
+      const existing = seen.get(key);
+      if (!existing) {
+        seen.set(key, it);
+      } else if (!existing.plu && it.plu) {
+        // Prefer the one carrying a PLU (the source item) over a bare clone.
+        seen.set(key, it);
+      }
+    }
+    const items = Array.from(seen.values());
     if (items.length === 0) return { items: [] };
 
     const now = new Date();

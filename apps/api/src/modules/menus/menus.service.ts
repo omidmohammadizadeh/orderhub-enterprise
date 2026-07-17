@@ -511,6 +511,14 @@ export class MenusService {
 
       // Same item can appear under multiple categories — copy it once.
       const itemIdMap = new Map<string, string>();
+      // Collapse duplicate PRODUCTS. A master menu (combined from several source
+      // menus) or a re-imported menu can hold multiple MenuItem rows for the
+      // exact same product — cloning them 1:1 produced "4× 9 Chicken Strips Box"
+      // in inventory + on HubRise. Key on brand+name+price so genuinely distinct
+      // items (or the same name under different brands) are NOT merged.
+      const identityMap = new Map<string, string>();
+      // Guard against linking the same (merged) item to a category twice.
+      const linkedInCat = new Set<string>();
 
       for (const cat of source.categories) {
         const newCat = await tx.menuCategory.create({
@@ -524,6 +532,16 @@ export class MenusService {
         for (const link of cat.items) {
           const src = (link as any).item;
           let newItemId = itemIdMap.get(link.itemId);
+          // Reuse an already-cloned copy of the SAME product (brand+name+price)
+          // so duplicate source items collapse into one.
+          if (!newItemId && src) {
+            const identity = `${src.brandId ?? ""}|${(src.name ?? "").trim().toLowerCase()}|${String(src.basePrice ?? "")}`;
+            const dupNewId = identityMap.get(identity);
+            if (dupNewId) {
+              newItemId = dupNewId;
+              itemIdMap.set(link.itemId, dupNewId);
+            }
+          }
           if (!newItemId && src) {
             const skus = Array.isArray(src.productSkus)
               ? src.productSkus.map((s: any) => ({ ...s, plu: null }))
@@ -573,8 +591,13 @@ export class MenusService {
             }
             newItemId = created.id;
             itemIdMap.set(link.itemId, newItemId);
+            identityMap.set(
+              `${src.brandId ?? ""}|${(src.name ?? "").trim().toLowerCase()}|${String(src.basePrice ?? "")}`,
+              newItemId,
+            );
           }
-          if (newItemId) {
+          if (newItemId && !linkedInCat.has(`${newCat.id}|${newItemId}`)) {
+            linkedInCat.add(`${newCat.id}|${newItemId}`);
             await tx.menuItemOnCategory.create({
               data: {
                 categoryId: newCat.id,
