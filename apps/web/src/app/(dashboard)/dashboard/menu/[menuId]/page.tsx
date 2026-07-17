@@ -33,6 +33,7 @@ import {
   ArrowLeft,
   Plus,
   Pencil,
+  Check,
   Trash2,
   GripVertical,
   Eye,
@@ -81,6 +82,9 @@ export default function MenuEditorPage() {
   // ── Local state ────────────────────────────────────────────────────
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [addingCategory, setAddingCategory] = useState(false);
+  // Inline category rename.
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [editCatName, setEditCatName] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Phase AZ — pricing variants manager + per-product channel pricing.
   const [variantsOpen, setVariantsOpen] = useState(false);
@@ -121,6 +125,15 @@ export default function MenuEditorPage() {
   const deleteCatMutation = useMutation({
     mutationFn: (catId: string) => menusClient.deleteCategory(catId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["menu", menuId] }),
+  });
+  const renameCatMutation = useMutation({
+    mutationFn: ({ catId, name }: { catId: string; name: string }) =>
+      menusClient.updateCategory(catId, { name }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["menu", menuId] });
+      setEditingCatId(null);
+      setEditCatName("");
+    },
   });
   const reorderCatMutation = useMutation({
     mutationFn: (order: { items: { id: string; sortOrder: number }[] }) =>
@@ -411,9 +424,59 @@ export default function MenuEditorPage() {
                 <span className="cursor-grab text-zinc-300 hover:text-zinc-600 px-1.5 py-2.5">
                   <GripVertical className="h-3.5 w-3.5" />
                 </span>
-                <span className="flex-1 py-2.5 text-sm font-medium text-zinc-800 truncate">
-                  {cat.name}
-                </span>
+                {editingCatId === cat.id ? (
+                  <input
+                    autoFocus
+                    value={editCatName}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => setEditCatName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && editCatName.trim()) {
+                        renameCatMutation.mutate({ catId: cat.id, name: editCatName.trim() });
+                      } else if (e.key === "Escape") {
+                        setEditingCatId(null);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (editCatName.trim() && editCatName.trim() !== cat.name) {
+                        renameCatMutation.mutate({ catId: cat.id, name: editCatName.trim() });
+                      } else {
+                        setEditingCatId(null);
+                      }
+                    }}
+                    className="flex-1 min-w-0 my-1.5 rounded border border-orange-300 px-2 py-1 text-sm font-medium text-zinc-800 focus:outline-none focus:ring-1 focus:ring-orange-400"
+                  />
+                ) : (
+                  <span className="flex-1 py-2.5 text-sm font-medium text-zinc-800 truncate">
+                    {cat.name}
+                  </span>
+                )}
+                {editingCatId === cat.id ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (editCatName.trim()) {
+                        renameCatMutation.mutate({ catId: cat.id, name: editCatName.trim() });
+                      }
+                    }}
+                    className="px-2 py-2 text-emerald-500 hover:text-emerald-700"
+                    title="Save name"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingCatId(cat.id);
+                      setEditCatName(cat.name);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-2 text-zinc-300 hover:text-zinc-700"
+                    title="Rename category"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
