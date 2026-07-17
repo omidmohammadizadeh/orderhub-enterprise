@@ -922,16 +922,51 @@ export class MenuAvailabilityService {
     // PLUs, so the catalog falls back to `<itemId>_sku`, but this sync only knew
     // how to send `item.plu`. Match the publish path ref-for-ref.
     const skuRefs = new Set<string>();
-    if (
-      item.hasMultipleSkus &&
-      Array.isArray(item.productSkus) &&
-      item.productSkus.length > 0
-    ) {
-      (item.productSkus as any[]).forEach((s, i) => {
-        skuRefs.add(s?.plu ?? `${item.id}_sku_${i}`);
+    const addRefsFor = (it: {
+      id: string;
+      plu?: string | null;
+      externalId?: string | null;
+      hasMultipleSkus?: boolean | null;
+      productSkus?: unknown;
+    }) => {
+      if (
+        it.hasMultipleSkus &&
+        Array.isArray(it.productSkus) &&
+        it.productSkus.length > 0
+      ) {
+        (it.productSkus as any[]).forEach((s, i) => {
+          skuRefs.add(s?.plu ?? `${it.id}_sku_${i}`);
+        });
+      } else {
+        skuRefs.add(it.plu ?? it.externalId ?? `${it.id}_sku`);
+      }
+    };
+    addRefsFor(item);
+
+    // Same product can exist as MULTIPLE MenuItem records — a master menu is
+    // combined from source menus, and cloning a menu into a location makes a
+    // fresh PLU-less twin. The inventory board dedups these and shows the
+    // PLU-bearing twin, but the published catalog may hold a DIFFERENT twin's
+    // ref (e.g. the clone's `<id>_sku`). So also send every same-brand/same-name
+    // twin's refs — HubRise ignores refs not in the target catalog, so this only
+    // ever hits the one it actually stored. This is the "master/variant menu 86
+    // does nothing" bug: board ref (plu) ≠ catalog ref (twin's `_sku`).
+    if (item.brandId && item.name) {
+      const twins = await this.prisma.menuItem.findMany({
+        where: {
+          id: { not: item.id },
+          brandId: item.brandId,
+          name: { equals: item.name, mode: "insensitive" },
+        },
+        select: {
+          id: true,
+          plu: true,
+          externalId: true,
+          hasMultipleSkus: true,
+          productSkus: true,
+        },
       });
-    } else {
-      skuRefs.add(item.plu ?? item.externalId ?? `${item.id}_sku`);
+      for (const t of twins) addRefsFor(t);
     }
     if (skuRefs.size === 0) return;
 
