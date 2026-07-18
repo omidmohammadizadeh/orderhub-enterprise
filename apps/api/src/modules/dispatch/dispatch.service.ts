@@ -181,6 +181,65 @@ export class DispatchService {
    *  everyone else — including the scoped OWNER (location owner) role — is
    *  constrained to their UserLocation ∪ the locations their assigned
    *  brands (UserBrand) operate at. Matches the app-wide scoping. */
+  /** Online own-fleet drivers for the dispatch modal — clocked in (ONLINE or
+   *  ON_JOB) at the given location (or any accessible one). Includes their live
+   *  active-job count so the operator can pick the least-busy driver. */
+  async listOnlineDrivers(
+    user: AuthenticatedUser,
+    locationId?: string,
+  ): Promise<
+    Array<{
+      driverId: string;
+      name: string;
+      phone: string;
+      status: DriverPresenceStatus;
+      activeJobs: number;
+    }>
+  > {
+    const accessible = await this.resolveAccessibleLocationIds(user);
+    const locFilter =
+      locationId && locationId !== "all"
+        ? accessible.includes(locationId)
+          ? { locationId }
+          : { locationId: "__no_access__" }
+        : { OR: [{ locationId: { in: accessible } }, { locationId: null }] };
+    const drivers = await this.prisma.driver.findMany({
+      where: {
+        tenantId: user.tenantId,
+        isActive: true,
+        ...locFilter,
+        presence: {
+          status: {
+            in: [DriverPresenceStatus.ONLINE, DriverPresenceStatus.ON_JOB],
+          },
+        },
+      },
+      include: {
+        presence: { select: { status: true } },
+        assignments: {
+          where: {
+            status: {
+              in: [
+                DriverAssignmentStatus.ASSIGNED,
+                DriverAssignmentStatus.ACCEPTED,
+                DriverAssignmentStatus.PICKED_UP,
+              ],
+            },
+          },
+          select: { id: true },
+        },
+      },
+      orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+    });
+    return drivers.map((d) => ({
+      driverId: d.id,
+      name: `${d.firstName} ${d.lastName}`.trim(),
+      phone: d.phone,
+      status: d.presence?.status ?? DriverPresenceStatus.OFFLINE,
+      activeJobs: d.assignments.length,
+    }));
+  }
+
   private async resolveAccessibleLocationIds(user: AuthenticatedUser): Promise<string[]> {
     if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(user.role)) {
       // Location is tenant-scoped through its brand (no direct tenantId column).

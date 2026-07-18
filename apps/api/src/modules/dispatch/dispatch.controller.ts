@@ -62,6 +62,19 @@ export class DispatchController {
     return this.dispatch.getOperatorDashboard(user, location);
   }
 
+  @Get("online-drivers")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @ApiOperation({
+    summary:
+      "Online own-fleet drivers for the dispatch modal (?locationId= to scope).",
+  })
+  onlineDrivers(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.dispatch.listOnlineDrivers(user, locationId);
+  }
+
   @Post("assign")
   @HttpCode(HttpStatus.OK)
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")

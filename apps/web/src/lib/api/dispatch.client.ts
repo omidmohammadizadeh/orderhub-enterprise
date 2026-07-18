@@ -65,6 +65,22 @@ export async function assignOrders(driverId: string, orderIds: string[]): Promis
   await apiClient.post("/v1/dispatch/assign", { driverId, orderIds });
 }
 
+export interface OnlineDriver {
+  driverId: string;
+  name: string;
+  phone: string;
+  status: DriverPresenceStatus;
+  activeJobs: number;
+}
+
+/** Online own-fleet drivers for the dispatch modal (scoped to a location). */
+export async function getOnlineDrivers(locationId?: string): Promise<OnlineDriver[]> {
+  const res = await apiClient.get<OnlineDriver[]>("/v1/dispatch/online-drivers", {
+    params: locationId ? { locationId } : undefined,
+  });
+  return res.data;
+}
+
 /** Pull an order back from its driver to the board. */
 export async function unassignOrder(orderId: string): Promise<void> {
   await apiClient.post("/v1/dispatch/unassign", { orderId });

@@ -9,9 +9,7 @@ import { Separator } from "../ui/separator";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
 import { useAuthStore } from "../../stores/auth.store";
-import { useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { stuartClient } from "../../lib/api/stuart.client";
+import { DispatchModal } from "./dispatch-modal";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
 
@@ -70,28 +68,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const updateStatus = useUpdateOrderStatus();
   const router = useRouter();
   const userRole = useAuthStore((s) => s.user?.role);
-  const queryClient = useQueryClient();
-  const [dispatching, setDispatching] = useState(false);
-
-  async function handleStuartDispatch() {
-    if (!order) return;
-    setDispatching(true);
-    try {
-      const r = await stuartClient.dispatch(order.id);
-      toast.success(
-        r.adminBypass
-          ? "Dispatched to Stuart (admin — no wallet charge)"
-          : "Dispatched to Stuart",
-      );
-      queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
-    } catch (e: any) {
-      toast.error(
-        e?.response?.data?.message ?? "Couldn't dispatch to Stuart",
-      );
-    } finally {
-      setDispatching(false);
-    }
-  }
+  const [showDispatch, setShowDispatch] = useState(false);
 
   if (!order) return null;
 
@@ -244,26 +221,21 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           )}
         </div>
 
-        {/* Phase BH — dispatch this delivery order to a Stuart courier.
-            Shows only for delivery orders not already on a courier. */}
+        {/* Phase BH — unified dispatch chooser (Stuart / Uber Direct / own
+            fleet, each with a price). Delivery orders not already on a
+            courier. */}
         {order.fulfillmentType === "DELIVERY" &&
           !(order as any).courierJobId && (
             <div className="px-5 py-4 border-b border-zinc-100">
               <button
-                onClick={handleStuartDispatch}
-                disabled={dispatching}
-                className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+                onClick={() => setShowDispatch(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700"
               >
-                {dispatching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Bike className="h-4 w-4" />
-                )}
-                Dispatch to Stuart
+                <Bike className="h-4 w-4" />
+                Dispatch
               </button>
               <p className="mt-1.5 text-[11px] text-zinc-400">
-                Debits a small fee from your wallet per dispatch. Stuart bills
-                your own account for the courier.
+                Choose a courier — see the price before you send.
               </p>
             </div>
           )}
@@ -465,6 +437,15 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             ))}
           </div>
         </div>
+      )}
+
+      {showDispatch && (
+        <DispatchModal
+          orderId={order.id}
+          locationId={(order as any).locationId ?? null}
+          orderRef={`#${order.displayId ?? (order as any).orderNumber ?? ""}`}
+          onClose={() => setShowDispatch(false)}
+        />
       )}
     </div>
   );
