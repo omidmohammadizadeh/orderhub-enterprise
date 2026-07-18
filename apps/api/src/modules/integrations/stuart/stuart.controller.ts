@@ -3,6 +3,7 @@
 import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
+import { IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
@@ -10,12 +11,12 @@ import { StuartConfigService } from "./stuart-config.service";
 import { StuartDispatchService } from "./stuart-dispatch.service";
 
 class UpsertStuartDto {
-  clientId!: string;
-  clientSecret!: string;
-  environment?: string;
+  @IsString() clientId!: string;
+  @IsString() clientSecret!: string;
+  @IsOptional() @IsIn(["sandbox", "production"]) environment?: string;
 }
 class ToggleStuartDto {
-  active!: boolean;
+  @IsBoolean() active!: boolean;
 }
 
 @ApiTags("stuart")
