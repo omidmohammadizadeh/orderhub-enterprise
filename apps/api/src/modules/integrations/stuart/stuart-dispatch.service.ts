@@ -248,11 +248,36 @@ export class StuartDispatchService {
       throw new BadRequestException("This order isn't on a Stuart courier.");
     }
     const cfg = await this.config.getDecrypted(order.locationId);
-    if (!cfg) throw new BadRequestException("Stuart config missing.");
-    await this.client.cancelJob(cfg, order.courierJobId);
+    if (cfg) {
+      // Cancel the job at Stuart, but never let a Stuart-side failure (e.g. the
+      // job already delivered/cancelled) block clearing our record — otherwise
+      // the operator can neither track nor re-dispatch the order.
+      try {
+        await this.client.cancelJob(cfg, order.courierJobId);
+      } catch (err: any) {
+        this.logger.warn(
+          `Stuart cancel for job ${order.courierJobId} failed (clearing locally anyway): ${err?.message ?? err}`,
+        );
+      }
+    }
+    // Clear the courier attachment + drop the order back to READY so it can be
+    // dispatched again (to Stuart, own fleet, or anything else).
     await this.db().order.update({
       where: { id: order.id },
-      data: { courierStatus: "canceled" },
+      data: {
+        courierProvider: null,
+        courierJobId: null,
+        courierName: null,
+        courierPhone: null,
+        courierPhoneAccessCode: null,
+        courierTrackingUrl: null,
+        courierStatus: null,
+        courierAssignedAt: null,
+        courierPickedUpAt: null,
+        courierDeliveredAt: null,
+        deliveryType: null,
+        status: "READY",
+      },
     });
     // Dispatch fee is non-refundable on operator cancel — the job was created.
     return { ok: true };

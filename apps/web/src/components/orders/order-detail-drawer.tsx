@@ -10,6 +10,10 @@ import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
 import { useAuthStore } from "../../stores/auth.store";
 import { DispatchModal } from "./dispatch-modal";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { stuartClient } from "../../lib/api/stuart.client";
+import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
 
@@ -69,6 +73,29 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const router = useRouter();
   const userRole = useAuthStore((s) => s.user?.role);
   const [showDispatch, setShowDispatch] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const queryClient = useQueryClient();
+
+  async function handleCancelDispatch() {
+    if (!order) return;
+    setCancelling(true);
+    try {
+      if ((order as any).courierProvider === "STUART") {
+        await stuartClient.cancel(order.id);
+      } else {
+        // Own fleet — pull the delivery back from the driver.
+        await unassignOrder(order.id);
+      }
+      toast.success("Dispatch cancelled — you can dispatch again");
+      queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+    } catch (e: any) {
+      toast.error(
+        e?.response?.data?.message ?? "Couldn't cancel the dispatch",
+      );
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   if (!order) return null;
 
@@ -221,24 +248,64 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           )}
         </div>
 
-        {/* Phase BH — unified dispatch chooser (Stuart / Uber Direct / own
-            fleet, each with a price). Delivery orders not already on a
-            courier. */}
+        {/* Phase BH — unified dispatch chooser + cancel. A delivery order is
+            "dispatched" when it's on a courier (courierJobId) OR handed to an
+            own-fleet driver (status). Show Dispatch when free, Cancel when
+            dispatched (cancel frees it to dispatch again). */}
         {order.fulfillmentType === "DELIVERY" &&
-          !(order as any).courierJobId && (
-            <div className="px-5 py-4 border-b border-zinc-100">
-              <button
-                onClick={() => setShowDispatch(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700"
-              >
-                <Bike className="h-4 w-4" />
-                Dispatch
-              </button>
-              <p className="mt-1.5 text-[11px] text-zinc-400">
-                Choose a courier — see the price before you send.
-              </p>
-            </div>
-          )}
+          (() => {
+            const OWN_FLEET_ASSIGNED = [
+              "ASSIGNED_DRIVER",
+              "ACCEPTED_BY_DRIVER",
+              "RIDER_ARRIVED",
+              "OUT_FOR_DELIVERY",
+            ];
+            const courierProvider = (order as any).courierProvider as
+              | string
+              | null;
+            const dispatched =
+              !!(order as any).courierJobId ||
+              (!courierProvider &&
+                OWN_FLEET_ASSIGNED.includes(order.status as string));
+            return (
+              <div className="px-5 py-4 border-b border-zinc-100">
+                {!dispatched ? (
+                  <>
+                    <button
+                      onClick={() => setShowDispatch(true)}
+                      className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+                    >
+                      <Bike className="h-4 w-4" />
+                      Dispatch
+                    </button>
+                    <p className="mt-1.5 text-[11px] text-zinc-400">
+                      Choose a courier — see the price before you send.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleCancelDispatch}
+                      disabled={cancelling}
+                      className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {cancelling ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <XCircle className="h-4 w-4" />
+                      )}
+                      Cancel dispatch
+                    </button>
+                    <p className="mt-1.5 text-[11px] text-zinc-400">
+                      {courierProvider === "STUART"
+                        ? "Cancels the Stuart job and frees the order to dispatch again."
+                        : "Pulls the order back from the driver so you can dispatch again."}
+                    </p>
+                  </>
+                )}
+              </div>
+            );
+          })()}
 
         {/* Phase AV-2 — Courier panel for PLATFORM orders. Populated
             from HubRise delivery.* webhooks. The phone number is a
