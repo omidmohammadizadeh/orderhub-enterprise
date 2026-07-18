@@ -268,12 +268,26 @@ export class BrandsService {
   }
 
   async create(tenantId: string, dto: CreateBrandDto) {
-    const slug = dto.slug ?? slugify(dto.name);
-    const existing = await this.prisma.brand.findUnique({
-      where: { tenantId_slug: { tenantId, slug } },
-    });
-    if (existing && !existing.deletedAt) {
-      throw new ConflictException("Brand slug already in use");
+    // The brand NAME is not unique — franchise operators legitimately run the
+    // same brand ("monster burgerz") at several locations. Only the internal
+    // `slug` carries a per-tenant unique constraint (@@unique([tenantId, slug])).
+    // So: honour an EXPLICIT slug strictly (collision = conflict), but when the
+    // slug is just auto-derived from the name, silently pick the next free
+    // variant instead of blocking the create. This is what lets the same brand
+    // name be added for a new location.
+    let slug: string;
+    if (dto.slug != null) {
+      slug = dto.slug;
+      // NB: the DB unique constraint ignores deletedAt, so even a SOFT-deleted
+      // namesake occupies the slug — treat any hit as a conflict (the old check
+      // skipped deleted rows and then 500'd on the constraint at insert time).
+      const clash = await this.prisma.brand.findUnique({
+        where: { tenantId_slug: { tenantId, slug } },
+        select: { id: true },
+      });
+      if (clash) throw new ConflictException("Brand slug already in use");
+    } else {
+      slug = await this.uniqueBrandSlug(tenantId, slugify(dto.name));
     }
 
     return this.prisma.brand.create({
@@ -351,6 +365,29 @@ export class BrandsService {
         } as any),
       },
     });
+  }
+
+  // Free per-tenant internal `slug` for a brand, suffixing -2/-3 until one
+  // is available. Lets the same brand NAME be added for multiple locations
+  // (franchise). Checks via the tenantId_slug unique key, which — like the
+  // DB constraint — counts soft-deleted rows too, so we never pick a slug
+  // that would 500 at insert time.
+  private async uniqueBrandSlug(
+    tenantId: string,
+    base: string,
+  ): Promise<string> {
+    let candidate = base || "brand";
+    let counter = 1;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const clash = await this.prisma.brand.findUnique({
+        where: { tenantId_slug: { tenantId, slug: candidate } },
+        select: { id: true },
+      });
+      if (!clash) return candidate;
+      counter += 1;
+      candidate = `${base}-${counter}`;
+    }
   }
 
   // Phase AW — unique slug generator for the brand storefront URL.
