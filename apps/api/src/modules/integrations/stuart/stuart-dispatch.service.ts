@@ -217,7 +217,7 @@ export class StuartDispatchService {
     await this.db().order.update({
       where: { id: order.id },
       data: {
-        deliveryMode: "PLATFORM",
+        deliveryType: "PLATFORM",
         courierProvider: "STUART",
         courierJobId: String(job?.id ?? delivery?.id ?? ""),
         courierStatus: job?.status ?? delivery?.status ?? "new",
