@@ -23,7 +23,11 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-delivery-sync.service";
 import { PaymentsService } from "../payments/payments.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
-import { assertTransition, getTimestampField } from "./order-state-machine";
+import {
+  assertTransition,
+  assertWebhookTransition,
+  getTimestampField,
+} from "./order-state-machine";
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import type { CanonicalOrder } from "@orderhub/shared";
@@ -1195,7 +1199,15 @@ export class OrdersService {
     if (!order) throw new NotFoundException("Order not found");
 
     const newStatus = dto.status as OrderStatus;
-    assertTransition(order.status, newStatus);
+    // WEBHOOK actor = courier/platform pushing the delivery lifecycle. It can
+    // legitimately outrun our kitchen state (e.g. "delivered" while we still
+    // show PREPARING), so it may fast-forward to any later stage; only a
+    // terminal order is protected. Everyone else follows the strict machine.
+    if (actorType === "WEBHOOK") {
+      assertWebhookTransition(order.status, newStatus);
+    } else {
+      assertTransition(order.status, newStatus);
+    }
 
     // Phase AV — operator gate. For PLATFORM-delivered orders (Uber
     // Eats / Deliveroo / Just Eat couriers) HubRise owns the post-

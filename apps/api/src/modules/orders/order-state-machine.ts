@@ -124,6 +124,27 @@ export function assertTransition(from: OrderStatus, to: OrderStatus): void {
   }
 }
 
+/**
+ * Relaxed transition check for SYSTEM/WEBHOOK-driven courier updates.
+ *
+ * The marketplace/courier lifecycle (assigned → out for delivery → delivered)
+ * runs independently of our kitchen lifecycle (accepted → preparing → ready)
+ * and routinely OUTRUNS it — a fast (or bot/sandbox) courier can report
+ * "delivered" while the operator still shows the order as PREPARING. The strict
+ * assertTransition then rejects the (legitimate) jump to COMPLETED and the card
+ * never advances. Webhooks reflect external truth, so we let them fast-forward
+ * to any later stage; we only refuse to move an already-terminal order (never
+ * resurrect a COMPLETED/CANCELLED/REJECTED/FAILED order).
+ */
+export function assertWebhookTransition(from: OrderStatus, to: OrderStatus): void {
+  if (from === to) return;
+  if (TERMINAL_STATUSES.includes(from)) {
+    throw new BadRequestException(
+      `Order is in a terminal state (${from}) and cannot be changed`,
+    );
+  }
+}
+
 // Returns the timestamp field name for a given status transition. Used by
 // OrdersService.updateStatus to stamp the corresponding ...At column.
 //
