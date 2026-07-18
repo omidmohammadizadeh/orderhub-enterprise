@@ -568,6 +568,11 @@ export type WalletTransaction = $Result.DefaultSelection<Prisma.$WalletTransacti
  * 
  */
 export type StuartConfig = $Result.DefaultSelection<Prisma.$StuartConfigPayload>
+/**
+ * Model UberDirectConfig
+ * 
+ */
+export type UberDirectConfig = $Result.DefaultSelection<Prisma.$UberDirectConfigPayload>
 
 /**
  * Enums
@@ -2623,6 +2628,16 @@ export class PrismaClient<
     * ```
     */
   get stuartConfig(): Prisma.StuartConfigDelegate<ExtArgs>;
+
+  /**
+   * `prisma.uberDirectConfig`: Exposes CRUD operations for the **UberDirectConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UberDirectConfigs
+    * const uberDirectConfigs = await prisma.uberDirectConfig.findMany()
+    * ```
+    */
+  get uberDirectConfig(): Prisma.UberDirectConfigDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3174,7 +3189,8 @@ export namespace Prisma {
     MarketingSmsRecipient: 'MarketingSmsRecipient',
     Wallet: 'Wallet',
     WalletTransaction: 'WalletTransaction',
-    StuartConfig: 'StuartConfig'
+    StuartConfig: 'StuartConfig',
+    UberDirectConfig: 'UberDirectConfig'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3190,7 +3206,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -10961,6 +10977,76 @@ export namespace Prisma {
           count: {
             args: Prisma.StuartConfigCountArgs<ExtArgs>
             result: $Utils.Optional<StuartConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      UberDirectConfig: {
+        payload: Prisma.$UberDirectConfigPayload<ExtArgs>
+        fields: Prisma.UberDirectConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UberDirectConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UberDirectConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.UberDirectConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UberDirectConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>
+          }
+          findMany: {
+            args: Prisma.UberDirectConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>[]
+          }
+          create: {
+            args: Prisma.UberDirectConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>
+          }
+          createMany: {
+            args: Prisma.UberDirectConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UberDirectConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.UberDirectConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>
+          }
+          update: {
+            args: Prisma.UberDirectConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.UberDirectConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UberDirectConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.UberDirectConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UberDirectConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.UberDirectConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUberDirectConfig>
+          }
+          groupBy: {
+            args: Prisma.UberDirectConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UberDirectConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UberDirectConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<UberDirectConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -26793,6 +26879,7 @@ export namespace Prisma {
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
+    uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -26938,6 +27025,7 @@ export namespace Prisma {
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
+    uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -26971,6 +27059,7 @@ export namespace Prisma {
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       stuartConfig: Prisma.$StuartConfigPayload<ExtArgs> | null
+      uberDirectConfig: Prisma.$UberDirectConfigPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -27413,6 +27502,7 @@ export namespace Prisma {
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     stuartConfig<T extends Location$stuartConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$stuartConfigArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    uberDirectConfig<T extends Location$uberDirectConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$uberDirectConfigArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -28177,6 +28267,21 @@ export namespace Prisma {
      */
     include?: StuartConfigInclude<ExtArgs> | null
     where?: StuartConfigWhereInput
+  }
+
+  /**
+   * Location.uberDirectConfig
+   */
+  export type Location$uberDirectConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    where?: UberDirectConfigWhereInput
   }
 
   /**
@@ -132123,6 +132228,971 @@ export namespace Prisma {
 
 
   /**
+   * Model UberDirectConfig
+   */
+
+  export type AggregateUberDirectConfig = {
+    _count: UberDirectConfigCountAggregateOutputType | null
+    _min: UberDirectConfigMinAggregateOutputType | null
+    _max: UberDirectConfigMaxAggregateOutputType | null
+  }
+
+  export type UberDirectConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    environment: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UberDirectConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    environment: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UberDirectConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    environment: number
+    credentials: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UberDirectConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    environment?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UberDirectConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    environment?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UberDirectConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    environment?: true
+    credentials?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UberDirectConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UberDirectConfig to aggregate.
+     */
+    where?: UberDirectConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UberDirectConfigs to fetch.
+     */
+    orderBy?: UberDirectConfigOrderByWithRelationInput | UberDirectConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UberDirectConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UberDirectConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UberDirectConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UberDirectConfigs
+    **/
+    _count?: true | UberDirectConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UberDirectConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UberDirectConfigMaxAggregateInputType
+  }
+
+  export type GetUberDirectConfigAggregateType<T extends UberDirectConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateUberDirectConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUberDirectConfig[P]>
+      : GetScalarType<T[P], AggregateUberDirectConfig[P]>
+  }
+
+
+
+
+  export type UberDirectConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UberDirectConfigWhereInput
+    orderBy?: UberDirectConfigOrderByWithAggregationInput | UberDirectConfigOrderByWithAggregationInput[]
+    by: UberDirectConfigScalarFieldEnum[] | UberDirectConfigScalarFieldEnum
+    having?: UberDirectConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UberDirectConfigCountAggregateInputType | true
+    _min?: UberDirectConfigMinAggregateInputType
+    _max?: UberDirectConfigMaxAggregateInputType
+  }
+
+  export type UberDirectConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    environment: string
+    credentials: JsonValue
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: UberDirectConfigCountAggregateOutputType | null
+    _min: UberDirectConfigMinAggregateOutputType | null
+    _max: UberDirectConfigMaxAggregateOutputType | null
+  }
+
+  type GetUberDirectConfigGroupByPayload<T extends UberDirectConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UberDirectConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UberDirectConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UberDirectConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], UberDirectConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UberDirectConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    environment?: boolean
+    credentials?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["uberDirectConfig"]>
+
+  export type UberDirectConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    environment?: boolean
+    credentials?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["uberDirectConfig"]>
+
+  export type UberDirectConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    environment?: boolean
+    credentials?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type UberDirectConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type UberDirectConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $UberDirectConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UberDirectConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      environment: string
+      credentials: Prisma.JsonValue
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["uberDirectConfig"]>
+    composites: {}
+  }
+
+  type UberDirectConfigGetPayload<S extends boolean | null | undefined | UberDirectConfigDefaultArgs> = $Result.GetResult<Prisma.$UberDirectConfigPayload, S>
+
+  type UberDirectConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<UberDirectConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: UberDirectConfigCountAggregateInputType | true
+    }
+
+  export interface UberDirectConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UberDirectConfig'], meta: { name: 'UberDirectConfig' } }
+    /**
+     * Find zero or one UberDirectConfig that matches the filter.
+     * @param {UberDirectConfigFindUniqueArgs} args - Arguments to find a UberDirectConfig
+     * @example
+     * // Get one UberDirectConfig
+     * const uberDirectConfig = await prisma.uberDirectConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UberDirectConfigFindUniqueArgs>(args: SelectSubset<T, UberDirectConfigFindUniqueArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one UberDirectConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {UberDirectConfigFindUniqueOrThrowArgs} args - Arguments to find a UberDirectConfig
+     * @example
+     * // Get one UberDirectConfig
+     * const uberDirectConfig = await prisma.uberDirectConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UberDirectConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, UberDirectConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first UberDirectConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UberDirectConfigFindFirstArgs} args - Arguments to find a UberDirectConfig
+     * @example
+     * // Get one UberDirectConfig
+     * const uberDirectConfig = await prisma.uberDirectConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UberDirectConfigFindFirstArgs>(args?: SelectSubset<T, UberDirectConfigFindFirstArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first UberDirectConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UberDirectConfigFindFirstOrThrowArgs} args - Arguments to find a UberDirectConfig
+     * @example
+     * // Get one UberDirectConfig
+     * const uberDirectConfig = await prisma.uberDirectConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UberDirectConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, UberDirectConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more UberDirectConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UberDirectConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UberDirectConfigs
+     * const uberDirectConfigs = await prisma.uberDirectConfig.findMany()
+     * 
+     * // Get first 10 UberDirectConfigs
+     * const uberDirectConfigs = await prisma.uberDirectConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const uberDirectConfigWithIdOnly = await prisma.uberDirectConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UberDirectConfigFindManyArgs>(args?: SelectSubset<T, UberDirectConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a UberDirectConfig.
+     * @param {UberDirectConfigCreateArgs} args - Arguments to create a UberDirectConfig.
+     * @example
+     * // Create one UberDirectConfig
+     * const UberDirectConfig = await prisma.uberDirectConfig.create({
+     *   data: {
+     *     // ... data to create a UberDirectConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends UberDirectConfigCreateArgs>(args: SelectSubset<T, UberDirectConfigCreateArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many UberDirectConfigs.
+     * @param {UberDirectConfigCreateManyArgs} args - Arguments to create many UberDirectConfigs.
+     * @example
+     * // Create many UberDirectConfigs
+     * const uberDirectConfig = await prisma.uberDirectConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UberDirectConfigCreateManyArgs>(args?: SelectSubset<T, UberDirectConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UberDirectConfigs and returns the data saved in the database.
+     * @param {UberDirectConfigCreateManyAndReturnArgs} args - Arguments to create many UberDirectConfigs.
+     * @example
+     * // Create many UberDirectConfigs
+     * const uberDirectConfig = await prisma.uberDirectConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UberDirectConfigs and only return the `id`
+     * const uberDirectConfigWithIdOnly = await prisma.uberDirectConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UberDirectConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, UberDirectConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a UberDirectConfig.
+     * @param {UberDirectConfigDeleteArgs} args - Arguments to delete one UberDirectConfig.
+     * @example
+     * // Delete one UberDirectConfig
+     * const UberDirectConfig = await prisma.uberDirectConfig.delete({
+     *   where: {
+     *     // ... filter to delete one UberDirectConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UberDirectConfigDeleteArgs>(args: SelectSubset<T, UberDirectConfigDeleteArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one UberDirectConfig.
+     * @param {UberDirectConfigUpdateArgs} args - Arguments to update one UberDirectConfig.
+     * @example
+     * // Update one UberDirectConfig
+     * const uberDirectConfig = await prisma.uberDirectConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UberDirectConfigUpdateArgs>(args: SelectSubset<T, UberDirectConfigUpdateArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more UberDirectConfigs.
+     * @param {UberDirectConfigDeleteManyArgs} args - Arguments to filter UberDirectConfigs to delete.
+     * @example
+     * // Delete a few UberDirectConfigs
+     * const { count } = await prisma.uberDirectConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UberDirectConfigDeleteManyArgs>(args?: SelectSubset<T, UberDirectConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UberDirectConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UberDirectConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UberDirectConfigs
+     * const uberDirectConfig = await prisma.uberDirectConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UberDirectConfigUpdateManyArgs>(args: SelectSubset<T, UberDirectConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one UberDirectConfig.
+     * @param {UberDirectConfigUpsertArgs} args - Arguments to update or create a UberDirectConfig.
+     * @example
+     * // Update or create a UberDirectConfig
+     * const uberDirectConfig = await prisma.uberDirectConfig.upsert({
+     *   create: {
+     *     // ... data to create a UberDirectConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UberDirectConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UberDirectConfigUpsertArgs>(args: SelectSubset<T, UberDirectConfigUpsertArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of UberDirectConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UberDirectConfigCountArgs} args - Arguments to filter UberDirectConfigs to count.
+     * @example
+     * // Count the number of UberDirectConfigs
+     * const count = await prisma.uberDirectConfig.count({
+     *   where: {
+     *     // ... the filter for the UberDirectConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends UberDirectConfigCountArgs>(
+      args?: Subset<T, UberDirectConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UberDirectConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UberDirectConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UberDirectConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UberDirectConfigAggregateArgs>(args: Subset<T, UberDirectConfigAggregateArgs>): Prisma.PrismaPromise<GetUberDirectConfigAggregateType<T>>
+
+    /**
+     * Group by UberDirectConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UberDirectConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UberDirectConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UberDirectConfigGroupByArgs['orderBy'] }
+        : { orderBy?: UberDirectConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UberDirectConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUberDirectConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UberDirectConfig model
+   */
+  readonly fields: UberDirectConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UberDirectConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UberDirectConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UberDirectConfig model
+   */ 
+  interface UberDirectConfigFieldRefs {
+    readonly id: FieldRef<"UberDirectConfig", 'String'>
+    readonly tenantId: FieldRef<"UberDirectConfig", 'String'>
+    readonly locationId: FieldRef<"UberDirectConfig", 'String'>
+    readonly environment: FieldRef<"UberDirectConfig", 'String'>
+    readonly credentials: FieldRef<"UberDirectConfig", 'Json'>
+    readonly active: FieldRef<"UberDirectConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"UberDirectConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"UberDirectConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UberDirectConfig findUnique
+   */
+  export type UberDirectConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which UberDirectConfig to fetch.
+     */
+    where: UberDirectConfigWhereUniqueInput
+  }
+
+  /**
+   * UberDirectConfig findUniqueOrThrow
+   */
+  export type UberDirectConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which UberDirectConfig to fetch.
+     */
+    where: UberDirectConfigWhereUniqueInput
+  }
+
+  /**
+   * UberDirectConfig findFirst
+   */
+  export type UberDirectConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which UberDirectConfig to fetch.
+     */
+    where?: UberDirectConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UberDirectConfigs to fetch.
+     */
+    orderBy?: UberDirectConfigOrderByWithRelationInput | UberDirectConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UberDirectConfigs.
+     */
+    cursor?: UberDirectConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UberDirectConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UberDirectConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UberDirectConfigs.
+     */
+    distinct?: UberDirectConfigScalarFieldEnum | UberDirectConfigScalarFieldEnum[]
+  }
+
+  /**
+   * UberDirectConfig findFirstOrThrow
+   */
+  export type UberDirectConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which UberDirectConfig to fetch.
+     */
+    where?: UberDirectConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UberDirectConfigs to fetch.
+     */
+    orderBy?: UberDirectConfigOrderByWithRelationInput | UberDirectConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UberDirectConfigs.
+     */
+    cursor?: UberDirectConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UberDirectConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UberDirectConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UberDirectConfigs.
+     */
+    distinct?: UberDirectConfigScalarFieldEnum | UberDirectConfigScalarFieldEnum[]
+  }
+
+  /**
+   * UberDirectConfig findMany
+   */
+  export type UberDirectConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which UberDirectConfigs to fetch.
+     */
+    where?: UberDirectConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UberDirectConfigs to fetch.
+     */
+    orderBy?: UberDirectConfigOrderByWithRelationInput | UberDirectConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UberDirectConfigs.
+     */
+    cursor?: UberDirectConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UberDirectConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UberDirectConfigs.
+     */
+    skip?: number
+    distinct?: UberDirectConfigScalarFieldEnum | UberDirectConfigScalarFieldEnum[]
+  }
+
+  /**
+   * UberDirectConfig create
+   */
+  export type UberDirectConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UberDirectConfig.
+     */
+    data: XOR<UberDirectConfigCreateInput, UberDirectConfigUncheckedCreateInput>
+  }
+
+  /**
+   * UberDirectConfig createMany
+   */
+  export type UberDirectConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UberDirectConfigs.
+     */
+    data: UberDirectConfigCreateManyInput | UberDirectConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UberDirectConfig createManyAndReturn
+   */
+  export type UberDirectConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many UberDirectConfigs.
+     */
+    data: UberDirectConfigCreateManyInput | UberDirectConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UberDirectConfig update
+   */
+  export type UberDirectConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UberDirectConfig.
+     */
+    data: XOR<UberDirectConfigUpdateInput, UberDirectConfigUncheckedUpdateInput>
+    /**
+     * Choose, which UberDirectConfig to update.
+     */
+    where: UberDirectConfigWhereUniqueInput
+  }
+
+  /**
+   * UberDirectConfig updateMany
+   */
+  export type UberDirectConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UberDirectConfigs.
+     */
+    data: XOR<UberDirectConfigUpdateManyMutationInput, UberDirectConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which UberDirectConfigs to update
+     */
+    where?: UberDirectConfigWhereInput
+  }
+
+  /**
+   * UberDirectConfig upsert
+   */
+  export type UberDirectConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UberDirectConfig to update in case it exists.
+     */
+    where: UberDirectConfigWhereUniqueInput
+    /**
+     * In case the UberDirectConfig found by the `where` argument doesn't exist, create a new UberDirectConfig with this data.
+     */
+    create: XOR<UberDirectConfigCreateInput, UberDirectConfigUncheckedCreateInput>
+    /**
+     * In case the UberDirectConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UberDirectConfigUpdateInput, UberDirectConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * UberDirectConfig delete
+   */
+  export type UberDirectConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+    /**
+     * Filter which UberDirectConfig to delete.
+     */
+    where: UberDirectConfigWhereUniqueInput
+  }
+
+  /**
+   * UberDirectConfig deleteMany
+   */
+  export type UberDirectConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UberDirectConfigs to delete
+     */
+    where?: UberDirectConfigWhereInput
+  }
+
+  /**
+   * UberDirectConfig without action
+   */
+  export type UberDirectConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UberDirectConfig
+     */
+    select?: UberDirectConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UberDirectConfigInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -134303,6 +135373,20 @@ export namespace Prisma {
   export type StuartConfigScalarFieldEnum = (typeof StuartConfigScalarFieldEnum)[keyof typeof StuartConfigScalarFieldEnum]
 
 
+  export const UberDirectConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    environment: 'environment',
+    credentials: 'credentials',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UberDirectConfigScalarFieldEnum = (typeof UberDirectConfigScalarFieldEnum)[keyof typeof UberDirectConfigScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -135816,6 +136900,16 @@ export namespace Prisma {
   };
 
   export type StuartConfigOrderByRelevanceFieldEnum = (typeof StuartConfigOrderByRelevanceFieldEnum)[keyof typeof StuartConfigOrderByRelevanceFieldEnum]
+
+
+  export const UberDirectConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    environment: 'environment'
+  };
+
+  export type UberDirectConfigOrderByRelevanceFieldEnum = (typeof UberDirectConfigOrderByRelevanceFieldEnum)[keyof typeof UberDirectConfigOrderByRelevanceFieldEnum]
 
 
   /**
@@ -137979,6 +139073,7 @@ export namespace Prisma {
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
+    uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -138058,6 +139153,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
     stuartConfig?: StuartConfigOrderByWithRelationInput
+    uberDirectConfig?: UberDirectConfigOrderByWithRelationInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
@@ -138141,6 +139237,7 @@ export namespace Prisma {
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
+    uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
@@ -148142,6 +149239,77 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"StuartConfig"> | Date | string
   }
 
+  export type UberDirectConfigWhereInput = {
+    AND?: UberDirectConfigWhereInput | UberDirectConfigWhereInput[]
+    OR?: UberDirectConfigWhereInput[]
+    NOT?: UberDirectConfigWhereInput | UberDirectConfigWhereInput[]
+    id?: StringFilter<"UberDirectConfig"> | string
+    tenantId?: StringFilter<"UberDirectConfig"> | string
+    locationId?: StringFilter<"UberDirectConfig"> | string
+    environment?: StringFilter<"UberDirectConfig"> | string
+    credentials?: JsonFilter<"UberDirectConfig">
+    active?: BoolFilter<"UberDirectConfig"> | boolean
+    createdAt?: DateTimeFilter<"UberDirectConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"UberDirectConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type UberDirectConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: UberDirectConfigOrderByRelevanceInput
+  }
+
+  export type UberDirectConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: UberDirectConfigWhereInput | UberDirectConfigWhereInput[]
+    OR?: UberDirectConfigWhereInput[]
+    NOT?: UberDirectConfigWhereInput | UberDirectConfigWhereInput[]
+    tenantId?: StringFilter<"UberDirectConfig"> | string
+    environment?: StringFilter<"UberDirectConfig"> | string
+    credentials?: JsonFilter<"UberDirectConfig">
+    active?: BoolFilter<"UberDirectConfig"> | boolean
+    createdAt?: DateTimeFilter<"UberDirectConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"UberDirectConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type UberDirectConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: UberDirectConfigCountOrderByAggregateInput
+    _max?: UberDirectConfigMaxOrderByAggregateInput
+    _min?: UberDirectConfigMinOrderByAggregateInput
+  }
+
+  export type UberDirectConfigScalarWhereWithAggregatesInput = {
+    AND?: UberDirectConfigScalarWhereWithAggregatesInput | UberDirectConfigScalarWhereWithAggregatesInput[]
+    OR?: UberDirectConfigScalarWhereWithAggregatesInput[]
+    NOT?: UberDirectConfigScalarWhereWithAggregatesInput | UberDirectConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UberDirectConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"UberDirectConfig"> | string
+    locationId?: StringWithAggregatesFilter<"UberDirectConfig"> | string
+    environment?: StringWithAggregatesFilter<"UberDirectConfig"> | string
+    credentials?: JsonWithAggregatesFilter<"UberDirectConfig">
+    active?: BoolWithAggregatesFilter<"UberDirectConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"UberDirectConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UberDirectConfig"> | Date | string
+  }
+
   export type TenantCreateInput = {
     id?: string
     name: string
@@ -149692,6 +150860,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -149767,6 +150936,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -149842,6 +151012,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -149917,6 +151088,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -161352,6 +162524,82 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UberDirectConfigCreateInput = {
+    id?: string
+    tenantId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutUberDirectConfigInput
+  }
+
+  export type UberDirectConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UberDirectConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutUberDirectConfigNestedInput
+  }
+
+  export type UberDirectConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UberDirectConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UberDirectConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UberDirectConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -162847,6 +164095,11 @@ export namespace Prisma {
   export type StuartConfigNullableRelationFilter = {
     is?: StuartConfigWhereInput | null
     isNot?: StuartConfigWhereInput | null
+  }
+
+  export type UberDirectConfigNullableRelationFilter = {
+    is?: UberDirectConfigWhereInput | null
+    isNot?: UberDirectConfigWhereInput | null
   }
 
   export type IntegrationOrderByRelationAggregateInput = {
@@ -170478,6 +171731,43 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type UberDirectConfigOrderByRelevanceInput = {
+    fields: UberDirectConfigOrderByRelevanceFieldEnum | UberDirectConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type UberDirectConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UberDirectConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UberDirectConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type BrandCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -172641,6 +173931,12 @@ export namespace Prisma {
     connect?: StuartConfigWhereUniqueInput
   }
 
+  export type UberDirectConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
+    connect?: UberDirectConfigWhereUniqueInput
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -172754,6 +174050,12 @@ export namespace Prisma {
     create?: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: StuartConfigCreateOrConnectWithoutLocationInput
     connect?: StuartConfigWhereUniqueInput
+  }
+
+  export type UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
+    connect?: UberDirectConfigWhereUniqueInput
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -173028,6 +174330,16 @@ export namespace Prisma {
     update?: XOR<XOR<StuartConfigUpdateToOneWithWhereWithoutLocationInput, StuartConfigUpdateWithoutLocationInput>, StuartConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type UberDirectConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
+    upsert?: UberDirectConfigUpsertWithoutLocationInput
+    disconnect?: UberDirectConfigWhereInput | boolean
+    delete?: UberDirectConfigWhereInput | boolean
+    connect?: UberDirectConfigWhereUniqueInput
+    update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -173248,6 +174560,16 @@ export namespace Prisma {
     delete?: StuartConfigWhereInput | boolean
     connect?: StuartConfigWhereUniqueInput
     update?: XOR<XOR<StuartConfigUpdateToOneWithWhereWithoutLocationInput, StuartConfigUpdateWithoutLocationInput>, StuartConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
+    upsert?: UberDirectConfigUpsertWithoutLocationInput
+    disconnect?: UberDirectConfigWhereInput | boolean
+    delete?: UberDirectConfigWhereInput | boolean
+    connect?: UberDirectConfigWhereUniqueInput
+    update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -177850,6 +179172,20 @@ export namespace Prisma {
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutStuartConfigInput, LocationUpdateWithoutStuartConfigInput>, LocationUncheckedUpdateWithoutStuartConfigInput>
   }
 
+  export type LocationCreateNestedOneWithoutUberDirectConfigInput = {
+    create?: XOR<LocationCreateWithoutUberDirectConfigInput, LocationUncheckedCreateWithoutUberDirectConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutUberDirectConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutUberDirectConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutUberDirectConfigInput, LocationUncheckedCreateWithoutUberDirectConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutUberDirectConfigInput
+    upsert?: LocationUpsertWithoutUberDirectConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutUberDirectConfigInput, LocationUpdateWithoutUberDirectConfigInput>, LocationUncheckedUpdateWithoutUberDirectConfigInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -181871,6 +183207,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutUserLocationsInput = {
@@ -181945,6 +183282,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -182098,6 +183436,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutUserLocationsInput = {
@@ -182172,6 +183511,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -183738,6 +185078,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -183812,6 +185153,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -186210,6 +187552,31 @@ export namespace Prisma {
     create: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type UberDirectConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UberDirectConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UberDirectConfigCreateOrConnectWithoutLocationInput = {
+    where: UberDirectConfigWhereUniqueInput
+    create: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
+  }
+
   export type BrandUpsertWithoutLocationsInput = {
     update: XOR<BrandUpdateWithoutLocationsInput, BrandUncheckedUpdateWithoutLocationsInput>
     create: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
@@ -187046,6 +188413,37 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UberDirectConfigUpsertWithoutLocationInput = {
+    update: XOR<UberDirectConfigUpdateWithoutLocationInput, UberDirectConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
+    where?: UberDirectConfigWhereInput
+  }
+
+  export type UberDirectConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: UberDirectConfigWhereInput
+    data: XOR<UberDirectConfigUpdateWithoutLocationInput, UberDirectConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type UberDirectConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UberDirectConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BrandCreateWithoutPlatformConnectionsInput = {
     id?: string
     name: string
@@ -187219,6 +188617,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -187293,6 +188692,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -187490,6 +188890,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -187564,6 +188965,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -187638,6 +189040,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -187712,6 +189115,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -187802,6 +189206,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -187876,6 +189281,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -188488,6 +189894,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMenuAssignmentsInput = {
@@ -188562,6 +189969,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMenuAssignmentsInput = {
@@ -188743,6 +190151,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMenuAssignmentsInput = {
@@ -188817,6 +190226,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutChannelSourcesInput = {
@@ -189850,6 +191260,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutChannelPausesInput = {
@@ -189924,6 +191335,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutChannelPausesInput = {
@@ -190014,6 +191426,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutChannelPausesInput = {
@@ -190088,6 +191501,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -190261,6 +191675,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutItemChannelSnoozesInput = {
@@ -190335,6 +191750,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutItemChannelSnoozesInput = {
@@ -190530,6 +191946,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutItemChannelSnoozesInput = {
@@ -190604,6 +192021,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuCategoryCreateWithoutItemsInput = {
@@ -193428,6 +194846,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDirectOrderingConfigInput = {
@@ -193502,6 +194921,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -193693,6 +195113,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDirectOrderingConfigInput = {
@@ -193767,6 +195188,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -195153,6 +196575,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
@@ -195227,6 +196650,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -195418,6 +196842,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
@@ -195492,6 +196917,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDeliveryZonesInput = {
@@ -195673,6 +197099,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPaymentConfigInput = {
@@ -195747,6 +197174,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -195837,6 +197265,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
@@ -195911,6 +197340,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -196050,6 +197480,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -196124,6 +197555,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -196751,6 +198183,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -196825,6 +198258,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -197975,6 +199409,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -198049,6 +199484,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -198167,6 +199603,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -198241,6 +199678,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -198731,6 +200169,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
@@ -198805,6 +200244,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -199045,6 +200485,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutReceiptPrinterInput = {
@@ -199119,6 +200560,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -199203,6 +200645,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDispatchPrinterInput = {
@@ -199277,6 +200720,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -199372,6 +200816,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -199446,6 +200891,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -200540,6 +201986,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrinterStationsInput = {
@@ -200614,6 +202061,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -200948,6 +202396,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDefaultKitchenStationInput = {
@@ -201022,6 +202471,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -201254,6 +202704,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrinterStationsInput = {
@@ -201328,6 +202779,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -201652,6 +203104,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintAgentsInput = {
@@ -201726,6 +203179,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -202041,6 +203495,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintAgentsInput = {
@@ -202115,6 +203570,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -202994,6 +204450,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutHomeDriversInput = {
@@ -203068,6 +204525,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutHomeDriversInput = {
@@ -203348,6 +204806,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutHomeDriversInput = {
@@ -203422,6 +204881,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type DriverAssignmentUpsertWithWhereUniqueWithoutDriverInput = {
@@ -208077,6 +209537,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMerchantSubscriptionInput = {
@@ -208151,6 +209612,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMerchantSubscriptionInput = {
@@ -208312,6 +209774,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMerchantSubscriptionInput = {
@@ -208386,6 +209849,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantSubscriptionCreateWithoutInvoicesInput = {
@@ -209639,6 +211103,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutStuartConfigInput = {
@@ -209713,6 +211178,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutStuartConfigInput = {
@@ -209803,6 +211269,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutStuartConfigInput = {
@@ -209877,6 +211344,323 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationCreateWithoutUberDirectConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutUberDirectConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutUberDirectConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutUberDirectConfigInput, LocationUncheckedCreateWithoutUberDirectConfigInput>
+  }
+
+  export type LocationUpsertWithoutUberDirectConfigInput = {
+    update: XOR<LocationUpdateWithoutUberDirectConfigInput, LocationUncheckedUpdateWithoutUberDirectConfigInput>
+    create: XOR<LocationCreateWithoutUberDirectConfigInput, LocationUncheckedCreateWithoutUberDirectConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutUberDirectConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutUberDirectConfigInput, LocationUncheckedUpdateWithoutUberDirectConfigInput>
+  }
+
+  export type LocationUpdateWithoutUberDirectConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutUberDirectConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateManyTenantInput = {
@@ -212549,6 +214333,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -212623,6 +214408,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -216497,6 +218283,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutReceiptPrinterInput = {
@@ -216571,6 +218358,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -216702,6 +218490,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDispatchPrinterInput = {
@@ -216776,6 +218565,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -217232,6 +219022,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDefaultKitchenStationInput = {
@@ -217306,6 +219097,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -219466,6 +221258,10 @@ export namespace Prisma {
      * @deprecated Use StuartConfigDefaultArgs instead
      */
     export type StuartConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StuartConfigDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use UberDirectConfigDefaultArgs instead
+     */
+    export type UberDirectConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UberDirectConfigDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

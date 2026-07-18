@@ -1956,6 +1956,17 @@ exports.Prisma.StuartConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.UberDirectConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  environment: 'environment',
+  credentials: 'credentials',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3119,6 +3130,13 @@ exports.Prisma.StuartConfigOrderByRelevanceFieldEnum = {
   environment: 'environment',
   webhookAuthKey: 'webhookAuthKey'
 };
+
+exports.Prisma.UberDirectConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  environment: 'environment'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3679,7 +3697,8 @@ exports.Prisma.ModelName = {
   MarketingSmsRecipient: 'MarketingSmsRecipient',
   Wallet: 'Wallet',
   WalletTransaction: 'WalletTransaction',
-  StuartConfig: 'StuartConfig'
+  StuartConfig: 'StuartConfig',
+  UberDirectConfig: 'UberDirectConfig'
 };
 
 /**

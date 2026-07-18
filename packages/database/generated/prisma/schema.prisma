@@ -537,7 +537,9 @@ model Location {
   hubriseConnectedAt DateTime?
 
   // Phase BH — Stuart last-mile courier config (per location).
-  stuartConfig StuartConfig?
+  stuartConfig     StuartConfig?
+  // Phase BI — Uber Direct courier config (per location).
+  uberDirectConfig UberDirectConfig?
 
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?
@@ -722,7 +724,7 @@ model Menu {
   publishedTo     String[]  @default([])
   lastPublishedAt DateTime?
 
-  // ── Auto-schedule ─────────────────────────────────��────────────────────
+  // ── Auto-schedule ──────────────────────────────────────────────────────
   // When true, a scheduled worker activates / deactivates the menu based
   // on autoSchedule { active_from, active_until, active_days, brand_id,
   // platform_ids, include_online_ordering }.
@@ -1087,7 +1089,7 @@ model MenuItemOnCategory {
   @@map("menu_items_on_categories")
 }
 
-// ── Modifier Groups ───��───────────────────────────────────────────────────────
+// ── Modifier Groups ───────────────────────────────────────────────────────────
 model ModifierGroup {
   id                       String        @id @default(cuid())
   brandId                  String
@@ -1680,7 +1682,7 @@ model LocationPaymentConfig {
   @@map("location_payment_configs")
 }
 
-// ── Order ─────────────────────────────────────────────────────────────────────
+// ── Order ──────────────────────────────────────────────────────────────────��──
 model Order {
   id                String           @id @default(cuid())
   tenantId          String
@@ -2284,7 +2286,7 @@ model AgentPairCode {
   @@map("agent_pair_codes")
 }
 
-// ── Routing join tables ───��────────────────────────────────────────────
+// ── Routing join tables ────────────────────────────────────────────────
 // Phase AS-1. Most-specific-wins resolver walks these in order.
 model MenuItemStation {
   id         String         @id @default(cuid())
@@ -2704,7 +2706,7 @@ model Payout {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — INVENTORY & STOCK SYSTEM
-// ═══════════════════���══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 model Supplier {
   id       String  @id @default(cuid())
@@ -3132,7 +3134,7 @@ model StripeWebhookEvent {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — ENTERPRISE SECURITY
-// ═════════════════════════════════════════════════════════════════���════════════
+// ══════════════════════════════��═══════════════════════════════════════════════
 
 // TOTP MFA configuration per user
 model MfaConfig {
@@ -4079,4 +4081,27 @@ model StuartConfig {
   updatedAt DateTime @updatedAt
 
   @@map("stuart_configs")
+}
+
+// Per-location Uber Direct (DaaS) integration. Same model as Stuart — the
+// restaurant plugs in its OWN Uber Direct account so Uber bills them directly;
+// OrderHub only takes a flat per-dispatch fee from the location wallet. The
+// extra field vs Stuart is customerId (Uber puts it in the API URL path).
+model UberDirectConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // "sandbox" (test mode) | "production".
+  environment String  @default("sandbox")
+  // Encrypted { customerId, clientId, clientSecret, signingKey } envelope.
+  // signingKey verifies inbound webhooks (HMAC-SHA256 of the raw body).
+  credentials Json
+  active      Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("uber_direct_configs")
 }

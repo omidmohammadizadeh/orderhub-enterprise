@@ -25,6 +25,7 @@ import { OpeningHoursEditor } from "./opening-hours-editor";
 import { BrandPlatformGrid } from "./brand-platform-grid";
 import { WhatsAppConnectionSection } from "./whatsapp-connection-section";
 import { StuartConnectionSection } from "./stuart-connection-section";
+import { UberDirectConnectionSection } from "./uber-direct-connection-section";
 import { ImageUploader } from "@/components/products/image-uploader";
 
 interface Props {
@@ -554,6 +555,9 @@ function GeneralTab({
 
       {/* Phase BH — per-location Stuart courier dispatch. */}
       {location?.id && <StuartConnectionSection locationId={location.id} />}
+
+      {/* Phase BI — per-location Uber Direct courier dispatch. */}
+      {location?.id && <UberDirectConnectionSection locationId={location.id} />}
 
       {/* Phase AW — Stripe Connect + application fee live on the brand,
           not the location. A single kitchen running three virtual brands

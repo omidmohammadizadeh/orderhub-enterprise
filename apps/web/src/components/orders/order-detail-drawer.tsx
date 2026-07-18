@@ -13,6 +13,7 @@ import { DispatchModal } from "./dispatch-modal";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { stuartClient } from "../../lib/api/stuart.client";
+import { uberDirectClient } from "../../lib/api/uber-direct.client";
 import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
@@ -82,6 +83,8 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
     try {
       if ((order as any).courierProvider === "STUART") {
         await stuartClient.cancel(order.id);
+      } else if ((order as any).courierProvider === "UBER_DIRECT") {
+        await uberDirectClient.cancel(order.id);
       } else {
         // Own fleet — pull the delivery back from the driver.
         await unassignOrder(order.id);

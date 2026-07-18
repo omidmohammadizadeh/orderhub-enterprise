@@ -11,11 +11,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Bike, Loader2, Truck, User, X } from "lucide-react";
 import { stuartClient } from "@/lib/api/stuart.client";
+import { uberDirectClient } from "@/lib/api/uber-direct.client";
 import {
   assignOrders,
   getOnlineDrivers,
   type OnlineDriver,
 } from "@/lib/api/dispatch.client";
+
+interface CourierQuote {
+  currency: string;
+  amount: number | string | null;
+  dispatchFeeMinor: number;
+}
 
 interface Props {
   orderId: string;
@@ -36,12 +43,11 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
   const queryClient = useQueryClient();
 
   const [stuartAvailable, setStuartAvailable] = useState<boolean | null>(null);
-  const [quote, setQuote] = useState<{
-    currency: string;
-    amount: number | string | null;
-    dispatchFeeMinor: number;
-  } | null>(null);
+  const [quote, setQuote] = useState<CourierQuote | null>(null);
   const [quoteErr, setQuoteErr] = useState<string | null>(null);
+  const [uberAvailable, setUberAvailable] = useState<boolean | null>(null);
+  const [uberQuote, setUberQuote] = useState<CourierQuote | null>(null);
+  const [uberQuoteErr, setUberQuoteErr] = useState<string | null>(null);
   const [drivers, setDrivers] = useState<OnlineDriver[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null); // which action is running
 
@@ -67,6 +73,26 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
         }
       } catch {
         if (alive) setStuartAvailable(false);
+      }
+      // Uber Direct availability + quote
+      try {
+        const cfg = await uberDirectClient.getConfig(locationId ?? "");
+        if (!alive) return;
+        const ok = cfg.configured && cfg.active;
+        setUberAvailable(ok);
+        if (ok) {
+          try {
+            const q = await uberDirectClient.quote(orderId);
+            if (alive) setUberQuote(q);
+          } catch (e: any) {
+            if (alive)
+              setUberQuoteErr(
+                e?.response?.data?.message ?? "Couldn't get an Uber quote.",
+              );
+          }
+        }
+      } catch {
+        if (alive) setUberAvailable(false);
       }
       // Own-fleet drivers
       try {
@@ -98,6 +124,23 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
       );
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? "Couldn't dispatch to Stuart");
+      setBusy(null);
+    }
+  }
+
+  async function dispatchUber() {
+    setBusy("uber");
+    try {
+      const r = await uberDirectClient.dispatch(orderId);
+      done(
+        r.adminBypass
+          ? "Dispatched to Uber Direct (admin — no wallet charge)"
+          : "Dispatched to Uber Direct",
+      );
+    } catch (e: any) {
+      toast.error(
+        e?.response?.data?.message ?? "Couldn't dispatch to Uber Direct",
+      );
       setBusy(null);
     }
   }
@@ -184,22 +227,52 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
             )}
           </div>
 
-          {/* Uber Direct — placeholder */}
-          <div className="rounded-xl border border-dashed border-zinc-200 p-3.5 opacity-70">
+          {/* Uber Direct */}
+          <div className="rounded-xl border border-zinc-200 p-3.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-zinc-500" />
-                <span className="text-sm font-semibold text-zinc-700">
+                <Truck className="h-4 w-4 text-zinc-900" />
+                <span className="text-sm font-semibold text-zinc-900">
                   Uber Direct
                 </span>
               </div>
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-500">
-                Coming soon
-              </span>
+              <div className="text-right">
+                {uberAvailable === null ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                ) : !uberAvailable ? (
+                  <span className="text-[11px] text-zinc-400">Not set up</span>
+                ) : uberQuote ? (
+                  <>
+                    <div className="text-sm font-semibold text-zinc-900">
+                      {money(uberQuote.currency, uberQuote.amount)}
+                    </div>
+                    <div className="text-[10px] text-zinc-400">
+                      + {uberQuote.dispatchFeeMinor}p OrderHub fee
+                    </div>
+                  </>
+                ) : uberQuoteErr ? (
+                  <span className="text-[11px] text-amber-600">
+                    Quote unavailable
+                  </span>
+                ) : (
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                )}
+              </div>
             </div>
-            <p className="mt-1.5 text-[11px] text-zinc-400">
-              Pending Uber Direct account approval.
-            </p>
+            <button
+              onClick={dispatchUber}
+              disabled={!uberAvailable || busy !== null}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-40"
+            >
+              {busy === "uber" && <Loader2 className="h-4 w-4 animate-spin" />}
+              Dispatch to Uber Direct
+            </button>
+            {uberAvailable === false && (
+              <p className="mt-1.5 text-[11px] text-zinc-400">
+                Add your Uber Direct credentials in Location settings to enable
+                this.
+              </p>
+            )}
           </div>
 
           {/* Own fleet */}

@@ -538,6 +538,8 @@ model Location {
 
   // Phase BH — Stuart last-mile courier config (per location).
   stuartConfig StuartConfig?
+  // Phase BI — Uber Direct courier config (per location).
+  uberDirectConfig UberDirectConfig?
 
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?
@@ -4079,4 +4081,27 @@ model StuartConfig {
   updatedAt DateTime @updatedAt
 
   @@map("stuart_configs")
+}
+
+// Per-location Uber Direct (DaaS) integration. Same model as Stuart — the
+// restaurant plugs in its OWN Uber Direct account so Uber bills them directly;
+// OrderHub only takes a flat per-dispatch fee from the location wallet. The
+// extra field vs Stuart is customerId (Uber puts it in the API URL path).
+model UberDirectConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // "sandbox" (test mode) | "production".
+  environment String @default("sandbox")
+  // Encrypted { customerId, clientId, clientSecret, signingKey } envelope.
+  // signingKey verifies inbound webhooks (HMAC-SHA256 of the raw body).
+  credentials Json
+  active      Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("uber_direct_configs")
 }
