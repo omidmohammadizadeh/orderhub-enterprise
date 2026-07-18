@@ -222,6 +222,116 @@ export class WalletService {
     }
   }
 
+  // ── Dispatch (courier) fee ──────────────────────────────────────────────
+
+  /** Flat OrderHub fee (pennies) charged to the location wallet per courier
+   *  dispatch. Overridable via DISPATCH_FEE_MINOR; defaults to 50p. */
+  dispatchFeeMinor(): number {
+    const n = parseInt(
+      this.config.get<string>("DISPATCH_FEE_MINOR") ?? "50",
+      10,
+    );
+    return Number.isFinite(n) && n >= 0 ? n : 50;
+  }
+
+  /** Throw (402-style) unless the location wallet can cover a dispatch fee.
+   *  Called BEFORE we create the courier job so a broke wallet blocks dispatch
+   *  cleanly. PLATFORM_ADMIN bypass lives in the caller, not here. */
+  async assertCanAffordDispatch(
+    tenantId: string,
+    locationId: string | null,
+    amountMinor?: number,
+  ): Promise<void> {
+    const cost = amountMinor ?? this.dispatchFeeMinor();
+    const wallet = await this.getOrCreate(tenantId, locationId);
+    if (wallet.balanceMinor < cost) {
+      throw new BadRequestException(
+        "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
+      );
+    }
+  }
+
+  /** Atomically debit the dispatch fee + append a ledger row. Throws if the
+   *  balance can't cover it (checked inside the same read the update uses).
+   *  Returns the fee taken and the resulting balance. */
+  async debitForDispatch(args: {
+    tenantId: string;
+    locationId: string | null;
+    orderId: string;
+    amountMinor?: number;
+    createdBy?: string | null;
+  }): Promise<{ chargedMinor: number; balanceAfterMinor: number }> {
+    const cost = args.amountMinor ?? this.dispatchFeeMinor();
+    const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+    if (wallet.balanceMinor < cost) {
+      throw new BadRequestException(
+        "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
+      );
+    }
+    const updated = await this.prisma.$transaction(async (tx: any) => {
+      const u = await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { balanceMinor: { decrement: cost } },
+      });
+      await tx.walletTransaction.create({
+        data: {
+          tenantId: args.tenantId,
+          walletId: wallet.id,
+          type: "DEBIT",
+          amountMinor: -cost,
+          balanceAfterMinor: u.balanceMinor,
+          currency: wallet.currency,
+          purpose: "DISPATCH_FEE",
+          orderId: args.orderId,
+          locationId: args.locationId ?? null,
+          createdBy: args.createdBy ?? null,
+          description: `Courier dispatch fee (${cost}p)`,
+        },
+      });
+      return u;
+    });
+    return { chargedMinor: cost, balanceAfterMinor: updated.balanceMinor };
+  }
+
+  /** Credit a previously-charged dispatch fee back (courier job creation failed
+   *  after we debited). Best-effort — logged, never thrown into the caller. */
+  async refundDispatch(args: {
+    tenantId: string;
+    locationId: string | null;
+    orderId: string;
+    amountMinor: number;
+    createdBy?: string | null;
+  }): Promise<void> {
+    try {
+      const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+      await this.prisma.$transaction(async (tx: any) => {
+        const u = await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceMinor: { increment: args.amountMinor } },
+        });
+        await tx.walletTransaction.create({
+          data: {
+            tenantId: args.tenantId,
+            walletId: wallet.id,
+            type: "REFUND",
+            amountMinor: args.amountMinor,
+            balanceAfterMinor: u.balanceMinor,
+            currency: wallet.currency,
+            purpose: "DISPATCH_FEE",
+            orderId: args.orderId,
+            locationId: args.locationId ?? null,
+            createdBy: args.createdBy ?? null,
+            description: `Dispatch fee refund (job failed)`,
+          },
+        });
+      });
+    } catch (e: any) {
+      this.logger.error(
+        `Dispatch fee refund failed for order ${args.orderId}: ${e?.message ?? e}`,
+      );
+    }
+  }
+
   /**
    * Start a top-up: a one-off Stripe Checkout Session (mode: payment) on the
    * PLATFORM account. Returns a URL the operator opens to pay by card. The

@@ -563,6 +563,11 @@ export type Wallet = $Result.DefaultSelection<Prisma.$WalletPayload>
  * 
  */
 export type WalletTransaction = $Result.DefaultSelection<Prisma.$WalletTransactionPayload>
+/**
+ * Model StuartConfig
+ * 
+ */
+export type StuartConfig = $Result.DefaultSelection<Prisma.$StuartConfigPayload>
 
 /**
  * Enums
@@ -2608,6 +2613,16 @@ export class PrismaClient<
     * ```
     */
   get walletTransaction(): Prisma.WalletTransactionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.stuartConfig`: Exposes CRUD operations for the **StuartConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StuartConfigs
+    * const stuartConfigs = await prisma.stuartConfig.findMany()
+    * ```
+    */
+  get stuartConfig(): Prisma.StuartConfigDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3158,7 +3173,8 @@ export namespace Prisma {
     MarketingSmsCampaign: 'MarketingSmsCampaign',
     MarketingSmsRecipient: 'MarketingSmsRecipient',
     Wallet: 'Wallet',
-    WalletTransaction: 'WalletTransaction'
+    WalletTransaction: 'WalletTransaction',
+    StuartConfig: 'StuartConfig'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3174,7 +3190,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -10875,6 +10891,76 @@ export namespace Prisma {
           count: {
             args: Prisma.WalletTransactionCountArgs<ExtArgs>
             result: $Utils.Optional<WalletTransactionCountAggregateOutputType> | number
+          }
+        }
+      }
+      StuartConfig: {
+        payload: Prisma.$StuartConfigPayload<ExtArgs>
+        fields: Prisma.StuartConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StuartConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StuartConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.StuartConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StuartConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>
+          }
+          findMany: {
+            args: Prisma.StuartConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>[]
+          }
+          create: {
+            args: Prisma.StuartConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>
+          }
+          createMany: {
+            args: Prisma.StuartConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StuartConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.StuartConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>
+          }
+          update: {
+            args: Prisma.StuartConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.StuartConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StuartConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.StuartConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StuartConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.StuartConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStuartConfig>
+          }
+          groupBy: {
+            args: Prisma.StuartConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StuartConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StuartConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<StuartConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -26706,6 +26792,7 @@ export namespace Prisma {
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
+    stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -26850,6 +26937,7 @@ export namespace Prisma {
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
+    stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -26882,6 +26970,7 @@ export namespace Prisma {
       defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
+      stuartConfig: Prisma.$StuartConfigPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -27323,6 +27412,7 @@ export namespace Prisma {
     defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    stuartConfig<T extends Location$stuartConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$stuartConfigArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -28072,6 +28162,21 @@ export namespace Prisma {
      */
     include?: PrinterInclude<ExtArgs> | null
     where?: PrinterWhereInput
+  }
+
+  /**
+   * Location.stuartConfig
+   */
+  export type Location$stuartConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    where?: StuartConfigWhereInput
   }
 
   /**
@@ -56837,6 +56942,8 @@ export namespace Prisma {
     courierAssignedAt: Date | null
     courierPickedUpAt: Date | null
     courierDeliveredAt: Date | null
+    courierProvider: string | null
+    courierJobId: string | null
     status: $Enums.OrderStatus | null
     fulfillmentType: $Enums.FulfillmentType | null
     customerName: string | null
@@ -56905,6 +57012,8 @@ export namespace Prisma {
     courierAssignedAt: Date | null
     courierPickedUpAt: Date | null
     courierDeliveredAt: Date | null
+    courierProvider: string | null
+    courierJobId: string | null
     status: $Enums.OrderStatus | null
     fulfillmentType: $Enums.FulfillmentType | null
     customerName: string | null
@@ -56973,6 +57082,8 @@ export namespace Prisma {
     courierAssignedAt: number
     courierPickedUpAt: number
     courierDeliveredAt: number
+    courierProvider: number
+    courierJobId: number
     status: number
     fulfillmentType: number
     customerInfo: number
@@ -57075,6 +57186,8 @@ export namespace Prisma {
     courierAssignedAt?: true
     courierPickedUpAt?: true
     courierDeliveredAt?: true
+    courierProvider?: true
+    courierJobId?: true
     status?: true
     fulfillmentType?: true
     customerName?: true
@@ -57143,6 +57256,8 @@ export namespace Prisma {
     courierAssignedAt?: true
     courierPickedUpAt?: true
     courierDeliveredAt?: true
+    courierProvider?: true
+    courierJobId?: true
     status?: true
     fulfillmentType?: true
     customerName?: true
@@ -57211,6 +57326,8 @@ export namespace Prisma {
     courierAssignedAt?: true
     courierPickedUpAt?: true
     courierDeliveredAt?: true
+    courierProvider?: true
+    courierJobId?: true
     status?: true
     fulfillmentType?: true
     customerInfo?: true
@@ -57370,6 +57487,8 @@ export namespace Prisma {
     courierAssignedAt: Date | null
     courierPickedUpAt: Date | null
     courierDeliveredAt: Date | null
+    courierProvider: string | null
+    courierJobId: string | null
     status: $Enums.OrderStatus
     fulfillmentType: $Enums.FulfillmentType
     customerInfo: JsonValue
@@ -57461,6 +57580,8 @@ export namespace Prisma {
     courierAssignedAt?: boolean
     courierPickedUpAt?: boolean
     courierDeliveredAt?: boolean
+    courierProvider?: boolean
+    courierJobId?: boolean
     status?: boolean
     fulfillmentType?: boolean
     customerInfo?: boolean
@@ -57546,6 +57667,8 @@ export namespace Prisma {
     courierAssignedAt?: boolean
     courierPickedUpAt?: boolean
     courierDeliveredAt?: boolean
+    courierProvider?: boolean
+    courierJobId?: boolean
     status?: boolean
     fulfillmentType?: boolean
     customerInfo?: boolean
@@ -57623,6 +57746,8 @@ export namespace Prisma {
     courierAssignedAt?: boolean
     courierPickedUpAt?: boolean
     courierDeliveredAt?: boolean
+    courierProvider?: boolean
+    courierJobId?: boolean
     status?: boolean
     fulfillmentType?: boolean
     customerInfo?: boolean
@@ -57734,6 +57859,8 @@ export namespace Prisma {
       courierAssignedAt: Date | null
       courierPickedUpAt: Date | null
       courierDeliveredAt: Date | null
+      courierProvider: string | null
+      courierJobId: string | null
       status: $Enums.OrderStatus
       fulfillmentType: $Enums.FulfillmentType
       customerInfo: Prisma.JsonValue
@@ -58208,6 +58335,8 @@ export namespace Prisma {
     readonly courierAssignedAt: FieldRef<"Order", 'DateTime'>
     readonly courierPickedUpAt: FieldRef<"Order", 'DateTime'>
     readonly courierDeliveredAt: FieldRef<"Order", 'DateTime'>
+    readonly courierProvider: FieldRef<"Order", 'String'>
+    readonly courierJobId: FieldRef<"Order", 'String'>
     readonly status: FieldRef<"Order", 'OrderStatus'>
     readonly fulfillmentType: FieldRef<"Order", 'FulfillmentType'>
     readonly customerInfo: FieldRef<"Order", 'Json'>
@@ -129932,6 +130061,7 @@ export namespace Prisma {
     purpose: string | null
     segments: number | null
     smsMessageId: string | null
+    orderId: string | null
     locationId: string | null
     stripeCheckoutId: string | null
     stripePaymentIntentId: string | null
@@ -129951,6 +130081,7 @@ export namespace Prisma {
     purpose: string | null
     segments: number | null
     smsMessageId: string | null
+    orderId: string | null
     locationId: string | null
     stripeCheckoutId: string | null
     stripePaymentIntentId: string | null
@@ -129970,6 +130101,7 @@ export namespace Prisma {
     purpose: number
     segments: number
     smsMessageId: number
+    orderId: number
     locationId: number
     stripeCheckoutId: number
     stripePaymentIntentId: number
@@ -130003,6 +130135,7 @@ export namespace Prisma {
     purpose?: true
     segments?: true
     smsMessageId?: true
+    orderId?: true
     locationId?: true
     stripeCheckoutId?: true
     stripePaymentIntentId?: true
@@ -130022,6 +130155,7 @@ export namespace Prisma {
     purpose?: true
     segments?: true
     smsMessageId?: true
+    orderId?: true
     locationId?: true
     stripeCheckoutId?: true
     stripePaymentIntentId?: true
@@ -130041,6 +130175,7 @@ export namespace Prisma {
     purpose?: true
     segments?: true
     smsMessageId?: true
+    orderId?: true
     locationId?: true
     stripeCheckoutId?: true
     stripePaymentIntentId?: true
@@ -130147,6 +130282,7 @@ export namespace Prisma {
     purpose: string | null
     segments: number | null
     smsMessageId: string | null
+    orderId: string | null
     locationId: string | null
     stripeCheckoutId: string | null
     stripePaymentIntentId: string | null
@@ -130185,6 +130321,7 @@ export namespace Prisma {
     purpose?: boolean
     segments?: boolean
     smsMessageId?: boolean
+    orderId?: boolean
     locationId?: boolean
     stripeCheckoutId?: boolean
     stripePaymentIntentId?: boolean
@@ -130205,6 +130342,7 @@ export namespace Prisma {
     purpose?: boolean
     segments?: boolean
     smsMessageId?: boolean
+    orderId?: boolean
     locationId?: boolean
     stripeCheckoutId?: boolean
     stripePaymentIntentId?: boolean
@@ -130225,6 +130363,7 @@ export namespace Prisma {
     purpose?: boolean
     segments?: boolean
     smsMessageId?: boolean
+    orderId?: boolean
     locationId?: boolean
     stripeCheckoutId?: boolean
     stripePaymentIntentId?: boolean
@@ -130256,6 +130395,7 @@ export namespace Prisma {
       purpose: string | null
       segments: number | null
       smsMessageId: string | null
+      orderId: string | null
       locationId: string | null
       stripeCheckoutId: string | null
       stripePaymentIntentId: string | null
@@ -130666,6 +130806,7 @@ export namespace Prisma {
     readonly purpose: FieldRef<"WalletTransaction", 'String'>
     readonly segments: FieldRef<"WalletTransaction", 'Int'>
     readonly smsMessageId: FieldRef<"WalletTransaction", 'String'>
+    readonly orderId: FieldRef<"WalletTransaction", 'String'>
     readonly locationId: FieldRef<"WalletTransaction", 'String'>
     readonly stripeCheckoutId: FieldRef<"WalletTransaction", 'String'>
     readonly stripePaymentIntentId: FieldRef<"WalletTransaction", 'String'>
@@ -131001,6 +131142,983 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: WalletTransactionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model StuartConfig
+   */
+
+  export type AggregateStuartConfig = {
+    _count: StuartConfigCountAggregateOutputType | null
+    _min: StuartConfigMinAggregateOutputType | null
+    _max: StuartConfigMaxAggregateOutputType | null
+  }
+
+  export type StuartConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    environment: string | null
+    webhookAuthKey: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StuartConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    environment: string | null
+    webhookAuthKey: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StuartConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    environment: number
+    credentials: number
+    webhookAuthKey: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type StuartConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    environment?: true
+    webhookAuthKey?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StuartConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    environment?: true
+    webhookAuthKey?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StuartConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    environment?: true
+    credentials?: true
+    webhookAuthKey?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type StuartConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StuartConfig to aggregate.
+     */
+    where?: StuartConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StuartConfigs to fetch.
+     */
+    orderBy?: StuartConfigOrderByWithRelationInput | StuartConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StuartConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StuartConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StuartConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StuartConfigs
+    **/
+    _count?: true | StuartConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StuartConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StuartConfigMaxAggregateInputType
+  }
+
+  export type GetStuartConfigAggregateType<T extends StuartConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateStuartConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStuartConfig[P]>
+      : GetScalarType<T[P], AggregateStuartConfig[P]>
+  }
+
+
+
+
+  export type StuartConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StuartConfigWhereInput
+    orderBy?: StuartConfigOrderByWithAggregationInput | StuartConfigOrderByWithAggregationInput[]
+    by: StuartConfigScalarFieldEnum[] | StuartConfigScalarFieldEnum
+    having?: StuartConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StuartConfigCountAggregateInputType | true
+    _min?: StuartConfigMinAggregateInputType
+    _max?: StuartConfigMaxAggregateInputType
+  }
+
+  export type StuartConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    environment: string
+    credentials: JsonValue
+    webhookAuthKey: string
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: StuartConfigCountAggregateOutputType | null
+    _min: StuartConfigMinAggregateOutputType | null
+    _max: StuartConfigMaxAggregateOutputType | null
+  }
+
+  type GetStuartConfigGroupByPayload<T extends StuartConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StuartConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StuartConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StuartConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], StuartConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StuartConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    environment?: boolean
+    credentials?: boolean
+    webhookAuthKey?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["stuartConfig"]>
+
+  export type StuartConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    environment?: boolean
+    credentials?: boolean
+    webhookAuthKey?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["stuartConfig"]>
+
+  export type StuartConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    environment?: boolean
+    credentials?: boolean
+    webhookAuthKey?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type StuartConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type StuartConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $StuartConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StuartConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      environment: string
+      credentials: Prisma.JsonValue
+      webhookAuthKey: string
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["stuartConfig"]>
+    composites: {}
+  }
+
+  type StuartConfigGetPayload<S extends boolean | null | undefined | StuartConfigDefaultArgs> = $Result.GetResult<Prisma.$StuartConfigPayload, S>
+
+  type StuartConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<StuartConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: StuartConfigCountAggregateInputType | true
+    }
+
+  export interface StuartConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StuartConfig'], meta: { name: 'StuartConfig' } }
+    /**
+     * Find zero or one StuartConfig that matches the filter.
+     * @param {StuartConfigFindUniqueArgs} args - Arguments to find a StuartConfig
+     * @example
+     * // Get one StuartConfig
+     * const stuartConfig = await prisma.stuartConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StuartConfigFindUniqueArgs>(args: SelectSubset<T, StuartConfigFindUniqueArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one StuartConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {StuartConfigFindUniqueOrThrowArgs} args - Arguments to find a StuartConfig
+     * @example
+     * // Get one StuartConfig
+     * const stuartConfig = await prisma.stuartConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StuartConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, StuartConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first StuartConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StuartConfigFindFirstArgs} args - Arguments to find a StuartConfig
+     * @example
+     * // Get one StuartConfig
+     * const stuartConfig = await prisma.stuartConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StuartConfigFindFirstArgs>(args?: SelectSubset<T, StuartConfigFindFirstArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first StuartConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StuartConfigFindFirstOrThrowArgs} args - Arguments to find a StuartConfig
+     * @example
+     * // Get one StuartConfig
+     * const stuartConfig = await prisma.stuartConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StuartConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, StuartConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more StuartConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StuartConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StuartConfigs
+     * const stuartConfigs = await prisma.stuartConfig.findMany()
+     * 
+     * // Get first 10 StuartConfigs
+     * const stuartConfigs = await prisma.stuartConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const stuartConfigWithIdOnly = await prisma.stuartConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StuartConfigFindManyArgs>(args?: SelectSubset<T, StuartConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a StuartConfig.
+     * @param {StuartConfigCreateArgs} args - Arguments to create a StuartConfig.
+     * @example
+     * // Create one StuartConfig
+     * const StuartConfig = await prisma.stuartConfig.create({
+     *   data: {
+     *     // ... data to create a StuartConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends StuartConfigCreateArgs>(args: SelectSubset<T, StuartConfigCreateArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many StuartConfigs.
+     * @param {StuartConfigCreateManyArgs} args - Arguments to create many StuartConfigs.
+     * @example
+     * // Create many StuartConfigs
+     * const stuartConfig = await prisma.stuartConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StuartConfigCreateManyArgs>(args?: SelectSubset<T, StuartConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StuartConfigs and returns the data saved in the database.
+     * @param {StuartConfigCreateManyAndReturnArgs} args - Arguments to create many StuartConfigs.
+     * @example
+     * // Create many StuartConfigs
+     * const stuartConfig = await prisma.stuartConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StuartConfigs and only return the `id`
+     * const stuartConfigWithIdOnly = await prisma.stuartConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StuartConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, StuartConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a StuartConfig.
+     * @param {StuartConfigDeleteArgs} args - Arguments to delete one StuartConfig.
+     * @example
+     * // Delete one StuartConfig
+     * const StuartConfig = await prisma.stuartConfig.delete({
+     *   where: {
+     *     // ... filter to delete one StuartConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StuartConfigDeleteArgs>(args: SelectSubset<T, StuartConfigDeleteArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one StuartConfig.
+     * @param {StuartConfigUpdateArgs} args - Arguments to update one StuartConfig.
+     * @example
+     * // Update one StuartConfig
+     * const stuartConfig = await prisma.stuartConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StuartConfigUpdateArgs>(args: SelectSubset<T, StuartConfigUpdateArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more StuartConfigs.
+     * @param {StuartConfigDeleteManyArgs} args - Arguments to filter StuartConfigs to delete.
+     * @example
+     * // Delete a few StuartConfigs
+     * const { count } = await prisma.stuartConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StuartConfigDeleteManyArgs>(args?: SelectSubset<T, StuartConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StuartConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StuartConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StuartConfigs
+     * const stuartConfig = await prisma.stuartConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StuartConfigUpdateManyArgs>(args: SelectSubset<T, StuartConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one StuartConfig.
+     * @param {StuartConfigUpsertArgs} args - Arguments to update or create a StuartConfig.
+     * @example
+     * // Update or create a StuartConfig
+     * const stuartConfig = await prisma.stuartConfig.upsert({
+     *   create: {
+     *     // ... data to create a StuartConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StuartConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StuartConfigUpsertArgs>(args: SelectSubset<T, StuartConfigUpsertArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of StuartConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StuartConfigCountArgs} args - Arguments to filter StuartConfigs to count.
+     * @example
+     * // Count the number of StuartConfigs
+     * const count = await prisma.stuartConfig.count({
+     *   where: {
+     *     // ... the filter for the StuartConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends StuartConfigCountArgs>(
+      args?: Subset<T, StuartConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StuartConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StuartConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StuartConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StuartConfigAggregateArgs>(args: Subset<T, StuartConfigAggregateArgs>): Prisma.PrismaPromise<GetStuartConfigAggregateType<T>>
+
+    /**
+     * Group by StuartConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StuartConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StuartConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StuartConfigGroupByArgs['orderBy'] }
+        : { orderBy?: StuartConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StuartConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStuartConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StuartConfig model
+   */
+  readonly fields: StuartConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StuartConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StuartConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StuartConfig model
+   */ 
+  interface StuartConfigFieldRefs {
+    readonly id: FieldRef<"StuartConfig", 'String'>
+    readonly tenantId: FieldRef<"StuartConfig", 'String'>
+    readonly locationId: FieldRef<"StuartConfig", 'String'>
+    readonly environment: FieldRef<"StuartConfig", 'String'>
+    readonly credentials: FieldRef<"StuartConfig", 'Json'>
+    readonly webhookAuthKey: FieldRef<"StuartConfig", 'String'>
+    readonly active: FieldRef<"StuartConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"StuartConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"StuartConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StuartConfig findUnique
+   */
+  export type StuartConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which StuartConfig to fetch.
+     */
+    where: StuartConfigWhereUniqueInput
+  }
+
+  /**
+   * StuartConfig findUniqueOrThrow
+   */
+  export type StuartConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which StuartConfig to fetch.
+     */
+    where: StuartConfigWhereUniqueInput
+  }
+
+  /**
+   * StuartConfig findFirst
+   */
+  export type StuartConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which StuartConfig to fetch.
+     */
+    where?: StuartConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StuartConfigs to fetch.
+     */
+    orderBy?: StuartConfigOrderByWithRelationInput | StuartConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StuartConfigs.
+     */
+    cursor?: StuartConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StuartConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StuartConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StuartConfigs.
+     */
+    distinct?: StuartConfigScalarFieldEnum | StuartConfigScalarFieldEnum[]
+  }
+
+  /**
+   * StuartConfig findFirstOrThrow
+   */
+  export type StuartConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which StuartConfig to fetch.
+     */
+    where?: StuartConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StuartConfigs to fetch.
+     */
+    orderBy?: StuartConfigOrderByWithRelationInput | StuartConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StuartConfigs.
+     */
+    cursor?: StuartConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StuartConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StuartConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StuartConfigs.
+     */
+    distinct?: StuartConfigScalarFieldEnum | StuartConfigScalarFieldEnum[]
+  }
+
+  /**
+   * StuartConfig findMany
+   */
+  export type StuartConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which StuartConfigs to fetch.
+     */
+    where?: StuartConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StuartConfigs to fetch.
+     */
+    orderBy?: StuartConfigOrderByWithRelationInput | StuartConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StuartConfigs.
+     */
+    cursor?: StuartConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StuartConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StuartConfigs.
+     */
+    skip?: number
+    distinct?: StuartConfigScalarFieldEnum | StuartConfigScalarFieldEnum[]
+  }
+
+  /**
+   * StuartConfig create
+   */
+  export type StuartConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a StuartConfig.
+     */
+    data: XOR<StuartConfigCreateInput, StuartConfigUncheckedCreateInput>
+  }
+
+  /**
+   * StuartConfig createMany
+   */
+  export type StuartConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StuartConfigs.
+     */
+    data: StuartConfigCreateManyInput | StuartConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StuartConfig createManyAndReturn
+   */
+  export type StuartConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many StuartConfigs.
+     */
+    data: StuartConfigCreateManyInput | StuartConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StuartConfig update
+   */
+  export type StuartConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a StuartConfig.
+     */
+    data: XOR<StuartConfigUpdateInput, StuartConfigUncheckedUpdateInput>
+    /**
+     * Choose, which StuartConfig to update.
+     */
+    where: StuartConfigWhereUniqueInput
+  }
+
+  /**
+   * StuartConfig updateMany
+   */
+  export type StuartConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StuartConfigs.
+     */
+    data: XOR<StuartConfigUpdateManyMutationInput, StuartConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which StuartConfigs to update
+     */
+    where?: StuartConfigWhereInput
+  }
+
+  /**
+   * StuartConfig upsert
+   */
+  export type StuartConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the StuartConfig to update in case it exists.
+     */
+    where: StuartConfigWhereUniqueInput
+    /**
+     * In case the StuartConfig found by the `where` argument doesn't exist, create a new StuartConfig with this data.
+     */
+    create: XOR<StuartConfigCreateInput, StuartConfigUncheckedCreateInput>
+    /**
+     * In case the StuartConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StuartConfigUpdateInput, StuartConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * StuartConfig delete
+   */
+  export type StuartConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
+    /**
+     * Filter which StuartConfig to delete.
+     */
+    where: StuartConfigWhereUniqueInput
+  }
+
+  /**
+   * StuartConfig deleteMany
+   */
+  export type StuartConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StuartConfigs to delete
+     */
+    where?: StuartConfigWhereInput
+  }
+
+  /**
+   * StuartConfig without action
+   */
+  export type StuartConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StuartConfig
+     */
+    select?: StuartConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StuartConfigInclude<ExtArgs> | null
   }
 
 
@@ -131882,6 +133000,8 @@ export namespace Prisma {
     courierAssignedAt: 'courierAssignedAt',
     courierPickedUpAt: 'courierPickedUpAt',
     courierDeliveredAt: 'courierDeliveredAt',
+    courierProvider: 'courierProvider',
+    courierJobId: 'courierJobId',
     status: 'status',
     fulfillmentType: 'fulfillmentType',
     customerInfo: 'customerInfo',
@@ -133156,6 +134276,7 @@ export namespace Prisma {
     purpose: 'purpose',
     segments: 'segments',
     smsMessageId: 'smsMessageId',
+    orderId: 'orderId',
     locationId: 'locationId',
     stripeCheckoutId: 'stripeCheckoutId',
     stripePaymentIntentId: 'stripePaymentIntentId',
@@ -133165,6 +134286,21 @@ export namespace Prisma {
   };
 
   export type WalletTransactionScalarFieldEnum = (typeof WalletTransactionScalarFieldEnum)[keyof typeof WalletTransactionScalarFieldEnum]
+
+
+  export const StuartConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    environment: 'environment',
+    credentials: 'credentials',
+    webhookAuthKey: 'webhookAuthKey',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type StuartConfigScalarFieldEnum = (typeof StuartConfigScalarFieldEnum)[keyof typeof StuartConfigScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -133784,6 +134920,8 @@ export namespace Prisma {
     courierPhoneAccessCode: 'courierPhoneAccessCode',
     courierTrackingUrl: 'courierTrackingUrl',
     courierStatus: 'courierStatus',
+    courierProvider: 'courierProvider',
+    courierJobId: 'courierJobId',
     customerName: 'customerName',
     customerPhone: 'customerPhone',
     paymentMethod: 'paymentMethod',
@@ -134658,6 +135796,7 @@ export namespace Prisma {
     currency: 'currency',
     purpose: 'purpose',
     smsMessageId: 'smsMessageId',
+    orderId: 'orderId',
     locationId: 'locationId',
     stripeCheckoutId: 'stripeCheckoutId',
     stripePaymentIntentId: 'stripePaymentIntentId',
@@ -134666,6 +135805,17 @@ export namespace Prisma {
   };
 
   export type WalletTransactionOrderByRelevanceFieldEnum = (typeof WalletTransactionOrderByRelevanceFieldEnum)[keyof typeof WalletTransactionOrderByRelevanceFieldEnum]
+
+
+  export const StuartConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    environment: 'environment',
+    webhookAuthKey: 'webhookAuthKey'
+  };
+
+  export type StuartConfigOrderByRelevanceFieldEnum = (typeof StuartConfigOrderByRelevanceFieldEnum)[keyof typeof StuartConfigOrderByRelevanceFieldEnum]
 
 
   /**
@@ -136828,6 +137978,7 @@ export namespace Prisma {
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
+    stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -136906,6 +138057,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationOrderByWithRelationInput
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
+    stuartConfig?: StuartConfigOrderByWithRelationInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
@@ -136988,6 +138140,7 @@ export namespace Prisma {
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
+    stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
@@ -140084,6 +141237,8 @@ export namespace Prisma {
     courierAssignedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierPickedUpAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierProvider?: StringNullableFilter<"Order"> | string | null
+    courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonFilter<"Order">
@@ -140168,6 +141323,8 @@ export namespace Prisma {
     courierAssignedAt?: SortOrderInput | SortOrder
     courierPickedUpAt?: SortOrderInput | SortOrder
     courierDeliveredAt?: SortOrderInput | SortOrder
+    courierProvider?: SortOrderInput | SortOrder
+    courierJobId?: SortOrderInput | SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerInfo?: SortOrder
@@ -140258,6 +141415,8 @@ export namespace Prisma {
     courierAssignedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierPickedUpAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierProvider?: StringNullableFilter<"Order"> | string | null
+    courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonFilter<"Order">
@@ -140341,6 +141500,8 @@ export namespace Prisma {
     courierAssignedAt?: SortOrderInput | SortOrder
     courierPickedUpAt?: SortOrderInput | SortOrder
     courierDeliveredAt?: SortOrderInput | SortOrder
+    courierProvider?: SortOrderInput | SortOrder
+    courierJobId?: SortOrderInput | SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerInfo?: SortOrder
@@ -140421,6 +141582,8 @@ export namespace Prisma {
     courierAssignedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     courierPickedUpAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     courierDeliveredAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    courierProvider?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    courierJobId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     status?: EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeWithAggregatesFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonWithAggregatesFilter<"Order">
@@ -146799,6 +147962,7 @@ export namespace Prisma {
     purpose?: StringNullableFilter<"WalletTransaction"> | string | null
     segments?: IntNullableFilter<"WalletTransaction"> | number | null
     smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
+    orderId?: StringNullableFilter<"WalletTransaction"> | string | null
     locationId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
@@ -146819,6 +147983,7 @@ export namespace Prisma {
     purpose?: SortOrderInput | SortOrder
     segments?: SortOrderInput | SortOrder
     smsMessageId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
     locationId?: SortOrderInput | SortOrder
     stripeCheckoutId?: SortOrderInput | SortOrder
     stripePaymentIntentId?: SortOrderInput | SortOrder
@@ -146843,6 +148008,7 @@ export namespace Prisma {
     purpose?: StringNullableFilter<"WalletTransaction"> | string | null
     segments?: IntNullableFilter<"WalletTransaction"> | number | null
     smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
+    orderId?: StringNullableFilter<"WalletTransaction"> | string | null
     locationId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
@@ -146863,6 +148029,7 @@ export namespace Prisma {
     purpose?: SortOrderInput | SortOrder
     segments?: SortOrderInput | SortOrder
     smsMessageId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
     locationId?: SortOrderInput | SortOrder
     stripeCheckoutId?: SortOrderInput | SortOrder
     stripePaymentIntentId?: SortOrderInput | SortOrder
@@ -146890,12 +148057,89 @@ export namespace Prisma {
     purpose?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     segments?: IntNullableWithAggregatesFilter<"WalletTransaction"> | number | null
     smsMessageId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     locationId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     stripeCheckoutId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     stripePaymentIntentId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     description?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     createdBy?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"WalletTransaction"> | Date | string
+  }
+
+  export type StuartConfigWhereInput = {
+    AND?: StuartConfigWhereInput | StuartConfigWhereInput[]
+    OR?: StuartConfigWhereInput[]
+    NOT?: StuartConfigWhereInput | StuartConfigWhereInput[]
+    id?: StringFilter<"StuartConfig"> | string
+    tenantId?: StringFilter<"StuartConfig"> | string
+    locationId?: StringFilter<"StuartConfig"> | string
+    environment?: StringFilter<"StuartConfig"> | string
+    credentials?: JsonFilter<"StuartConfig">
+    webhookAuthKey?: StringFilter<"StuartConfig"> | string
+    active?: BoolFilter<"StuartConfig"> | boolean
+    createdAt?: DateTimeFilter<"StuartConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"StuartConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type StuartConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    webhookAuthKey?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: StuartConfigOrderByRelevanceInput
+  }
+
+  export type StuartConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: StuartConfigWhereInput | StuartConfigWhereInput[]
+    OR?: StuartConfigWhereInput[]
+    NOT?: StuartConfigWhereInput | StuartConfigWhereInput[]
+    tenantId?: StringFilter<"StuartConfig"> | string
+    environment?: StringFilter<"StuartConfig"> | string
+    credentials?: JsonFilter<"StuartConfig">
+    webhookAuthKey?: StringFilter<"StuartConfig"> | string
+    active?: BoolFilter<"StuartConfig"> | boolean
+    createdAt?: DateTimeFilter<"StuartConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"StuartConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type StuartConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    webhookAuthKey?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: StuartConfigCountOrderByAggregateInput
+    _max?: StuartConfigMaxOrderByAggregateInput
+    _min?: StuartConfigMinOrderByAggregateInput
+  }
+
+  export type StuartConfigScalarWhereWithAggregatesInput = {
+    AND?: StuartConfigScalarWhereWithAggregatesInput | StuartConfigScalarWhereWithAggregatesInput[]
+    OR?: StuartConfigScalarWhereWithAggregatesInput[]
+    NOT?: StuartConfigScalarWhereWithAggregatesInput | StuartConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"StuartConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"StuartConfig"> | string
+    locationId?: StringWithAggregatesFilter<"StuartConfig"> | string
+    environment?: StringWithAggregatesFilter<"StuartConfig"> | string
+    credentials?: JsonWithAggregatesFilter<"StuartConfig">
+    webhookAuthKey?: StringWithAggregatesFilter<"StuartConfig"> | string
+    active?: BoolWithAggregatesFilter<"StuartConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"StuartConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"StuartConfig"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -148447,6 +149691,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -148521,6 +149766,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -148595,6 +149841,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -148669,6 +149916,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -152246,6 +153494,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -152330,6 +153580,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -152404,6 +153656,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -152488,6 +153742,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -152567,6 +153823,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -152634,6 +153892,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -152706,6 +153966,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -159878,6 +161140,7 @@ export namespace Prisma {
     purpose?: string | null
     segments?: number | null
     smsMessageId?: string | null
+    orderId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -159898,6 +161161,7 @@ export namespace Prisma {
     purpose?: string | null
     segments?: number | null
     smsMessageId?: string | null
+    orderId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -159916,6 +161180,7 @@ export namespace Prisma {
     purpose?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159936,6 +161201,7 @@ export namespace Prisma {
     purpose?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159955,6 +161221,7 @@ export namespace Prisma {
     purpose?: string | null
     segments?: number | null
     smsMessageId?: string | null
+    orderId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -159973,6 +161240,7 @@ export namespace Prisma {
     purpose?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159992,12 +161260,96 @@ export namespace Prisma {
     purpose?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StuartConfigCreateInput = {
+    id?: string
+    tenantId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    webhookAuthKey: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutStuartConfigInput
+  }
+
+  export type StuartConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    webhookAuthKey: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StuartConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    webhookAuthKey?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutStuartConfigNestedInput
+  }
+
+  export type StuartConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    webhookAuthKey?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StuartConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    webhookAuthKey: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StuartConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    webhookAuthKey?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StuartConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    webhookAuthKey?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -161490,6 +162842,11 @@ export namespace Prisma {
   export type PrinterNullableRelationFilter = {
     is?: PrinterWhereInput | null
     isNot?: PrinterWhereInput | null
+  }
+
+  export type StuartConfigNullableRelationFilter = {
+    is?: StuartConfigWhereInput | null
+    isNot?: StuartConfigWhereInput | null
   }
 
   export type IntegrationOrderByRelationAggregateInput = {
@@ -164019,6 +165376,8 @@ export namespace Prisma {
     courierAssignedAt?: SortOrder
     courierPickedUpAt?: SortOrder
     courierDeliveredAt?: SortOrder
+    courierProvider?: SortOrder
+    courierJobId?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerInfo?: SortOrder
@@ -164105,6 +165464,8 @@ export namespace Prisma {
     courierAssignedAt?: SortOrder
     courierPickedUpAt?: SortOrder
     courierDeliveredAt?: SortOrder
+    courierProvider?: SortOrder
+    courierJobId?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerName?: SortOrder
@@ -164173,6 +165534,8 @@ export namespace Prisma {
     courierAssignedAt?: SortOrder
     courierPickedUpAt?: SortOrder
     courierDeliveredAt?: SortOrder
+    courierProvider?: SortOrder
+    courierJobId?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerName?: SortOrder
@@ -169014,6 +170377,7 @@ export namespace Prisma {
     purpose?: SortOrder
     segments?: SortOrder
     smsMessageId?: SortOrder
+    orderId?: SortOrder
     locationId?: SortOrder
     stripeCheckoutId?: SortOrder
     stripePaymentIntentId?: SortOrder
@@ -169039,6 +170403,7 @@ export namespace Prisma {
     purpose?: SortOrder
     segments?: SortOrder
     smsMessageId?: SortOrder
+    orderId?: SortOrder
     locationId?: SortOrder
     stripeCheckoutId?: SortOrder
     stripePaymentIntentId?: SortOrder
@@ -169058,6 +170423,7 @@ export namespace Prisma {
     purpose?: SortOrder
     segments?: SortOrder
     smsMessageId?: SortOrder
+    orderId?: SortOrder
     locationId?: SortOrder
     stripeCheckoutId?: SortOrder
     stripePaymentIntentId?: SortOrder
@@ -169070,6 +170436,46 @@ export namespace Prisma {
     amountMinor?: SortOrder
     balanceAfterMinor?: SortOrder
     segments?: SortOrder
+  }
+
+  export type StuartConfigOrderByRelevanceInput = {
+    fields: StuartConfigOrderByRelevanceFieldEnum | StuartConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type StuartConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    webhookAuthKey?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StuartConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    webhookAuthKey?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StuartConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    environment?: SortOrder
+    webhookAuthKey?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type BrandCreateNestedManyWithoutTenantInput = {
@@ -171229,6 +172635,12 @@ export namespace Prisma {
     connect?: PrinterWhereUniqueInput
   }
 
+  export type StuartConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: StuartConfigCreateOrConnectWithoutLocationInput
+    connect?: StuartConfigWhereUniqueInput
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -171336,6 +172748,12 @@ export namespace Prisma {
     connectOrCreate?: DriverCreateOrConnectWithoutLocationInput | DriverCreateOrConnectWithoutLocationInput[]
     createMany?: DriverCreateManyLocationInputEnvelope
     connect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
+  }
+
+  export type StuartConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: StuartConfigCreateOrConnectWithoutLocationInput
+    connect?: StuartConfigWhereUniqueInput
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -171600,6 +173018,16 @@ export namespace Prisma {
     update?: XOR<XOR<PrinterUpdateToOneWithWhereWithoutLocationsDispatchForInput, PrinterUpdateWithoutLocationsDispatchForInput>, PrinterUncheckedUpdateWithoutLocationsDispatchForInput>
   }
 
+  export type StuartConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: StuartConfigCreateOrConnectWithoutLocationInput
+    upsert?: StuartConfigUpsertWithoutLocationInput
+    disconnect?: StuartConfigWhereInput | boolean
+    delete?: StuartConfigWhereInput | boolean
+    connect?: StuartConfigWhereUniqueInput
+    update?: XOR<XOR<StuartConfigUpdateToOneWithWhereWithoutLocationInput, StuartConfigUpdateWithoutLocationInput>, StuartConfigUncheckedUpdateWithoutLocationInput>
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -171810,6 +173238,16 @@ export namespace Prisma {
     update?: DriverUpdateWithWhereUniqueWithoutLocationInput | DriverUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: DriverUpdateManyWithWhereWithoutLocationInput | DriverUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: DriverScalarWhereInput | DriverScalarWhereInput[]
+  }
+
+  export type StuartConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: StuartConfigCreateOrConnectWithoutLocationInput
+    upsert?: StuartConfigUpsertWithoutLocationInput
+    disconnect?: StuartConfigWhereInput | boolean
+    delete?: StuartConfigWhereInput | boolean
+    connect?: StuartConfigWhereUniqueInput
+    update?: XOR<XOR<StuartConfigUpdateToOneWithWhereWithoutLocationInput, StuartConfigUpdateWithoutLocationInput>, StuartConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -176398,6 +177836,20 @@ export namespace Prisma {
     update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutTransactionsInput, WalletUpdateWithoutTransactionsInput>, WalletUncheckedUpdateWithoutTransactionsInput>
   }
 
+  export type LocationCreateNestedOneWithoutStuartConfigInput = {
+    create?: XOR<LocationCreateWithoutStuartConfigInput, LocationUncheckedCreateWithoutStuartConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutStuartConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutStuartConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutStuartConfigInput, LocationUncheckedCreateWithoutStuartConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutStuartConfigInput
+    upsert?: LocationUpsertWithoutStuartConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutStuartConfigInput, LocationUpdateWithoutStuartConfigInput>, LocationUncheckedUpdateWithoutStuartConfigInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -177839,6 +179291,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -177921,6 +179375,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -178868,6 +180324,8 @@ export namespace Prisma {
     courierAssignedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierPickedUpAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierProvider?: StringNullableFilter<"Order"> | string | null
+    courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonFilter<"Order">
@@ -180412,6 +181870,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutUserLocationsInput = {
@@ -180485,6 +181944,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -180637,6 +182097,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutUserLocationsInput = {
@@ -180710,6 +182171,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -181434,6 +182896,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -181516,6 +182980,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -182271,6 +183737,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -182344,6 +183811,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -182534,6 +184002,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -182616,6 +184086,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -183753,6 +185225,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -183835,6 +185309,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -184707,6 +186183,33 @@ export namespace Prisma {
     create: XOR<PrinterCreateWithoutLocationsDispatchForInput, PrinterUncheckedCreateWithoutLocationsDispatchForInput>
   }
 
+  export type StuartConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    webhookAuthKey: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StuartConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    webhookAuthKey: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StuartConfigCreateOrConnectWithoutLocationInput = {
+    where: StuartConfigWhereUniqueInput
+    create: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
+  }
+
   export type BrandUpsertWithoutLocationsInput = {
     update: XOR<BrandUpdateWithoutLocationsInput, BrandUncheckedUpdateWithoutLocationsInput>
     create: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
@@ -185510,6 +187013,39 @@ export namespace Prisma {
     locationsReceiptFor?: LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput
   }
 
+  export type StuartConfigUpsertWithoutLocationInput = {
+    update: XOR<StuartConfigUpdateWithoutLocationInput, StuartConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
+    where?: StuartConfigWhereInput
+  }
+
+  export type StuartConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: StuartConfigWhereInput
+    data: XOR<StuartConfigUpdateWithoutLocationInput, StuartConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type StuartConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    webhookAuthKey?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StuartConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    webhookAuthKey?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BrandCreateWithoutPlatformConnectionsInput = {
     id?: string
     name: string
@@ -185682,6 +187218,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -185755,6 +187292,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -185951,6 +187489,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -186024,6 +187563,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -186097,6 +187637,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -186170,6 +187711,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -186259,6 +187801,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -186332,6 +187875,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -186943,6 +188487,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMenuAssignmentsInput = {
@@ -187016,6 +188561,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMenuAssignmentsInput = {
@@ -187196,6 +188742,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMenuAssignmentsInput = {
@@ -187269,6 +188816,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutChannelSourcesInput = {
@@ -188301,6 +189849,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutChannelPausesInput = {
@@ -188374,6 +189923,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutChannelPausesInput = {
@@ -188463,6 +190013,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutChannelPausesInput = {
@@ -188536,6 +190087,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -188708,6 +190260,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutItemChannelSnoozesInput = {
@@ -188781,6 +190334,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutItemChannelSnoozesInput = {
@@ -188975,6 +190529,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutItemChannelSnoozesInput = {
@@ -189048,6 +190603,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuCategoryCreateWithoutItemsInput = {
@@ -191398,6 +192954,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -191480,6 +193038,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -191867,6 +193427,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDirectOrderingConfigInput = {
@@ -191940,6 +193501,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -192130,6 +193692,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDirectOrderingConfigInput = {
@@ -192203,6 +193766,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -193132,6 +194696,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -193215,6 +194781,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -193371,6 +194939,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -193454,6 +195024,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -193580,6 +195152,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
@@ -193653,6 +195226,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -193843,6 +195417,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
@@ -193916,6 +195491,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDeliveryZonesInput = {
@@ -194096,6 +195672,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPaymentConfigInput = {
@@ -194169,6 +195746,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -194258,6 +195836,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
@@ -194331,6 +195910,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -194469,6 +196049,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -194542,6 +196123,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -195168,6 +196750,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -195241,6 +196824,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -195665,6 +197249,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -195748,6 +197334,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -195837,6 +197425,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -195920,6 +197510,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -195993,6 +197585,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -196076,6 +197670,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -196165,6 +197761,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -196248,6 +197846,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -196374,6 +197974,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -196447,6 +198048,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -196564,6 +198166,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -196637,6 +198240,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -196702,6 +198306,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -196785,6 +198391,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -196909,6 +198517,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -196992,6 +198602,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -197118,6 +198730,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
@@ -197191,6 +198804,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -197430,6 +199044,7 @@ export namespace Prisma {
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutReceiptPrinterInput = {
@@ -197503,6 +199118,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -197586,6 +199202,7 @@ export namespace Prisma {
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDispatchPrinterInput = {
@@ -197659,6 +199276,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -197753,6 +199371,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -197826,6 +199445,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -198113,6 +199733,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -198196,6 +199818,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -198535,6 +200159,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -198618,6 +200244,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -198911,6 +200539,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrinterStationsInput = {
@@ -198984,6 +200613,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -199317,6 +200947,7 @@ export namespace Prisma {
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDefaultKitchenStationInput = {
@@ -199390,6 +201021,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -199621,6 +201253,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrinterStationsInput = {
@@ -199694,6 +201327,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -200017,6 +201651,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintAgentsInput = {
@@ -200090,6 +201725,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -200404,6 +202040,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintAgentsInput = {
@@ -200477,6 +202114,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -201355,6 +202993,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutHomeDriversInput = {
@@ -201428,6 +203067,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutHomeDriversInput = {
@@ -201707,6 +203347,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutHomeDriversInput = {
@@ -201780,6 +203421,7 @@ export namespace Prisma {
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type DriverAssignmentUpsertWithWhereUniqueWithoutDriverInput = {
@@ -202106,6 +203748,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -202189,6 +203833,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -202355,6 +204001,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -202438,6 +204086,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -202932,6 +204582,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -203015,6 +204667,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -203219,6 +204873,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -203302,6 +204958,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -206418,6 +208076,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMerchantSubscriptionInput = {
@@ -206491,6 +208150,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMerchantSubscriptionInput = {
@@ -206651,6 +208311,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMerchantSubscriptionInput = {
@@ -206724,6 +208385,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantSubscriptionCreateWithoutInvoicesInput = {
@@ -207689,6 +209351,7 @@ export namespace Prisma {
     purpose?: string | null
     segments?: number | null
     smsMessageId?: string | null
+    orderId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -207707,6 +209370,7 @@ export namespace Prisma {
     purpose?: string | null
     segments?: number | null
     smsMessageId?: string | null
+    orderId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -207826,6 +209490,7 @@ export namespace Prisma {
     purpose?: StringNullableFilter<"WalletTransaction"> | string | null
     segments?: IntNullableFilter<"WalletTransaction"> | number | null
     smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
+    orderId?: StringNullableFilter<"WalletTransaction"> | string | null
     locationId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
@@ -207900,6 +209565,318 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationCreateWithoutStuartConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutStuartConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutStuartConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutStuartConfigInput, LocationUncheckedCreateWithoutStuartConfigInput>
+  }
+
+  export type LocationUpsertWithoutStuartConfigInput = {
+    update: XOR<LocationUpdateWithoutStuartConfigInput, LocationUncheckedUpdateWithoutStuartConfigInput>
+    create: XOR<LocationCreateWithoutStuartConfigInput, LocationUncheckedCreateWithoutStuartConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutStuartConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutStuartConfigInput, LocationUncheckedUpdateWithoutStuartConfigInput>
+  }
+
+  export type LocationUpdateWithoutStuartConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutStuartConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateManyTenantInput = {
@@ -207989,6 +209966,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -208517,6 +210496,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -208599,6 +210580,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -208677,6 +210660,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -209904,6 +211889,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -209971,6 +211958,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -210053,6 +212042,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -210131,6 +212122,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -210321,6 +212314,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -210553,6 +212548,7 @@ export namespace Prisma {
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -210626,6 +212622,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -210905,6 +212902,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -210987,6 +212986,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -211065,6 +213066,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -211491,6 +213494,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -211778,6 +213783,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -211860,6 +213867,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -211938,6 +213947,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -213293,6 +215304,8 @@ export namespace Prisma {
     courierAssignedAt?: Date | string | null
     courierPickedUpAt?: Date | string | null
     courierDeliveredAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -213411,6 +215424,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -213493,6 +215508,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -213571,6 +215588,8 @@ export namespace Prisma {
     courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -214477,6 +216496,7 @@ export namespace Prisma {
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutReceiptPrinterInput = {
@@ -214550,6 +216570,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -214680,6 +216701,7 @@ export namespace Prisma {
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDispatchPrinterInput = {
@@ -214753,6 +216775,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -215208,6 +217231,7 @@ export namespace Prisma {
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDefaultKitchenStationInput = {
@@ -215281,6 +217305,7 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -216802,6 +218827,7 @@ export namespace Prisma {
     purpose?: string | null
     segments?: number | null
     smsMessageId?: string | null
+    orderId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -216820,6 +218846,7 @@ export namespace Prisma {
     purpose?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216838,6 +218865,7 @@ export namespace Prisma {
     purpose?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216856,6 +218884,7 @@ export namespace Prisma {
     purpose?: NullableStringFieldUpdateOperationsInput | string | null
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217433,6 +219462,10 @@ export namespace Prisma {
      * @deprecated Use WalletTransactionDefaultArgs instead
      */
     export type WalletTransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WalletTransactionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use StuartConfigDefaultArgs instead
+     */
+    export type StuartConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StuartConfigDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

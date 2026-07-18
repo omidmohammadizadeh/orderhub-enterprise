@@ -536,6 +536,9 @@ model Location {
   hubriseLocationId  String?
   hubriseConnectedAt DateTime?
 
+  // Phase BH — Stuart last-mile courier config (per location).
+  stuartConfig StuartConfig?
+
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?
   applicationFeeFixedAmount Decimal? @db.Decimal(10, 2)
@@ -1738,6 +1741,11 @@ model Order {
   courierAssignedAt      DateTime?
   courierPickedUpAt      DateTime?
   courierDeliveredAt     DateTime?
+  // Which courier network fulfils this order + its job id there. Set when an
+  // operator dispatches to a fleet provider (STUART). courierJobId is the
+  // provider's delivery/job id — the webhook resolves the order by it.
+  courierProvider        String? // STUART (later: UBER_DIRECT, …)
+  courierJobId           String?
 
   status          OrderStatus     @default(PENDING)
   fulfillmentType FulfillmentType @default(DELIVERY)
@@ -1837,6 +1845,7 @@ model Order {
   @@index([integrationSource])
   @@index([tenantId, customerPhone])
   @@index([tenantId, customerName])
+  @@index([courierJobId])
   @@index([locationId, status, createdAt(sort: Asc)])
   @@index([scheduledFor])
   @@index([customerId])
@@ -4028,9 +4037,10 @@ model WalletTransaction {
   currency          String @default("GBP")
 
   // Context for statement lines + reconciliation.
-  purpose               String? // SMS_PAYMENT_LINK | SMS_MARKETING | SMS_OTHER | TOPUP
+  purpose               String? // SMS_PAYMENT_LINK | SMS_MARKETING | SMS_OTHER | TOPUP | DISPATCH_FEE
   segments              Int? // for SMS debits — how many parts were charged
   smsMessageId          String? // links to the sms_messages row
+  orderId               String? // DISPATCH_FEE debits — the dispatched order
   locationId            String?
   stripeCheckoutId      String?
   stripePaymentIntentId String? // top-ups — idempotency key for webhook credit
@@ -4043,4 +4053,30 @@ model WalletTransaction {
   @@index([walletId, createdAt])
   @@index([stripePaymentIntentId])
   @@map("wallet_transactions")
+}
+
+// Per-location Stuart (last-mile courier) integration. The restaurant plugs in
+// its OWN Stuart client_id/secret so Stuart bills their account directly for the
+// courier; OrderHub only takes a flat per-dispatch fee from the location wallet.
+// One row per location; dispatch is gated on `active`.
+model StuartConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // "sandbox" (bot couriers, api.sandbox.stuart.com) | "production".
+  environment String @default("sandbox")
+  // Encrypted { clientId, clientSecret } envelope (CredentialEncryptionService).
+  credentials Json
+  // Shared secret we hand to Stuart as the webhook auth header value; the
+  // receiver rejects any callback whose header doesn't match. Generated on save.
+  webhookAuthKey String
+  // Master on/off for this location. Dispatch refuses when false or unset.
+  active Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stuart_configs")
 }

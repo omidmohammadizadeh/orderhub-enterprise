@@ -869,6 +869,8 @@ exports.Prisma.OrderScalarFieldEnum = {
   courierAssignedAt: 'courierAssignedAt',
   courierPickedUpAt: 'courierPickedUpAt',
   courierDeliveredAt: 'courierDeliveredAt',
+  courierProvider: 'courierProvider',
+  courierJobId: 'courierJobId',
   status: 'status',
   fulfillmentType: 'fulfillmentType',
   customerInfo: 'customerInfo',
@@ -1933,12 +1935,25 @@ exports.Prisma.WalletTransactionScalarFieldEnum = {
   purpose: 'purpose',
   segments: 'segments',
   smsMessageId: 'smsMessageId',
+  orderId: 'orderId',
   locationId: 'locationId',
   stripeCheckoutId: 'stripeCheckoutId',
   stripePaymentIntentId: 'stripePaymentIntentId',
   description: 'description',
   createdBy: 'createdBy',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.StuartConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  environment: 'environment',
+  credentials: 'credentials',
+  webhookAuthKey: 'webhookAuthKey',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -2423,6 +2438,8 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   courierPhoneAccessCode: 'courierPhoneAccessCode',
   courierTrackingUrl: 'courierTrackingUrl',
   courierStatus: 'courierStatus',
+  courierProvider: 'courierProvider',
+  courierJobId: 'courierJobId',
   customerName: 'customerName',
   customerPhone: 'customerPhone',
   paymentMethod: 'paymentMethod',
@@ -3087,11 +3104,20 @@ exports.Prisma.WalletTransactionOrderByRelevanceFieldEnum = {
   currency: 'currency',
   purpose: 'purpose',
   smsMessageId: 'smsMessageId',
+  orderId: 'orderId',
   locationId: 'locationId',
   stripeCheckoutId: 'stripeCheckoutId',
   stripePaymentIntentId: 'stripePaymentIntentId',
   description: 'description',
   createdBy: 'createdBy'
+};
+
+exports.Prisma.StuartConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  environment: 'environment',
+  webhookAuthKey: 'webhookAuthKey'
 };
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
@@ -3652,7 +3678,8 @@ exports.Prisma.ModelName = {
   MarketingSmsCampaign: 'MarketingSmsCampaign',
   MarketingSmsRecipient: 'MarketingSmsRecipient',
   Wallet: 'Wallet',
-  WalletTransaction: 'WalletTransaction'
+  WalletTransaction: 'WalletTransaction',
+  StuartConfig: 'StuartConfig'
 };
 
 /**

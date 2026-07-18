@@ -43,6 +43,7 @@ import { CatalogModule } from "./modules/catalog/catalog.module";
 import { OrdersModule } from "./modules/orders/orders.module";
 import { IntegrationsModule } from "./modules/integrations/integrations.module";
 import { HubRiseModule } from "./modules/integrations/hubrise/hubrise.module";
+import { StuartModule } from "./modules/integrations/stuart/stuart.module";
 import { DeliverooModule } from "./modules/integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "./modules/integrations/ubereats/ubereats.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
@@ -239,6 +240,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     HubRiseModule,
     DeliverooModule,
     UberEatsModule,
+    StuartModule,
     WebhooksModule,
     DispatchModule,
     ExpoPushModule,
