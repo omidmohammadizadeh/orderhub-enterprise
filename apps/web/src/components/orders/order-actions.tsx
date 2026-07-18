@@ -23,6 +23,8 @@ interface Props {
   orderId: string;
   status: string;
   fulfillmentType?: string;
+  /** Opens the dispatch courier chooser (owner supplies it). */
+  onDispatch?: () => void;
   // Phase AV — when "PLATFORM" the marketplace's own courier drives
   // post-READY transitions. We hide the Mark out / Mark delivered
   // buttons so staff can't accidentally lie to HubRise about the
@@ -37,6 +39,8 @@ interface ButtonSpec {
   variant: "primary" | "secondary" | "danger";
   /** Reason prompt for cancel-style transitions. */
   promptForReason?: boolean;
+  /** Opens the dispatch courier chooser instead of a status mutation. */
+  action?: "dispatch";
 }
 
 function buttonsForStatus(
@@ -113,10 +117,11 @@ function buttonsForStatus(
               variant: "primary",
             },
             {
-              label: "Send to dispatch",
+              label: "Dispatch",
               toStatus: "PENDING_DISPATCH",
               icon: Send,
               variant: "secondary",
+              action: "dispatch",
             },
             {
               label: "Cancel",
@@ -215,6 +220,7 @@ export function OrderActions({
   status,
   fulfillmentType,
   deliveryType,
+  onDispatch,
 }: Props) {
   const allButtons = buttonsForStatus(status, fulfillmentType);
   // Phase AV — for PLATFORM-courier orders, drop transitions past
@@ -247,6 +253,12 @@ export function OrderActions({
     // Buttons sit inside an OrderCard which is also clickable to open the
     // drawer. Don't let that fire when staff click an action.
     e.stopPropagation();
+
+    // The Dispatch button opens the courier chooser instead of mutating status.
+    if (b.action === "dispatch") {
+      onDispatch?.();
+      return;
+    }
 
     let reason: string | undefined;
     if (b.promptForReason) {

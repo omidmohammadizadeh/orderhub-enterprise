@@ -32,6 +32,7 @@ import {
 import { useEffect, useRef } from "react";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { OrderActions } from "./order-actions";
+import { DispatchModal } from "./dispatch-modal";
 import { PaymentBadge } from "./order-card";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useLiveOrders } from "../../hooks/use-live-orders";
@@ -497,6 +498,7 @@ function OrderRow({
     BUCKETS.find((b) => b.match(order)) ??
     BUCKETS[BUCKETS.length - 1]!;
   const StatusIcon = bucket.icon;
+  const [showDispatch, setShowDispatch] = useState(false);
 
   return (
     <tr
@@ -627,7 +629,16 @@ function OrderRow({
             status={order.status}
             fulfillmentType={order.fulfillmentType}
             deliveryType={(order as any).deliveryType}
+            onDispatch={() => setShowDispatch(true)}
           />
+          {showDispatch && (
+            <DispatchModal
+              orderId={order.id}
+              locationId={(order as any).locationId ?? null}
+              orderRef={`#${order.displayId ?? (order as any).orderNumber ?? ""}`}
+              onClose={() => setShowDispatch(false)}
+            />
+          )}
         </div>
       </Td>
     </tr>
