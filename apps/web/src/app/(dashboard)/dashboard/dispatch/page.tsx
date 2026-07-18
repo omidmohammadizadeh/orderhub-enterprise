@@ -198,12 +198,10 @@ export default function DispatchPage() {
           >
             Own fleet
           </button>
-          <button disabled className="rounded-md border px-3 py-1 opacity-40">
-            Stuart (soon)
-          </button>
-          <button disabled className="rounded-md border px-3 py-1 opacity-40">
-            Uber Direct (soon)
-          </button>
+          <span className="text-xs text-muted-foreground">
+            Stuart &amp; Uber Direct are dispatched per order (with a live price)
+            — open an order and tap <strong>Dispatch</strong>.
+          </span>
           <button onClick={() => setChooser(false)} className="ml-auto text-muted-foreground">
             Cancel
           </button>
