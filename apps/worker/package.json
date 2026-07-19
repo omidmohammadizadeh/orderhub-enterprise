@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "rm -rf dist node_modules/.cache/.tsbuildinfo && nest start --watch",
-    "build": "nest build",
+    "build": "rm -rf dist node_modules/.cache/.tsbuildinfo && nest build",
     "start": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "type-check": "tsc --noEmit",
