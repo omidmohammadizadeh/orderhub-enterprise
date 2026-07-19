@@ -31,7 +31,7 @@ generator client {
   // Generate query engine for Alpine+OpenSSL (Render/Docker) alongside the native dev binary.
   // Without this, Prisma detects "linux-musl-openssl-3.0.x" at runtime but only finds
   // the "linux-musl" engine built in the builder stage (no OpenSSL present there).
-  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -1480,7 +1480,7 @@ model PromoCode {
   @@map("promo_codes")
 }
 
-// ── MarketingCampaign (Phase AW-19) ─────────────────────────────────────────
+// ── MarketingCampaign (Phase AW-19) ───────────────────���─────────────────────
 //
 // Generic campaign row covering all the offer types in the Marketing UI
 // picker (Percentage off, BOGO, % off items, Amount off, Free item, Free
@@ -1682,7 +1682,7 @@ model LocationPaymentConfig {
   @@map("location_payment_configs")
 }
 
-// ── Order ──────────────────────────────────────────────────────────────────��──
+// ── Order ─────────────────────────────────────────────────────────────────────
 model Order {
   id                String           @id @default(cuid())
   tenantId          String
@@ -2704,7 +2704,7 @@ model Payout {
   @@map("payouts")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════���════════
 // PHASE F — INVENTORY & STOCK SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -3134,7 +3134,7 @@ model StripeWebhookEvent {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — ENTERPRISE SECURITY
-// ══════════════════════════════��═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 // TOTP MFA configuration per user
 model MfaConfig {
