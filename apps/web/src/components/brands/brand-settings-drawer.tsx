@@ -7,10 +7,14 @@
 // place to configure everything a customer sees: brand identity,
 // public URL, contact, address, about copy, Stripe Connect payout.
 //
-// Admin-only on the client too (the server already gates the slug
-// generation + Stripe fields via @Roles). Non-admins get a read-only
-// view so a manager who lands here on an existing brand can still
-// inspect, just can't change anything that affects payouts.
+// Three access tiers (mirrored server-side by @Roles):
+//   • PLATFORM_ADMIN / TENANT_OWNER — everything.
+//   • OWNER — the storefront settings that are theirs to run: logo, contact,
+//     about, opening hours, base + busy prep time, advertised prep times,
+//     online payment methods, order types, scheduling, delivery postcodes &
+//     charges. Brand identity (name/cuisine), the public URL/custom domain and
+//     Stripe payouts are HIDDEN from them, not just disabled.
+//   • Everyone else — read-only.
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,6 +31,12 @@ import { BrandCustomDomainPanel } from "./brand-custom-domain-panel";
 import { useAuthStore } from "@/stores/auth.store";
 
 const ADMIN_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
+// Location OWNERs edit the storefront settings that are genuinely theirs —
+// logo, contact, about, opening hours, base/busy prep time, advertised prep
+// times, online payment methods, order types, scheduling and delivery
+// postcodes/charges. They do NOT get brand identity (name/cuisine), the public
+// URL/domain, or Stripe payouts — those stay admin-only and are hidden from them.
+const STOREFRONT_EDIT_ROLES = new Set([...ADMIN_ROLES, "OWNER"]);
 
 interface Props {
   brand: Brand;
@@ -39,6 +49,7 @@ interface Props {
 export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
   const user = useAuthStore((s) => s.user);
   const isAdmin = !!user && ADMIN_ROLES.has(user.role as string);
+  const canEdit = !!user && STOREFRONT_EDIT_ROLES.has(user.role as string);
   const qc = useQueryClient();
 
   // ── Identity ──────────────────────────────────────────────────────
@@ -257,7 +268,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
           </button>
         </header>
 
-        {!isAdmin && (
+        {!canEdit && (
           <div className="border-b border-amber-200 bg-amber-50 px-5 py-2 text-[11px] text-amber-800">
             Read-only — only Tenant Owners and Platform Admins can edit
             brand storefront settings.
@@ -266,24 +277,30 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
 
         <div className="flex-1 space-y-5 overflow-y-auto p-5">
           {/* ── Identity ─────────────────────────────────────────── */}
-          <Section title="Identity">
-            <Field label="Brand name">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={!isAdmin}
-                className="input"
-              />
-            </Field>
-            <Field label="Cuisine">
-              <input
-                value={cuisine}
-                onChange={(e) => setCuisine(e.target.value)}
-                disabled={!isAdmin}
-                placeholder="e.g. Pizza, Burgers, Greek"
-                className="input"
-              />
-            </Field>
+          <Section title={isAdmin ? "Identity" : "Logo"}>
+            {/* Brand name + cuisine are brand identity — admin only. Owners
+                get the logo, which is theirs to manage. */}
+            {isAdmin && (
+              <>
+                <Field label="Brand name">
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={!canEdit}
+                    className="input"
+                  />
+                </Field>
+                <Field label="Cuisine">
+                  <input
+                    value={cuisine}
+                    onChange={(e) => setCuisine(e.target.value)}
+                    disabled={!canEdit}
+                    placeholder="e.g. Pizza, Burgers, Greek"
+                    className="input"
+                  />
+                </Field>
+              </>
+            )}
             <Field label="Logo">
               <p className="mb-2 text-[11px] text-zinc-500">
                 Printed on the receipt header and shown on the storefront.
@@ -292,7 +309,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               </p>
               <ImageUploader
                 value={logoUrl}
-                onChange={(v: string | null) => isAdmin && setLogoUrl(v)}
+                onChange={(v: string | null) => canEdit && setLogoUrl(v)}
                 targetWidth={512}
                 targetHeight={512}
                 fit="contain"
@@ -300,14 +317,16 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
             </Field>
           </Section>
 
-          {/* ── Storefront URL ──────────────────────────────────── */}
+          {/* ── Storefront URL — admin only (slug + custom domain are
+              platform-level, so owners don't see this at all). ──── */}
+          {isAdmin && (
           <Section title="Public URL">
             <Field label="Slug">
               <div className="flex gap-2">
                 <input
                   value={orderingSlug}
                   onChange={(e) => setOrderingSlug(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   placeholder="e.g. greek-gyros-pelton"
                   className="input flex-1"
                 />
@@ -342,8 +361,9 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 </p>
               )}
             </Field>
-            <BrandCustomDomainPanel brandId={brand.id} disabled={!isAdmin} />
+            <BrandCustomDomainPanel brandId={brand.id} disabled={!canEdit} />
           </Section>
+          )}
 
           {/* ── Contact + address ────────────────────────────────── */}
           <Section title="Contact">
@@ -351,7 +371,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 placeholder="+44 …"
                 className="input"
               />
@@ -360,7 +380,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               <input
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 className="input"
               />
             </Field>
@@ -368,7 +388,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               <input
                 value={addressLine2}
                 onChange={(e) => setAddressLine2(e.target.value)}
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 className="input"
               />
             </Field>
@@ -377,7 +397,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   className="input"
                 />
               </Field>
@@ -385,7 +405,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={postcode}
                   onChange={(e) => setPostcode(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   className="input"
                 />
               </Field>
@@ -398,7 +418,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               <textarea
                 value={about}
                 onChange={(e) => setAbout(e.target.value)}
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 rows={3}
                 placeholder="Family-run pizzeria. Wood-fired. Open till midnight."
                 className="input resize-none"
@@ -406,7 +426,9 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
             </Field>
           </Section>
 
-          {/* ── Stripe Connect ───────────────────────────────────── */}
+          {/* ── Stripe Connect — admin only (payouts). Hidden from
+              owners entirely. ─────────────────────────────────────── */}
+          {isAdmin && (
           <Section title="Stripe Connect (payouts)">
             <p className="text-[11px] text-zinc-500">
               Each brand can receive payouts to its own Stripe account. Leave
@@ -416,7 +438,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               <input
                 value={stripeAccountId}
                 onChange={(e) => setStripeAccountId(e.target.value)}
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 placeholder="acct_…"
                 className="input font-mono"
               />
@@ -425,7 +447,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               <select
                 value={appFeeMode}
                 onChange={(e) => setAppFeeMode(e.target.value)}
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 className="input"
               >
                 <option value="none">None</option>
@@ -439,7 +461,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={appFeeFixed}
                   onChange={(e) => setAppFeeFixed(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   step="0.01"
                   className="input"
@@ -449,7 +471,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={appFeePct}
                   onChange={(e) => setAppFeePct(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   step="0.01"
                   className="input"
@@ -457,6 +479,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               </Field>
             </div>
           </Section>
+          )}
 
           {/* ── Opening hours + base prep time (Phase AW-16) ─────── */}
           <Section title="Opening hours + prep time">
@@ -475,13 +498,13 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                       <button
                         type="button"
                         onClick={() =>
-                          isAdmin &&
+                          canEdit &&
                           setOpeningHours({
                             ...openingHours,
                             [day]: [{ from: "09:00", to: "21:00" }],
                           })
                         }
-                        disabled={!isAdmin}
+                        disabled={!canEdit}
                         className="rounded-md border border-dashed border-zinc-300 px-2 py-1 text-left text-[11px] text-zinc-500 hover:border-zinc-400 disabled:opacity-50"
                       >
                         Closed — tap to add hours
@@ -498,7 +521,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                               copy[day][idx] = { ...slot, from: e.target.value };
                               setOpeningHours(copy);
                             }}
-                            disabled={!isAdmin}
+                            disabled={!canEdit}
                             className="input"
                           />
                           <span className="text-[11px] text-zinc-400">→</span>
@@ -511,7 +534,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                               copy[day][idx] = { ...slot, to: e.target.value };
                               setOpeningHours(copy);
                             }}
-                            disabled={!isAdmin}
+                            disabled={!canEdit}
                             className="input"
                           />
                           <button
@@ -521,7 +544,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                               copy[day] = copy[day].filter((_, i) => i !== idx);
                               setOpeningHours(copy);
                             }}
-                            disabled={!isAdmin}
+                            disabled={!canEdit}
                             className="rounded p-1 text-zinc-400 hover:bg-zinc-100 disabled:opacity-50"
                             title="Remove slot"
                           >
@@ -534,7 +557,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                       <button
                         type="button"
                         onClick={() =>
-                          isAdmin &&
+                          canEdit &&
                           setOpeningHours({
                             ...openingHours,
                             [day]: [
@@ -543,7 +566,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                             ],
                           })
                         }
-                        disabled={!isAdmin}
+                        disabled={!canEdit}
                         className="self-start rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-500 hover:bg-zinc-50 disabled:opacity-50"
                       >
                         + Add another slot
@@ -558,7 +581,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={prepTime}
                   onChange={(e) => setPrepTime(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   min={0}
                   className="input"
@@ -568,7 +591,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={busyExtraPrepTime}
                   onChange={(e) => setBusyExtraPrepTime(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   min={0}
                   className="input"
@@ -584,7 +607,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={deliveryPrep}
                   onChange={(e) => setDeliveryPrep(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   min="0"
                   className="input"
@@ -594,7 +617,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={collectionPrep}
                   onChange={(e) => setCollectionPrep(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   min="0"
                   className="input"
@@ -608,13 +631,13 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               label="Accept cash on delivery / collection"
               value={acceptsCash}
               onChange={setAcceptsCash}
-              disabled={!isAdmin}
+              disabled={!canEdit}
             />
             <ToggleRow
               label="Accept card online (Stripe)"
               value={acceptsCard}
               onChange={setAcceptsCard}
-              disabled={!isAdmin}
+              disabled={!canEdit}
             />
           </Section>
 
@@ -623,13 +646,13 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               label="Accept delivery orders"
               value={acceptsDelivery}
               onChange={setAcceptsDelivery}
-              disabled={!isAdmin}
+              disabled={!canEdit}
             />
             <ToggleRow
               label="Accept collection orders"
               value={acceptsCollection}
               onChange={setAcceptsCollection}
-              disabled={!isAdmin}
+              disabled={!canEdit}
             />
           </Section>
 
@@ -639,7 +662,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={scheduleDays}
                   onChange={(e) => setScheduleDays(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   min="0"
                   className="input"
@@ -649,7 +672,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={slotMins}
                   onChange={(e) => setSlotMins(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   min="0"
                   className="input"
@@ -659,7 +682,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 <input
                   value={minDelivery}
                   onChange={(e) => setMinDelivery(e.target.value)}
-                  disabled={!isAdmin}
+                  disabled={!canEdit}
                   type="number"
                   min="0"
                   step="0.01"
@@ -675,7 +698,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               matching delivery fee. The longest matching prefix wins
               (so &ldquo;SW1A&rdquo; beats &ldquo;SW&rdquo;).
             </p>
-            <DeliveryZonesEditor brandId={brand.id} isAdmin={isAdmin} />
+            <DeliveryZonesEditor brandId={brand.id} isAdmin={canEdit} />
           </Section>
 
           {save.isError && (
@@ -694,7 +717,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
           </button>
           <button
             onClick={() => save.mutate()}
-            disabled={!isAdmin || save.isPending || !name.trim()}
+            disabled={!canEdit || save.isPending || !name.trim()}
             className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
           >
             {save.isPending ? (

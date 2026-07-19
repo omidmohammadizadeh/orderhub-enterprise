@@ -66,6 +66,36 @@ describe("RolesGuard", () => {
     expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
   });
 
+  // OWNER sits OUTSIDE the rank hierarchy, so it can only pass by exact match.
+  it("OWNER passes a route that explicitly lists OWNER", () => {
+    reflector.getAllAndOverride
+      .mockReturnValueOnce(["OWNER", "TENANT_OWNER", "PLATFORM_ADMIN"])
+      .mockReturnValueOnce(undefined);
+
+    const ctx = makeContext(baseUser("OWNER" as AuthenticatedUser["role"]));
+    expect(guard.canActivate(ctx)).toBe(true);
+  });
+
+  // Regression: listing a non-hierarchy role used to make indexOf === -1 the
+  // minimum rank, which let EVERY authenticated user through.
+  it("listing OWNER does not open the route to VIEWER", () => {
+    reflector.getAllAndOverride
+      .mockReturnValueOnce(["OWNER", "TENANT_OWNER", "PLATFORM_ADMIN"])
+      .mockReturnValueOnce(undefined);
+
+    const ctx = makeContext(baseUser("VIEWER"));
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+  });
+
+  it("OWNER still fails a route that doesn't list it", () => {
+    reflector.getAllAndOverride
+      .mockReturnValueOnce(["MANAGER", "TENANT_OWNER"])
+      .mockReturnValueOnce(undefined);
+
+    const ctx = makeContext(baseUser("OWNER" as AuthenticatedUser["role"]));
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+  });
+
   it("throws ForbiddenException when not authenticated", () => {
     reflector.getAllAndOverride
       .mockReturnValueOnce(["VIEWER"])

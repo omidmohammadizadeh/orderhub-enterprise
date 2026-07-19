@@ -69,7 +69,10 @@ export class BrandsController {
   }
 
   @Patch(":brandId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  // OWNER edits their own storefront settings (logo, contact, about, prep
+  // times, payment methods, order types, scheduling). Slug/domain/Stripe stay
+  // admin-only on their own routes below.
+  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update brand" })
   update(
     @Param("brandId") brandId: string,
@@ -102,7 +105,7 @@ export class BrandsController {
   // preparation_time }. Just Eat / Uber Eats / Deliveroo / WhatsApp
   // are UI-only until each direct integration is wired.
   @Post(":brandId/publish-hours")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Publish brand hours + prep time to a channel" })
   publishHours(
@@ -116,7 +119,7 @@ export class BrandsController {
   // Publish a LOCATION's hours to HubRise (no brand — HubRise is one
   // catalog/location for all brands at the site).
   @Post("locations/:locationId/publish-hours")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Publish a location's hours + prep to HubRise" })
   publishLocationHours(

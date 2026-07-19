@@ -51,7 +51,7 @@ export class DeliveryZonesController {
   }
 
   @Post()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Create delivery zone" })
   create(
     @CurrentUser() user: AuthenticatedUser,
@@ -69,7 +69,7 @@ export class DeliveryZonesController {
   }
 
   @Patch(":id")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update delivery zone" })
   update(
     @CurrentUser() user: AuthenticatedUser,
@@ -86,7 +86,7 @@ export class DeliveryZonesController {
   }
 
   @Delete(":id")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete delivery zone" })
   remove(
