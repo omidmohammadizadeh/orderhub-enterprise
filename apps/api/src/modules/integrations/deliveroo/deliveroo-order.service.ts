@@ -284,7 +284,17 @@ export class DeliverooOrderService {
     if (!externalId) return { handled: false, reason: "no_order_id" };
 
     const rider = inner?.rider ?? order?.rider ?? {};
-    const rawStatus = inner?.status ?? order?.status ?? rider?.status;
+    // Deliveroo's docs call this the "Rider Status" — the exact field name
+    // isn't published, so accept both `status` and `rider_status` at each
+    // level. Values are the rider.status_update vocabulary (rider_assigned …
+    // rider_check_in … rider_delivered) handled in mapDeliverooRiderStatus.
+    const rawStatus =
+      inner?.status ??
+      inner?.rider_status ??
+      order?.status ??
+      order?.rider_status ??
+      rider?.status ??
+      rider?.rider_status;
 
     const row = await this.prisma.order.findFirst({
       where: { externalId, platform: "DELIVEROO" },

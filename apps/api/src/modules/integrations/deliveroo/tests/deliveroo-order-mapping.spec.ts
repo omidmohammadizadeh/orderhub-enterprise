@@ -47,6 +47,24 @@ describe("mapDeliverooRiderStatus", () => {
     expect(mapDeliverooRiderStatus("delivered")).toBe("COMPLETED");
   });
 
+  it("maps the official rider.status_update vocabulary incl. NFC check-in", () => {
+    expect(mapDeliverooRiderStatus("rider_assigned")).toBe("ASSIGNED_DRIVER");
+    expect(mapDeliverooRiderStatus("rider_arrived")).toBe("RIDER_ARRIVED");
+    expect(mapDeliverooRiderStatus("rider_confirmed_at_restaurant")).toBe(
+      "RIDER_ARRIVED",
+    );
+    // The new NFC on-site check-in must NOT push the order to out-for-delivery.
+    expect(mapDeliverooRiderStatus("rider_check_in")).toBe("RIDER_ARRIVED");
+    expect(mapDeliverooRiderStatus("rider_in_transit")).toBe("OUT_FOR_DELIVERY");
+    expect(mapDeliverooRiderStatus("rider_delivered")).toBe("COMPLETED");
+    // Case-insensitive.
+    expect(mapDeliverooRiderStatus("RIDER_CHECK_IN")).toBe("RIDER_ARRIVED");
+  });
+
+  it("does not advance the order on rider_unassigned", () => {
+    expect(mapDeliverooRiderStatus("rider_unassigned")).toBeNull();
+  });
+
   it("maps the Base44-audit aliases", () => {
     expect(mapDeliverooRiderStatus("en_route")).toBe("ASSIGNED_DRIVER");
     expect(mapDeliverooRiderStatus("en_route_to_customer")).toBe(

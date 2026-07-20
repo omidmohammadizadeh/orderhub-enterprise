@@ -783,7 +783,10 @@ function TicketCard({
     ? order.items.filter((i) => routed.includes(i.id))
     : order.items;
   const riderWaiting =
-    !!order.courierStatus && /pickup|arriv|wait/i.test(order.courierStatus);
+    !!order.courierStatus &&
+    // pickup/arriv/wait = Uber/Stuart; check_in/confirmed = Deliveroo rider
+    // on-site (NFC check-in) — all mean "rider is at the shop, ready to collect"
+    /pickup|arriv|wait|check.?in|confirmed/i.test(order.courierStatus);
   const isAllergy = (s?: string | null) => !!s && /allerg/i.test(s);
 
   const headerCls =

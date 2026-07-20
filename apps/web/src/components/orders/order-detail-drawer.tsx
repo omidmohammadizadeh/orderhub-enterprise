@@ -541,6 +541,15 @@ function humanCourierStatus(s: string): string {
     dropoff_waiting: "Driver at customer",
     delivered: "Delivered",
     cancelled: "Cancelled",
+    // Deliveroo rider.status_update vocabulary
+    // (https://api-docs.deliveroo.com/docs/listen-to-rider-status-webhook)
+    rider_assigned: "Rider assigned",
+    rider_arrived: "Rider arrived at restaurant",
+    rider_confirmed_at_restaurant: "Rider confirmed at restaurant",
+    rider_check_in: "Rider checked in (on-site)",
+    rider_in_transit: "Rider on the way to customer",
+    rider_delivered: "Delivered",
+    rider_unassigned: "Rider unassigned",
   };
   return map[s] ?? s.replace(/_/g, " ");
 }

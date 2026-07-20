@@ -43,31 +43,51 @@ export function mapDeliverooOrderStatus(status?: string): string | null {
 }
 
 /**
- * Deliveroo rider status → our OrderStatus. Covers both the documented
- * vocabulary and the aliases noted in the Base44 audit
- * (EN_ROUTE → ASSIGNED_DRIVER, EN_ROUTE_TO_CUSTOMER → OUT_FOR_DELIVERY,
- * COMPLETED → COMPLETED). `pending`/`unassigned` don't move the order.
+ * Deliveroo rider status → our OrderStatus.
+ *
+ * Covers the OFFICIAL rider.status_update vocabulary from
+ * https://api-docs.deliveroo.com/docs/listen-to-rider-status-webhook —
+ *   rider_assigned → rider_arrived → rider_confirmed_at_restaurant →
+ *   rider_check_in → rider_in_transit → rider_delivered
+ * (plus rider_unassigned when a rider drops off) — AND the older aliases
+ * from the Base44 audit (en_route, collected, completed, …) so we stay
+ * tolerant of whichever spelling actually lands on the wire.
+ *
+ * `rider_check_in` is Deliveroo's NFC on-site check-in signal (added 2026,
+ * mandatory to handle by 28 Jul 2026). It happens while the rider is at the
+ * restaurant ready to collect, so it maps to RIDER_ARRIVED (it must NOT push
+ * the order forward to OUT_FOR_DELIVERY). The precise "checked in" moment is
+ * still preserved verbatim on Order.courierStatus for the UI to surface.
+ * `pending`/`unassigned` don't move the order.
  */
 export function mapDeliverooRiderStatus(status?: string): string | null {
   switch ((status ?? "").toLowerCase()) {
+    case "rider_assigned":
     case "assigned":
     case "en_route":
     case "en_route_to_restaurant":
       return "ASSIGNED_DRIVER";
+    case "rider_arrived":
+    case "rider_confirmed_at_restaurant":
+    case "rider_check_in":
     case "confirmed_at_restaurant":
     case "arrived_at_restaurant":
     case "at_restaurant":
       return "RIDER_ARRIVED";
+    case "rider_in_transit":
     case "collected":
     case "picked_up":
     case "en_route_to_customer":
     case "arrived_at_customer":
       return "OUT_FOR_DELIVERY";
+    case "rider_delivered":
     case "delivered":
     case "completed":
       return "COMPLETED";
     default:
-      return null; // pending / unassigned / unknown → no forward move
+      // rider_unassigned / pending / unknown → no forward move (raw value
+      // is still written to Order.courierStatus by the caller).
+      return null;
   }
 }
 
