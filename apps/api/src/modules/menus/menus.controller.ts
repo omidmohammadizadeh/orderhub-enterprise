@@ -832,6 +832,34 @@ export class MenusController {
     return this.menus.removeModifierOption(optionId, user.tenantId);
   }
 
+  // Attach/detach an EXISTING modifier option to a group via the
+  // many-to-many modifierGroupIds[] array (primary FK group preserved).
+  // The web "Add Existing" picker on the modifier-group editor calls these;
+  // they were missing, so attaches 404'd and never persisted.
+  @Post("modifier-groups/:groupId/modifiers/:modifierId")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Attach an existing modifier option to a group" })
+  attachModifier(
+    @Param("groupId") groupId: string,
+    @Param("modifierId") modifierId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.attachModifierToGroup(groupId, modifierId, user.tenantId);
+  }
+
+  @Delete("modifier-groups/:groupId/modifiers/:modifierId")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Detach an existing modifier option from a group" })
+  detachModifier(
+    @Param("groupId") groupId: string,
+    @Param("modifierId") modifierId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.detachModifierFromGroup(groupId, modifierId, user.tenantId);
+  }
+
   @Post("items/:itemId/modifier-groups/:groupId")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.CREATED)
