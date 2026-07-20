@@ -254,8 +254,15 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         {/* Phase BH — unified dispatch chooser + cancel. A delivery order is
             "dispatched" when it's on a courier (courierJobId) OR handed to an
             own-fleet driver (status). Show Dispatch when free, Cancel when
-            dispatched (cancel frees it to dispatch again). */}
+            dispatched (cancel frees it to dispatch again).
+
+            PLATFORM deliveries (Deliveroo / Uber Eats / marketplace) are driven
+            by the platform's OWN riders — the operator never arranges a courier,
+            so the whole chooser is hidden. The platform rider's details show in
+            the courier panel below instead. Only MERCHANT (and legacy/unknown
+            null) delivery orders get the Dispatch button. */}
         {order.fulfillmentType === "DELIVERY" &&
+          (order as any).deliveryType !== "PLATFORM" &&
           (() => {
             const OWN_FLEET_ASSIGNED = [
               "ASSIGNED_DRIVER",
