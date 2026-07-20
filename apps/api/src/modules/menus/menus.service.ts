@@ -1191,7 +1191,27 @@ export class MenusService {
     });
     if (!group) throw new NotFoundException(`Modifier group ${groupId} not found`);
     await this.assertBrandAccess(group.brandId, tenantId);
-    return group;
+
+    // Phase AL: `options` above only holds FK-primary modifiers. Also surface
+    // modifiers attached via the modifierGroupIds[] many-to-many array —
+    // otherwise "Add Existing" saves fine but the editor re-reads this endpoint
+    // and shows the modifier as detached (it lived in the array, not the FK).
+    const arrayMatched = await this.prisma.modifierOption.findMany({
+      where: {
+        group: { brandId: group.brandId },
+        modifierGroupIds: { has: groupId },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+    if (arrayMatched.length === 0) return group;
+    const seen = new Set(group.options.map((o) => o.id));
+    return {
+      ...group,
+      options: [
+        ...group.options,
+        ...arrayMatched.filter((o) => !seen.has(o.id)),
+      ],
+    };
   }
 
   async findModifierOptionById(optionId: string, tenantId: string) {
