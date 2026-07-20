@@ -1196,9 +1196,13 @@ export class MenusService {
     // modifiers attached via the modifierGroupIds[] many-to-many array —
     // otherwise "Add Existing" saves fine but the editor re-reads this endpoint
     // and shows the modifier as detached (it lived in the array, not the FK).
+    // Scope by TENANT, not the option's owning brand — a modifier owned by a
+    // group in another brand of the same tenant can be attached here (the
+    // "Add Existing" picker allows it), and brand-scoping silently dropped
+    // those, so cross-brand attaches looked unsaved.
     const arrayMatched = await this.prisma.modifierOption.findMany({
       where: {
-        group: { brandId: group.brandId },
+        group: { brand: { tenantId } },
         modifierGroupIds: { has: groupId },
       },
       orderBy: { sortOrder: "asc" },

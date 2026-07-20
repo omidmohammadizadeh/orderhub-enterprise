@@ -153,6 +153,10 @@ export function ModifierGroupForm({
       qc.invalidateQueries({
         queryKey: ["catalog", "modifier-groups-with-options", brandId],
       });
+      // The editor's `existing` reads the SINGLE-group key; without this it
+      // stayed cached and the just-attached modifiers looked detached on
+      // reopen even though the attach persisted.
+      qc.invalidateQueries({ queryKey: ["catalog", "modifier-group", saved.id] });
       onSaved(saved);
     },
   });
