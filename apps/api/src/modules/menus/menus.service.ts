@@ -1329,8 +1329,13 @@ export class MenusService {
    * Phase AP — list modifier groups scoped strictly to a location.
    * Same rationale as findItemsByLocation.
    */
-  async findModifierGroupsByLocation(locationId: string, tenantId: string) {
-    await this.assertLocationAccess(locationId, tenantId);
+  async findModifierGroupsByLocation(locationId: string, user: AuthenticatedUser) {
+    await this.assertLocationAccess(locationId, user.tenantId);
+    // Never trust the client's locationId — a non-admin only sees modifier
+    // groups for locations they're assigned to (mirrors findItemsByLocation).
+    const scope = await this.resolveCatalogScope(user);
+    if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
+      return [];
     const groups = await this.prisma.modifierGroup.findMany({
       where: { locationId },
       include: {
@@ -1339,7 +1344,7 @@ export class MenusService {
       },
       orderBy: { name: "asc" },
     });
-    return this.mergeArrayAttachedOptions(groups, tenantId);
+    return this.mergeArrayAttachedOptions(groups, user.tenantId);
   }
 
   /**
@@ -1432,10 +1437,20 @@ export class MenusService {
     return option;
   }
 
-  async findModifierGroupsByBrand(brandId: string, tenantId: string) {
-    await this.assertBrandAccess(brandId, tenantId);
+  async findModifierGroupsByBrand(brandId: string, user: AuthenticatedUser) {
+    await this.assertBrandAccess(brandId, user.tenantId);
+    // Only surface this brand's groups to users who can access the brand, and
+    // only for locations they're assigned to (plus brand-only rows) — never
+    // another location's modifier groups. Mirrors findItemsByBrand.
+    const scope = await this.resolveCatalogScope(user);
+    if (scope.brandIds !== null && !scope.brandIds.includes(brandId)) return [];
     const groups = await this.prisma.modifierGroup.findMany({
-      where: { brandId },
+      where: {
+        brandId,
+        ...(scope.locationIds !== null && {
+          OR: [{ locationId: { in: scope.locationIds } }, { locationId: null }],
+        }),
+      },
       include: {
         options: { orderBy: { sortOrder: "asc" } },
         _count: { select: { itemLinks: true } },

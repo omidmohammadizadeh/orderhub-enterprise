@@ -724,7 +724,7 @@ export class MenusController {
     @Param("brandId") brandId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menus.findModifierGroupsByBrand(brandId, user.tenantId);
+    return this.menus.findModifierGroupsByBrand(brandId, user);
   }
 
   // Phase AW-18.2 — single-row reads so the edit forms hydrate by
@@ -754,7 +754,7 @@ export class MenusController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menus.findModifierGroupsByLocation(locationId, user.tenantId);
+    return this.menus.findModifierGroupsByLocation(locationId, user);
   }
 
   @Post("brands/:brandId/modifier-groups")
