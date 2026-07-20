@@ -19,6 +19,8 @@ export interface WhatsAppConnectionDto {
   /** This number's own published "Customise" Flow id. A Flow only works
    *  inside the WABA it was created in, so each number stores its own. */
   flowId?: string;
+  /** Allow cash-on-arrival as a WhatsApp payment option (else card only). */
+  allowCash?: boolean;
 }
 
 const GRAPH_VERSION = "v21.0";
@@ -89,6 +91,7 @@ export class WhatsAppConnectionService {
       wabaId: s.wabaId ?? "",
       menuId: s.menuId ?? "",
       flowId: s.flowId ?? "",
+      allowCash: !!s.allowCash,
       menus: await this.menusForLocation(locationId),
       verifiedName: s.verifiedName ?? null,
       lastTestedAt: integ?.lastSyncAt ?? null,
@@ -131,12 +134,13 @@ export class WhatsAppConnectionService {
     }
 
     const status = dto.enabled && phoneNumberId ? "ACTIVE" : "INACTIVE";
-    const settings: Record<string, string> = { phoneNumberId, displayPhoneNumber };
+    const settings: Record<string, unknown> = { phoneNumberId, displayPhoneNumber };
     if (wabaId) settings.wabaId = wabaId;
     const menuId = (dto.menuId ?? "").trim();
     if (menuId) settings.menuId = menuId;
     const flowId = (dto.flowId ?? "").trim();
     if (flowId) settings.flowId = flowId;
+    settings.allowCash = !!dto.allowCash;
 
     await this.prisma.integration.upsert({
       where: { locationId_platform: { locationId: dto.locationId, platform: "WHATSAPP" as any } },

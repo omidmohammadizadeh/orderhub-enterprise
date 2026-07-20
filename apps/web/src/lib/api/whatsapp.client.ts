@@ -11,6 +11,7 @@ export interface WhatsAppConnection {
   displayPhoneNumber: string;
   wabaId: string;
   menuId: string;
+  allowCash: boolean;
   flowId: string;
   menus: { id: string; name: string }[];
   verifiedName: string | null;
@@ -27,6 +28,7 @@ export interface SaveWhatsAppConnection {
   displayPhoneNumber?: string;
   wabaId?: string;
   menuId?: string;
+  allowCash?: boolean;
   flowId?: string;
 }
 

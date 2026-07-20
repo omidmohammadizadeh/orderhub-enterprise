@@ -44,6 +44,7 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
   const [wabaId, setWabaId] = useState("");
   const [menuId, setMenuId] = useState("");
   const [flowId, setFlowId] = useState("");
+  const [allowCash, setAllowCash] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -62,6 +63,7 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
         setWabaId(c.wabaId);
         setMenuId(c.menuId);
         setFlowId(c.flowId ?? "");
+        setAllowCash(!!c.allowCash);
       })
       .catch(() => {})
       .finally(() => live && setLoading(false));
@@ -74,7 +76,7 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
     setMsg(null);
     setSaving(true);
     try {
-      const c = await whatsappClient.save({ locationId, enabled, phoneNumberId, displayPhoneNumber, wabaId, menuId, flowId });
+      const c = await whatsappClient.save({ locationId, enabled, phoneNumberId, displayPhoneNumber, wabaId, menuId, flowId, allowCash });
       setConn(c);
       setEnabled(c.enabled);
       setDisplayPhoneNumber(c.displayPhoneNumber);
@@ -192,6 +194,21 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
               Which menu WhatsApp serves. Leave on Auto to follow the storefront's menu.
             </span>
           </div>
+
+          <label className="flex items-start gap-2 rounded-md border border-zinc-200 bg-white p-2">
+            <input
+              type="checkbox"
+              checked={allowCash}
+              onChange={(e) => setAllowCash(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className="text-[11px] text-zinc-600">
+              <span className="font-medium text-zinc-800">Allow cash on WhatsApp</span>
+              <br />
+              At checkout the customer can choose Card or Cash on arrival. Off = card
+              only.
+            </span>
+          </label>
 
           <details className="rounded-md border border-zinc-200 bg-white p-2">
             <summary className="cursor-pointer text-[11px] font-semibold text-zinc-700">

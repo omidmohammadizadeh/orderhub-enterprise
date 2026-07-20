@@ -51,6 +51,9 @@ export interface WaMenuContext {
    *  its own Flow id here — resolved from Integration.settings.flowId. Falls
    *  back to the WHATSAPP_FLOW_ID env for the single-number pilot. */
   flowId?: string;
+  /** Location allows cash-on-arrival as a WhatsApp payment option (else card
+   *  only). From Integration.settings.allowCash. */
+  allowCash?: boolean;
   menuId: string;
   items: WaMenuItem[];
   /** id -> item, for O(1) cart validation. */
@@ -347,6 +350,7 @@ export class WhatsAppMenuService {
       locationName: location.name,
       displayPhoneNumber: resolved?.displayPhoneNumber,
       flowId: resolved?.flowId,
+      allowCash: resolved?.allowCash,
       menuId: menu.id,
       items,
       itemIndex,
@@ -368,6 +372,7 @@ export class WhatsAppMenuService {
     displayPhoneNumber?: string;
     menuId?: string;
     flowId?: string;
+    allowCash?: boolean;
   } | null> {
     if (phoneNumberId) {
       const integrations = await this.prisma.integration.findMany({
@@ -389,6 +394,7 @@ export class WhatsAppMenuService {
           // Per-number Flow id — this number's own published "Customise" Flow
           // (a Flow only works within the WABA it was created in).
           flowId: (s.flowId && String(s.flowId).trim()) || undefined,
+          allowCash: !!s.allowCash,
         };
       }
     }

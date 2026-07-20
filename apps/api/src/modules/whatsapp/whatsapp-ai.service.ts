@@ -262,7 +262,7 @@ export class WhatsAppAiService {
 
     // ── Delivery address capture (plain-text replies only) ────────────────
     const plainText =
-      !/^(fulfil:|item:|cat:|more:|catmore:|opt:|skip:|wizback|rm:|editcart)/.test(text) &&
+      !/^(fulfil:|item:|cat:|more:|catmore:|opt:|skip:|wizback|rm:|editcart|pay:)/.test(text) &&
       !MENU_CMDS.has(cmd) &&
       !GREETING_CMDS.has(cmd);
     if (convo.state === "ASK_ADDRESS" && plainText) {
@@ -301,9 +301,32 @@ export class WhatsAppAiService {
       return;
     }
 
-    // ── Checkout (card-only) → create the order + send a Stripe pay link ──
+    // ── Payment method chosen from the chooser buttons ──────────────────
+    if (cmd === "pay:cash") {
+      await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName, "CASH");
+      return;
+    }
+    if (cmd === "pay:card") {
+      await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName, "CARD");
+      return;
+    }
+
+    // ── Checkout → pick payment method (if cash enabled) else straight to card
     if (text === "checkout" || CHECKOUT_CMDS.has(cmd)) {
-      await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName);
+      if (ctx.allowCash && cart.items.length > 0) {
+        // Location allows cash on WhatsApp — let the customer choose.
+        await this.send.sendButtons(
+          phoneNumberId,
+          from,
+          "How would you like to pay?",
+          [
+            { id: "pay:card", title: "💳 Card" },
+            { id: "pay:cash", title: "💵 Cash on arrival" },
+          ],
+        );
+        return;
+      }
+      await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName, "CARD");
       return;
     }
 
@@ -1114,6 +1137,7 @@ export class WhatsAppAiService {
     cart: WaCart,
     ctx: WaMenuContext,
     profileName?: string,
+    paymentMethod: "CARD" | "CASH" = "CARD",
   ): Promise<void> {
     if (cart.items.length === 0) {
       await this.send.sendText(phoneNumberId, from, "Your cart's empty 🛒 Reply *menu* to start an order.");
@@ -1169,13 +1193,41 @@ export class WhatsAppAiService {
     let order: { id: string; displayId?: string | null };
     try {
       order = await this.orders.ingestCanonical(
-        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee, phoneNumberId, discount),
+        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee, phoneNumberId, discount, paymentMethod),
         ctx.tenantId,
         ctx.locationId,
       );
     } catch (err: any) {
       this.logger.error(`WhatsApp order create failed: ${err?.message ?? err}`);
       await this.send.sendText(phoneNumberId, from, "Sorry, something went wrong placing your order. Please try again.");
+      return;
+    }
+
+    const subtotalNow = subtotal;
+    const fulfilNow = cart.fulfillmentType === "DELIVERY" ? "Delivery" : "Collection";
+    const discountLineNow = discount > 0 ? `\nDiscount${offer.label ? ` (${offer.label})` : ""}: -£${discount.toFixed(2)}` : "";
+    const feeLineNow = deliveryFee > 0 ? `\nDelivery fee: £${deliveryFee.toFixed(2)}` : "";
+
+    // ── CASH: no Stripe. Order is placed pay-on-arrival, shows on the board
+    //    immediately (cash orders aren't hidden), and auto-accepts if the
+    //    location has auto-accept on.
+    if (paymentMethod === "CASH") {
+      const cashTotal = round2(subtotalNow - discount + deliveryFee);
+      await this.prisma.whatsAppConversation.update({
+        where: { id: convo.id },
+        data: {
+          lastOrderId: order.id,
+          state: "IDLE",
+          cart: emptyCart() as any,
+          messages: [] as any,
+          lastOutboundAt: new Date(),
+        },
+      });
+      await this.send.sendText(
+        phoneNumberId,
+        from,
+        `✅ Order confirmed!\n\n${summarizeCart(cart)}${discountLineNow}${feeLineNow}\n\n${fulfilNow} • Pay *£${cashTotal.toFixed(2)}* in cash on ${cart.fulfillmentType === "DELIVERY" ? "delivery" : "collection"} 💵\n\nWe're preparing it now 🧑‍🍳`,
+      );
       return;
     }
 
@@ -1240,6 +1292,7 @@ export class WhatsAppAiService {
     deliveryFee: number,
     phoneNumberId: string,
     discount = 0,
+    paymentMethod: "CARD" | "CASH" = "CARD",
   ): CanonicalOrder {
     const subtotal = cartSubtotal(cart);
     const total = round2(subtotal - discount + deliveryFee);
@@ -1281,7 +1334,7 @@ export class WhatsAppAiService {
         source: "whatsapp",
         waPhone,
         phoneNumberId,
-        paymentMethod: "CARD",
+        paymentMethod,
         paymentStatus: "PENDING",
       },
     } as CanonicalOrder;
