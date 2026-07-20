@@ -57,6 +57,15 @@ const MENU_INCLUDE = {
   },
 } satisfies Prisma.MenuInclude;
 
+// Per-transaction caches for deep-copy (clone + master menu): dedupe items and
+// modifier groups so a shared row is copied once, and track PLUs handed out in
+// the uncommitted tx so generateUnique (committed-only) can't hand out a dupe.
+type DeepCopyCaches = {
+  itemBySrc: Map<string, string>;
+  groupBySrc: Map<string, string>;
+  usedPlus: Set<string>;
+};
+
 @Injectable()
 export class MenusService {
   private readonly logger = new Logger(MenusService.name);
@@ -511,6 +520,12 @@ export class MenusService {
 
       // Same item can appear under multiple categories — copy it once.
       const itemIdMap = new Map<string, string>();
+      // Shared deep-copy caches: groups copied once, PLUs de-duped in-tx.
+      const caches: DeepCopyCaches = {
+        itemBySrc: itemIdMap,
+        groupBySrc: new Map(),
+        usedPlus: new Set(),
+      };
       // Collapse duplicate PRODUCTS. A master menu (combined from several source
       // menus) or a re-imported menu can hold multiple MenuItem rows for the
       // exact same product — cloning them 1:1 produced "4× 9 Chicken Strips Box"
@@ -543,54 +558,16 @@ export class MenusService {
             }
           }
           if (!newItemId && src) {
-            const skus = Array.isArray(src.productSkus)
-              ? src.productSkus.map((s: any) => ({ ...s, plu: null }))
-              : (src.productSkus ?? []);
-            const created = await tx.menuItem.create({
-              data: {
-                brandId: src.brandId,
-                locationId: targetLocationId ?? src.locationId ?? null,
-                name: src.name,
-                description: src.description ?? null,
-                basePrice: src.basePrice,
-                imageUrl: src.imageUrl ?? null,
-                sku: null,
-                plu: null,
-                isAvailable: src.isAvailable,
-                visibleToCustomers: src.visibleToCustomers,
-                outOfStock: false,
-                allergens: src.allergens ?? [],
-                dietaryTags: src.dietaryTags ?? [],
-                dietary: src.dietary ?? [],
-                calories: src.calories ?? null,
-                prepTime: src.prepTime ?? null,
-                metadata: src.metadata ?? {},
-                hasMultipleSkus: src.hasMultipleSkus,
-                productSkus: skus,
-                deliveryTax: src.deliveryTax,
-                takeawayTax: src.takeawayTax,
-                eatInTax: src.eatInTax,
-                brandIds: src.brandIds ?? [],
-                sortOrder: src.sortOrder,
-                isInventoryTracked: src.isInventoryTracked,
-                platformPricingOverrides: src.platformPricingOverrides ?? {},
-              },
-            });
-            if (
-              Array.isArray(src.modifierGroupLinks) &&
-              src.modifierGroupLinks.length > 0
-            ) {
-              await tx.modifierGroupOnItem.createMany({
-                data: src.modifierGroupLinks.map((l: any) => ({
-                  itemId: created.id,
-                  groupId: l.groupId,
-                  sortOrder: l.sortOrder ?? 0,
-                })),
-                skipDuplicates: true,
-              });
-            }
-            newItemId = created.id;
-            itemIdMap.set(link.itemId, newItemId);
+            // Deep-copy: brand-new product + its own new modifier groups and
+            // options (fresh PLUs), so editing the clone never touches the
+            // source location's catalog.
+            newItemId = await this.deepCopyItemTx(
+              tx,
+              src,
+              tenantId,
+              targetLocationId ?? null,
+              caches,
+            );
             identityMap.set(
               `${src.brandId ?? ""}|${(src.name ?? "").trim().toLowerCase()}`,
               newItemId,
@@ -612,6 +589,159 @@ export class MenusService {
 
       return cloned;
     });
+  }
+
+  // ── Deep-copy helpers (clone + master menu) ──────────────────────────────
+  //
+  // A clone/master menu must be FULLY independent: new products, new modifier
+  // groups, new modifier options, each with a fresh unique PLU. Editing the copy
+  // must never touch the source location. These helpers do that inside the
+  // caller's $transaction, sharing caches so a group/item used by several items
+  // is copied exactly once per menu.
+
+  /** Unique PLU that also dodges collisions with rows created earlier in the
+   *  same (uncommitted) transaction — generateUnique only sees committed rows. */
+  private async freshPlu(
+    kind: "product" | "modifierGroup" | "modifier",
+    tenantId: string,
+    used: Set<string>,
+  ): Promise<string> {
+    for (let i = 0; i < 10; i++) {
+      const p = await this.plu.generateUnique(kind, tenantId);
+      if (!used.has(p)) {
+        used.add(p);
+        return p;
+      }
+    }
+    const p = `${await this.plu.generateUnique(kind, tenantId)}-${used.size}`;
+    used.add(p);
+    return p;
+  }
+
+  /** Deep-copy one modifier group + its (primary-owned) options into brand-new
+   *  rows with fresh PLUs. Cached by source group id so a group shared across
+   *  items is copied once. Returns the new group id. */
+  private async copyModifierGroupTx(
+    tx: any,
+    srcGroup: any,
+    tenantId: string,
+    targetLocationId: string | null,
+    caches: DeepCopyCaches,
+  ): Promise<string> {
+    const cached = caches.groupBySrc.get(srcGroup.id);
+    if (cached) return cached;
+    const gPlu = await this.freshPlu("modifierGroup", tenantId, caches.usedPlus);
+    const newGroup = await tx.modifierGroup.create({
+      data: {
+        brandId: srcGroup.brandId,
+        locationId: targetLocationId ?? srcGroup.locationId ?? null,
+        name: srcGroup.name,
+        description: srcGroup.description ?? null,
+        plu: gPlu,
+        minSelections: srcGroup.minSelections ?? 0,
+        maxSelections: srcGroup.maxSelections ?? null,
+        isRequired: srcGroup.isRequired ?? false,
+        sortOrder: srcGroup.sortOrder ?? 0,
+        allowDuplicateSelections: srcGroup.allowDuplicateSelections ?? false,
+        visibleToCustomers: srcGroup.visibleToCustomers ?? true,
+        selectionType: srcGroup.selectionType,
+        metadata: srcGroup.metadata ?? {},
+      },
+    });
+    caches.groupBySrc.set(srcGroup.id, newGroup.id);
+    for (const opt of srcGroup.options ?? []) {
+      const oPlu = await this.freshPlu("modifier", tenantId, caches.usedPlus);
+      await tx.modifierOption.create({
+        data: {
+          groupId: newGroup.id,
+          modifierGroupIds: [], // fresh copy belongs to its new group only
+          name: opt.name,
+          description: opt.description ?? null,
+          priceAdjustment: opt.priceAdjustment ?? 0,
+          plu: oPlu,
+          pricesBySize: opt.pricesBySize ?? {},
+          skuPlus: {},
+          platformPricingOverrides: opt.platformPricingOverrides ?? {},
+          imageUrl: opt.imageUrl ?? null,
+          allergens: opt.allergens ?? [],
+          isDefault: opt.isDefault ?? false,
+          isAvailable: opt.isAvailable ?? true,
+          visibleToCustomers: opt.visibleToCustomers ?? true,
+          sortOrder: opt.sortOrder ?? 0,
+          deliveryTax: opt.deliveryTax ?? 0,
+          takeawayTax: opt.takeawayTax ?? 0,
+          eatInTax: opt.eatInTax ?? 0,
+          metadata: opt.metadata ?? {},
+        },
+      });
+    }
+    return newGroup.id;
+  }
+
+  /** Deep-copy one menu item into a brand-new independent product (fresh PLU,
+   *  fresh SKUs cleared) with its own copied modifier groups. Returns new id. */
+  private async deepCopyItemTx(
+    tx: any,
+    src: any,
+    tenantId: string,
+    targetLocationId: string | null,
+    caches: DeepCopyCaches,
+  ): Promise<string> {
+    const cached = caches.itemBySrc.get(src.id);
+    if (cached) return cached;
+    const iPlu = await this.freshPlu("product", tenantId, caches.usedPlus);
+    const skus = Array.isArray(src.productSkus)
+      ? src.productSkus.map((s: any) => ({ ...s, plu: null }))
+      : (src.productSkus ?? []);
+    const created = await tx.menuItem.create({
+      data: {
+        brandId: src.brandId,
+        locationId: targetLocationId ?? src.locationId ?? null,
+        name: src.name,
+        description: src.description ?? null,
+        basePrice: src.basePrice,
+        imageUrl: src.imageUrl ?? null,
+        sku: null,
+        plu: iPlu,
+        isAvailable: src.isAvailable,
+        visibleToCustomers: src.visibleToCustomers,
+        outOfStock: false,
+        allergens: src.allergens ?? [],
+        dietaryTags: src.dietaryTags ?? [],
+        dietary: src.dietary ?? [],
+        calories: src.calories ?? null,
+        prepTime: src.prepTime ?? null,
+        metadata: src.metadata ?? {},
+        hasMultipleSkus: src.hasMultipleSkus,
+        productSkus: skus,
+        deliveryTax: src.deliveryTax,
+        takeawayTax: src.takeawayTax,
+        eatInTax: src.eatInTax,
+        brandIds: src.brandIds ?? [],
+        sortOrder: src.sortOrder,
+        isInventoryTracked: src.isInventoryTracked,
+        platformPricingOverrides: src.platformPricingOverrides ?? {},
+      },
+    });
+    caches.itemBySrc.set(src.id, created.id);
+    for (const link of src.modifierGroupLinks ?? []) {
+      if (!link.group) continue;
+      const newGroupId = await this.copyModifierGroupTx(
+        tx,
+        link.group,
+        tenantId,
+        targetLocationId,
+        caches,
+      );
+      await tx.modifierGroupOnItem.create({
+        data: {
+          itemId: created.id,
+          groupId: newGroupId,
+          sortOrder: link.sortOrder ?? 0,
+        },
+      });
+    }
+    return created.id;
   }
 
   /**
@@ -647,7 +777,21 @@ export class MenusService {
           include: {
             items: {
               orderBy: { sortOrder: "asc" },
-              include: { item: { select: { id: true, brandId: true, brandIds: true } } },
+              include: {
+                item: {
+                  include: {
+                    modifierGroupLinks: {
+                      include: {
+                        group: {
+                          include: {
+                            options: { orderBy: { sortOrder: "asc" } },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -710,6 +854,15 @@ export class MenusService {
       // suffixing) while avoiding a confusing merged "Sides" that silently
       // mixes two brands' items under one heading.
       const nameOwner = new Map<string, string>();
+      // Deep-copy caches shared across the whole master menu: each source
+      // product/modifier group is copied into a NEW independent row exactly
+      // once, with fresh PLUs — so the master menu never shares catalog rows
+      // with the source locations.
+      const caches: DeepCopyCaches = {
+        itemBySrc: new Map(),
+        groupBySrc: new Map(),
+        usedPlus: new Set(),
+      };
       let sortOrder = 0;
       for (const menu of orderedSources) {
         const ownerKey = menu.brandId;
@@ -732,10 +885,21 @@ export class MenusService {
             },
           });
           for (const link of cat.items) {
+            const src = (link as any).item;
+            if (!src) continue;
+            // Deep-copy into a brand-new independent product (fresh PLUs, own
+            // modifier groups) instead of sharing the source item row.
+            const newItemId = await this.deepCopyItemTx(
+              tx,
+              src,
+              tenantId,
+              locationId,
+              caches,
+            );
             await tx.menuItemOnCategory.create({
               data: {
                 categoryId: newCat.id,
-                itemId: link.itemId,
+                itemId: newItemId,
                 sortOrder: link.sortOrder,
                 priceOverride: link.priceOverride,
                 isVisible: link.isVisible,
