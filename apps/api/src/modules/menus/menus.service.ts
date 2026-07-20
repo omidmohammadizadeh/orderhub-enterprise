@@ -1167,13 +1167,53 @@ export class MenusService {
    */
   async findModifierGroupsByLocation(locationId: string, tenantId: string) {
     await this.assertLocationAccess(locationId, tenantId);
-    return this.prisma.modifierGroup.findMany({
+    const groups = await this.prisma.modifierGroup.findMany({
       where: { locationId },
       include: {
         options: { orderBy: { sortOrder: "asc" } },
         _count: { select: { itemLinks: true } },
       },
       orderBy: { name: "asc" },
+    });
+    return this.mergeArrayAttachedOptions(groups, tenantId);
+  }
+
+  /**
+   * Fold modifiers attached via the modifierGroupIds[] many-to-many array into
+   * each group's `options` (the FK-relation include only returns primary-owned
+   * ones). Without this the standalone modifier-group page shows "0 modifiers"
+   * for a group whose modifiers were all added via "Add Existing". Tenant-scoped
+   * so a cross-brand attach (same tenant) is still counted.
+   */
+  private async mergeArrayAttachedOptions<
+    T extends { id: string; options: { id: string }[] },
+  >(groups: T[], tenantId: string): Promise<T[]> {
+    if (groups.length === 0) return groups;
+    const groupIds = groups.map((g) => g.id);
+    const arrayMatched = await this.prisma.modifierOption.findMany({
+      where: {
+        group: { brand: { tenantId } },
+        modifierGroupIds: { hasSome: groupIds },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+    if (arrayMatched.length === 0) return groups;
+    const extras = new Map<string, typeof arrayMatched>();
+    for (const opt of arrayMatched) {
+      for (const gId of opt.modifierGroupIds ?? []) {
+        if (!groupIds.includes(gId)) continue;
+        if (!extras.has(gId)) extras.set(gId, []);
+        extras.get(gId)!.push(opt);
+      }
+    }
+    return groups.map((g) => {
+      const extra = extras.get(g.id) ?? [];
+      if (extra.length === 0) return g;
+      const seen = new Set(g.options.map((o) => o.id));
+      return {
+        ...g,
+        options: [...g.options, ...extra.filter((o) => !seen.has(o.id))],
+      } as T;
     });
   }
 
