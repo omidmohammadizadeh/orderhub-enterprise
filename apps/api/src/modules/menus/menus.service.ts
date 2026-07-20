@@ -12,7 +12,7 @@ import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
-import { PluService } from "./plu.service";
+import { PluService, randomPlu } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import {
@@ -500,7 +500,13 @@ export class MenusService {
     // carries no colliding codes — run "Generate missing PLUs" to assign
     // fresh ones. Modifier GROUPS stay shared (referenced by id); only the
     // item↔group link rows are re-created for the new items.
-    return this.prisma.$transaction(async (tx) => {
+    // Seed existing PLUs BEFORE the transaction so deep-copy mints fresh ones
+    // purely in memory (no per-PLU DB round-trip inside the tx).
+    const usedPlus = new Set<string>();
+    await this.seedUsedPlus(tenantId, usedPlus);
+
+    return this.prisma.$transaction(
+      async (tx) => {
       const cloned = await tx.menu.create({
         // Inherit the source's home location so the clone shows up on the
         // location-scoped menu page. Without this the clone was created
@@ -524,7 +530,7 @@ export class MenusService {
       const caches: DeepCopyCaches = {
         itemBySrc: itemIdMap,
         groupBySrc: new Map(),
-        usedPlus: new Set(),
+        usedPlus,
       };
       // Collapse duplicate PRODUCTS. A master menu (combined from several source
       // menus) or a re-imported menu can hold multiple MenuItem rows for the
@@ -588,7 +594,11 @@ export class MenusService {
       }
 
       return cloned;
-    });
+      },
+      // Deep-copy writes many rows; the default 5s interactive-transaction
+      // budget is not enough for large menus.
+      { timeout: 120_000, maxWait: 20_000 },
+    );
   }
 
   // ── Deep-copy helpers (clone + master menu) ──────────────────────────────
@@ -599,21 +609,53 @@ export class MenusService {
   // caller's $transaction, sharing caches so a group/item used by several items
   // is copied exactly once per menu.
 
-  /** Unique PLU that also dodges collisions with rows created earlier in the
-   *  same (uncommitted) transaction — generateUnique only sees committed rows. */
-  private async freshPlu(
-    kind: "product" | "modifierGroup" | "modifier",
+  /** Seed a used-PLU set with every PLU already in the tenant, ONCE, before a
+   *  deep-copy transaction. Deep-copy then mints PLUs purely in memory (see
+   *  freshPlu) — no per-PLU DB round-trip inside the transaction, which is what
+   *  blew the 5s interactive-transaction budget on large master menus. */
+  private async seedUsedPlus(
     tenantId: string,
     used: Set<string>,
-  ): Promise<string> {
-    for (let i = 0; i < 10; i++) {
-      const p = await this.plu.generateUnique(kind, tenantId);
+  ): Promise<void> {
+    const brands = await this.prisma.brand.findMany({
+      where: { tenantId, deletedAt: null },
+      select: { id: true },
+    });
+    const brandIds = brands.map((b) => b.id);
+    const [items, groups, options] = await Promise.all([
+      this.prisma.menuItem.findMany({
+        where: { brandId: { in: brandIds }, plu: { not: null } },
+        select: { plu: true },
+      }),
+      this.prisma.modifierGroup.findMany({
+        where: { brandId: { in: brandIds }, plu: { not: null } },
+        select: { plu: true },
+      }),
+      this.prisma.modifierOption.findMany({
+        where: { group: { brandId: { in: brandIds } }, plu: { not: null } },
+        select: { plu: true },
+      }),
+    ]);
+    for (const r of items) if (r.plu) used.add(r.plu);
+    for (const r of groups) if (r.plu) used.add(r.plu);
+    for (const r of options) if (r.plu) used.add(r.plu);
+  }
+
+  /** Unique PLU generated purely in memory — checks only the (pre-seeded)
+   *  `used` set, so it makes NO database call. Callers MUST seed `used` with
+   *  the tenant's existing PLUs first (see seedUsedPlus). */
+  private freshPlu(
+    kind: "product" | "modifierGroup" | "modifier",
+    used: Set<string>,
+  ): string {
+    for (let i = 0; i < 50; i++) {
+      const p = randomPlu(kind);
       if (!used.has(p)) {
         used.add(p);
         return p;
       }
     }
-    const p = `${await this.plu.generateUnique(kind, tenantId)}-${used.size}`;
+    const p = `${randomPlu(kind)}-${used.size}`;
     used.add(p);
     return p;
   }
@@ -630,7 +672,7 @@ export class MenusService {
   ): Promise<string> {
     const cached = caches.groupBySrc.get(srcGroup.id);
     if (cached) return cached;
-    const gPlu = await this.freshPlu("modifierGroup", tenantId, caches.usedPlus);
+    const gPlu = this.freshPlu("modifierGroup", caches.usedPlus);
     const newGroup = await tx.modifierGroup.create({
       data: {
         brandId: srcGroup.brandId,
@@ -650,7 +692,7 @@ export class MenusService {
     });
     caches.groupBySrc.set(srcGroup.id, newGroup.id);
     for (const opt of srcGroup.options ?? []) {
-      const oPlu = await this.freshPlu("modifier", tenantId, caches.usedPlus);
+      const oPlu = this.freshPlu("modifier", caches.usedPlus);
       await tx.modifierOption.create({
         data: {
           groupId: newGroup.id,
@@ -689,7 +731,7 @@ export class MenusService {
   ): Promise<string> {
     const cached = caches.itemBySrc.get(src.id);
     if (cached) return cached;
-    const iPlu = await this.freshPlu("product", tenantId, caches.usedPlus);
+    const iPlu = this.freshPlu("product", caches.usedPlus);
     const skus = Array.isArray(src.productSkus)
       ? src.productSkus.map((s: any) => ({ ...s, plu: null }))
       : (src.productSkus ?? []);
@@ -836,7 +878,14 @@ export class MenusService {
       })),
     );
 
-    return this.prisma.$transaction(async (tx) => {
+    // Seed existing PLUs BEFORE the transaction so the deep-copy generates
+    // fresh ones in memory — no per-PLU DB round-trip inside the tx (that is
+    // what expired the 5s interactive-transaction budget on big master menus).
+    const usedPlus = new Set<string>();
+    await this.seedUsedPlus(tenantId, usedPlus);
+
+    return this.prisma.$transaction(
+      async (tx) => {
       const master = await tx.menu.create({
         data: {
           brandId: location.brandId,
@@ -861,7 +910,7 @@ export class MenusService {
       const caches: DeepCopyCaches = {
         itemBySrc: new Map(),
         groupBySrc: new Map(),
-        usedPlus: new Set(),
+        usedPlus,
       };
       let sortOrder = 0;
       for (const menu of orderedSources) {
@@ -913,7 +962,11 @@ export class MenusService {
         `Master menu ${master.id} created at location=${locationId} from menus=[${sourceMenuIds.join(", ")}] (${brandRows.length} brands)`,
       );
       return master;
-    });
+      },
+      // Combining several menus deep-copies a lot of rows; the default 5s
+      // interactive-transaction budget is not enough.
+      { timeout: 120_000, maxWait: 20_000 },
+    );
   }
 
   // ── Menu Versioning ────────────────────────────────────────────────────────
