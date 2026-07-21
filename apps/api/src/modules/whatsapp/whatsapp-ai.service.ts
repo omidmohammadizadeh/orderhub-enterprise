@@ -52,7 +52,14 @@ type Presentation =
     }
   | { kind: "flow"; itemId: string; header: string; body: string };
 
-const FLOW_GROUP_SLOTS = 5; // radio groups supported by the "Customise item" Flow
+// Number of radio-group slots the published "Customise item" Flow declares.
+// The Meta Flow JSON has exactly this many g0..gN groups, so it bounds both
+// which items are flow-eligible AND how many groups we send/parse. Default 5
+// (the original published Flow); override with WHATSAPP_FLOW_SLOTS once the
+// Flow is republished with more slots (see scripts/generate-wa-customise-flow.mjs).
+// Clamped to [1,12] — 12 covers the largest current meal deal (Mega Meal).
+const FLOW_GROUP_SLOTS_DEFAULT = 5;
+const FLOW_GROUP_SLOTS_MAX = 12;
 
 // Deterministic navigation commands — handled in code so they always work,
 // regardless of what the model decides. Matched against the trimmed, lowercased
@@ -124,6 +131,7 @@ export class WhatsAppAiService {
   private readonly model: string;
   private readonly flowId?: string;
   private readonly flowMode: "draft" | "published";
+  private readonly flowGroupSlots: number;
 
   constructor(
     private readonly config: ConfigService,
@@ -146,6 +154,10 @@ export class WhatsAppAiService {
     this.flowId = this.config.get<string>("WHATSAPP_FLOW_ID") || undefined;
     this.flowMode =
       this.config.get<string>("WHATSAPP_FLOW_MODE") === "published" ? "published" : "draft";
+    const slots = parseInt(this.config.get<string>("WHATSAPP_FLOW_SLOTS") || "", 10);
+    this.flowGroupSlots = Number.isFinite(slots)
+      ? Math.max(1, Math.min(FLOW_GROUP_SLOTS_MAX, slots))
+      : FLOW_GROUP_SLOTS_DEFAULT;
   }
 
   /**
@@ -701,7 +713,7 @@ export class WhatsAppAiService {
       return;
     }
     const optionIds: string[] = [];
-    for (let i = 0; i < FLOW_GROUP_SLOTS; i++) {
+    for (let i = 0; i < this.flowGroupSlots; i++) {
       const v = parsed[`g${i}`];
       if (v && v !== "none" && v !== "_") optionIds.push(String(v));
     }
@@ -786,7 +798,7 @@ export class WhatsAppAiService {
   /** Can this item's options be fully captured by the radio-only Flow form? */
   private flowEligible(item: WaMenuContext["items"][number]): boolean {
     const groups = item.modifierGroups;
-    if (groups.length === 0 || groups.length > FLOW_GROUP_SLOTS) return false;
+    if (groups.length === 0 || groups.length > this.flowGroupSlots) return false;
     return groups.every((g) => g.selectionType === "VARIANT" || g.max === 1);
   }
 
@@ -1011,8 +1023,8 @@ export class WhatsAppAiService {
       subtitle: (item.description ?? "Choose your options").slice(0, 80),
       notes_visible: true,
     };
-    const groups = item.modifierGroups.slice(0, FLOW_GROUP_SLOTS);
-    for (let i = 0; i < FLOW_GROUP_SLOTS; i++) {
+    const groups = item.modifierGroups.slice(0, this.flowGroupSlots);
+    for (let i = 0; i < this.flowGroupSlots; i++) {
       const g = groups[i];
       if (g) {
         const opts = g.options.map((o) => ({
