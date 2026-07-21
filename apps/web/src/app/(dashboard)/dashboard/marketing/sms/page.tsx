@@ -524,21 +524,26 @@ function ContactsTab() {
                     </span>
                   </td>
                   <td className="px-4 py-2 text-right">
-                    {c.consentStatus !== "OPTED_OUT" ? (
-                      <button
-                        onClick={() => toggle.mutate({ id: c.id, status: "OPTED_OUT" })}
-                        className="text-xs text-zinc-400 hover:text-red-600"
-                      >
-                        Opt out
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => toggle.mutate({ id: c.id, status: "OPTED_IN" })}
-                        className="text-xs text-zinc-400 hover:text-emerald-600"
-                      >
-                        Opt in
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-3">
+                      {c.consentStatus !== "OPTED_IN" && (
+                        <button
+                          onClick={() => toggle.mutate({ id: c.id, status: "OPTED_IN" })}
+                          disabled={toggle.isPending}
+                          className="text-xs font-medium text-zinc-400 hover:text-emerald-600 disabled:opacity-50"
+                        >
+                          Opt in
+                        </button>
+                      )}
+                      {c.consentStatus !== "OPTED_OUT" && (
+                        <button
+                          onClick={() => toggle.mutate({ id: c.id, status: "OPTED_OUT" })}
+                          disabled={toggle.isPending}
+                          className="text-xs text-zinc-400 hover:text-red-600 disabled:opacity-50"
+                        >
+                          Opt out
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SmsService } from "../sms/sms.service";
 import { WalletService } from "../wallet/wallet.service";
@@ -91,6 +92,71 @@ export class MarketingSmsService {
   }
 
   // ── Contacts ────────────────────────────────────────────────────────────────
+
+  /**
+   * Capture SMS-marketing consent from a placed order (POS or online storefront
+   * checkbox). Ticked → the contact is opted IN; explicitly unticked → opted
+   * OUT (and stored so a later import can't sweep them back in). Best-effort:
+   * never disrupts order placement. Fired via the "marketing.consent" event so
+   * the orders/ordering modules stay decoupled from this one.
+   */
+  @OnEvent("marketing.consent")
+  async onOrderConsent(ev: {
+    tenantId: string;
+    locationId?: string | null;
+    phone?: string | null;
+    firstName?: string | null;
+    source?: string | null;
+    consent: boolean;
+  }): Promise<void> {
+    try {
+      const phone = this.normalizePhone(ev.phone ?? "");
+      if (!phone) return;
+      if (ev.consent) {
+        await this.upsertContact({
+          tenantId: ev.tenantId,
+          locationId: ev.locationId ?? null,
+          phone,
+          firstName: ev.firstName ?? null,
+          source: ev.source ?? null,
+          consentStatus: "OPTED_IN",
+          consentSource: `order:${ev.source ?? "POS"}`,
+        });
+      } else {
+        // Explicit decline — opt out (idempotent), storing a suppressed row so
+        // a future import never re-adds them as opted-in.
+        const existing = await this.db().marketingContact.findFirst({
+          where: { tenantId: ev.tenantId, phone },
+          select: { id: true },
+        });
+        if (existing) {
+          await this.db().marketingContact.update({
+            where: { id: existing.id },
+            data: {
+              consentStatus: "OPTED_OUT",
+              unsubscribedAt: new Date(),
+              consentSource: "order:declined",
+            },
+          });
+        } else {
+          await this.db().marketingContact.create({
+            data: {
+              tenantId: ev.tenantId,
+              locationId: ev.locationId ?? null,
+              phone,
+              firstName: ev.firstName ?? null,
+              source: ev.source ?? null,
+              consentStatus: "OPTED_OUT",
+              consentSource: "order:declined",
+              unsubscribedAt: new Date(),
+            },
+          });
+        }
+      }
+    } catch (err: any) {
+      this.logger.warn(`Consent capture failed: ${err?.message ?? err}`);
+    }
+  }
 
   async channelCounts(
     tenantId: string,
@@ -264,10 +330,11 @@ export class MarketingSmsService {
       seen.add(phone);
 
       const cust: any = o.customerId ? custById.get(o.customerId) : null;
-      const consented = !!cust?.marketingConsent;
-      if (args.consentedOnly && !consented) { report.invalid++; continue; }
 
       const [firstName, lastName] = this.splitName(o.customerName, cust);
+      // Import opts every contact IN (the operator asserts consent when they
+      // click Import). upsertContact still never re-opts-in a contact who
+      // previously replied STOP (OPTED_OUT stays suppressed), so this is safe.
       const res = await this.upsertContact({
         tenantId,
         locationId: args.locationId ?? o.locationId ?? null,
@@ -276,8 +343,8 @@ export class MarketingSmsService {
         lastName,
         source: o.orderSource,
         customerId: o.customerId ?? null,
-        consentStatus: consented ? "OPTED_IN" : "UNKNOWN",
-        consentSource: consented ? `crm:${o.orderSource}` : null,
+        consentStatus: "OPTED_IN",
+        consentSource: `import:${o.orderSource}`,
         createdBy: args.createdBy,
       });
       report[res === "added" ? "added" : res === "updated" ? "updated" : "suppressed"]++;

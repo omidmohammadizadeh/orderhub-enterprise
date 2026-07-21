@@ -122,4 +122,8 @@ export class CreateOrderDto {
   /** Whether the operator marked this order as scheduled-for-the-future. When
    *  true, no PrinterJob is created at order-creation time. */
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isScheduled?: boolean;
+  /** SMS-marketing consent captured at checkout (POS/online "Send me offers by
+   *  SMS" box). true → opt the customer in; false → opt out. Undefined = not
+   *  asked, leave marketing consent untouched. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() marketingConsent?: boolean;
 }

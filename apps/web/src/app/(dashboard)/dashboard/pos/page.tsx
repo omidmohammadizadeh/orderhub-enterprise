@@ -260,6 +260,7 @@ export default function PosPage() {
         paymentMethod: payload.paymentMethod,
         paymentStatus: payload.paymentStatus,
         isScheduled: payload.isScheduled,
+        marketingConsent: payload.marketingConsent,
       };
 
       // Phase AW-22 — edit branch: PATCH /v1/orders/:id/edit with a

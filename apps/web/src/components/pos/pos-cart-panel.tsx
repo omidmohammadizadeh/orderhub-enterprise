@@ -75,6 +75,8 @@ export interface PlaceOrderPayload {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  // SMS-marketing consent captured at the till ("Send me offers by SMS").
+  marketingConsent: boolean;
 }
 
 export interface CartPanelProps {
@@ -139,6 +141,8 @@ export function PosCartPanel(props: CartPanelProps) {
   // ── Cart-adjacent state ────────────────────────────────────────────────────
   const [customerName, setCustomerName] = useState(initialDraft?.customerName ?? "");
   const [customerPhone, setCustomerPhone] = useState(initialDraft?.customerPhone ?? "");
+  // Ticked by default — the customer can decline SMS offers at the till.
+  const [smsConsent, setSmsConsent] = useState(true);
   const [callerId, setCallerId] = useState(initialDraft?.callerId ?? "");
   const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>(
     initialDraft?.fulfillmentType ?? "PICKUP",
@@ -623,6 +627,7 @@ export function PosCartPanel(props: CartPanelProps) {
       subtotal,
       deliveryFee: effectiveDeliveryFee,
       total,
+      marketingConsent: smsConsent,
     });
   };
 
@@ -726,6 +731,22 @@ export function PosCartPanel(props: CartPanelProps) {
               placeholder="Caller ID (auto-populated by CTI integration)"
             />
           </div>
+          {/* SMS-marketing consent. Ticked = opt in; the customer can decline.
+              Only meaningful once a phone number is entered. */}
+          <label className="mt-2 flex cursor-pointer items-start gap-2 text-xs text-zinc-600">
+            <input
+              type="checkbox"
+              checked={smsConsent}
+              onChange={(e) => setSmsConsent(e.target.checked)}
+              className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
+            />
+            <span>
+              Customer agrees to receive offers &amp; updates by SMS
+              <span className="block text-[10px] text-zinc-400">
+                Untick if they decline. Adds them to your SMS marketing list.
+              </span>
+            </span>
+          </label>
           <div className="mt-2">
             <textarea
               value={notes}

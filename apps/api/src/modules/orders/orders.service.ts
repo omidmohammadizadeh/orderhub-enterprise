@@ -964,6 +964,23 @@ export class OrdersService {
       void this.promoCodes.incrementUsage(tenantId, dto.promoCode);
     }
 
+    // SMS-marketing consent from the POS "Send me offers by SMS" box. Only when
+    // the operator actually asked (undefined = untouched). Fire-and-forget via
+    // the event bus so MarketingSmsService captures it without coupling here.
+    if (
+      dto.marketingConsent !== undefined &&
+      dto.customerInfo?.phone
+    ) {
+      this.events.emit("marketing.consent", {
+        tenantId,
+        locationId: dto.locationId,
+        phone: dto.customerInfo.phone,
+        firstName: dto.customerInfo.name ?? null,
+        source: (order as any).orderSource ?? "POS",
+        consent: dto.marketingConsent === true,
+      });
+    }
+
     return order;
   }
 

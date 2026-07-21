@@ -41,6 +41,8 @@ export interface CheckoutDto {
   /** ISO timestamp when the customer scheduled the order for later. */
   scheduledFor?: string;
   promoCode?: string;
+  /** Storefront "Send me offers by SMS" checkbox → SMS-marketing consent. */
+  marketingConsent?: boolean;
   // Phase AP-8 — when set to "CARD", checkout() returns a Stripe Checkout
   // Session URL the storefront should redirect the browser to. Defaults
   // to "CASH" if absent so existing callers keep working.
@@ -939,6 +941,9 @@ export class OrderingService {
         scheduledFor: (dto as any).scheduledFor ?? undefined,
         isScheduled: !!(dto as any).scheduledFor,
         idempotencyKey: dto.idempotencyKey,
+        // Storefront SMS-marketing consent → captured on the resulting Order
+        // via OrdersService.create's marketing.consent event.
+        marketingConsent: dto.marketingConsent,
         paymentMethod: dto.paymentMethod ?? "CASH",
         paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",
         // Phase AP-5 — attribute the order to the signed-in customer

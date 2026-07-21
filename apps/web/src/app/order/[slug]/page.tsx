@@ -396,6 +396,8 @@ function OrderPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  // "Keep me updated by SMS" — ticked by default, customer can opt out.
+  const [smsMarketingConsent, setSmsMarketingConsent] = useState(true);
   const [addrFlat, setAddrFlat] = useState(""); // Phase AP fix #3 — house/flat number
   const [addrLine1, setAddrLine1] = useState("");
   const [addrCity, setAddrCity] = useState("");
@@ -796,6 +798,8 @@ function OrderPage() {
         // so it shows up on their My Orders page. Undefined means
         // guest checkout — server treats it as no link.
         customerAccountId: authCustomer?.id,
+        // "Keep me updated by SMS" checkbox → SMS-marketing consent.
+        marketingConsent: smsMarketingConsent,
       };
       return axios
         .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload, {
@@ -1414,6 +1418,8 @@ function OrderPage() {
           setCustomerPhone={setCustomerPhone}
           customerEmail={customerEmail}
           setCustomerEmail={setCustomerEmail}
+          smsMarketingConsent={smsMarketingConsent}
+          setSmsMarketingConsent={setSmsMarketingConsent}
           addrFlat={addrFlat}
           setAddrFlat={setAddrFlat}
           addrLine1={addrLine1}
@@ -1786,6 +1792,8 @@ interface CartPanelProps {
   setCustomerName: (v: string) => void;
   customerPhone: string;
   setCustomerPhone: (v: string) => void;
+  smsMarketingConsent: boolean;
+  setSmsMarketingConsent: (v: boolean) => void;
   customerEmail: string;
   setCustomerEmail: (v: string) => void;
   addrFlat: string;
@@ -1886,6 +1894,8 @@ function CartPanel(props: CartPanelProps) {
     setCustomerPhone,
     customerEmail,
     setCustomerEmail,
+    smsMarketingConsent,
+    setSmsMarketingConsent,
     addrLine1,
     setAddrLine1,
     addrCity,
@@ -2035,6 +2045,15 @@ function CartPanel(props: CartPanelProps) {
               onChange={setCustomerEmail}
               placeholder="Email (optional)"
             />
+            <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
+              <input
+                type="checkbox"
+                checked={smsMarketingConsent}
+                onChange={(e) => setSmsMarketingConsent(e.target.checked)}
+                className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
+              />
+              <span>Keep me updated with offers &amp; news by SMS</span>
+            </label>
           </Section>
 
           {/* Fulfillment */}
