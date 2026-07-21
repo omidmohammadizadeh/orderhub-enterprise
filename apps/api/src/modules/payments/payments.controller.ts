@@ -85,6 +85,17 @@ export class PaymentsController {
     return { url, smsConfigured: this.payments.smsConfigured() };
   }
 
+  // GET /v1/payments/pay/:code — PUBLIC resolver for the texted short link.
+  // The web `/p/:code` route calls this and 302-redirects the customer to the
+  // returned Stripe checkout URL. No auth: the code itself is the credential,
+  // exactly like the hosted payment link.
+  @Public()
+  @Get("pay/:code")
+  @ApiOperation({ summary: "Resolve a short payment-link code to a Stripe URL" })
+  async resolvePaymentLink(@Param("code") code: string) {
+    return this.payments.resolvePaymentLinkByCode(code);
+  }
+
   // POST /v1/payments/orders/:orderId/payment-link/sms
   @Post("orders/:orderId/payment-link/sms")
   @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")

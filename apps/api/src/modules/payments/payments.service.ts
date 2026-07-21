@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { randomBytes } from "crypto";
 import { Decimal } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
@@ -1046,6 +1047,67 @@ export class PaymentsService {
   }
 
   /**
+   * Ensure the order carries a short, unguessable payment code (stored on
+   * metadata.paymentShortCode). It backs the tiny `/p/<code>` link we text so a
+   * payment SMS fits in ONE Twilio segment (7p) instead of embedding the long
+   * hosted Stripe URL, which spanned several segments. Idempotent: reuses the
+   * existing code so re-texting/resending keeps the same link.
+   */
+  private async ensurePaymentShortCode(orderId: string): Promise<string> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, metadata: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    const meta = ((order.metadata as any) ?? {}) as Record<string, unknown>;
+    const existing = (meta.paymentShortCode as string | undefined)?.trim();
+    if (existing) return existing;
+
+    // base62, ~8 chars → 62^8 ≈ 2e14 keyspace; retry on the vanishingly rare
+    // collision so two live orders never share a code.
+    const alphabet =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let code = "";
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const bytes = randomBytes(8);
+      code = Array.from(bytes, (b) => alphabet[b % 62]).join("");
+      const clash = await this.prisma.order.findFirst({
+        where: { metadata: { path: ["paymentShortCode"], equals: code } },
+        select: { id: true },
+      });
+      if (!clash) break;
+    }
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { metadata: { ...meta, paymentShortCode: code } as any },
+    });
+    return code;
+  }
+
+  /**
+   * Public resolver for the texted short link `/p/<code>`. Looks the order up
+   * by its short code (no auth — the code IS the credential, same as the hosted
+   * link itself), then mints a fresh Stripe checkout URL so an expired session
+   * never dead-ends the customer. Returns `{ paid: true }` if already settled.
+   */
+  async resolvePaymentLinkByCode(
+    code: string,
+  ): Promise<{ url?: string; paid?: boolean }> {
+    const trimmed = (code ?? "").trim();
+    if (!trimmed) throw new NotFoundException("Unknown payment link");
+    const order = await this.prisma.order.findFirst({
+      where: { metadata: { path: ["paymentShortCode"], equals: trimmed } },
+      select: { id: true, tenantId: true, paymentStatus: true },
+    });
+    if (!order) throw new NotFoundException("Unknown payment link");
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      return { paid: true };
+    }
+    const { url } = await this.createOrderPaymentLink(order.tenantId, order.id);
+    return { url };
+  }
+
+  /**
    * Text the order's hosted payment link to the customer. Generates the link
    * (same as the QR/copy flow), then sends it via Twilio and meters the send
    * per restaurant. Throws a clear message if SMS isn't configured or the send
@@ -1066,13 +1128,18 @@ export class PaymentsService {
     });
     if (!order) throw new NotFoundException("Order not found");
 
-    const { url } = await this.createOrderPaymentLink(tenantId, orderId);
-    // Keep this body GSM-7 only (no em dash / smart punctuation): a single
-    // non-GSM character forces the whole SMS into UCS-2 encoding, which cuts
-    // the per-segment limit from 153 to 67 chars and — with a long Stripe URL —
-    // exploded a single link into 9 Twilio segments. The colon/hyphen below are
-    // all GSM-7. (Billing is also capped at 1 segment for payment links.)
-    const body = `Pay £${Number(order.total).toFixed(2)} for your order securely here: ${url}`;
+    // Text a SHORT link (`/p/<code>`) that redirects to the hosted Stripe page,
+    // not the long checkout URL itself. Combined with a GSM-7-only body (no em
+    // dash / smart punctuation, which would force costly UCS-2 encoding), this
+    // keeps the whole SMS inside ONE Twilio segment (7p) instead of the 9
+    // segments the raw Stripe URL produced. The QR / copy-link modal still uses
+    // the full URL (no per-character cost there).
+    const code = await this.ensurePaymentShortCode(orderId);
+    const origin = (
+      process.env.WEB_URL ?? "https://www.orderhubsolutions.com"
+    ).replace(/\/+$/, "");
+    const shortUrl = `${origin}/p/${code}`;
+    const body = `Pay £${Number(order.total).toFixed(2)} for your order securely here: ${shortUrl}`;
 
     await this.sms.send({
       tenantId,
