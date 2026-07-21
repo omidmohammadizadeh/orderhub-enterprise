@@ -170,10 +170,23 @@ export class StripeService {
         "STRIPE_WEBHOOK_SECRET is not configured. Cannot verify webhook signature.",
       );
     }
-    return this.client.webhooks.constructEvent(
-      rawBody,
-      signature,
-      this.webhookSecret,
-    );
+    // We run more than one Stripe webhook endpoint at the same URL — one for
+    // connected-account payment events, and one for the PLATFORM account's own
+    // events (SMS wallet top-ups, platform subscriptions). Each endpoint has a
+    // DIFFERENT signing secret, so accept a comma/whitespace-separated list in
+    // STRIPE_WEBHOOK_SECRET and try each until one verifies.
+    const secrets = this.webhookSecret
+      .split(/[,\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    let lastErr: any;
+    for (const secret of secrets) {
+      try {
+        return this.client.webhooks.constructEvent(rawBody, signature, secret);
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr ?? new Error("No STRIPE_WEBHOOK_SECRET candidates to verify against");
   }
 }
