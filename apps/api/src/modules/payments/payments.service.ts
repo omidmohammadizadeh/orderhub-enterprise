@@ -309,6 +309,46 @@ export class PaymentsService {
       paymentStatus: "PAID",
     } as any);
 
+    // POS "Payment link" orders were held out of the New column + print until
+    // now. Payment just landed → light up the staff board (moves it from
+    // "Waiting for payment" to New) and fire payment.authorized so an
+    // auto-accept location captures + prints the ticket, exactly like a fresh
+    // order. Gated to still-PENDING payment-link orders so this never re-fires
+    // for online card orders (which reach confirmPayment already accepted).
+    const paidOrder = await this.prisma.order.findUnique({
+      where: { id: payment.orderId },
+      include: { items: { select: { quantity: true } } },
+    });
+    if (
+      paidOrder &&
+      paidOrder.locationId &&
+      (paidOrder as any).paymentMethod === "PAYMENT_LINK" &&
+      paidOrder.status === "PENDING"
+    ) {
+      this.socket.emitNewOrder(paidOrder.locationId, {
+        orderId: paidOrder.id,
+        tenantId: paidOrder.tenantId,
+        locationId: paidOrder.locationId,
+        platform: paidOrder.platform,
+        orderSource: paidOrder.orderSource,
+        fulfillmentType: paidOrder.fulfillmentType,
+        displayId: paidOrder.displayId,
+        status: paidOrder.status,
+        total: Number(paidOrder.total),
+        itemCount: paidOrder.items.reduce((s, i) => s + (i.quantity ?? 0), 0),
+        customerName: (paidOrder as any).customerName,
+        scheduledFor: paidOrder.scheduledFor?.toISOString() ?? null,
+        createdAt: paidOrder.createdAt.toISOString(),
+      } as any);
+      // Auto-accept + print if the location has the toggle on (same event the
+      // online-card authorize path uses).
+      this.events.emit("payment.authorized", {
+        orderId: paidOrder.id,
+        tenantId,
+        locationId: paidOrder.locationId,
+      });
+    }
+
     this.logger.log(`Payment confirmed: ${payment.id} (order ${payment.orderId})`);
     return updated;
   }

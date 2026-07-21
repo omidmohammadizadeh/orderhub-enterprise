@@ -21,6 +21,7 @@ import {
   Loader2,
   ShoppingBag,
   XCircle,
+  CreditCard,
   Send,
   Truck,
   Building2,
@@ -117,11 +118,27 @@ const CHANNELS: Channel[] = [
   },
 ];
 
+// POS "Payment link" orders wait here until the customer pays: status is still
+// PENDING but paymentStatus isn't PAID yet. They stay out of New (and print
+// nothing) until the Stripe webhook flips them to PAID server-side, at which
+// point they move into New and auto-accept/print.
+const isWaitingForPayment = (o: Order): boolean =>
+  o.status === "PENDING" &&
+  o.paymentMethod === "PAYMENT_LINK" &&
+  o.paymentStatus !== "PAID";
+
 const BUCKETS: Bucket[] = [
+  {
+    key: "WAITING_FOR_PAYMENT",
+    label: "Waiting for payment",
+    match: (o) => isWaitingForPayment(o),
+    pill: "bg-violet-50 text-violet-700",
+    icon: CreditCard,
+  },
   {
     key: "PENDING",
     label: "New",
-    match: (o) => o.status === "PENDING",
+    match: (o) => o.status === "PENDING" && !isWaitingForPayment(o),
     pill: "bg-blue-50 text-blue-700",
     icon: Clock,
   },

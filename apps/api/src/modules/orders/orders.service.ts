@@ -530,6 +530,22 @@ export class OrdersService {
       const meta: any = (canonical as any).metadata ?? {};
       const isUnpaidCard =
         meta.paymentMethod === "CARD" && meta.paymentStatus === "PENDING";
+      // POS "Payment link" orders are placed unpaid — they belong in the
+      // "Waiting for payment" tab, NOT in New, and must not print until the
+      // customer pays. Suppress the new-order broadcast + auto-accept until
+      // the Stripe webhook confirms payment (PaymentsService.confirmPayment
+      // re-emits new-order + payment.authorized then). Unlike unpaid CARD
+      // orders they are NOT hidden from the board query, so they still appear
+      // in the Waiting-for-payment column.
+      // paymentMethod/paymentStatus may arrive top-level on the canonical
+      // envelope OR inside metadata (POS vs storefront) — check both, same as
+      // the Order-row mapping above.
+      const resolvedPayMethod =
+        (canonical as any).paymentMethod ?? meta.paymentMethod;
+      const resolvedPayStatus =
+        (canonical as any).paymentStatus ?? meta.paymentStatus;
+      const isUnpaidPaymentLink =
+        resolvedPayMethod === "PAYMENT_LINK" && resolvedPayStatus !== "PAID";
 
       // Socket emit is best-effort and immediate — it does NOT affect downstream
       // processing which is guaranteed by the outbox.
@@ -551,7 +567,8 @@ export class OrdersService {
         (canonical as any).viaHubrise === true ||
         ((canonical as any).integrationSource &&
           (canonical as any).integrationSource !== "DIRECT");
-      const waitForOurAuth = !isPlatformOrder && isUnpaidCard;
+      const waitForOurAuth =
+        !isPlatformOrder && (isUnpaidCard || isUnpaidPaymentLink);
       // POS "scheduled for later" orders (metadata.isScheduled) are the one
       // exception maybeAutoAccept itself enforces — they stay PENDING
       // regardless of the location's auto-accept setting. A marketplace
@@ -569,7 +586,7 @@ export class OrdersService {
       // it. It's still visible immediately via the Scheduled Orders strip's
       // own poll of /orders/scheduled.
       const isScheduledForLater = meta.isScheduled === true;
-      if (!isUnpaidCard && !isScheduledForLater) this.socket.emitNewOrder(locationId, {
+      if (!isUnpaidCard && !isUnpaidPaymentLink && !isScheduledForLater) this.socket.emitNewOrder(locationId, {
         orderId: order.id,
         tenantId,
         locationId,

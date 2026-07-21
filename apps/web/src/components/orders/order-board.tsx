@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   XCircle,
   Ban,
+  CreditCard,
 } from "lucide-react";
 import { StatusColumn } from "./status-column";
 import { OrderDetailDrawer } from "./order-detail-drawer";
@@ -47,11 +48,27 @@ type Column = {
   icon: ReactNode;
 };
 
+// A POS "Payment link" order sits here until the customer pays: status is
+// still PENDING but paymentStatus isn't PAID. It stays out of New and prints
+// nothing until the Stripe webhook flips it to PAID (server-side), at which
+// point it moves into New and auto-accepts/prints.
+const isWaitingForPayment = (o: Order): boolean =>
+  o.status === "PENDING" &&
+  o.paymentMethod === "PAYMENT_LINK" &&
+  o.paymentStatus !== "PAID";
+
 const COLUMNS: Column[] = [
+  {
+    key: "WAITING_FOR_PAYMENT",
+    title: "Waiting for payment",
+    match: (o) => isWaitingForPayment(o),
+    color: "bg-violet-500",
+    icon: <CreditCard className="h-4 w-4" />,
+  },
   {
     key: "NEW",
     title: "New",
-    match: (o) => o.status === "PENDING",
+    match: (o) => o.status === "PENDING" && !isWaitingForPayment(o),
     color: "bg-blue-500",
     icon: <Clock className="h-4 w-4" />,
   },
