@@ -164,7 +164,12 @@ function ComposeTab() {
 
   const test = useMutation({
     mutationFn: () =>
-      marketingSmsClient.testSend({ phone: testPhone, senderHeader: header, body }),
+      marketingSmsClient.testSend({
+        phone: testPhone,
+        senderHeader: header,
+        body,
+        locationId,
+      }),
   });
 
   const send = useMutation({

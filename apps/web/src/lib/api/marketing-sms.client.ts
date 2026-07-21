@@ -127,8 +127,12 @@ export const marketingSmsClient = {
   preview: (body: { senderHeader?: string; body: string; audience?: any; locationId?: string | null }) =>
     apiClient.post<AudiencePreview>("/v1/marketing-sms/preview", body).then((r) => r.data),
 
-  testSend: (body: { phone: string; senderHeader?: string; body: string }) =>
-    apiClient.post("/v1/marketing-sms/test-send", body).then((r) => r.data),
+  testSend: (body: {
+    phone: string;
+    senderHeader?: string;
+    body: string;
+    locationId?: string | null;
+  }) => apiClient.post("/v1/marketing-sms/test-send", body).then((r) => r.data),
 
   send: (id: string) =>
     apiClient

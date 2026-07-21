@@ -500,13 +500,27 @@ export class MarketingSmsService {
   /** Send a one-off test to a single number (still billed to the wallet). */
   async testSend(
     tenantId: string,
-    args: { phone: string; senderHeader?: string; body: string; userId?: string },
+    args: {
+      phone: string;
+      senderHeader?: string;
+      body: string;
+      userId?: string;
+      locationId?: string;
+    },
   ) {
     const phone = this.normalizePhone(args.phone);
     if (!phone) throw new BadRequestException("Enter a valid test number.");
     const msg = this.personalize(this.composeMessage(args.senderHeader, args.body), { firstName: "there" });
     await this.sms.send({
-      tenantId, to: phone, body: msg, purpose: "MARKETING", createdBy: args.userId,
+      tenantId,
+      to: phone,
+      body: msg,
+      purpose: "MARKETING",
+      // Bill the SAME wallet the operator funded (the selected location's),
+      // not the tenant-level one — otherwise the balance check hits an empty
+      // wallet and wrongly reports "balance too low".
+      locationId: args.locationId ?? null,
+      createdBy: args.userId,
     });
     return { ok: true };
   }

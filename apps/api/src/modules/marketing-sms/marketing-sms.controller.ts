@@ -159,7 +159,13 @@ export class MarketingSmsController {
   @Roles(...MARKETING_ROLES)
   testSend(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { phone: string; senderHeader?: string; body: string },
+    @Body()
+    body: {
+      phone: string;
+      senderHeader?: string;
+      body: string;
+      locationId?: string;
+    },
   ) {
     return this.svc.testSend(user.tenantId, { ...body, userId: user.userId });
   }
