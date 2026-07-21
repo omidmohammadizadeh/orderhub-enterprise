@@ -322,7 +322,8 @@ export class PaymentsService {
     if (
       paidOrder &&
       paidOrder.locationId &&
-      (paidOrder as any).paymentMethod === "PAYMENT_LINK" &&
+      ((paidOrder as any).paymentMethod === "PAYMENT_LINK" ||
+        (paidOrder as any).paymentMethod === "QR_CODE") &&
       paidOrder.status === "PENDING"
     ) {
       this.socket.emitNewOrder(paidOrder.locationId, {

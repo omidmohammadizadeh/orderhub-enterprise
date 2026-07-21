@@ -268,7 +268,8 @@ export class OrdersService {
         fresh.orderSource === "ONLINE" ||
         fresh.orderSource === "WHATSAPP";
       const unpaidPaymentLink =
-        payMethod === "PAYMENT_LINK" && payStatus !== "PAID";
+        (payMethod === "PAYMENT_LINK" || payMethod === "QR_CODE") &&
+        payStatus !== "PAID";
       const unpaidDirectCard =
         isDirectSource &&
         payMethod === "CARD" &&
@@ -583,7 +584,9 @@ export class OrdersService {
       const resolvedPayStatus =
         (canonical as any).paymentStatus ?? meta.paymentStatus;
       const isUnpaidPaymentLink =
-        resolvedPayMethod === "PAYMENT_LINK" && resolvedPayStatus !== "PAID";
+        (resolvedPayMethod === "PAYMENT_LINK" ||
+          resolvedPayMethod === "QR_CODE") &&
+        resolvedPayStatus !== "PAID";
 
       // Socket emit is best-effort and immediate — it does NOT affect downstream
       // processing which is guaranteed by the outbox.

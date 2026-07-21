@@ -55,7 +55,8 @@ export function useAutoAccept(locationId?: string) {
       // Automation auto-accept) is what pulled them into New before payment.
       // Mirrors the isWaitingForPayment predicate on the board.
       if (
-        (o as any).paymentMethod === "PAYMENT_LINK" &&
+        ((o as any).paymentMethod === "PAYMENT_LINK" ||
+          (o as any).paymentMethod === "QR_CODE") &&
         (o as any).paymentStatus !== "PAID"
       )
         continue;

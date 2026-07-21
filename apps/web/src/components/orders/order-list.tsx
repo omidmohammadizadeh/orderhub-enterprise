@@ -124,7 +124,7 @@ const CHANNELS: Channel[] = [
 // point they move into New and auto-accept/print.
 const isWaitingForPayment = (o: Order): boolean =>
   o.status === "PENDING" &&
-  o.paymentMethod === "PAYMENT_LINK" &&
+  (o.paymentMethod === "PAYMENT_LINK" || o.paymentMethod === "QR_CODE") &&
   o.paymentStatus !== "PAID";
 
 const BUCKETS: Bucket[] = [

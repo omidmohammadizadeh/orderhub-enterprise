@@ -109,7 +109,7 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() promoCode?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(["CASH", "CARD_TERMINAL", "ONLINE_CARD", "PAYMENT_LINK", "EXTERNAL"])
+  @IsEnum(["CASH", "CARD_TERMINAL", "ONLINE_CARD", "PAYMENT_LINK", "QR_CODE", "EXTERNAL"])
   paymentMethod?: string;
   @ApiPropertyOptional()
   @IsOptional()

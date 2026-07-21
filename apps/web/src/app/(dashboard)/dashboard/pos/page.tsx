@@ -298,7 +298,8 @@ export default function PosPage() {
       // it, and prints the ticket. Accepting it now (client-side) is what made
       // it jump straight to New/Accepted before payment.
       const isUnpaidPaymentLink =
-        payload.paymentMethod === "PAYMENT_LINK" &&
+        (payload.paymentMethod === "PAYMENT_LINK" ||
+          payload.paymentMethod === "QR_CODE") &&
         payload.paymentStatus !== "PAID";
       if (!isUnpaidPaymentLink) {
         // Best-effort: if the location has auto-accept ON, the order is already
@@ -336,9 +337,15 @@ export default function PosPage() {
       if (!edited && paymentMethod === "CARD_TERMINAL" && id) {
         setChargeOrder({ id, amount: Number(total ?? 0) });
       }
-      // Payment-link orders: pop the QR / copy-link modal for the customer
-      // to pay remotely (order stays pending until the webhook flips it).
-      if (!edited && paymentMethod === "PAYMENT_LINK" && id) {
+      // Payment-link AND QR-code orders: pop the QR / copy-link modal for the
+      // customer to pay remotely (order stays pending until the webhook flips
+      // it). Same modal for both — it shows the QR prominently plus a copyable
+      // link and the SMS option.
+      if (
+        !edited &&
+        (paymentMethod === "PAYMENT_LINK" || paymentMethod === "QR_CODE") &&
+        id
+      ) {
         setPayLinkOrder({
           id,
           amount: Number(total ?? 0),

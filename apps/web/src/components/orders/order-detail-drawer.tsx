@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
 import { useRouter } from "next/navigation";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2 } from "lucide-react";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode } from "lucide-react";
+import { PaymentLinkModal } from "../pos/payment-link-modal";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
@@ -75,6 +76,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const userRole = useAuthStore((s) => s.user?.role);
   const [showDispatch, setShowDispatch] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [showPayModal, setShowPayModal] = useState(false);
+
+  // POS "Payment link" / "QR code" orders can re-open the payment modal (QR +
+  // copyable link + SMS) so staff can show the customer the QR again or resend
+  // the link. Only meaningful while the order is still unpaid.
+  const payMethodUpper = ((order as any)?.paymentMethod ?? "")
+    .toString()
+    .toUpperCase();
+  const isLinkOrQrOrder =
+    payMethodUpper === "PAYMENT_LINK" || payMethodUpper === "QR_CODE";
+  const canReshowPayment =
+    isLinkOrQrOrder &&
+    ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID";
   const queryClient = useQueryClient();
 
   async function handleCancelDispatch() {
@@ -474,6 +488,25 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         )}
       </div>
 
+      {/* Payment link / QR re-show — for unpaid POS Payment-link or QR orders,
+          staff can pull the QR + link back up to show or resend to the
+          customer. */}
+      {canReshowPayment && (
+        <div className="border-t border-zinc-200 px-5 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => setShowPayModal(true)}
+          >
+            <QrCode className="h-3.5 w-3.5 mr-1.5" />
+            {payMethodUpper === "QR_CODE"
+              ? "Show QR code again"
+              : "Resend payment link"}
+          </Button>
+        </div>
+      )}
+
       {/* Actions footer */}
       {(actions.length > 0 || canEdit) && (
         <div className="border-t border-zinc-200 px-5 py-4 space-y-2">
@@ -524,6 +557,15 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           onClose={() => setShowDispatch(false)}
         />
       )}
+
+      <PaymentLinkModal
+        open={showPayModal}
+        orderId={showPayModal ? order.id : null}
+        orderNumber={order.displayId ? `#${order.displayId}` : undefined}
+        amount={Number(order.total ?? 0)}
+        customerPhone={(order as any).customerPhone ?? null}
+        onClose={() => setShowPayModal(false)}
+      />
     </div>
   );
 }

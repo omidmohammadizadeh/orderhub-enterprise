@@ -45,7 +45,10 @@ export type PaymentMethod =
   // Phase — POS Payment Link: order placed as "pending payment", a Stripe
   // checkout link is shown (QR / copy / SMS) for the customer to pay
   // remotely; the order auto-flips to PAID when they do.
-  | "PAYMENT_LINK";
+  | "PAYMENT_LINK"
+  // QR code — identical flow to Payment Link (unpaid until scanned), but the
+  // POS pops the QR prominently for the customer to scan at the counter.
+  | "QR_CODE";
 export type DiscountType = null | "PROMO_CODE" | "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
 
 // What the panel hands the parent when "Place order" is clicked.
@@ -1025,6 +1028,7 @@ export function PosCartPanel(props: CartPanelProps) {
                 { value: "CARD_TERMINAL", label: "Card terminal" },
                 { value: "ONLINE_CARD", label: "Online card" },
                 { value: "PAYMENT_LINK", label: "Payment link" },
+                { value: "QR_CODE", label: "QR code" },
                 { value: "EXTERNAL", label: "External" },
               ] as const
             ).map((opt) => (

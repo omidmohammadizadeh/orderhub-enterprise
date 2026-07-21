@@ -54,7 +54,7 @@ type Column = {
 // point it moves into New and auto-accepts/prints.
 const isWaitingForPayment = (o: Order): boolean =>
   o.status === "PENDING" &&
-  o.paymentMethod === "PAYMENT_LINK" &&
+  (o.paymentMethod === "PAYMENT_LINK" || o.paymentMethod === "QR_CODE") &&
   o.paymentStatus !== "PAID";
 
 const COLUMNS: Column[] = [
