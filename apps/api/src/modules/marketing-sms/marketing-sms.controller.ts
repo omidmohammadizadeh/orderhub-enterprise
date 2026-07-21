@@ -139,7 +139,7 @@ export class MarketingSmsController {
       audience?: any; locationId?: string;
     },
   ) {
-    return this.svc.createOrUpdateCampaign(user.tenantId, { ...body, createdBy: user.userId });
+    return this.svc.createOrUpdateCampaign(user.tenantId, { ...body, createdBy: user.userId }, user.role);
   }
 
   @Post("preview")
@@ -167,7 +167,7 @@ export class MarketingSmsController {
   @Post("campaigns/:id/send")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   sendCampaign(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
-    return this.svc.sendCampaign(user.tenantId, id, user.userId);
+    return this.svc.sendCampaign(user.tenantId, id, user.userId, user.role);
   }
 
   // ── Inbound STOP/START (Twilio) ───────────────────────────────────────────────

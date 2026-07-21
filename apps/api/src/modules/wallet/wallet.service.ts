@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   InternalServerErrorException,
@@ -95,6 +96,55 @@ export class WalletService {
     const existing = await this.db().wallet.findFirst({ where: { tenantId, locationId: loc } });
     if (existing) return existing;
     return this.db().wallet.create({ data: { tenantId, locationId: loc } });
+  }
+
+  // ── Per-user location access ────────────────────────────────────────────
+  // PLATFORM_ADMIN + TENANT_OWNER see every location's wallet. OWNER and
+  // FINANCIAL_AGENT are scoped to the locations assigned to them, so one
+  // location's finance user can NEVER view, fund, or spend another location's
+  // SMS credits. Mirrors SubscriptionsService.
+  private static readonly TENANT_WIDE = ["PLATFORM_ADMIN", "TENANT_OWNER"];
+
+  /** null = every location (tenant-wide role); array = the scoped allowlist. */
+  private async accessibleLocationIds(
+    tenantId: string,
+    userId?: string,
+    role?: string,
+  ): Promise<string[] | null> {
+    if (!userId || !role || WalletService.TENANT_WIDE.includes(role)) return null;
+    const [locs, brands] = await Promise.all([
+      this.db().userLocation.findMany({ where: { userId }, select: { locationId: true } }),
+      this.db().userBrand.findMany({ where: { userId }, select: { brandId: true } }),
+    ]);
+    const ids = new Set<string>(locs.map((l: any) => l.locationId as string));
+    const brandIds = brands.map((b: any) => b.brandId as string);
+    if (brandIds.length) {
+      const brandRows = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId },
+        select: { primaryLocationId: true, locations: { select: { id: true } } },
+      });
+      for (const b of brandRows) {
+        if ((b as any).primaryLocationId) ids.add((b as any).primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
+  }
+
+  /** Throw unless the user may touch this location's wallet. Scoped users are
+   *  also denied the tenant-wide (locationId null) wallet. */
+  async assertLocationAccess(
+    tenantId: string,
+    locationId: string | null | undefined,
+    userId?: string,
+    role?: string,
+  ): Promise<void> {
+    const allowed = await this.accessibleLocationIds(tenantId, userId, role);
+    if (allowed && (locationId == null || !allowed.includes(locationId))) {
+      throw new ForbiddenException(
+        "You don't have access to this location's SMS wallet.",
+      );
+    }
   }
 
   async getSummary(tenantId: string, locationId?: string | null): Promise<WalletSummary> {

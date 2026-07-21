@@ -474,6 +474,7 @@ export class MarketingSmsService {
       id?: string; name: string; senderHeader?: string; body: string;
       audience?: any; locationId?: string; createdBy?: string;
     },
+    role?: string,
   ) {
     if (!args.body?.trim()) throw new BadRequestException("Message body is required.");
     const data: any = {
@@ -484,9 +485,13 @@ export class MarketingSmsService {
     };
     if (args.id) {
       const c = await this.getCampaign(tenantId, args.id);
+      // A location-scoped user can only touch campaigns for their own location.
+      await this.wallet.assertLocationAccess(tenantId, c.locationId, args.createdBy, role);
       if (c.status !== "DRAFT") throw new BadRequestException("This campaign has already been sent.");
       return this.db().marketingSmsCampaign.update({ where: { id: args.id }, data });
     }
+    // Prevent creating a campaign that would spend another location's credits.
+    await this.wallet.assertLocationAccess(tenantId, args.locationId ?? null, args.createdBy, role);
     return this.db().marketingSmsCampaign.create({
       data: { tenantId, locationId: args.locationId ?? null, ...data, createdBy: args.createdBy ?? null },
     });
@@ -513,8 +518,11 @@ export class MarketingSmsService {
    * marks the rest skipped if the wallet runs dry. Opted-out contacts are never
    * included (audienceWhere filters to OPTED_IN).
    */
-  async sendCampaign(tenantId: string, id: string, userId?: string) {
+  async sendCampaign(tenantId: string, id: string, userId?: string, role?: string) {
     const campaign = await this.getCampaign(tenantId, id);
+    // Defence in depth: block spending another location's SMS credits even if
+    // a campaign somehow points at a location this user can't access.
+    await this.wallet.assertLocationAccess(tenantId, campaign.locationId, userId, role);
     if (campaign.status === "SENDING") throw new BadRequestException("This campaign is already sending.");
     if (campaign.status === "SENT") throw new BadRequestException("This campaign has already been sent.");
     if (!this.sms.isConfigured()) {

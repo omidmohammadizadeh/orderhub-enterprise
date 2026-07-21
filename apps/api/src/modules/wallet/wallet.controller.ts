@@ -15,10 +15,16 @@ export class WalletController {
   @Get()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "SMS wallet summary (balance, per-segment price)" })
-  getWallet(
+  async getWallet(
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId?: string,
   ) {
+    await this.wallet.assertLocationAccess(
+      user.tenantId,
+      locationId ?? null,
+      user.userId,
+      user.role,
+    );
     return this.wallet.getSummary(user.tenantId, locationId ?? null);
   }
 
@@ -26,11 +32,17 @@ export class WalletController {
   @Get("transactions")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Wallet statement — top-ups and SMS debits" })
-  getTransactions(
+  async getTransactions(
     @CurrentUser() user: AuthenticatedUser,
     @Query("limit") limit?: string,
     @Query("locationId") locationId?: string,
   ) {
+    await this.wallet.assertLocationAccess(
+      user.tenantId,
+      locationId ?? null,
+      user.userId,
+      user.role,
+    );
     return this.wallet.listTransactions(
       user.tenantId,
       locationId ?? null,
@@ -42,10 +54,16 @@ export class WalletController {
   @Post("topup")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Start a wallet top-up (returns a Stripe Checkout URL)" })
-  topup(
+  async topup(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: { amountMinor?: number; locationId?: string },
   ) {
+    await this.wallet.assertLocationAccess(
+      user.tenantId,
+      body?.locationId ?? null,
+      user.userId,
+      user.role,
+    );
     return this.wallet.startTopup(
       user.tenantId,
       Number(body?.amountMinor ?? 0),
