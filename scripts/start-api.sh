@@ -39,6 +39,17 @@ fi
 
 echo "[startup] Environment validation passed."
 
+# ── 1b. Regenerate the Prisma client ─────────────────────
+# Turbo's build task only caches `dist/**`, NOT the generated Prisma client
+# (packages/database/generated). On a cache-hit deploy `prisma generate` is
+# skipped, so a schema change (new column) can ship with a STALE runtime client
+# that rejects the new field as an "Unknown argument" even though the DB column
+# exists. Regenerating here — at boot, which turbo never caches — guarantees the
+# runtime client always matches the committed schema. Does not touch the DB.
+echo "[startup] Regenerating Prisma client from schema..."
+./packages/database/node_modules/.bin/prisma generate --schema=packages/database/prisma/schema.prisma
+echo "[startup] Prisma client regenerated."
+
 # ── 2. Apply database migrations ─────────────────────────
 # DIRECT_URL is used by Prisma for migrations (bypasses PgBouncer pooler).
 # DATABASE_URL (pooled) is used for all runtime queries.
