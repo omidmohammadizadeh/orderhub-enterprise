@@ -39,16 +39,14 @@ fi
 
 echo "[startup] Environment validation passed."
 
-# ── 1b. Regenerate the Prisma client ─────────────────────
-# Turbo's build task only caches `dist/**`, NOT the generated Prisma client
-# (packages/database/generated). On a cache-hit deploy `prisma generate` is
-# skipped, so a schema change (new column) can ship with a STALE runtime client
-# that rejects the new field as an "Unknown argument" even though the DB column
-# exists. Regenerating here — at boot, which turbo never caches — guarantees the
-# runtime client always matches the committed schema. Does not touch the DB.
-echo "[startup] Regenerating Prisma client from schema..."
-./packages/database/node_modules/.bin/prisma generate --schema=packages/database/prisma/schema.prisma
-echo "[startup] Prisma client regenerated."
+# ── 1b. (removed) boot-time `prisma generate` ────────────
+# We used to regenerate the Prisma client here to defend against a stale
+# client shipping on a turbo cache-hit. That is now handled at BUILD time —
+# the root `build` script runs `@orderhub/database db:generate` before turbo,
+# un-cached — so the deployed client always matches the schema. Running
+# `prisma generate` again at boot spiked memory past the 512Mi instance limit
+# and OOM-crash-looped the service, so it has been removed. Do NOT re-add it
+# here; fix stale-client issues in the build step instead.
 
 # ── 2. Apply database migrations ─────────────────────────
 # DIRECT_URL is used by Prisma for migrations (bypasses PgBouncer pooler).
