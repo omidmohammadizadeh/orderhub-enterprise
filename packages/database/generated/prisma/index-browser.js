@@ -303,9 +303,6 @@ exports.Prisma.BrandScalarFieldEnum = {
   applicationFeeFixedAmount: 'applicationFeeFixedAmount',
   applicationFeePercentage: 'applicationFeePercentage',
   applicationFeeMode: 'applicationFeeMode',
-  posStripeAccountId: 'posStripeAccountId',
-  posApplicationFeePercent: 'posApplicationFeePercent',
-  posApplicationFeeFixedMinor: 'posApplicationFeeFixedMinor',
   openingHours: 'openingHours',
   prepTime: 'prepTime',
   busyExtraPrepTime: 'busyExtraPrepTime',
@@ -347,6 +344,9 @@ exports.Prisma.LocationScalarFieldEnum = {
   applicationFeeFixedAmount: 'applicationFeeFixedAmount',
   applicationFeePercentage: 'applicationFeePercentage',
   applicationFeeMode: 'applicationFeeMode',
+  posStripeAccountId: 'posStripeAccountId',
+  posApplicationFeePercent: 'posApplicationFeePercent',
+  posApplicationFeeFixedMinor: 'posApplicationFeeFixedMinor',
   status: 'status',
   googleReviewUrl: 'googleReviewUrl',
   busyModeJson: 'busyModeJson',
@@ -2127,7 +2127,6 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   customDomainStatus: 'customDomainStatus',
   stripeConnectedAccountId: 'stripeConnectedAccountId',
   applicationFeeMode: 'applicationFeeMode',
-  posStripeAccountId: 'posStripeAccountId',
   defaultStationId: 'defaultStationId'
 };
 
@@ -2155,6 +2154,7 @@ exports.Prisma.LocationOrderByRelevanceFieldEnum = {
   hubriseLocationId: 'hubriseLocationId',
   stripeConnectedAccountId: 'stripeConnectedAccountId',
   applicationFeeMode: 'applicationFeeMode',
+  posStripeAccountId: 'posStripeAccountId',
   status: 'status',
   googleReviewUrl: 'googleReviewUrl',
   shopCode: 'shopCode',
