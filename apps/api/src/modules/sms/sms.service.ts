@@ -110,12 +110,21 @@ export class SmsService {
         providerSid: json.sid,
         segments,
       });
-      // Charge the wallet for exactly what Twilio reported (num_segments). Never
-      // throws — the message already went out; a debit failure is logged only.
+      // Charge the wallet. Never throws — the message already went out; a debit
+      // failure is logged only.
+      //
+      // Payment-link texts are billed at a FLAT single segment (7p): the
+      // customer-facing product is "7p per payment link". A hosted Stripe
+      // checkout URL is long enough to span several Twilio segments, so
+      // charging per actual segment would over-bill the restaurant (a single
+      // link came out at 9 segments / 63p). We still record the true segment
+      // count on the SmsMessage row for our own cost tracking. Marketing texts
+      // remain per-segment (their length is controlled by the operator).
       if (bill) {
+        const billedSegments = args.purpose === "PAYMENT_LINK" ? 1 : segments;
         await this.wallet.debitForSms({
           tenantId: args.tenantId,
-          segments,
+          segments: billedSegments,
           purpose: WALLET_PURPOSE[args.purpose],
           smsMessageId,
           locationId: args.locationId ?? null,

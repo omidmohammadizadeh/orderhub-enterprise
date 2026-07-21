@@ -1067,7 +1067,12 @@ export class PaymentsService {
     if (!order) throw new NotFoundException("Order not found");
 
     const { url } = await this.createOrderPaymentLink(tenantId, orderId);
-    const body = `Your payment link: pay £${Number(order.total).toFixed(2)} securely here — ${url}`;
+    // Keep this body GSM-7 only (no em dash / smart punctuation): a single
+    // non-GSM character forces the whole SMS into UCS-2 encoding, which cuts
+    // the per-segment limit from 153 to 67 chars and — with a long Stripe URL —
+    // exploded a single link into 9 Twilio segments. The colon/hyphen below are
+    // all GSM-7. (Billing is also capped at 1 segment for payment links.)
+    const body = `Pay £${Number(order.total).toFixed(2)} for your order securely here: ${url}`;
 
     await this.sms.send({
       tenantId,
