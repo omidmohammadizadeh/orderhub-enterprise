@@ -292,22 +292,32 @@ export default function PosPage() {
       // scheduled date/time on the ticket, so the kitchen knows when
       // it's for, rather than being parked until their slot.
       //
-      // Best-effort: if the location has auto-accept ON, the order is already
-      // ACCEPTED server-side and this PATCH would 400 with "ACCEPTED →
-      // ACCEPTED". That must NOT fail the placement (it would show an error
-      // and skip the cart/payment reset), so swallow an already-accepted
-      // response and only surface genuinely unexpected failures.
-      try {
-        await apiClient.patch(`/v1/orders/${created.id}/status`, {
-          status: "ACCEPTED",
-          note: "POS auto-accept",
-        });
-      } catch (err: any) {
-        const msg = String(err?.response?.data?.message ?? "");
-        if (!/ACCEPTED\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) {
-          throw err;
+      // EXCEPTION: an unpaid "Payment link" order must NOT be accepted here.
+      // It belongs in the "Waiting for payment" tab and must not print until
+      // the customer pays — the Stripe webhook then moves it to New, accepts
+      // it, and prints the ticket. Accepting it now (client-side) is what made
+      // it jump straight to New/Accepted before payment.
+      const isUnpaidPaymentLink =
+        payload.paymentMethod === "PAYMENT_LINK" &&
+        payload.paymentStatus !== "PAID";
+      if (!isUnpaidPaymentLink) {
+        // Best-effort: if the location has auto-accept ON, the order is already
+        // ACCEPTED server-side and this PATCH would 400 with "ACCEPTED →
+        // ACCEPTED". That must NOT fail the placement (it would show an error
+        // and skip the cart/payment reset), so swallow an already-accepted
+        // response and only surface genuinely unexpected failures.
+        try {
+          await apiClient.patch(`/v1/orders/${created.id}/status`, {
+            status: "ACCEPTED",
+            note: "POS auto-accept",
+          });
+        } catch (err: any) {
+          const msg = String(err?.response?.data?.message ?? "");
+          if (!/ACCEPTED\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) {
+            throw err;
+          }
+          // Already accepted (location auto-accept) — nothing to do.
         }
-        // Already accepted (location auto-accept) — nothing to do.
       }
 
       return {
