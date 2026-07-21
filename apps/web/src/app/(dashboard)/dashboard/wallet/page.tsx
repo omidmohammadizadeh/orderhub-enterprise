@@ -64,7 +64,7 @@ function WalletInner() {
     return selected;
   })();
 
-  const rate = wallet?.pricePerSegmentMinor ?? 7;
+  const rate = wallet?.pricePerSegmentMinor ?? 10;
   const approxTexts = wallet ? Math.floor(wallet.balanceMinor / rate) : 0;
 
   return (

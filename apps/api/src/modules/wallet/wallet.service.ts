@@ -18,7 +18,11 @@ try {
   Stripe = null;
 }
 
-const DEFAULT_PRICE_PER_SEGMENT_MINOR = 7; // 7p per Twilio segment
+// Platform sell price per SMS segment (pence). Twilio's UK cost is ~5.6p/seg,
+// so 10p leaves a healthy margin (payment links are 1 segment via the short
+// link). Override globally with env SMS_PRICE_PER_SEGMENT_MINOR, or per wallet
+// with wallets.smsPricePerSegmentMinor.
+const DEFAULT_PRICE_PER_SEGMENT_MINOR = 10; // 10p per Twilio segment
 
 export interface WalletSummary {
   balanceMinor: number;
