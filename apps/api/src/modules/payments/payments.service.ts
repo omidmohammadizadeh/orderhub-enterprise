@@ -2329,6 +2329,13 @@ export class PaymentsService {
       case "payment_intent.payment_failed": {
         const pi = event.data.object;
         const tenantId = pi.metadata?.tenantId;
+        // Surface WHY the card failed (decline code + message) so a "processing
+        // error occurred" on the customer's screen is diagnosable from our logs.
+        const lpe = pi.last_payment_error ?? {};
+        this.logger.warn(
+          `Stripe payment_failed PI ${pi.id} (order ${pi.metadata?.orderId ?? "?"}, acct ${event.account ?? "platform"}): ` +
+            `code=${lpe.code ?? "?"} decline=${lpe.decline_code ?? "-"} type=${lpe.type ?? "?"} msg="${lpe.message ?? "?"}"`,
+        );
         if (tenantId) {
           await (this.prisma as any).payment
             .updateMany({
