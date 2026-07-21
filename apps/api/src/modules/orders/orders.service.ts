@@ -233,12 +233,50 @@ export class OrdersService {
       // the swallowed catch made it look like auto-accept "didn't work".
       const fresh = await this.prisma.order.findUnique({
         where: { id: orderId },
-        select: { status: true, platform: true, orderSource: true, metadata: true },
+        select: {
+          status: true,
+          platform: true,
+          orderSource: true,
+          metadata: true,
+          paymentMethod: true,
+          paymentStatus: true,
+        },
       });
       if (!fresh) return;
       if (fresh.status !== "PENDING") {
         this.logger.log(
           `Auto-accept skipped order ${orderId} — already ${fresh.status}`,
+        );
+        return;
+      }
+      // Never auto-accept an order we haven't been paid for yet when WE
+      // collect the payment (POS "Payment link" + direct/storefront/WhatsApp
+      // card). These belong in "Waiting for payment" until the Stripe webhook
+      // flips them to PAID/AUTHORIZED, at which point confirmPayment/
+      // markAuthorized re-fires this via the payment.authorized event. This is
+      // the single chokepoint that guards EVERY caller — the ingest path, the
+      // payment.authorized listener, AND the P2002 repeat-ingest safety net
+      // (a POS double-submit used to slip through the last one and accept +
+      // print a ticket the customer hadn't paid for). paymentMethod/Status may
+      // sit top-level or in metadata depending on the create path — check both.
+      const fmeta: any = (fresh.metadata as any) ?? {};
+      const payMethod = (fresh as any).paymentMethod ?? fmeta.paymentMethod;
+      const payStatus = (fresh as any).paymentStatus ?? fmeta.paymentStatus;
+      const isDirectSource =
+        fresh.orderSource === "POS" ||
+        fresh.orderSource === "DIRECT" ||
+        fresh.orderSource === "ONLINE" ||
+        fresh.orderSource === "WHATSAPP";
+      const unpaidPaymentLink =
+        payMethod === "PAYMENT_LINK" && payStatus !== "PAID";
+      const unpaidDirectCard =
+        isDirectSource &&
+        payMethod === "CARD" &&
+        payStatus !== "PAID" &&
+        payStatus !== "AUTHORIZED";
+      if (unpaidPaymentLink || unpaidDirectCard) {
+        this.logger.log(
+          `Auto-accept skipped order ${orderId} — awaiting payment (${payMethod}/${payStatus})`,
         );
         return;
       }
