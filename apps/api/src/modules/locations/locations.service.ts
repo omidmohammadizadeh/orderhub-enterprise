@@ -466,7 +466,7 @@ export class LocationsService {
       }
     }
 
-    return this.prisma.location.update({
+    const updated = await this.prisma.location.update({
       where: { id: locationId },
       data: {
         ...(dto.name && { name: dto.name }),
@@ -493,15 +493,14 @@ export class LocationsService {
           applicationFeePercentage: dto.applicationFeePercentage,
         }),
         ...(dto.applicationFeeMode !== undefined && { applicationFeeMode: dto.applicationFeeMode }),
-        ...(dto.posStripeAccountId !== undefined && {
-          posStripeAccountId: dto.posStripeAccountId,
-        }),
-        ...(dto.posApplicationFeePercent !== undefined && {
-          posApplicationFeePercent: dto.posApplicationFeePercent,
-        }),
-        ...(dto.posApplicationFeeFixedMinor !== undefined && {
-          posApplicationFeeFixedMinor: dto.posApplicationFeeFixedMinor,
-        }),
+        // NOTE: posStripeAccountId / posApplicationFeePercent /
+        // posApplicationFeeFixedMinor are intentionally NOT written here.
+        // They are persisted via a raw SQL UPDATE below so the save keeps
+        // working even if the deployed Prisma client is stale (a cached
+        // build can ship a runtime client whose DMMF predates these
+        // columns, which makes prisma.location.update reject them as
+        // "Unknown argument"). The columns exist in the DB; raw SQL
+        // skips the client-side validation.
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.timezone !== undefined && { timezone: dto.timezone }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
@@ -526,6 +525,46 @@ export class LocationsService {
         }),
       },
     });
+
+    // POS Stripe settings — written via raw SQL (see note above). Only the
+    // fields the operator actually sent are touched; each is bound as a
+    // positional parameter so values are never string-interpolated.
+    const posSets: string[] = [];
+    const posParams: unknown[] = [];
+    if (dto.posStripeAccountId !== undefined) {
+      posParams.push(dto.posStripeAccountId);
+      posSets.push(`"posStripeAccountId" = $${posParams.length}`);
+    }
+    if (dto.posApplicationFeePercent !== undefined) {
+      posParams.push(dto.posApplicationFeePercent);
+      posSets.push(`"posApplicationFeePercent" = $${posParams.length}`);
+    }
+    if (dto.posApplicationFeeFixedMinor !== undefined) {
+      posParams.push(dto.posApplicationFeeFixedMinor);
+      posSets.push(`"posApplicationFeeFixedMinor" = $${posParams.length}`);
+    }
+    if (posSets.length > 0) {
+      posParams.push(locationId);
+      await this.prisma.$executeRawUnsafe(
+        `UPDATE "locations" SET ${posSets.join(", ")} WHERE "id" = $${posParams.length}`,
+        ...posParams,
+      );
+      // Reflect the saved values in the returned object so the client sees
+      // them immediately without a re-fetch.
+      Object.assign(updated, {
+        ...(dto.posStripeAccountId !== undefined && {
+          posStripeAccountId: dto.posStripeAccountId,
+        }),
+        ...(dto.posApplicationFeePercent !== undefined && {
+          posApplicationFeePercent: dto.posApplicationFeePercent,
+        }),
+        ...(dto.posApplicationFeeFixedMinor !== undefined && {
+          posApplicationFeeFixedMinor: dto.posApplicationFeeFixedMinor,
+        }),
+      });
+    }
+
+    return updated;
   }
 
   /**
