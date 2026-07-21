@@ -803,9 +803,25 @@ export class PaymentsService {
     if (usePosOverride) {
       connect = { id: null, stripeAccountId: posAcct };
       const pct = Number(loc?.posApplicationFeePercent ?? 0);
-      const fixedMinor = Number(loc?.posApplicationFeeFixedMinor ?? 0);
-      applicationFeePence =
-        Math.round((totalGbp * pct) / 100) + Math.round(fixedMinor);
+      const fixedPence = Math.max(
+        0,
+        Math.round(Number(loc?.posApplicationFeeFixedMinor ?? 0)),
+      );
+      // Match the online-ordering fee model:
+      //   • Percentage → the platform's cut, taken from the RESTAURANT's
+      //     payout (part of application_fee_amount). The customer is NOT
+      //     charged for it — they pay only their normal basket total.
+      //     `totalGbp` is in pounds and `pct` is a whole-percent value, so
+      //     pounds×percent already yields pence of that percentage
+      //     (÷100 for percent and ×100 for pounds→pence cancel out).
+      //     The previous code divided by 100 again, so a 5% fee on a £1.20
+      //     order rounded to 0 pence — which is why no fee was applied.
+      //   • Fixed → added ON TOP of the customer's bill as a "Service
+      //     charge" line (an add-on), and kept by the platform (included in
+      //     application_fee_amount) so the restaurant doesn't absorb it.
+      const pctPence = Math.max(0, Math.round(totalGbp * pct));
+      customerSurchargePence = fixedPence;
+      applicationFeePence = pctPence + fixedPence;
     } else {
       connect = await this.resolveConnectAccount(
         params.tenantId,
