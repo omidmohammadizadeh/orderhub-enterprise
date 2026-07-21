@@ -48,6 +48,17 @@ export function useAutoAccept(locationId?: string) {
     if (!locationId || !autoAccept || !orders) return;
     for (const o of orders) {
       if (String(o.status ?? "").toUpperCase() !== "PENDING") continue;
+      // Unpaid POS "Payment link" orders must NOT be auto-accepted — they
+      // belong in the "Waiting for payment" tab until the customer pays.
+      // The Stripe webhook (confirmPayment → payment.authorized) flips them
+      // to PAID and re-accepts/prints then. Accepting here (the location's
+      // Automation auto-accept) is what pulled them into New before payment.
+      // Mirrors the isWaitingForPayment predicate on the board.
+      if (
+        (o as any).paymentMethod === "PAYMENT_LINK" &&
+        (o as any).paymentStatus !== "PAID"
+      )
+        continue;
       if (acceptedRef.current.has(o.id) || inFlightRef.current.has(o.id))
         continue;
       // Scheduled orders auto-accept on arrival just like any other —
