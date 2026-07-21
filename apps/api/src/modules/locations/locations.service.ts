@@ -61,6 +61,10 @@ export interface UpdateLocationDto {
   applicationFeeFixedAmount?: number | null;
   applicationFeePercentage?: number | null;
   applicationFeeMode?: "none" | "fixed_only" | "percentage_only" | "fixed_and_percentage";
+  // POS "Payment link" Stripe settings (per-location).
+  posStripeAccountId?: string | null;
+  posApplicationFeePercent?: number | null;
+  posApplicationFeeFixedMinor?: number | null;
   status?: "active" | "suspended" | "closed";
   timezone?: string;
   isActive?: boolean;
@@ -489,6 +493,15 @@ export class LocationsService {
           applicationFeePercentage: dto.applicationFeePercentage,
         }),
         ...(dto.applicationFeeMode !== undefined && { applicationFeeMode: dto.applicationFeeMode }),
+        ...(dto.posStripeAccountId !== undefined && {
+          posStripeAccountId: dto.posStripeAccountId,
+        }),
+        ...(dto.posApplicationFeePercent !== undefined && {
+          posApplicationFeePercent: dto.posApplicationFeePercent,
+        }),
+        ...(dto.posApplicationFeeFixedMinor !== undefined && {
+          posApplicationFeeFixedMinor: dto.posApplicationFeeFixedMinor,
+        }),
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.timezone !== undefined && { timezone: dto.timezone }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),

@@ -24658,6 +24658,8 @@ export namespace Prisma {
   export type BrandAvgAggregateOutputType = {
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
+    posApplicationFeePercent: Decimal | null
+    posApplicationFeeFixedMinor: number | null
     prepTime: number | null
     busyExtraPrepTime: number | null
   }
@@ -24665,6 +24667,8 @@ export namespace Prisma {
   export type BrandSumAggregateOutputType = {
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
+    posApplicationFeePercent: Decimal | null
+    posApplicationFeeFixedMinor: number | null
     prepTime: number | null
     busyExtraPrepTime: number | null
   }
@@ -24696,6 +24700,9 @@ export namespace Prisma {
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string | null
+    posStripeAccountId: string | null
+    posApplicationFeePercent: Decimal | null
+    posApplicationFeeFixedMinor: number | null
     prepTime: number | null
     busyExtraPrepTime: number | null
     defaultStationId: string | null
@@ -24730,6 +24737,9 @@ export namespace Prisma {
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string | null
+    posStripeAccountId: string | null
+    posApplicationFeePercent: Decimal | null
+    posApplicationFeeFixedMinor: number | null
     prepTime: number | null
     busyExtraPrepTime: number | null
     defaultStationId: string | null
@@ -24766,6 +24776,9 @@ export namespace Prisma {
     applicationFeeFixedAmount: number
     applicationFeePercentage: number
     applicationFeeMode: number
+    posStripeAccountId: number
+    posApplicationFeePercent: number
+    posApplicationFeeFixedMinor: number
     openingHours: number
     prepTime: number
     busyExtraPrepTime: number
@@ -24779,6 +24792,8 @@ export namespace Prisma {
   export type BrandAvgAggregateInputType = {
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
+    posApplicationFeePercent?: true
+    posApplicationFeeFixedMinor?: true
     prepTime?: true
     busyExtraPrepTime?: true
   }
@@ -24786,6 +24801,8 @@ export namespace Prisma {
   export type BrandSumAggregateInputType = {
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
+    posApplicationFeePercent?: true
+    posApplicationFeeFixedMinor?: true
     prepTime?: true
     busyExtraPrepTime?: true
   }
@@ -24817,6 +24834,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
     applicationFeeMode?: true
+    posStripeAccountId?: true
+    posApplicationFeePercent?: true
+    posApplicationFeeFixedMinor?: true
     prepTime?: true
     busyExtraPrepTime?: true
     defaultStationId?: true
@@ -24851,6 +24871,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
     applicationFeeMode?: true
+    posStripeAccountId?: true
+    posApplicationFeePercent?: true
+    posApplicationFeeFixedMinor?: true
     prepTime?: true
     busyExtraPrepTime?: true
     defaultStationId?: true
@@ -24887,6 +24910,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
     applicationFeeMode?: true
+    posStripeAccountId?: true
+    posApplicationFeePercent?: true
+    posApplicationFeeFixedMinor?: true
     openingHours?: true
     prepTime?: true
     busyExtraPrepTime?: true
@@ -25011,6 +25037,9 @@ export namespace Prisma {
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string
+    posStripeAccountId: string | null
+    posApplicationFeePercent: Decimal | null
+    posApplicationFeeFixedMinor: number | null
     openingHours: JsonValue
     prepTime: number | null
     busyExtraPrepTime: number | null
@@ -25067,6 +25096,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
+    posStripeAccountId?: boolean
+    posApplicationFeePercent?: boolean
+    posApplicationFeeFixedMinor?: boolean
     openingHours?: boolean
     prepTime?: boolean
     busyExtraPrepTime?: boolean
@@ -25119,6 +25151,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
+    posStripeAccountId?: boolean
+    posApplicationFeePercent?: boolean
+    posApplicationFeeFixedMinor?: boolean
     openingHours?: boolean
     prepTime?: boolean
     busyExtraPrepTime?: boolean
@@ -25158,6 +25193,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
+    posStripeAccountId?: boolean
+    posApplicationFeePercent?: boolean
+    posApplicationFeeFixedMinor?: boolean
     openingHours?: boolean
     prepTime?: boolean
     busyExtraPrepTime?: boolean
@@ -25235,6 +25273,9 @@ export namespace Prisma {
       applicationFeeFixedAmount: Prisma.Decimal | null
       applicationFeePercentage: Prisma.Decimal | null
       applicationFeeMode: string
+      posStripeAccountId: string | null
+      posApplicationFeePercent: Prisma.Decimal | null
+      posApplicationFeeFixedMinor: number | null
       openingHours: Prisma.JsonValue
       prepTime: number | null
       busyExtraPrepTime: number | null
@@ -25676,6 +25717,9 @@ export namespace Prisma {
     readonly applicationFeeFixedAmount: FieldRef<"Brand", 'Decimal'>
     readonly applicationFeePercentage: FieldRef<"Brand", 'Decimal'>
     readonly applicationFeeMode: FieldRef<"Brand", 'String'>
+    readonly posStripeAccountId: FieldRef<"Brand", 'String'>
+    readonly posApplicationFeePercent: FieldRef<"Brand", 'Decimal'>
+    readonly posApplicationFeeFixedMinor: FieldRef<"Brand", 'Int'>
     readonly openingHours: FieldRef<"Brand", 'Json'>
     readonly prepTime: FieldRef<"Brand", 'Int'>
     readonly busyExtraPrepTime: FieldRef<"Brand", 'Int'>
@@ -133420,6 +133464,9 @@ export namespace Prisma {
     applicationFeeFixedAmount: 'applicationFeeFixedAmount',
     applicationFeePercentage: 'applicationFeePercentage',
     applicationFeeMode: 'applicationFeeMode',
+    posStripeAccountId: 'posStripeAccountId',
+    posApplicationFeePercent: 'posApplicationFeePercent',
+    posApplicationFeeFixedMinor: 'posApplicationFeeFixedMinor',
     openingHours: 'openingHours',
     prepTime: 'prepTime',
     busyExtraPrepTime: 'busyExtraPrepTime',
@@ -135595,6 +135642,7 @@ export namespace Prisma {
     customDomainStatus: 'customDomainStatus',
     stripeConnectedAccountId: 'stripeConnectedAccountId',
     applicationFeeMode: 'applicationFeeMode',
+    posStripeAccountId: 'posStripeAccountId',
     defaultStationId: 'defaultStationId'
   };
 
@@ -138782,6 +138830,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Brand"> | string
+    posStripeAccountId?: StringNullableFilter<"Brand"> | string | null
+    posApplicationFeePercent?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: IntNullableFilter<"Brand"> | number | null
     openingHours?: JsonFilter<"Brand">
     prepTime?: IntNullableFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableFilter<"Brand"> | number | null
@@ -138833,6 +138884,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: SortOrderInput | SortOrder
     applicationFeePercentage?: SortOrderInput | SortOrder
     applicationFeeMode?: SortOrder
+    posStripeAccountId?: SortOrderInput | SortOrder
+    posApplicationFeePercent?: SortOrderInput | SortOrder
+    posApplicationFeeFixedMinor?: SortOrderInput | SortOrder
     openingHours?: SortOrder
     prepTime?: SortOrderInput | SortOrder
     busyExtraPrepTime?: SortOrderInput | SortOrder
@@ -138889,6 +138943,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Brand"> | string
+    posStripeAccountId?: StringNullableFilter<"Brand"> | string | null
+    posApplicationFeePercent?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: IntNullableFilter<"Brand"> | number | null
     openingHours?: JsonFilter<"Brand">
     prepTime?: IntNullableFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableFilter<"Brand"> | number | null
@@ -138940,6 +138997,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: SortOrderInput | SortOrder
     applicationFeePercentage?: SortOrderInput | SortOrder
     applicationFeeMode?: SortOrder
+    posStripeAccountId?: SortOrderInput | SortOrder
+    posApplicationFeePercent?: SortOrderInput | SortOrder
+    posApplicationFeeFixedMinor?: SortOrderInput | SortOrder
     openingHours?: SortOrder
     prepTime?: SortOrderInput | SortOrder
     busyExtraPrepTime?: SortOrderInput | SortOrder
@@ -138985,6 +139045,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: DecimalNullableWithAggregatesFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableWithAggregatesFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringWithAggregatesFilter<"Brand"> | string
+    posStripeAccountId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    posApplicationFeePercent?: DecimalNullableWithAggregatesFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: IntNullableWithAggregatesFilter<"Brand"> | number | null
     openingHours?: JsonWithAggregatesFilter<"Brand">
     prepTime?: IntNullableWithAggregatesFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableWithAggregatesFilter<"Brand"> | number | null
@@ -150510,6 +150573,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -150560,6 +150626,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -150608,6 +150677,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -150658,6 +150730,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -150707,6 +150782,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -150743,6 +150821,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -150779,6 +150860,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -163901,6 +163985,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
+    posStripeAccountId?: SortOrder
+    posApplicationFeePercent?: SortOrder
+    posApplicationFeeFixedMinor?: SortOrder
     openingHours?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
@@ -163912,6 +163999,8 @@ export namespace Prisma {
   export type BrandAvgOrderByAggregateInput = {
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
+    posApplicationFeePercent?: SortOrder
+    posApplicationFeeFixedMinor?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
   }
@@ -163943,6 +164032,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
+    posStripeAccountId?: SortOrder
+    posApplicationFeePercent?: SortOrder
+    posApplicationFeeFixedMinor?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
     defaultStationId?: SortOrder
@@ -163977,6 +164069,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
+    posStripeAccountId?: SortOrder
+    posApplicationFeePercent?: SortOrder
+    posApplicationFeeFixedMinor?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
     defaultStationId?: SortOrder
@@ -163987,6 +164082,8 @@ export namespace Prisma {
   export type BrandSumOrderByAggregateInput = {
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
+    posApplicationFeePercent?: SortOrder
+    posApplicationFeeFixedMinor?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
   }
@@ -180433,6 +180530,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -180481,6 +180581,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -181541,6 +181644,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Brand"> | string
+    posStripeAccountId?: StringNullableFilter<"Brand"> | string | null
+    posApplicationFeePercent?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: IntNullableFilter<"Brand"> | number | null
     openingHours?: JsonFilter<"Brand">
     prepTime?: IntNullableFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableFilter<"Brand"> | number | null
@@ -183599,6 +183705,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -183648,6 +183757,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -183774,6 +183886,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -183823,6 +183938,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -186432,6 +186550,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -186481,6 +186602,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -187616,6 +187740,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -187665,6 +187792,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -188472,6 +188602,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -188521,6 +188654,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -188739,6 +188875,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -188788,6 +188927,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -189312,6 +189454,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -189361,6 +189506,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -189568,6 +189716,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -189617,6 +189768,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -190257,6 +190411,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -190306,6 +190463,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -190454,6 +190614,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -190503,6 +190666,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -192360,6 +192526,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -192409,6 +192578,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -192666,6 +192838,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -192715,6 +192890,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -193689,6 +193867,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -193738,6 +193919,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -193801,6 +193985,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -193850,6 +194037,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -193897,6 +194087,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -193946,6 +194139,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -194009,6 +194205,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -194058,6 +194257,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -194957,6 +195159,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -195006,6 +195211,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -195230,6 +195438,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -195279,6 +195490,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -195719,6 +195933,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -195768,6 +195985,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -195938,6 +196158,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -195987,6 +196210,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -196686,6 +196912,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -196735,6 +196964,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -196959,6 +197191,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -197008,6 +197243,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -197675,6 +197913,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -197724,6 +197965,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -198396,6 +198640,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -198445,6 +198692,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -202246,6 +202496,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -202295,6 +202548,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -211691,6 +211947,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -212051,6 +212310,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -212099,6 +212361,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -212147,6 +212412,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -218672,6 +218940,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
@@ -218846,6 +219117,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -218895,6 +219169,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
@@ -218943,6 +219220,9 @@ export namespace Prisma {
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null

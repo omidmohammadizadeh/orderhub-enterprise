@@ -168,6 +168,22 @@ function GeneralTab({
   );
   const [slug, setSlug] = useState(location?.onlineOrderingSlug ?? "");
   const [status, setStatus] = useState<LocationStatus>(location?.status ?? "active");
+  // POS Stripe settings — the Connect account + platform fee used by POS
+  // "Payment link" charges at this location. Fixed fee held in £ for the input,
+  // converted to pence on save.
+  const [posStripeAccountId, setPosStripeAccountId] = useState<string>(
+    (location as any)?.posStripeAccountId ?? "",
+  );
+  const [posFeePercent, setPosFeePercent] = useState<string>(
+    (location as any)?.posApplicationFeePercent != null
+      ? String((location as any).posApplicationFeePercent)
+      : "",
+  );
+  const [posFeeFixed, setPosFeeFixed] = useState<string>(
+    (location as any)?.posApplicationFeeFixedMinor != null
+      ? String((location as any).posApplicationFeeFixedMinor / 100)
+      : "",
+  );
   // POS display name — which brand's name POS + receipts show for this
   // location's walk-in/phone orders. Empty = use the order's own brand.
   const [posBrandId, setPosBrandId] = useState<string>(
@@ -270,6 +286,14 @@ function GeneralTab({
           : {}),
         hubriseCatalogId: hubriseCatalogId || null,
         hubriseLocationId: hubriseLocationId || null,
+        // POS "Payment link" Stripe settings.
+        posStripeAccountId: posStripeAccountId.trim() || null,
+        posApplicationFeePercent: posFeePercent.trim()
+          ? Number(posFeePercent)
+          : null,
+        posApplicationFeeFixedMinor: posFeeFixed.trim()
+          ? Math.round(Number(posFeeFixed) * 100)
+          : null,
         // POS display name — shallow-merged into Location.settings.
         settings: { posBrandId: posBrandId || null },
       } as any),
@@ -570,6 +594,57 @@ function GeneralTab({
         settings now live on each brand individually. Open the Brands
         tab, expand a brand, and click Connect on the "Direct online
         ordering" channel to configure payouts.
+      </div>
+
+      {/* POS Stripe settings — the Connect account + platform fee that POS
+          "Payment link" charges use for THIS location. Overrides the brand
+          account so a shop's card links always land on its own Stripe. */}
+      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">
+            POS Stripe settings
+          </h3>
+          <p className="text-[11px] text-zinc-500">
+            Used for POS <strong>Payment link</strong> charges at this location.
+            Leave blank to use the brand&apos;s Stripe account.
+          </p>
+        </div>
+        <Field label="Stripe connected account ID">
+          <input
+            value={posStripeAccountId}
+            onChange={(e) => setPosStripeAccountId(e.target.value)}
+            placeholder="acct_..."
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Application fee (%)">
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={posFeePercent}
+              onChange={(e) => setPosFeePercent(e.target.value)}
+              placeholder="e.g. 2.5"
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+          <Field label="Fixed fee per order (£)">
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={posFeeFixed}
+              onChange={(e) => setPosFeeFixed(e.target.value)}
+              placeholder="e.g. 0.20"
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+        </div>
+        <p className="text-[11px] text-zinc-400">
+          Platform fee taken per payment-link charge = percentage of the order
+          total plus the fixed amount. Both optional.
+        </p>
       </div>
 
       <Field label="Status">

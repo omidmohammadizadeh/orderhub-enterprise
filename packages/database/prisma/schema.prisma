@@ -408,6 +408,18 @@ model Brand {
   applicationFeePercentage  Decimal? @db.Decimal(5, 2)
   applicationFeeMode        String   @default("none") // none | fixed_only | percentage_only | fixed_and_percentage
 
+  // ── POS Stripe settings ────────────────────────────────────────────────
+  // Dedicated Stripe Connect account + application fee for POS "Payment link"
+  // charges at THIS location. When posStripeAccountId is set it OVERRIDES the
+  // brand/location resolution for payment links (which otherwise prefer the
+  // brand account) — so a shop's card links always land on its own Stripe
+  // account with its own platform fee. Blank = fall back to the normal
+  // resolveConnectAccount cascade. Fee = percent of order total + a fixed
+  // pence amount, both optional (0/blank = no platform fee).
+  posStripeAccountId          String?
+  posApplicationFeePercent    Decimal? @db.Decimal(5, 2)
+  posApplicationFeeFixedMinor Int?
+
   // Phase AW — DirectOrderingConfig now keys off the brand, not the
   // location. One config per brand drives that brand's storefront.
   directOrderingConfig DirectOrderingConfig?

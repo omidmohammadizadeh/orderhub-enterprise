@@ -303,6 +303,9 @@ exports.Prisma.BrandScalarFieldEnum = {
   applicationFeeFixedAmount: 'applicationFeeFixedAmount',
   applicationFeePercentage: 'applicationFeePercentage',
   applicationFeeMode: 'applicationFeeMode',
+  posStripeAccountId: 'posStripeAccountId',
+  posApplicationFeePercent: 'posApplicationFeePercent',
+  posApplicationFeeFixedMinor: 'posApplicationFeeFixedMinor',
   openingHours: 'openingHours',
   prepTime: 'prepTime',
   busyExtraPrepTime: 'busyExtraPrepTime',
@@ -2124,6 +2127,7 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   customDomainStatus: 'customDomainStatus',
   stripeConnectedAccountId: 'stripeConnectedAccountId',
   applicationFeeMode: 'applicationFeeMode',
+  posStripeAccountId: 'posStripeAccountId',
   defaultStationId: 'defaultStationId'
 };
 

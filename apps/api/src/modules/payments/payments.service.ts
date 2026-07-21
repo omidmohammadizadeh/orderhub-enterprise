@@ -739,33 +739,57 @@ export class PaymentsService {
       );
     }
 
-    const connect = await this.resolveConnectAccount(
-      params.tenantId,
-      order.locationId,
-      (order as any).brandId ?? null,
-    );
-    if (!connect) {
-      throw new BadRequestException(
-        "This brand has no active Stripe Connect account — operator must finish Stripe onboarding before accepting card payments.",
-      );
-    }
-
     // Order doesn't have a currency column today — every existing Payment
     // defaults to GBP per the Phase F schema, and the storefront is UK-
     // only. Hardcode here, override later if/when multi-currency lands.
     const currency = "gbp";
     const totalGbp = Number(order.total);
-    // Phase AW — brand-level fee config wins when its mode isn't
-    // "none". Falls back to the location's config (the legacy single-
-    // brand-per-location path) otherwise so existing payouts don't
-    // change behaviour for tenants that haven't filled brand fees in.
-    const brand = (order as any).brand as any;
-    const feeSource =
-      brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
-        ? brand
-        : order.location;
-    const { applicationFeePence, customerSurchargePence } =
-      this.computeFeeBreakdownPence(feeSource, totalGbp);
+
+    // ── POS "Payment link" Stripe override ─────────────────────────────────
+    // A POS payment link (captureMethod "automatic") uses THIS location's
+    // dedicated POS Stripe account + fee when configured, bypassing the
+    // brand-first resolveConnectAccount cascade — so a shop's card links always
+    // land on its own Stripe account (fixes links defaulting to a brand account
+    // that can't take live charges).
+    const loc = order.location as any;
+    const posAcct = (loc?.posStripeAccountId ?? "").trim();
+    const usePosOverride =
+      params.captureMethod === "automatic" && posAcct.startsWith("acct_");
+
+    let connect: { id: string | null; stripeAccountId: string } | null;
+    let applicationFeePence: number;
+    let customerSurchargePence = 0;
+
+    if (usePosOverride) {
+      connect = { id: null, stripeAccountId: posAcct };
+      const pct = Number(loc?.posApplicationFeePercent ?? 0);
+      const fixedMinor = Number(loc?.posApplicationFeeFixedMinor ?? 0);
+      applicationFeePence =
+        Math.round((totalGbp * pct) / 100) + Math.round(fixedMinor);
+    } else {
+      connect = await this.resolveConnectAccount(
+        params.tenantId,
+        order.locationId,
+        (order as any).brandId ?? null,
+      );
+      if (!connect) {
+        throw new BadRequestException(
+          "This brand has no active Stripe Connect account — operator must finish Stripe onboarding before accepting card payments.",
+        );
+      }
+      // Phase AW — brand-level fee config wins when its mode isn't
+      // "none". Falls back to the location's config (the legacy single-
+      // brand-per-location path) otherwise so existing payouts don't
+      // change behaviour for tenants that haven't filled brand fees in.
+      const brand = (order as any).brand as any;
+      const feeSource =
+        brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
+          ? brand
+          : order.location;
+      const breakdown = this.computeFeeBreakdownPence(feeSource, totalGbp);
+      applicationFeePence = breakdown.applicationFeePence;
+      customerSurchargePence = breakdown.customerSurchargePence;
+    }
 
     // One line item for the cart subtotal + one each for delivery / tax /
     // tip / discount as needed. Stripe shows each line on the hosted
