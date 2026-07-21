@@ -283,12 +283,35 @@ export class DeliverooOrderService {
     const externalId = deliverooOrderIdFrom(order, inner);
     if (!externalId) return { handled: false, reason: "no_order_id" };
 
-    const rider = inner?.rider ?? order?.rider ?? {};
-    // Deliveroo's docs call this the "Rider Status" — the exact field name
-    // isn't published, so accept both `status` and `rider_status` at each
-    // level. Values are the rider.status_update vocabulary (rider_assigned …
+    // Deliveroo's REAL rider.status_update payload nests rider data under
+    // `body.riders[]` — a plural ARRAY whose entries carry `full_name`,
+    // `contact_number`, `bridge_number`/`bridge_code`, and a `status_log[]`
+    // history ({at, status}, latest stage last). The singular `rider` object
+    // (with a top-level `status`) our first cut looked for never exists, so
+    // every event parsed to nothing. We read the array first and fall back to
+    // the old/doc shapes for safety.
+    const ridersArr = Array.isArray(inner?.riders)
+      ? inner.riders
+      : Array.isArray(order?.riders)
+        ? order.riders
+        : null;
+    const rider =
+      (ridersArr && ridersArr[ridersArr.length - 1]) ??
+      inner?.rider ??
+      order?.rider ??
+      {};
+
+    const statusLog: Array<{ at?: string; status?: string }> = Array.isArray(
+      rider?.status_log,
+    )
+      ? rider.status_log
+      : [];
+    const latestLog = statusLog.length ? statusLog[statusLog.length - 1] : null;
+
+    // Values are the rider.status_update vocabulary (rider_assigned …
     // rider_check_in … rider_delivered) handled in mapDeliverooRiderStatus.
     const rawStatus =
+      latestLog?.status ??
       inner?.status ??
       inner?.rider_status ??
       order?.status ??
@@ -312,20 +335,42 @@ export class DeliverooOrderService {
     // Write courier-tracking columns. Timestamps are set once (first event
     // wins) so a re-delivered event can't clobber the original pickup time.
     const updates: Record<string, any> = {};
-    const riderName = rider?.name ?? rider?.rider_name ?? inner?.rider_name;
+    const riderName =
+      rider?.full_name ?? rider?.name ?? rider?.rider_name ?? inner?.rider_name;
     const riderPhone =
-      rider?.contact_number ?? rider?.phone ?? rider?.phone_number;
+      rider?.contact_number ??
+      rider?.bridge_number ??
+      rider?.phone ??
+      rider?.phone_number;
     if (riderName) updates.courierName = riderName;
     if (riderPhone) updates.courierPhone = riderPhone;
     if (rawStatus) updates.courierStatus = String(rawStatus);
-    if (mapped === "ASSIGNED_DRIVER" && !o.courierAssignedAt) {
-      updates.courierAssignedAt = new Date();
+
+    // The payload carries the full stage history every time, so timestamp each
+    // milestone from the log's own `at` (exact + idempotent), falling back to
+    // now() when only a bare status arrived. First value wins — a later event
+    // can't clobber the original pickup/delivery time.
+    const stageAt = (...names: string[]): Date | null => {
+      const hit = statusLog.find((e) => names.includes(String(e?.status)));
+      return hit?.at ? new Date(hit.at) : null;
+    };
+    if (!o.courierAssignedAt) {
+      const at =
+        stageAt("rider_assigned") ??
+        (mapped === "ASSIGNED_DRIVER" ? new Date() : null);
+      if (at) updates.courierAssignedAt = at;
     }
-    if (mapped === "OUT_FOR_DELIVERY" && !o.courierPickedUpAt) {
-      updates.courierPickedUpAt = new Date();
+    if (!o.courierPickedUpAt) {
+      const at =
+        stageAt("rider_in_transit") ??
+        (mapped === "OUT_FOR_DELIVERY" ? new Date() : null);
+      if (at) updates.courierPickedUpAt = at;
     }
-    if (mapped === "COMPLETED" && !o.courierDeliveredAt) {
-      updates.courierDeliveredAt = new Date();
+    if (!o.courierDeliveredAt) {
+      const at =
+        stageAt("rider_delivered") ??
+        (mapped === "COMPLETED" ? new Date() : null);
+      if (at) updates.courierDeliveredAt = at;
     }
     if (Object.keys(updates).length) {
       await this.prisma.order.update({
