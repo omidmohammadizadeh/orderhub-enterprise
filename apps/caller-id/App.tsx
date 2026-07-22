@@ -61,6 +61,11 @@ export default function App() {
           title: "Order Hub Caller ID",
           message: "Watching for incoming calls",
           ServiceType: "dataSync",
+          // Use the launcher icon — the library's default "ic_notification"
+          // drawable doesn't exist in this app and throws on start.
+          icon: "ic_launcher",
+          largeIcon: "ic_launcher",
+          setOnlyAlertOnce: true,
         });
       } catch (e: any) {
         addLog(`Foreground service: ${e?.message ?? e}`);
