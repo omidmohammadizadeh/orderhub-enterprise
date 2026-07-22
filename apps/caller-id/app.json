@@ -21,6 +21,11 @@
     },
     "plugins": [
       "./plugins/withCallerId"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "05e8ed95-14b6-4fb1-b5ec-4e0f58dada6b"
+      }
+    }
   }
 }
