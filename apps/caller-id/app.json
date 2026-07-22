@@ -6,6 +6,10 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#0F172A",
+      "resizeMode": "contain"
+    },
     "android": {
       "package": "com.orderhubsolutions.callerid",
       "versionCode": 1,
