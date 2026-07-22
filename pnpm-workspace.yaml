@@ -4,3 +4,4 @@ packages:
   - "integrations/*"
   - "!apps/mobile"
   - "!apps/driver"
+  - "!apps/caller-id"

@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Order Hub Caller ID",
+    "slug": "orderhub-caller-id",
+    "scheme": "orderhubcallerid",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.orderhubsolutions.callerid",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "READ_PHONE_STATE",
+        "READ_CALL_LOG",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE",
+        "WAKE_LOCK"
+      ]
+    },
+    "plugins": [
+      "./plugins/withCallerId"
+    ]
+  }
+}
