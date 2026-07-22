@@ -5,14 +5,20 @@
     "scheme": "orderhubcallerid",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "backgroundColor": "#0F172A",
+      "image": "./assets/splash.png",
+      "backgroundColor": "#FFFFFF",
       "resizeMode": "contain"
     },
     "android": {
       "package": "com.orderhubsolutions.callerid",
       "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",
@@ -20,11 +26,22 @@
         "READ_CALL_LOG",
         "POST_NOTIFICATIONS",
         "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_DATA_SYNC",
         "WAKE_LOCK"
       ]
     },
     "plugins": [
-      "./plugins/withCallerId"
+      "./plugins/withCallerId",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "targetSdkVersion": 33,
+            "compileSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {

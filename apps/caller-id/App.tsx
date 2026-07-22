@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import ReactNativeForegroundService from "@supersami/rn-foreground-service";
 import {
   CallerIdConfig,
   EMPTY_CONFIG,
@@ -52,14 +53,31 @@ export default function App() {
   const toggleListening = async (on: boolean) => {
     await saveConfig(cfg);
     if (on) {
+      // Persistent foreground notification keeps the process (and the SIM
+      // listener) alive when the app is closed / backgrounded.
+      try {
+        ReactNativeForegroundService.start({
+          id: 1144,
+          title: "Order Hub Caller ID",
+          message: "Watching for incoming calls",
+          ServiceType: "dataSync",
+        });
+      } catch (e: any) {
+        addLog(`Foreground service: ${e?.message ?? e}`);
+      }
       startCallDetection(async (phone) => {
         const r = await postRing(cfgRef.current, phone, "SIM");
         addLog(`SIM ${phone} → ${r.detail}`, r.ok);
       }, (m) => addLog(m));
       setListening(true);
-      addLog("Listening for calls", true);
+      addLog("Listening for calls (background on)", true);
     } else {
       stopCallDetection();
+      try {
+        ReactNativeForegroundService.stop();
+      } catch {
+        /* ignore */
+      }
       setListening(false);
       addLog("Stopped");
     }
