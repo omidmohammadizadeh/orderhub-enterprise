@@ -1,0 +1,549 @@
+{
+  "version": "7.0",
+  "screens": [
+    {
+      "id": "CUSTOMISE",
+      "title": "Customise",
+      "terminal": true,
+      "data": {
+        "item_id": {
+          "type": "string",
+          "__example__": "item_1"
+        },
+        "subtitle": {
+          "type": "string",
+          "__example__": "Choose your options"
+        },
+        "notes_visible": {
+          "type": "boolean",
+          "__example__": true
+        },
+        "g0_visible": {
+          "type": "boolean",
+          "__example__": true
+        },
+        "g0_label": {
+          "type": "string",
+          "__example__": "Choice 1"
+        },
+        "g0_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g0_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g1_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g1_label": {
+          "type": "string",
+          "__example__": "Choice 2"
+        },
+        "g1_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g1_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g2_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g2_label": {
+          "type": "string",
+          "__example__": "Choice 3"
+        },
+        "g2_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g2_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g3_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g3_label": {
+          "type": "string",
+          "__example__": "Choice 4"
+        },
+        "g3_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g3_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g4_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g4_label": {
+          "type": "string",
+          "__example__": "Choice 5"
+        },
+        "g4_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g4_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g5_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g5_label": {
+          "type": "string",
+          "__example__": "Choice 6"
+        },
+        "g5_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g5_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g6_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g6_label": {
+          "type": "string",
+          "__example__": "Choice 7"
+        },
+        "g6_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g6_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g7_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g7_label": {
+          "type": "string",
+          "__example__": "Choice 8"
+        },
+        "g7_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g7_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g8_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g8_label": {
+          "type": "string",
+          "__example__": "Choice 9"
+        },
+        "g8_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g8_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g9_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g9_label": {
+          "type": "string",
+          "__example__": "Choice 10"
+        },
+        "g9_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g9_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g10_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g10_label": {
+          "type": "string",
+          "__example__": "Choice 11"
+        },
+        "g10_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g10_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "g11_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g11_label": {
+          "type": "string",
+          "__example__": "Choice 12"
+        },
+        "g11_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "g11_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextSubheading",
+            "text": "${data.subtitle}"
+          },
+          {
+            "type": "Form",
+            "name": "customise_form",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g0",
+                "label": "${data.g0_label}",
+                "data-source": "${data.g0_options}",
+                "required": "${data.g0_required}",
+                "visible": "${data.g0_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g1",
+                "label": "${data.g1_label}",
+                "data-source": "${data.g1_options}",
+                "required": "${data.g1_required}",
+                "visible": "${data.g1_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g2",
+                "label": "${data.g2_label}",
+                "data-source": "${data.g2_options}",
+                "required": "${data.g2_required}",
+                "visible": "${data.g2_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g3",
+                "label": "${data.g3_label}",
+                "data-source": "${data.g3_options}",
+                "required": "${data.g3_required}",
+                "visible": "${data.g3_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g4",
+                "label": "${data.g4_label}",
+                "data-source": "${data.g4_options}",
+                "required": "${data.g4_required}",
+                "visible": "${data.g4_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g5",
+                "label": "${data.g5_label}",
+                "data-source": "${data.g5_options}",
+                "required": "${data.g5_required}",
+                "visible": "${data.g5_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g6",
+                "label": "${data.g6_label}",
+                "data-source": "${data.g6_options}",
+                "required": "${data.g6_required}",
+                "visible": "${data.g6_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g7",
+                "label": "${data.g7_label}",
+                "data-source": "${data.g7_options}",
+                "required": "${data.g7_required}",
+                "visible": "${data.g7_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g8",
+                "label": "${data.g8_label}",
+                "data-source": "${data.g8_options}",
+                "required": "${data.g8_required}",
+                "visible": "${data.g8_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g9",
+                "label": "${data.g9_label}",
+                "data-source": "${data.g9_options}",
+                "required": "${data.g9_required}",
+                "visible": "${data.g9_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g10",
+                "label": "${data.g10_label}",
+                "data-source": "${data.g10_options}",
+                "required": "${data.g10_required}",
+                "visible": "${data.g10_visible}"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "g11",
+                "label": "${data.g11_label}",
+                "data-source": "${data.g11_options}",
+                "required": "${data.g11_required}",
+                "visible": "${data.g11_visible}"
+              },
+              {
+                "type": "TextInput",
+                "name": "notes",
+                "label": "Notes (optional)",
+                "required": false,
+                "visible": "${data.notes_visible}"
+              },
+              {
+                "type": "Footer",
+                "label": "Add to cart",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "item_id": "${data.item_id}",
+                    "notes": "${form.notes}",
+                    "g0": "${form.g0}",
+                    "g1": "${form.g1}",
+                    "g2": "${form.g2}",
+                    "g3": "${form.g3}",
+                    "g4": "${form.g4}",
+                    "g5": "${form.g5}",
+                    "g6": "${form.g6}",
+                    "g7": "${form.g7}",
+                    "g8": "${form.g8}",
+                    "g9": "${form.g9}",
+                    "g10": "${form.g10}",
+                    "g11": "${form.g11}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
