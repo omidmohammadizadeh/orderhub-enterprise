@@ -1,7 +1,8 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { ThrottlerModule } from "@nestjs/throttler";
+import { UserThrottlerGuard } from "./common/guards/user-throttler.guard";
 import { BullModule } from "@nestjs/bull";
 import { WinstonModule } from "nest-winston";
 import { CacheModule } from "@nestjs/cache-manager";
@@ -153,13 +154,15 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
         {
           name: "short",
           ttl: config.get<number>("app.throttle.shortTtl") ?? 1000,
-          limit: config.get<number>("app.throttle.shortLimit") ?? 50,
-        }, // 50 req/s — burst protection
+          limit: config.get<number>("app.throttle.shortLimit") ?? 120,
+        }, // 120 req/s — burst protection (a dashboard load fans out ~15 calls
+           // × several locations at once)
         {
           name: "medium",
           ttl: config.get<number>("app.throttle.mediumTtl") ?? 60000,
-          limit: config.get<number>("app.throttle.mediumLimit") ?? 1000,
-        }, // 1000 req/min — sustained polling across a shop's tablets
+          limit: config.get<number>("app.throttle.mediumLimit") ?? 4000,
+        }, // 4000 req/min — sustained polling; keyed per-user (UserThrottlerGuard)
+           // so an admin watching many locations across tabs doesn't 429 itself.
         {
           name: "webhook",
           ttl: config.get<number>("app.throttle.webhookTtl") ?? 60000,
@@ -284,7 +287,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: BillingGuard },
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: UserThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],
 })

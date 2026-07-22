@@ -24,7 +24,12 @@ export function GlobalCallerIdPopup() {
     staleTime: 5 * 60_000,
   });
 
-  const ids = (locations ?? []).map((l) => l.id);
+  const allIds = (locations ?? []).map((l) => l.id);
+  // Scope popups to the location the operator has selected in the switcher, so
+  // an admin working one shop doesn't get caller-ID popups for every other shop.
+  // "All locations" (selectedLocationId === null) listens on every accessible
+  // location — useful on the all-locations Orders board.
+  const ids = selectedLocationId ? [selectedLocationId] : allIds;
   if (ids.length === 0) return null;
 
   const names: Record<string, string> = {};
