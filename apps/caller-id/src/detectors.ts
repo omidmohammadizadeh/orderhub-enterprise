@@ -14,7 +14,11 @@ export function startCallDetection(
   onLog: (msg: string) => void,
 ): void {
   try {
-    const CallDetectorManager = require("react-native-call-detection").default;
+    // The lib uses a dual export (`export default module.exports = …`), so
+    // `.default` is undefined and `new undefined()` throws "prototype of
+    // undefined". Fall back to the module itself, which IS the class.
+    const mod = require("react-native-call-detection");
+    const CallDetectorManager = mod.default || mod;
     callDetector = new CallDetectorManager(
       (event: string, phoneNumber?: string) => {
         if (event === "Incoming") {
