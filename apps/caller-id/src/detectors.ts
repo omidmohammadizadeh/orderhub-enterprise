@@ -1,3 +1,4 @@
+import { PermissionsAndroid, Platform } from "react-native";
 import { loadConfig, voipPackageList } from "./config";
 import { normalisePhone, postRing } from "./api";
 
@@ -9,16 +10,37 @@ import { normalisePhone, postRing } from "./api";
 // keeps it alive — see the notification the app shows while listening).
 let callDetector: any = null;
 
-export function startCallDetection(
+export async function startCallDetection(
   onIncoming: (phone: string) => void,
   onLog: (msg: string) => void,
-): void {
+): Promise<void> {
+  if (Platform.OS !== "android") {
+    onLog("SIM detection is Android-only");
+    return;
+  }
   try {
-    // The lib uses a dual export (`export default module.exports = …`), so
-    // `.default` is undefined and `new undefined()` throws "prototype of
-    // undefined". Fall back to the module itself, which IS the class.
+    // CRITICAL: grant READ_PHONE_STATE (+ READ_CALL_LOG for the number) and WAIT
+    // for it BEFORE starting the listener. The library calls
+    // telephonyManager.listen() synchronously; on Android 12+/MIUI that throws a
+    // native SecurityException — which crashes the app (JS try/catch can't catch
+    // a native crash) — when the permission isn't already granted. Pre-granting
+    // is the only reliable prevention.
+    const res = await PermissionsAndroid.requestMultiple([
+      PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
+      PermissionsAndroid.PERMISSIONS.READ_CALL_LOG,
+    ]);
+    if (res["android.permission.READ_PHONE_STATE"] !== PermissionsAndroid.RESULTS.GRANTED) {
+      onLog("SIM: phone permission not granted — enable it in App info › Permissions");
+      return;
+    }
+
+    // Dual export (`export default module.exports = …`) → `.default` is undefined,
+    // so fall back to the module, which IS the class.
     const mod = require("react-native-call-detection");
     const CallDetectorManager = mod.default || mod;
+    // readPhoneNumberAndroid=false: WE just granted the permissions, so we skip
+    // the library's own un-awaited request (that race was the crash). The native
+    // listener still delivers the incoming number.
     callDetector = new CallDetectorManager(
       (event: string, phoneNumber?: string) => {
         if (event === "Incoming") {
@@ -27,8 +49,8 @@ export function startCallDetection(
           if (n) onIncoming(n);
         }
       },
-      true, // read the caller number
-      () => onLog("SIM: phone permission denied"),
+      false,
+      () => onLog("SIM: permission denied"),
       {
         title: "Phone access",
         message: "Order Hub Caller ID needs to read incoming calls.",
