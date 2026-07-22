@@ -170,17 +170,16 @@ export function PosCartPanel(props: CartPanelProps) {
   // prefill the caller number, name, and (for known customers) the chosen
   // previous delivery address.
   useEffect(() => {
-    const onFill = (e: Event) => {
-      const d = (e as CustomEvent).detail as {
-        phone: string;
-        name: string | null;
-        address: {
-          line1: string;
-          line2: string | null;
-          city: string | null;
-          postcode: string | null;
-        } | null;
-      };
+    const applyFill = (d: {
+      phone?: string;
+      name?: string | null;
+      address?: {
+        line1: string;
+        line2: string | null;
+        city: string | null;
+        postcode: string | null;
+      } | null;
+    }) => {
       if (!d?.phone) return;
       setCallerId(d.phone);
       setCustomerPhone(d.phone);
@@ -193,7 +192,19 @@ export function PosCartPanel(props: CartPanelProps) {
         setPostcode(d.address.postcode ?? "");
       }
     };
+    const onFill = (e: Event) => applyFill((e as CustomEvent).detail);
     window.addEventListener("pos:callerid-fill", onFill);
+    // Apply a caller stashed by the incoming-call popup when the operator tapped
+    // "Start order" from another screen (Orders tab) and we navigated here.
+    try {
+      const raw = sessionStorage.getItem("pos:pending-callerid-fill");
+      if (raw) {
+        sessionStorage.removeItem("pos:pending-callerid-fill");
+        applyFill(JSON.parse(raw));
+      }
+    } catch {
+      /* ignore */
+    }
     return () => window.removeEventListener("pos:callerid-fill", onFill);
   }, []);
 

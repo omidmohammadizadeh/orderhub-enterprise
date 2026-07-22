@@ -1,18 +1,21 @@
 "use client";
 
-// Landline caller-ID popup (Phase BB).
+// Incoming-call popup (Phase BB).
 //
-// The caller-ID hub tablet (CTI Comet USB reader on the shop's analogue
-// line) POSTs /v1/customers/caller-id/ring when the phone rings; the API
-// matches the number against past orders and broadcasts "callerid:ring" to
-// the location's room. Every POS tablet shows this card: known callers get
-// their name + previous addresses to tap straight into a new order.
+// A caller-ID source (the Comet USB hub tablet, the Order Hub Caller ID phone
+// app, or a VoIP webhook) POSTs the ringing number to the API, which matches it
+// against past orders and broadcasts "callerid:ring" to that location's room.
+// This card then shows on EVERY dashboard screen (mounted globally in the
+// layout) for ANY of the user's locations — known callers get their name +
+// previous addresses to tap straight into a new order.
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Phone, X } from "lucide-react";
 import type { CallerIdRingPayload } from "@orderhub/shared";
 import { getSocket } from "@/lib/socket/socket.client";
 import { useAuthStore } from "@/stores/auth.store";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { apiClient } from "@/lib/api/client";
 
 /** Payload the POS cart panel consumes via the "pos:callerid-fill" event. */
@@ -27,27 +30,50 @@ export interface CallerIdFill {
   } | null;
 }
 
+// A fill stashed here is picked up by the POS cart panel on mount — used when
+// the operator taps "Start order" from a NON-POS screen and we navigate to POS.
+export const PENDING_FILL_KEY = "pos:pending-callerid-fill";
+
 export function fillOrderFromCaller(detail: CallerIdFill) {
   window.dispatchEvent(new CustomEvent("pos:callerid-fill", { detail }));
 }
 
-export function CallerIdPopup({ locationId }: { locationId: string | null }) {
+export function CallerIdPopup({
+  locationIds,
+  nativeLocationId,
+  locationNames,
+}: {
+  /** Every location room to listen on (the user's accessible locations). */
+  locationIds: string[];
+  /** The active location the Comet-USB hub tablet forwards rings for. */
+  nativeLocationId?: string | null;
+  /** id → shop name, so a multi-location operator sees which shop is ringing. */
+  locationNames?: Record<string, string>;
+}) {
   const accessToken = useAuthStore((s) => s.accessToken);
+  const setSelectedLocationId = useSelectedLocationStore(
+    (s) => s.setSelectedLocationId,
+  );
+  const router = useRouter();
+  const pathname = usePathname();
   const [ring, setRing] = useState<CallerIdRingPayload | null>(null);
 
+  const roomKey = locationIds.join(",");
   useEffect(() => {
-    if (!locationId || !accessToken) return;
+    if (!accessToken || locationIds.length === 0) return;
     const socket = getSocket(accessToken);
-    socket.emit("room:join", locationId);
+    for (const id of locationIds) socket.emit("room:join", id);
     const onRing = (payload: CallerIdRingPayload) => {
-      if (payload.locationId !== locationId) return;
+      if (!locationIds.includes(payload.locationId)) return;
       setRing(payload);
     };
     socket.on("callerid:ring", onRing);
     return () => {
       socket.off("callerid:ring", onRing);
     };
-  }, [locationId, accessToken]);
+    // roomKey captures the location set; re-join if it changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomKey, accessToken]);
 
   // Auto-dismiss after 60s so a missed call doesn't sit on screen all night.
   useEffect(() => {
@@ -56,37 +82,52 @@ export function CallerIdPopup({ locationId }: { locationId: string | null }) {
     return () => clearTimeout(t);
   }, [ring]);
 
-  // Caller-ID HUB role: when this tablet is the one physically hosting the
-  // Comet USB reader, the native shell dispatches "native:callerid" with the
-  // ringing number. Forward it to the API (which matches the customer and
-  // broadcasts "callerid:ring" back to every tablet — including this one, so
-  // the popup path stays identical for hub and non-hub devices).
+  // Caller-ID HUB role: when this tablet hosts the Comet USB reader, the native
+  // shell dispatches "native:callerid" with the ringing number. Forward it to
+  // the API (which matches + broadcasts "callerid:ring" back to every tablet).
   useEffect(() => {
-    if (!locationId) return;
+    if (!nativeLocationId) return;
     const recent = new Map<string, number>();
     const onNative = (e: Event) => {
       const d = (e as CustomEvent).detail as { phone?: string };
       const phone = d?.phone?.trim();
       if (!phone) return;
-      // Belt-and-braces dedupe on top of the native reader's own.
       const now = Date.now();
       if (now - (recent.get(phone) ?? 0) < 10_000) return;
       recent.set(phone, now);
       apiClient
-        .post("/v1/customers/caller-id/ring", { locationId, phone })
+        .post("/v1/customers/caller-id/ring", { locationId: nativeLocationId, phone })
         .catch(() => {
-          /* ring is best-effort; the next ring retries */
+          /* best-effort; the next ring retries */
         });
     };
     window.addEventListener("native:callerid", onNative);
     return () => window.removeEventListener("native:callerid", onNative);
-  }, [locationId]);
+  }, [nativeLocationId]);
 
   if (!ring) return null;
-  const { phone, match } = ring;
+  const { phone, match, locationId: ringLocationId } = ring;
+  const shopName =
+    locationNames && locationIds.length > 1
+      ? locationNames[ringLocationId]
+      : undefined;
 
   const use = (address: CallerIdFill["address"]) => {
-    fillOrderFromCaller({ phone, name: match?.name ?? null, address });
+    const detail: CallerIdFill = { phone, name: match?.name ?? null, address };
+    if (pathname === "/dashboard/pos") {
+      // Already on POS — fill the open cart directly.
+      fillOrderFromCaller(detail);
+    } else {
+      // Elsewhere (e.g. the Orders tab) — carry the caller to POS and switch to
+      // the ringing shop, then the POS cart panel applies it on mount.
+      try {
+        sessionStorage.setItem(PENDING_FILL_KEY, JSON.stringify(detail));
+      } catch {
+        /* ignore */
+      }
+      setSelectedLocationId(ringLocationId);
+      router.push("/dashboard/pos");
+    }
     setRing(null);
   };
 
@@ -95,7 +136,7 @@ export function CallerIdPopup({ locationId }: { locationId: string | null }) {
       <div className="flex items-center justify-between rounded-t-xl bg-emerald-600 px-4 py-2.5">
         <p className="flex items-center gap-2 text-sm font-bold text-white">
           <Phone className="h-4 w-4 animate-pulse" />
-          Incoming call
+          Incoming call{shopName ? ` · ${shopName}` : ""}
         </p>
         <button
           onClick={() => setRing(null)}

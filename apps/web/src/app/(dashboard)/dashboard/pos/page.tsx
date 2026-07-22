@@ -27,7 +27,6 @@ import {
   type PartialDraft,
 } from "@/components/pos/pos-cart-panel";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
-import { CallerIdPopup } from "@/components/pos/caller-id-popup";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
 import { PaymentLinkModal } from "@/components/pos/payment-link-modal";
 import { PromosModal } from "@/components/pos/promos-modal";
@@ -569,9 +568,8 @@ export default function PosPage() {
         </div>
       )}
 
-      {/* Landline caller-ID popup — fires on the "callerid:ring" socket
-          event and prefills the cart via "pos:callerid-fill". */}
-      <CallerIdPopup locationId={selectedLocationId} />
+      {/* Incoming-call popup is now mounted globally in the dashboard layout
+          (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
 
       {/* Stripe Terminal charge modal — opens after a "Card terminal" order
           is placed; charges it to the S700/WisePOS reader. */}
