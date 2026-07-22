@@ -189,6 +189,18 @@ function GeneralTab({
   const [posBrandId, setPosBrandId] = useState<string>(
     (location as any)?.settings?.posBrandId ?? "",
   );
+  // Per-location telephony identity (SMS + caller ID). Stored on
+  // Location.settings; the API resolves the Twilio "From" from these so each
+  // shop texts from its own number/name (see sms.service resolveFrom).
+  const [smsSenderName, setSmsSenderName] = useState<string>(
+    (location as any)?.settings?.smsSenderName ?? "",
+  );
+  const [smsNumber, setSmsNumber] = useState<string>(
+    (location as any)?.settings?.smsNumber ?? "",
+  );
+  const [callerIdNumber, setCallerIdNumber] = useState<string>(
+    (location as any)?.settings?.callerIdNumber ?? "",
+  );
   const posBrandsQuery = useQuery({
     queryKey: ["brands", "location", location?.id, "pos-display"],
     queryFn: () => brandsClient.list(location!.id),
@@ -294,8 +306,14 @@ function GeneralTab({
         posApplicationFeeFixedMinor: posFeeFixed.trim()
           ? Math.round(Number(posFeeFixed) * 100)
           : null,
-        // POS display name — shallow-merged into Location.settings.
-        settings: { posBrandId: posBrandId || null },
+        // POS display name + per-location SMS/caller-ID identity — shallow-
+        // merged into Location.settings.
+        settings: {
+          posBrandId: posBrandId || null,
+          smsSenderName: smsSenderName.trim() || null,
+          smsNumber: smsNumber.trim() || null,
+          callerIdNumber: callerIdNumber.trim() || null,
+        },
       } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["locations"] });
@@ -644,6 +662,57 @@ function GeneralTab({
         <p className="text-[11px] text-zinc-400">
           Platform fee taken per payment-link charge = percentage of the order
           total plus the fixed amount. Both optional.
+        </p>
+      </div>
+
+      {/* Per-location phone identity — the number/name this shop's texts and
+          caller-ID use. Each client texts from its own sender. */}
+      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">
+            Phone &amp; SMS sender
+          </h3>
+          <p className="text-[11px] text-zinc-500">
+            How this shop&apos;s texts and caller ID appear. Leave blank to use
+            the platform default.
+          </p>
+        </div>
+        <Field label="SMS sender name (shown on payment links)">
+          <input
+            value={smsSenderName}
+            onChange={(e) => setSmsSenderName(e.target.value.slice(0, 11))}
+            placeholder="e.g. PizzaUno"
+            maxLength={11}
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          />
+        </Field>
+        <p className="text-[11px] text-zinc-400">
+          Up to 11 letters/numbers, must include a letter. Customers see this
+          name instead of a number on payment-link texts. Note: a name-only
+          sender is one-way — replies and &ldquo;STOP&rdquo; can&apos;t reach it,
+          so <strong>marketing</strong> texts use the number below instead.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="SMS number (marketing & replies)">
+            <input
+              value={smsNumber}
+              onChange={(e) => setSmsNumber(e.target.value)}
+              placeholder="+447..."
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+          <Field label="Caller-ID number">
+            <input
+              value={callerIdNumber}
+              onChange={(e) => setCallerIdNumber(e.target.value)}
+              placeholder="+447..."
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+        </div>
+        <p className="text-[11px] text-zinc-400">
+          The SMS number must be a number in your Twilio account. Marketing texts
+          send from it so customers can reply &ldquo;STOP&rdquo; to opt out.
         </p>
       </div>
 

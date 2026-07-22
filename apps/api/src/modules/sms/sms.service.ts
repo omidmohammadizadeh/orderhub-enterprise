@@ -75,7 +75,7 @@ export class SmsService {
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID!;
     const authToken = process.env.TWILIO_AUTH_TOKEN!;
-    const from = process.env.TWILIO_FROM!;
+    const from = await this.resolveFrom(args);
 
     const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
     const payload = new URLSearchParams({ To: args.to, From: from, Body: args.body });
@@ -137,6 +137,43 @@ export class SmsService {
       await this.log(args, { status: "FAILED", error: String(err?.message ?? err).slice(0, 500) });
       throw new BadRequestException(`SMS failed: ${err?.message ?? err}`);
     }
+  }
+
+  /**
+   * The Twilio "From" for a send, resolved per LOCATION so each client texts
+   * from their OWN number/name. Falls back to the shared TWILIO_FROM env.
+   *
+   * Per-location config lives on Location.settings (no migration):
+   *   smsSenderName — alphanumeric sender ID (≤11 chars), shows the shop name.
+   *   smsNumber     — the shop's own E.164 number.
+   *
+   * Hybrid rule so marketing stays STOP-compliant:
+   *  - MARKETING → the location's NUMBER only (never an alphanumeric name — a
+   *    name-only sender is one-way, so a customer's "STOP" can never reach us).
+   *    Falls back to the shared number, which DOES process STOP via the webhook.
+   *  - PAYMENT_LINK / OTHER → the sender NAME if set (branding, no reply needed),
+   *    else the location's number, else the shared number.
+   */
+  private async resolveFrom(args: SendSmsArgs): Promise<string> {
+    const globalFrom = process.env.TWILIO_FROM!;
+    if (!args.locationId) return globalFrom;
+    let name = "";
+    let number = "";
+    try {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: args.locationId },
+        select: { settings: true },
+      });
+      const s = (loc?.settings ?? {}) as Record<string, unknown>;
+      name = typeof s.smsSenderName === "string" ? s.smsSenderName.trim() : "";
+      number = typeof s.smsNumber === "string" ? s.smsNumber.trim() : "";
+    } catch (e: any) {
+      this.logger.warn(
+        `SMS sender resolve failed for location ${args.locationId}: ${e?.message ?? e}`,
+      );
+    }
+    if (args.purpose === "MARKETING") return number || globalFrom;
+    return name || number || globalFrom;
   }
 
   private async log(
