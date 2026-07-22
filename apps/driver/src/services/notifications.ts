@@ -22,7 +22,10 @@ const JOB_SOUND = "new_order.wav";
 // Foreground display: show the banner + play a sound so the driver notices.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    // SDK 54 (expo-notifications): shouldShowAlert split into
+    // shouldShowBanner + shouldShowList.
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
