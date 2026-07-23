@@ -52,6 +52,7 @@ import { QUEUES } from '@orderhub/shared';
     PluService,
     UberMenuImporter,
     DeliverooMenuImporter,
+    AiMenuImporter,
   ],
 })
 export class MenusModule {}

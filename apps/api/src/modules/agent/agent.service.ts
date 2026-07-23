@@ -2,37 +2,51 @@ import Anthropic from "@anthropic-ai/sdk";
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { MenusService } from "../menus/menus.service";
+import { AiMenuImporter } from "../menus/importers/ai-menu.importer";
+import { MenuAvailabilityService } from "../inventory/menu-availability.service";
+import { AuditLogService } from "../auth/services/audit-log.service";
 import { AGENT_TOOLS, AGENT_TOOL_MAP } from "./agent.tools";
+import { WRITE_TOOL_DEFS, WRITE_TOOL_NAMES } from "./agent.write";
 
-// ── Admin business co-pilot (Phase 1 — READ ONLY) ───────────────────────────
+// ── Admin business co-pilot (Phase 2 — read + confirmed writes) ─────────────
 //
-// A Claude tool-use loop over a registry of read-only, tenant-scoped tools.
-// The agent can inspect and diagnose (menus, products, orders, data quality)
-// but changes NOTHING — there are no write tools wired in this phase. Every
-// tool call is scoped to the caller's tenant by the SERVER; the model never
-// supplies a tenantId.
+// A Claude tool-use loop over READ tools (agent.tools.ts) and WRITE tools
+// (agent.write.ts). Read tools query Prisma directly. Write tools are
+// dispatched here to the SAME validated, audited services the dashboard uses —
+// build a menu, edit an item, 86/un-86, publish. Every write requires the
+// operator's in-chat confirmation (the tool refuses without confirmed=true)
+// and is written to the audit log. There are deliberately no delete tools.
 
 const DEFAULT_MODEL = "claude-sonnet-5";
-const MAX_TOOL_ITERATIONS = 10;
+const MAX_TOOL_ITERATIONS = 14;
 
 export interface AgentChatTurn {
   role: "user" | "assistant";
   text: string;
 }
+export interface AgentUser {
+  tenantId: string;
+  userId: string;
+}
 
-const SYSTEM_PROMPT = `You are the Order Hub Admin Assistant — a co-pilot for a restaurant business owner/admin using the Order Hub platform.
+const SYSTEM_PROMPT = `You are the Order Hub Admin Assistant — a co-pilot for a restaurant business owner/admin using the Order Hub platform. You can READ the business's data and, with the operator's confirmation, make CHANGES for them.
 
-You can READ the business's data through tools (brands, locations, menus, products, product data-quality, orders and their timelines) and help the operator understand and manage their business: auditing menus, finding data problems, explaining stuck orders, summarising activity, and drafting concrete plans.
+Tools:
+- READ (run freely): list_brands, list_locations, list_menus, get_menu, search_products, menu_health, duplicate_products_scan, list_orders, get_order.
+- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability), snooze_item / unsnooze_item (86 / un-86), publish_menu.
 
-IMPORTANT — this is a read-only assistant right now:
-- You CANNOT change anything: there are no tools to create, edit, delete, 86, publish, price, or message. Do not claim you did or will change data.
-- When the operator asks you to fix or create something, DO the analysis, then give them a precise, step-by-step plan (which menu, which items, exact values) they can act on — and note that a future version will be able to apply changes with their confirmation.
+How to make changes SAFELY — always follow this:
+1. Use read tools to gather the real facts first (ids, current values).
+2. Describe EXACTLY what you're about to change — names, prices, counts, which brand/location — in plain language, and ASK the operator to confirm.
+3. Only after they clearly say yes, call the write tool with "confirmed": true. Never set confirmed=true on your own initiative. If you call a write tool without confirmation it will refuse.
+4. To build a menu, construct the ENTIRE structure and call build_menu ONCE — never create items one at a time. Group shared options (sauces, toppings) into modifierGroups and reference them from items by key.
 
-Style:
-- Be concise and concrete. Prefer specifics (names, counts, prices, order refs) over generalities.
-- Call tools to get real data before answering; never invent products, prices, or order details.
-- Money is in GBP. When you show a problem, say exactly where it is and what to do about it.
-- If a question is outside the business data you can read, say so plainly.`;
+Rules:
+- Never invent products, prices, ids, or order details — look them up.
+- Prices are GBP, plain numbers (9.99). VARIANT modifier = pick one; ADDON = pick several.
+- Be concise and concrete. After a successful change, briefly confirm what was done and any next step (e.g. "created — want me to publish it?").
+- If something is outside what the tools can do, say so plainly rather than pretending.`;
 
 @Injectable()
 export class AgentService {
@@ -43,6 +57,10 @@ export class AgentService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly menus: MenusService,
+    private readonly menuImporter: AiMenuImporter,
+    private readonly availability: MenuAvailabilityService,
+    private readonly audit: AuditLogService,
   ) {
     const apiKey = this.config.get<string>("ANTHROPIC_API_KEY");
     this.model = this.config.get<string>("AGENT_MODEL") ?? DEFAULT_MODEL;
@@ -56,14 +74,8 @@ export class AgentService {
     return !!this.anthropic;
   }
 
-  /**
-   * Run one chat turn. `history` is the prior user/assistant text turns; the
-   * last item is the new user message. Returns the assistant's reply plus the
-   * names of the tools it used (for the UI to show its work). Tool execution
-   * happens server-side, tenant-scoped, within this call.
-   */
   async chat(
-    tenantId: string,
+    user: AgentUser,
     history: AgentChatTurn[],
   ): Promise<{ reply: string; toolsUsed: string[] }> {
     if (!this.anthropic) {
@@ -82,11 +94,18 @@ export class AgentService {
         content: t.text,
       }));
 
-    const tools: Anthropic.Tool[] = AGENT_TOOLS.map((t) => ({
-      name: t.name,
-      description: t.description,
-      input_schema: t.input_schema as Anthropic.Tool.InputSchema,
-    }));
+    const tools: Anthropic.Tool[] = [
+      ...AGENT_TOOLS.map((t) => ({
+        name: t.name,
+        description: t.description,
+        input_schema: t.input_schema as Anthropic.Tool.InputSchema,
+      })),
+      ...WRITE_TOOL_DEFS.map((t) => ({
+        name: t.name,
+        description: t.description,
+        input_schema: t.input_schema as unknown as Anthropic.Tool.InputSchema,
+      })),
+    ];
 
     const toolsUsed: string[] = [];
 
@@ -98,57 +117,147 @@ export class AgentService {
         tools,
         messages,
       });
-
       messages.push({ role: "assistant", content: response.content });
 
       const toolUses = response.content.filter(
         (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
       );
-
       if (response.stop_reason !== "tool_use" || toolUses.length === 0) {
         const text = response.content
           .filter((b): b is Anthropic.TextBlock => b.type === "text")
           .map((b) => b.text)
           .join("\n")
           .trim();
-        return {
-          reply: text || "I couldn't produce a reply — try rephrasing.",
-          toolsUsed,
-        };
+        return { reply: text || "I couldn't produce a reply — try rephrasing.", toolsUsed };
       }
 
-      // Execute each requested tool, tenant-scoped, and feed results back.
       const results: Anthropic.ToolResultBlockParam[] = [];
       for (const call of toolUses) {
-        const tool = AGENT_TOOL_MAP[call.name];
         toolsUsed.push(call.name);
+        const input = (call.input ?? {}) as Record<string, any>;
         let content: string;
         try {
-          if (!tool) throw new Error(`Unknown tool ${call.name}`);
-          const out = await tool.run(
-            this.prisma,
-            tenantId,
-            (call.input ?? {}) as Record<string, any>,
-          );
+          const out = WRITE_TOOL_NAMES.has(call.name)
+            ? await this.runWrite(user, call.name, input)
+            : await this.runRead(user.tenantId, call.name, input);
           content = JSON.stringify(out).slice(0, 60_000);
         } catch (err) {
           const e = err as Error;
           this.logger.warn(`agent tool ${call.name} failed: ${e.message}`);
           content = JSON.stringify({ error: e.message ?? "tool failed" });
         }
-        results.push({
-          type: "tool_result",
-          tool_use_id: call.id,
-          content,
-        });
+        results.push({ type: "tool_result", tool_use_id: call.id, content });
       }
       messages.push({ role: "user", content: results });
     }
+    return { reply: "That needed too many steps — try something more specific.", toolsUsed };
+  }
 
-    return {
-      reply:
-        "That needed too many steps — try asking something more specific.",
-      toolsUsed,
-    };
+  private async runRead(tenantId: string, name: string, input: Record<string, any>) {
+    const tool = AGENT_TOOL_MAP[name];
+    if (!tool) throw new Error(`Unknown tool ${name}`);
+    return tool.run(this.prisma, tenantId, input);
+  }
+
+  // ── Write dispatch — every branch: confirm-gate → validated service → audit ──
+  private async runWrite(user: AgentUser, name: string, input: Record<string, any>) {
+    // Hard confirmation gate. The model must have set confirmed=true (which it
+    // is instructed to do only after the operator agrees in chat).
+    if (input.confirmed !== true) {
+      return {
+        needsConfirmation: true,
+        message:
+          "Not applied — describe the change to the operator and get an explicit 'yes', then call again with confirmed=true.",
+      };
+    }
+    const { tenantId, userId } = user;
+
+    switch (name) {
+      case "build_menu": {
+        const draft = {
+          menuName: input.menuName,
+          categories: input.categories ?? [],
+          modifierGroups: input.modifierGroups ?? [],
+        };
+        const res = await this.menuImporter.commit({
+          tenantId,
+          brandId: input.brandId,
+          menuName: input.menuName,
+          menuType: input.menuType,
+          locationId: input.locationId,
+          draft: draft as any,
+        });
+        await this.record(user, "agent.menu.build", "menu", (res as any)?.menuId, {
+          menuName: input.menuName,
+          brandId: input.brandId,
+          categories: (input.categories ?? []).length,
+        });
+        return res;
+      }
+      case "update_item": {
+        const dto: Record<string, any> = {};
+        for (const k of ["name", "description", "basePrice", "isAvailable", "imageUrl"]) {
+          if (input[k] !== undefined) dto[k] = input[k];
+        }
+        const res = await this.menus.updateItem(input.itemId, tenantId, dto as any);
+        await this.record(user, "agent.item.update", "menuItem", input.itemId, dto);
+        return { ok: true, item: { id: (res as any)?.id, name: (res as any)?.name } };
+      }
+      case "snooze_item": {
+        await this.availability.snooze({
+          itemId: input.itemId,
+          tenantId,
+          userId,
+          channel: (input.channel ?? "ALL") as any,
+          locationId: input.locationId,
+        });
+        await this.record(user, "agent.item.snooze", "menuItem", input.itemId, {
+          channel: input.channel ?? "ALL",
+          locationId: input.locationId ?? null,
+        });
+        return { ok: true };
+      }
+      case "unsnooze_item": {
+        await this.availability.unsnooze({
+          itemId: input.itemId,
+          tenantId,
+          channel: (input.channel ?? "ALL") as any,
+          locationId: input.locationId,
+        });
+        await this.record(user, "agent.item.unsnooze", "menuItem", input.itemId, {
+          channel: input.channel ?? "ALL",
+          locationId: input.locationId ?? null,
+        });
+        return { ok: true };
+      }
+      case "publish_menu": {
+        const res = await this.menus.publish(input.menuId, tenantId, userId);
+        await this.record(user, "agent.menu.publish", "menu", input.menuId, {});
+        return { ok: true, status: (res as any)?.status ?? "PUBLISHED" };
+      }
+      default:
+        throw new Error(`Unknown write tool ${name}`);
+    }
+  }
+
+  private async record(
+    user: AgentUser,
+    event: string,
+    resource: string,
+    resourceId: string | undefined,
+    meta: Record<string, unknown>,
+  ) {
+    try {
+      await this.audit.log({
+        tenantId: user.tenantId,
+        userId: user.userId,
+        event,
+        resource,
+        resourceId,
+        meta: { ...meta, via: "admin-agent" },
+      });
+    } catch {
+      /* audit must never block the action */
+    }
   }
 }

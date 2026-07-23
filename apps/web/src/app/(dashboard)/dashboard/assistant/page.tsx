@@ -11,11 +11,11 @@ import { Bot, Send, Loader2, User, Wrench } from "lucide-react";
 import { agentClient, type AgentTurn } from "@/lib/api/agent.client";
 
 const SUGGESTIONS = [
+  "Build a new drinks menu for my brand",
   "Audit my menu — what needs fixing?",
-  "Find duplicate products across my brands",
-  "Which products have no photo?",
+  "Add a 'choose your sauce' option to my burgers",
+  "86 the Halloumi Wrap at Clifton",
   "Why is order #6190 stuck?",
-  "Summarise my recent orders",
 ];
 
 interface Msg extends AgentTurn {
@@ -73,8 +73,8 @@ export default function AssistantPage() {
           <div>
             <h1 className="text-base font-semibold text-zinc-900">AI Assistant</h1>
             <p className="text-[11px] text-zinc-500">
-              Read-only co-pilot — asks about your menus, products and orders.
-              It can diagnose and plan, but doesn&apos;t change anything yet.
+              Your business co-pilot — build &amp; edit menus, 86 items, publish,
+              and diagnose. It always asks you to confirm before making a change.
             </p>
           </div>
         </div>
@@ -176,8 +176,9 @@ export default function AssistantPage() {
           </button>
         </div>
         <p className="mx-auto mt-2 max-w-2xl text-center text-[10px] text-zinc-400">
-          The assistant reads your data to help — it can&apos;t edit, delete, or
-          message anyone. Always double-check before acting on its suggestions.
+          The assistant asks you to confirm before any change, and every change
+          is logged. It can build/edit menus, 86 items and publish — it never
+          deletes, refunds, or messages customers.
         </p>
       </div>
     </div>

@@ -28,6 +28,9 @@ export class AgentController {
     @Body() body: { messages: AgentChatTurn[] },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.agent.chat(user.tenantId, body?.messages ?? []);
+    return this.agent.chat(
+      { tenantId: user.tenantId, userId: user.userId },
+      body?.messages ?? [],
+    );
   }
 }
