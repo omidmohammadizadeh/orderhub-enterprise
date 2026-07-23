@@ -9,6 +9,18 @@ import { Button } from "@/components/ui/button";
 import { CatalogEmptyState } from "./empty-state";
 import { ProductForm } from "./product-form";
 
+/**
+ * Ask our image proxy for a small thumbnail instead of the full photo.
+ * Only rewrites our own resize-capable proxy URLs (the HubRise image +
+ * menu cover proxies); data: URLs and third-party URLs pass through
+ * untouched so we never break an image the proxy can't resize.
+ */
+function thumbUrl(src: string, w: number, h: number): string {
+  if (!/\/menus\/(hubrise-image|.*\/cover-image)/.test(src)) return src;
+  const sep = src.includes("?") ? "&" : "?";
+  return `${src}${sep}w=${w}&h=${h}`;
+}
+
 interface Props {
   brandId: string;
   /** Phase AP — when set, query the location-scoped product list so
@@ -165,7 +177,7 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
                     {p.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={p.imageUrl}
+                        src={thumbUrl(p.imageUrl, 96, 72)}
                         alt=""
                         loading="lazy"
                         decoding="async"

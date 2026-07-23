@@ -14,6 +14,7 @@ import {
 } from "@nestjs/common";
 import type { Response } from "express";
 import { SkipThrottle } from "@nestjs/throttler";
+import sharp from "sharp";
 import { Public } from "../../common/decorators/public.decorator";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
 import { MenusService } from "./menus.service";
@@ -40,6 +41,38 @@ import {
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+
+/**
+ * Resize an image buffer down to a small webp thumbnail when the caller
+ * passed ?w=/?h= query params (Deliverect-style resizeImage proxy). Returns
+ * null when no resize was requested (serve the original) or if the source
+ * can't be decoded (e.g. an SVG/webp HubRise never returns) — in which case
+ * the caller falls back to the original bytes so nothing ever 500s over a
+ * thumbnail. Dimensions are clamped to a sane [8,1600] px window.
+ */
+async function resizeThumb(
+  buffer: Buffer,
+  w?: string,
+  h?: string,
+): Promise<Buffer | null> {
+  const clamp = (v?: string): number | undefined => {
+    const n = Number.parseInt(v ?? "", 10);
+    if (!Number.isFinite(n) || n <= 0) return undefined;
+    return Math.min(1600, Math.max(8, n));
+  };
+  const width = clamp(w);
+  const height = clamp(h);
+  if (!width && !height) return null;
+  try {
+    return await sharp(buffer)
+      .rotate() // honour EXIF orientation before we drop the metadata
+      .resize(width, height, { fit: "cover", withoutEnlargement: true })
+      .webp({ quality: 72 })
+      .toBuffer();
+  } catch {
+    return null;
+  }
+}
 
 @ApiTags("menus")
 @ApiBearerAuth()
@@ -162,16 +195,23 @@ export class MenusController {
     @Param("catalogId") catalogId: string,
     @Param("imageId") imageId: string,
     @Res() res: Response,
+    @Query("w") w?: string,
+    @Query("h") h?: string,
   ) {
     const { buffer, contentType } = await this.hubriseCatalog.fetchHubRiseImage(
       catalogId,
       imageId,
     );
-    res.setHeader("Content-Type", contentType);
+    // Like Deliverect's resizeImage proxy: when the caller asks for a
+    // thumbnail (?w=&h=) we shrink server-side so the product list ships
+    // ~1KB webp thumbnails instead of full-res photos — that's what keeps
+    // the 500-image Products page from saturating the browser + limiter.
+    const thumb = await resizeThumb(buffer, w, h);
+    res.setHeader("Content-Type", thumb ? "image/webp" : contentType);
     // HubRise images are immutable per id, so let browsers + edge cache
-    // hard. 30 days.
+    // hard. 30 days. The (w,h) live in the URL so each size caches apart.
     res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
-    res.send(buffer);
+    res.send(thumb ?? buffer);
   }
 
   // Phase BA-5 — public menu cover-image proxy. Menu banners are stored as
@@ -185,12 +225,15 @@ export class MenusController {
   async menuCoverImage(
     @Param("menuId") menuId: string,
     @Res() res: Response,
+    @Query("w") w?: string,
+    @Query("h") h?: string,
   ) {
     const { buffer, contentType } = await this.menus.getMenuCoverImage(menuId);
-    res.setHeader("Content-Type", contentType);
+    const thumb = await resizeThumb(buffer, w, h);
+    res.setHeader("Content-Type", thumb ? "image/webp" : contentType);
     // The banner can change, so cache modestly rather than immutably.
     res.setHeader("Cache-Control", "public, max-age=3600");
-    res.send(buffer);
+    res.send(thumb ?? buffer);
   }
 
   @Post("menus/:menuId/publish/hubrise")
