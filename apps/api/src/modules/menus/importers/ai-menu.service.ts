@@ -19,7 +19,62 @@ const ALLOWED_MEDIA = new Set([
   "image/webp",
   "image/gif",
   "application/pdf",
+  // Saved web pages (Cmd+S on an Uber Eats / Deliveroo / Just Eat store
+  // page) and plain pasted text. Delivery platforms block server-side
+  // fetching of their pages, but the operator's own browser loads them
+  // fine — saving the page and dropping the file here imports the menu.
+  "text/html",
+  "text/plain",
 ]);
+
+/** Character budget for text extracted from an HTML/TXT upload. Delivery
+ *  pages embed the full menu as JSON, which compresses the useful content —
+ *  but raw saved pages can be many MB of framework noise, so cap what we
+ *  forward to the model. */
+const MAX_TEXT_CHARS = 180_000;
+
+/** Distil a saved web page into what the model needs: any embedded
+ *  structured state (Deliveroo/Next.js `__NEXT_DATA__`, Uber's preloaded
+ *  state) plus the visible text, scripts/styles stripped. */
+export function distilHtml(rawHtml: string): string {
+  // Chrome's "Save page" default is MHTML (quoted-printable multipart).
+  // Decode the soft line breaks (=\r\n) and =XX hex escapes so the tag
+  // stripper below sees real HTML instead of escape noise.
+  const html = /Content-Transfer-Encoding:\s*quoted-printable/i.test(rawHtml)
+    ? rawHtml
+        .replace(/=\r?\n/g, "")
+        .replace(/=([0-9A-F]{2})/g, (_, h: string) =>
+          String.fromCharCode(parseInt(h, 16)),
+        )
+    : rawHtml;
+  const parts: string[] = [];
+
+  // Embedded JSON state first — when present it contains the exact menu.
+  const nextData = /<script[^>]*id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i.exec(html);
+  if (nextData?.[1]) {
+    parts.push(`EMBEDDED PAGE DATA (JSON):\n${nextData[1]}`);
+  } else {
+    // Uber-style: a big JSON assignment in an inline script.
+    const preloaded = /__REACT_QUERY_STATE__\s*=\s*(\{[\s\S]*?\});?\s*<\/script>/.exec(html)
+      ?? /window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\});?\s*<\/script>/.exec(html);
+    if (preloaded?.[1]) parts.push(`EMBEDDED PAGE DATA (JSON):\n${preloaded[1]}`);
+  }
+
+  // Visible text: drop script/style/head noise, strip tags, collapse space.
+  const visible = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<head[\s\S]*?<\/head>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&#?\w+;/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (visible) parts.push(`VISIBLE PAGE TEXT:\n${visible}`);
+
+  return parts.join("\n\n").slice(0, MAX_TEXT_CHARS);
+}
 
 // The API body limit is 10 MB; keep the combined base64 well under it.
 const MAX_TOTAL_B64 = 7_000_000;
@@ -31,7 +86,9 @@ export interface AiMenuFile {
   data: string;
 }
 
-const SYSTEM_PROMPT = `You are a precise menu-digitisation engine for a restaurant ordering platform. You are given one or more images or PDF pages of a single restaurant's menu. Transcribe it faithfully into structured data by calling the emit_menu tool.
+const SYSTEM_PROMPT = `You are a precise menu-digitisation engine for a restaurant ordering platform. You are given one or more sources for a single restaurant's menu: images, PDF pages, or the saved text/embedded data of a delivery-platform web page (Uber Eats, Deliveroo, Just Eat, or the restaurant's own site). Transcribe it faithfully into structured data by calling the emit_menu tool.
+
+When a source contains EMBEDDED PAGE DATA (JSON), prefer it over the visible page text — it is the platform's own structured menu (exact names, prices in minor units or decimals, descriptions, categories, modifier groups). Convert minor-unit prices (e.g. 1099) to decimals (10.99). Ignore JSON that is clearly not menu data (tracking, experiments, session state).
 
 Rules:
 - Transcribe only what is on the menu. Never invent items, prices, sizes, or modifiers.
@@ -206,7 +263,7 @@ export class AiMenuParseService {
       const { mediaType, data } = normalizeFile(f);
       if (!ALLOWED_MEDIA.has(mediaType)) {
         throw new BadRequestException(
-          `Unsupported file type "${mediaType || "unknown"}". Upload a PDF, JPEG, PNG or WebP.`,
+          `Unsupported file type "${mediaType || "unknown"}". Upload a PDF, JPEG, PNG, WebP, saved web page (.html) or text file.`,
         );
       }
       totalB64 += data.length;
@@ -220,6 +277,13 @@ export class AiMenuParseService {
           type: "document",
           source: { type: "base64", media_type: "application/pdf", data },
         } as Anthropic.DocumentBlockParam);
+      } else if (mediaType === "text/html" || mediaType === "text/plain") {
+        const raw = Buffer.from(data, "base64").toString("utf8");
+        const text =
+          mediaType === "text/html" ? distilHtml(raw) : raw.slice(0, MAX_TEXT_CHARS);
+        if (text.trim()) {
+          blocks.push({ type: "text", text: `MENU SOURCE (uploaded ${mediaType === "text/html" ? "web page" : "text"}):\n${text}` });
+        }
       } else {
         blocks.push({
           type: "image",

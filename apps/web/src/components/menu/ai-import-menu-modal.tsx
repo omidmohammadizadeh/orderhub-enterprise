@@ -39,7 +39,8 @@ interface PickedFile {
   size: number;
 }
 
-const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
+const ACCEPT =
+  "application/pdf,image/png,image/jpeg,image/webp,text/html,text/plain,.html,.htm,.txt,.mhtml";
 const MAX_FILES = 8;
 const MAX_TOTAL_BYTES = 5 * 1024 * 1024; // keep base64 under the 10 MB API limit
 
@@ -125,9 +126,24 @@ export function AiImportMenuModal({
     for (const file of Array.from(list)) {
       try {
         const data = await readAsDataUrl(file);
+        // Saved pages / text files sometimes arrive with no MIME type —
+        // infer from the extension so the API accepts them.
+        const ext = file.name.toLowerCase().split(".").pop() ?? "";
+        const inferred =
+          ext === "html" || ext === "htm" || ext === "mhtml"
+            ? "text/html"
+            : ext === "txt"
+              ? "text/plain"
+              : "application/octet-stream";
         picked.push({
           name: file.name,
-          mediaType: file.type || "application/octet-stream",
+          // Extension wins for saved pages: Chrome labels .mhtml as
+          // multipart/related, which the API doesn't know — but the server's
+          // HTML distiller handles the content fine as text/html.
+          mediaType:
+            inferred !== "application/octet-stream"
+              ? inferred
+              : file.type || "application/octet-stream",
           data,
           size: file.size,
         });
@@ -203,7 +219,7 @@ export function AiImportMenuModal({
             </span>
             <div>
               <h2 className="text-base font-semibold text-zinc-900">
-                Import menu from photo or PDF
+                Import menu from photo, PDF or web page
               </h2>
               <p className="text-[11px] text-zinc-500">
                 {reviewing
@@ -231,7 +247,8 @@ export function AiImportMenuModal({
                 Click to upload menu files
               </span>
               <span className="text-[11px] text-zinc-500">
-                PDF, JPEG, PNG or WebP · up to {MAX_FILES} files · ~5 MB total
+                PDF, JPEG, PNG, WebP or saved web page (.html) · up to{" "}
+                {MAX_FILES} files · ~5 MB total
               </span>
             </button>
             <input
@@ -250,7 +267,8 @@ export function AiImportMenuModal({
                     key={i}
                     className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-xs text-zinc-700"
                   >
-                    {f.mediaType === "application/pdf" ? (
+                    {f.mediaType === "application/pdf" ||
+                    f.mediaType.startsWith("text/") ? (
                       <FileText className="h-3.5 w-3.5 text-zinc-400" />
                     ) : (
                       <ImageIcon className="h-3.5 w-3.5 text-zinc-400" />
@@ -272,6 +290,17 @@ export function AiImportMenuModal({
                 ))}
               </ul>
             )}
+
+            <p className="rounded-md bg-violet-50 px-3 py-2 text-[11px] text-violet-800">
+              <strong>Import from Uber Eats / Deliveroo / Just Eat:</strong>{" "}
+              open the shop&apos;s page in your browser, press{" "}
+              <kbd className="rounded border border-violet-200 bg-white px-1">
+                Cmd/Ctrl&nbsp;+&nbsp;S
+              </kbd>{" "}
+              to save it as an HTML file, then drop that file here — the menu
+              (names, prices, categories, options) is read straight from the
+              page.
+            </p>
 
             <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
               AI does the heavy lifting, but always double-check prices and
