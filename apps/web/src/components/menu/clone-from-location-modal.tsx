@@ -38,7 +38,7 @@ export function CloneFromLocationModal({
   }, [open]);
 
   const locationsQuery = useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", "list"],
     queryFn: () => locationsClient.list(),
     enabled: open,
   });

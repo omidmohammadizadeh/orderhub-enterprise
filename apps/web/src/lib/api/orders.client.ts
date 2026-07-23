@@ -128,9 +128,15 @@ export const ordersClient = {
         orders: r.data.orders.map(normaliseOrder),
       })),
 
-  live: (locationId?: string) =>
+  live: (locationId?: string, opts?: { signal?: AbortSignal }) =>
     apiClient
-      .get<Order[]>("/v1/orders/live", { params: locationId ? { locationId } : {} })
+      .get<Order[]>("/v1/orders/live", {
+        params: locationId ? { locationId } : {},
+        // React Query's signal — aborts the request when the observer
+        // unmounts or the location changes, instead of letting stale
+        // fetches complete and count against the rate limit.
+        signal: opts?.signal,
+      })
       .then((r) => r.data.map(normaliseOrder)),
 
   get: (id: string) =>

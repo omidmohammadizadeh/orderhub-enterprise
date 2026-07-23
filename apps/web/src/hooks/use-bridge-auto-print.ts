@@ -3,9 +3,10 @@
 // Client-side auto-print — runs globally (mounted in the dashboard
 // layout), so it works on EVERY page, not just one orders view.
 //
-// It fetches the live orders itself (independent of whichever orders
-// screen is open) and, when a NEW order appears, prints it straight to
-// every Bluetooth printer whose "Auto-print" toggle is on, using that
+// It observes the shared live-orders feed (socket-driven — see
+// use-live-orders-feed.ts) independent of whichever orders screen is
+// open and, when a NEW order appears, prints it straight to every
+// Bluetooth printer whose "Auto-print" toggle is on, using that
 // printer's copy counts. Same code path as the manual Print button.
 //
 // Per-printer settings on printer.defaults:
@@ -14,7 +15,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { printersClient } from "../lib/api/printers.client";
-import { ordersClient } from "../lib/api/orders.client";
+import { useLiveOrdersFeed } from "./use-live-orders-feed";
+import { queryKeys } from "../lib/api/query-keys";
 import {
   writeToPrinter,
   bridgeSupportsPrinter,
@@ -46,26 +48,23 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
   const inApp = typeof window !== "undefined" && hasNativeBridge();
 
   const printersQuery = useQuery({
-    queryKey: ["printers", "list", locationId ?? "all"],
+    queryKey: queryKeys.printers(locationId),
     queryFn: () => printersClient.list(locationId),
     enabled: !!locationId && inApp,
     refetchInterval: 30_000,
     staleTime: 30_000,
   });
 
-  // Fetch live orders ourselves — independent of which page is open and
-  // of the orders store. Poll every 7s; that's plenty for auto-print.
-  const ordersQuery = useQuery({
-    queryKey: ["auto-print", "orders", locationId ?? "all"],
-    queryFn: () => ordersClient.live(locationId),
+  // Live orders come from the SHARED feed (socket-first, 60s fallback only
+  // while the socket is down) — the independent 7-second poll this hook
+  // used to run was a main driver of the production 429s. Native-only:
+  // ordinary browsers never fetch for auto-print.
+  const { orders } = useLiveOrdersFeed(locationId, {
     enabled: !!locationId && inApp,
-    refetchInterval: 7_000,
-    staleTime: 0,
   });
 
   const printersRef = useRef<any[]>([]);
   printersRef.current = printersQuery.data ?? [];
-  const orders = ordersQuery.data;
 
   useEffect(() => {
     const btPrinters = (printersRef.current ?? []).filter(

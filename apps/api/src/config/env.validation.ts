@@ -146,6 +146,10 @@ const envSchema = z.object({
   MAINTENANCE_MESSAGE: z.string().optional(),
 
   // Rate limiting overrides
+  THROTTLE_SHORT_TTL: z.coerce.number().int().positive().default(1000),
+  THROTTLE_SHORT_LIMIT: z.coerce.number().int().positive().default(120),
+  THROTTLE_MEDIUM_TTL: z.coerce.number().int().positive().default(60000),
+  THROTTLE_MEDIUM_LIMIT: z.coerce.number().int().positive().default(4000),
   THROTTLE_WEBHOOK_TTL: z.coerce.number().int().positive().default(60000),
   THROTTLE_WEBHOOK_LIMIT: z.coerce.number().int().positive().default(300),
   THROTTLE_LOGIN_TTL: z.coerce.number().int().positive().default(60000),

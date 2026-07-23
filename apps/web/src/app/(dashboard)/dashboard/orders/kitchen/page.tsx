@@ -33,7 +33,7 @@ interface KdsScreen {
 export default function KitchenLauncherPage() {
   const router = useRouter();
   const { data: locations = [] } = useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", "list"],
     queryFn: locationsClient.list,
   });
   const [locationId, setLocationId] = useState("");

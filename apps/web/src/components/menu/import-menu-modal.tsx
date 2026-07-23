@@ -45,7 +45,7 @@ export function ImportMenuModal({ open, source, onCancel, onImported }: Props) {
     enabled: open,
   });
   const { data: locations = [] } = useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", "list"],
     queryFn: () => locationsClient.list(),
     enabled: open,
   });

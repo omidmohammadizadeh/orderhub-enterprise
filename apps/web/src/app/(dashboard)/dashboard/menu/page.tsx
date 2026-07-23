@@ -102,7 +102,7 @@ export default function MenuPage() {
   // Phase BA — location names for the "Live at" chips (shares the
   // ["locations"] cache with the switcher + publish modal).
   const locationsQuery = useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", "list"],
     queryFn: () => locationsClient.list(),
   });
   const locationNameById = new Map<string, string>(

@@ -13,7 +13,11 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Phone, X } from "lucide-react";
 import type { CallerIdRingPayload } from "@orderhub/shared";
-import { getSocket } from "@/lib/socket/socket.client";
+import {
+  getSocket,
+  joinLocationRoom,
+  leaveLocationRoom,
+} from "@/lib/socket/socket.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { apiClient } from "@/lib/api/client";
@@ -62,7 +66,10 @@ export function CallerIdPopup({
   useEffect(() => {
     if (!accessToken || locationIds.length === 0) return;
     const socket = getSocket(accessToken);
-    for (const id of locationIds) socket.emit("room:join", id);
+    // Refcounted joins — shared with the orders board / alert player, and
+    // released on cleanup so switching the selected location doesn't leave
+    // this popup listening to every room it has ever joined.
+    for (const id of locationIds) joinLocationRoom(socket, id);
     const onRing = (payload: CallerIdRingPayload) => {
       if (!locationIds.includes(payload.locationId)) return;
       setRing(payload);
@@ -70,6 +77,7 @@ export function CallerIdPopup({
     socket.on("callerid:ring", onRing);
     return () => {
       socket.off("callerid:ring", onRing);
+      for (const id of locationIds) leaveLocationRoom(socket, id);
     };
     // roomKey captures the location set; re-join if it changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps

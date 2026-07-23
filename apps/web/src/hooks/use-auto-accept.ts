@@ -11,38 +11,43 @@
 //
 // Runs from the dashboard layout, so it's active on every page as long
 // as the till has the dashboard open.
+//
+// Data source: the SHARED live-orders feed (use-live-orders-feed.ts) —
+// socket-first with a 60s fallback poll only while the socket is down.
+// This hook used to run its own 7-second poll of /orders/live on every
+// dashboard page, which was the main driver of the production 429s.
+// The feed is only even enabled here when the location actually has
+// auto-accept switched on, so most browsers fetch nothing at all.
 
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ordersClient } from "../lib/api/orders.client";
 import { locationsClient } from "../lib/api/locations.client";
+import { useLiveOrdersFeed } from "./use-live-orders-feed";
+import { queryKeys } from "../lib/api/query-keys";
 
 export function useAutoAccept(locationId?: string) {
   const acceptedRef = useRef<Set<string>>(new Set());
   const inFlightRef = useRef<Set<string>>(new Set());
 
-  // Is auto-accept switched on for this location?
+  // Is auto-accept switched on for this location? A settings flag changes
+  // rarely — a 5-minute refresh is plenty (was 60s).
   const locationQuery = useQuery({
-    queryKey: ["locations", "detail", locationId],
+    queryKey: queryKeys.locationDetail(locationId ?? ""),
     queryFn: () => locationsClient.get(locationId!),
     enabled: !!locationId,
-    refetchInterval: 60_000,
-    staleTime: 60_000,
+    refetchInterval: 300_000,
+    staleTime: 300_000,
   });
   const autoAccept = !!(
     (locationQuery.data as any)?.settings?.autoAcceptOrders
   );
 
-  // Share the live-orders query key with the auto-print hook so React
-  // Query dedupes — one poll feeds both automations.
-  const ordersQuery = useQuery({
-    queryKey: ["auto-print", "orders", locationId ?? "all"],
-    queryFn: () => ordersClient.live(locationId),
-    enabled: !!locationId,
-    refetchInterval: 7_000,
-    staleTime: 0,
+  // Shared feed — no independent poll. Only enabled when this location has
+  // auto-accept on, so a browser at a location without it fetches nothing.
+  const { orders } = useLiveOrdersFeed(locationId, {
+    enabled: !!locationId && autoAccept,
   });
-  const orders = ordersQuery.data;
 
   useEffect(() => {
     if (!locationId || !autoAccept || !orders) return;
@@ -78,7 +83,7 @@ export function useAutoAccept(locationId?: string) {
           console.warn(
             `[auto-accept] could not accept ${o.id}: ${e?.message ?? e}`,
           );
-          acceptedRef.current.add(o.id); // don't hammer it every poll
+          acceptedRef.current.add(o.id); // don't hammer it every refetch
         })
         .finally(() => inFlightRef.current.delete(o.id));
     }

@@ -135,7 +135,7 @@ export function PublishMenuModal({
   }, [open, initiallyPublishedTo, currentBrandId, locationId, assignedLocationIds]);
 
   const locationsQuery = useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", "list"],
     queryFn: () => locationsClient.list(),
     enabled: open && step === "location",
   });

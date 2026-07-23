@@ -167,15 +167,19 @@ function _Sidebar() {
 
   // Phase AR — live unread-leads count for the sidebar badge. Only
   // PLATFORM_ADMIN + ONBOARDING_AGENT see the Leads entry; everyone
-  // else short-circuits the query via `enabled: false`. Poll every
-  // 30s so a fresh submission shows up without a hard refresh.
+  // else short-circuits the query via `enabled: false`. A lead badge is
+  // low-urgency: a 2-minute refresh (down from 30s — this polled on every
+  // dashboard page and fed the 429 storm) plus an immediate refresh when
+  // the tab regains focus keeps it feeling live.
   const canSeeLeads =
     !!user && ["PLATFORM_ADMIN", "ONBOARDING_AGENT"].includes(user.role);
   const leadsCountQuery = useQuery({
     queryKey: ["leads", "unread-count"],
     queryFn: leadsClient.unreadCount,
     enabled: canSeeLeads,
-    refetchInterval: 30_000,
+    refetchInterval: 120_000,
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
   });
   const unreadLeads = leadsCountQuery.data ?? 0;
 

@@ -18,7 +18,7 @@ export function GlobalCallerIdPopup() {
   );
 
   const { data: locations } = useQuery({
-    queryKey: ["locations", "caller-id-rooms"],
+    queryKey: ["locations", "list"], // canonical shared locations cache (was a private duplicate)
     queryFn: () => locationsClient.list(),
     enabled: !!accessToken,
     staleTime: 5 * 60_000,

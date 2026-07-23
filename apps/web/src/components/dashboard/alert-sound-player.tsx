@@ -31,7 +31,11 @@ import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { alertsClient, type AlertConfig } from "@/lib/api/printers.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-import { getSocket } from "@/lib/socket/socket.client";
+import {
+  getSocket,
+  joinLocationRoom,
+  leaveLocationRoom,
+} from "@/lib/socket/socket.client";
 import { useAuthStore } from "@/stores/auth.store";
 import type { OrderEventPayload, PrintJobEventPayload } from "@orderhub/shared";
 
@@ -43,7 +47,16 @@ export function AlertSoundPlayer() {
     queryKey: ["alerts", "list", locationId ?? "all"],
     queryFn: () => alertsClient.list(locationId ?? undefined),
     enabled: !!locationId,
-    refetchInterval: 30_000,
+    // Alert RULES change rarely (only when the operator edits them in
+    // Printers → Alerts) — a 2-minute safety refresh is plenty. This ran
+    // every 30s on every dashboard page and contributed to the 429 storm.
+    // Room membership no longer depends on this poll either (the refcounted
+    // helpers below + reconnect rejoin keep the socket in the room).
+    refetchInterval: 120_000,
+    staleTime: 60_000,
+    // One immediate refresh when the operator comes back to the tab, so an
+    // ack made on another till is picked up promptly despite the slower poll.
+    refetchOnWindowFocus: true,
   });
 
   const audioCacheRef = useRef<Map<string, HTMLAudioElement>>(new Map());
@@ -123,14 +136,17 @@ export function AlertSoundPlayer() {
     socket.on("printer:agent:offline" as any, onPrinterOffline);
     socket.on("print:job", onPrintJob);
 
-    socket.emit("room:join", locationId);
+    // Refcounted join — shared with the orders board + live-orders feed;
+    // only the LAST consumer's leave actually exits the room, and the
+    // socket client rejoins held rooms after every reconnect.
+    joinLocationRoom(socket, locationId);
 
     return () => {
       socket.off("order:new", onNew);
       socket.off("order:updated", onUpdated);
       socket.off("printer:agent:offline" as any, onPrinterOffline);
       socket.off("print:job", onPrintJob);
-      socket.emit("room:leave", locationId);
+      leaveLocationRoom(socket, locationId);
     };
   }, [locationId, user, token, alertsQuery.data]);
 

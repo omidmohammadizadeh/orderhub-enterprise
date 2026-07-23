@@ -64,7 +64,7 @@ const CHANNELS = [
 export default function KitchenScreensPage() {
   const qc = useQueryClient();
   const { data: locations = [] } = useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", "list"],
     queryFn: locationsClient.list,
   });
   const [locationId, setLocationId] = useState("");

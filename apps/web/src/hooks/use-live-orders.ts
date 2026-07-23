@@ -4,21 +4,20 @@ import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ordersClient, type Order } from "../lib/api/orders.client";
 import { useOrdersStore } from "../stores/orders.store";
-import { getSocket } from "../lib/socket/socket.client";
+import {
+  getSocket,
+  joinLocationRoom,
+  leaveLocationRoom,
+} from "../lib/socket/socket.client";
 import { useAuthStore } from "../stores/auth.store";
 import { useOrderSounds } from "./use-order-sounds";
 import { alertsClient } from "../lib/api/printers.client";
+import { useLiveOrdersFeed } from "./use-live-orders-feed";
+import { queryKeys } from "../lib/api/query-keys";
 import type {
   OrderEventPayload,
   OrderCancelledPayload,
 } from "@orderhub/shared";
-
-// ── React Query key ─────────────────────────────────────────────────────────
-// Exported so the mutation hook below (and any future consumer) shares the
-// exact same key shape — drift between key tuples is the most common cause
-// of "the mutation succeeded but the list never updates" bugs.
-const liveOrdersKey = (locationId?: string) =>
-  ["orders", "live", locationId] as const;
 
 export function useLiveOrders(locationId?: string) {
   const setLiveOrders = useOrdersStore((s) => s.setLiveOrders);
@@ -34,7 +33,9 @@ export function useLiveOrders(locationId?: string) {
   // Printers → Alerts. Without this the dashboard beeps exactly once
   // even when the rule says 4 times, which is the user-visible bug.
   const alertsQuery = useQuery({
-    queryKey: ["alerts", locationId] as const,
+    // Same key as AlertSoundPlayer — one shared /v1/alerts cache entry
+    // instead of two under different key shapes.
+    queryKey: queryKeys.alerts(locationId),
     queryFn: () => alertsClient.list(locationId),
     enabled: !!locationId,
     staleTime: 60_000,
@@ -50,32 +51,14 @@ export function useLiveOrders(locationId?: string) {
     };
   };
 
-  const query = useQuery({
-    queryKey: liveOrdersKey(locationId),
-    queryFn: () => ordersClient.live(locationId),
-    refetchInterval: 30_000, // fallback poll in case the socket misses an event
-    // Treat cache as fresh for one full poll cycle. Without this, navigating
-    // away from /dashboard/orders and back triggers an immediate refetch on
-    // the new mount because the default staleTime is 0 — which races any
-    // optimistic update that's still mid-PATCH and snaps cards back to
-    // their pre-mutation column. The 30s poll still keeps data fresh.
-    staleTime: 30_000,
-    // refetchOnWindowFocus would race in-flight status mutations:
-    //   1. User clicks Accept   → optimistic store update + PATCH starts
-    //   2. User switches tab    → window blur
-    //   3. User switches back   → window focus fires a refetch
-    //   4. The refetch hits the API *before* the PATCH commits and
-    //      returns the pre-mutation snapshot (status: PENDING).
-    //   5. The bridging useEffect resyncs the store from query.data and
-    //      the card visibly snaps back to "New" — exactly the symptom
-    //      the operator reported as "click, tab away, come back, lost".
-    //
-    // We don't actually need focus-driven refreshes: the live board has
-    // a 30s fallback poll and the WebSocket gateway pushes deltas in
-    // real time. Disabling focus-refetch eliminates the race without
-    // sacrificing freshness.
-    refetchOnWindowFocus: false,
-  });
+  // The query itself lives in the SHARED live-orders feed — one cache entry
+  // (queryKeys.liveOrders) observed by this board, auto-accept and
+  // auto-print alike. Socket-first: no steady poll while connected (events
+  // trigger a debounced refetch), one 60s fallback poll while disconnected.
+  // The feed keeps refetchOnWindowFocus OFF — focus-refetch raced in-flight
+  // status mutations and snapped cards back to their pre-mutation column
+  // ("click Accept, tab away, come back, order is back in New").
+  const { query } = useLiveOrdersFeed(locationId);
 
   useEffect(() => {
     if (query.data) setLiveOrders(query.data);
@@ -140,18 +123,22 @@ export function useLiveOrders(locationId?: string) {
     socket.on("order:updated", onUpdated);
     socket.on("order:cancelled", onCancelled);
 
-    if (locationId) socket.emit("room:join", locationId);
+    // Refcounted join — several consumers (this board, the alert player,
+    // the live-orders feed) share the same location room; the helper only
+    // actually leaves the room when the LAST consumer is done, so this
+    // board unmounting no longer silently kicks the others out.
+    if (locationId) joinLocationRoom(socket, locationId);
 
     return () => {
       socket.off("order:new", onNew);
       socket.off("order:updated", onUpdated);
       socket.off("order:cancelled", onCancelled);
-      // Leave the room we joined above — without this, switching locations
+      // Release our hold on the room — without this, switching locations
       // (or an admin flipping through several boards in one session) leaves
       // the socket subscribed to every location it's ever visited, and any
       // later fix to the server-side broadcast scoping would still leak
       // through this stale membership.
-      if (locationId) socket.emit("room:leave", locationId);
+      if (locationId) leaveLocationRoom(socket, locationId);
     };
   }, [token, locationId, applyNewOrder, applyOrderUpdated, applyOrderCancelled, play]);
 

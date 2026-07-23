@@ -123,6 +123,16 @@ export const appConfig = registerAs("app", () => ({
   },
 
   throttle: {
+    // short/medium were missing here, so app.module.ts's
+    // config.get("app.throttle.shortLimit") etc. always returned undefined
+    // and the hardcoded fallbacks silently applied — the limits were NOT
+    // actually env-tunable. Defaults mirror those fallbacks exactly
+    // (short 120 req/s, medium 4000 req/min); behaviour is unchanged
+    // until an env var is set in Render.
+    shortTtl: parseInt(process.env.THROTTLE_SHORT_TTL ?? "1000", 10),
+    shortLimit: parseInt(process.env.THROTTLE_SHORT_LIMIT ?? "120", 10),
+    mediumTtl: parseInt(process.env.THROTTLE_MEDIUM_TTL ?? "60000", 10),
+    mediumLimit: parseInt(process.env.THROTTLE_MEDIUM_LIMIT ?? "4000", 10),
     webhookTtl: parseInt(process.env.THROTTLE_WEBHOOK_TTL ?? "60000", 10),
     webhookLimit: parseInt(process.env.THROTTLE_WEBHOOK_LIMIT ?? "300", 10),
     loginTtl: parseInt(process.env.THROTTLE_LOGIN_TTL ?? "60000", 10),

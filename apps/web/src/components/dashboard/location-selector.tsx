@@ -26,7 +26,7 @@ export function LocationSelector({ allowAll, className }: Props) {
   const { selectedLocationId, setSelectedLocationId } = useSelectedLocationStore();
 
   const { data: locations, isLoading } = useQuery({
-    queryKey: ["locations"],
+    queryKey: ["locations", "list"],
     queryFn: () => locationsClient.list(),
     staleTime: 60_000,
   });
