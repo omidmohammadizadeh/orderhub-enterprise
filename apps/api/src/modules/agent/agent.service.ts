@@ -35,7 +35,7 @@ const SYSTEM_PROMPT = `You are the Order Hub Admin Assistant — a co-pilot for 
 
 Tools:
 - READ (run freely): list_brands, list_locations, list_menus, get_menu, search_products, menu_health, duplicate_products_scan, list_orders, get_order.
-- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).
+- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability, OR set an item's size tiers via a 'sizes' list), set_category_sizes (apply the same size tiers to EVERY item in a section — the right tool for "give all pizzas 10\"/12\" sizes"), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).
 
 How to make changes SAFELY — always follow this:
 1. Use read tools to gather the real facts first (ids, current values).
@@ -48,6 +48,29 @@ Rules:
 - Prices are GBP, plain numbers (9.99). VARIANT modifier = pick one; ADDON = pick several.
 - Be concise and concrete. After a successful change, briefly confirm what was done and any next step (e.g. "created — want me to publish it?").
 - If something is outside what the tools can do, say so plainly rather than pretending.`;
+
+/** Turn a [{name, price}] size list into the updateItem fields that make an
+ *  item multi-size. `plu` per size follows the HubRise publish convention
+ *  (`<itemId>_sku_<i>`) so a later publish/86 targets the right ref. */
+function sizesToItemDto(
+  itemId: string,
+  sizes: Array<{ name?: string; price?: number }>,
+): Record<string, unknown> {
+  const clean = (sizes ?? []).filter((s) => s && String(s.name ?? "").trim());
+  const productSkus = clean.map((s, i) => ({
+    name: String(s.name).trim(),
+    price: Number(s.price) || 0,
+    plu: `${itemId}_sku_${i}`,
+  }));
+  const basePrice = productSkus.length
+    ? Math.min(...productSkus.map((s) => s.price))
+    : 0;
+  return {
+    hasMultipleSkus: productSkus.length > 1,
+    productSkus,
+    basePrice,
+  };
+}
 
 @Injectable()
 export class AgentService {
@@ -201,9 +224,51 @@ export class AgentService {
         for (const k of ["name", "description", "basePrice", "isAvailable", "imageUrl"]) {
           if (input[k] !== undefined) dto[k] = input[k];
         }
+        // Size tiers convert the item to multi-size (base price = cheapest).
+        if (Array.isArray(input.sizes) && input.sizes.length) {
+          Object.assign(dto, sizesToItemDto(input.itemId, input.sizes));
+        }
         const res = await this.menus.updateItem(input.itemId, tenantId, dto as any);
         await this.record(user, "agent.item.update", "menuItem", input.itemId, dto);
         return { ok: true, item: { id: (res as any)?.id, name: (res as any)?.name } };
+      }
+      case "set_category_sizes": {
+        if (!Array.isArray(input.sizes) || input.sizes.length === 0) {
+          return { error: "Provide at least one size." };
+        }
+        // Find the category within a tenant-owned menu, then apply the same
+        // size tiers to every item in it. One bulk call — the agent never
+        // loops per item. updateItem re-checks tenant ownership per item.
+        const cat = await (this.prisma as any).menuCategory.findFirst({
+          where: {
+            menuId: input.menuId,
+            name: { equals: String(input.categoryName), mode: "insensitive" },
+            menu: { brand: { tenantId } },
+          },
+          select: { id: true, name: true, items: { select: { itemId: true } } },
+        });
+        if (!cat) return { error: `No category named "${input.categoryName}" in that menu.` };
+        const itemIds: string[] = cat.items.map((i: any) => i.itemId);
+        let updated = 0;
+        for (const itemId of itemIds) {
+          try {
+            await this.menus.updateItem(
+              itemId,
+              tenantId,
+              sizesToItemDto(itemId, input.sizes) as any,
+            );
+            updated++;
+          } catch (e) {
+            this.logger.warn(`set_category_sizes: item ${itemId} failed: ${(e as Error).message}`);
+          }
+        }
+        await this.record(user, "agent.category.sizes", "menuCategory", cat.id, {
+          menuId: input.menuId,
+          category: cat.name,
+          sizes: input.sizes,
+          itemsUpdated: updated,
+        });
+        return { ok: true, category: cat.name, itemsUpdated: updated, itemsTotal: itemIds.length };
       }
       case "snooze_item": {
         await this.availability.snooze({

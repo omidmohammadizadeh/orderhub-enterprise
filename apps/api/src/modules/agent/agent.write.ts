@@ -103,19 +103,51 @@ export const WRITE_TOOL_DEFS = [
   {
     name: "update_item",
     description:
-      "Edit an existing product/menu item: name, description, price, availability, or its image URL. Use search_products to get the itemId first. Reversible. Confirm with the operator, then call with confirmed=true.",
+      "Edit an existing product/menu item: name, description, single price, availability, image, OR its SIZE TIERS. To give an item multiple sizes (e.g. 10\"→£10, 12\"→£11) pass `sizes` — this converts a single-price item into a multi-size one. Use search_products to get the itemId. Reversible. Confirm with the operator, then confirmed=true.",
     input_schema: {
       type: "object",
       properties: {
         itemId: { type: "string" },
         name: { type: "string" },
         description: { type: "string" },
-        basePrice: { type: "number" },
+        basePrice: { type: "number", description: "Single flat price. Omit when using sizes." },
+        sizes: {
+          type: "array",
+          description: "Size tiers. Providing 2+ makes the item multi-size (base price becomes the cheapest).",
+          items: {
+            type: "object",
+            properties: { name: { type: "string" }, price: { type: "number" } },
+            required: ["name", "price"],
+          },
+        },
         isAvailable: { type: "boolean" },
         imageUrl: { type: "string", description: "Usually set by generate_item_image, not by hand." },
         confirmed: { type: "boolean" },
       },
       required: ["itemId"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "set_category_sizes",
+    description:
+      "Apply the SAME size tiers (e.g. 10\"→£10, 12\"→£11) to EVERY item in one category/section of a menu — the correct way to 'set sizes for all pizzas'. Runs as one bulk call (no per-item looping). Use list_menus for the menuId and get_menu to see category names. Confirm with the operator first, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        menuId: { type: "string" },
+        categoryName: { type: "string", description: "The section name, e.g. 'Pizzas' (case-insensitive)." },
+        sizes: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: { name: { type: "string" }, price: { type: "number" } },
+            required: ["name", "price"],
+          },
+        },
+        confirmed: { type: "boolean" },
+      },
+      required: ["menuId", "categoryName", "sizes"],
       additionalProperties: false,
     },
   },
