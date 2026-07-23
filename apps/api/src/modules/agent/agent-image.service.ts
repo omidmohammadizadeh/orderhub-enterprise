@@ -52,6 +52,16 @@ export class AgentImageService {
     return !!this.config.get<string>("REPLICATE_API_TOKEN");
   }
 
+  // MenuItem has only a scalar brandId (no `brand` relation), so item queries
+  // scope by the tenant's brand ids.
+  private async tenantBrandIds(tenantId: string): Promise<string[]> {
+    const brands = await (this.prisma as any).brand.findMany({
+      where: { tenantId },
+      select: { id: true },
+    });
+    return brands.map((b: any) => b.id);
+  }
+
   /** Generate + store one item's photo inline. Returns the stored data URL. */
   async generateForItem(
     tenantId: string,
@@ -61,8 +71,9 @@ export class AgentImageService {
     if (!this.configured) {
       return { ok: false, itemId, error: "Image generation needs REPLICATE_API_TOKEN set in the environment." };
     }
+    const brandIds = await this.tenantBrandIds(tenantId);
     const item = await (this.prisma as any).menuItem.findFirst({
-      where: { id: itemId, brand: { tenantId } },
+      where: { id: itemId, brandId: { in: brandIds } },
       select: { id: true, name: true, description: true },
     });
     if (!item) return { ok: false, itemId, error: "Item not found for this business." };
@@ -102,10 +113,11 @@ export class AgentImageService {
     styleHint: string | undefined,
     job: BulkJob,
   ) {
+    const brandIds = await this.tenantBrandIds(tenantId);
     const items = await (this.prisma as any).menuItem.findMany({
       where: {
         menuIds: { has: menuId },
-        brand: { tenantId },
+        brandId: { in: brandIds },
         ...(onlyMissing ? { OR: [{ imageUrl: null }, { imageUrl: "" }] } : {}),
       },
       select: { id: true, name: true, description: true },

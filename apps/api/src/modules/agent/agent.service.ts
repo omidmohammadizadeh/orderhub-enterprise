@@ -478,9 +478,20 @@ export class AgentService {
     }
   }
 
+  /** Brand ids owned by a tenant — MenuItem has only a scalar brandId (no
+   *  `brand` relation), so item queries scope by brandId, not by relation. */
+  private async tenantBrandIds(tenantId: string): Promise<string[]> {
+    const brands = await (this.prisma as any).brand.findMany({
+      where: { tenantId },
+      select: { id: true },
+    });
+    return brands.map((b: any) => b.id);
+  }
+
   private async loadItemForModifiers(tenantId: string, itemId: string) {
+    const brandIds = await this.tenantBrandIds(tenantId);
     return (this.prisma as any).menuItem.findFirst({
-      where: { id: itemId, brand: { tenantId } },
+      where: { id: itemId, brandId: { in: brandIds } },
       select: {
         id: true, brandId: true, locationId: true, menuIds: true,
         hasMultipleSkus: true, productSkus: true,
