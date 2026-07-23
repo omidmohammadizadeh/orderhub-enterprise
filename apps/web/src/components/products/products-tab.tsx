@@ -167,6 +167,8 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
                       <img
                         src={p.imageUrl}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
                         className="h-9 w-12 rounded object-cover flex-shrink-0"
                       />
                     ) : (
