@@ -108,6 +108,30 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
     }
     return out;
   });
+  // Copy one day's slots onto other days — retyping the same 09:00–21:00
+  // seven times was the #1 gripe with this editor. Targets: every day,
+  // Mon–Fri, Sat–Sun, or a single day. Slots are deep-copied so editing
+  // Tuesday later never mutates Monday's objects.
+  const copyDayHours = (
+    from: Day,
+    target: "all" | "weekdays" | "weekend" | Day,
+  ) => {
+    const targets: readonly Day[] =
+      target === "all"
+        ? DAYS
+        : target === "weekdays"
+          ? (["monday", "tuesday", "wednesday", "thursday", "friday"] as const)
+          : target === "weekend"
+            ? (["saturday", "sunday"] as const)
+            : [target];
+    const next = { ...openingHours };
+    for (const d of targets) {
+      if (d === from) continue;
+      next[d] = openingHours[from].map((s) => ({ ...s }));
+    }
+    setOpeningHours(next);
+  };
+
   const [prepTime, setPrepTime] = useState<string>(
     brand.prepTime != null ? String(brand.prepTime) : "",
   );
@@ -554,23 +578,54 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                       ))
                     )}
                     {openingHours[day].length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          canEdit &&
-                          setOpeningHours({
-                            ...openingHours,
-                            [day]: [
-                              ...openingHours[day],
-                              { from: "18:00", to: "23:00" },
-                            ],
-                          })
-                        }
-                        disabled={!canEdit}
-                        className="self-start rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-500 hover:bg-zinc-50 disabled:opacity-50"
-                      >
-                        + Add another slot
-                      </button>
+                      <div className="flex items-center gap-1.5 self-start">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            canEdit &&
+                            setOpeningHours({
+                              ...openingHours,
+                              [day]: [
+                                ...openingHours[day],
+                                { from: "18:00", to: "23:00" },
+                              ],
+                            })
+                          }
+                          disabled={!canEdit}
+                          className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-500 hover:bg-zinc-50 disabled:opacity-50"
+                        >
+                          + Add another slot
+                        </button>
+                        {/* Copy this day's hours to other days — resets to the
+                            placeholder after applying so it reads as an action,
+                            not a persisted setting. */}
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (!v || !canEdit) return;
+                            copyDayHours(
+                              day,
+                              v as "all" | "weekdays" | "weekend" | Day,
+                            );
+                          }}
+                          disabled={!canEdit}
+                          className="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 hover:bg-zinc-50 disabled:opacity-50"
+                          title="Copy these hours to other days"
+                        >
+                          <option value="" disabled>
+                            Copy to…
+                          </option>
+                          <option value="all">All days</option>
+                          <option value="weekdays">Weekdays (Mon–Fri)</option>
+                          <option value="weekend">Weekend (Sat–Sun)</option>
+                          {DAYS.filter((d) => d !== day).map((d) => (
+                            <option key={d} value={d}>
+                              {d.charAt(0).toUpperCase() + d.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     )}
                   </div>
                 </div>
