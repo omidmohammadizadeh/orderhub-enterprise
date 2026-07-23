@@ -25,15 +25,15 @@ export class UserThrottlerGuard extends ThrottlerGuard {
     // ONE bucket and 429s each other. Cloudflare sets the true client IP on
     // `cf-connecting-ip`; use it so each real client gets its own bucket. Fall
     // back to the left-most X-Forwarded-For, then req.ip.
-    const headers = req?.headers ?? {};
-    const cfIp =
-      typeof headers["cf-connecting-ip"] === "string"
-        ? headers["cf-connecting-ip"]
-        : undefined;
+    const headers = (req?.headers ?? {}) as Record<
+      string,
+      string | string[] | undefined
+    >;
+    const cfRaw = headers["cf-connecting-ip"];
+    const cfIp = typeof cfRaw === "string" ? cfRaw : undefined;
+    const xffRaw = headers["x-forwarded-for"];
     const xff =
-      typeof headers["x-forwarded-for"] === "string"
-        ? headers["x-forwarded-for"].split(",")[0].trim()
-        : undefined;
+      typeof xffRaw === "string" ? xffRaw.split(",")[0]?.trim() : undefined;
     return `ip:${cfIp ?? xff ?? req?.ip ?? "anon"}`;
   }
 }
