@@ -40,3 +40,32 @@ describe("distilHtml (saved web-page menu import)", () => {
     expect(distilHtml(big).length).toBeLessThanOrEqual(180_000);
   });
 });
+
+describe("distilHtml — Uber Eats saved store page", () => {
+  it("extracts the ordered ITEM/DESC/PRICE stream from __REACT_QUERY_STATE__", () => {
+    const q = "\\u0022";
+    const state = [
+      `{${q}queries${q}:[{${q}state${q}:{${q}data${q}:{`,
+      `${q}title${q}:${q}Donner Wrap${q},${q}priceTagline${q}:{${q}text${q}:${q}£9.10${q}},`,
+      `${q}title${q}:${q}Pepperoni Pizza${q},${q}itemDescription${q}:${q}Cheese And Pepperoni${q},${q}priceTagline${q}:{${q}text${q}:${q}£11.50${q}},`,
+      `${q}title${q}:${q}A${q},${q}priceTagline${q}:{${q}text${q}:${q}£1.00${q}},`,
+      `${q}title${q}:${q}B${q},${q}priceTagline${q}:{${q}text${q}:${q}£2.00${q}},`,
+      `${q}title${q}:${q}C${q},${q}priceTagline${q}:{${q}text${q}:${q}£3.00${q}},`,
+      `}}]}`,
+    ].join("");
+    const html = `<html><body><script type="application/json" id="__REACT_QUERY_STATE__">${state}</script><div>Menu</div></body></html>`;
+    const out = distilHtml(html);
+    expect(out).toContain("EMBEDDED MENU FIELDS");
+    expect(out).toContain("ITEM: Donner Wrap");
+    expect(out).toContain("PRICE: £9.10");
+    expect(out).toContain("DESC: Cheese And Pepperoni");
+  });
+
+  it("ignores a state blob that is not a menu (fewer than 5 prices)", () => {
+    const q = "\\u0022";
+    const html = `<script type="application/json" id="__REACT_QUERY_STATE__">{${q}title${q}:${q}Login${q}}</script><body>Hello</body>`;
+    const out = distilHtml(html);
+    expect(out).not.toContain("EMBEDDED MENU FIELDS");
+    expect(out).toContain("Hello");
+  });
+});

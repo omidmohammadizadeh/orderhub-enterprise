@@ -54,10 +54,53 @@ export function distilHtml(rawHtml: string): string {
   if (nextData?.[1]) {
     parts.push(`EMBEDDED PAGE DATA (JSON):\n${nextData[1]}`);
   } else {
-    // Uber-style: a big JSON assignment in an inline script.
-    const preloaded = /__REACT_QUERY_STATE__\s*=\s*(\{[\s\S]*?\});?\s*<\/script>/.exec(html)
-      ?? /window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\});?\s*<\/script>/.exec(html);
-    if (preloaded?.[1]) parts.push(`EMBEDDED PAGE DATA (JSON):\n${preloaded[1]}`);
+    // Uber Eats: a <script type="application/json" id="__REACT_QUERY_STATE__">
+    // tag holding the store's full catalog, with every quote escaped as
+    // " (and nested layers escaped further — verified against a real
+    // saved store page). It is NOT strictly parseable JSON, so don't parse:
+    // decode the escapes textually and pull the menu fields out in
+    // serialization order, which keeps each item's name/description/price
+    // adjacent. That ordered stream is exactly what the model needs.
+    const uberState =
+      /<script[^>]*type="application\/json"[^>]*id="__REACT_QUERY_STATE__"[^>]*>([\s\S]*?)<\/script>/i.exec(
+        html,
+      );
+    if (uberState?.[1]) {
+      const decoded = uberState[1]
+        .trim()
+        .replace(/\\u([0-9a-fA-F]{4})/g, (_, h: string) =>
+          String.fromCharCode(parseInt(h, 16)),
+        );
+      const clean = (s: string) => {
+        try {
+          return decodeURIComponent(s.replace(/%25/g, "%"));
+        } catch {
+          return s;
+        }
+      };
+      const lines: string[] = [];
+      const fieldRe =
+        /"(sectionName|title|itemDescription)":"([^"]{2,600})"|"priceTagline":\{"text":"([^"]{1,30})"/g;
+      let f: RegExpExecArray | null;
+      while ((f = fieldRe.exec(decoded))) {
+        if (f[3]) lines.push(`PRICE: ${clean(f[3])}`);
+        else if (f[1] === "itemDescription") lines.push(`DESC: ${clean(f[2]!)}`);
+        else if (f[1] === "sectionName") lines.push(`SECTION: ${clean(f[2]!)}`);
+        else lines.push(`ITEM: ${clean(f[2]!)}`);
+      }
+      // Only trust the stream when it clearly is a menu (a real store page
+      // yields one PRICE line per product).
+      if (lines.filter((l) => l.startsWith("PRICE:")).length >= 5) {
+        parts.push(
+          `EMBEDDED MENU FIELDS (from the platform's own catalog data, in order — ITEM/DESC/PRICE lines belong to the same product; ignore non-menu noise lines):\n${lines.join("\n")}`,
+        );
+      }
+    } else {
+      // Older style: a big JSON assignment in an inline script.
+      const preloaded = /__REACT_QUERY_STATE__\s*=\s*(\{[\s\S]*?\});?\s*<\/script>/.exec(html)
+        ?? /window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\});?\s*<\/script>/.exec(html);
+      if (preloaded?.[1]) parts.push(`EMBEDDED PAGE DATA (JSON):\n${preloaded[1]}`);
+    }
   }
 
   // Visible text: drop script/style/head noise, strip tags, collapse space.
