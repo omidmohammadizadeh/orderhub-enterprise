@@ -94,11 +94,41 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
 
     const customer = order.customer ?? {};
     const delivery = order.delivery ?? {};
+    // Customer name field varies a lot by marketplace. Just Eat (via HubRise)
+    // often leaves first_name/last_name blank and puts the display name in a
+    // single `name` field or on the order's customer_list entry — which is
+    // why those orders showed the "HubRise Customer" placeholder. Try every
+    // known source in order of specificity before giving up.
+    const clean = (v: unknown): string =>
+      typeof v === "string" ? v.trim() : "";
+    const joined = [customer.first_name, customer.last_name]
+      .map(clean)
+      .filter(Boolean)
+      .join(" ")
+      .trim();
     const customerName =
-      [customer.first_name, customer.last_name]
-        .filter(Boolean)
-        .join(" ")
-        .trim() || "HubRise Customer";
+      joined ||
+      clean(customer.name) ||
+      clean(customer.full_name) ||
+      clean((order as any).customer_name) ||
+      clean((order as any).customer_list_name) ||
+      clean(delivery.contact_name) ||
+      clean(delivery.name) ||
+      clean(customer.company_name) ||
+      "HubRise Customer";
+    // If we STILL couldn't find a real name, log the customer/delivery keys
+    // so the true field for this marketplace is visible in the Render log
+    // (shape-first: don't guess a field we haven't seen). Names only — no PII
+    // values.
+    if (customerName === "HubRise Customer") {
+      this.logger.warn(
+        `HubRise order ${order.id ?? "?"} has no resolvable customer name — customer keys: [${Object.keys(
+          customer,
+        ).join(", ")}], delivery keys: [${Object.keys(delivery).join(
+          ", ",
+        )}], order keys: [${Object.keys(order).join(", ")}]`,
+      );
+    }
 
     // HubRise service_type values: "delivery" | "collection" | "eat_in".
     // Map onto our fulfillment enum. MERCHANT_DELIVERY means the shop
