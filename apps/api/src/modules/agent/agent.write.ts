@@ -152,6 +152,83 @@ export const WRITE_TOOL_DEFS = [
     },
   },
   {
+    name: "add_modifier_group_to_category",
+    description:
+      "Create ONE shared modifier group (e.g. 'Choose your crust' or 'Extra toppings') and attach it to EVERY item in a category/section — the right tool for 'add these options to all pizzas'. Each option can have a flat price OR different prices per size via pricesBySize (e.g. {\"10\\\"\": 2.5, \"12\\\"\": 3}). Runs as one bulk call. Use get_menu for category names + item sizes. Confirm first, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        menuId: { type: "string" },
+        categoryName: { type: "string" },
+        group: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            selectionType: { type: "string", enum: ["VARIANT", "ADDON"], description: "VARIANT = pick one; ADDON = pick several." },
+            minSelections: { type: "number" },
+            maxSelections: { type: "number" },
+            options: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  price: { type: "number", description: "Flat extra charge (0 if free). Omit if using pricesBySize." },
+                  pricesBySize: {
+                    type: "object",
+                    description: "Per-size price keyed by the item's size name, e.g. {\"10\\\"\": 2.5, \"12\\\"\": 3}.",
+                    additionalProperties: { type: "number" },
+                  },
+                },
+                required: ["name"],
+              },
+            },
+          },
+          required: ["name", "selectionType", "options"],
+        },
+        confirmed: { type: "boolean" },
+      },
+      required: ["menuId", "categoryName", "group"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "add_modifier_group_to_item",
+    description:
+      "Create a modifier group and attach it to ONE item (same shape as add_modifier_group_to_category but for a single itemId). Confirm first, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        itemId: { type: "string" },
+        group: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            selectionType: { type: "string", enum: ["VARIANT", "ADDON"] },
+            minSelections: { type: "number" },
+            maxSelections: { type: "number" },
+            options: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  price: { type: "number" },
+                  pricesBySize: { type: "object", additionalProperties: { type: "number" } },
+                },
+                required: ["name"],
+              },
+            },
+          },
+          required: ["name", "selectionType", "options"],
+        },
+        confirmed: { type: "boolean" },
+      },
+      required: ["itemId", "group"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "snooze_item",
     description:
       "86 an item — mark it unavailable. Optionally scope to one location and/or one channel; default is all channels at all locations until manually turned back on. Reversible via unsnooze_item. Confirm first, then confirmed=true.",

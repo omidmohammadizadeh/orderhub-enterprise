@@ -7,8 +7,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Bot, Send, Loader2, User, Wrench } from "lucide-react";
+import { Bot, Send, Loader2, User, Wrench, Trash2 } from "lucide-react";
 import { agentClient, type AgentTurn } from "@/lib/api/agent.client";
+
+// Chat persists across navigation (it used to reset on unmount) so a long
+// multi-step build isn't lost when the operator flips to another page.
+const HISTORY_KEY = "orderhub.assistant.history";
 
 const SUGGESTIONS = [
   "Build a new drinks menu for my brand",
@@ -27,6 +31,33 @@ export default function AssistantPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Restore prior conversation on mount; persist on every change.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (raw) setMessages(JSON.parse(raw));
+    } catch {
+      /* ignore malformed history */
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      // Keep the last ~40 turns so storage stays small.
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-40)));
+    } catch {
+      /* ignore quota errors */
+    }
+  }, [messages]);
+
+  const clearHistory = () => {
+    setMessages([]);
+    try {
+      localStorage.removeItem(HISTORY_KEY);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const chat = useMutation({
     mutationFn: (history: AgentTurn[]) => agentClient.chat(history),
@@ -65,7 +96,7 @@ export default function AssistantPage() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Header */}
-      <div className="border-b border-zinc-200 px-6 py-4">
+      <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
         <div className="flex items-center gap-2.5">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-violet-100 text-violet-700">
             <Bot className="h-4 w-4" />
@@ -73,11 +104,19 @@ export default function AssistantPage() {
           <div>
             <h1 className="text-base font-semibold text-zinc-900">AI Assistant</h1>
             <p className="text-[11px] text-zinc-500">
-              Your business co-pilot — build &amp; edit menus, 86 items, publish,
-              and diagnose. It always asks you to confirm before making a change.
+              Your business co-pilot — build &amp; edit menus, sizes, modifiers,
+              86 items, publish. It always confirms before making a change.
             </p>
           </div>
         </div>
+        {messages.length > 0 && (
+          <button
+            onClick={clearHistory}
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs text-zinc-500 hover:bg-zinc-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Clear
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -142,7 +181,8 @@ export default function AssistantPage() {
                   <Bot className="h-3.5 w-3.5" />
                 </span>
                 <p className="flex items-center gap-1.5 pt-1 text-sm text-zinc-400">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Thinking…
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Working on it —
+                  big changes can take up to a minute…
                 </p>
               </div>
             )}

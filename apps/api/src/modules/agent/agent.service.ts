@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { randomBytes } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { MenusService } from "../menus/menus.service";
 import { AiMenuImporter } from "../menus/importers/ai-menu.importer";
@@ -20,7 +21,7 @@ import { WRITE_TOOL_DEFS, WRITE_TOOL_NAMES } from "./agent.write";
 // and is written to the audit log. There are deliberately no delete tools.
 
 const DEFAULT_MODEL = "claude-sonnet-5";
-const MAX_TOOL_ITERATIONS = 14;
+const MAX_TOOL_ITERATIONS = 20;
 
 export interface AgentChatTurn {
   role: "user" | "assistant";
@@ -30,12 +31,22 @@ export interface AgentUser {
   tenantId: string;
   userId: string;
 }
+interface ChatJob {
+  status: "pending" | "done" | "failed";
+  reply?: string;
+  toolsUsed?: string[];
+  error?: string;
+  createdAt: number;
+}
+const CHAT_JOB_TTL_MS = 15 * 60_000;
 
 const SYSTEM_PROMPT = `You are the Order Hub Admin Assistant — a co-pilot for a restaurant business owner/admin using the Order Hub platform. You can READ the business's data and, with the operator's confirmation, make CHANGES for them.
 
 Tools:
 - READ (run freely): list_brands, list_locations, list_menus, get_menu, search_products, menu_health, duplicate_products_scan, list_orders, get_order.
-- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability, OR set an item's size tiers via a 'sizes' list), set_category_sizes (apply the same size tiers to EVERY item in a section — the right tool for "give all pizzas 10\"/12\" sizes"), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).
+- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability, OR set an item's size tiers via a 'sizes' list), set_category_sizes (apply the same size tiers to EVERY item in a section — the right tool for "give all pizzas 10\"/12\" sizes"), add_modifier_group_to_category (create ONE shared modifier group and attach it to every item in a section — the right tool for "add a crust choice and extra toppings to all pizzas"; options can price per-size via pricesBySize), add_modifier_group_to_item (same for one item), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).
+
+For a big multi-part request (e.g. sizes + two modifier groups across a whole section), do it step by step with the bulk tools: set_category_sizes first, then add_modifier_group_to_category for each group. Confirm the whole plan once up front, then carry it out.
 
 How to make changes SAFELY — always follow this:
 1. Use read tools to gather the real facts first (ids, current values).
@@ -77,6 +88,7 @@ export class AgentService {
   private readonly logger = new Logger(AgentService.name);
   private readonly anthropic: Anthropic | null;
   private readonly model: string;
+  private readonly chatJobs = new Map<string, ChatJob>();
 
   constructor(
     private readonly config: ConfigService,
@@ -99,10 +111,14 @@ export class AgentService {
     return !!this.anthropic;
   }
 
-  async chat(
-    user: AgentUser,
-    history: AgentChatTurn[],
-  ): Promise<{ reply: string; toolsUsed: string[] }> {
+  /**
+   * Start a chat turn as a BACKGROUND job and return a jobId to poll. A complex
+   * request (e.g. sizing/adding modifiers to 40+ items) can run well past the
+   * ~60s proxy timeout — running it inline made the browser show "Something
+   * went wrong" even though the work was still going. Now the HTTP request
+   * returns instantly and the client polls getChatJob.
+   */
+  startChat(user: AgentUser, history: AgentChatTurn[]): string {
     if (!this.anthropic) {
       throw new BadRequestException(
         "The admin assistant isn't configured (missing ANTHROPIC_API_KEY).",
@@ -110,6 +126,44 @@ export class AgentService {
     }
     if (!Array.isArray(history) || history.length === 0) {
       throw new BadRequestException("Send at least one message.");
+    }
+    const jobId = randomBytes(12).toString("hex");
+    this.chatJobs.set(jobId, { status: "pending", createdAt: Date.now() });
+    void this.runChat(user, history)
+      .then((r) =>
+        this.chatJobs.set(jobId, { status: "done", ...r, createdAt: Date.now() }),
+      )
+      .catch((err: unknown) => {
+        const e = err as { message?: string };
+        this.logger.warn(`agent chat job failed: ${e?.message}`);
+        this.chatJobs.set(jobId, {
+          status: "failed",
+          error: e?.message ?? "The assistant hit an error.",
+          createdAt: Date.now(),
+        });
+      });
+    this.sweepChatJobs();
+    return jobId;
+  }
+
+  getChatJob(jobId: string): ChatJob | null {
+    this.sweepChatJobs();
+    return this.chatJobs.get(jobId) ?? null;
+  }
+
+  private sweepChatJobs(): void {
+    const now = Date.now();
+    for (const [id, j] of this.chatJobs) {
+      if (now - j.createdAt > CHAT_JOB_TTL_MS) this.chatJobs.delete(id);
+    }
+  }
+
+  private async runChat(
+    user: AgentUser,
+    history: AgentChatTurn[],
+  ): Promise<{ reply: string; toolsUsed: string[] }> {
+    if (!this.anthropic) {
+      throw new BadRequestException("The admin assistant isn't configured.");
     }
 
     const messages: Anthropic.MessageParam[] = history
@@ -302,6 +356,50 @@ export class AgentService {
         await this.record(user, "agent.menu.publish", "menu", input.menuId, {});
         return { ok: true, status: (res as any)?.status ?? "PUBLISHED" };
       }
+      case "add_modifier_group_to_item": {
+        const item = await (this.prisma as any).menuItem.findFirst({
+          where: { id: input.itemId, brand: { tenantId } },
+          select: { id: true, brandId: true, locationId: true, menuIds: true },
+        });
+        if (!item) return { error: "Item not found for this business." };
+        const groupId = await this.createGroupWithOptions(tenantId, item.brandId, input.group, item.menuIds, item.locationId);
+        await this.menus.linkModifierGroupToItem(input.itemId, groupId, tenantId);
+        await this.record(user, "agent.item.modifiers", "menuItem", input.itemId, { group: input.group?.name });
+        return { ok: true, groupId, itemsLinked: 1 };
+      }
+      case "add_modifier_group_to_category": {
+        const cat = await (this.prisma as any).menuCategory.findFirst({
+          where: {
+            menuId: input.menuId,
+            name: { equals: String(input.categoryName), mode: "insensitive" },
+            menu: { brand: { tenantId } },
+          },
+          select: {
+            id: true, name: true,
+            menu: { select: { brandId: true, locationId: true } },
+            items: { select: { itemId: true } },
+          },
+        });
+        if (!cat) return { error: `No category named "${input.categoryName}" in that menu.` };
+        const itemIds: string[] = cat.items.map((i: any) => i.itemId);
+        // ONE shared group, linked to every item — not one group per item.
+        const groupId = await this.createGroupWithOptions(
+          tenantId, cat.menu.brandId, input.group, [input.menuId], cat.menu.locationId,
+        );
+        let linked = 0;
+        for (const itemId of itemIds) {
+          try {
+            await this.menus.linkModifierGroupToItem(itemId, groupId, tenantId);
+            linked++;
+          } catch {
+            /* already linked — tolerate */
+          }
+        }
+        await this.record(user, "agent.category.modifiers", "menuCategory", cat.id, {
+          menuId: input.menuId, category: cat.name, group: input.group?.name, itemsLinked: linked,
+        });
+        return { ok: true, groupId, category: cat.name, itemsLinked: linked, itemsTotal: itemIds.length };
+      }
       case "generate_item_image": {
         const res = await this.images.generateForItem(tenantId, input.itemId, input.styleHint);
         if (res.ok) {
@@ -331,6 +429,45 @@ export class AgentService {
       default:
         throw new Error(`Unknown write tool ${name}`);
     }
+  }
+
+  /** Create a modifier group + its options (flat price or per-size pricesBySize)
+   *  and return the new group id. Options with pricesBySize keep a flat
+   *  priceAdjustment of the smallest size price as a sensible fallback. */
+  private async createGroupWithOptions(
+    tenantId: string,
+    brandId: string,
+    group: any,
+    menuIds: string[],
+    locationId?: string | null,
+  ): Promise<string> {
+    const created = await this.menus.createModifierGroup(brandId, tenantId, {
+      name: group.name,
+      selectionType: group.selectionType === "ADDON" ? "ADDON" : "VARIANT",
+      minSelections: typeof group.minSelections === "number" ? group.minSelections : undefined,
+      maxSelections: typeof group.maxSelections === "number" ? group.maxSelections : undefined,
+      isRequired: (group.minSelections ?? 0) >= 1,
+      menuIds: menuIds ?? [],
+      ...(locationId ? { locationId } : {}),
+    });
+    const groupId = (created as any).id;
+    for (const opt of group.options ?? []) {
+      if (!opt?.name) continue;
+      const pricesBySize =
+        opt.pricesBySize && typeof opt.pricesBySize === "object" ? opt.pricesBySize : undefined;
+      const flat =
+        typeof opt.price === "number"
+          ? opt.price
+          : pricesBySize
+            ? Math.min(...Object.values(pricesBySize).map((v) => Number(v) || 0))
+            : 0;
+      await this.menus.addModifierOption(groupId, tenantId, {
+        name: String(opt.name),
+        priceAdjustment: flat,
+        ...(pricesBySize ? { pricesBySize } : {}),
+      });
+    }
+    return groupId;
   }
 
   private async record(

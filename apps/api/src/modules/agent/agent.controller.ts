@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { AgentService, type AgentChatTurn } from "./agent.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -20,17 +20,29 @@ export class AgentController {
     return { configured: this.agent.configured };
   }
 
+  // Start a chat turn as a background job (returns a jobId immediately). A
+  // complex change can run past the proxy timeout — the client polls the GET
+  // below instead of holding the request open.
   @Post("chat")
-  @ApiOperation({
-    summary: "Ask the read-only admin assistant a question about the business",
-  })
+  @ApiOperation({ summary: "Start an admin-assistant chat turn — returns a jobId to poll" })
   chat(
     @Body() body: { messages: AgentChatTurn[] },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.agent.chat(
+    const jobId = this.agent.startChat(
       { tenantId: user.tenantId, userId: user.userId },
       body?.messages ?? [],
     );
+    return { jobId };
+  }
+
+  @Get("chat/:jobId")
+  @ApiOperation({ summary: "Poll a chat turn for its reply" })
+  chatJob(@Param("jobId") jobId: string) {
+    const job = this.agent.getChatJob(jobId);
+    if (!job) {
+      return { status: "failed", error: "This request expired — please ask again." };
+    }
+    return { status: job.status, reply: job.reply, toolsUsed: job.toolsUsed, error: job.error };
   }
 }
