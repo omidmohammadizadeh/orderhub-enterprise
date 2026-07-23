@@ -120,17 +120,37 @@ export class MenusController {
 
   // ── AI menu import (upload a PDF/photo, AI builds the menu) ───────────
 
+  // Parsing a big menu can take longer than the ~60s proxy timeout in front
+  // of this API (a real 179-item saved Uber page took 67s; the server
+  // finished with 201 but the browser had already been handed a 500). So the
+  // parse runs as a background job: this POST returns a jobId immediately
+  // and the client polls the GET below. No request ever runs long.
   @Post("brands/:brandId/menus/import/ai/parse")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({
     summary:
-      "Parse an uploaded menu (PDF/JPEG/PNG) with AI into a structured draft for review — no DB writes",
+      "Start an AI parse of an uploaded menu (PDF/JPEG/PNG/HTML) — returns a jobId to poll; no DB writes",
   })
   parseAiMenu(
     @Param("brandId") _brandId: string,
     @Body() body: { files: AiMenuFile[] },
   ) {
-    return this.aiParse.parse(body?.files);
+    return { jobId: this.aiParse.startParse(body?.files) };
+  }
+
+  @Get("brands/:brandId/menus/import/ai/parse/:jobId")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Poll an AI menu-parse job for its result" })
+  getAiParseJob(
+    @Param("brandId") _brandId: string,
+    @Param("jobId") jobId: string,
+  ) {
+    const job = this.aiParse.getJob(jobId);
+    if (!job) {
+      // Expired (15 min TTL) or unknown — tell the client to start over.
+      return { status: "failed", error: "This import expired — please upload the file again." };
+    }
+    return { status: job.status, draft: job.draft, error: job.error };
   }
 
   @Post("brands/:brandId/menus/import/ai/commit")

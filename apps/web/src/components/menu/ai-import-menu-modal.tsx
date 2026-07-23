@@ -451,7 +451,8 @@ export function AiImportMenuModal({
               >
                 {parseMutation.isPending ? (
                   <span className="flex items-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Reading menu…
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Reading menu
+                    — big menus can take a minute or two…
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">

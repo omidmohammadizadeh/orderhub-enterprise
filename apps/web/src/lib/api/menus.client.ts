@@ -250,10 +250,38 @@ export const menusClient = {
       .then((r) => r.data),
 
   // AI menu import — step 1: parse the uploaded files into a reviewable draft.
-  aiParseMenu: (brandId: string, files: AiMenuFile[]) =>
-    apiClient
-      .post<AiMenuDraft>(`/v1/brands/${brandId}/menus/import/ai/parse`, { files })
-      .then((r) => r.data),
+  // AI menu import — step 1. Parsing runs as a BACKGROUND JOB on the API
+  // (large menus take >60s, which used to trip the proxy timeout and show a
+  // bogus 500 even though the parse succeeded). Start the job, then poll
+  // every 2.5s until it finishes — the same Promise<AiMenuDraft> shape as
+  // before, so callers don't change.
+  aiParseMenu: async (brandId: string, files: AiMenuFile[]) => {
+    const { jobId } = (
+      await apiClient.post<{ jobId: string }>(
+        `/v1/brands/${brandId}/menus/import/ai/parse`,
+        { files },
+      )
+    ).data;
+    const startedAt = Date.now();
+    const MAX_WAIT_MS = 8 * 60_000;
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 2500));
+      if (Date.now() - startedAt > MAX_WAIT_MS) {
+        throw new Error("Reading the menu took too long — please try again.");
+      }
+      const job = (
+        await apiClient.get<{
+          status: "pending" | "done" | "failed";
+          draft?: AiMenuDraft;
+          error?: string;
+        }>(`/v1/brands/${brandId}/menus/import/ai/parse/${jobId}`)
+      ).data;
+      if (job.status === "done" && job.draft) return job.draft;
+      if (job.status === "failed") {
+        throw new Error(job.error ?? "Couldn't read this menu.");
+      }
+    }
+  },
 
   // AI menu import — step 2: create the menu from the reviewed draft.
   aiCommitMenu: (

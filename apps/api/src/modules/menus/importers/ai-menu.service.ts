@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { randomBytes } from "crypto";
 import type { AiMenuDraft } from "./ai-menu.classifier";
 
 // ── AI menu parse service ───────────────────────────────────────────────────
@@ -268,18 +269,72 @@ function normalizeFile(f: AiMenuFile): { mediaType: string; data: string } {
   return { mediaType, data };
 }
 
+/** A background parse job. Parsing a large menu can exceed the ~60s proxy
+ *  timeout in front of the API (a real 179-item Uber page took 67s and the
+ *  browser saw a bogus 500 while the server finished fine) — so the client
+ *  starts a job and polls, and no HTTP request ever runs long. */
+export interface AiParseJob {
+  status: "pending" | "done" | "failed";
+  draft?: AiMenuDraft;
+  error?: string;
+  createdAt: number;
+}
+
+const JOB_TTL_MS = 15 * 60_000;
+
 @Injectable()
 export class AiMenuParseService {
   private readonly logger = new Logger(AiMenuParseService.name);
   private readonly anthropic: Anthropic | null;
   private readonly model: string;
+  private readonly textModel: string;
+  private readonly jobs = new Map<string, AiParseJob>();
 
   constructor(private readonly config: ConfigService) {
     const apiKey = this.config.get<string>("ANTHROPIC_API_KEY");
     this.model = this.config.get<string>("MENU_IMPORT_MODEL") ?? DEFAULT_MODEL;
+    // Text sources (saved web pages) arrive pre-extracted as clean
+    // ITEM/DESC/PRICE lines — structuring them is mechanical, so a faster
+    // model cuts a 179-item parse from ~67s to well under the timeout while
+    // vision (photos/PDFs) keeps the strongest model.
+    this.textModel =
+      this.config.get<string>("MENU_IMPORT_TEXT_MODEL") ?? "claude-sonnet-5";
     this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
     if (!this.anthropic) {
       this.logger.warn("ANTHROPIC_API_KEY not set — AI menu import disabled");
+    }
+  }
+
+  /** Start a parse in the background; returns a job id to poll. */
+  startParse(files: AiMenuFile[]): string {
+    const jobId = randomBytes(16).toString("hex");
+    this.jobs.set(jobId, { status: "pending", createdAt: Date.now() });
+    void this.parse(files)
+      .then((draft) =>
+        this.jobs.set(jobId, { status: "done", draft, createdAt: Date.now() }),
+      )
+      .catch((err: unknown) => {
+        const e = err as { message?: string; response?: { message?: string } };
+        this.jobs.set(jobId, {
+          status: "failed",
+          error:
+            e?.response?.message ?? e?.message ?? "Couldn't read this menu.",
+          createdAt: Date.now(),
+        });
+      });
+    this.sweepJobs();
+    return jobId;
+  }
+
+  getJob(jobId: string): AiParseJob | null {
+    this.sweepJobs();
+    return this.jobs.get(jobId) ?? null;
+  }
+
+  private sweepJobs(): void {
+    const now = Date.now();
+    for (const [id, job] of this.jobs) {
+      if (now - job.createdAt > JOB_TTL_MS) this.jobs.delete(id);
     }
   }
 
@@ -334,6 +389,9 @@ export class AiMenuParseService {
         });
       }
     }
+    // All-text sources (saved web pages) get the faster text model; any
+    // image/PDF in the mix needs the vision-strong default.
+    const textOnly = blocks.every((b) => (b as { type: string }).type === "text");
     blocks.push({ type: "text", text: USER_INSTRUCTION });
 
     let toolInput: unknown;
@@ -341,7 +399,7 @@ export class AiMenuParseService {
       // Stream + finalMessage: menus can be long, so give the model room and
       // avoid request-timeout on large structured output.
       const stream = this.anthropic.messages.stream({
-        model: this.model,
+        model: textOnly ? this.textModel : this.model,
         max_tokens: 16000,
         system: SYSTEM_PROMPT,
         tools: [
