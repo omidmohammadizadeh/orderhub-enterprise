@@ -46,7 +46,7 @@ Tools:
 - READ (run freely): list_brands, list_locations, list_menus, get_menu, search_products, menu_health, duplicate_products_scan, list_orders, get_order.
 - WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability, OR set an item's size tiers via a 'sizes' list), set_category_sizes (apply the same size tiers to EVERY item in a section — the right tool for "give all pizzas 10\"/12\" sizes"), add_modifier_group_to_category (create ONE shared modifier group and attach it to every item in a section — the right tool for "add a crust choice and extra toppings to all pizzas"; options can price per-size via pricesBySize), add_modifier_group_to_item (same for one item), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).
 
-For a big multi-part request (e.g. sizes + two modifier groups across a whole section), do it step by step with the bulk tools: set_category_sizes first, then add_modifier_group_to_category for each group. Confirm the whole plan once up front, then carry it out.
+For a big multi-part request (e.g. sizes + two modifier groups across a whole section), do it step by step with the bulk tools: set_category_sizes FIRST (this defines the sizes), THEN add_modifier_group_to_category for each group (modifier groups attach onto the existing sizes). Confirm the whole plan once up front, then carry it out. get_menu now shows each item's sizes and modifierGroups (names) — use it to verify your work and to spot duplicates. Adding a group is idempotent (an item that already has a same-named group is skipped), and remove_modifier_group_from_category clears duplicates. If you ever see the same group name twice on items, remove it then add it once.
 
 How to make changes SAFELY — always follow this:
 1. Use read tools to gather the real facts first (ids, current values).
@@ -357,48 +357,95 @@ export class AgentService {
         return { ok: true, status: (res as any)?.status ?? "PUBLISHED" };
       }
       case "add_modifier_group_to_item": {
-        const item = await (this.prisma as any).menuItem.findFirst({
-          where: { id: input.itemId, brand: { tenantId } },
-          select: { id: true, brandId: true, locationId: true, menuIds: true },
-        });
+        const item = await this.loadItemForModifiers(tenantId, input.itemId);
         if (!item) return { error: "Item not found for this business." };
+        const nameById = await this.brandGroupNameMap(item.brandId);
+        if (this.itemHasGroupNamed(item, input.group?.name, nameById)) {
+          return { ok: true, alreadyPresent: true, message: `Item already has a "${input.group?.name}" group.` };
+        }
         const groupId = await this.createGroupWithOptions(tenantId, item.brandId, input.group, item.menuIds, item.locationId);
-        await this.menus.linkModifierGroupToItem(input.itemId, groupId, tenantId);
+        await this.attachGroupToItem(tenantId, item, groupId);
         await this.record(user, "agent.item.modifiers", "menuItem", input.itemId, { group: input.group?.name });
         return { ok: true, groupId, itemsLinked: 1 };
       }
       case "add_modifier_group_to_category": {
-        const cat = await (this.prisma as any).menuCategory.findFirst({
-          where: {
-            menuId: input.menuId,
-            name: { equals: String(input.categoryName), mode: "insensitive" },
-            menu: { brand: { tenantId } },
-          },
-          select: {
-            id: true, name: true,
-            menu: { select: { brandId: true, locationId: true } },
-            items: { select: { itemId: true } },
-          },
-        });
+        const cat = await this.loadCategoryForModifiers(tenantId, input.menuId, input.categoryName);
         if (!cat) return { error: `No category named "${input.categoryName}" in that menu.` };
-        const itemIds: string[] = cat.items.map((i: any) => i.itemId);
-        // ONE shared group, linked to every item — not one group per item.
-        const groupId = await this.createGroupWithOptions(
-          tenantId, cat.menu.brandId, input.group, [input.menuId], cat.menu.locationId,
+        const items = await Promise.all(
+          cat.itemIds.map((id: string) => this.loadItemForModifiers(tenantId, id)),
         );
+        const present = items.filter(Boolean) as any[];
+        const nameById = await this.brandGroupNameMap(cat.brandId);
+        // Idempotent: only touch items that DON'T already have a same-named
+        // group (prevents the duplicate pile-up from re-running).
+        const missing = present.filter(
+          (it) => !this.itemHasGroupNamed(it, input.group?.name, nameById),
+        );
+        if (missing.length === 0) {
+          return { ok: true, alreadyPresent: true, message: `Every item already has a "${input.group?.name}" group.` };
+        }
+        // ONE shared group, attached to each missing item — PER-SIZE when the
+        // item has size tiers (that's where the edit UI reads them), else at
+        // item level.
+        const groupId = await this.createGroupWithOptions(tenantId, cat.brandId, input.group, [input.menuId], cat.locationId);
         let linked = 0;
-        for (const itemId of itemIds) {
+        for (const it of missing) {
           try {
-            await this.menus.linkModifierGroupToItem(itemId, groupId, tenantId);
+            await this.attachGroupToItem(tenantId, it, groupId);
             linked++;
-          } catch {
-            /* already linked — tolerate */
+          } catch (e) {
+            this.logger.warn(`attach modifier to ${it.id} failed: ${(e as Error).message}`);
           }
         }
         await this.record(user, "agent.category.modifiers", "menuCategory", cat.id, {
           menuId: input.menuId, category: cat.name, group: input.group?.name, itemsLinked: linked,
         });
-        return { ok: true, groupId, category: cat.name, itemsLinked: linked, itemsTotal: itemIds.length };
+        return { ok: true, groupId, category: cat.name, itemsLinked: linked, itemsTotal: present.length };
+      }
+      case "remove_modifier_group_from_category": {
+        const cat = await this.loadCategoryForModifiers(tenantId, input.menuId, input.categoryName);
+        if (!cat) return { error: `No category named "${input.categoryName}" in that menu.` };
+        const wanted = String(input.groupName).trim().toLowerCase();
+        const brandGroups = await (this.prisma as any).modifierGroup.findMany({
+          where: { brandId: cat.brandId },
+          select: { id: true, name: true },
+        });
+        const matchIds = new Set<string>(
+          brandGroups.filter((g: any) => String(g.name).toLowerCase() === wanted).map((g: any) => g.id),
+        );
+        if (matchIds.size === 0) return { ok: true, removed: 0, message: `No group named "${input.groupName}" found.` };
+        let itemsTouched = 0;
+        for (const id of cat.itemIds) {
+          const it = await this.loadItemForModifiers(tenantId, id);
+          if (!it) continue;
+          let touched = false;
+          // item-level unlink
+          for (const l of it.modifierGroupLinks ?? []) {
+            if (matchIds.has(l.groupId)) {
+              await this.menus.unlinkModifierGroupFromItem(it.id, l.groupId, tenantId).catch(() => {});
+              touched = true;
+            }
+          }
+          // per-size removal (productSkus JSON isn't FK-cascaded, so strip it)
+          const skus = Array.isArray(it.productSkus) ? it.productSkus : [];
+          if (skus.some((s: any) => (s.modifierGroups ?? []).some((g: string) => matchIds.has(g)))) {
+            const next = skus.map((s: any) => ({
+              ...s,
+              modifierGroups: (s.modifierGroups ?? []).filter((g: string) => !matchIds.has(g)),
+            }));
+            await this.menus.updateItem(it.id, tenantId, { productSkus: next } as any).catch(() => {});
+            touched = true;
+          }
+          if (touched) itemsTouched++;
+        }
+        // Delete the now-unused group rows.
+        for (const id of matchIds) {
+          await this.menus.removeModifierGroup(id, tenantId).catch(() => {});
+        }
+        await this.record(user, "agent.category.modifiers.remove", "menuCategory", cat.id, {
+          menuId: input.menuId, category: cat.name, groupName: input.groupName, groupsRemoved: matchIds.size,
+        });
+        return { ok: true, groupsRemoved: matchIds.size, itemsTouched };
       }
       case "generate_item_image": {
         const res = await this.images.generateForItem(tenantId, input.itemId, input.styleHint);
@@ -428,6 +475,82 @@ export class AgentService {
       }
       default:
         throw new Error(`Unknown write tool ${name}`);
+    }
+  }
+
+  private async loadItemForModifiers(tenantId: string, itemId: string) {
+    return (this.prisma as any).menuItem.findFirst({
+      where: { id: itemId, brand: { tenantId } },
+      select: {
+        id: true, brandId: true, locationId: true, menuIds: true,
+        hasMultipleSkus: true, productSkus: true,
+        modifierGroupLinks: { select: { groupId: true, group: { select: { name: true } } } },
+      },
+    });
+  }
+
+  private async loadCategoryForModifiers(tenantId: string, menuId: string, categoryName: string) {
+    const cat = await (this.prisma as any).menuCategory.findFirst({
+      where: {
+        menuId,
+        name: { equals: String(categoryName), mode: "insensitive" },
+        menu: { brand: { tenantId } },
+      },
+      select: {
+        id: true, name: true,
+        menu: { select: { brandId: true, locationId: true } },
+        items: { select: { itemId: true } },
+      },
+    });
+    if (!cat) return null;
+    return {
+      id: cat.id, name: cat.name, brandId: cat.menu.brandId,
+      locationId: cat.menu.locationId, itemIds: cat.items.map((i: any) => i.itemId) as string[],
+    };
+  }
+
+  /** id → lowercased name for a brand's modifier groups (to resolve per-size
+   *  group ids and dedupe by name). */
+  private async brandGroupNameMap(brandId: string): Promise<Map<string, string>> {
+    const groups = await (this.prisma as any).modifierGroup.findMany({
+      where: { brandId },
+      select: { id: true, name: true },
+    });
+    return new Map(groups.map((g: any) => [g.id, String(g.name).toLowerCase()]));
+  }
+
+  /** Does this item already carry a modifier group of the given name (item-level
+   *  link OR on any size)? Used to make attachment idempotent. */
+  private itemHasGroupNamed(item: any, name: string | undefined, nameById: Map<string, string>): boolean {
+    if (!name) return false;
+    const want = name.toLowerCase();
+    for (const l of item.modifierGroupLinks ?? []) {
+      if (String(l.group?.name ?? "").toLowerCase() === want) return true;
+    }
+    for (const s of item.productSkus ?? []) {
+      for (const gid of s.modifierGroups ?? []) {
+        if (nameById.get(gid) === want) return true;
+      }
+    }
+    return false;
+  }
+
+  /** Attach a modifier group to an item where the edit UI expects it: PER-SIZE
+   *  for multi-size items (productSkus[].modifierGroups — that's what the size
+   *  editor reads), otherwise at item level. */
+  private async attachGroupToItem(tenantId: string, item: any, groupId: string): Promise<void> {
+    const skus = Array.isArray(item.productSkus) ? item.productSkus : [];
+    if (item.hasMultipleSkus && skus.length) {
+      const next = skus.map((s: any) => ({
+        ...s,
+        modifierGroups: Array.from(new Set([...(s.modifierGroups ?? []), groupId])),
+      }));
+      await this.menus.updateItem(item.id, tenantId, {
+        productSkus: next,
+        hasMultipleSkus: true,
+      } as any);
+    } else {
+      await this.menus.linkModifierGroupToItem(item.id, groupId, tenantId).catch(() => {});
     }
   }
 

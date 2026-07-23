@@ -193,6 +193,22 @@ export const WRITE_TOOL_DEFS = [
     },
   },
   {
+    name: "remove_modifier_group_from_category",
+    description:
+      "Remove a modifier group (by name) from EVERY item in a category — detaches it from items and their sizes and deletes the now-unused group. Use this to clean up duplicate/unwanted groups before re-adding a clean one. Matches ALL groups with that name (so duplicates are cleared together). Confirm first, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        menuId: { type: "string" },
+        categoryName: { type: "string" },
+        groupName: { type: "string", description: "Name of the group to remove, e.g. 'Extra toppings'." },
+        confirmed: { type: "boolean" },
+      },
+      required: ["menuId", "categoryName", "groupName"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "add_modifier_group_to_item",
     description:
       "Create a modifier group and attach it to ONE item (same shape as add_modifier_group_to_category but for a single itemId). Confirm first, then confirmed=true.",

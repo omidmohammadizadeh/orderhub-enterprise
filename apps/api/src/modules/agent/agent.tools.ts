@@ -105,7 +105,7 @@ export const AGENT_TOOLS: AgentTool[] = [
       const menu = await p(prisma).menu.findFirst({
         where: { id: input.menuId, brandId: { in: brandIds } },
         select: {
-          id: true, name: true, status: true, isActive: true,
+          id: true, name: true, status: true, isActive: true, brandId: true,
           categories: {
             orderBy: { sortOrder: "asc" },
             select: {
@@ -117,6 +117,8 @@ export const AGENT_TOOLS: AgentTool[] = [
                     select: {
                       id: true, name: true, basePrice: true, description: true,
                       imageUrl: true, plu: true, isAvailable: true,
+                      hasMultipleSkus: true, productSkus: true,
+                      modifierGroupLinks: { select: { group: { select: { name: true } } } },
                     },
                   },
                 },
@@ -126,19 +128,44 @@ export const AGENT_TOOLS: AgentTool[] = [
         },
       });
       if (!menu) return { error: "Menu not found for this business." };
-      // Flatten to a compact shape the model can read cheaply.
+      // Resolve per-size modifier group ids → names so the agent can SEE and
+      // dedupe modifiers/sizes (its earlier blind spot).
+      const groups = await p(prisma).modifierGroup.findMany({
+        where: { brandId: menu.brandId },
+        select: { id: true, name: true },
+      });
+      const nameById = new Map<string, string>(groups.map((g: any) => [g.id, g.name]));
+      const groupNamesFor = (it: any): string[] => {
+        const names = new Set<string>();
+        for (const l of it.modifierGroupLinks ?? []) if (l.group?.name) names.add(l.group.name);
+        for (const s of it.productSkus ?? []) for (const gid of s.modifierGroups ?? []) {
+          const n = nameById.get(gid); if (n) names.add(n);
+        }
+        return [...names];
+      };
       return {
         id: menu.id, name: menu.name, status: menu.status, isActive: menu.isActive,
         categories: menu.categories.map((c: any) => ({
           name: c.name,
-          items: c.items.map((ci: any) => ({
-            name: ci.item.name,
-            price: money(ci.item.basePrice),
-            hasPhoto: !!ci.item.imageUrl,
-            plu: ci.item.plu ?? null,
-            available: ci.item.isAvailable,
-            description: ci.item.description ?? null,
-          })),
+          items: c.items.map((ci: any) => {
+            const it = ci.item;
+            const sizes = Array.isArray(it.productSkus) && it.hasMultipleSkus
+              ? it.productSkus.map((s: any) => ({ name: s.name, price: money(s.price) }))
+              : undefined;
+            const modifierGroups = groupNamesFor(it);
+            return {
+              id: it.id,
+              name: it.name,
+              price: money(it.basePrice),
+              ...(sizes ? { sizes } : {}),
+              modifierGroups,
+              modifierGroupCount: modifierGroups.length,
+              hasPhoto: !!it.imageUrl,
+              plu: it.plu ?? null,
+              available: it.isAvailable,
+              description: it.description ?? null,
+            };
+          }),
         })),
       };
     },
