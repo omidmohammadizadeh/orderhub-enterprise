@@ -36,7 +36,7 @@ export class StuartWebhookController {
   @Post(":locationId")
   @Public()
   @HttpCode(HttpStatus.OK)
-  @Throttle({ webhook: { ttl: 60000, limit: 300 } })
+  @Throttle({ short: { ttl: 60_000, limit: 300 }, medium: { ttl: 60_000, limit: 300 } })
   @ApiOperation({ summary: "Receive a Stuart courier webhook" })
   async receive(
     @Param("locationId") locationId: string,

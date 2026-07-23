@@ -81,7 +81,11 @@ export function useLiveOrdersFeed(
     // Socket healthy → no poll at all; socket down → one 60s fallback.
     // (React Query resolves conflicting intervals across observers to the
     // smallest, so every consumer must come through this hook.)
-    refetchInterval: connected ? false : FALLBACK_POLL_MS,
+    // EXCEPTION: the admin "All locations" view (locationId undefined) joins
+    // no location room — the server only broadcasts order events into
+    // per-location rooms — so socket connectivity alone delivers it nothing.
+    // That view keeps the 60s poll even while connected.
+    refetchInterval: connected && locationId ? false : FALLBACK_POLL_MS,
     staleTime: 30_000,
     // Focus-refetch races in-flight status mutations (see useLiveOrders for
     // the war story); event-driven invalidation covers freshness instead.

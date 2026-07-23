@@ -142,15 +142,21 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     ObservabilityModule,
 
     // ── Rate Limiting ────────────────────────────────────
-    // Throttler names are referenced by @Throttle() decorators on specific routes.
-    // The default (no decorator) applies "short" + "medium" simultaneously.
+    // CRITICAL @nestjs/throttler v6 semantics, learned the hard way: EVERY
+    // throttler registered here applies to EVERY route unless that route
+    // skips it by name. When "login" (10/min) and "webhook" (300/min) were
+    // registered globally, every dashboard endpoint silently carried a
+    // 10-requests-per-minute-per-user cap — several tablets signed into the
+    // same account watching the orders board tripped it constantly. That
+    // hidden bucket was the root cause of the recurring platform-wide 429s.
+    //
+    // So: ONLY the two generous general buckets are global. Abuse-sensitive
+    // routes (login, password reset, public webhooks) declare their own
+    // strict limits per-route via @Throttle overrides of these two names —
+    // strictness stays exactly where it belongs and nowhere else.
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => [
-        // A single dashboard load fires ~15 parallel calls, and a busy shop
-        // runs several tablets behind one NAT IP — so these general limits are
-        // generous. Abuse-sensitive routes keep their own strict buckets
-        // (login 10/min, webhook 300/min) via @Throttle decorators.
         {
           name: "short",
           ttl: config.get<number>("app.throttle.shortTtl") ?? 1000,
@@ -163,16 +169,6 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
           limit: config.get<number>("app.throttle.mediumLimit") ?? 4000,
         }, // 4000 req/min — sustained polling; keyed per-user (UserThrottlerGuard)
            // so an admin watching many locations across tabs doesn't 429 itself.
-        {
-          name: "webhook",
-          ttl: config.get<number>("app.throttle.webhookTtl") ?? 60000,
-          limit: config.get<number>("app.throttle.webhookLimit") ?? 300,
-        },
-        {
-          name: "login",
-          ttl: config.get<number>("app.throttle.loginTtl") ?? 60000,
-          limit: config.get<number>("app.throttle.loginLimit") ?? 10,
-        },
       ],
     }),
 

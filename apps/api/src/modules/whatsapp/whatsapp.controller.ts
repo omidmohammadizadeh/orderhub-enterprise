@@ -41,7 +41,7 @@ export class WhatsAppController {
   @Post("webhook")
   @Public()
   @HttpCode(HttpStatus.OK)
-  @Throttle({ webhook: { ttl: 60000, limit: 600 } })
+  @Throttle({ short: { ttl: 60_000, limit: 600 }, medium: { ttl: 60_000, limit: 600 } })
   @ApiOperation({ summary: "Receive WhatsApp Cloud API events" })
   async receive(@Req() req: RawBodyRequest<Request>) {
     const headers = req.headers as Record<string, string | string[] | undefined>;

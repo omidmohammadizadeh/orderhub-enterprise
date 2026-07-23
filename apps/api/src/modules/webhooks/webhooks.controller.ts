@@ -37,7 +37,7 @@ export class WebhooksController {
   @Post(":platform/:locationId")
   @Public()
   @HttpCode(HttpStatus.OK)
-  @Throttle({ webhook: { ttl: 60000, limit: 300 } })
+  @Throttle({ short: { ttl: 60_000, limit: 300 }, medium: { ttl: 60_000, limit: 300 } })
   @ApiOperation({ summary: "Receive platform webhook" })
   async receive(
     @Param("platform") platformSlug: string,
