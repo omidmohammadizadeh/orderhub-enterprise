@@ -7,13 +7,14 @@
 // that to our canonical Order shape.
 
 import * as crypto from "crypto";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import type { CanonicalOrder } from "@orderhub/shared";
 import { BaseWebhookAdapter } from "./base.adapter";
 
 @Injectable()
 export class HubRiseAdapter extends BaseWebhookAdapter {
   readonly platform = "HUBRISE";
+  private readonly logger = new Logger(HubRiseAdapter.name);
 
   // HubRise's `channel` is a free-form display string set by the
   // operator on each connection. Match loosely so "Uber Eats", "uber
