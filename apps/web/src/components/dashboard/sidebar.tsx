@@ -35,7 +35,8 @@ import {
   ScrollText,
   Wallet,
   MessageSquare,
-  Clapperboard } from "lucide-react";
+  Clapperboard,
+  Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +91,8 @@ const primaryNav: NavItem[] = [
   // duplicate products.
   { href: "/dashboard/products", label: "Products", icon: Layers, roles: MANAGER_TIER },
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER },
+  // Admin-only business co-pilot (read-only, Phase 1).
+  { href: "/dashboard/assistant", label: "AI Assistant", icon: Bot, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"] },
   { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: STAFF_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },

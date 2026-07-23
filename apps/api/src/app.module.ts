@@ -37,6 +37,7 @@ import { BrandsModule } from "./modules/brands/brands.module";
 import { LocationsModule } from "./modules/locations/locations.module";
 import { TeamModule } from "./modules/team/team.module";
 import { LeadsModule } from "./modules/leads/leads.module";
+import { AgentModule } from "./modules/agent/agent.module";
 import { AlertsModule } from "./modules/alerts/alerts.module";
 import { UsersModule } from "./modules/users/users.module";
 import { MenusModule } from "./modules/menus/menus.module";
@@ -232,6 +233,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     LocationsModule,
     TeamModule,
     LeadsModule,
+    AgentModule,
     AlertsModule,
     MenusModule,
     CatalogModule,
