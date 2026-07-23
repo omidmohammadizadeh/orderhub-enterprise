@@ -60,6 +60,42 @@ export function mapDeliverooOrderStatus(status?: string): string | null {
  * still preserved verbatim on Order.courierStatus for the UI to surface.
  * `pending`/`unassigned` don't move the order.
  */
+/** Forward-only rank of our rider-driven order stages. */
+const RIDER_STAGE_RANK: Record<string, number> = {
+  ASSIGNED_DRIVER: 1,
+  RIDER_ARRIVED: 2,
+  OUT_FOR_DELIVERY: 3,
+  COMPLETED: 4,
+};
+
+/**
+ * The FURTHEST-progressed order stage across a list of raw rider statuses
+ * (the rider.status_update `status_log` history plus any bare status field).
+ *
+ * Deliveroo can append a non-terminal line — e.g. `rider_unassigned` when the
+ * rider is released — AFTER `rider_delivered`, so trusting only the last log
+ * entry would leave a delivered order stuck at "out for delivery". The rider
+ * lifecycle is monotonic forward and updateStatus refuses to regress a
+ * terminal order, so taking the max stage is safe and completes the order as
+ * soon as `rider_delivered` appears anywhere in the history.
+ */
+export function furthestRiderStage(
+  statuses: Array<string | undefined | null>,
+): string | null {
+  let best: string | null = null;
+  for (const s of statuses) {
+    const m = mapDeliverooRiderStatus(s ?? undefined);
+    if (
+      m &&
+      (best === null ||
+        (RIDER_STAGE_RANK[m] ?? 0) > (RIDER_STAGE_RANK[best] ?? 0))
+    ) {
+      best = m;
+    }
+  }
+  return best;
+}
+
 export function mapDeliverooRiderStatus(status?: string): string | null {
   switch ((status ?? "").toLowerCase()) {
     case "rider_assigned":

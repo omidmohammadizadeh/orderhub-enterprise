@@ -23,6 +23,7 @@ import { DeliverooAdapter } from "../../webhooks/adapters/deliveroo.adapter";
 import {
   mapDeliverooOrderStatus,
   mapDeliverooRiderStatus,
+  furthestRiderStage,
   deliverooSiteIdFrom,
   deliverooOrderIdFrom,
 } from "./deliveroo-order.mappers";
@@ -330,7 +331,15 @@ export class DeliverooOrderService {
       return { handled: false, reason: "order_not_found" };
     }
 
-    const mapped = mapDeliverooRiderStatus(rawStatus);
+    // Advance to the FURTHEST-progressed stage anywhere in the log, not just
+    // the last entry — Deliveroo can append a non-terminal line (e.g.
+    // rider_unassigned) AFTER rider_delivered, which would otherwise leave a
+    // delivered order stuck at "out for delivery". See furthestRiderStage.
+    // `courierStatus` still shows the latest raw value for the UI.
+    const mapped = furthestRiderStage([
+      rawStatus,
+      ...statusLog.map((e) => e?.status),
+    ]);
 
     // Write courier-tracking columns. Timestamps are set once (first event
     // wins) so a re-delivered event can't clobber the original pickup time.

@@ -1,6 +1,7 @@
 import {
   mapDeliverooOrderStatus,
   mapDeliverooRiderStatus,
+  furthestRiderStage,
   deliverooSiteIdFrom,
   deliverooOrderIdFrom,
 } from "../deliveroo-order.mappers";
@@ -102,5 +103,33 @@ describe("deliverooOrderIdFrom", () => {
     expect(deliverooOrderIdFrom({}, { order_id: "o-3" })).toBe("o-3");
     expect(deliverooOrderIdFrom({}, { order: { id: "o-4" } })).toBe("o-4");
     expect(deliverooOrderIdFrom({})).toBeNull();
+  });
+});
+
+describe("furthestRiderStage (status_log completion)", () => {
+  it("completes when rider_delivered appears anywhere, even if a later line is unassigned", () => {
+    // Deliveroo appends rider_unassigned AFTER delivery — must still complete.
+    expect(
+      furthestRiderStage([
+        "rider_assigned",
+        "rider_in_transit",
+        "rider_delivered",
+        "rider_unassigned",
+      ]),
+    ).toBe("COMPLETED");
+  });
+
+  it("uses the furthest stage, not the last entry", () => {
+    expect(
+      furthestRiderStage(["rider_assigned", "rider_in_transit", "pending"]),
+    ).toBe("OUT_FOR_DELIVERY");
+  });
+
+  it("returns null when nothing maps", () => {
+    expect(furthestRiderStage(["pending", "rider_unassigned", undefined])).toBeNull();
+  });
+
+  it("single delivered value completes", () => {
+    expect(furthestRiderStage(["rider_delivered"])).toBe("COMPLETED");
   });
 });
