@@ -18,6 +18,22 @@ import { ThrottlerGuard } from "@nestjs/throttler";
 export class UserThrottlerGuard extends ThrottlerGuard {
   protected override async getTracker(req: Record<string, any>): Promise<string> {
     const userId = req?.user?.id ?? req?.user?.userId;
-    return userId ? `user:${userId}` : (req?.ip ?? "anon");
+    if (userId) return `user:${userId}`;
+
+    // For anonymous requests, req.ip is NOT the real client behind Render's
+    // Cloudflare edge — it's a shared infra IP, so every client collapses into
+    // ONE bucket and 429s each other. Cloudflare sets the true client IP on
+    // `cf-connecting-ip`; use it so each real client gets its own bucket. Fall
+    // back to the left-most X-Forwarded-For, then req.ip.
+    const headers = req?.headers ?? {};
+    const cfIp =
+      typeof headers["cf-connecting-ip"] === "string"
+        ? headers["cf-connecting-ip"]
+        : undefined;
+    const xff =
+      typeof headers["x-forwarded-for"] === "string"
+        ? headers["x-forwarded-for"].split(",")[0].trim()
+        : undefined;
+    return `ip:${cfIp ?? xff ?? req?.ip ?? "anon"}`;
   }
 }

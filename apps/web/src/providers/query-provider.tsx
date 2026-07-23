@@ -13,7 +13,17 @@ export function QueryProvider({ children }: { children: ReactNode }) {
           queries: {
             staleTime: 30_000,         // 30 s before refetch
             gcTime: 5 * 60_000,        // 5 min garbage collection
-            retry: 1,
+            // Don't retry on rate-limit (429) or auth (401/403) — retrying a
+            // throttled request just amplifies the load and keeps the board
+            // stuck on "Failed to load orders". Other errors retry once.
+            retry: (failureCount, error) => {
+              const status = (error as { response?: { status?: number } })
+                ?.response?.status;
+              if (status === 429 || status === 401 || status === 403) {
+                return false;
+              }
+              return failureCount < 1;
+            },
             refetchOnWindowFocus: false,
           },
           mutations: {
