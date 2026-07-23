@@ -115,6 +115,14 @@ export const headlessNotificationTask = async (taskData: any): Promise<void> => 
     const hay = [notif.title, notif.text, notif.bigText, notif.subText, notif.summaryText]
       .filter(Boolean)
       .join(" ");
+    // CRITICAL guard against phantom / "ghost" rings: only a notification that
+    // clearly signals a LIVE incoming call may pop the caller-ID card. Without
+    // this, ANY notification containing a phone-shaped number — a missed-call
+    // entry, an SMS/WhatsApp message, the dialer's own call-log notification, or
+    // the notification REPLAYS Android re-delivers whenever the listener service
+    // reconnects (app restart / reboot) — fired a ring for an old number even
+    // though nobody was calling.
+    if (!looksLikeIncomingCall(hay)) return;
     const phone = normalisePhone(hay);
     if (!phone) return;
     await postRing(c, phone, "VOIP");
@@ -122,3 +130,17 @@ export const headlessNotificationTask = async (taskData: any): Promise<void> => 
     /* headless tasks must never throw */
   }
 };
+
+// A notification is only treated as a live incoming call when its text says so
+// AND doesn't carry any "not actually ringing right now" marker. Kept broad on
+// the positive side (apps phrase it differently) but strict on the negatives.
+const LOOKS_LIKE_INCOMING =
+  /(incoming call|incoming voice|incoming video|is calling|calling you|wants to talk|ringing|📞)/i;
+const NOT_A_LIVE_CALL =
+  /(missed|declined|rejected|call ended|ended|call back|call again|voicemail|voice mail|ongoing|in progress|answered|connected|call duration|new message|message from|sent you|texted|voice message)/i;
+
+function looksLikeIncomingCall(hay: string): boolean {
+  if (!hay) return false;
+  if (NOT_A_LIVE_CALL.test(hay)) return false;
+  return LOOKS_LIKE_INCOMING.test(hay);
+}
