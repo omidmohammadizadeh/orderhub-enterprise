@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 import { AgentController } from "./agent.controller";
 import { AgentService } from "./agent.service";
+import { AgentImageService } from "./agent-image.service";
+import { ReplicateProvider } from "../video-studio/replicate.provider";
 import { MenusModule } from "../menus/menus.module";
 import { InventoryModule } from "../inventory/inventory.module";
 import { AuthModule } from "../auth/auth.module";
@@ -12,7 +14,9 @@ import { AuthModule } from "../auth/auth.module";
 @Module({
   imports: [MenusModule, InventoryModule, AuthModule],
   controllers: [AgentController],
-  providers: [AgentService],
+  // ReplicateProvider only needs the global ConfigService, so it's provided
+  // here directly rather than importing the whole VideoStudioModule.
+  providers: [AgentService, AgentImageService, ReplicateProvider],
   exports: [AgentService],
 })
 export class AgentModule {}

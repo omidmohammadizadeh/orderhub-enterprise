@@ -152,6 +152,37 @@ export const WRITE_TOOL_DEFS = [
     },
   },
   {
+    name: "generate_item_image",
+    description:
+      "Generate a realistic AI food photo for ONE item from its name + description, and set it as the item's image. Use search_products for the itemId. Costs a small amount per image — confirm with the operator, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        itemId: { type: "string" },
+        styleHint: { type: "string", description: "Optional style note, e.g. 'served in a takeaway box'." },
+        confirmed: { type: "boolean" },
+      },
+      required: ["itemId"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "generate_menu_images",
+    description:
+      "Generate AI food photos for a WHOLE menu's items as a throttled background job (returns immediately; photos appear over a few minutes). By default only items missing a photo. This costs per image — always tell the operator roughly how many will be generated and get confirmation, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        menuId: { type: "string" },
+        onlyMissing: { type: "boolean", description: "Default true — skip items that already have a photo." },
+        styleHint: { type: "string" },
+        confirmed: { type: "boolean" },
+      },
+      required: ["menuId"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "publish_menu",
     description:
       "Publish a menu so it goes live (status PUBLISHED). Use list_menus to get the menuId. Confirm with the operator first, then call with confirmed=true.",

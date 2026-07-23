@@ -6,6 +6,7 @@ import { MenusService } from "../menus/menus.service";
 import { AiMenuImporter } from "../menus/importers/ai-menu.importer";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { AuditLogService } from "../auth/services/audit-log.service";
+import { AgentImageService } from "./agent-image.service";
 import { AGENT_TOOLS, AGENT_TOOL_MAP } from "./agent.tools";
 import { WRITE_TOOL_DEFS, WRITE_TOOL_NAMES } from "./agent.write";
 
@@ -34,7 +35,7 @@ const SYSTEM_PROMPT = `You are the Order Hub Admin Assistant — a co-pilot for 
 
 Tools:
 - READ (run freely): list_brands, list_locations, list_menus, get_menu, search_products, menu_health, duplicate_products_scan, list_orders, get_order.
-- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability), snooze_item / unsnooze_item (86 / un-86), publish_menu.
+- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).
 
 How to make changes SAFELY — always follow this:
 1. Use read tools to gather the real facts first (ids, current values).
@@ -61,6 +62,7 @@ export class AgentService {
     private readonly menuImporter: AiMenuImporter,
     private readonly availability: MenuAvailabilityService,
     private readonly audit: AuditLogService,
+    private readonly images: AgentImageService,
   ) {
     const apiKey = this.config.get<string>("ANTHROPIC_API_KEY");
     this.model = this.config.get<string>("AGENT_MODEL") ?? DEFAULT_MODEL;
@@ -234,6 +236,32 @@ export class AgentService {
         const res = await this.menus.publish(input.menuId, tenantId, userId);
         await this.record(user, "agent.menu.publish", "menu", input.menuId, {});
         return { ok: true, status: (res as any)?.status ?? "PUBLISHED" };
+      }
+      case "generate_item_image": {
+        const res = await this.images.generateForItem(tenantId, input.itemId, input.styleHint);
+        if (res.ok) {
+          await this.record(user, "agent.item.image", "menuItem", input.itemId, {});
+        }
+        return res;
+      }
+      case "generate_menu_images": {
+        const res = this.images.startBulkForMenu(
+          tenantId,
+          input.menuId,
+          input.onlyMissing !== false,
+          input.styleHint,
+        );
+        if ("jobId" in res) {
+          await this.record(user, "agent.menu.images", "menu", input.menuId, {
+            onlyMissing: input.onlyMissing !== false,
+          });
+          return {
+            started: true,
+            message:
+              "Generating photos in the background — they'll appear on the items over the next few minutes.",
+          };
+        }
+        return res;
       }
       default:
         throw new Error(`Unknown write tool ${name}`);
