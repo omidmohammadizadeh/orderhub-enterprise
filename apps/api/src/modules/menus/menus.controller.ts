@@ -155,7 +155,7 @@ export class MenusController {
   // the image; the catalog id + image id are opaque random tokens so
   // there's no enumeration risk.
   @Public()
-  @SkipThrottle()
+  @SkipThrottle({ short: true, medium: true })
   @Get("menus/hubrise-image/:catalogId/:imageId")
   @ApiOperation({ summary: "Proxy a HubRise image to the browser" })
   async hubriseImage(
@@ -179,7 +179,7 @@ export class MenusController {
   // we decode + stream them here to give the menu a real, public https URL
   // for its cover photo. Public by opaque menu id, same as the HubRise proxy.
   @Public()
-  @SkipThrottle()
+  @SkipThrottle({ short: true, medium: true })
   @Get("menus/:menuId/cover-image")
   @ApiOperation({ summary: "Proxy a menu's cover image (banner/logo)" })
   async menuCoverImage(
