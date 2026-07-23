@@ -527,7 +527,16 @@ export class HubRiseCatalogService {
         ? `/api/v1/menus/hubrise-image/${catalog.id}/${firstImageId}`
         : null;
 
-      const existing = await (this.prisma as any).menuItem.findFirst({
+      // Duplicate guard, two tiers. Tier 1: the import-source identity
+      // (brandId + HUBRISE + externalId) — the normal re-import path.
+      // Tier 2 (added after the 2026-07 duplicate-catalog cleanup): match
+      // by NAME within the same brand+location. Historical imports left
+      // "manual"-source copies with no externalId; without this fallback a
+      // re-import couldn't see them and created a full twin set of every
+      // product (PIZZA UNO ended up with 7 copies of its whole menu).
+      // Adopting the name-match — and stamping the HubRise identity onto
+      // it — means the next import matches on tier 1 again.
+      let existing = await (this.prisma as any).menuItem.findFirst({
         where: {
           brandId: target.brandId,
           platformSource: "HUBRISE",
@@ -535,6 +544,17 @@ export class HubRiseCatalogService {
         },
         select: { id: true },
       });
+      if (!existing && product.name) {
+        existing = await (this.prisma as any).menuItem.findFirst({
+          where: {
+            brandId: target.brandId,
+            locationId: target.locationId,
+            name: { equals: String(product.name).trim(), mode: "insensitive" },
+          },
+          orderBy: { createdAt: "desc" },
+          select: { id: true },
+        });
+      }
       const item = existing
         ? await (this.prisma as any).menuItem.update({
             where: { id: existing.id },
@@ -546,6 +566,10 @@ export class HubRiseCatalogService {
               hasMultipleSkus: isMulti,
               productSkus: productSkus as any,
               ...(imageUrl && { imageUrl }),
+              // Stamp the import identity so the item is found by tier 1
+              // next time even if it started life as a manual copy.
+              platformSource: "HUBRISE",
+              externalId: productExternal,
               lastSyncedAt: new Date(),
               syncStatus: "ok",
             },
