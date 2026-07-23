@@ -107,10 +107,15 @@ export class AuthController {
   }
 
   // ── POST /api/v1/auth/refresh ─────────────────────────
+  // 30/min, not the login form's 10/min: refresh posts no Bearer header, so
+  // the throttle keys by IP — and a shop runs several tablets + tills behind
+  // ONE NAT IP, all refreshing on the same wake-up burst. Brute force isn't
+  // a concern here (a refresh token is 64 random bytes, not a password);
+  // rotation + reuse detection are the real guard.
   @Public()
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ login: { ttl: 60_000, limit: 10 } })
+  @Throttle({ login: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: "Rotate refresh token and issue a new access token" })
   @ApiResponse({ status: 200, type: AuthTokensDto })
   @ApiResponse({ status: 401, description: "Invalid or expired refresh token" })

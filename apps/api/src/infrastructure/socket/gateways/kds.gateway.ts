@@ -50,8 +50,11 @@ export class KdsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const tenantId = await this.extractTenantId(client);
     if (!tenantId) {
-      this.logger.warn(`${client.id} kds room:join rejected — no valid JWT`);
-      client.disconnect();
+      // Deny WITHOUT disconnecting — same reasoning as OrdersGateway: the
+      // handshake token expires after 15min, and kicking a stale-token
+      // socket caused a connect→join→kick loop on KDS screens left open
+      // overnight. An unjoined socket receives nothing, so denying is safe.
+      this.logger.warn(`${client.id} kds room:join denied — no valid JWT (stale handshake?)`);
       return;
     }
 

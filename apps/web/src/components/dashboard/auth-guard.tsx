@@ -59,19 +59,56 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     // changes (e.g. an admin promotion done in the DB) take effect on the
     // next load without a full re-login — /auth/me reads the role from the
     // DB, not the possibly-stale JWT claim.
-    authClient
-      .getMe()
-      .then((profile) => {
-        setUser(profile as any);
+    //
+    // Sessions must survive until EXPLICIT logout. Only a definitive
+    // 401/403 (the interceptor already tried a silent refresh and the
+    // server rejected that too — the session chain is genuinely dead)
+    // may clear tokens. Anything else — tablet wifi still waking up, a
+    // deploy restarting the API, a rate-limit blip — is transient: retry
+    // briefly, then proceed with the cached profile from localStorage.
+    // Individual API calls will keep self-healing through the interceptor.
+    let cancelled = false;
+    const cachedUser = useAuthStore.getState().user;
+
+    const validate = async () => {
+      const delays = [0, 2_000, 4_000, 8_000];
+      for (const delay of delays) {
+        if (delay) await new Promise((r) => setTimeout(r, delay));
+        if (cancelled) return;
+        try {
+          const profile = await authClient.getMe();
+          if (cancelled) return;
+          setUser(profile as any);
+          setVerified(true);
+          return;
+        } catch (e: unknown) {
+          const status = (e as { response?: { status?: number } })?.response
+            ?.status;
+          if (status === 401 || status === 403) {
+            // Refresh was attempted and rejected — session is truly dead.
+            if (cancelled) return;
+            clearTokens();
+            router.replace("/login");
+            return;
+          }
+          // transient — loop to the next retry
+        }
+      }
+      // Still unreachable after retries. If we have a cached profile,
+      // let the operator in — the dashboard works from cache and every
+      // request keeps retrying auth via the interceptor. Never bounce a
+      // valid session to /login over connectivity.
+      if (cancelled) return;
+      if (cachedUser) {
         setVerified(true);
-      })
-      .catch(() => {
-        // /me returned 401 — token is invalid or expired beyond refresh window.
-        // Clear state and redirect. The Axios interceptor may have already
-        // attempted a refresh; if we're here, it also failed.
-        clearTokens();
+      } else {
         router.replace("/login");
-      });
+      }
+    };
+    void validate();
+    return () => {
+      cancelled = true;
+    };
   }, [mounted, isAuthenticated, accessToken, router, clearTokens, setUser]);
 
   if (!mounted || !verified) {

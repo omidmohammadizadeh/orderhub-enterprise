@@ -67,8 +67,15 @@ export class OrdersGateway
   ) {
     const auth = await this.extractAuth(client);
     if (!auth) {
-      this.logger.warn(`${client.id} room:join rejected — no valid JWT`);
-      client.disconnect();
+      // Deny WITHOUT disconnecting. The handshake token is the 15-minute
+      // access token captured at connect time — a long-lived socket that
+      // reconnects after idle re-joins with that stale token, and kicking
+      // it here put clients into a connect→join→kick loop with realtime
+      // dead until a full page reload. The client re-handshakes with a
+      // fresh token as soon as its next HTTP refresh rotates it (see
+      // socket.client.ts); until then an unjoined socket receives nothing,
+      // so there is no data exposure in leaving it connected.
+      this.logger.warn(`${client.id} room:join denied — no valid JWT (stale handshake?)`);
       return;
     }
     const { tenantId, userId, role } = auth;

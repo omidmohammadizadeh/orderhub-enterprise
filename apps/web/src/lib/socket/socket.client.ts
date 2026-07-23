@@ -38,16 +38,25 @@ export function leaveLocationRoom(s: TypedSocket, locationId: string): void {
 
 export function getSocket(token = ""): TypedSocket {
   if (socket) {
-    // Healthy socket → always reuse. Also reuse while DISCONNECTED if the
-    // auth token hasn't changed: socket.io's own reconnection is in flight,
-    // and building a second socket here is exactly how we used to end up
-    // with duplicate connections + orphaned listeners during reconnect
-    // windows. Only a stale token (rotated while offline) forces a rebuild,
-    // since reconnecting with the old token would fail auth forever.
-    if (socket.connected || socketToken === token || !token) return socket;
-    socket.removeAllListeners();
-    socket.disconnect();
-    socket = null;
+    // Same auth (or no token supplied) → always reuse, connected or not:
+    // socket.io's own reconnection handles the disconnected case, and
+    // building a second socket here is exactly how we used to end up with
+    // duplicate connections + orphaned listeners during reconnect windows.
+    if (socketToken === token || !token) return socket;
+
+    // TOKEN ROTATED. The handshake token is what the server verifies on
+    // every room:join, and access tokens expire after 15 minutes — so a
+    // socket must never keep presenting yesterday's token. Refresh the
+    // auth in place and re-handshake: the same socket object (listeners
+    // intact) reconnects with the fresh token, and the connect handler
+    // below re-joins every held room automatically.
+    socketToken = token;
+    socket.auth = { token };
+    if (socket.connected) {
+      socket.disconnect();
+      socket.connect();
+    }
+    return socket;
   }
 
   socketToken = token;
