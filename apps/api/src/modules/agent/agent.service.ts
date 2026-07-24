@@ -48,7 +48,9 @@ Tools:
 
 For a big multi-part request (e.g. sizes + two modifier groups across a whole section), do it step by step with the bulk tools: set_category_sizes FIRST (this defines the sizes), THEN add_modifier_group_to_category for each group (modifier groups attach onto the existing sizes). Confirm the whole plan once up front, then carry it out. get_menu now shows each item's sizes and modifierGroups (names) — use it to verify your work and to spot duplicates. Adding a group is idempotent (an item that already has a same-named group is skipped), and remove_modifier_group_from_category clears duplicates. If you ever see the same group name twice on items, remove it then add it once.
 
-To change the PRICE of options on a group that ALREADY exists, use set_modifier_prices — do NOT remove and re-add the group. It edits option prices in place and can change a single size (e.g. "make the 12\" stuffed crust £3") without disturbing the other sizes, because per-size prices merge. Use it for "set all extra toppings to £2.50" (allOptions) or targeted per-option/per-size tweaks. Before calling it, run get_menu to read the group's option names and each item's exact size-name strings, and pass those exact size names as the sizePrices keys.
+Per-size modifier groups: for a MULTI-SIZE item, each size (SKU) gets its OWN separate modifier group — 10" and 12" never share a group, so they price independently. When you add a group to a sized item/section, express per-size prices with pricesBySize keyed by the exact size name (e.g. {"10\"": 2.5, "12\"": 3}); the tool creates a dedicated group per size at that price. If you give a flat price instead, every size uses it.
+
+To change the PRICE of options on a group that ALREADY exists, use set_modifier_prices — do NOT remove and re-add. It edits in place: pass sizePrices keyed by the exact size name to change just one size (e.g. {"12\"": 3} makes only the 12" stuffed crust £3, leaving 10" alone), or a flat price to change every size, or allOptions to price every option in the group the same. Before calling it, run get_menu to read the group's option names and each item's exact size-name strings.
 
 How to make changes SAFELY — always follow this:
 1. Use read tools to gather the real facts first (ids, current values).
@@ -361,21 +363,7 @@ export class AgentService {
       case "set_modifier_prices": {
         const cat = await this.loadCategoryForModifiers(tenantId, input.menuId, input.categoryName);
         if (!cat) return { error: `No category named "${input.categoryName}" in that menu.` };
-        // Match the group(s) by name in this brand (duplicates get edited together),
-        // pulling each option's current price so per-size edits can MERGE.
-        const groups = await (this.prisma as any).modifierGroup.findMany({
-          where: {
-            brandId: cat.brandId,
-            name: { equals: String(input.groupName), mode: "insensitive" },
-          },
-          select: {
-            id: true,
-            options: { select: { id: true, name: true, priceAdjustment: true, pricesBySize: true } },
-          },
-        });
-        if (!groups.length) {
-          return { error: `No group named "${input.groupName}" in ${cat.name}.` };
-        }
+        const groupNameLower = String(input.groupName).trim().toLowerCase();
         // Targeted edits by option name; allOptions is the fallback for the rest.
         const targeted = new Map<string, { price?: number; sizePrices?: Record<string, number> }>();
         for (const o of input.options ?? []) {
@@ -393,36 +381,68 @@ export class AgentService {
         }
 
         let optionsUpdated = 0;
-        for (const g of groups) {
-          for (const opt of g.options ?? []) {
-            const edit =
-              targeted.get(String(opt.name).trim().toLowerCase()) ??
-              (all ? { price: all.price, sizePrices: all.sizePrices } : null);
-            if (!edit) continue;
-            const dto: Record<string, any> = {};
-            if (typeof edit.price === "number") dto.priceAdjustment = edit.price;
-            if (edit.sizePrices && typeof edit.sizePrices === "object") {
-              // MERGE into the existing per-size map so listing one size leaves
-              // the others untouched — the whole point of this tool.
-              const current =
-                opt.pricesBySize && typeof opt.pricesBySize === "object" ? opt.pricesBySize : {};
-              const merged: Record<string, number> = { ...current };
-              for (const [k, v] of Object.entries(edit.sizePrices)) merged[k] = Number(v) || 0;
-              dto.pricesBySize = merged;
-            }
-            if (Object.keys(dto).length === 0) continue;
-            try {
-              await this.menus.updateModifierOption(opt.id, tenantId, dto as any);
-              optionsUpdated++;
-            } catch (e) {
-              this.logger.warn(`set_modifier_prices: option ${opt.id} failed: ${(e as Error).message}`);
+        let itemsTouched = 0;
+        for (const itemId of cat.itemIds) {
+          const item = await this.loadItemForModifiers(tenantId, itemId);
+          if (!item) continue;
+          // Only the groups actually attached to THIS item, with the SKU sizes
+          // each one serves. A dedicated per-size group serves one size; a
+          // legacy shared group serves several.
+          const attached = await this.itemGroupsByName(tenantId, item, groupNameLower);
+          if (!attached.length) continue;
+          let touchedItem = false;
+          for (const { group, sizes } of attached) {
+            const shared = sizes.size > 1; // legacy: one group across many sizes
+            const theSize = sizes.size === 1 ? [...sizes][0] : null;
+            for (const opt of group.options ?? []) {
+              const edit =
+                targeted.get(String(opt.name).trim().toLowerCase()) ??
+                (all ? { price: all.price, sizePrices: all.sizePrices } : null);
+              if (!edit) continue;
+              const dto: Record<string, any> = {};
+              if (shared) {
+                // Legacy shared-across-sizes group — keep per-size prices on the
+                // option's pricesBySize map, merging so one size doesn't wipe
+                // another. (New menus use dedicated per-size groups below.)
+                if (edit.sizePrices && typeof edit.sizePrices === "object") {
+                  const current =
+                    opt.pricesBySize && typeof opt.pricesBySize === "object" ? opt.pricesBySize : {};
+                  const merged: Record<string, number> = { ...current };
+                  for (const [k, v] of Object.entries(edit.sizePrices)) merged[k] = Number(v) || 0;
+                  dto.pricesBySize = merged;
+                } else if (typeof edit.price === "number") {
+                  dto.priceAdjustment = edit.price;
+                }
+              } else {
+                // Dedicated per-size group (or a single-price item) — set a flat
+                // price for this size and clear any stale pricesBySize.
+                let p: number | undefined;
+                if (edit.sizePrices && theSize && typeof edit.sizePrices[theSize] === "number") {
+                  p = edit.sizePrices[theSize];
+                } else if (typeof edit.price === "number") {
+                  p = edit.price;
+                }
+                if (p !== undefined) {
+                  dto.priceAdjustment = p;
+                  dto.pricesBySize = {};
+                }
+              }
+              if (Object.keys(dto).length === 0) continue;
+              try {
+                await this.menus.updateModifierOption(opt.id, tenantId, dto as any);
+                optionsUpdated++;
+                touchedItem = true;
+              } catch (e) {
+                this.logger.warn(`set_modifier_prices: option ${opt.id} failed: ${(e as Error).message}`);
+              }
             }
           }
+          if (touchedItem) itemsTouched++;
         }
         await this.record(user, "agent.modifier.prices", "menuCategory", cat.id, {
-          menuId: input.menuId, category: cat.name, groupName: input.groupName, optionsUpdated,
+          menuId: input.menuId, category: cat.name, groupName: input.groupName, optionsUpdated, itemsTouched,
         });
-        return { ok: true, groupName: input.groupName, category: cat.name, optionsUpdated };
+        return { ok: true, groupName: input.groupName, category: cat.name, optionsUpdated, itemsTouched };
       }
       case "add_modifier_group_to_item": {
         const item = await this.loadItemForModifiers(tenantId, input.itemId);
@@ -431,10 +451,10 @@ export class AgentService {
         if (this.itemHasGroupNamed(item, input.group?.name, nameById)) {
           return { ok: true, alreadyPresent: true, message: `Item already has a "${input.group?.name}" group.` };
         }
-        const groupId = await this.createGroupWithOptions(tenantId, item.brandId, input.group, item.menuIds, item.locationId);
-        await this.attachGroupToItem(tenantId, item, groupId);
+        // Multi-size items get a separate group per SKU (independent prices).
+        const groupIds = await this.attachGroupToItem(tenantId, item, input.group);
         await this.record(user, "agent.item.modifiers", "menuItem", input.itemId, { group: input.group?.name });
-        return { ok: true, groupId, itemsLinked: 1 };
+        return { ok: true, groupIds, itemsLinked: 1 };
       }
       case "add_modifier_group_to_category": {
         const cat = await this.loadCategoryForModifiers(tenantId, input.menuId, input.categoryName);
@@ -452,23 +472,24 @@ export class AgentService {
         if (missing.length === 0) {
           return { ok: true, alreadyPresent: true, message: `Every item already has a "${input.group?.name}" group.` };
         }
-        // ONE shared group, attached to each missing item — PER-SIZE when the
-        // item has size tiers (that's where the edit UI reads them), else at
-        // item level.
-        const groupId = await this.createGroupWithOptions(tenantId, cat.brandId, input.group, [input.menuId], cat.locationId);
+        // Each item gets its OWN group(s) — and for a multi-size item, a
+        // SEPARATE group per SKU, so 10" and 12" price independently and never
+        // share a group id across sizes.
         let linked = 0;
+        let groupsCreated = 0;
         for (const it of missing) {
           try {
-            await this.attachGroupToItem(tenantId, it, groupId);
+            const ids = await this.attachGroupToItem(tenantId, it, input.group);
+            groupsCreated += ids.length;
             linked++;
           } catch (e) {
             this.logger.warn(`attach modifier to ${it.id} failed: ${(e as Error).message}`);
           }
         }
         await this.record(user, "agent.category.modifiers", "menuCategory", cat.id, {
-          menuId: input.menuId, category: cat.name, group: input.group?.name, itemsLinked: linked,
+          menuId: input.menuId, category: cat.name, group: input.group?.name, itemsLinked: linked, groupsCreated,
         });
-        return { ok: true, groupId, category: cat.name, itemsLinked: linked, itemsTotal: present.length };
+        return { ok: true, category: cat.name, itemsLinked: linked, groupsCreated, itemsTotal: present.length };
       }
       case "remove_modifier_group_from_category": {
         const cat = await this.loadCategoryForModifiers(tenantId, input.menuId, input.categoryName);
@@ -614,23 +635,96 @@ export class AgentService {
     return false;
   }
 
-  /** Attach a modifier group to an item where the edit UI expects it: PER-SIZE
-   *  for multi-size items (productSkus[].modifierGroups — that's what the size
-   *  editor reads), otherwise at item level. */
-  private async attachGroupToItem(tenantId: string, item: any, groupId: string): Promise<void> {
+  /** Attach a modifier group to an item the way the product editor models it.
+   *  A MULTI-SIZE item gets a SEPARATE group PER SKU — so 10" and 12" never
+   *  share a group id and price independently (exactly like "Create New" under
+   *  each SKU in the editor). Each size's options are priced from the input's
+   *  pricesBySize[sizeName], falling back to the flat price, and the per-size
+   *  group carries no pricesBySize (single-priced → no visibility footgun).
+   *  Single-price items get one item-level group. Returns the created id(s). */
+  private async attachGroupToItem(tenantId: string, item: any, group: any): Promise<string[]> {
+    const menuIds = item.menuIds ?? [];
     const skus = Array.isArray(item.productSkus) ? item.productSkus : [];
     if (item.hasMultipleSkus && skus.length) {
-      const next = skus.map((s: any) => ({
-        ...s,
-        modifierGroups: Array.from(new Set([...(s.modifierGroups ?? []), groupId])),
-      }));
+      const created: string[] = [];
+      const nextSkus: any[] = [];
+      for (const s of skus) {
+        const gid = await this.createGroupWithOptions(
+          tenantId, item.brandId, this.priceGroupForSize(group, s.name), menuIds, item.locationId,
+        );
+        created.push(gid);
+        nextSkus.push({
+          ...s,
+          modifierGroups: Array.from(new Set([...(s.modifierGroups ?? []), gid])),
+        });
+      }
       await this.menus.updateItem(item.id, tenantId, {
-        productSkus: next,
+        productSkus: nextSkus,
         hasMultipleSkus: true,
       } as any);
-    } else {
-      await this.menus.linkModifierGroupToItem(item.id, groupId, tenantId).catch(() => {});
+      return created;
     }
+    const gid = await this.createGroupWithOptions(
+      tenantId, item.brandId, this.priceGroupForSize(group, null), menuIds, item.locationId,
+    );
+    await this.menus.linkModifierGroupToItem(item.id, gid, tenantId).catch(() => {});
+    return [gid];
+  }
+
+  /** Flatten a group's option prices to ONE size (null = flat): each option's
+   *  price becomes pricesBySize[sizeName] when present, else its flat `price`.
+   *  The result drops pricesBySize so each per-size group is cleanly
+   *  single-priced (getModifierPrice then falls back to priceAdjustment and the
+   *  option is always visible). */
+  private priceGroupForSize(group: any, sizeName: string | null): any {
+    const options = (group?.options ?? []).map((opt: any) => {
+      let price = typeof opt?.price === "number" ? opt.price : 0;
+      const pbs = opt?.pricesBySize;
+      if (sizeName && pbs && typeof pbs === "object" && typeof pbs[sizeName] === "number") {
+        price = pbs[sizeName];
+      }
+      return { name: opt?.name, price };
+    });
+    return { ...group, options };
+  }
+
+  /** The modifier groups actually attached to an item whose name matches,
+   *  each with the set of SKU sizes referencing it. Multi-size items reference
+   *  groups via productSkus[].modifierGroups (one dedicated group per size);
+   *  single-price items via item-level modifierGroupLinks (sizes empty). A
+   *  legacy shared group shows up once with several sizes. */
+  private async itemGroupsByName(
+    tenantId: string,
+    item: any,
+    groupNameLower: string,
+  ): Promise<Array<{ group: any; sizes: Set<string> }>> {
+    const refs: Array<{ groupId: string; size: string | null }> = [];
+    const skus = Array.isArray(item.productSkus) ? item.productSkus : [];
+    if (item.hasMultipleSkus && skus.length) {
+      for (const s of skus) {
+        for (const gid of s.modifierGroups ?? []) refs.push({ groupId: gid, size: s.name });
+      }
+    } else {
+      for (const l of item.modifierGroupLinks ?? []) refs.push({ groupId: l.groupId, size: null });
+    }
+    if (!refs.length) return [];
+    const ids = Array.from(new Set(refs.map((r) => r.groupId)));
+    const groups = await (this.prisma as any).modifierGroup.findMany({
+      where: { id: { in: ids }, brand: { tenantId } },
+      select: {
+        id: true, name: true,
+        options: { select: { id: true, name: true, priceAdjustment: true, pricesBySize: true } },
+      },
+    });
+    const byId = new Map<string, any>(groups.map((g: any) => [g.id, g]));
+    const out = new Map<string, { group: any; sizes: Set<string> }>();
+    for (const r of refs) {
+      const g = byId.get(r.groupId);
+      if (!g || String(g.name).toLowerCase() !== groupNameLower) continue;
+      if (!out.has(g.id)) out.set(g.id, { group: g, sizes: new Set<string>() });
+      if (r.size) out.get(g.id)!.sizes.add(r.size);
+    }
+    return Array.from(out.values());
   }
 
   /** Create a modifier group + its options (flat price or per-size pricesBySize)

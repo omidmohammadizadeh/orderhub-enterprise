@@ -154,7 +154,7 @@ export const WRITE_TOOL_DEFS = [
   {
     name: "add_modifier_group_to_category",
     description:
-      "Create ONE shared modifier group (e.g. 'Choose your crust' or 'Extra toppings') and attach it to EVERY item in a category/section — the right tool for 'add these options to all pizzas'. Each option can have a flat price OR different prices per size via pricesBySize (e.g. {\"10\\\"\": 2.5, \"12\\\"\": 3}). Runs as one bulk call. Use get_menu for category names + item sizes. Confirm first, then confirmed=true.",
+      "Add a modifier group (e.g. 'Choose your crust' or 'Extra toppings') to EVERY item in a category/section — the right tool for 'add these options to all pizzas'. For MULTI-SIZE items each size gets its OWN separate group, so 10\" and 12\" price independently (they never share a group). Give per-size option prices with pricesBySize keyed by the exact size name (e.g. {\"10\\\"\": 2.5, \"12\\\"\": 3}), or a flat price for all sizes. Runs as one bulk call. Use get_menu for category names + exact item size names. Confirm first, then confirmed=true.",
     input_schema: {
       type: "object",
       properties: {
