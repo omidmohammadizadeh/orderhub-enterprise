@@ -105,13 +105,20 @@ export function TerminalHost(): React.ReactElement | null {
         const reader = await waitForReader();
         if (!reader) throw new Error("No card reader found. Is it on and nearby?");
 
-        // 2. Connect. NOTE: signature is version-sensitive — recent SDKs use
-        //    connectReader({ reader, locationId }, 'bluetoothScan'); older
-        //    ones exposed connectBluetoothReader({ reader, locationId }).
-        const { reader: connected, error: connErr } = await connectReader(
-          { reader, locationId: stripeLocationId },
-          "bluetoothScan",
-        );
+        // 2. Connect. SDK v0.0.1-beta.31: connectReader takes ONE object with
+        //    discoveryMethod inside; a Stripe location id (tml_…) is REQUIRED
+        //    for Bluetooth readers — the POS passes it (from listReaders'
+        //    stripeLocationId).
+        if (!stripeLocationId) {
+          throw new Error(
+            "Missing the reader's Stripe location — register a reader for this location first, then retry.",
+          );
+        }
+        const { reader: connected, error: connErr } = await connectReader({
+          discoveryMethod: "bluetoothScan",
+          reader,
+          locationId: stripeLocationId,
+        });
         if (connErr) throw new Error(connErr.message);
         const label: string = connected?.label ?? "Card reader";
         terminalController.connectedLabel = label;
