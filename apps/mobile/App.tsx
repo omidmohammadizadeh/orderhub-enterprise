@@ -24,7 +24,7 @@ import { configureGoogleSignIn } from "@/services/google";
 // Stripe Terminal SDK is initialised and a reader can be connected.
 // Requires `npx expo install @stripe/stripe-terminal-react-native` + an EAS
 // dev build (see src/services/terminal.ts).
-import { TerminalRoot } from "@/services/terminal";
+import { TerminalMount } from "@/services/terminal";
 
 export default function App() {
   const { tokens, hydrated, fromFreshLogin, setTokens } = useAuth();
@@ -59,13 +59,16 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       {tokens ? (
-        <TerminalRoot>
+        <>
           <PosWebView
             tokens={tokens}
             fromFreshLogin={fromFreshLogin}
             onSignOut={() => setTokens(null)}
           />
-        </TerminalRoot>
+          {/* Card-reader provider runs alongside the WebView (renders nothing),
+              wired to it via the terminalController singleton — never wraps it. */}
+          <TerminalMount />
+        </>
       ) : (
         <LoginScreen onSignedIn={(t) => setTokens(t)} />
       )}

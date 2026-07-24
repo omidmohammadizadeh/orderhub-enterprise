@@ -184,16 +184,16 @@ async function waitForReader(timeoutMs = 12000): Promise<Reader.Type | null> {
   return null;
 }
 
-// ── Provider wrapper — put this around the authed part of the app ───────────
-export function TerminalRoot({
-  children,
-}: {
-  children: React.ReactNode;
-}): React.ReactElement {
+// ── Terminal mount — render as a SIBLING of the POS WebView, not a wrapper ──
+// The WebView bridge reaches the SDK through the terminalController singleton,
+// NOT through React context, so the WebView must NOT be a child of the
+// provider. Wrapping it caused the WebView to remount (re-firing the one-time
+// login handoff → login loop). This renders the provider + host on their own
+// (TerminalHost draws nothing) so they can never interfere with the WebView.
+export function TerminalMount(): React.ReactElement {
   return React.createElement(
     StripeTerminalProvider,
     { logLevel: "verbose", tokenProvider: fetchConnectionToken } as any,
-    children,
     React.createElement(TerminalHost),
   );
 }
