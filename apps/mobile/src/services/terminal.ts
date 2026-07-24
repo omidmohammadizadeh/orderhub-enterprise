@@ -79,83 +79,76 @@ export function TerminalHost(): React.ReactElement | null {
     retrievePaymentIntent,
     collectPaymentMethod,
     confirmPaymentIntent,
-    connectedReader,
   } = useStripeTerminal({
     onUpdateDiscoveredReaders: (readers) => {
       discovered = readers;
     },
   });
 
-  // Hold the latest discovery result so connect() can pick one.
-  const discoveredRef = React.useRef<Reader.Type[]>([]);
-
   React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
+    // LAZY INIT — nothing touches the Stripe SDK (no initialize, no connection
+    // token) until the operator actually connects a reader. So at app launch /
+    // login the card-reader layer is completely inert and cannot interfere with
+    // the login handoff or anything else.
+    let initialized = false;
+    const ensureInit = async () => {
+      if (initialized) return;
       const { error } = await initialize();
-      if (error || cancelled) return;
+      if (error) throw new Error(error.message || "Card reader init failed");
+      initialized = true;
+    };
 
-      const connect: ConnectFn = async (stripeLocationId, simulated) => {
-        // 1. Discover Bluetooth readers. simulated=true returns Stripe's
-        //    software reader (no hardware) for verifying the flow in test mode;
-        //    false finds a real WisePad 3.
-        const { error: discErr } = await discoverReaders({
-          discoveryMethod: "bluetoothScan",
-          simulated: !!simulated,
-        });
-        if (discErr) throw new Error(discErr.message);
+    const connect: ConnectFn = async (stripeLocationId, simulated) => {
+      await ensureInit(); // ← first SDK activity happens HERE, not at launch
+      // Discover Bluetooth readers. simulated=true returns Stripe's software
+      // reader (no hardware, test mode); false finds a real WisePad 3.
+      const { error: discErr } = await discoverReaders({
+        discoveryMethod: "bluetoothScan",
+        simulated: !!simulated,
+      });
+      if (discErr) throw new Error(discErr.message);
 
-        // Give discovery a moment to surface a reader.
-        const reader = await waitForReader();
-        if (!reader) throw new Error("No card reader found. Is it on and nearby?");
+      const reader = await waitForReader();
+      if (!reader) throw new Error("No card reader found. Is it on and nearby?");
 
-        // 2. Connect. SDK v0.0.1-beta.31: connectReader takes ONE object with
-        //    discoveryMethod inside; a Stripe location id (tml_…) is REQUIRED
-        //    for Bluetooth readers — the POS passes it (from listReaders'
-        //    stripeLocationId).
-        if (!stripeLocationId) {
-          throw new Error(
-            "Missing the reader's Stripe location — register a reader for this location first, then retry.",
-          );
-        }
-        const { reader: connected, error: connErr } = await connectReader({
-          discoveryMethod: "bluetoothScan",
-          reader,
-          locationId: stripeLocationId,
-        });
-        if (connErr) throw new Error(connErr.message);
-        const label: string = connected?.label ?? "Card reader";
-        terminalController.connectedLabel = label;
-        return { label };
-      };
+      // SDK v0.0.1-beta.31: connectReader takes ONE object with discoveryMethod
+      // inside; a Stripe location id (tml_…) is REQUIRED for Bluetooth readers.
+      if (!stripeLocationId) {
+        throw new Error(
+          "Missing the reader's Stripe location — register a reader for this location first, then retry.",
+        );
+      }
+      const { reader: connected, error: connErr } = await connectReader({
+        discoveryMethod: "bluetoothScan",
+        reader,
+        locationId: stripeLocationId,
+      });
+      if (connErr) throw new Error(connErr.message);
+      const label: string = connected?.label ?? "Card reader";
+      terminalController.connectedLabel = label;
+      return { label };
+    };
 
-      const pay: PayFn = async (clientSecret) => {
-        if (!connectedReader) {
-          throw new Error("Connect the card reader first.");
-        }
-        // retrieve → collect → confirm on the client secret from the server.
-        const { paymentIntent, error: rErr } =
-          await retrievePaymentIntent(clientSecret);
-        if (rErr || !paymentIntent) {
-          throw new Error(rErr?.message ?? "Could not read the payment.");
-        }
-        const { error: cErr } = await collectPaymentMethod({ paymentIntent });
-        if (cErr) throw new Error(cErr.message);
-        const { paymentIntent: done, error: confErr } =
-          await confirmPaymentIntent({ paymentIntent });
-        if (confErr) throw new Error(confErr.message);
-        return { status: done?.status ?? "succeeded" };
-      };
+    const pay: PayFn = async (clientSecret) => {
+      // retrieve → collect → confirm on the client secret from the server.
+      const { paymentIntent, error: rErr } =
+        await retrievePaymentIntent(clientSecret);
+      if (rErr || !paymentIntent) {
+        throw new Error(rErr?.message ?? "Could not read the payment.");
+      }
+      const { error: cErr } = await collectPaymentMethod({ paymentIntent });
+      if (cErr) throw new Error(cErr.message);
+      const { paymentIntent: done, error: confErr } =
+        await confirmPaymentIntent({ paymentIntent });
+      if (confErr) throw new Error(confErr.message);
+      return { status: done?.status ?? "succeeded" };
+    };
 
-      terminalController.connect = connect;
-      terminalController.pay = pay;
-      terminalController.ready = true;
-    })().catch(() => {
-      /* leave controller in not-ready state on init failure */
-    });
+    terminalController.connect = connect;
+    terminalController.pay = pay;
+    terminalController.ready = true;
 
     return () => {
-      cancelled = true;
       terminalController.ready = false;
       terminalController.connect = notReady;
       terminalController.pay = notReady;
@@ -163,12 +156,6 @@ export function TerminalHost(): React.ReactElement | null {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Keep the discovery ref in sync (module-level `discovered` is written by the
-  // callback above, which can't touch component state directly).
-  React.useEffect(() => {
-    discoveredRef.current = discovered;
-  });
 
   return null;
 }
