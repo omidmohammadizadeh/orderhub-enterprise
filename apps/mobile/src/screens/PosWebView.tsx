@@ -38,6 +38,7 @@ import {
 } from "@/print/transport/bluetooth";
 import { sendBytesOverTcp } from "@/print/transport/lan";
 import { startCometReader, stopCometReader } from "@/callerid/comet";
+import { terminalController } from "@/services/terminal";
 
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
@@ -160,6 +161,21 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
             return request('lan:print', { ip: ip, port: port, bytes: base64Bytes });
           }
         };
+
+        // BBPOS WisePad 3 card reader. The web POS creates the charge
+        // (POST /payments/terminal/charge/mobile → clientSecret), then:
+        //   OrderHubTerminal.connect(stripeLocationId?)  → pair the reader
+        //   OrderHubTerminal.pay(clientSecret)           → collect on reader
+        // then polls /payments/terminal/charge/status to settle the order.
+        window.OrderHubTerminal = {
+          isReady: true,
+          connect: function (stripeLocationId) {
+            return request('terminal:connect', { stripeLocationId: stripeLocationId || null });
+          },
+          pay: function (clientSecret) {
+            return request('terminal:pay', { clientSecret: clientSecret });
+          }
+        };
         true;
       })();
     `,
@@ -219,6 +235,27 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
           respond(msg.reqId, { ok: true });
         } catch (err: any) {
           reject(msg.reqId, err?.message ?? "LAN print failed");
+        }
+      } else if (msg?.type === "terminal:connect" && msg?.reqId) {
+        try {
+          const { stripeLocationId } = (msg.payload ?? {}) as {
+            stripeLocationId?: string | null;
+          };
+          const res = await terminalController.connect(
+            stripeLocationId || undefined,
+          );
+          respond(msg.reqId, res);
+        } catch (err: any) {
+          reject(msg.reqId, err?.message ?? "Reader connect failed");
+        }
+      } else if (msg?.type === "terminal:pay" && msg?.reqId && msg?.payload) {
+        try {
+          const { clientSecret } = msg.payload as { clientSecret: string };
+          if (!clientSecret) throw new Error("clientSecret required");
+          const res = await terminalController.pay(clientSecret);
+          respond(msg.reqId, res);
+        } catch (err: any) {
+          reject(msg.reqId, err?.message ?? "Card payment failed");
         }
       }
     } catch {

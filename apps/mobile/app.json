@@ -25,10 +25,13 @@
         "UIBackgroundModes": [
           "audio"
         ],
-        "NSBluetoothAlwaysUsageDescription": "Order Hub connects to nearby Bluetooth receipt printers to print orders.",
-        "NSBluetoothPeripheralUsageDescription": "Order Hub connects to nearby Bluetooth receipt printers to print orders.",
+        "NSBluetoothAlwaysUsageDescription": "Order Hub connects to nearby Bluetooth card readers and receipt printers.",
+        "NSBluetoothPeripheralUsageDescription": "Order Hub connects to nearby Bluetooth card readers and receipt printers.",
         "NSLocalNetworkUsageDescription": "Order Hub discovers and connects to receipt printers on your local Wi-Fi network.",
-        "UISupportedExternalAccessoryProtocols": []
+        "NSLocationWhenInUseUsageDescription": "Location is required by the payments provider to accept card payments on the BBPOS WisePad 3 reader.",
+        "UISupportedExternalAccessoryProtocols": [
+          "com.bbpos.bt.wisepad"
+        ]
       }
     },
     "android": {
@@ -46,13 +49,24 @@
         "BLUETOOTH",
         "BLUETOOTH_ADMIN",
         "BLUETOOTH_SCAN",
-        "BLUETOOTH_CONNECT"
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
       ]
     },
     "plugins": [
       "./plugins/withIpadOnly",
       "expo-apple-authentication",
       "expo-secure-store",
+      [
+        "@stripe/stripe-terminal-react-native",
+        {
+          "bluetoothBackgroundMode": true,
+          "locationWhenInUsePermission": "Location is required by the payments provider to accept card payments on the reader.",
+          "bluetoothPeripheralPermission": "Bluetooth is required to connect to the BBPOS WisePad 3 card reader.",
+          "bluetoothAlwaysUsagePermission": "Bluetooth is required to connect to the BBPOS WisePad 3 card reader."
+        }
+      ],
       [
         "@react-native-google-signin/google-signin",
         {

@@ -20,6 +20,11 @@ import { PosWebView } from "@/screens/PosWebView";
 import { LoadingScreen } from "@/screens/LoadingScreen";
 import { useAuth } from "@/services/auth";
 import { configureGoogleSignIn } from "@/services/google";
+// Card reader (BBPOS WisePad 3) provider — wraps the authed POS so the
+// Stripe Terminal SDK is initialised and a reader can be connected.
+// Requires `npx expo install @stripe/stripe-terminal-react-native` + an EAS
+// dev build (see src/services/terminal.ts).
+import { TerminalRoot } from "@/services/terminal";
 
 export default function App() {
   const { tokens, hydrated, fromFreshLogin, setTokens } = useAuth();
@@ -54,11 +59,13 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       {tokens ? (
-        <PosWebView
-          tokens={tokens}
-          fromFreshLogin={fromFreshLogin}
-          onSignOut={() => setTokens(null)}
-        />
+        <TerminalRoot>
+          <PosWebView
+            tokens={tokens}
+            fromFreshLogin={fromFreshLogin}
+            onSignOut={() => setTokens(null)}
+          />
+        </TerminalRoot>
       ) : (
         <LoginScreen onSignedIn={(t) => setTokens(t)} />
       )}
