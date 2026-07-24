@@ -107,7 +107,8 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       .filter(Boolean)
       .join(" ")
       .trim();
-    const customerName =
+    const channel = clean((order as any).channel);
+    const realName =
       joined ||
       clean(customer.name) ||
       clean(customer.full_name) ||
@@ -115,13 +116,18 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       clean((order as any).customer_list_name) ||
       clean(delivery.contact_name) ||
       clean(delivery.name) ||
-      clean(customer.company_name) ||
-      "HubRise Customer";
-    // If we STILL couldn't find a real name, log the customer/delivery keys
-    // so the true field for this marketplace is visible in the Render log
-    // (shape-first: don't guess a field we haven't seen). Names only — no PII
-    // values.
-    if (customerName === "HubRise Customer") {
+      clean(customer.company_name);
+    // Verified against the raw payload: Just Eat via HubRise sends NO customer
+    // name (first_name/last_name/company_name all null, custom_fields empty,
+    // anonymised=false) — only a phone. When no real name is present, fall back
+    // to the actual CHANNEL ("Just Eat Customer") instead of the middleware
+    // ("HubRise Customer") — accurate and clearer on the board. Uber Eats /
+    // Deliveroo DO send names, so they're unaffected.
+    const customerName =
+      realName || (channel ? `${channel} Customer` : "HubRise Customer");
+    // If no real name resolved, log the keys so any marketplace that DOES send
+    // a name in a field we haven't seen yet is visible in the Render log.
+    if (!realName) {
       this.logger.warn(
         `HubRise order ${order.id ?? "?"} has no resolvable customer name — customer keys: [${Object.keys(
           customer,
