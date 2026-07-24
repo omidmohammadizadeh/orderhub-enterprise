@@ -23,7 +23,7 @@
 //      in the system browser, not inside the WebView).
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import * as Linking from "expo-linking";
@@ -67,6 +67,22 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
   // back to the handoff URL and re-clobber its session.
   const [useHandoff] = useState(fromFreshLogin);
 
+  // TEMP on-screen diagnostic trail (login-loop debugging) — shows the WebView
+  // navigation sequence so it can be screenshotted without Metro/adb. URLs are
+  // shown as PATH ONLY (query stripped) so tokens are never displayed. Remove
+  // once the login loop is fixed.
+  const [dbg, setDbg] = useState<string[]>([]);
+  const shortPath = (u: string): string => {
+    try {
+      const x = new URL(u);
+      return x.pathname + (x.hash || "");
+    } catch {
+      return (u || "").split("?")[0];
+    }
+  };
+  const pushDbg = (line: string) =>
+    setDbg((d) => [...d.slice(-9), line]);
+
   // Caller-ID hub (Android only, no-ops elsewhere): read the CTI Comet USB
   // box on the shop's analogue line and hand every ring to the web app,
   // which POSTs /v1/customers/caller-id/ring with its own auth + selected
@@ -102,8 +118,10 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
   }, [useHandoff]);
 
   useEffect(() => {
+    pushDbg(`boot handoff=${useHandoff} → ${shortPath(initialUrl)}`);
     // eslint-disable-next-line no-console
     console.log("[OH boot] useHandoff=", useHandoff, "initialUrl=", initialUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUrl, useHandoff]);
 
   // Native ↔ web bridge.
@@ -205,6 +223,7 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     try {
       const msg = JSON.parse(e.nativeEvent.data);
       if (msg?.type === "signout") {
+        pushDbg("web msg: signout");
         await signOutGoogle();
         onSignOut();
       } else if (msg?.type === "openExternal" && msg?.url) {
@@ -285,6 +304,7 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     // sign-in) and NOT the storefront /order/[slug]/login (customer auth).
     const isDashboardLogin =
       /\/login(\?|$|#)/.test(u) && !u.includes("/order/");
+    pushDbg(`nav ${shortPath(u)}${isDashboardLogin ? "  → BOUNCE" : ""}`);
     // eslint-disable-next-line no-console
     console.log("[OH nav]", u, isDashboardLogin ? "→ BOUNCE TO LOGIN" : "");
     if (isDashboardLogin) {
@@ -303,18 +323,20 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
           onMessage={onMessage}
           onNavigationStateChange={handleNavStateChange}
           onLoadEnd={() => setLoaded(true)}
-          onError={(e) =>
+          onError={(e) => {
+            pushDbg(`load err: ${e.nativeEvent.description ?? "?"}`);
             // eslint-disable-next-line no-console
-            console.log("[OH webview error]", JSON.stringify(e.nativeEvent))
-          }
-          onHttpError={(e) =>
+            console.log("[OH webview error]", JSON.stringify(e.nativeEvent));
+          }}
+          onHttpError={(e) => {
+            pushDbg(`http ${e.nativeEvent.statusCode} ${shortPath(e.nativeEvent.url)}`);
             // eslint-disable-next-line no-console
             console.log(
               "[OH http error]",
               e.nativeEvent.statusCode,
               e.nativeEvent.url,
-            )
-          }
+            );
+          }}
           // Sound + media autoplay — the existing web POS plays an MP3
           // when a new order lands; without these flags WKWebView blocks
           // it until a user tap.
@@ -349,6 +371,17 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
         {!loaded && (
           <View pointerEvents="none" style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#F97316" />
+          </View>
+        )}
+
+        {/* TEMP login-loop diagnostic overlay — screenshot this. Remove later. */}
+        {dbg.length > 0 && (
+          <View pointerEvents="none" style={styles.dbgOverlay}>
+            {dbg.map((l, i) => (
+              <Text key={i} style={styles.dbgText}>
+                {l}
+              </Text>
+            ))}
           </View>
         )}
       </View>
@@ -392,5 +425,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#0F172A",
+  },
+  dbgOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.82)",
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  dbgText: {
+    color: "#4ade80",
+    fontSize: 10,
+    fontFamily: "monospace",
   },
 });
