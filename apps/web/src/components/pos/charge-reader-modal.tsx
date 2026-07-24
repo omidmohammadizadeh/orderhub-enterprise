@@ -136,7 +136,9 @@ export function ChargeReaderModal({
       setConnectedLabel(res?.label ?? (simulate ? "Simulated reader" : "WisePad 3"));
       toast.success("Reader connected");
     } catch (e: any) {
-      setError(e?.message ?? "Couldn't connect the reader");
+      setError(
+        e?.response?.data?.message ?? e?.message ?? "Couldn't connect the reader",
+      );
     } finally {
       setConnecting(false);
     }
@@ -169,7 +171,9 @@ export function ChargeReaderModal({
       }, 1500);
     } catch (e: any) {
       setPhase("error");
-      setError(e?.message ?? "Card payment failed");
+      setError(
+        e?.response?.data?.message ?? e?.message ?? "Card payment failed",
+      );
     }
   };
 

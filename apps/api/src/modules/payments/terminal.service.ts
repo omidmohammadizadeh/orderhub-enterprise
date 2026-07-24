@@ -140,6 +140,28 @@ export class TerminalService {
 
   // ── Stripe Terminal Location (get-or-create) ──────────────────────────────
 
+  // Stripe requires an ISO 3166-1 alpha-2 country (uppercase). Shops often
+  // store "UK" (not a valid ISO code — GB is), "United Kingdom", or lowercase
+  // "gb", any of which makes terminal.locations.create 400. Normalise, and
+  // default to GB (this is a UK product).
+  private normCountry(raw: unknown): string {
+    const v = String(raw ?? "").trim();
+    if (!v) return "GB";
+    const map: Record<string, string> = {
+      "united kingdom": "GB",
+      uk: "GB",
+      "great britain": "GB",
+      england: "GB",
+      scotland: "GB",
+      wales: "GB",
+      "northern ireland": "GB",
+    };
+    const hit = map[v.toLowerCase()];
+    if (hit) return hit;
+    if (v.length === 2) return v.toUpperCase();
+    return "GB";
+  }
+
   private async ensureStripeLocation(
     loc: { id: string; name: string; address: unknown; settings: unknown },
     cfg: TerminalConfig,
@@ -149,16 +171,24 @@ export class TerminalService {
     if (existing) return existing;
     const stripe = this.client(opts.test);
     const a = (loc.address ?? {}) as Record<string, any>;
-    const created = await stripe.terminal.locations.create({
-      display_name: loc.name || "Order Hub location",
-      address: {
-        line1: a.line1 || a.addressLine1 || "1 High Street",
-        city: a.city || "London",
-        postal_code: a.postcode || a.post_code || a.postal_code || "SW1A 1AA",
-        country: a.country || "GB",
-      },
-      metadata: { orderhubLocationId: loc.id },
-    });
+    let created: any;
+    try {
+      created = await stripe.terminal.locations.create({
+        display_name: loc.name || "Order Hub location",
+        address: {
+          line1: a.line1 || a.addressLine1 || "1 High Street",
+          city: a.city || "London",
+          postal_code: a.postcode || a.post_code || a.postal_code || "SW1A 1AA",
+          country: this.normCountry(a.country),
+        },
+        metadata: { orderhubLocationId: loc.id },
+      });
+    } catch (err: any) {
+      // Surface Stripe's real reason to the POS instead of a bare 400.
+      throw new BadRequestException(
+        `Couldn't set up the card reader for this location: ${err?.message ?? "Stripe rejected the location details"}`,
+      );
+    }
     if (opts.test) cfg.stripeTestLocationId = created.id;
     else cfg.stripeLocationId = created.id;
     await this.saveConfig(loc.id, loc.settings, cfg);
