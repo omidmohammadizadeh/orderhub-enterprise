@@ -46,7 +46,6 @@
     "eslint-config-expo": "~7.1.2",
     "expo-build-properties": "~0.12.5",
     "patch-package": "^8.0.1",
-    "postinstall-postinstall": "^2.1.0",
     "typescript": "~5.3.3"
   }
 }
