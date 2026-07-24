@@ -209,6 +209,47 @@ export const WRITE_TOOL_DEFS = [
     },
   },
   {
+    name: "set_modifier_prices",
+    description:
+      "Change the PRICE of options in an EXISTING modifier group, in place — NO need to remove and re-add. This is the correct tool for 'make the 12\" stuffed crust £3' or 'set all extra toppings to £2.50'. Per-size prices MERGE with what's already there, so setting the 12\" price leaves the 10\" price untouched (the previously-impossible 'change just one size tier' case). Target options by name via `options`, or use `allOptions` to price every option in the group the same. Use get_menu first to see the group's option names and each item's EXACT size names. Reversible (set the price back). Confirm with the operator, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        menuId: { type: "string" },
+        categoryName: { type: "string", description: "The section the group is on, e.g. 'Pizzas'." },
+        groupName: { type: "string", description: "The existing group to edit, e.g. 'Choose your crust'." },
+        options: {
+          type: "array",
+          description: "Per-option price edits, matched by option name (case-insensitive).",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              price: { type: "number", description: "Flat extra charge for this option (0 for free). Applies across sizes." },
+              sizePrices: {
+                type: "object",
+                description: "Per-size price keyed by the item's EXACT size name from get_menu, e.g. {\"12\\\"\": 3}. Merges — only the sizes you list change; other sizes keep their current price.",
+                additionalProperties: { type: "number" },
+              },
+            },
+            required: ["name"],
+          },
+        },
+        allOptions: {
+          type: "object",
+          description: "Apply the same price to EVERY option in the group, e.g. '£2.50 for all extra toppings'. Anything named in `options` overrides this.",
+          properties: {
+            price: { type: "number" },
+            sizePrices: { type: "object", additionalProperties: { type: "number" } },
+          },
+        },
+        confirmed: { type: "boolean" },
+      },
+      required: ["menuId", "categoryName", "groupName"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "add_modifier_group_to_item",
     description:
       "Create a modifier group and attach it to ONE item (same shape as add_modifier_group_to_category but for a single itemId). Confirm first, then confirmed=true.",
