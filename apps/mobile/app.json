@@ -87,7 +87,7 @@
     ],
     "extra": {
       "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
-      "webUrl": "https://orderhubsolutions.com",
+      "webUrl": "https://www.orderhubsolutions.com",
       "googleWebClientId": "331572609147-vjm10k3ro6o0a0ce0g49g955bmkt4u7r.apps.googleusercontent.com",
       "googleIosClientId": "331572609147-5o637k1bqjdam3md4h9b6ekmha7brp7m.apps.googleusercontent.com",
       "eas": {

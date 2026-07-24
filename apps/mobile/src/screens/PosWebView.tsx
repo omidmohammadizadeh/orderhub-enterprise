@@ -40,9 +40,14 @@ import { sendBytesOverTcp } from "@/print/transport/lan";
 import { startCometReader, stopCometReader } from "@/callerid/comet";
 import { terminalController } from "@/services/terminal";
 
+// MUST be the canonical domain the site actually serves (www). Loading the
+// non-www host triggers a redirect to www, and because the login handoff sets
+// the web session in per-origin localStorage, the session set on the non-www
+// origin is lost when the WebView follows the redirect to www → the web app
+// sees no session and bounces to /login (the login-loop bug).
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
-  "https://orderhubsolutions.com";
+  "https://www.orderhubsolutions.com";
 
 interface Props {
   tokens: AuthTokens;
