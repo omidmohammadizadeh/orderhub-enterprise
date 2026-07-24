@@ -251,6 +251,114 @@ export class TerminalService {
     return { ok: true };
   }
 
+  // ── SDK-driven (mobile) readers: BBPOS WisePad 3, Tap to Pay ──────────────
+  //
+  // Unlike the S700 (server-driven), a Bluetooth mobile reader or a phone's
+  // Tap to Pay is driven by the Stripe Terminal SDK running ON the device.
+  // The device needs a short-lived connection token to authenticate the SDK,
+  // and a card_present PaymentIntent to collect against. Two endpoints:
+  //   1. createConnectionToken → the SDK's tokenProvider calls this.
+  //   2. createMobileCharge → server makes the card_present PI (Connect
+  //      destination charge, same as the S700) and returns its client secret;
+  //      the SDK collects + confirms on the reader, then the POS polls
+  //      status() (below) to settle the order PAID.
+  //
+  // Test vs live follows the SERVER's Stripe key (test key on staging → the
+  // SDK's simulated reader works; live key in prod → a real WisePad 3). The
+  // client never chooses the mode, so a client can't force a free "paid".
+
+  /** Short-lived Stripe Terminal connection token for the on-device SDK. */
+  async createConnectionToken(tenantId: string, locationId?: string) {
+    this.assertStripe();
+    // Ownership check when a location is supplied (the SDK may pass one).
+    if (locationId) await this.loadLocation(tenantId, locationId);
+    const token = await this.stripe.terminal.connectionTokens.create();
+    return { secret: token.secret };
+  }
+
+  /** Create a card_present PaymentIntent for an order and return its client
+   *  secret for the on-device SDK to collect + confirm. Mirrors chargeOrder's
+   *  Connect routing but does NOT push to a networked reader. */
+  async createMobileCharge(args: { tenantId: string; orderId: string }) {
+    this.assertStripe();
+    const order = await this.prisma.order.findFirst({
+      where: { id: args.orderId, tenantId: args.tenantId },
+      select: {
+        id: true,
+        tenantId: true,
+        locationId: true,
+        brandId: true,
+        total: true,
+        paymentStatus: true,
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.paymentStatus === "PAID") {
+      throw new BadRequestException("Order is already paid");
+    }
+    if (!order.locationId) throw new BadRequestException("Order has no location");
+
+    const basketGbp = Number(order.total ?? 0);
+    const amountPence = Math.round(basketGbp * 100);
+    if (amountPence <= 0) throw new BadRequestException("Order total must be > 0");
+
+    const intentParams: any = {
+      amount: amountPence,
+      currency: "gbp",
+      payment_method_types: ["card_present"],
+      capture_method: "automatic",
+      metadata: {
+        orderId: order.id,
+        tenantId: order.tenantId,
+        locationId: order.locationId,
+        source: "terminal",
+        channel: "mobile_reader",
+      },
+    };
+
+    // Same destination-charge + application-fee routing as the S700 path so
+    // the money lands in the location's connected account.
+    const connect = await this.payments.resolveConnectAccount(
+      args.tenantId,
+      order.locationId,
+      order.brandId,
+    );
+    if (connect?.stripeAccountId) {
+      const feePence = await this.payments.applicationFeePenceForBasket(
+        order.locationId,
+        basketGbp,
+      );
+      intentParams.on_behalf_of = connect.stripeAccountId;
+      intentParams.transfer_data = { destination: connect.stripeAccountId };
+      if (feePence > 0) intentParams.application_fee_amount = feePence;
+    }
+
+    const pi = await this.stripe.paymentIntents.create(intentParams);
+
+    await (this.prisma as any).payment.create({
+      data: {
+        tenantId: order.tenantId,
+        orderId: order.id,
+        stripePaymentIntentId: pi.id,
+        amount: order.total,
+        currency: "gbp",
+        status: "PROCESSING",
+        method: "CARD",
+        metadata: { source: "terminal", channel: "mobile_reader" },
+      },
+    });
+
+    this.logger.log(
+      `Mobile-reader charge prepared: order ${order.id} £${basketGbp} (pi ${pi.id})`,
+    );
+    return {
+      paymentIntentId: pi.id,
+      clientSecret: pi.client_secret,
+      amount: basketGbp,
+      currency: "gbp",
+    };
+  }
+
   // ── Charge an order on a reader ───────────────────────────────────────────
 
   async chargeOrder(args: {

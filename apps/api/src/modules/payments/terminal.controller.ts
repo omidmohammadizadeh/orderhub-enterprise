@@ -80,6 +80,37 @@ export class TerminalController {
     });
   }
 
+  // ── SDK-driven mobile readers (BBPOS WisePad 3 / Tap to Pay) ──────────────
+
+  @Post("connection-token")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @ApiOperation({
+    summary:
+      "Short-lived Stripe Terminal connection token for the on-device SDK (WisePad 3 / Tap to Pay)",
+  })
+  connectionToken(
+    @Body() body: { locationId?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.terminal.createConnectionToken(user.tenantId, body?.locationId);
+  }
+
+  @Post("charge/mobile")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @ApiOperation({
+    summary:
+      "Prepare an on-device card-present charge — returns a client secret the SDK collects + confirms on the reader",
+  })
+  chargeMobile(
+    @Body() body: { orderId: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.terminal.createMobileCharge({
+      tenantId: user.tenantId,
+      orderId: body.orderId,
+    });
+  }
+
   @Post("simulate-present")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
   @ApiOperation({ summary: "Test mode: simulate the customer tapping their card" })
