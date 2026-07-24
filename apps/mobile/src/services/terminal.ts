@@ -23,6 +23,7 @@
 //   shifted across versions; the version-sensitive calls are flagged).
 
 import React from "react";
+import { Platform, PermissionsAndroid } from "react-native";
 import {
   StripeTerminalProvider,
   useStripeTerminal,
@@ -30,15 +31,51 @@ import {
 } from "@stripe/stripe-terminal-react-native";
 import { api } from "./auth";
 
+// Which Stripe environment the SDK should authenticate against. A SIMULATED
+// (no-hardware) reader only exists in Stripe TEST mode, so when the operator
+// runs the test drive the connection token MUST be a test-mode token. The mode
+// is decided by the token the SDK first receives, so `connect()` sets this flag
+// BEFORE it calls initialize() (which is when the SDK first pulls a token).
+let pendingSimulated = false;
+// The mode the SDK actually initialised in. Stripe can't switch a live SDK
+// session to test (or back) without re-initialising, which the SDK only does on
+// a fresh launch — so a mode change asks the operator to restart the app.
+let initMode: "test" | "live" | null = null;
+
 // ── Connection-token provider ───────────────────────────────────────────────
 // The SDK calls this whenever it needs a fresh token. `api` already attaches
-// the operator's Bearer token via its request interceptor.
+// the operator's Bearer token via its request interceptor. `simulated` picks
+// the server's test vs live Stripe client (see TerminalService.client()).
 export async function fetchConnectionToken(): Promise<string> {
   const res = await api.post<{ secret: string }>(
     "/v1/payments/terminal/connection-token",
-    {},
+    { simulated: pendingSimulated },
   );
   return res.data.secret;
+}
+
+// Stripe Terminal needs runtime LOCATION permission (and, on Android 12+, the
+// new Bluetooth scan/connect permissions) BEFORE it can discover a reader.
+// Without them discovery finds nothing and connect() just spins. iOS is handled
+// by the Info.plist strings + the SDK's own prompts, so this is Android-only.
+async function ensureTerminalPermissions(): Promise<void> {
+  if (Platform.OS !== "android") return;
+  const wanted: string[] = [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
+  if (Number(Platform.Version) >= 31) {
+    wanted.push(
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+    );
+  }
+  const result = await PermissionsAndroid.requestMultiple(wanted as any);
+  if (
+    result[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] !==
+    PermissionsAndroid.RESULTS.GRANTED
+  ) {
+    throw new Error(
+      "Location permission is required to connect the card reader. Enable it for Order Hub in Settings, then try again.",
+    );
+  }
 }
 
 // ── Imperative controller (bridges the WebView event handler → the hook) ────
@@ -99,7 +136,21 @@ export function TerminalHost(): React.ReactElement | null {
     };
 
     const connect: ConnectFn = async (stripeLocationId, simulated) => {
+      // Decide the Stripe environment BEFORE init: the token provider reads
+      // pendingSimulated when the SDK pulls its first token inside ensureInit().
+      pendingSimulated = !!simulated;
+      const wantMode: "test" | "live" = simulated ? "test" : "live";
+      if (initMode && initMode !== wantMode) {
+        throw new Error(
+          `The reader is set up in ${initMode} mode. Fully close and reopen the app to switch to ${wantMode} mode, then try again.`,
+        );
+      }
+      // Ask for location/Bluetooth at runtime — Stripe discovery needs it.
+      await ensureTerminalPermissions();
       await ensureInit(); // ← first SDK activity happens HERE, not at launch
+      initMode = wantMode;
+      // Fresh discovery each connect — clear any stale results from a prior run.
+      discovered = [];
       // Discover Bluetooth readers. simulated=true returns Stripe's software
       // reader (no hardware, test mode); false finds a real WisePad 3.
       const { error: discErr } = await discoverReaders({

@@ -23,7 +23,7 @@
 //      in the system browser, not inside the WebView).
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import * as Linking from "expo-linking";
@@ -63,30 +63,9 @@ interface Props {
   onSignOut: () => void;
 }
 
-export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
+export function PosWebView({ tokens, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
   const [loaded, setLoaded] = useState(false);
-  // Only the very first mount after a fresh login should use the handoff
-  // URL. Capture it once so a later re-render (e.g. tokens object identity
-  // changing for unrelated reasons) can't flip an already-loaded WebView
-  // back to the handoff URL and re-clobber its session.
-  const [useHandoff] = useState(fromFreshLogin);
-
-  // TEMP on-screen diagnostic trail (login-loop debugging) — shows the WebView
-  // navigation sequence so it can be screenshotted without Metro/adb. URLs are
-  // shown as PATH ONLY (query stripped) so tokens are never displayed. Remove
-  // once the login loop is fixed.
-  const [dbg, setDbg] = useState<string[]>([]);
-  const shortPath = (u: string): string => {
-    try {
-      const x = new URL(u);
-      return x.pathname + (x.hash || "");
-    } catch {
-      return (u || "").split("?")[0];
-    }
-  };
-  const pushDbg = (line: string) =>
-    setDbg((d) => [...d.slice(-9), line]);
 
   // On a fresh login we boot straight into the handoff. On a relaunch we boot
   // into /dashboard and trust the WebView's persisted session — but if that
@@ -104,7 +83,6 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
       access: tokens.accessToken,
       refresh: tokens.refreshToken,
     });
-    pushDbg("no session → retry via handoff");
     webRef.current?.injectJavaScript(
       `window.location.replace(${JSON.stringify(
         `${WEB_URL}/auth/oauth/callback?${qs.toString()}`,
@@ -145,13 +123,6 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     return `${WEB_URL}/auth/oauth/callback?${qs.toString()}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokens.accessToken, tokens.refreshToken]);
-
-  useEffect(() => {
-    pushDbg(`boot handoff=${useHandoff} → ${shortPath(initialUrl)}`);
-    // eslint-disable-next-line no-console
-    console.log("[OH boot] useHandoff=", useHandoff, "initialUrl=", initialUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialUrl, useHandoff]);
 
   // Native ↔ web bridge.
   //
@@ -252,7 +223,6 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     try {
       const msg = JSON.parse(e.nativeEvent.data);
       if (msg?.type === "signout") {
-        pushDbg("web msg: signout");
         await signOutGoogle();
         onSignOut();
       } else if (msg?.type === "openExternal" && msg?.url) {
@@ -333,9 +303,6 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     // sign-in) and NOT the storefront /order/[slug]/login (customer auth).
     const isDashboardLogin =
       /\/login(\?|$|#)/.test(u) && !u.includes("/order/");
-    pushDbg(`nav ${shortPath(u)}${isDashboardLogin ? "  → BOUNCE" : ""}`);
-    // eslint-disable-next-line no-console
-    console.log("[OH nav]", u, isDashboardLogin ? "→ BOUNCE TO LOGIN" : "");
     if (isDashboardLogin) {
       // First bounce on a relaunch → the persisted web session is missing;
       // re-run the handoff once to inject the native token before giving up.
@@ -359,20 +326,6 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
           onMessage={onMessage}
           onNavigationStateChange={handleNavStateChange}
           onLoadEnd={() => setLoaded(true)}
-          onError={(e) => {
-            pushDbg(`load err: ${e.nativeEvent.description ?? "?"}`);
-            // eslint-disable-next-line no-console
-            console.log("[OH webview error]", JSON.stringify(e.nativeEvent));
-          }}
-          onHttpError={(e) => {
-            pushDbg(`http ${e.nativeEvent.statusCode} ${shortPath(e.nativeEvent.url)}`);
-            // eslint-disable-next-line no-console
-            console.log(
-              "[OH http error]",
-              e.nativeEvent.statusCode,
-              e.nativeEvent.url,
-            );
-          }}
           // Sound + media autoplay — the existing web POS plays an MP3
           // when a new order lands; without these flags WKWebView blocks
           // it until a user tap.
@@ -409,19 +362,7 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
             <ActivityIndicator size="large" color="#F97316" />
           </View>
         )}
-
-        {/* TEMP login-loop diagnostic overlay — screenshot this. Remove later. */}
-        {dbg.length > 0 && (
-          <View pointerEvents="none" style={styles.dbgOverlay}>
-            {dbg.map((l, i) => (
-              <Text key={i} style={styles.dbgText}>
-                {l}
-              </Text>
-            ))}
-          </View>
-        )}
       </View>
-
     </SafeAreaView>
   );
 }
@@ -461,19 +402,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#0F172A",
-  },
-  dbgOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "rgba(0,0,0,0.82)",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  dbgText: {
-    color: "#4ade80",
-    fontSize: 10,
-    fontFamily: "monospace",
   },
 });
