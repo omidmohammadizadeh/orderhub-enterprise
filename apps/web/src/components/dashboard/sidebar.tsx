@@ -92,7 +92,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/products", label: "Products", icon: Layers, roles: MANAGER_TIER },
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER },
   // Admin-only business co-pilot (read-only, Phase 1).
-  { href: "/dashboard/assistant", label: "AI Assistant", icon: Bot, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"] },
+  { href: "/dashboard/assistant", label: "AI Assistant", icon: Bot, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: STAFF_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },

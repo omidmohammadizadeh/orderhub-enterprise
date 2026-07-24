@@ -10,7 +10,7 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 @ApiTags("agent")
 @ApiBearerAuth()
 @Controller({ path: "agent", version: "1" })
-@Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER")
+@Roles("PLATFORM_ADMIN")
 export class AgentController {
   constructor(private readonly agent: AgentService) {}
 
