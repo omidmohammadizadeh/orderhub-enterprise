@@ -95,7 +95,10 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
   // re-run the handoff ONCE to inject the native token, instead of dumping the
   // operator back to the login screen. Seeded from useHandoff so a genuinely
   // failing fresh-login handoff still signs out rather than looping.
-  const handoffTried = useRef(useHandoff);
+  // We always boot with the handoff now, so count it as already tried — a
+  // genuinely bad/expired token then signs out to the login screen (where a
+  // fresh login re-runs the handoff) instead of re-looping.
+  const handoffTried = useRef(true);
   const runHandoff = () => {
     const qs = new URLSearchParams({
       access: tokens.accessToken,
@@ -127,21 +130,21 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     return () => stopCometReader();
   }, []);
 
-  // Hand both tokens to the web via its existing OAuth-callback page —
-  // that page sets the Zustand store + fetches /me, then router.replace
-  // to /dashboard. Far more reliable than guessing the persist shape.
-  // Only used on a fresh login (see useHandoff above); a relaunch instead
-  // loads the dashboard directly and trusts the WebView's own persisted
-  // session (domStorage/cookies survive across launches — enabled below).
+  // ALWAYS hand both tokens to the web via its OAuth-callback page (which sets
+  // the Zustand store + fetches /me, then router.replace to /dashboard). This
+  // matches the last known-good production build (4a183fb): the "on relaunch,
+  // load /dashboard directly and trust the WebView's persisted session"
+  // optimization added later was the login-loop regression — on relaunch the
+  // WebView had no session and /dashboard bounced to /login. Injecting the
+  // token on every launch is what actually worked in production.
   const initialUrl = useMemo(() => {
-    if (!useHandoff) return `${WEB_URL}/dashboard`;
     const qs = new URLSearchParams({
       access: tokens.accessToken,
       refresh: tokens.refreshToken,
     });
     return `${WEB_URL}/auth/oauth/callback?${qs.toString()}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useHandoff]);
+  }, [tokens.accessToken, tokens.refreshToken]);
 
   useEffect(() => {
     pushDbg(`boot handoff=${useHandoff} → ${shortPath(initialUrl)}`);
