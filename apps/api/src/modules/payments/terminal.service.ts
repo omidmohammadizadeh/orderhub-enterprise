@@ -267,13 +267,20 @@ export class TerminalService {
   // SDK's simulated reader works; live key in prod → a real WisePad 3). The
   // client never chooses the mode, so a client can't force a free "paid".
 
-  /** Short-lived Stripe Terminal connection token for the on-device SDK. */
+  /** Short-lived Stripe Terminal connection token for the on-device SDK. When a
+   *  location is supplied, also ENSURE its Stripe Terminal location exists and
+   *  return its id — a Bluetooth reader (WisePad 3) requires that id to connect,
+   *  and the POS fetches it here before pairing. */
   async createConnectionToken(tenantId: string, locationId?: string) {
     this.assertStripe();
-    // Ownership check when a location is supplied (the SDK may pass one).
-    if (locationId) await this.loadLocation(tenantId, locationId);
+    let stripeLocationId: string | null = null;
+    if (locationId) {
+      const loc = await this.loadLocation(tenantId, locationId);
+      const cfg = this.configFrom(loc);
+      stripeLocationId = await this.ensureStripeLocation(loc, cfg, { test: false });
+    }
     const token = await this.stripe.terminal.connectionTokens.create();
-    return { secret: token.secret };
+    return { secret: token.secret, stripeLocationId };
   }
 
   /** Create a card_present PaymentIntent for an order and return its client

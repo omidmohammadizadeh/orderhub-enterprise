@@ -63,4 +63,29 @@ export const terminalClient = {
         { params: { paymentIntentId } },
       )
       .then((r) => r.data),
+
+  // ── SDK-driven mobile reader (BBPOS WisePad 3, in the native app) ─────────
+
+  // Ensures the Stripe Terminal location exists and returns its id (needed to
+  // connect the Bluetooth reader). The `secret` is unused by the web — the
+  // native SDK fetches its own connection token.
+  connectionToken: (locationId?: string) =>
+    apiClient
+      .post<{ secret: string; stripeLocationId: string | null }>(
+        `/v1/payments/terminal/connection-token`,
+        { locationId },
+      )
+      .then((r) => r.data),
+
+  // Prepares an on-device card-present charge; returns the client secret the
+  // native SDK collects + confirms on the reader.
+  chargeMobile: (orderId: string) =>
+    apiClient
+      .post<{
+        paymentIntentId: string;
+        clientSecret: string;
+        amount: number;
+        currency: string;
+      }>(`/v1/payments/terminal/charge/mobile`, { orderId })
+      .then((r) => r.data),
 };

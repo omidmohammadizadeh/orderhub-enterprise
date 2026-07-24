@@ -36,6 +36,16 @@ export function ChargeReaderModal({
   const [readerId, setReaderId] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [regCode, setRegCode] = useState("");
+  // WisePad 3 (Bluetooth) is only available inside the native app, where the
+  // Stripe Terminal SDK is wired to window.OrderHubTerminal (see the mobile
+  // app's PosWebView bridge). On the desktop dashboard this stays hidden.
+  const nativeReader =
+    typeof window !== "undefined" &&
+    (window as { OrderHubTerminal?: { isReady?: boolean } }).OrderHubTerminal
+      ?.isReady === true;
+  const [method, setMethod] = useState<"server" | "wisepad">("server");
+  const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const readersQuery = useQuery({
@@ -53,6 +63,10 @@ export function ChargeReaderModal({
       setError(null);
       setPaymentIntentId(null);
       setReaderId(null);
+      // In the native app, default to the on-device WisePad 3.
+      setMethod(nativeReader ? "wisepad" : "server");
+      setConnectedLabel(null);
+      setConnecting(false);
     }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -90,6 +104,66 @@ export function ChargeReaderModal({
     } catch (e: any) {
       setPhase("error");
       setError(e?.response?.data?.message ?? e?.message ?? "Charge failed");
+    }
+  };
+
+  // ── WisePad 3 (native app): connect the Bluetooth reader, then charge ─────
+  const oh = () =>
+    (
+      window as {
+        OrderHubTerminal?: {
+          connect: (loc?: string) => Promise<{ label: string }>;
+          pay: (clientSecret: string) => Promise<{ status: string }>;
+        };
+      }
+    ).OrderHubTerminal;
+
+  const connectWisepad = async () => {
+    setError(null);
+    setConnecting(true);
+    try {
+      const { stripeLocationId } = await terminalClient.connectionToken(locationId);
+      if (!stripeLocationId) {
+        throw new Error("Couldn't prepare the reader for this location.");
+      }
+      const res = await oh()!.connect(stripeLocationId);
+      setConnectedLabel(res?.label ?? "WisePad 3");
+      toast.success("Reader connected");
+    } catch (e: any) {
+      setError(e?.message ?? "Couldn't connect the reader");
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const chargeWisepad = async () => {
+    setError(null);
+    setPhase("charging");
+    try {
+      const { paymentIntentId: piId, clientSecret } =
+        await terminalClient.chargeMobile(orderId);
+      setPaymentIntentId(piId);
+      setPhase("waiting");
+      // The reader collects + confirms; resolves once the payment is confirmed.
+      await oh()!.pay(clientSecret);
+      // Settle server-side (same poll as the S700). The confirm already
+      // succeeded, so the first tick usually settles it.
+      pollRef.current = setInterval(async () => {
+        try {
+          const s = await terminalClient.status(piId);
+          if (s.paid) {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setPhase("paid");
+            toast.success("Card payment received");
+            setTimeout(onClose, 1200);
+          }
+        } catch {
+          /* keep polling */
+        }
+      }, 1500);
+    } catch (e: any) {
+      setPhase("error");
+      setError(e?.message ?? "Card payment failed");
     }
   };
 
@@ -147,10 +221,76 @@ export function ChargeReaderModal({
             £{amount.toFixed(2)}
           </p>
 
+          {nativeReader && phase !== "paid" && (
+            <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 text-xs font-medium">
+              <button
+                onClick={() => setMethod("wisepad")}
+                className={`flex-1 rounded-md px-2 py-1.5 ${
+                  method === "wisepad"
+                    ? "bg-white text-zinc-900 shadow-sm"
+                    : "text-zinc-500"
+                }`}
+              >
+                WisePad 3 (this device)
+              </button>
+              <button
+                onClick={() => setMethod("server")}
+                className={`flex-1 rounded-md px-2 py-1.5 ${
+                  method === "server"
+                    ? "bg-white text-zinc-900 shadow-sm"
+                    : "text-zinc-500"
+                }`}
+              >
+                Counter reader (S700)
+              </button>
+            </div>
+          )}
+
           {phase === "paid" ? (
             <div className="flex flex-col items-center gap-2 py-4 text-emerald-600">
               <CheckCircle2 className="h-10 w-10" />
               <p className="font-semibold">Paid</p>
+            </div>
+          ) : method === "wisepad" ? (
+            <div className="space-y-3">
+              <p className="text-sm text-zinc-600">
+                {connectedLabel
+                  ? `Connected: ${connectedLabel}`
+                  : "Connect the WisePad 3 over Bluetooth, then take the payment on the reader."}
+              </p>
+              {phase === "waiting" ? (
+                <div className="flex flex-col items-center gap-2 py-3 text-zinc-600">
+                  <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                  <p className="text-sm">Follow the prompts on the reader…</p>
+                </div>
+              ) : !connectedLabel ? (
+                <Button
+                  onClick={connectWisepad}
+                  disabled={connecting}
+                  className="w-full bg-violet-600 py-3 text-white hover:bg-violet-700"
+                >
+                  {connecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Connect WisePad 3"
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={chargeWisepad}
+                  disabled={phase === "charging"}
+                  className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
+                >
+                  {phase === "charging" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    `Charge £${amount.toFixed(2)} on reader`
+                  )}
+                </Button>
+              )}
+              {error && (
+                <p className="text-center text-sm text-red-600">{error}</p>
+              )}
             </div>
           ) : readers.length === 0 ? (
             <div className="space-y-3">
