@@ -169,8 +169,11 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
         // then polls /payments/terminal/charge/status to settle the order.
         window.OrderHubTerminal = {
           isReady: true,
-          connect: function (stripeLocationId) {
-            return request('terminal:connect', { stripeLocationId: stripeLocationId || null });
+          connect: function (stripeLocationId, simulated) {
+            return request('terminal:connect', {
+              stripeLocationId: stripeLocationId || null,
+              simulated: !!simulated
+            });
           },
           pay: function (clientSecret) {
             return request('terminal:pay', { clientSecret: clientSecret });
@@ -238,11 +241,13 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
         }
       } else if (msg?.type === "terminal:connect" && msg?.reqId) {
         try {
-          const { stripeLocationId } = (msg.payload ?? {}) as {
+          const { stripeLocationId, simulated } = (msg.payload ?? {}) as {
             stripeLocationId?: string | null;
+            simulated?: boolean;
           };
           const res = await terminalController.connect(
             stripeLocationId || undefined,
+            !!simulated,
           );
           respond(msg.reqId, res);
         } catch (err: any) {

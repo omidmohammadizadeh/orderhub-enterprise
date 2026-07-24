@@ -89,10 +89,14 @@ export class TerminalController {
       "Short-lived Stripe Terminal connection token for the on-device SDK (WisePad 3 / Tap to Pay)",
   })
   connectionToken(
-    @Body() body: { locationId?: string },
+    @Body() body: { locationId?: string; simulated?: boolean },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.terminal.createConnectionToken(user.tenantId, body?.locationId);
+    return this.terminal.createConnectionToken(
+      user.tenantId,
+      body?.locationId,
+      body?.simulated === true,
+    );
   }
 
   @Post("charge/mobile")
@@ -102,12 +106,13 @@ export class TerminalController {
       "Prepare an on-device card-present charge — returns a client secret the SDK collects + confirms on the reader",
   })
   chargeMobile(
-    @Body() body: { orderId: string },
+    @Body() body: { orderId: string; simulated?: boolean },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.terminal.createMobileCharge({
       tenantId: user.tenantId,
       orderId: body.orderId,
+      simulated: body?.simulated === true,
     });
   }
 

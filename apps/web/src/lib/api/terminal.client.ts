@@ -69,23 +69,25 @@ export const terminalClient = {
   // Ensures the Stripe Terminal location exists and returns its id (needed to
   // connect the Bluetooth reader). The `secret` is unused by the web — the
   // native SDK fetches its own connection token.
-  connectionToken: (locationId?: string) =>
+  connectionToken: (locationId?: string, simulated?: boolean) =>
     apiClient
-      .post<{ secret: string; stripeLocationId: string | null }>(
+      .post<{ secret: string; stripeLocationId: string | null; simulated: boolean }>(
         `/v1/payments/terminal/connection-token`,
-        { locationId },
+        { locationId, simulated },
       )
       .then((r) => r.data),
 
   // Prepares an on-device card-present charge; returns the client secret the
-  // native SDK collects + confirms on the reader.
-  chargeMobile: (orderId: string) =>
+  // native SDK collects + confirms on the reader. `simulated` runs it in test
+  // mode (no hardware, no real money) for verifying the flow.
+  chargeMobile: (orderId: string, simulated?: boolean) =>
     apiClient
       .post<{
         paymentIntentId: string;
         clientSecret: string;
         amount: number;
         currency: string;
-      }>(`/v1/payments/terminal/charge/mobile`, { orderId })
+        simulated: boolean;
+      }>(`/v1/payments/terminal/charge/mobile`, { orderId, simulated })
       .then((r) => r.data),
 };

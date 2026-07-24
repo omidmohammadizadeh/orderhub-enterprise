@@ -271,23 +271,31 @@ export class TerminalService {
    *  location is supplied, also ENSURE its Stripe Terminal location exists and
    *  return its id — a Bluetooth reader (WisePad 3) requires that id to connect,
    *  and the POS fetches it here before pairing. */
-  async createConnectionToken(tenantId: string, locationId?: string) {
+  async createConnectionToken(tenantId: string, locationId?: string, simulated = false) {
     this.assertStripe();
+    // Simulated (no-hardware) testing runs on the TEST client — client(true)
+    // throws unless STRIPE_TEST_SECRET_KEY is set, so it can't be forced in
+    // production, and it never touches the live account.
+    const stripe = this.client(simulated);
     let stripeLocationId: string | null = null;
     if (locationId) {
       const loc = await this.loadLocation(tenantId, locationId);
       const cfg = this.configFrom(loc);
-      stripeLocationId = await this.ensureStripeLocation(loc, cfg, { test: false });
+      stripeLocationId = await this.ensureStripeLocation(loc, cfg, { test: simulated });
     }
-    const token = await this.stripe.terminal.connectionTokens.create();
-    return { secret: token.secret, stripeLocationId };
+    const token = await stripe.terminal.connectionTokens.create();
+    return { secret: token.secret, stripeLocationId, simulated };
   }
 
   /** Create a card_present PaymentIntent for an order and return its client
    *  secret for the on-device SDK to collect + confirm. Mirrors chargeOrder's
    *  Connect routing but does NOT push to a networked reader. */
-  async createMobileCharge(args: { tenantId: string; orderId: string }) {
+  async createMobileCharge(args: { tenantId: string; orderId: string; simulated?: boolean }) {
     this.assertStripe();
+    const simulated = args.simulated === true;
+    // Simulated charges run on the TEST client (gated on STRIPE_TEST_SECRET_KEY)
+    // and never move real money — for verifying the flow without hardware.
+    const stripe = this.client(simulated);
     const order = await this.prisma.order.findFirst({
       where: { id: args.orderId, tenantId: args.tenantId },
       select: {
@@ -320,27 +328,31 @@ export class TerminalService {
         locationId: order.locationId,
         source: "terminal",
         channel: "mobile_reader",
+        ...(simulated ? { testDrive: "1" } : {}),
       },
     };
 
     // Same destination-charge + application-fee routing as the S700 path so
-    // the money lands in the location's connected account.
-    const connect = await this.payments.resolveConnectAccount(
-      args.tenantId,
-      order.locationId,
-      order.brandId,
-    );
-    if (connect?.stripeAccountId) {
-      const feePence = await this.payments.applicationFeePenceForBasket(
+    // the money lands in the location's connected account. SKIPPED for
+    // simulated charges — live connected accounts don't exist in test mode.
+    if (!simulated) {
+      const connect = await this.payments.resolveConnectAccount(
+        args.tenantId,
         order.locationId,
-        basketGbp,
+        order.brandId,
       );
-      intentParams.on_behalf_of = connect.stripeAccountId;
-      intentParams.transfer_data = { destination: connect.stripeAccountId };
-      if (feePence > 0) intentParams.application_fee_amount = feePence;
+      if (connect?.stripeAccountId) {
+        const feePence = await this.payments.applicationFeePenceForBasket(
+          order.locationId,
+          basketGbp,
+        );
+        intentParams.on_behalf_of = connect.stripeAccountId;
+        intentParams.transfer_data = { destination: connect.stripeAccountId };
+        if (feePence > 0) intentParams.application_fee_amount = feePence;
+      }
     }
 
-    const pi = await this.stripe.paymentIntents.create(intentParams);
+    const pi = await stripe.paymentIntents.create(intentParams);
 
     await (this.prisma as any).payment.create({
       data: {
@@ -351,18 +363,19 @@ export class TerminalService {
         currency: "gbp",
         status: "PROCESSING",
         method: "CARD",
-        metadata: { source: "terminal", channel: "mobile_reader" },
+        metadata: { source: "terminal", channel: "mobile_reader", simulated },
       },
     });
 
     this.logger.log(
-      `Mobile-reader charge prepared: order ${order.id} £${basketGbp} (pi ${pi.id})`,
+      `Mobile-reader charge prepared${simulated ? " (SIMULATED)" : ""}: order ${order.id} £${basketGbp} (pi ${pi.id})`,
     );
     return {
       paymentIntentId: pi.id,
       clientSecret: pi.client_secret,
       amount: basketGbp,
       currency: "gbp",
+      simulated,
     };
   }
 

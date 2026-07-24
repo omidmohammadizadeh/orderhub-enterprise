@@ -45,7 +45,10 @@ export async function fetchConnectionToken(): Promise<string> {
 // useStripeTerminal is a hook, so it can only run inside a React component.
 // TerminalHost binds the hook's functions into this singleton; the WebView
 // bridge (non-React) then calls terminalController.pay(...).
-type ConnectFn = (stripeLocationId?: string) => Promise<{ label: string }>;
+type ConnectFn = (
+  stripeLocationId?: string,
+  simulated?: boolean,
+) => Promise<{ label: string }>;
 type PayFn = (clientSecret: string) => Promise<{ status: string }>;
 
 interface Controller {
@@ -92,12 +95,13 @@ export function TerminalHost(): React.ReactElement | null {
       const { error } = await initialize();
       if (error || cancelled) return;
 
-      const connect: ConnectFn = async (stripeLocationId) => {
-        // 1. Discover Bluetooth readers (simulated=false for a real WisePad 3;
-        //    set true when testing against the SDK's simulated reader).
+      const connect: ConnectFn = async (stripeLocationId, simulated) => {
+        // 1. Discover Bluetooth readers. simulated=true returns Stripe's
+        //    software reader (no hardware) for verifying the flow in test mode;
+        //    false finds a real WisePad 3.
         const { error: discErr } = await discoverReaders({
           discoveryMethod: "bluetoothScan",
-          simulated: false,
+          simulated: !!simulated,
         });
         if (discErr) throw new Error(discErr.message);
 

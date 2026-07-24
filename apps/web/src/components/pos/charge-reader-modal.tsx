@@ -46,6 +46,8 @@ export function ChargeReaderModal({
   const [method, setMethod] = useState<"server" | "wisepad">("server");
   const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  // Simulated reader — verify the flow with no hardware (test mode only).
+  const [simulate, setSimulate] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const readersQuery = useQuery({
@@ -67,6 +69,7 @@ export function ChargeReaderModal({
       setMethod(nativeReader ? "wisepad" : "server");
       setConnectedLabel(null);
       setConnecting(false);
+      setSimulate(false);
     }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -112,7 +115,7 @@ export function ChargeReaderModal({
     (
       window as {
         OrderHubTerminal?: {
-          connect: (loc?: string) => Promise<{ label: string }>;
+          connect: (loc?: string, simulated?: boolean) => Promise<{ label: string }>;
           pay: (clientSecret: string) => Promise<{ status: string }>;
         };
       }
@@ -122,12 +125,15 @@ export function ChargeReaderModal({
     setError(null);
     setConnecting(true);
     try {
-      const { stripeLocationId } = await terminalClient.connectionToken(locationId);
+      const { stripeLocationId } = await terminalClient.connectionToken(
+        locationId,
+        simulate,
+      );
       if (!stripeLocationId) {
         throw new Error("Couldn't prepare the reader for this location.");
       }
-      const res = await oh()!.connect(stripeLocationId);
-      setConnectedLabel(res?.label ?? "WisePad 3");
+      const res = await oh()!.connect(stripeLocationId, simulate);
+      setConnectedLabel(res?.label ?? (simulate ? "Simulated reader" : "WisePad 3"));
       toast.success("Reader connected");
     } catch (e: any) {
       setError(e?.message ?? "Couldn't connect the reader");
@@ -141,7 +147,7 @@ export function ChargeReaderModal({
     setPhase("charging");
     try {
       const { paymentIntentId: piId, clientSecret } =
-        await terminalClient.chargeMobile(orderId);
+        await terminalClient.chargeMobile(orderId, simulate);
       setPaymentIntentId(piId);
       setPhase("waiting");
       // The reader collects + confirms; resolves once the payment is confirmed.
@@ -258,6 +264,17 @@ export function ChargeReaderModal({
                   ? `Connected: ${connectedLabel}`
                   : "Connect the WisePad 3 over Bluetooth, then take the payment on the reader."}
               </p>
+              {testMode && !connectedLabel && phase !== "waiting" && (
+                <label className="flex items-center gap-2 rounded-md bg-violet-50 px-3 py-2 text-xs text-violet-800">
+                  <input
+                    type="checkbox"
+                    checked={simulate}
+                    onChange={(e) => setSimulate(e.target.checked)}
+                    className="h-3.5 w-3.5"
+                  />
+                  Simulate reader — no hardware, test mode (no real charge)
+                </label>
+              )}
               {phase === "waiting" ? (
                 <div className="flex flex-col items-center gap-2 py-3 text-zinc-600">
                   <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
