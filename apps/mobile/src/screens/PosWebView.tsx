@@ -88,6 +88,27 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
   const pushDbg = (line: string) =>
     setDbg((d) => [...d.slice(-9), line]);
 
+  // On a fresh login we boot straight into the handoff. On a relaunch we boot
+  // into /dashboard and trust the WebView's persisted session — but if that
+  // session is missing (e.g. a stale token survived a reinstall, or the web
+  // session never persisted), /dashboard bounces to /login. In that case we
+  // re-run the handoff ONCE to inject the native token, instead of dumping the
+  // operator back to the login screen. Seeded from useHandoff so a genuinely
+  // failing fresh-login handoff still signs out rather than looping.
+  const handoffTried = useRef(useHandoff);
+  const runHandoff = () => {
+    const qs = new URLSearchParams({
+      access: tokens.accessToken,
+      refresh: tokens.refreshToken,
+    });
+    pushDbg("no session → retry via handoff");
+    webRef.current?.injectJavaScript(
+      `window.location.replace(${JSON.stringify(
+        `${WEB_URL}/auth/oauth/callback?${qs.toString()}`,
+      )}); true;`,
+    );
+  };
+
   // Caller-ID hub (Android only, no-ops elsewhere): read the CTI Comet USB
   // box on the shop's analogue line and hand every ring to the web app,
   // which POSTs /v1/customers/caller-id/ring with its own auth + selected
@@ -313,6 +334,13 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     // eslint-disable-next-line no-console
     console.log("[OH nav]", u, isDashboardLogin ? "→ BOUNCE TO LOGIN" : "");
     if (isDashboardLogin) {
+      // First bounce on a relaunch → the persisted web session is missing;
+      // re-run the handoff once to inject the native token before giving up.
+      if (!handoffTried.current) {
+        handoffTried.current = true;
+        runHandoff();
+        return;
+      }
       await signOutGoogle();
       onSignOut();
     }
