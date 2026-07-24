@@ -101,6 +101,11 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useHandoff]);
 
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[OH boot] useHandoff=", useHandoff, "initialUrl=", initialUrl);
+  }, [initialUrl, useHandoff]);
+
   // Native ↔ web bridge.
   //
   // window.OrderHubNative — signOut + openExternal (existing).
@@ -280,6 +285,8 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
     // sign-in) and NOT the storefront /order/[slug]/login (customer auth).
     const isDashboardLogin =
       /\/login(\?|$|#)/.test(u) && !u.includes("/order/");
+    // eslint-disable-next-line no-console
+    console.log("[OH nav]", u, isDashboardLogin ? "→ BOUNCE TO LOGIN" : "");
     if (isDashboardLogin) {
       await signOutGoogle();
       onSignOut();
@@ -296,6 +303,18 @@ export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
           onMessage={onMessage}
           onNavigationStateChange={handleNavStateChange}
           onLoadEnd={() => setLoaded(true)}
+          onError={(e) =>
+            // eslint-disable-next-line no-console
+            console.log("[OH webview error]", JSON.stringify(e.nativeEvent))
+          }
+          onHttpError={(e) =>
+            // eslint-disable-next-line no-console
+            console.log(
+              "[OH http error]",
+              e.nativeEvent.statusCode,
+              e.nativeEvent.url,
+            )
+          }
           // Sound + media autoplay — the existing web POS plays an MP3
           // when a new order lands; without these flags WKWebView blocks
           // it until a user tap.
