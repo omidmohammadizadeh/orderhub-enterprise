@@ -227,6 +227,7 @@ export function TerminalHost(): React.ReactElement | null {
         // (retrieve → collect → confirm) is identical to the real WisePad 3.
         if (simulated) {
           tlog("easyConnect simulated…");
+          discovered = [];
           const { reader: sim, error: simErr } = await withTimeout(
             easyConnect({
               discoveryMethod: "internet",
@@ -236,11 +237,45 @@ export function TerminalHost(): React.ReactElement | null {
             25000,
             "Simulated reader connect",
           );
-          if (simErr) throw new Error(simErr.message);
-          const simLabel: string = sim?.label ?? "Simulated reader";
-          terminalController.connectedLabel = simLabel;
-          tlog("connected", { label: simLabel });
-          return { label: simLabel };
+          if (!simErr) {
+            const simLabel: string = sim?.label ?? "Simulated reader";
+            terminalController.connectedLabel = simLabel;
+            tlog("connected", { label: simLabel });
+            return { label: simLabel };
+          }
+          // Stripe returns SEVERAL simulated internet readers and easyConnect
+          // refuses to auto-pick ("Multiple readers found during discovery").
+          // Any of them works for the test drive — discover, take the first,
+          // and connect it ourselves.
+          tlog("easyConnect said", simErr.message);
+          let simReader: Reader.Type | null = discovered[0] ?? null;
+          if (!simReader) {
+            tlog("discover internet…");
+            const { error: dErr } = await discoverReaders({
+              discoveryMethod: "internet",
+              simulated: true,
+              timeout: 15,
+            });
+            if (dErr) tlog("discover internet err", dErr.message);
+            simReader = await waitForReader();
+            await cancelDiscovering?.().catch(() => {});
+          }
+          if (!simReader) throw new Error(simErr.message);
+          tlog("connectReader internet…", { label: simReader.label });
+          const { reader: simConn, error: simConnErr } = await withTimeout(
+            connectReader({
+              discoveryMethod: "internet",
+              reader: simReader,
+            }),
+            30000,
+            "Reader connect",
+          );
+          if (simConnErr) throw new Error(simConnErr.message);
+          const pickedLabel: string =
+            simConn?.label ?? simReader.label ?? "Simulated reader";
+          terminalController.connectedLabel = pickedLabel;
+          tlog("connected", { label: pickedLabel });
+          return { label: pickedLabel };
         }
 
         // Clear any scan still running from a previous attempt (else the next
