@@ -4,6 +4,7 @@
     "slug": "orderhub-pos",
     "scheme": "orderhub",
     "version": "1.1.0",
+    "newArchEnabled": false,
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -77,10 +78,7 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 34,
-            "minSdkVersion": 26,
-            "extraMavenRepos": []
+            "minSdkVersion": 26
           },
           "ios": {
             "deploymentTarget": "15.1"
