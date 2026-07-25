@@ -61,7 +61,10 @@ export function useAutoAccept(locationId?: string) {
       // Mirrors the isWaitingForPayment predicate on the board.
       if (
         ((o as any).paymentMethod === "PAYMENT_LINK" ||
-          (o as any).paymentMethod === "QR_CODE") &&
+          (o as any).paymentMethod === "QR_CODE" ||
+          // Card terminal (S700 / WisePad 3) collects payment now — hold until
+          // the reader charge settles, same as a payment link.
+          (o as any).paymentMethod === "CARD_TERMINAL") &&
         (o as any).paymentStatus !== "PAID"
       )
         continue;

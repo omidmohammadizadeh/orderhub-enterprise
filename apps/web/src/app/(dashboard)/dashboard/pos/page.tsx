@@ -299,7 +299,12 @@ export default function PosPage() {
       // it jump straight to New/Accepted before payment.
       const isUnpaidPaymentLink =
         (payload.paymentMethod === "PAYMENT_LINK" ||
-          payload.paymentMethod === "QR_CODE") &&
+          payload.paymentMethod === "QR_CODE" ||
+          // Card terminal (S700 / WisePad 3) collects payment now — it must
+          // wait in "Waiting for payment" until the reader charge settles, then
+          // settleTerminalPi accepts + prints it. Accepting here is what jumped
+          // it straight to Accepted + printed an unpaid ticket.
+          payload.paymentMethod === "CARD_TERMINAL") &&
         payload.paymentStatus !== "PAID";
       if (!isUnpaidPaymentLink) {
         // Best-effort: if the location has auto-accept ON, the order is already

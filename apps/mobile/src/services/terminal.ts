@@ -41,6 +41,9 @@ let pendingSimulated = false;
 // session to test (or back) without re-initialising, which the SDK only does on
 // a fresh launch — so a mode change asks the operator to restart the app.
 let initMode: "test" | "live" | null = null;
+// Guards against overlapping connect() calls — the SDK rejects a second
+// discoverReaders while one is running ("SDK is busy with discoverReaders").
+let connectInFlight = false;
 
 // ── Connection-token provider ───────────────────────────────────────────────
 // The SDK calls this whenever it needs a fresh token. `api` already attaches
@@ -111,6 +114,7 @@ export function TerminalHost(): React.ReactElement | null {
   const {
     initialize,
     discoverReaders,
+    cancelDiscovering,
     connectReader,
     disconnectReader,
     retrievePaymentIntent,
@@ -136,48 +140,67 @@ export function TerminalHost(): React.ReactElement | null {
     };
 
     const connect: ConnectFn = async (stripeLocationId, simulated) => {
-      // Decide the Stripe environment BEFORE init: the token provider reads
-      // pendingSimulated when the SDK pulls its first token inside ensureInit().
-      pendingSimulated = !!simulated;
-      const wantMode: "test" | "live" = simulated ? "test" : "live";
-      if (initMode && initMode !== wantMode) {
-        throw new Error(
-          `The reader is set up in ${initMode} mode. Fully close and reopen the app to switch to ${wantMode} mode, then try again.`,
-        );
+      // One connect at a time. discoverReaders runs a CONTINUOUS background scan
+      // in this SDK — a second connect while one is mid-flight throws "SDK is
+      // busy with another command: discoverReaders". Serialise + always cancel.
+      if (connectInFlight) {
+        throw new Error("Still connecting the reader — hold on a moment.");
       }
-      // Ask for location/Bluetooth at runtime — Stripe discovery needs it.
-      await ensureTerminalPermissions();
-      await ensureInit(); // ← first SDK activity happens HERE, not at launch
-      initMode = wantMode;
-      // Fresh discovery each connect — clear any stale results from a prior run.
-      discovered = [];
-      // Discover Bluetooth readers. simulated=true returns Stripe's software
-      // reader (no hardware, test mode); false finds a real WisePad 3.
-      const { error: discErr } = await discoverReaders({
-        discoveryMethod: "bluetoothScan",
-        simulated: !!simulated,
-      });
-      if (discErr) throw new Error(discErr.message);
+      connectInFlight = true;
+      try {
+        // Decide the Stripe environment BEFORE init: the token provider reads
+        // pendingSimulated when the SDK pulls its first token in ensureInit().
+        pendingSimulated = !!simulated;
+        const wantMode: "test" | "live" = simulated ? "test" : "live";
+        if (initMode && initMode !== wantMode) {
+          throw new Error(
+            `The reader is set up in ${initMode} mode. Fully close and reopen the app to switch to ${wantMode} mode, then try again.`,
+          );
+        }
+        // Ask for location/Bluetooth at runtime — Stripe discovery needs it.
+        await ensureTerminalPermissions();
+        await ensureInit(); // ← first SDK activity happens HERE, not at launch
+        initMode = wantMode;
+        // Clear any scan still running from a previous attempt (else the next
+        // discoverReaders is rejected as "SDK busy"), then start fresh.
+        await cancelDiscovering?.().catch(() => {});
+        discovered = [];
+        // Discover Bluetooth readers. simulated=true returns Stripe's software
+        // reader (no hardware, test mode); false finds a real WisePad 3.
+        const { error: discErr } = await discoverReaders({
+          discoveryMethod: "bluetoothScan",
+          simulated: !!simulated,
+        });
+        if (discErr) throw new Error(discErr.message);
 
-      const reader = await waitForReader();
-      if (!reader) throw new Error("No card reader found. Is it on and nearby?");
+        const reader = await waitForReader();
+        // Stop the background scan before connecting — leaving it running is
+        // what wedges the SDK into the "busy" state on the next attempt.
+        await cancelDiscovering?.().catch(() => {});
+        if (!reader) {
+          throw new Error("No card reader found. Is it on and nearby?");
+        }
 
-      // SDK v0.0.1-beta.31: connectReader takes ONE object with discoveryMethod
-      // inside; a Stripe location id (tml_…) is REQUIRED for Bluetooth readers.
-      if (!stripeLocationId) {
-        throw new Error(
-          "Missing the reader's Stripe location — register a reader for this location first, then retry.",
-        );
+        // SDK v0.0.1-beta.31: connectReader takes ONE object with
+        // discoveryMethod inside; a Stripe location id (tml_…) is REQUIRED for
+        // Bluetooth readers.
+        if (!stripeLocationId) {
+          throw new Error(
+            "Missing the reader's Stripe location — register a reader for this location first, then retry.",
+          );
+        }
+        const { reader: connected, error: connErr } = await connectReader({
+          discoveryMethod: "bluetoothScan",
+          reader,
+          locationId: stripeLocationId,
+        });
+        if (connErr) throw new Error(connErr.message);
+        const label: string = connected?.label ?? "Card reader";
+        terminalController.connectedLabel = label;
+        return { label };
+      } finally {
+        connectInFlight = false;
       }
-      const { reader: connected, error: connErr } = await connectReader({
-        discoveryMethod: "bluetoothScan",
-        reader,
-        locationId: stripeLocationId,
-      });
-      if (connErr) throw new Error(connErr.message);
-      const label: string = connected?.label ?? "Card reader";
-      terminalController.connectedLabel = label;
-      return { label };
     };
 
     const pay: PayFn = async (clientSecret) => {

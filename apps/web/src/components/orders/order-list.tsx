@@ -124,7 +124,11 @@ const CHANNELS: Channel[] = [
 // point they move into New and auto-accept/print.
 const isWaitingForPayment = (o: Order): boolean =>
   o.status === "PENDING" &&
-  (o.paymentMethod === "PAYMENT_LINK" || o.paymentMethod === "QR_CODE") &&
+  (o.paymentMethod === "PAYMENT_LINK" ||
+    o.paymentMethod === "QR_CODE" ||
+    // Card terminal (S700 / WisePad 3) collects payment now — holds here until
+    // the reader charge settles, same as a payment link.
+    o.paymentMethod === "CARD_TERMINAL") &&
   o.paymentStatus !== "PAID";
 
 const BUCKETS: Bucket[] = [

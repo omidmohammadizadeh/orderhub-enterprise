@@ -724,6 +724,39 @@ export class PaymentsService {
       orderId: payment.orderId,
       paymentStatus: "PAID",
     } as any);
+
+    // Card-terminal (S700 / WisePad 3) orders are held out of New + print until
+    // the charge lands — same as POS "Payment link". Now that it's PAID, light
+    // up the staff board (moves it from "Waiting for payment" to New) and fire
+    // payment.authorized so an auto-accept location captures + prints the
+    // ticket. Gated to still-PENDING orders so this never double-fires.
+    const paidOrder = await this.prisma.order.findUnique({
+      where: { id: payment.orderId },
+      include: { items: { select: { quantity: true } } },
+    });
+    if (paidOrder && paidOrder.locationId && paidOrder.status === "PENDING") {
+      this.socket.emitNewOrder(paidOrder.locationId, {
+        orderId: paidOrder.id,
+        tenantId: paidOrder.tenantId,
+        locationId: paidOrder.locationId,
+        platform: paidOrder.platform,
+        orderSource: paidOrder.orderSource,
+        fulfillmentType: paidOrder.fulfillmentType,
+        displayId: paidOrder.displayId,
+        status: paidOrder.status,
+        total: Number(paidOrder.total),
+        itemCount: paidOrder.items.reduce((s, i) => s + (i.quantity ?? 0), 0),
+        customerName: (paidOrder as any).customerName,
+        scheduledFor: paidOrder.scheduledFor?.toISOString() ?? null,
+        createdAt: paidOrder.createdAt.toISOString(),
+      } as any);
+      this.events.emit("payment.authorized", {
+        orderId: paidOrder.id,
+        tenantId: payment.tenantId,
+        locationId: paidOrder.locationId,
+      });
+    }
+
     this.logger.log(
       `Terminal payment settled: order ${payment.orderId} → PAID (pi ${pi?.id})`,
     );

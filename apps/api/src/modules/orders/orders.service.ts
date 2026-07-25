@@ -270,12 +270,17 @@ export class OrdersService {
       const unpaidPaymentLink =
         (payMethod === "PAYMENT_LINK" || payMethod === "QR_CODE") &&
         payStatus !== "PAID";
+      // Card-terminal (S700 / WisePad 3) is our own collect-payment-now flow:
+      // the ticket must NOT accept or print until the reader charge succeeds,
+      // exactly like a payment link. settleTerminalPi re-fires this once PAID.
+      const unpaidCardTerminal =
+        payMethod === "CARD_TERMINAL" && payStatus !== "PAID";
       const unpaidDirectCard =
         isDirectSource &&
         payMethod === "CARD" &&
         payStatus !== "PAID" &&
         payStatus !== "AUTHORIZED";
-      if (unpaidPaymentLink || unpaidDirectCard) {
+      if (unpaidPaymentLink || unpaidCardTerminal || unpaidDirectCard) {
         this.logger.log(
           `Auto-accept skipped order ${orderId} — awaiting payment (${payMethod}/${payStatus})`,
         );
@@ -585,7 +590,11 @@ export class OrdersService {
         (canonical as any).paymentStatus ?? meta.paymentStatus;
       const isUnpaidPaymentLink =
         (resolvedPayMethod === "PAYMENT_LINK" ||
-          resolvedPayMethod === "QR_CODE") &&
+          resolvedPayMethod === "QR_CODE" ||
+          // Card-terminal (S700 / WisePad 3): collect-now flow, holds in
+          // "Waiting for payment" until the reader charge settles — same as
+          // a payment link. settleTerminalPi re-emits new-order + accept.
+          resolvedPayMethod === "CARD_TERMINAL") &&
         resolvedPayStatus !== "PAID";
 
       // Socket emit is best-effort and immediate — it does NOT affect downstream
