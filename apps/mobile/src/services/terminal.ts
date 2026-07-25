@@ -81,6 +81,35 @@ async function ensureTerminalPermissions(): Promise<void> {
   }
 }
 
+// Prefixed with "OH" so the operator's existing `adb logcat | grep OH` catches
+// the reader steps too — tells us exactly where a connect stalls on-device.
+function tlog(step: string, extra?: unknown) {
+  // eslint-disable-next-line no-console
+  console.log(`[OH term] ${step}`, extra ?? "");
+}
+
+// Guard any SDK call that can hang indefinitely (a reader that won't pair, a
+// simulator that stalls) so connect() always resolves/rejects and never wedges
+// the button into a permanent "still connecting".
+async function withTimeout<T>(
+  p: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${ms / 1000}s`)),
+      ms,
+    );
+  });
+  try {
+    return await Promise.race([p, timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+}
+
 // ── Imperative controller (bridges the WebView event handler → the hook) ────
 // useStripeTerminal is a hook, so it can only run inside a React component.
 // TerminalHost binds the hook's functions into this singleton; the WebView
@@ -126,6 +155,16 @@ export function TerminalHost(): React.ReactElement | null {
     },
   });
 
+  // Ask for location/Bluetooth ONCE when the app opens (after login), so the
+  // operator grants them up-front — NOT mid-order when they tap "Connect". This
+  // only touches OS permissions, never the Stripe SDK, so it stays clear of the
+  // lazy-init rule below (and can't interfere with the login handoff).
+  React.useEffect(() => {
+    void ensureTerminalPermissions().catch(() => {
+      /* operator can still grant on first connect */
+    });
+  }, []);
+
   React.useEffect(() => {
     // LAZY INIT — nothing touches the Stripe SDK (no initialize, no connection
     // token) until the operator actually connects a reader. So at app launch /
@@ -148,6 +187,7 @@ export function TerminalHost(): React.ReactElement | null {
       }
       connectInFlight = true;
       try {
+        tlog("connect start", { simulated: !!simulated, stripeLocationId });
         // Decide the Stripe environment BEFORE init: the token provider reads
         // pendingSimulated when the SDK pulls its first token in ensureInit().
         pendingSimulated = !!simulated;
@@ -158,22 +198,28 @@ export function TerminalHost(): React.ReactElement | null {
           );
         }
         // Ask for location/Bluetooth at runtime — Stripe discovery needs it.
+        tlog("permissions…");
         await ensureTerminalPermissions();
-        await ensureInit(); // ← first SDK activity happens HERE, not at launch
+        tlog("init…");
+        await withTimeout(ensureInit(), 20000, "Reader setup"); // first SDK activity
         initMode = wantMode;
         // Clear any scan still running from a previous attempt (else the next
         // discoverReaders is rejected as "SDK busy"), then start fresh.
         await cancelDiscovering?.().catch(() => {});
         discovered = [];
+        tlog("discover…");
         // Discover Bluetooth readers. simulated=true returns Stripe's software
-        // reader (no hardware, test mode); false finds a real WisePad 3.
+        // reader (no hardware, test mode); false finds a real WisePad 3. The
+        // SDK-side timeout self-terminates the scan so it can't run forever.
         const { error: discErr } = await discoverReaders({
           discoveryMethod: "bluetoothScan",
           simulated: !!simulated,
+          timeout: 15,
         });
         if (discErr) throw new Error(discErr.message);
 
         const reader = await waitForReader();
+        tlog("reader found", reader ? { label: reader.label, id: reader.id } : null);
         // Stop the background scan before connecting — leaving it running is
         // what wedges the SDK into the "busy" state on the next attempt.
         await cancelDiscovering?.().catch(() => {});
@@ -189,15 +235,24 @@ export function TerminalHost(): React.ReactElement | null {
             "Missing the reader's Stripe location — register a reader for this location first, then retry.",
           );
         }
-        const { reader: connected, error: connErr } = await connectReader({
-          discoveryMethod: "bluetoothScan",
-          reader,
-          locationId: stripeLocationId,
-        });
+        tlog("connectReader…");
+        const { reader: connected, error: connErr } = await withTimeout(
+          connectReader({
+            discoveryMethod: "bluetoothScan",
+            reader,
+            locationId: stripeLocationId,
+          }),
+          30000,
+          "Reader connect",
+        );
         if (connErr) throw new Error(connErr.message);
         const label: string = connected?.label ?? "Card reader";
         terminalController.connectedLabel = label;
+        tlog("connected", { label });
         return { label };
+      } catch (e: any) {
+        tlog("connect FAILED", e?.message ?? String(e));
+        throw e;
       } finally {
         connectInFlight = false;
       }
