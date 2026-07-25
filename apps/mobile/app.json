@@ -78,7 +78,7 @@
         {
           "android": {
             "compileSdkVersion": 35,
-            "targetSdkVersion": 35,
+            "targetSdkVersion": 34,
             "minSdkVersion": 26,
             "extraMavenRepos": []
           },
