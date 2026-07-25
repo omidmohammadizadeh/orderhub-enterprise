@@ -81,6 +81,9 @@
             "targetSdkVersion": 35,
             "minSdkVersion": 26,
             "extraMavenRepos": []
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
           }
         }
       ]
