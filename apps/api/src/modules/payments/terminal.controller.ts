@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Delete, Body, Param, Query } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ForbiddenException,
+} from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { TerminalService } from "./terminal.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -6,11 +15,21 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 // Stripe Terminal (S700 / WisePOS E) — server-driven card-present payments.
+//
+// SIMULATED (test-drive) flows are PLATFORM_ADMIN-only, enforced server-side:
+// a simulated charge settles an order as PAID without moving real money, so a
+// restaurant operator must never be able to trigger one — not via the UI
+// (testMode:false hides every simulate control) and not by calling the API
+// with simulated:true directly.
 @ApiTags("payments")
 @ApiBearerAuth()
 @Controller({ path: "payments/terminal", version: "1" })
 export class TerminalController {
   constructor(private readonly terminal: TerminalService) {}
+
+  private canSimulate(user: AuthenticatedUser): boolean {
+    return this.terminal.isTestMode && user.role === "PLATFORM_ADMIN";
+  }
 
   @Get("locations/:locationId/readers")
   @ApiOperation({ summary: "List card readers registered at a location" })
@@ -19,7 +38,9 @@ export class TerminalController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     const data = await this.terminal.listReaders(user.tenantId, locationId);
-    return { ...data, testMode: this.terminal.isTestMode };
+    // testMode drives ALL simulate UI (WisePad checkbox + "Add simulated
+    // reader"); only the platform admin ever sees it.
+    return { ...data, testMode: this.canSimulate(user) };
   }
 
   @Post("locations/:locationId/readers")
@@ -33,6 +54,13 @@ export class TerminalController {
     @Body() body: { registrationCode: string; label?: string },
     @CurrentUser() user: AuthenticatedUser,
   ) {
+    // "simulated-…" registration codes are the test drive — admin only.
+    if (
+      (body.registrationCode ?? "").includes("simulated") &&
+      !this.canSimulate(user)
+    ) {
+      throw new ForbiddenException("Simulated readers are admin-only.");
+    }
     return this.terminal.registerReader({
       tenantId: user.tenantId,
       locationId,
@@ -42,7 +70,7 @@ export class TerminalController {
   }
 
   @Post("locations/:locationId/readers/simulated")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("PLATFORM_ADMIN")
   @ApiOperation({
     summary: "Register Stripe's simulated reader (test mode) — no hardware needed",
   })
@@ -92,10 +120,12 @@ export class TerminalController {
     @Body() body: { locationId?: string; simulated?: boolean },
     @CurrentUser() user: AuthenticatedUser,
   ) {
+    // simulated only honoured for the platform admin — anyone else silently
+    // gets a LIVE token, so a tampered client can't run test-mode charges.
     return this.terminal.createConnectionToken(
       user.tenantId,
       body?.locationId,
-      body?.simulated === true,
+      body?.simulated === true && this.canSimulate(user),
     );
   }
 
@@ -109,15 +139,17 @@ export class TerminalController {
     @Body() body: { orderId: string; simulated?: boolean },
     @CurrentUser() user: AuthenticatedUser,
   ) {
+    // A simulated charge would settle the order PAID with no real money —
+    // admin only. Anyone else gets a real (live-mode) charge.
     return this.terminal.createMobileCharge({
       tenantId: user.tenantId,
       orderId: body.orderId,
-      simulated: body?.simulated === true,
+      simulated: body?.simulated === true && this.canSimulate(user),
     });
   }
 
   @Post("simulate-present")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @Roles("PLATFORM_ADMIN")
   @ApiOperation({ summary: "Test mode: simulate the customer tapping their card" })
   simulate(@Body() body: { readerId: string }) {
     return this.terminal.simulatePresent(body.readerId);
