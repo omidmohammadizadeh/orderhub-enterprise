@@ -144,16 +144,31 @@ export function TerminalHost(): React.ReactElement | null {
     initialize,
     discoverReaders,
     cancelDiscovering,
+    easyConnect,
     connectReader,
     disconnectReader,
     retrievePaymentIntent,
     collectPaymentMethod,
     confirmPaymentIntent,
+    discoveredReaders,
   } = useStripeTerminal({
     onUpdateDiscoveredReaders: (readers) => {
       discovered = readers;
+      tlog("readers via callback", readers?.length ?? 0);
     },
   });
+
+  // Belt-and-braces: this SDK build's discovery CALLBACK has proven unreliable
+  // (events never reached JS → every discovery "timed out"), but the hook's own
+  // discoveredReaders STATE updates through the same native event via setState.
+  // Mirror it into the module var so waitForReader() sees readers through
+  // whichever path actually delivers.
+  React.useEffect(() => {
+    if (discoveredReaders && discoveredReaders.length > 0) {
+      discovered = discoveredReaders;
+      tlog("readers via state", discoveredReaders.length);
+    }
+  }, [discoveredReaders]);
 
   // Ask for location/Bluetooth ONCE when the app opens (after login), so the
   // operator grants them up-front — NOT mid-order when they tap "Connect". This
@@ -203,6 +218,31 @@ export function TerminalHost(): React.ReactElement | null {
         tlog("init…");
         await withTimeout(ensureInit(), 20000, "Reader setup"); // first SDK activity
         initMode = wantMode;
+
+        // SIMULATED test drive: skip Bluetooth entirely. This SDK build's
+        // simulated BLE discovery never delivered readers to JS (every attempt
+        // "timed out"), and the test drive doesn't need Bluetooth anyway —
+        // easyConnect discovers + connects a simulated INTERNET reader in ONE
+        // native call (no JS event round-trip), then the pay path
+        // (retrieve → collect → confirm) is identical to the real WisePad 3.
+        if (simulated) {
+          tlog("easyConnect simulated…");
+          const { reader: sim, error: simErr } = await withTimeout(
+            easyConnect({
+              discoveryMethod: "internet",
+              simulated: true,
+              ...(stripeLocationId ? { locationId: stripeLocationId } : {}),
+            }),
+            25000,
+            "Simulated reader connect",
+          );
+          if (simErr) throw new Error(simErr.message);
+          const simLabel: string = sim?.label ?? "Simulated reader";
+          terminalController.connectedLabel = simLabel;
+          tlog("connected", { label: simLabel });
+          return { label: simLabel };
+        }
+
         // Clear any scan still running from a previous attempt (else the next
         // discoverReaders is rejected as "SDK busy"), then start fresh.
         await cancelDiscovering?.().catch(() => {});
