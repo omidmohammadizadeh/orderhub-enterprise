@@ -998,6 +998,21 @@ exports.Prisma.KdsScreenScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SignageDisplayScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  name: 'name',
+  publicToken: 'publicToken',
+  categoryIds: 'categoryIds',
+  orientation: 'orientation',
+  config: 'config',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.KdsTicketScalarFieldEnum = {
   id: 'id',
   kdsScreenId: 'kdsScreenId',
@@ -2524,6 +2539,17 @@ exports.Prisma.KdsScreenOrderByRelevanceFieldEnum = {
   station: 'station'
 };
 
+exports.Prisma.SignageDisplayOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  name: 'name',
+  publicToken: 'publicToken',
+  categoryIds: 'categoryIds',
+  orientation: 'orientation'
+};
+
 exports.Prisma.KdsTicketOrderByRelevanceFieldEnum = {
   id: 'id',
   kdsScreenId: 'kdsScreenId',
@@ -3637,6 +3663,7 @@ exports.Prisma.ModelName = {
   WebhookEvent: 'WebhookEvent',
   ActivityLog: 'ActivityLog',
   KdsScreen: 'KdsScreen',
+  SignageDisplay: 'SignageDisplay',
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',
   PrintJob: 'PrintJob',

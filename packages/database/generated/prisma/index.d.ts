@@ -244,6 +244,11 @@ export type ActivityLog = $Result.DefaultSelection<Prisma.$ActivityLogPayload>
  */
 export type KdsScreen = $Result.DefaultSelection<Prisma.$KdsScreenPayload>
 /**
+ * Model SignageDisplay
+ * 
+ */
+export type SignageDisplay = $Result.DefaultSelection<Prisma.$SignageDisplayPayload>
+/**
  * Model KdsTicket
  * 
  */
@@ -1980,6 +1985,16 @@ export class PrismaClient<
   get kdsScreen(): Prisma.KdsScreenDelegate<ExtArgs>;
 
   /**
+   * `prisma.signageDisplay`: Exposes CRUD operations for the **SignageDisplay** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SignageDisplays
+    * const signageDisplays = await prisma.signageDisplay.findMany()
+    * ```
+    */
+  get signageDisplay(): Prisma.SignageDisplayDelegate<ExtArgs>;
+
+  /**
    * `prisma.kdsTicket`: Exposes CRUD operations for the **KdsTicket** model.
     * Example usage:
     * ```ts
@@ -3125,6 +3140,7 @@ export namespace Prisma {
     WebhookEvent: 'WebhookEvent',
     ActivityLog: 'ActivityLog',
     KdsScreen: 'KdsScreen',
+    SignageDisplay: 'SignageDisplay',
     KdsTicket: 'KdsTicket',
     Printer: 'Printer',
     PrintJob: 'PrintJob',
@@ -3206,7 +3222,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -6427,6 +6443,76 @@ export namespace Prisma {
           count: {
             args: Prisma.KdsScreenCountArgs<ExtArgs>
             result: $Utils.Optional<KdsScreenCountAggregateOutputType> | number
+          }
+        }
+      }
+      SignageDisplay: {
+        payload: Prisma.$SignageDisplayPayload<ExtArgs>
+        fields: Prisma.SignageDisplayFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SignageDisplayFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SignageDisplayFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>
+          }
+          findFirst: {
+            args: Prisma.SignageDisplayFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SignageDisplayFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>
+          }
+          findMany: {
+            args: Prisma.SignageDisplayFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>[]
+          }
+          create: {
+            args: Prisma.SignageDisplayCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>
+          }
+          createMany: {
+            args: Prisma.SignageDisplayCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SignageDisplayCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>[]
+          }
+          delete: {
+            args: Prisma.SignageDisplayDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>
+          }
+          update: {
+            args: Prisma.SignageDisplayUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>
+          }
+          deleteMany: {
+            args: Prisma.SignageDisplayDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SignageDisplayUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SignageDisplayUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignageDisplayPayload>
+          }
+          aggregate: {
+            args: Prisma.SignageDisplayAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSignageDisplay>
+          }
+          groupBy: {
+            args: Prisma.SignageDisplayGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SignageDisplayGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SignageDisplayCountArgs<ExtArgs>
+            result: $Utils.Optional<SignageDisplayCountAggregateOutputType> | number
           }
         }
       }
@@ -11531,6 +11617,7 @@ export namespace Prisma {
     marketingCampaigns: number
     deliveryZones: number
     channelSources: number
+    signageDisplays: number
   }
 
   export type BrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11545,6 +11632,7 @@ export namespace Prisma {
     marketingCampaigns?: boolean | BrandCountOutputTypeCountMarketingCampaignsArgs
     deliveryZones?: boolean | BrandCountOutputTypeCountDeliveryZonesArgs
     channelSources?: boolean | BrandCountOutputTypeCountChannelSourcesArgs
+    signageDisplays?: boolean | BrandCountOutputTypeCountSignageDisplaysArgs
   }
 
   // Custom InputTypes
@@ -11635,6 +11723,13 @@ export namespace Prisma {
     where?: BrandChannelSourceWhereInput
   }
 
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountSignageDisplaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SignageDisplayWhereInput
+  }
+
 
   /**
    * Count Type LocationCountOutputType
@@ -11647,6 +11742,7 @@ export namespace Prisma {
     printerStations: number
     printAgents: number
     kdsScreens: number
+    signageDisplays: number
     deliveryZones: number
     userLocations: number
     platformConnections: number
@@ -11663,6 +11759,7 @@ export namespace Prisma {
     printerStations?: boolean | LocationCountOutputTypeCountPrinterStationsArgs
     printAgents?: boolean | LocationCountOutputTypeCountPrintAgentsArgs
     kdsScreens?: boolean | LocationCountOutputTypeCountKdsScreensArgs
+    signageDisplays?: boolean | LocationCountOutputTypeCountSignageDisplaysArgs
     deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
     userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
     platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
@@ -11723,6 +11820,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountKdsScreensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: KdsScreenWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountSignageDisplaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SignageDisplayWhereInput
   }
 
   /**
@@ -25086,6 +25190,7 @@ export namespace Prisma {
     marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
     deliveryZones?: boolean | Brand$deliveryZonesArgs<ExtArgs>
     channelSources?: boolean | Brand$channelSourcesArgs<ExtArgs>
+    signageDisplays?: boolean | Brand$signageDisplaysArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
@@ -25180,6 +25285,7 @@ export namespace Prisma {
     marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
     deliveryZones?: boolean | Brand$deliveryZonesArgs<ExtArgs>
     channelSources?: boolean | Brand$channelSourcesArgs<ExtArgs>
+    signageDisplays?: boolean | Brand$signageDisplaysArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -25204,6 +25310,7 @@ export namespace Prisma {
       marketingCampaigns: Prisma.$MarketingCampaignPayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       channelSources: Prisma.$BrandChannelSourcePayload<ExtArgs>[]
+      signageDisplays: Prisma.$SignageDisplayPayload<ExtArgs>[]
       defaultStation: Prisma.$PrinterStationPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -25618,6 +25725,7 @@ export namespace Prisma {
     marketingCampaigns<T extends Brand$marketingCampaignsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$marketingCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Brand$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Brand$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     channelSources<T extends Brand$channelSourcesArgs<ExtArgs> = {}>(args?: Subset<T, Brand$channelSourcesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findMany"> | Null>
+    signageDisplays<T extends Brand$signageDisplaysArgs<ExtArgs> = {}>(args?: Subset<T, Brand$signageDisplaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findMany"> | Null>
     defaultStation<T extends Brand$defaultStationArgs<ExtArgs> = {}>(args?: Subset<T, Brand$defaultStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -26232,6 +26340,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BrandChannelSourceScalarFieldEnum | BrandChannelSourceScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.signageDisplays
+   */
+  export type Brand$signageDisplaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    where?: SignageDisplayWhereInput
+    orderBy?: SignageDisplayOrderByWithRelationInput | SignageDisplayOrderByWithRelationInput[]
+    cursor?: SignageDisplayWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SignageDisplayScalarFieldEnum | SignageDisplayScalarFieldEnum[]
   }
 
   /**
@@ -26897,6 +27025,7 @@ export namespace Prisma {
     printerStations?: boolean | Location$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Location$printAgentsArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
+    signageDisplays?: boolean | Location$signageDisplaysArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
@@ -27049,6 +27178,7 @@ export namespace Prisma {
     printerStations?: boolean | Location$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Location$printAgentsArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
+    signageDisplays?: boolean | Location$signageDisplaysArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
@@ -27083,6 +27213,7 @@ export namespace Prisma {
       printerStations: Prisma.$PrinterStationPayload<ExtArgs>[]
       printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
       kdsScreens: Prisma.$KdsScreenPayload<ExtArgs>[]
+      signageDisplays: Prisma.$SignageDisplayPayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
       userLocations: Prisma.$UserLocationPayload<ExtArgs>[]
@@ -27529,6 +27660,7 @@ export namespace Prisma {
     printerStations<T extends Location$printerStationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$printerStationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
     printAgents<T extends Location$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
     kdsScreens<T extends Location$kdsScreensArgs<ExtArgs> = {}>(args?: Subset<T, Location$kdsScreensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KdsScreenPayload<ExtArgs>, T, "findMany"> | Null>
+    signageDisplays<T extends Location$signageDisplaysArgs<ExtArgs> = {}>(args?: Subset<T, Location$signageDisplaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     userLocations<T extends Location$userLocationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$userLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany"> | Null>
@@ -28066,6 +28198,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: KdsScreenScalarFieldEnum | KdsScreenScalarFieldEnum[]
+  }
+
+  /**
+   * Location.signageDisplays
+   */
+  export type Location$signageDisplaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    where?: SignageDisplayWhereInput
+    orderBy?: SignageDisplayOrderByWithRelationInput | SignageDisplayOrderByWithRelationInput[]
+    cursor?: SignageDisplayWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SignageDisplayScalarFieldEnum | SignageDisplayScalarFieldEnum[]
   }
 
   /**
@@ -64907,6 +65059,1036 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: KdsScreenInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SignageDisplay
+   */
+
+  export type AggregateSignageDisplay = {
+    _count: SignageDisplayCountAggregateOutputType | null
+    _min: SignageDisplayMinAggregateOutputType | null
+    _max: SignageDisplayMaxAggregateOutputType | null
+  }
+
+  export type SignageDisplayMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    name: string | null
+    publicToken: string | null
+    orientation: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SignageDisplayMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    name: string | null
+    publicToken: string | null
+    orientation: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SignageDisplayCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    name: number
+    publicToken: number
+    categoryIds: number
+    orientation: number
+    config: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SignageDisplayMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    name?: true
+    publicToken?: true
+    orientation?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SignageDisplayMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    name?: true
+    publicToken?: true
+    orientation?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SignageDisplayCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    name?: true
+    publicToken?: true
+    categoryIds?: true
+    orientation?: true
+    config?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SignageDisplayAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SignageDisplay to aggregate.
+     */
+    where?: SignageDisplayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SignageDisplays to fetch.
+     */
+    orderBy?: SignageDisplayOrderByWithRelationInput | SignageDisplayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SignageDisplayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SignageDisplays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SignageDisplays.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SignageDisplays
+    **/
+    _count?: true | SignageDisplayCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SignageDisplayMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SignageDisplayMaxAggregateInputType
+  }
+
+  export type GetSignageDisplayAggregateType<T extends SignageDisplayAggregateArgs> = {
+        [P in keyof T & keyof AggregateSignageDisplay]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSignageDisplay[P]>
+      : GetScalarType<T[P], AggregateSignageDisplay[P]>
+  }
+
+
+
+
+  export type SignageDisplayGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SignageDisplayWhereInput
+    orderBy?: SignageDisplayOrderByWithAggregationInput | SignageDisplayOrderByWithAggregationInput[]
+    by: SignageDisplayScalarFieldEnum[] | SignageDisplayScalarFieldEnum
+    having?: SignageDisplayScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SignageDisplayCountAggregateInputType | true
+    _min?: SignageDisplayMinAggregateInputType
+    _max?: SignageDisplayMaxAggregateInputType
+  }
+
+  export type SignageDisplayGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    brandId: string | null
+    name: string
+    publicToken: string
+    categoryIds: string[]
+    orientation: string
+    config: JsonValue
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: SignageDisplayCountAggregateOutputType | null
+    _min: SignageDisplayMinAggregateOutputType | null
+    _max: SignageDisplayMaxAggregateOutputType | null
+  }
+
+  type GetSignageDisplayGroupByPayload<T extends SignageDisplayGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SignageDisplayGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SignageDisplayGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SignageDisplayGroupByOutputType[P]>
+            : GetScalarType<T[P], SignageDisplayGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SignageDisplaySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    name?: boolean
+    publicToken?: boolean
+    categoryIds?: boolean
+    orientation?: boolean
+    config?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    brand?: boolean | SignageDisplay$brandArgs<ExtArgs>
+  }, ExtArgs["result"]["signageDisplay"]>
+
+  export type SignageDisplaySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    name?: boolean
+    publicToken?: boolean
+    categoryIds?: boolean
+    orientation?: boolean
+    config?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    brand?: boolean | SignageDisplay$brandArgs<ExtArgs>
+  }, ExtArgs["result"]["signageDisplay"]>
+
+  export type SignageDisplaySelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    name?: boolean
+    publicToken?: boolean
+    categoryIds?: boolean
+    orientation?: boolean
+    config?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SignageDisplayInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    brand?: boolean | SignageDisplay$brandArgs<ExtArgs>
+  }
+  export type SignageDisplayIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    brand?: boolean | SignageDisplay$brandArgs<ExtArgs>
+  }
+
+  export type $SignageDisplayPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SignageDisplay"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+      brand: Prisma.$BrandPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      brandId: string | null
+      name: string
+      publicToken: string
+      categoryIds: string[]
+      orientation: string
+      config: Prisma.JsonValue
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["signageDisplay"]>
+    composites: {}
+  }
+
+  type SignageDisplayGetPayload<S extends boolean | null | undefined | SignageDisplayDefaultArgs> = $Result.GetResult<Prisma.$SignageDisplayPayload, S>
+
+  type SignageDisplayCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SignageDisplayFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SignageDisplayCountAggregateInputType | true
+    }
+
+  export interface SignageDisplayDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SignageDisplay'], meta: { name: 'SignageDisplay' } }
+    /**
+     * Find zero or one SignageDisplay that matches the filter.
+     * @param {SignageDisplayFindUniqueArgs} args - Arguments to find a SignageDisplay
+     * @example
+     * // Get one SignageDisplay
+     * const signageDisplay = await prisma.signageDisplay.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SignageDisplayFindUniqueArgs>(args: SelectSubset<T, SignageDisplayFindUniqueArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SignageDisplay that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SignageDisplayFindUniqueOrThrowArgs} args - Arguments to find a SignageDisplay
+     * @example
+     * // Get one SignageDisplay
+     * const signageDisplay = await prisma.signageDisplay.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SignageDisplayFindUniqueOrThrowArgs>(args: SelectSubset<T, SignageDisplayFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SignageDisplay that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignageDisplayFindFirstArgs} args - Arguments to find a SignageDisplay
+     * @example
+     * // Get one SignageDisplay
+     * const signageDisplay = await prisma.signageDisplay.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SignageDisplayFindFirstArgs>(args?: SelectSubset<T, SignageDisplayFindFirstArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SignageDisplay that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignageDisplayFindFirstOrThrowArgs} args - Arguments to find a SignageDisplay
+     * @example
+     * // Get one SignageDisplay
+     * const signageDisplay = await prisma.signageDisplay.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SignageDisplayFindFirstOrThrowArgs>(args?: SelectSubset<T, SignageDisplayFindFirstOrThrowArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SignageDisplays that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignageDisplayFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SignageDisplays
+     * const signageDisplays = await prisma.signageDisplay.findMany()
+     * 
+     * // Get first 10 SignageDisplays
+     * const signageDisplays = await prisma.signageDisplay.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const signageDisplayWithIdOnly = await prisma.signageDisplay.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SignageDisplayFindManyArgs>(args?: SelectSubset<T, SignageDisplayFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SignageDisplay.
+     * @param {SignageDisplayCreateArgs} args - Arguments to create a SignageDisplay.
+     * @example
+     * // Create one SignageDisplay
+     * const SignageDisplay = await prisma.signageDisplay.create({
+     *   data: {
+     *     // ... data to create a SignageDisplay
+     *   }
+     * })
+     * 
+     */
+    create<T extends SignageDisplayCreateArgs>(args: SelectSubset<T, SignageDisplayCreateArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SignageDisplays.
+     * @param {SignageDisplayCreateManyArgs} args - Arguments to create many SignageDisplays.
+     * @example
+     * // Create many SignageDisplays
+     * const signageDisplay = await prisma.signageDisplay.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SignageDisplayCreateManyArgs>(args?: SelectSubset<T, SignageDisplayCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SignageDisplays and returns the data saved in the database.
+     * @param {SignageDisplayCreateManyAndReturnArgs} args - Arguments to create many SignageDisplays.
+     * @example
+     * // Create many SignageDisplays
+     * const signageDisplay = await prisma.signageDisplay.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SignageDisplays and only return the `id`
+     * const signageDisplayWithIdOnly = await prisma.signageDisplay.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SignageDisplayCreateManyAndReturnArgs>(args?: SelectSubset<T, SignageDisplayCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SignageDisplay.
+     * @param {SignageDisplayDeleteArgs} args - Arguments to delete one SignageDisplay.
+     * @example
+     * // Delete one SignageDisplay
+     * const SignageDisplay = await prisma.signageDisplay.delete({
+     *   where: {
+     *     // ... filter to delete one SignageDisplay
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SignageDisplayDeleteArgs>(args: SelectSubset<T, SignageDisplayDeleteArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SignageDisplay.
+     * @param {SignageDisplayUpdateArgs} args - Arguments to update one SignageDisplay.
+     * @example
+     * // Update one SignageDisplay
+     * const signageDisplay = await prisma.signageDisplay.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SignageDisplayUpdateArgs>(args: SelectSubset<T, SignageDisplayUpdateArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SignageDisplays.
+     * @param {SignageDisplayDeleteManyArgs} args - Arguments to filter SignageDisplays to delete.
+     * @example
+     * // Delete a few SignageDisplays
+     * const { count } = await prisma.signageDisplay.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SignageDisplayDeleteManyArgs>(args?: SelectSubset<T, SignageDisplayDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SignageDisplays.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignageDisplayUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SignageDisplays
+     * const signageDisplay = await prisma.signageDisplay.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SignageDisplayUpdateManyArgs>(args: SelectSubset<T, SignageDisplayUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SignageDisplay.
+     * @param {SignageDisplayUpsertArgs} args - Arguments to update or create a SignageDisplay.
+     * @example
+     * // Update or create a SignageDisplay
+     * const signageDisplay = await prisma.signageDisplay.upsert({
+     *   create: {
+     *     // ... data to create a SignageDisplay
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SignageDisplay we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SignageDisplayUpsertArgs>(args: SelectSubset<T, SignageDisplayUpsertArgs<ExtArgs>>): Prisma__SignageDisplayClient<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SignageDisplays.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignageDisplayCountArgs} args - Arguments to filter SignageDisplays to count.
+     * @example
+     * // Count the number of SignageDisplays
+     * const count = await prisma.signageDisplay.count({
+     *   where: {
+     *     // ... the filter for the SignageDisplays we want to count
+     *   }
+     * })
+    **/
+    count<T extends SignageDisplayCountArgs>(
+      args?: Subset<T, SignageDisplayCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SignageDisplayCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SignageDisplay.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignageDisplayAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SignageDisplayAggregateArgs>(args: Subset<T, SignageDisplayAggregateArgs>): Prisma.PrismaPromise<GetSignageDisplayAggregateType<T>>
+
+    /**
+     * Group by SignageDisplay.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignageDisplayGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SignageDisplayGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SignageDisplayGroupByArgs['orderBy'] }
+        : { orderBy?: SignageDisplayGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SignageDisplayGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSignageDisplayGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SignageDisplay model
+   */
+  readonly fields: SignageDisplayFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SignageDisplay.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SignageDisplayClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    brand<T extends SignageDisplay$brandArgs<ExtArgs> = {}>(args?: Subset<T, SignageDisplay$brandArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SignageDisplay model
+   */ 
+  interface SignageDisplayFieldRefs {
+    readonly id: FieldRef<"SignageDisplay", 'String'>
+    readonly tenantId: FieldRef<"SignageDisplay", 'String'>
+    readonly locationId: FieldRef<"SignageDisplay", 'String'>
+    readonly brandId: FieldRef<"SignageDisplay", 'String'>
+    readonly name: FieldRef<"SignageDisplay", 'String'>
+    readonly publicToken: FieldRef<"SignageDisplay", 'String'>
+    readonly categoryIds: FieldRef<"SignageDisplay", 'String[]'>
+    readonly orientation: FieldRef<"SignageDisplay", 'String'>
+    readonly config: FieldRef<"SignageDisplay", 'Json'>
+    readonly isActive: FieldRef<"SignageDisplay", 'Boolean'>
+    readonly createdAt: FieldRef<"SignageDisplay", 'DateTime'>
+    readonly updatedAt: FieldRef<"SignageDisplay", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SignageDisplay findUnique
+   */
+  export type SignageDisplayFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * Filter, which SignageDisplay to fetch.
+     */
+    where: SignageDisplayWhereUniqueInput
+  }
+
+  /**
+   * SignageDisplay findUniqueOrThrow
+   */
+  export type SignageDisplayFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * Filter, which SignageDisplay to fetch.
+     */
+    where: SignageDisplayWhereUniqueInput
+  }
+
+  /**
+   * SignageDisplay findFirst
+   */
+  export type SignageDisplayFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * Filter, which SignageDisplay to fetch.
+     */
+    where?: SignageDisplayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SignageDisplays to fetch.
+     */
+    orderBy?: SignageDisplayOrderByWithRelationInput | SignageDisplayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SignageDisplays.
+     */
+    cursor?: SignageDisplayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SignageDisplays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SignageDisplays.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SignageDisplays.
+     */
+    distinct?: SignageDisplayScalarFieldEnum | SignageDisplayScalarFieldEnum[]
+  }
+
+  /**
+   * SignageDisplay findFirstOrThrow
+   */
+  export type SignageDisplayFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * Filter, which SignageDisplay to fetch.
+     */
+    where?: SignageDisplayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SignageDisplays to fetch.
+     */
+    orderBy?: SignageDisplayOrderByWithRelationInput | SignageDisplayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SignageDisplays.
+     */
+    cursor?: SignageDisplayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SignageDisplays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SignageDisplays.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SignageDisplays.
+     */
+    distinct?: SignageDisplayScalarFieldEnum | SignageDisplayScalarFieldEnum[]
+  }
+
+  /**
+   * SignageDisplay findMany
+   */
+  export type SignageDisplayFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * Filter, which SignageDisplays to fetch.
+     */
+    where?: SignageDisplayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SignageDisplays to fetch.
+     */
+    orderBy?: SignageDisplayOrderByWithRelationInput | SignageDisplayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SignageDisplays.
+     */
+    cursor?: SignageDisplayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SignageDisplays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SignageDisplays.
+     */
+    skip?: number
+    distinct?: SignageDisplayScalarFieldEnum | SignageDisplayScalarFieldEnum[]
+  }
+
+  /**
+   * SignageDisplay create
+   */
+  export type SignageDisplayCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SignageDisplay.
+     */
+    data: XOR<SignageDisplayCreateInput, SignageDisplayUncheckedCreateInput>
+  }
+
+  /**
+   * SignageDisplay createMany
+   */
+  export type SignageDisplayCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SignageDisplays.
+     */
+    data: SignageDisplayCreateManyInput | SignageDisplayCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SignageDisplay createManyAndReturn
+   */
+  export type SignageDisplayCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SignageDisplays.
+     */
+    data: SignageDisplayCreateManyInput | SignageDisplayCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SignageDisplay update
+   */
+  export type SignageDisplayUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SignageDisplay.
+     */
+    data: XOR<SignageDisplayUpdateInput, SignageDisplayUncheckedUpdateInput>
+    /**
+     * Choose, which SignageDisplay to update.
+     */
+    where: SignageDisplayWhereUniqueInput
+  }
+
+  /**
+   * SignageDisplay updateMany
+   */
+  export type SignageDisplayUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SignageDisplays.
+     */
+    data: XOR<SignageDisplayUpdateManyMutationInput, SignageDisplayUncheckedUpdateManyInput>
+    /**
+     * Filter which SignageDisplays to update
+     */
+    where?: SignageDisplayWhereInput
+  }
+
+  /**
+   * SignageDisplay upsert
+   */
+  export type SignageDisplayUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SignageDisplay to update in case it exists.
+     */
+    where: SignageDisplayWhereUniqueInput
+    /**
+     * In case the SignageDisplay found by the `where` argument doesn't exist, create a new SignageDisplay with this data.
+     */
+    create: XOR<SignageDisplayCreateInput, SignageDisplayUncheckedCreateInput>
+    /**
+     * In case the SignageDisplay was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SignageDisplayUpdateInput, SignageDisplayUncheckedUpdateInput>
+  }
+
+  /**
+   * SignageDisplay delete
+   */
+  export type SignageDisplayDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
+    /**
+     * Filter which SignageDisplay to delete.
+     */
+    where: SignageDisplayWhereUniqueInput
+  }
+
+  /**
+   * SignageDisplay deleteMany
+   */
+  export type SignageDisplayDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SignageDisplays to delete
+     */
+    where?: SignageDisplayWhereInput
+  }
+
+  /**
+   * SignageDisplay.brand
+   */
+  export type SignageDisplay$brandArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Brand
+     */
+    select?: BrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandInclude<ExtArgs> | null
+    where?: BrandWhereInput
+  }
+
+  /**
+   * SignageDisplay without action
+   */
+  export type SignageDisplayDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SignageDisplay
+     */
+    select?: SignageDisplaySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignageDisplayInclude<ExtArgs> | null
   }
 
 
@@ -134264,6 +135446,24 @@ export namespace Prisma {
   export type KdsScreenScalarFieldEnum = (typeof KdsScreenScalarFieldEnum)[keyof typeof KdsScreenScalarFieldEnum]
 
 
+  export const SignageDisplayScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    name: 'name',
+    publicToken: 'publicToken',
+    categoryIds: 'categoryIds',
+    orientation: 'orientation',
+    config: 'config',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SignageDisplayScalarFieldEnum = (typeof SignageDisplayScalarFieldEnum)[keyof typeof SignageDisplayScalarFieldEnum]
+
+
   export const KdsTicketScalarFieldEnum: {
     id: 'id',
     kdsScreenId: 'kdsScreenId',
@@ -136142,6 +137342,20 @@ export namespace Prisma {
   };
 
   export type KdsScreenOrderByRelevanceFieldEnum = (typeof KdsScreenOrderByRelevanceFieldEnum)[keyof typeof KdsScreenOrderByRelevanceFieldEnum]
+
+
+  export const SignageDisplayOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    name: 'name',
+    publicToken: 'publicToken',
+    categoryIds: 'categoryIds',
+    orientation: 'orientation'
+  };
+
+  export type SignageDisplayOrderByRelevanceFieldEnum = (typeof SignageDisplayOrderByRelevanceFieldEnum)[keyof typeof SignageDisplayOrderByRelevanceFieldEnum]
 
 
   export const KdsTicketOrderByRelevanceFieldEnum: {
@@ -138849,6 +140063,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     channelSources?: BrandChannelSourceListRelationFilter
+    signageDisplays?: SignageDisplayListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }
 
@@ -138900,6 +140115,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     channelSources?: BrandChannelSourceOrderByRelationAggregateInput
+    signageDisplays?: SignageDisplayOrderByRelationAggregateInput
     defaultStation?: PrinterStationOrderByWithRelationInput
     _relevance?: BrandOrderByRelevanceInput
   }
@@ -138956,6 +140172,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     channelSources?: BrandChannelSourceListRelationFilter
+    signageDisplays?: SignageDisplayListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "tenantId_slug">
 
@@ -139110,6 +140327,7 @@ export namespace Prisma {
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
+    signageDisplays?: SignageDisplayListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
@@ -139193,6 +140411,7 @@ export namespace Prisma {
     printerStations?: PrinterStationOrderByRelationAggregateInput
     printAgents?: PrintAgentOrderByRelationAggregateInput
     kdsScreens?: KdsScreenOrderByRelationAggregateInput
+    signageDisplays?: SignageDisplayOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
     userLocations?: UserLocationOrderByRelationAggregateInput
@@ -139280,6 +140499,7 @@ export namespace Prisma {
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
+    signageDisplays?: SignageDisplayListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
@@ -143263,6 +144483,100 @@ export namespace Prisma {
     settings?: JsonWithAggregatesFilter<"KdsScreen">
     createdAt?: DateTimeWithAggregatesFilter<"KdsScreen"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"KdsScreen"> | Date | string
+  }
+
+  export type SignageDisplayWhereInput = {
+    AND?: SignageDisplayWhereInput | SignageDisplayWhereInput[]
+    OR?: SignageDisplayWhereInput[]
+    NOT?: SignageDisplayWhereInput | SignageDisplayWhereInput[]
+    id?: StringFilter<"SignageDisplay"> | string
+    tenantId?: StringFilter<"SignageDisplay"> | string
+    locationId?: StringFilter<"SignageDisplay"> | string
+    brandId?: StringNullableFilter<"SignageDisplay"> | string | null
+    name?: StringFilter<"SignageDisplay"> | string
+    publicToken?: StringFilter<"SignageDisplay"> | string
+    categoryIds?: StringNullableListFilter<"SignageDisplay">
+    orientation?: StringFilter<"SignageDisplay"> | string
+    config?: JsonFilter<"SignageDisplay">
+    isActive?: BoolFilter<"SignageDisplay"> | boolean
+    createdAt?: DateTimeFilter<"SignageDisplay"> | Date | string
+    updatedAt?: DateTimeFilter<"SignageDisplay"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
+  }
+
+  export type SignageDisplayOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    categoryIds?: SortOrder
+    orientation?: SortOrder
+    config?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    brand?: BrandOrderByWithRelationInput
+    _relevance?: SignageDisplayOrderByRelevanceInput
+  }
+
+  export type SignageDisplayWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    publicToken?: string
+    AND?: SignageDisplayWhereInput | SignageDisplayWhereInput[]
+    OR?: SignageDisplayWhereInput[]
+    NOT?: SignageDisplayWhereInput | SignageDisplayWhereInput[]
+    tenantId?: StringFilter<"SignageDisplay"> | string
+    locationId?: StringFilter<"SignageDisplay"> | string
+    brandId?: StringNullableFilter<"SignageDisplay"> | string | null
+    name?: StringFilter<"SignageDisplay"> | string
+    categoryIds?: StringNullableListFilter<"SignageDisplay">
+    orientation?: StringFilter<"SignageDisplay"> | string
+    config?: JsonFilter<"SignageDisplay">
+    isActive?: BoolFilter<"SignageDisplay"> | boolean
+    createdAt?: DateTimeFilter<"SignageDisplay"> | Date | string
+    updatedAt?: DateTimeFilter<"SignageDisplay"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
+  }, "id" | "publicToken">
+
+  export type SignageDisplayOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    categoryIds?: SortOrder
+    orientation?: SortOrder
+    config?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SignageDisplayCountOrderByAggregateInput
+    _max?: SignageDisplayMaxOrderByAggregateInput
+    _min?: SignageDisplayMinOrderByAggregateInput
+  }
+
+  export type SignageDisplayScalarWhereWithAggregatesInput = {
+    AND?: SignageDisplayScalarWhereWithAggregatesInput | SignageDisplayScalarWhereWithAggregatesInput[]
+    OR?: SignageDisplayScalarWhereWithAggregatesInput[]
+    NOT?: SignageDisplayScalarWhereWithAggregatesInput | SignageDisplayScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SignageDisplay"> | string
+    tenantId?: StringWithAggregatesFilter<"SignageDisplay"> | string
+    locationId?: StringWithAggregatesFilter<"SignageDisplay"> | string
+    brandId?: StringNullableWithAggregatesFilter<"SignageDisplay"> | string | null
+    name?: StringWithAggregatesFilter<"SignageDisplay"> | string
+    publicToken?: StringWithAggregatesFilter<"SignageDisplay"> | string
+    categoryIds?: StringNullableListFilter<"SignageDisplay">
+    orientation?: StringWithAggregatesFilter<"SignageDisplay"> | string
+    config?: JsonWithAggregatesFilter<"SignageDisplay">
+    isActive?: BoolWithAggregatesFilter<"SignageDisplay"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"SignageDisplay"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SignageDisplay"> | Date | string
   }
 
   export type KdsTicketWhereInput = {
@@ -150591,6 +151905,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -150641,6 +151956,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUpdateInput = {
@@ -150689,6 +152005,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -150739,6 +152056,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateManyInput = {
@@ -150912,6 +152230,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -150994,6 +152313,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -151070,6 +152390,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -151152,6 +152473,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -155795,6 +157117,109 @@ export namespace Prisma {
     station?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignageDisplayCreateInput = {
+    id?: string
+    tenantId: string
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSignageDisplaysInput
+    brand?: BrandCreateNestedOneWithoutSignageDisplaysInput
+  }
+
+  export type SignageDisplayUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SignageDisplayUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSignageDisplaysNestedInput
+    brand?: BrandUpdateOneWithoutSignageDisplaysNestedInput
+  }
+
+  export type SignageDisplayUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignageDisplayCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SignageDisplayUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignageDisplayUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -163908,6 +165333,12 @@ export namespace Prisma {
     none?: BrandChannelSourceWhereInput
   }
 
+  export type SignageDisplayListRelationFilter = {
+    every?: SignageDisplayWhereInput
+    some?: SignageDisplayWhereInput
+    none?: SignageDisplayWhereInput
+  }
+
   export type PrinterStationNullableRelationFilter = {
     is?: PrinterStationWhereInput | null
     isNot?: PrinterStationWhereInput | null
@@ -163942,6 +165373,10 @@ export namespace Prisma {
   }
 
   export type BrandChannelSourceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SignageDisplayOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -167330,6 +168765,53 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     station?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SignageDisplayOrderByRelevanceInput = {
+    fields: SignageDisplayOrderByRelevanceFieldEnum | SignageDisplayOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SignageDisplayCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    categoryIds?: SortOrder
+    orientation?: SortOrder
+    config?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SignageDisplayMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    orientation?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SignageDisplayMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    orientation?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -173438,6 +174920,13 @@ export namespace Prisma {
     connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
   }
 
+  export type SignageDisplayCreateNestedManyWithoutBrandInput = {
+    create?: XOR<SignageDisplayCreateWithoutBrandInput, SignageDisplayUncheckedCreateWithoutBrandInput> | SignageDisplayCreateWithoutBrandInput[] | SignageDisplayUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutBrandInput | SignageDisplayCreateOrConnectWithoutBrandInput[]
+    createMany?: SignageDisplayCreateManyBrandInputEnvelope
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutBrandDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -173525,6 +175014,13 @@ export namespace Prisma {
     connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutBrandInput | BrandChannelSourceCreateOrConnectWithoutBrandInput[]
     createMany?: BrandChannelSourceCreateManyBrandInputEnvelope
     connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+  }
+
+  export type SignageDisplayUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<SignageDisplayCreateWithoutBrandInput, SignageDisplayUncheckedCreateWithoutBrandInput> | SignageDisplayCreateWithoutBrandInput[] | SignageDisplayUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutBrandInput | SignageDisplayCreateOrConnectWithoutBrandInput[]
+    createMany?: SignageDisplayCreateManyBrandInputEnvelope
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
   }
 
   export type NullableDecimalFieldUpdateOperationsInput = {
@@ -173715,6 +175211,20 @@ export namespace Prisma {
     deleteMany?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
   }
 
+  export type SignageDisplayUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<SignageDisplayCreateWithoutBrandInput, SignageDisplayUncheckedCreateWithoutBrandInput> | SignageDisplayCreateWithoutBrandInput[] | SignageDisplayUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutBrandInput | SignageDisplayCreateOrConnectWithoutBrandInput[]
+    upsert?: SignageDisplayUpsertWithWhereUniqueWithoutBrandInput | SignageDisplayUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: SignageDisplayCreateManyBrandInputEnvelope
+    set?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    disconnect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    delete?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    update?: SignageDisplayUpdateWithWhereUniqueWithoutBrandInput | SignageDisplayUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: SignageDisplayUpdateManyWithWhereWithoutBrandInput | SignageDisplayUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
+  }
+
   export type PrinterStationUpdateOneWithoutBrandDefaultsNestedInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -173889,6 +175399,20 @@ export namespace Prisma {
     deleteMany?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
   }
 
+  export type SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<SignageDisplayCreateWithoutBrandInput, SignageDisplayUncheckedCreateWithoutBrandInput> | SignageDisplayCreateWithoutBrandInput[] | SignageDisplayUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutBrandInput | SignageDisplayCreateOrConnectWithoutBrandInput[]
+    upsert?: SignageDisplayUpsertWithWhereUniqueWithoutBrandInput | SignageDisplayUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: SignageDisplayCreateManyBrandInputEnvelope
+    set?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    disconnect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    delete?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    update?: SignageDisplayUpdateWithWhereUniqueWithoutBrandInput | SignageDisplayUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: SignageDisplayUpdateManyWithWhereWithoutBrandInput | SignageDisplayUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
+  }
+
   export type BrandCreateNestedOneWithoutLocationsInput = {
     create?: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
     connectOrCreate?: BrandCreateOrConnectWithoutLocationsInput
@@ -173935,6 +175459,13 @@ export namespace Prisma {
     connectOrCreate?: KdsScreenCreateOrConnectWithoutLocationInput | KdsScreenCreateOrConnectWithoutLocationInput[]
     createMany?: KdsScreenCreateManyLocationInputEnvelope
     connect?: KdsScreenWhereUniqueInput | KdsScreenWhereUniqueInput[]
+  }
+
+  export type SignageDisplayCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SignageDisplayCreateWithoutLocationInput, SignageDisplayUncheckedCreateWithoutLocationInput> | SignageDisplayCreateWithoutLocationInput[] | SignageDisplayUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutLocationInput | SignageDisplayCreateOrConnectWithoutLocationInput[]
+    createMany?: SignageDisplayCreateManyLocationInputEnvelope
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
   }
 
   export type DeliveryZoneCreateNestedManyWithoutLocationInput = {
@@ -174074,6 +175605,13 @@ export namespace Prisma {
     connectOrCreate?: KdsScreenCreateOrConnectWithoutLocationInput | KdsScreenCreateOrConnectWithoutLocationInput[]
     createMany?: KdsScreenCreateManyLocationInputEnvelope
     connect?: KdsScreenWhereUniqueInput | KdsScreenWhereUniqueInput[]
+  }
+
+  export type SignageDisplayUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SignageDisplayCreateWithoutLocationInput, SignageDisplayUncheckedCreateWithoutLocationInput> | SignageDisplayCreateWithoutLocationInput[] | SignageDisplayUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutLocationInput | SignageDisplayCreateOrConnectWithoutLocationInput[]
+    createMany?: SignageDisplayCreateManyLocationInputEnvelope
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
   }
 
   export type DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput = {
@@ -174257,6 +175795,20 @@ export namespace Prisma {
     update?: KdsScreenUpdateWithWhereUniqueWithoutLocationInput | KdsScreenUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: KdsScreenUpdateManyWithWhereWithoutLocationInput | KdsScreenUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: KdsScreenScalarWhereInput | KdsScreenScalarWhereInput[]
+  }
+
+  export type SignageDisplayUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SignageDisplayCreateWithoutLocationInput, SignageDisplayUncheckedCreateWithoutLocationInput> | SignageDisplayCreateWithoutLocationInput[] | SignageDisplayUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutLocationInput | SignageDisplayCreateOrConnectWithoutLocationInput[]
+    upsert?: SignageDisplayUpsertWithWhereUniqueWithoutLocationInput | SignageDisplayUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SignageDisplayCreateManyLocationInputEnvelope
+    set?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    disconnect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    delete?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    update?: SignageDisplayUpdateWithWhereUniqueWithoutLocationInput | SignageDisplayUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SignageDisplayUpdateManyWithWhereWithoutLocationInput | SignageDisplayUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
   }
 
   export type DeliveryZoneUpdateManyWithoutLocationNestedInput = {
@@ -174519,6 +176071,20 @@ export namespace Prisma {
     update?: KdsScreenUpdateWithWhereUniqueWithoutLocationInput | KdsScreenUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: KdsScreenUpdateManyWithWhereWithoutLocationInput | KdsScreenUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: KdsScreenScalarWhereInput | KdsScreenScalarWhereInput[]
+  }
+
+  export type SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SignageDisplayCreateWithoutLocationInput, SignageDisplayUncheckedCreateWithoutLocationInput> | SignageDisplayCreateWithoutLocationInput[] | SignageDisplayUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SignageDisplayCreateOrConnectWithoutLocationInput | SignageDisplayCreateOrConnectWithoutLocationInput[]
+    upsert?: SignageDisplayUpsertWithWhereUniqueWithoutLocationInput | SignageDisplayUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SignageDisplayCreateManyLocationInputEnvelope
+    set?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    disconnect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    delete?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+    update?: SignageDisplayUpdateWithWhereUniqueWithoutLocationInput | SignageDisplayUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SignageDisplayUpdateManyWithWhereWithoutLocationInput | SignageDisplayUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
   }
 
   export type DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput = {
@@ -176748,6 +178314,45 @@ export namespace Prisma {
     update?: KdsTicketUpdateWithWhereUniqueWithoutScreenInput | KdsTicketUpdateWithWhereUniqueWithoutScreenInput[]
     updateMany?: KdsTicketUpdateManyWithWhereWithoutScreenInput | KdsTicketUpdateManyWithWhereWithoutScreenInput[]
     deleteMany?: KdsTicketScalarWhereInput | KdsTicketScalarWhereInput[]
+  }
+
+  export type SignageDisplayCreatecategoryIdsInput = {
+    set: string[]
+  }
+
+  export type LocationCreateNestedOneWithoutSignageDisplaysInput = {
+    create?: XOR<LocationCreateWithoutSignageDisplaysInput, LocationUncheckedCreateWithoutSignageDisplaysInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSignageDisplaysInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type BrandCreateNestedOneWithoutSignageDisplaysInput = {
+    create?: XOR<BrandCreateWithoutSignageDisplaysInput, BrandUncheckedCreateWithoutSignageDisplaysInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutSignageDisplaysInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type SignageDisplayUpdatecategoryIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type LocationUpdateOneRequiredWithoutSignageDisplaysNestedInput = {
+    create?: XOR<LocationCreateWithoutSignageDisplaysInput, LocationUncheckedCreateWithoutSignageDisplaysInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSignageDisplaysInput
+    upsert?: LocationUpsertWithoutSignageDisplaysInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutSignageDisplaysInput, LocationUpdateWithoutSignageDisplaysInput>, LocationUncheckedUpdateWithoutSignageDisplaysInput>
+  }
+
+  export type BrandUpdateOneWithoutSignageDisplaysNestedInput = {
+    create?: XOR<BrandCreateWithoutSignageDisplaysInput, BrandUncheckedCreateWithoutSignageDisplaysInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutSignageDisplaysInput
+    upsert?: BrandUpsertWithoutSignageDisplaysInput
+    disconnect?: BrandWhereInput | boolean
+    delete?: BrandWhereInput | boolean
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutSignageDisplaysInput, BrandUpdateWithoutSignageDisplaysInput>, BrandUncheckedUpdateWithoutSignageDisplaysInput>
   }
 
   export type KdsScreenCreateNestedOneWithoutTicketsInput = {
@@ -180547,6 +182152,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -180596,6 +182202,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutTenantInput = {
@@ -183294,6 +184901,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -183375,6 +184983,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -183529,6 +185138,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -183610,6 +185220,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -183725,6 +185336,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -183774,6 +185386,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUserBrandsInput = {
@@ -183900,6 +185513,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -183949,6 +185563,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type TenantCreateWithoutInvitationsInput = {
@@ -185176,6 +186791,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -185257,6 +186873,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -185907,6 +187524,44 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SignageDisplayCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSignageDisplaysInput
+  }
+
+  export type SignageDisplayUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SignageDisplayCreateOrConnectWithoutBrandInput = {
+    where: SignageDisplayWhereUniqueInput
+    create: XOR<SignageDisplayCreateWithoutBrandInput, SignageDisplayUncheckedCreateWithoutBrandInput>
+  }
+
+  export type SignageDisplayCreateManyBrandInputEnvelope = {
+    data: SignageDisplayCreateManyBrandInput | SignageDisplayCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutBrandDefaultsInput = {
     id?: string
     name: string
@@ -186475,6 +188130,40 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
   }
 
+  export type SignageDisplayUpsertWithWhereUniqueWithoutBrandInput = {
+    where: SignageDisplayWhereUniqueInput
+    update: XOR<SignageDisplayUpdateWithoutBrandInput, SignageDisplayUncheckedUpdateWithoutBrandInput>
+    create: XOR<SignageDisplayCreateWithoutBrandInput, SignageDisplayUncheckedCreateWithoutBrandInput>
+  }
+
+  export type SignageDisplayUpdateWithWhereUniqueWithoutBrandInput = {
+    where: SignageDisplayWhereUniqueInput
+    data: XOR<SignageDisplayUpdateWithoutBrandInput, SignageDisplayUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type SignageDisplayUpdateManyWithWhereWithoutBrandInput = {
+    where: SignageDisplayScalarWhereInput
+    data: XOR<SignageDisplayUpdateManyMutationInput, SignageDisplayUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type SignageDisplayScalarWhereInput = {
+    AND?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
+    OR?: SignageDisplayScalarWhereInput[]
+    NOT?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
+    id?: StringFilter<"SignageDisplay"> | string
+    tenantId?: StringFilter<"SignageDisplay"> | string
+    locationId?: StringFilter<"SignageDisplay"> | string
+    brandId?: StringNullableFilter<"SignageDisplay"> | string | null
+    name?: StringFilter<"SignageDisplay"> | string
+    publicToken?: StringFilter<"SignageDisplay"> | string
+    categoryIds?: StringNullableListFilter<"SignageDisplay">
+    orientation?: StringFilter<"SignageDisplay"> | string
+    config?: JsonFilter<"SignageDisplay">
+    isActive?: BoolFilter<"SignageDisplay"> | boolean
+    createdAt?: DateTimeFilter<"SignageDisplay"> | Date | string
+    updatedAt?: DateTimeFilter<"SignageDisplay"> | Date | string
+  }
+
   export type PrinterStationUpsertWithoutBrandDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutBrandDefaultsInput, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
     create: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
@@ -186567,6 +188256,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -186616,6 +188306,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutLocationsInput = {
@@ -187056,6 +188747,44 @@ export namespace Prisma {
 
   export type KdsScreenCreateManyLocationInputEnvelope = {
     data: KdsScreenCreateManyLocationInput | KdsScreenCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SignageDisplayCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand?: BrandCreateNestedOneWithoutSignageDisplaysInput
+  }
+
+  export type SignageDisplayUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SignageDisplayCreateOrConnectWithoutLocationInput = {
+    where: SignageDisplayWhereUniqueInput
+    create: XOR<SignageDisplayCreateWithoutLocationInput, SignageDisplayUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SignageDisplayCreateManyLocationInputEnvelope = {
+    data: SignageDisplayCreateManyLocationInput | SignageDisplayCreateManyLocationInput[]
     skipDuplicates?: boolean
   }
 
@@ -187751,6 +189480,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -187800,6 +189530,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type IntegrationUpsertWithWhereUniqueWithoutLocationInput = {
@@ -187971,6 +189702,22 @@ export namespace Prisma {
     settings?: JsonFilter<"KdsScreen">
     createdAt?: DateTimeFilter<"KdsScreen"> | Date | string
     updatedAt?: DateTimeFilter<"KdsScreen"> | Date | string
+  }
+
+  export type SignageDisplayUpsertWithWhereUniqueWithoutLocationInput = {
+    where: SignageDisplayWhereUniqueInput
+    update: XOR<SignageDisplayUpdateWithoutLocationInput, SignageDisplayUncheckedUpdateWithoutLocationInput>
+    create: XOR<SignageDisplayCreateWithoutLocationInput, SignageDisplayUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SignageDisplayUpdateWithWhereUniqueWithoutLocationInput = {
+    where: SignageDisplayWhereUniqueInput
+    data: XOR<SignageDisplayUpdateWithoutLocationInput, SignageDisplayUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type SignageDisplayUpdateManyWithWhereWithoutLocationInput = {
+    where: SignageDisplayScalarWhereInput
+    data: XOR<SignageDisplayUpdateManyMutationInput, SignageDisplayUncheckedUpdateManyWithoutLocationInput>
   }
 
   export type DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput = {
@@ -188607,6 +190354,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -188656,6 +190404,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -188725,6 +190474,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -188806,6 +190556,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -188880,6 +190631,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -188929,6 +190681,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationUpsertWithoutPlatformConnectionsInput = {
@@ -189004,6 +190757,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -189085,6 +190839,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -189159,6 +190914,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -189240,6 +190996,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -189331,6 +191088,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -189412,6 +191170,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -189471,6 +191230,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -189520,6 +191280,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMenusInput = {
@@ -189727,6 +191488,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -189776,6 +191538,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCategoryUpsertWithWhereUniqueWithoutMenuInput = {
@@ -190026,6 +191789,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -190107,6 +191871,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -190289,6 +192054,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -190370,6 +192136,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -190428,6 +192195,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -190477,6 +192245,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutChannelSourcesInput = {
@@ -190625,6 +192394,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -190674,6 +192444,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuUpsertWithoutChannelSourceForInput = {
@@ -191404,6 +193175,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -191485,6 +193257,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -191576,6 +193349,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -191657,6 +193431,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -191831,6 +193606,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -191912,6 +193688,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -192108,6 +193885,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -192189,6 +193967,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -192555,6 +194334,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -192604,6 +194384,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutModifierGroupsInput = {
@@ -192861,6 +194642,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -192910,6 +194692,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type ModifierOptionUpsertWithWhereUniqueWithoutGroupInput = {
@@ -193884,6 +195667,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -193933,6 +195717,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMealDealsInput = {
@@ -193996,6 +195781,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -194045,6 +195831,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateWithoutUpsellGroupsInput = {
@@ -194092,6 +195879,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -194141,6 +195929,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUpsellGroupsInput = {
@@ -194204,6 +195993,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -194253,6 +196043,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCreateWithoutVersionsInput = {
@@ -195014,6 +196805,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -195095,6 +196887,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -195158,6 +196951,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -195207,6 +197001,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -195287,6 +197082,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -195368,6 +197164,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -195437,6 +197234,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -195486,6 +197284,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type CustomerCreateWithoutAddressesInput = {
@@ -195926,6 +197725,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -195975,6 +197775,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMarketingCampaignsInput = {
@@ -196145,6 +197946,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -196194,6 +197996,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type CampaignRedemptionUpsertWithWhereUniqueWithoutCampaignInput = {
@@ -196755,6 +198558,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -196836,6 +198640,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -196899,6 +198704,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -196948,6 +198754,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDeliveryZonesInput = {
@@ -197028,6 +198835,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -197109,6 +198917,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -197178,6 +198987,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -197227,6 +199037,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationCreateWithoutPaymentConfigInput = {
@@ -197291,6 +199102,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -197372,6 +199184,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -197463,6 +199276,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -197544,6 +199358,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -197683,6 +199498,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -197764,6 +199580,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -197912,6 +199729,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -197961,6 +199779,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutOrdersInput = {
@@ -198392,6 +200211,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -198473,6 +200293,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -198639,6 +200460,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -198688,6 +200510,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -199624,6 +201447,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -199705,6 +201529,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -199824,6 +201649,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -199905,6 +201731,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -199933,6 +201760,550 @@ export namespace Prisma {
   export type KdsTicketUpdateManyWithWhereWithoutScreenInput = {
     where: KdsTicketScalarWhereInput
     data: XOR<KdsTicketUpdateManyMutationInput, KdsTicketUncheckedUpdateManyWithoutScreenInput>
+  }
+
+  export type LocationCreateWithoutSignageDisplaysInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutSignageDisplaysInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutSignageDisplaysInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutSignageDisplaysInput, LocationUncheckedCreateWithoutSignageDisplaysInput>
+  }
+
+  export type BrandCreateWithoutSignageDisplaysInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
+  }
+
+  export type BrandUncheckedCreateWithoutSignageDisplaysInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    defaultStationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutSignageDisplaysInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutSignageDisplaysInput, BrandUncheckedCreateWithoutSignageDisplaysInput>
+  }
+
+  export type LocationUpsertWithoutSignageDisplaysInput = {
+    update: XOR<LocationUpdateWithoutSignageDisplaysInput, LocationUncheckedUpdateWithoutSignageDisplaysInput>
+    create: XOR<LocationCreateWithoutSignageDisplaysInput, LocationUncheckedCreateWithoutSignageDisplaysInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutSignageDisplaysInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutSignageDisplaysInput, LocationUncheckedUpdateWithoutSignageDisplaysInput>
+  }
+
+  export type LocationUpdateWithoutSignageDisplaysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutSignageDisplaysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type BrandUpsertWithoutSignageDisplaysInput = {
+    update: XOR<BrandUpdateWithoutSignageDisplaysInput, BrandUncheckedUpdateWithoutSignageDisplaysInput>
+    create: XOR<BrandCreateWithoutSignageDisplaysInput, BrandUncheckedCreateWithoutSignageDisplaysInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutSignageDisplaysInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutSignageDisplaysInput, BrandUncheckedUpdateWithoutSignageDisplaysInput>
+  }
+
+  export type BrandUpdateWithoutSignageDisplaysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutSignageDisplaysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type KdsScreenCreateWithoutTicketsInput = {
@@ -200396,6 +202767,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -200477,6 +202849,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -200719,6 +203092,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -200799,6 +203173,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -200885,6 +203260,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -200965,6 +203341,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -201061,6 +203438,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -201142,6 +203520,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -202237,6 +204616,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -202318,6 +204698,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -202532,6 +204913,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutDefaultStationInput = {
@@ -202580,6 +204962,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
     channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDefaultStationInput = {
@@ -202654,6 +205037,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -202734,6 +205118,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -202967,6 +205352,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -203048,6 +205434,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -203373,6 +205760,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -203454,6 +205842,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -203770,6 +206159,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -203851,6 +206241,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -204732,6 +207123,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -204813,6 +207205,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -205094,6 +207487,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -205175,6 +207569,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -209831,6 +212226,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -209912,6 +212308,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -210074,6 +212471,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -210155,6 +212553,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -211409,6 +213808,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -211490,6 +213890,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -211581,6 +213982,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -211662,6 +214064,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -211737,6 +214140,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -211818,6 +214222,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -211909,6 +214314,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -211990,6 +214396,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -212408,6 +214815,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -212457,6 +214865,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantInput = {
@@ -214604,6 +217013,20 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type SignageDisplayCreateManyBrandInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LocationUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -214665,6 +217088,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -214746,6 +217170,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -215593,6 +218018,48 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type SignageDisplayUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSignageDisplaysNestedInput
+  }
+
+  export type SignageDisplayUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignageDisplayUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntegrationCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -215757,6 +218224,20 @@ export namespace Prisma {
     station: string
     isActive?: boolean
     settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SignageDisplayCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    categoryIds?: SignageDisplayCreatecategoryIdsInput | string[]
+    orientation?: string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -216392,6 +218873,48 @@ export namespace Prisma {
     station?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignageDisplayUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneWithoutSignageDisplaysNestedInput
+  }
+
+  export type SignageDisplayUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignageDisplayUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    categoryIds?: SignageDisplayUpdatecategoryIdsInput | string[]
+    orientation?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -218631,6 +221154,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -218711,6 +221235,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -218847,6 +221372,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -218927,6 +221453,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -219243,6 +221770,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutDefaultStationInput = {
@@ -219291,6 +221819,7 @@ export namespace Prisma {
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutDefaultStationInput = {
@@ -219391,6 +221920,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -219471,6 +222001,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -221386,6 +223917,10 @@ export namespace Prisma {
      * @deprecated Use KdsScreenDefaultArgs instead
      */
     export type KdsScreenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KdsScreenDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SignageDisplayDefaultArgs instead
+     */
+    export type SignageDisplayArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SignageDisplayDefaultArgs<ExtArgs>
     /**
      * @deprecated Use KdsTicketDefaultArgs instead
      */

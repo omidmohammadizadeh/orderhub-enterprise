@@ -438,6 +438,7 @@ model Brand {
   // Phase BF — per-channel "which menu's variant prices this channel"
   // (standing setting, set once in the brand's Channels tab).
   channelSources      BrandChannelSource[]
+  signageDisplays     SignageDisplay[]
 
   // Phase AS-1 — fallback station for items at this brand when no
   // more-specific routing rule fires.
@@ -475,6 +476,7 @@ model Location {
   printerStations      PrinterStation[]
   printAgents          PrintAgent[]
   kdsScreens           KdsScreen[]
+  signageDisplays      SignageDisplay[]
   deliveryZones        DeliveryZone[]
   paymentConfig        LocationPaymentConfig?
   userLocations        UserLocation[]
@@ -1990,6 +1992,34 @@ model KdsScreen {
   @@index([locationId])
   @@index([locationId, isActive])
   @@map("kds_screens")
+}
+
+// Digital Signage — in-store menu boards on TV screens. Each row is one screen
+// at a location showing a chosen, ordered subset of the location's POS menu
+// categories. Prices/86-state are NOT stored here — the public render endpoint
+// resolves them live from the POS menu (findActiveMenuForLocation) so the board
+// always matches the till. `publicToken` is a random, unguessable id for the
+// no-login TV URL (/signage/<token>); tenantId is denormalised because Location
+// scopes to a tenant via brand, not a column (same pattern as KdsScreen).
+model SignageDisplay {
+  id          String    @id @default(cuid())
+  tenantId    String
+  locationId  String
+  location    Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId     String?
+  brand       Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  name        String
+  publicToken String    @unique
+  categoryIds String[]  @default([])
+  orientation String    @default("landscape")
+  config      Json      @default("{}")
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("signage_displays")
 }
 
 model KdsTicket {
