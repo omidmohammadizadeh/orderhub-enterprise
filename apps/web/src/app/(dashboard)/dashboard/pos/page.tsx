@@ -44,6 +44,14 @@ import {
   loadCartDraft,
   clearCartDraft,
 } from "@/lib/pos/cart-storage";
+import {
+  cacheMenu,
+  getCachedMenu,
+  enqueueOrder,
+  newLocalId,
+} from "@/lib/pos/idb-storage";
+import { startSyncWorker } from "@/lib/pos/sync-worker";
+import { useOnlineStatus, useSyncQueue } from "@/lib/pos/use-online-status";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -54,6 +62,16 @@ export default function PosPage() {
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
+
+  // Phase AN — offline: connectivity, the offline order queue, and the cached
+  // menu fallback. The sync worker drains queued orders on reconnect.
+  const online = useOnlineStatus();
+  const { pending: pendingSync, retry: retrySync } = useSyncQueue();
+  const [cachedMenu, setCachedMenu] = useState<{
+    menu: any;
+    modifierGroups?: any;
+  } | null>(null);
+  useEffect(() => startSyncWorker(), []);
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
@@ -181,15 +199,38 @@ export default function PosPage() {
     staleTime: 60_000,
   });
 
-  const brandId = (menuQuery.data as any)?.brandId as string | undefined;
+  // Offline fallback: use the last menu cached in IndexedDB when the network
+  // read fails, so the POS still renders items/prices/86-state offline.
+  const menuData = (menuQuery.data ??
+    cachedMenu?.menu) as typeof menuQuery.data;
+  const brandId = (menuData as any)?.brandId as string | undefined;
   const allGroupsQuery = useQuery({
     queryKey: ["pos-all-modifier-groups", brandId],
     queryFn: () => modifierGroupsClient.list(brandId!),
     enabled: !!brandId,
     staleTime: 60_000,
   });
+  const allGroups = (allGroupsQuery.data ??
+    cachedMenu?.modifierGroups ??
+    []) as NonNullable<typeof allGroupsQuery.data>;
 
-  const categories = menuQuery.data?.categories ?? [];
+  // Mirror the live menu + modifier catalog to IndexedDB whenever they load.
+  useEffect(() => {
+    if (selectedLocationId && menuQuery.data) {
+      void cacheMenu(selectedLocationId, menuQuery.data, allGroupsQuery.data);
+    }
+  }, [selectedLocationId, menuQuery.data, allGroupsQuery.data]);
+
+  // Pull the cached menu when the server can't be reached (offline / errored).
+  useEffect(() => {
+    if (!selectedLocationId || menuQuery.data) return;
+    if (online && !menuQuery.isError) return; // still trying online
+    void getCachedMenu(selectedLocationId).then((c) => {
+      if (c) setCachedMenu(c);
+    });
+  }, [selectedLocationId, menuQuery.data, menuQuery.isError, online]);
+
+  const categories = menuData?.categories ?? [];
   const activeCategory = useMemo(
     () => categories.find((c) => c.id === activeCategoryId) ?? categories[0] ?? null,
     [categories, activeCategoryId],
@@ -214,8 +255,13 @@ export default function PosPage() {
     mutationFn: async (payload: PlaceOrderPayload) => {
       if (!selectedLocationId) throw new Error("Select a location first");
 
+      // Stable id used as the server idempotencyKey (retry-safe: the unique
+      // index de-dupes) and as the local queue id when offline.
+      const localId = newLocalId();
+
       const body = {
         locationId: selectedLocationId,
+        idempotencyKey: localId,
         // Phase AW — tag the order with the brand the active POS menu
         // is published under. Without this, Order.brandId stayed null
         // and every POS ticket fell back to location.brand (the "Order
@@ -280,7 +326,42 @@ export default function PosPage() {
           specialInstructions: body.specialInstructions,
         };
         await apiClient.patch(`/v1/orders/${editOrderId}/edit`, editBody);
-        return { id: editOrderId, scheduled: false, edited: true };
+        return {
+          id: editOrderId,
+          scheduled: false,
+          edited: true,
+          paymentMethod: payload.paymentMethod,
+          total: payload.total,
+          offline: false,
+        };
+      }
+
+      // Offline: queue the order locally and sync on reconnect. Cash (and
+      // externally-settled) only — card/online need connectivity to authorise.
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        if (
+          payload.paymentMethod !== "CASH" &&
+          payload.paymentMethod !== "EXTERNAL"
+        ) {
+          throw new Error(
+            "You're offline — only cash orders can be taken. Reconnect to take card or online payments.",
+          );
+        }
+        await enqueueOrder({
+          localId,
+          locationId: selectedLocationId,
+          body,
+          total: Number(payload.total ?? 0),
+          customerName: payload.customerName || "Walk-in",
+        });
+        return {
+          id: localId,
+          scheduled: payload.isScheduled,
+          edited: false,
+          paymentMethod: payload.paymentMethod,
+          total: payload.total,
+          offline: true,
+        };
       }
 
       const created = (await apiClient.post("/v1/orders", body)).data as {
@@ -332,12 +413,26 @@ export default function PosPage() {
         edited: false,
         paymentMethod: payload.paymentMethod,
         total: payload.total,
+        offline: false,
       };
     },
     onSuccess: (
-      { id, scheduled, edited, paymentMethod, total },
+      { id, scheduled, edited, paymentMethod, total, offline: wasOffline },
       variables,
     ) => {
+      // Offline: the order is saved locally and will sync on reconnect. No
+      // charge/pay-link modals (cash only), just confirm + reset.
+      if (wasOffline) {
+        setSubmitFeedback(
+          `Saved offline (${id.slice(-6)}). It'll sync automatically when you're back online.`,
+        );
+        setCart([]);
+        setDraft({});
+        setCartResetKey((k) => k + 1);
+        if (selectedLocationId) clearCartDraft(selectedLocationId);
+        window.setTimeout(() => setSubmitFeedback(null), 6000);
+        return;
+      }
       // Card-terminal orders: pop the reader charge modal for the new order.
       if (!edited && paymentMethod === "CARD_TERMINAL" && id) {
         setChargeOrder({ id, amount: Number(total ?? 0) });
@@ -492,11 +587,35 @@ export default function PosPage() {
         </div>
       </div>
 
+      {(!online || pendingSync > 0) && (
+        <div
+          className={`mb-2 flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm ${
+            !online
+              ? "bg-amber-50 text-amber-800"
+              : "bg-blue-50 text-blue-800"
+          }`}
+        >
+          <span>
+            {!online
+              ? "Offline — cash orders are saved on this device and sync automatically when you reconnect."
+              : `${pendingSync} offline order${pendingSync === 1 ? "" : "s"} waiting to sync…`}
+          </span>
+          {pendingSync > 0 && (
+            <button
+              onClick={retrySync}
+              className="shrink-0 rounded border border-current/40 px-2 py-0.5 text-xs font-medium"
+            >
+              Retry now
+            </button>
+          )}
+        </div>
+      )}
+
       {!selectedLocationId ? (
         <EmptyState text="Select a location to start taking orders." />
-      ) : menuQuery.isLoading ? (
+      ) : menuQuery.isLoading && !menuData ? (
         <EmptyState text="Loading menu…" />
-      ) : !menuQuery.data ? (
+      ) : !menuData ? (
         <EmptyState text="No active menu found for this location. Create one in Menu Manager." />
       ) : (
         <div className="grid flex-1 grid-cols-12 gap-3 overflow-hidden">
@@ -615,7 +734,7 @@ export default function PosPage() {
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
-          allModifierGroups={allGroupsQuery.data ?? []}
+          allModifierGroups={allGroups}
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => addToCart(line)}
