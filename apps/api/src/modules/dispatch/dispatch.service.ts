@@ -315,15 +315,30 @@ export class DispatchService {
     return new Date(order.createdAt.getTime() + mins * 60_000);
   }
 
-  /** Many platform payloads (Deliveroo/HubRise) carry the customer lat/lng
-   *  directly in deliveryAddress — use those before paying to geocode. */
+  /** Many platform payloads carry the customer lat/lng directly in
+   *  deliveryAddress — use those before paying to geocode. The coordinates may
+   *  sit at the top level OR nested inside a container the marketplace adapters
+   *  use (e.g. Deliveroo/Uber self-delivery orders store them under
+   *  `deliveryAddress.coordinates.{lat,lng}`), so check both. */
   private coordsFromAddress(deliveryAddress: unknown): { lat: number; lng: number } | null {
-    const a = deliveryAddress as Record<string, unknown> | null;
+    const a = deliveryAddress as Record<string, any> | null;
     if (!a || typeof a !== "object") return null;
-    const lat = Number(a.lat ?? a.latitude ?? (a as Record<string, unknown>).Latitude);
-    const lng = Number(a.lng ?? a.lon ?? a.longitude ?? (a as Record<string, unknown>).Longitude);
-    if (Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0)) {
-      return { lat, lng };
+    const containers = [
+      a,
+      a.coordinates,
+      a.coordinate,
+      a.coords,
+      a.location,
+      a.geo,
+      a.point,
+      a.position,
+    ].filter((c) => c && typeof c === "object") as Record<string, any>[];
+    for (const c of containers) {
+      const lat = Number(c.lat ?? c.latitude ?? c.Latitude);
+      const lng = Number(c.lng ?? c.lon ?? c.long ?? c.longitude ?? c.Longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0)) {
+        return { lat, lng };
+      }
     }
     return null;
   }
