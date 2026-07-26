@@ -438,6 +438,69 @@ function DisplayEditor({
             />
             Show item photos
           </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">
+                Background colour
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={config.background ?? "#0b0b0c"}
+                  onChange={(e) =>
+                    setConfig((c) => ({ ...c, background: e.target.value }))
+                  }
+                  className="h-9 w-12 cursor-pointer rounded-md border border-zinc-200"
+                  aria-label="Background colour"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, background: "#0b0b0c" }))
+                  }
+                  className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+                >
+                  Dark
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, background: "#ffffff" }))
+                  }
+                  className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+                >
+                  White
+                </button>
+              </div>
+              <p className="mt-1 text-[11px] text-zinc-400">
+                Text colour adjusts automatically for contrast.
+              </p>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">
+                Screen rotation
+              </label>
+              <select
+                value={config.rotation ?? 0}
+                onChange={(e) =>
+                  setConfig((c) => ({
+                    ...c,
+                    rotation: Number(e.target.value) as 0 | 90 | 180 | 270,
+                  }))
+                }
+                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm"
+              >
+                <option value={0}>0° — normal</option>
+                <option value={90}>90° — clockwise</option>
+                <option value={180}>180° — upside down</option>
+                <option value={270}>270° — counter-clockwise</option>
+              </select>
+              <p className="mt-1 text-[11px] text-zinc-400">
+                Use if the TV is mounted sideways.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 border-t border-zinc-100 px-5 py-3">

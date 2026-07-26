@@ -9,6 +9,13 @@ export interface SignageConfig {
   pageRotationSeconds?: number;
   refreshSeconds?: number;
   theme?: string;
+  /** Board background colour (hex, e.g. "#ffffff"). Overrides the light/dark
+   *  theme default; text colour auto-adjusts for contrast. */
+  background?: string;
+  /** Optional explicit text colour (hex). Defaults to auto contrast. */
+  text?: string;
+  /** Physical screen rotation to match how the TV is mounted. */
+  rotation?: 0 | 90 | 180 | 270;
 }
 
 export interface SignageDisplay {

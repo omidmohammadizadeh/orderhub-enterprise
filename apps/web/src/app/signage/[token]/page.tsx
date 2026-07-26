@@ -19,6 +19,19 @@ import type { SignageBoard } from "@/lib/api/signage.client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
+// True when a hex colour is dark enough to need light text on top (used to pick
+// readable accent/border/description colours for any chosen background).
+function hexIsDark(hex?: string): boolean {
+  if (!hex) return true;
+  const m = hex.replace("#", "").trim();
+  const s = m.length === 3 ? m.split("").map((c) => c + c).join("") : m;
+  const r = parseInt(s.slice(0, 2), 16);
+  const g = parseInt(s.slice(2, 4), 16);
+  const b = parseInt(s.slice(4, 6), 16);
+  if ([r, g, b].some(Number.isNaN)) return true;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+}
+
 function useWakeLock() {
   useEffect(() => {
     let lock: any = null;
@@ -109,7 +122,20 @@ export default function SignageBoardPage() {
   });
 
   const board = query.data;
-  const dark = board?.display.config.theme !== "light";
+
+  // Background colour: an explicit config.background wins; otherwise the
+  // light/dark theme default. `dark` (derived from the effective background)
+  // drives the readable accent/border/description colours. Text colour
+  // auto-adjusts for contrast unless config.text is set.
+  const bgColor = board?.display.config.background;
+  const dark = bgColor ? hexIsDark(bgColor) : board?.display.config.theme !== "light";
+  const effectiveBg = bgColor ?? (dark ? "#09090b" : "#ffffff");
+  const effectiveText =
+    board?.display.config.text ?? (dark ? "#ffffff" : "#18181b");
+
+  // Physical screen rotation (0/90/180/270) to match how the TV is mounted.
+  const rotation = ((board?.display.config.rotation ?? 0) as number) % 360;
+  const rotated = rotation === 90 || rotation === 270;
 
   const rootRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -120,11 +146,13 @@ export default function SignageBoardPage() {
     ? 1
     : Math.min(Math.max(board?.display.config.columns ?? 2, 1), 4);
 
-  // Refit when the menu content or column count changes.
+  // Refit when the menu content, column count, or rotation changes (rotation
+  // swaps the fit box's width/height, so the scaler must re-run).
   useFitToScreen(boxRef, contentRef, [
     board?.categories,
     columns,
     board?.display.orientation,
+    rotation,
   ]);
 
   const goFullscreen = () => {
@@ -155,9 +183,31 @@ export default function SignageBoardPage() {
     <div
       ref={rootRef}
       onClick={goFullscreen}
-      className={`flex h-screen w-screen flex-col overflow-hidden ${
-        dark ? "bg-zinc-950 text-white" : "bg-white text-zinc-900"
-      }`}
+      // The physical screen (the "stage"). The board inside is rotated to match
+      // how the TV is mounted; letterbox areas share the board background.
+      style={{
+        position: "fixed",
+        inset: 0,
+        overflow: "hidden",
+        background: effectiveBg,
+      }}
+    >
+    <div
+      className="flex flex-col overflow-hidden"
+      // For 90/270 the board is sized to the SWAPPED viewport (width=100vh,
+      // height=100vw) then rotated, so it fills the screen. transforms don't
+      // affect layout box size, so the fit scaler still measures correctly.
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: rotated ? "100vh" : "100vw",
+        height: rotated ? "100vw" : "100vh",
+        transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+        transformOrigin: "center center",
+        background: effectiveBg,
+        color: effectiveText,
+      }}
     >
       <header className="flex shrink-0 items-center gap-4 px-[3vw] pb-[1vh] pt-[2.5vh]">
         {showLogo && board.location.logoUrl ? (
@@ -260,6 +310,7 @@ export default function SignageBoardPage() {
             </section>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );
