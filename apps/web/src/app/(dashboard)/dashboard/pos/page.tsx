@@ -369,6 +369,14 @@ export default function PosPage() {
             tableId,
             paymentMethod: "CASH",
             paymentStatus: "PENDING",
+            // Board, KDS and chits identify a tab by its table — fall back
+            // to the table name when no guest name was typed.
+            customerInfo: {
+              ...body.customerInfo,
+              name:
+                (body.customerInfo?.name ?? "").trim() ||
+                (tableName ?? "Table"),
+            },
           })
         ).data as { id: string };
         await tablesClient.linkOrder(tableId, created.id).catch(() => {});
@@ -866,6 +874,15 @@ export default function PosPage() {
               feedback={submitFeedback}
               initialDraft={draft}
               onDraftChange={setDraft}
+              dineIn={
+                tableId
+                  ? {
+                      tableName: tableName ?? "Table",
+                      tabItemCount,
+                      tabTotal,
+                    }
+                  : null
+              }
             />
           </div>
         </div>

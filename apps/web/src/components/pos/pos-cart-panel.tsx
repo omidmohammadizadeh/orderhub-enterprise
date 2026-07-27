@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff } from "lucide-react";
+import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed } from "lucide-react";
 import { round2 } from "@orderhub/shared";
 import {
   deliveryZonesClient,
@@ -96,6 +96,18 @@ export interface CartPanelProps {
   // location) so it can purge on successful submit.
   initialDraft?: PartialDraft;
   onDraftChange?: (draft: PartialDraft) => void;
+  // Table Tabs — dine-in mode. The panel drops every takeaway concept
+  // (Collection/Delivery toggle, timing & scheduling, caller ID, SMS
+  // consent, payment method — settled later via "Pay & close") and instead
+  // shows the table identity, a kitchen-first submit button, and the
+  // running-tab arithmetic in the footer.
+  dineIn?: {
+    tableName: string;
+    /** Items already sent on the tab (0 = tab not opened yet). */
+    tabItemCount: number;
+    /** Total already on the tab before this round. */
+    tabTotal: number;
+  } | null;
 }
 
 export interface PartialDraft {
@@ -136,6 +148,7 @@ export function PosCartPanel(props: CartPanelProps) {
     feedback,
     initialDraft,
     onDraftChange,
+    dineIn,
   } = props;
 
   // ── Cart-adjacent state ────────────────────────────────────────────────────
@@ -638,7 +651,10 @@ export function PosCartPanel(props: CartPanelProps) {
       subtotal,
       deliveryFee: effectiveDeliveryFee,
       total,
-      marketingConsent: smsConsent,
+      // Dine-in never captures SMS consent (the checkbox isn't shown), so a
+      // guest's phone number must not silently opt them into marketing.
+      // undefined = "not asked, leave consent untouched" on the server.
+      marketingConsent: dineIn ? undefined : smsConsent,
     });
   };
 
@@ -723,63 +739,102 @@ export function PosCartPanel(props: CartPanelProps) {
           )}
         </div>
 
-        {/* Customer */}
-        <Section title="Customer">
+        {/* Table Tabs — dine-in identity card replaces the takeaway
+            Order-type toggle. The table IS the order type. */}
+        {dineIn && (
+          <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="grid h-9 w-9 place-items-center rounded-md bg-indigo-600 text-white">
+                <UtensilsCrossed className="h-4.5 w-4.5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-indigo-900">
+                  {dineIn.tableName}
+                </p>
+                <p className="text-[11px] text-indigo-700">
+                  Dine-in
+                  {dineIn.tabItemCount > 0
+                    ? ` — ${dineIn.tabItemCount} item${
+                        dineIn.tabItemCount === 1 ? "" : "s"
+                      } on the tab (£${dineIn.tabTotal.toFixed(2)})`
+                    : " — new tab, nothing sent yet"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Customer / Guest */}
+        <Section title={dineIn ? "Guest (optional)" : "Customer"}>
           <div className="grid grid-cols-2 gap-2">
-            <Input value={customerName} onChange={setCustomerName} placeholder="Name" />
+            <Input
+              value={customerName}
+              onChange={setCustomerName}
+              placeholder={dineIn ? "Guest name (optional)" : "Name"}
+            />
             <Input
               value={customerPhone}
               onChange={setCustomerPhone}
-              placeholder="Phone"
+              placeholder={dineIn ? "Phone (optional)" : "Phone"}
               type="tel"
             />
           </div>
-          <div className="mt-2 flex items-center gap-1.5">
-            <Phone className="h-3 w-3 text-zinc-400" />
-            <Input
-              value={callerId}
-              onChange={setCallerId}
-              placeholder="Caller ID (auto-populated by CTI integration)"
-            />
-          </div>
-          {/* SMS-marketing consent. Ticked = opt in; the customer can decline.
-              Only meaningful once a phone number is entered. */}
-          <label className="mt-2 flex cursor-pointer items-start gap-2 text-xs text-zinc-600">
-            <input
-              type="checkbox"
-              checked={smsConsent}
-              onChange={(e) => setSmsConsent(e.target.checked)}
-              className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
-            />
-            <span>
-              Customer agrees to receive offers &amp; updates by SMS
-              <span className="block text-[10px] text-zinc-400">
-                Untick if they decline. Adds them to your SMS marketing list.
-              </span>
-            </span>
-          </label>
+          {/* Caller ID + SMS consent are phone-order concepts — a seated
+              guest never rings in, and consent capture happens online. */}
+          {!dineIn && (
+            <>
+              <div className="mt-2 flex items-center gap-1.5">
+                <Phone className="h-3 w-3 text-zinc-400" />
+                <Input
+                  value={callerId}
+                  onChange={setCallerId}
+                  placeholder="Caller ID (auto-populated by CTI integration)"
+                />
+              </div>
+              <label className="mt-2 flex cursor-pointer items-start gap-2 text-xs text-zinc-600">
+                <input
+                  type="checkbox"
+                  checked={smsConsent}
+                  onChange={(e) => setSmsConsent(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
+                />
+                <span>
+                  Customer agrees to receive offers &amp; updates by SMS
+                  <span className="block text-[10px] text-zinc-400">
+                    Untick if they decline. Adds them to your SMS marketing list.
+                  </span>
+                </span>
+              </label>
+            </>
+          )}
           <div className="mt-2">
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Order notes (e.g. allergies, instructions)"
+              placeholder={
+                dineIn
+                  ? "Kitchen notes for this round (allergies, cooking preferences…)"
+                  : "Order notes (e.g. allergies, instructions)"
+              }
               rows={2}
               className="w-full resize-none rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
             />
           </div>
         </Section>
 
-        {/* Order type */}
-        <Section title="Order type">
-          <Toggle
-            value={fulfillmentType}
-            onChange={(v) => setFulfillmentType(v as FulfillmentType)}
-            options={[
-              { value: "PICKUP", label: "Collection" },
-              { value: "DELIVERY", label: "Delivery" },
-            ]}
-          />
-        </Section>
+        {/* Order type — hidden for dine-in (the table card above owns it) */}
+        {!dineIn && (
+          <Section title="Order type">
+            <Toggle
+              value={fulfillmentType}
+              onChange={(v) => setFulfillmentType(v as FulfillmentType)}
+              options={[
+                { value: "PICKUP", label: "Collection" },
+                { value: "DELIVERY", label: "Delivery" },
+              ]}
+            />
+          </Section>
+        )}
 
         {/* Delivery address */}
         {fulfillmentType === "DELIVERY" && (
@@ -905,7 +960,10 @@ export function PosCartPanel(props: CartPanelProps) {
           </Section>
         )}
 
-        {/* Expected time / schedule */}
+        {/* Expected time / schedule — takeaway-only. Dine-in food fires to
+            the kitchen the moment the round is sent; there is nothing to
+            time or schedule. */}
+        {!dineIn && (
         <Section title="Timing">
           <div className="flex items-center gap-1.5">
             <Clock className="h-3 w-3 text-zinc-400" />
@@ -970,6 +1028,7 @@ export function PosCartPanel(props: CartPanelProps) {
             </div>
           )}
         </Section>
+        )}
 
         {/* Discounts — only render the section when promos are configured
             for this location. Quiet locations have zero buttons. */}
@@ -1051,7 +1110,10 @@ export function PosCartPanel(props: CartPanelProps) {
           )}
         </Section>
 
-        {/* Payment */}
+        {/* Payment — takeaway-only. A dine-in tab settles once, at the end,
+            via the "Pay & close" button (card terminal / cash), never per
+            round. */}
+        {!dineIn && (
         <Section title="Payment">
           <div className="grid grid-cols-2 gap-1.5">
             {(
@@ -1084,21 +1146,40 @@ export function PosCartPanel(props: CartPanelProps) {
             order as pending and shows a QR/link for the customer to pay.
           </p>
         </Section>
+        )}
       </div>
 
       {/* Footer totals + submit */}
       <div className="border-t border-zinc-200 bg-zinc-50 px-3 py-2 space-y-1.5">
-        <Row label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
+        <Row
+          label={dineIn ? "This round" : "Subtotal"}
+          value={`£${subtotal.toFixed(2)}`}
+        />
         {discountAmount > 0 && (
           <Row label="Discount" value={`−£${discountAmount.toFixed(2)}`} accent="text-emerald-700" />
         )}
-        {fulfillmentType === "DELIVERY" && (
+        {fulfillmentType === "DELIVERY" && !dineIn && (
           <Row
             label={`Delivery${(discountType === "FREE_DELIVERY" || promoApplied?.freeDelivery) ? " (free)" : ""}`}
             value={`£${effectiveDeliveryFee.toFixed(2)}`}
           />
         )}
-        <Row label="Total" value={`£${total.toFixed(2)}`} bold />
+        {/* Dine-in: show what's already on the tab and what the bill
+            becomes once this round is sent — the number staff quote when
+            the guest asks "what are we at?". */}
+        {dineIn && dineIn.tabItemCount > 0 && (
+          <>
+            <Row label="Already on tab" value={`£${dineIn.tabTotal.toFixed(2)}`} />
+            <Row
+              label="Tab after this round"
+              value={`£${(dineIn.tabTotal + total).toFixed(2)}`}
+              bold
+            />
+          </>
+        )}
+        {!(dineIn && dineIn.tabItemCount > 0) && (
+          <Row label="Total" value={`£${total.toFixed(2)}`} bold />
+        )}
         {errors.length > 0 && (
           <ul className="mt-1 space-y-0.5">
             {errors.map((e) => (
@@ -1112,11 +1193,22 @@ export function PosCartPanel(props: CartPanelProps) {
           type="button"
           onClick={handlePlaceOrder}
           disabled={!canSubmit}
-          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed ${
+            dineIn
+              ? "bg-indigo-600 hover:bg-indigo-700"
+              : "bg-emerald-500 hover:bg-emerald-600"
+          }`}
         >
           {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          {dineIn && <UtensilsCrossed className="h-3.5 w-3.5" />}
           {props.submitButtonLabel ??
-            (isScheduled ? "Save scheduled order" : "Place order")}
+            (dineIn
+              ? dineIn.tabItemCount > 0
+                ? "Send round to kitchen"
+                : "Open tab — send to kitchen"
+              : isScheduled
+                ? "Save scheduled order"
+                : "Place order")}
         </button>
         {feedback && (
           <p className="text-center text-[11px] text-zinc-600">{feedback}</p>
