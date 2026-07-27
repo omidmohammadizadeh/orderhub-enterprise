@@ -181,6 +181,38 @@ export class OrdersController {
     return this.orders.editOrder(id, user.tenantId, dto, user.userId);
   }
 
+  // ── POST /api/v1/orders/:id/rounds ───────────────────
+  // Table Tabs — add a round of items to an open dine-in tab. APPENDS (keeps
+  // prior items + their KDS states) and fires only the new items to the
+  // kitchen, unlike /edit which replaces everything.
+  @Post(":id/rounds")
+  @Roles(
+    "CASHIER",
+    "MANAGER",
+    "DARK_KITCHEN_MANAGER",
+    "TENANT_OWNER",
+    "PLATFORM_ADMIN",
+  )
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Add a round of items to an open table tab" })
+  async addRound(
+    @Param("id") id: string,
+    @Body()
+    dto: {
+      items: Array<{
+        name: string;
+        quantity: number;
+        unitPrice: number;
+        totalPrice: number;
+        modifiers?: { name: string; price: number; quantity?: number }[];
+        notes?: string | null;
+      }>;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.addRound(id, user.tenantId, dto.items, user.userId);
+  }
+
   // ── PATCH /api/v1/orders/:id/status ──────────────────
   @Patch(":id/status")
   @HttpCode(HttpStatus.OK)

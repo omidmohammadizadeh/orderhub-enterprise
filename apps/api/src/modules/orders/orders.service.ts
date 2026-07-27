@@ -1268,6 +1268,111 @@ export class OrdersService {
     return updated;
   }
 
+  // ── Table Tabs: add a round (dine-in) ─────────────────────────────────────
+  // APPENDS new items to an open tab order and fires ONLY the new items to the
+  // kitchen — unlike editOrder (which deletes + recreates every item and
+  // reprints the whole ticket). Prior items keep their ids, so their KDS
+  // tick-states survive; the new items surface on the station screens via the
+  // same `order.items_edited` → KDS-resync wiring editOrder uses. (Paper
+  // "round chit" printing is a fast follow — the print router has no subset API
+  // yet; KDS is the primary dine-in kitchen surface.)
+  async addRound(
+    orderId: string,
+    tenantId: string,
+    items: Array<{
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      totalPrice: number;
+      modifiers?: { name: string; price: number; quantity?: number }[];
+      notes?: string | null;
+    }>,
+    userId: string,
+  ): Promise<Order> {
+    if (!items.length) throw new BadRequestException("No items to add");
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      include: { items: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (!order.tableId) {
+      throw new BadRequestException("This order is not a table tab");
+    }
+    const EDITABLE = new Set<OrderStatus>(["PENDING", "ACCEPTED", "PREPARING"]);
+    if (!EDITABLE.has(order.status)) {
+      throw new BadRequestException(
+        "Can't add to this tab — it's already Ready or closed",
+      );
+    }
+    if (order.paymentStatus === "PAID") {
+      throw new BadRequestException("This tab is already settled");
+    }
+
+    const addedTotal = items.reduce((s, i) => s + Number(i.totalPrice), 0);
+    const addedCount = items.reduce((s, i) => s + i.quantity, 0);
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.createMany({
+        data: items.map((it) => ({
+          orderId: order.id,
+          name: it.name,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          totalPrice: it.totalPrice,
+          modifiers: (it.modifiers ?? []) as any,
+          notes: it.notes ?? null,
+        })),
+      });
+      const u = await tx.order.update({
+        where: { id: order.id },
+        // Adding items lifts subtotal + total by the same amount (fees/discount
+        // unchanged), so no need to re-derive the whole bill.
+        data: {
+          subtotal: Number(order.subtotal) + addedTotal,
+          total: Number(order.total) + addedTotal,
+          updatedAt: new Date(),
+        },
+      });
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          tenantId,
+          fromStatus: order.status,
+          toStatus: order.status,
+          actorType: "STAFF",
+          changedBy: userId,
+          note: `Tab round added: +${addedCount} item(s), +£${addedTotal.toFixed(2)}`,
+        },
+      });
+      return u;
+    });
+
+    // Refresh the staff board and surface the new items on the KDS stations —
+    // but NOT emitNewOrder (that would reprint the whole ticket on paper).
+    this.socket.emitOrderUpdated(updated.locationId, {
+      orderId: updated.id,
+      tenantId,
+      locationId: updated.locationId,
+      platform: updated.platform,
+      orderSource: updated.orderSource,
+      fulfillmentType: updated.fulfillmentType,
+      displayId: updated.displayId,
+      status: updated.status,
+      total: Number(updated.total),
+      itemCount:
+        order.items.reduce((s, i) => s + i.quantity, 0) + addedCount,
+      customerName: updated.customerName ?? "",
+      scheduledFor: updated.scheduledFor?.toISOString() ?? null,
+      createdAt: updated.createdAt.toISOString(),
+    });
+    this.events.emit("order.items_edited", {
+      orderId: updated.id,
+      locationId: updated.locationId,
+    });
+
+    return updated;
+  }
+
   // ── Status transitions ────────────────────────────────
 
   async updateStatus(
