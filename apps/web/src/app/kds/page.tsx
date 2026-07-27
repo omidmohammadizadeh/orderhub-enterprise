@@ -82,6 +82,9 @@ interface KdsTicket {
     specialInstructions?: string | null;
     items: TicketItem[];
     brand?: { name: string } | null;
+    // Table Tabs — resolved server-side from Order.tableId so dine-in
+    // tickets can show WHICH table.
+    tableName?: string | null;
   };
 }
 
@@ -383,11 +386,13 @@ function StationView({ screenId }: { screenId: string }) {
     enabled: !!screen?.locationId,
   });
 
+  // 10s poll is the safety net only — sockets deliver the instant updates,
+  // and reconnects force a refetch (see onConnect below).
   const { data: tickets = [] } = useQuery<KdsTicket[]>({
     queryKey: ["kds-tickets", screenId],
     queryFn: () =>
       apiClient.get(`/v1/kds/screens/${screenId}/tickets`).then((r) => r.data),
-    refetchInterval: 20_000,
+    refetchInterval: 10_000,
   });
 
   const { data: bumped = [] } = useQuery<KdsTicket[]>({
@@ -424,6 +429,13 @@ function StationView({ screenId }: { screenId: string }) {
       if (ticket?.kdsScreenId === screenId && soundEnabled) chime();
     };
     const onAny = () => refetchAll();
+    // Order items changed (POS edit / dine-in round). Refetch instantly and
+    // chime so the kitchen looks up — the affected card also re-opens with
+    // an amber "ORDER UPDATED — RE-CHECK" banner for 2 minutes.
+    const onUpdated = () => {
+      refetchAll();
+      if (soundEnabled) chime();
+    };
     // An order cancelled → snapshot its card and show a CANCELLED banner for
     // a bit before it drops off (the server-side ticket is already gone).
     const onVoid = (p: { orderId: string; reason?: string }) => {
@@ -436,14 +448,19 @@ function StationView({ screenId }: { screenId: string }) {
       }
       refetchAll();
     };
-    const onConnect = () => setConnected(true);
+    // Reconnect = we may have MISSED events (stale JWT, wifi blip). Refetch
+    // immediately so the screen catches up instead of waiting for the poll.
+    const onConnect = () => {
+      setConnected(true);
+      refetchAll();
+    };
     const onDisconnect = () => setConnected(false);
     socket.on("kds:ticket:new", onNew);
     socket.on("kds:order:new", onAny);
     socket.on("kds:ticket:bumped", onAny);
     socket.on("kds:ticket:recalled", onAny);
     socket.on("kds:ticket:void", onVoid);
-    socket.on("kds:order:updated", onAny);
+    socket.on("kds:order:updated", onUpdated);
     socket.on("kds:item:state", onAny);
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
@@ -454,7 +471,7 @@ function StationView({ screenId }: { screenId: string }) {
       socket.off("kds:ticket:bumped", onAny);
       socket.off("kds:ticket:recalled", onAny);
       socket.off("kds:ticket:void", onVoid);
-      socket.off("kds:order:updated", onAny);
+      socket.off("kds:order:updated", onUpdated);
       socket.off("kds:item:state", onAny);
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
@@ -486,24 +503,30 @@ function StationView({ screenId }: { screenId: string }) {
   });
 
   const [fulfilFilter, setFulfilFilter] = useState<
-    "ALL" | "COLLECTION" | "DELIVERY"
+    "ALL" | "COLLECTION" | "DELIVERY" | "DINE_IN"
   >("ALL");
 
-  const inFilter = (ft: string) => {
-    if (fulfilFilter === "ALL") return true;
-    const isCollection = ft === "PICKUP" || ft === "DINE_IN";
-    return fulfilFilter === "COLLECTION" ? isCollection : !isCollection;
-  };
+  // Three real service modes: Collection (walk-in/phone pickup), Delivery
+  // (any courier flavour), Dine-in (table tabs — its own bucket, NOT lumped
+  // into Collection, so the kitchen can see table load at a glance).
+  const bucketOf = (ft: string): "COLLECTION" | "DELIVERY" | "DINE_IN" =>
+    ft === "DINE_IN" ? "DINE_IN" : ft === "PICKUP" ? "COLLECTION" : "DELIVERY";
+
+  const inFilter = (ft: string) =>
+    fulfilFilter === "ALL" || bucketOf(ft) === fulfilFilter;
 
   const allOpen = tickets.filter((t) => !t.bumpedAt);
   allOpenRef.current = allOpen;
   const active = allOpen.filter((t) => inFilter(t.order.fulfillmentType));
   // Don't double-show a card that's also displaying its cancelled banner.
   const cancelledIds = new Set(cancelled.map((c) => c.orderId));
-  const collectionCount = allOpen.filter((t) =>
-    ["PICKUP", "DINE_IN"].includes(t.order.fulfillmentType),
+  const collectionCount = allOpen.filter(
+    (t) => bucketOf(t.order.fulfillmentType) === "COLLECTION",
   ).length;
-  const deliveryCount = allOpen.length - collectionCount;
+  const dineInCount = allOpen.filter(
+    (t) => bucketOf(t.order.fulfillmentType) === "DINE_IN",
+  ).length;
+  const deliveryCount = allOpen.length - collectionCount - dineInCount;
 
   // All-day production counter across visible tickets.
   const allDay = useMemo(() => {
@@ -570,6 +593,7 @@ function StationView({ screenId }: { screenId: string }) {
                 ["ALL", "All", allOpen.length],
                 ["COLLECTION", "Collection", collectionCount],
                 ["DELIVERY", "Delivery", deliveryCount],
+                ["DINE_IN", "Dine-in", dineInCount],
               ] as const
             ).map(([key, label, count]) => (
               <button
@@ -841,9 +865,16 @@ function TicketCard({
           <span className={cn("text-[11px] font-semibold px-1.5 py-0.5 rounded", chip.cls)}>
             {chip.label}
           </span>
-          <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
-            {TYPE_LABEL[order.fulfillmentType] ?? order.fulfillmentType}
-          </span>
+          {order.fulfillmentType === "DINE_IN" ? (
+            // Table Tabs — the table IS the destination; make it unmissable.
+            <span className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300">
+              🍽 {order.tableName ?? order.customerName ?? "Dine-in"}
+            </span>
+          ) : (
+            <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+              {TYPE_LABEL[order.fulfillmentType] ?? order.fulfillmentType}
+            </span>
+          )}
           {order.brand?.name && (
             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
               {order.brand.name}

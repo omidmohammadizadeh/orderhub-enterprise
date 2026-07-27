@@ -147,7 +147,7 @@ export class KdsService {
 
   async getActiveTickets(screenId: string, tenantId: string) {
     await this.assertScreenAccess(screenId, tenantId);
-    return this.prisma.kdsTicket.findMany({
+    const rows = await this.prisma.kdsTicket.findMany({
       where: {
         kdsScreenId: screenId,
         bumpedAt: null,
@@ -156,17 +156,46 @@ export class KdsService {
       include: TICKET_INCLUDE,
       orderBy: { createdAt: "asc" },
     });
+    return this.attachTableNames(rows);
   }
 
   /** Recently bumped tickets — the recall rail. */
   async getRecentBumped(screenId: string, tenantId: string, take = 8) {
     await this.assertScreenAccess(screenId, tenantId);
-    return this.prisma.kdsTicket.findMany({
+    const rows = await this.prisma.kdsTicket.findMany({
       where: { kdsScreenId: screenId, bumpedAt: { not: null } },
       include: TICKET_INCLUDE,
       orderBy: { bumpedAt: "desc" },
       take,
     });
+    return this.attachTableNames(rows);
+  }
+
+  /** Table Tabs — dine-in tickets show WHICH table on the kitchen screen.
+   *  Order.tableId is a plain column (no Prisma relation), so resolve the
+   *  table names in one indexed lookup and stamp them onto order.tableName. */
+  private async attachTableNames<T extends { order: any }>(
+    tickets: T[],
+  ): Promise<T[]> {
+    const ids = [
+      ...new Set(
+        tickets
+          .map((t) => t.order?.tableId as string | null | undefined)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    if (!ids.length) return tickets;
+    const tables = await this.prisma.table.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true },
+    });
+    const byId = new Map(tables.map((t) => [t.id, t.name]));
+    for (const t of tickets) {
+      if (t.order?.tableId) {
+        t.order.tableName = byId.get(t.order.tableId) ?? null;
+      }
+    }
+    return tickets;
   }
 
   /** Today's speed-of-service numbers for the screen header. */
