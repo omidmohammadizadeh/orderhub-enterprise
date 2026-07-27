@@ -76,7 +76,8 @@ export interface PlaceOrderPayload {
   deliveryFee: number;
   total: number;
   // SMS-marketing consent captured at the till ("Send me offers by SMS").
-  marketingConsent: boolean;
+  // undefined = consent wasn't asked (dine-in) — leave it untouched server-side.
+  marketingConsent?: boolean;
 }
 
 export interface CartPanelProps {
