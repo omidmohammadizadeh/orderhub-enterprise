@@ -876,6 +876,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   courierJobId: 'courierJobId',
   status: 'status',
   fulfillmentType: 'fulfillmentType',
+  tableId: 'tableId',
   customerInfo: 'customerInfo',
   customerName: 'customerName',
   customerPhone: 'customerPhone',
@@ -1009,6 +1010,22 @@ exports.Prisma.SignageDisplayScalarFieldEnum = {
   orientation: 'orientation',
   config: 'config',
   isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TableScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  seats: 'seats',
+  area: 'area',
+  sortOrder: 'sortOrder',
+  isActive: 'isActive',
+  status: 'status',
+  currentOrderId: 'currentOrderId',
+  openedAt: 'openedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2470,6 +2487,7 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   courierStatus: 'courierStatus',
   courierProvider: 'courierProvider',
   courierJobId: 'courierJobId',
+  tableId: 'tableId',
   customerName: 'customerName',
   customerPhone: 'customerPhone',
   paymentMethod: 'paymentMethod',
@@ -2548,6 +2566,16 @@ exports.Prisma.SignageDisplayOrderByRelevanceFieldEnum = {
   publicToken: 'publicToken',
   categoryIds: 'categoryIds',
   orientation: 'orientation'
+};
+
+exports.Prisma.TableOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  area: 'area',
+  status: 'status',
+  currentOrderId: 'currentOrderId'
 };
 
 exports.Prisma.KdsTicketOrderByRelevanceFieldEnum = {
@@ -3664,6 +3692,7 @@ exports.Prisma.ModelName = {
   ActivityLog: 'ActivityLog',
   KdsScreen: 'KdsScreen',
   SignageDisplay: 'SignageDisplay',
+  Table: 'Table',
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',
   PrintJob: 'PrintJob',

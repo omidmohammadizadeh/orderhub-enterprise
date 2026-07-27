@@ -477,6 +477,7 @@ model Location {
   printAgents          PrintAgent[]
   kdsScreens           KdsScreen[]
   signageDisplays      SignageDisplay[]
+  tables               Table[]
   deliveryZones        DeliveryZone[]
   paymentConfig        LocationPaymentConfig?
   userLocations        UserLocation[]
@@ -1765,6 +1766,8 @@ model Order {
 
   status          OrderStatus     @default(PENDING)
   fulfillmentType FulfillmentType @default(DELIVERY)
+  // Table Tabs — set on a DINE_IN order that is a table's running tab.
+  tableId         String?
 
   customerInfo  Json
   customerName  String?
@@ -1869,6 +1872,7 @@ model Order {
   @@index([tenantId, brandId])
   @@index([brandId, status])
   @@index([tenantId, orderNumber])
+  @@index([tableId])
   @@map("orders")
 }
 
@@ -2020,6 +2024,31 @@ model SignageDisplay {
   @@index([tenantId])
   @@index([locationId])
   @@map("signage_displays")
+}
+
+// Table Tabs (dine-in) — a physical table at a location. `status` is FREE or
+// OCCUPIED; `currentOrderId` points at the open tab order (one growing DINE_IN
+// order per table) and is null when the table is free. tenantId is denormalised
+// (Location scopes to a tenant via brand, same pattern as KdsScreen/Signage).
+model Table {
+  id             String   @id @default(cuid())
+  tenantId       String
+  locationId     String
+  location       Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name           String
+  seats          Int?
+  area           String?
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  status         String   @default("FREE")
+  currentOrderId String?
+  openedAt       DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("tables")
 }
 
 model KdsTicket {

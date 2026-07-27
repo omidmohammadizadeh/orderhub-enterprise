@@ -249,6 +249,11 @@ export type KdsScreen = $Result.DefaultSelection<Prisma.$KdsScreenPayload>
  */
 export type SignageDisplay = $Result.DefaultSelection<Prisma.$SignageDisplayPayload>
 /**
+ * Model Table
+ * 
+ */
+export type Table = $Result.DefaultSelection<Prisma.$TablePayload>
+/**
  * Model KdsTicket
  * 
  */
@@ -1995,6 +2000,16 @@ export class PrismaClient<
   get signageDisplay(): Prisma.SignageDisplayDelegate<ExtArgs>;
 
   /**
+   * `prisma.table`: Exposes CRUD operations for the **Table** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Tables
+    * const tables = await prisma.table.findMany()
+    * ```
+    */
+  get table(): Prisma.TableDelegate<ExtArgs>;
+
+  /**
    * `prisma.kdsTicket`: Exposes CRUD operations for the **KdsTicket** model.
     * Example usage:
     * ```ts
@@ -3141,6 +3156,7 @@ export namespace Prisma {
     ActivityLog: 'ActivityLog',
     KdsScreen: 'KdsScreen',
     SignageDisplay: 'SignageDisplay',
+    Table: 'Table',
     KdsTicket: 'KdsTicket',
     Printer: 'Printer',
     PrintJob: 'PrintJob',
@@ -3222,7 +3238,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -6513,6 +6529,76 @@ export namespace Prisma {
           count: {
             args: Prisma.SignageDisplayCountArgs<ExtArgs>
             result: $Utils.Optional<SignageDisplayCountAggregateOutputType> | number
+          }
+        }
+      }
+      Table: {
+        payload: Prisma.$TablePayload<ExtArgs>
+        fields: Prisma.TableFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TableFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TableFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>
+          }
+          findFirst: {
+            args: Prisma.TableFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TableFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>
+          }
+          findMany: {
+            args: Prisma.TableFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>[]
+          }
+          create: {
+            args: Prisma.TableCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>
+          }
+          createMany: {
+            args: Prisma.TableCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TableCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>[]
+          }
+          delete: {
+            args: Prisma.TableDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>
+          }
+          update: {
+            args: Prisma.TableUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>
+          }
+          deleteMany: {
+            args: Prisma.TableDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TableUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.TableUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TablePayload>
+          }
+          aggregate: {
+            args: Prisma.TableAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTable>
+          }
+          groupBy: {
+            args: Prisma.TableGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TableGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TableCountArgs<ExtArgs>
+            result: $Utils.Optional<TableCountAggregateOutputType> | number
           }
         }
       }
@@ -11743,6 +11829,7 @@ export namespace Prisma {
     printAgents: number
     kdsScreens: number
     signageDisplays: number
+    tables: number
     deliveryZones: number
     userLocations: number
     platformConnections: number
@@ -11760,6 +11847,7 @@ export namespace Prisma {
     printAgents?: boolean | LocationCountOutputTypeCountPrintAgentsArgs
     kdsScreens?: boolean | LocationCountOutputTypeCountKdsScreensArgs
     signageDisplays?: boolean | LocationCountOutputTypeCountSignageDisplaysArgs
+    tables?: boolean | LocationCountOutputTypeCountTablesArgs
     deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
     userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
     platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
@@ -11827,6 +11915,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountSignageDisplaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SignageDisplayWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountTablesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TableWhereInput
   }
 
   /**
@@ -27026,6 +27121,7 @@ export namespace Prisma {
     printAgents?: boolean | Location$printAgentsArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     signageDisplays?: boolean | Location$signageDisplaysArgs<ExtArgs>
+    tables?: boolean | Location$tablesArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
@@ -27179,6 +27275,7 @@ export namespace Prisma {
     printAgents?: boolean | Location$printAgentsArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     signageDisplays?: boolean | Location$signageDisplaysArgs<ExtArgs>
+    tables?: boolean | Location$tablesArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
@@ -27214,6 +27311,7 @@ export namespace Prisma {
       printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
       kdsScreens: Prisma.$KdsScreenPayload<ExtArgs>[]
       signageDisplays: Prisma.$SignageDisplayPayload<ExtArgs>[]
+      tables: Prisma.$TablePayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
       userLocations: Prisma.$UserLocationPayload<ExtArgs>[]
@@ -27661,6 +27759,7 @@ export namespace Prisma {
     printAgents<T extends Location$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
     kdsScreens<T extends Location$kdsScreensArgs<ExtArgs> = {}>(args?: Subset<T, Location$kdsScreensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KdsScreenPayload<ExtArgs>, T, "findMany"> | Null>
     signageDisplays<T extends Location$signageDisplaysArgs<ExtArgs> = {}>(args?: Subset<T, Location$signageDisplaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findMany"> | Null>
+    tables<T extends Location$tablesArgs<ExtArgs> = {}>(args?: Subset<T, Location$tablesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     userLocations<T extends Location$userLocationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$userLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany"> | Null>
@@ -28218,6 +28317,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: SignageDisplayScalarFieldEnum | SignageDisplayScalarFieldEnum[]
+  }
+
+  /**
+   * Location.tables
+   */
+  export type Location$tablesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    where?: TableWhereInput
+    orderBy?: TableOrderByWithRelationInput | TableOrderByWithRelationInput[]
+    cursor?: TableWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TableScalarFieldEnum | TableScalarFieldEnum[]
   }
 
   /**
@@ -57247,6 +57366,7 @@ export namespace Prisma {
     courierJobId: string | null
     status: $Enums.OrderStatus | null
     fulfillmentType: $Enums.FulfillmentType | null
+    tableId: string | null
     customerName: string | null
     customerPhone: string | null
     deliveryLat: number | null
@@ -57317,6 +57437,7 @@ export namespace Prisma {
     courierJobId: string | null
     status: $Enums.OrderStatus | null
     fulfillmentType: $Enums.FulfillmentType | null
+    tableId: string | null
     customerName: string | null
     customerPhone: string | null
     deliveryLat: number | null
@@ -57387,6 +57508,7 @@ export namespace Prisma {
     courierJobId: number
     status: number
     fulfillmentType: number
+    tableId: number
     customerInfo: number
     customerName: number
     customerPhone: number
@@ -57491,6 +57613,7 @@ export namespace Prisma {
     courierJobId?: true
     status?: true
     fulfillmentType?: true
+    tableId?: true
     customerName?: true
     customerPhone?: true
     deliveryLat?: true
@@ -57561,6 +57684,7 @@ export namespace Prisma {
     courierJobId?: true
     status?: true
     fulfillmentType?: true
+    tableId?: true
     customerName?: true
     customerPhone?: true
     deliveryLat?: true
@@ -57631,6 +57755,7 @@ export namespace Prisma {
     courierJobId?: true
     status?: true
     fulfillmentType?: true
+    tableId?: true
     customerInfo?: true
     customerName?: true
     customerPhone?: true
@@ -57792,6 +57917,7 @@ export namespace Prisma {
     courierJobId: string | null
     status: $Enums.OrderStatus
     fulfillmentType: $Enums.FulfillmentType
+    tableId: string | null
     customerInfo: JsonValue
     customerName: string | null
     customerPhone: string | null
@@ -57885,6 +58011,7 @@ export namespace Prisma {
     courierJobId?: boolean
     status?: boolean
     fulfillmentType?: boolean
+    tableId?: boolean
     customerInfo?: boolean
     customerName?: boolean
     customerPhone?: boolean
@@ -57972,6 +58099,7 @@ export namespace Prisma {
     courierJobId?: boolean
     status?: boolean
     fulfillmentType?: boolean
+    tableId?: boolean
     customerInfo?: boolean
     customerName?: boolean
     customerPhone?: boolean
@@ -58051,6 +58179,7 @@ export namespace Prisma {
     courierJobId?: boolean
     status?: boolean
     fulfillmentType?: boolean
+    tableId?: boolean
     customerInfo?: boolean
     customerName?: boolean
     customerPhone?: boolean
@@ -58164,6 +58293,7 @@ export namespace Prisma {
       courierJobId: string | null
       status: $Enums.OrderStatus
       fulfillmentType: $Enums.FulfillmentType
+      tableId: string | null
       customerInfo: Prisma.JsonValue
       customerName: string | null
       customerPhone: string | null
@@ -58640,6 +58770,7 @@ export namespace Prisma {
     readonly courierJobId: FieldRef<"Order", 'String'>
     readonly status: FieldRef<"Order", 'OrderStatus'>
     readonly fulfillmentType: FieldRef<"Order", 'FulfillmentType'>
+    readonly tableId: FieldRef<"Order", 'String'>
     readonly customerInfo: FieldRef<"Order", 'Json'>
     readonly customerName: FieldRef<"Order", 'String'>
     readonly customerPhone: FieldRef<"Order", 'String'>
@@ -66089,6 +66220,1073 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: SignageDisplayInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Table
+   */
+
+  export type AggregateTable = {
+    _count: TableCountAggregateOutputType | null
+    _avg: TableAvgAggregateOutputType | null
+    _sum: TableSumAggregateOutputType | null
+    _min: TableMinAggregateOutputType | null
+    _max: TableMaxAggregateOutputType | null
+  }
+
+  export type TableAvgAggregateOutputType = {
+    seats: number | null
+    sortOrder: number | null
+  }
+
+  export type TableSumAggregateOutputType = {
+    seats: number | null
+    sortOrder: number | null
+  }
+
+  export type TableMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    seats: number | null
+    area: string | null
+    sortOrder: number | null
+    isActive: boolean | null
+    status: string | null
+    currentOrderId: string | null
+    openedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TableMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    seats: number | null
+    area: string | null
+    sortOrder: number | null
+    isActive: boolean | null
+    status: string | null
+    currentOrderId: string | null
+    openedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TableCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    name: number
+    seats: number
+    area: number
+    sortOrder: number
+    isActive: number
+    status: number
+    currentOrderId: number
+    openedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type TableAvgAggregateInputType = {
+    seats?: true
+    sortOrder?: true
+  }
+
+  export type TableSumAggregateInputType = {
+    seats?: true
+    sortOrder?: true
+  }
+
+  export type TableMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    seats?: true
+    area?: true
+    sortOrder?: true
+    isActive?: true
+    status?: true
+    currentOrderId?: true
+    openedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TableMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    seats?: true
+    area?: true
+    sortOrder?: true
+    isActive?: true
+    status?: true
+    currentOrderId?: true
+    openedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TableCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    seats?: true
+    area?: true
+    sortOrder?: true
+    isActive?: true
+    status?: true
+    currentOrderId?: true
+    openedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type TableAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Table to aggregate.
+     */
+    where?: TableWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tables to fetch.
+     */
+    orderBy?: TableOrderByWithRelationInput | TableOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TableWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tables from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tables.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Tables
+    **/
+    _count?: true | TableCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TableAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TableSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TableMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TableMaxAggregateInputType
+  }
+
+  export type GetTableAggregateType<T extends TableAggregateArgs> = {
+        [P in keyof T & keyof AggregateTable]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTable[P]>
+      : GetScalarType<T[P], AggregateTable[P]>
+  }
+
+
+
+
+  export type TableGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TableWhereInput
+    orderBy?: TableOrderByWithAggregationInput | TableOrderByWithAggregationInput[]
+    by: TableScalarFieldEnum[] | TableScalarFieldEnum
+    having?: TableScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TableCountAggregateInputType | true
+    _avg?: TableAvgAggregateInputType
+    _sum?: TableSumAggregateInputType
+    _min?: TableMinAggregateInputType
+    _max?: TableMaxAggregateInputType
+  }
+
+  export type TableGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    name: string
+    seats: number | null
+    area: string | null
+    sortOrder: number
+    isActive: boolean
+    status: string
+    currentOrderId: string | null
+    openedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: TableCountAggregateOutputType | null
+    _avg: TableAvgAggregateOutputType | null
+    _sum: TableSumAggregateOutputType | null
+    _min: TableMinAggregateOutputType | null
+    _max: TableMaxAggregateOutputType | null
+  }
+
+  type GetTableGroupByPayload<T extends TableGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TableGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TableGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TableGroupByOutputType[P]>
+            : GetScalarType<T[P], TableGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TableSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    seats?: boolean
+    area?: boolean
+    sortOrder?: boolean
+    isActive?: boolean
+    status?: boolean
+    currentOrderId?: boolean
+    openedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["table"]>
+
+  export type TableSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    seats?: boolean
+    area?: boolean
+    sortOrder?: boolean
+    isActive?: boolean
+    status?: boolean
+    currentOrderId?: boolean
+    openedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["table"]>
+
+  export type TableSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    seats?: boolean
+    area?: boolean
+    sortOrder?: boolean
+    isActive?: boolean
+    status?: boolean
+    currentOrderId?: boolean
+    openedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type TableInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type TableIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $TablePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Table"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      name: string
+      seats: number | null
+      area: string | null
+      sortOrder: number
+      isActive: boolean
+      status: string
+      currentOrderId: string | null
+      openedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["table"]>
+    composites: {}
+  }
+
+  type TableGetPayload<S extends boolean | null | undefined | TableDefaultArgs> = $Result.GetResult<Prisma.$TablePayload, S>
+
+  type TableCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<TableFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: TableCountAggregateInputType | true
+    }
+
+  export interface TableDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Table'], meta: { name: 'Table' } }
+    /**
+     * Find zero or one Table that matches the filter.
+     * @param {TableFindUniqueArgs} args - Arguments to find a Table
+     * @example
+     * // Get one Table
+     * const table = await prisma.table.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TableFindUniqueArgs>(args: SelectSubset<T, TableFindUniqueArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Table that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {TableFindUniqueOrThrowArgs} args - Arguments to find a Table
+     * @example
+     * // Get one Table
+     * const table = await prisma.table.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TableFindUniqueOrThrowArgs>(args: SelectSubset<T, TableFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Table that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TableFindFirstArgs} args - Arguments to find a Table
+     * @example
+     * // Get one Table
+     * const table = await prisma.table.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TableFindFirstArgs>(args?: SelectSubset<T, TableFindFirstArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Table that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TableFindFirstOrThrowArgs} args - Arguments to find a Table
+     * @example
+     * // Get one Table
+     * const table = await prisma.table.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TableFindFirstOrThrowArgs>(args?: SelectSubset<T, TableFindFirstOrThrowArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Tables that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TableFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Tables
+     * const tables = await prisma.table.findMany()
+     * 
+     * // Get first 10 Tables
+     * const tables = await prisma.table.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const tableWithIdOnly = await prisma.table.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TableFindManyArgs>(args?: SelectSubset<T, TableFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Table.
+     * @param {TableCreateArgs} args - Arguments to create a Table.
+     * @example
+     * // Create one Table
+     * const Table = await prisma.table.create({
+     *   data: {
+     *     // ... data to create a Table
+     *   }
+     * })
+     * 
+     */
+    create<T extends TableCreateArgs>(args: SelectSubset<T, TableCreateArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Tables.
+     * @param {TableCreateManyArgs} args - Arguments to create many Tables.
+     * @example
+     * // Create many Tables
+     * const table = await prisma.table.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TableCreateManyArgs>(args?: SelectSubset<T, TableCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Tables and returns the data saved in the database.
+     * @param {TableCreateManyAndReturnArgs} args - Arguments to create many Tables.
+     * @example
+     * // Create many Tables
+     * const table = await prisma.table.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Tables and only return the `id`
+     * const tableWithIdOnly = await prisma.table.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TableCreateManyAndReturnArgs>(args?: SelectSubset<T, TableCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Table.
+     * @param {TableDeleteArgs} args - Arguments to delete one Table.
+     * @example
+     * // Delete one Table
+     * const Table = await prisma.table.delete({
+     *   where: {
+     *     // ... filter to delete one Table
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TableDeleteArgs>(args: SelectSubset<T, TableDeleteArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Table.
+     * @param {TableUpdateArgs} args - Arguments to update one Table.
+     * @example
+     * // Update one Table
+     * const table = await prisma.table.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TableUpdateArgs>(args: SelectSubset<T, TableUpdateArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Tables.
+     * @param {TableDeleteManyArgs} args - Arguments to filter Tables to delete.
+     * @example
+     * // Delete a few Tables
+     * const { count } = await prisma.table.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TableDeleteManyArgs>(args?: SelectSubset<T, TableDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Tables.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TableUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Tables
+     * const table = await prisma.table.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TableUpdateManyArgs>(args: SelectSubset<T, TableUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Table.
+     * @param {TableUpsertArgs} args - Arguments to update or create a Table.
+     * @example
+     * // Update or create a Table
+     * const table = await prisma.table.upsert({
+     *   create: {
+     *     // ... data to create a Table
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Table we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TableUpsertArgs>(args: SelectSubset<T, TableUpsertArgs<ExtArgs>>): Prisma__TableClient<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Tables.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TableCountArgs} args - Arguments to filter Tables to count.
+     * @example
+     * // Count the number of Tables
+     * const count = await prisma.table.count({
+     *   where: {
+     *     // ... the filter for the Tables we want to count
+     *   }
+     * })
+    **/
+    count<T extends TableCountArgs>(
+      args?: Subset<T, TableCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TableCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Table.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TableAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TableAggregateArgs>(args: Subset<T, TableAggregateArgs>): Prisma.PrismaPromise<GetTableAggregateType<T>>
+
+    /**
+     * Group by Table.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TableGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TableGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TableGroupByArgs['orderBy'] }
+        : { orderBy?: TableGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TableGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTableGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Table model
+   */
+  readonly fields: TableFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Table.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TableClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Table model
+   */ 
+  interface TableFieldRefs {
+    readonly id: FieldRef<"Table", 'String'>
+    readonly tenantId: FieldRef<"Table", 'String'>
+    readonly locationId: FieldRef<"Table", 'String'>
+    readonly name: FieldRef<"Table", 'String'>
+    readonly seats: FieldRef<"Table", 'Int'>
+    readonly area: FieldRef<"Table", 'String'>
+    readonly sortOrder: FieldRef<"Table", 'Int'>
+    readonly isActive: FieldRef<"Table", 'Boolean'>
+    readonly status: FieldRef<"Table", 'String'>
+    readonly currentOrderId: FieldRef<"Table", 'String'>
+    readonly openedAt: FieldRef<"Table", 'DateTime'>
+    readonly createdAt: FieldRef<"Table", 'DateTime'>
+    readonly updatedAt: FieldRef<"Table", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Table findUnique
+   */
+  export type TableFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * Filter, which Table to fetch.
+     */
+    where: TableWhereUniqueInput
+  }
+
+  /**
+   * Table findUniqueOrThrow
+   */
+  export type TableFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * Filter, which Table to fetch.
+     */
+    where: TableWhereUniqueInput
+  }
+
+  /**
+   * Table findFirst
+   */
+  export type TableFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * Filter, which Table to fetch.
+     */
+    where?: TableWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tables to fetch.
+     */
+    orderBy?: TableOrderByWithRelationInput | TableOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Tables.
+     */
+    cursor?: TableWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tables from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tables.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Tables.
+     */
+    distinct?: TableScalarFieldEnum | TableScalarFieldEnum[]
+  }
+
+  /**
+   * Table findFirstOrThrow
+   */
+  export type TableFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * Filter, which Table to fetch.
+     */
+    where?: TableWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tables to fetch.
+     */
+    orderBy?: TableOrderByWithRelationInput | TableOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Tables.
+     */
+    cursor?: TableWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tables from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tables.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Tables.
+     */
+    distinct?: TableScalarFieldEnum | TableScalarFieldEnum[]
+  }
+
+  /**
+   * Table findMany
+   */
+  export type TableFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * Filter, which Tables to fetch.
+     */
+    where?: TableWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tables to fetch.
+     */
+    orderBy?: TableOrderByWithRelationInput | TableOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Tables.
+     */
+    cursor?: TableWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tables from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tables.
+     */
+    skip?: number
+    distinct?: TableScalarFieldEnum | TableScalarFieldEnum[]
+  }
+
+  /**
+   * Table create
+   */
+  export type TableCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Table.
+     */
+    data: XOR<TableCreateInput, TableUncheckedCreateInput>
+  }
+
+  /**
+   * Table createMany
+   */
+  export type TableCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Tables.
+     */
+    data: TableCreateManyInput | TableCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Table createManyAndReturn
+   */
+  export type TableCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Tables.
+     */
+    data: TableCreateManyInput | TableCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Table update
+   */
+  export type TableUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Table.
+     */
+    data: XOR<TableUpdateInput, TableUncheckedUpdateInput>
+    /**
+     * Choose, which Table to update.
+     */
+    where: TableWhereUniqueInput
+  }
+
+  /**
+   * Table updateMany
+   */
+  export type TableUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Tables.
+     */
+    data: XOR<TableUpdateManyMutationInput, TableUncheckedUpdateManyInput>
+    /**
+     * Filter which Tables to update
+     */
+    where?: TableWhereInput
+  }
+
+  /**
+   * Table upsert
+   */
+  export type TableUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Table to update in case it exists.
+     */
+    where: TableWhereUniqueInput
+    /**
+     * In case the Table found by the `where` argument doesn't exist, create a new Table with this data.
+     */
+    create: XOR<TableCreateInput, TableUncheckedCreateInput>
+    /**
+     * In case the Table was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TableUpdateInput, TableUncheckedUpdateInput>
+  }
+
+  /**
+   * Table delete
+   */
+  export type TableDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
+    /**
+     * Filter which Table to delete.
+     */
+    where: TableWhereUniqueInput
+  }
+
+  /**
+   * Table deleteMany
+   */
+  export type TableDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Tables to delete
+     */
+    where?: TableWhereInput
+  }
+
+  /**
+   * Table without action
+   */
+  export type TableDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Table
+     */
+    select?: TableSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TableInclude<ExtArgs> | null
   }
 
 
@@ -135303,6 +136501,7 @@ export namespace Prisma {
     courierJobId: 'courierJobId',
     status: 'status',
     fulfillmentType: 'fulfillmentType',
+    tableId: 'tableId',
     customerInfo: 'customerInfo',
     customerName: 'customerName',
     customerPhone: 'customerPhone',
@@ -135462,6 +136661,25 @@ export namespace Prisma {
   };
 
   export type SignageDisplayScalarFieldEnum = (typeof SignageDisplayScalarFieldEnum)[keyof typeof SignageDisplayScalarFieldEnum]
+
+
+  export const TableScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    seats: 'seats',
+    area: 'area',
+    sortOrder: 'sortOrder',
+    isActive: 'isActive',
+    status: 'status',
+    currentOrderId: 'currentOrderId',
+    openedAt: 'openedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type TableScalarFieldEnum = (typeof TableScalarFieldEnum)[keyof typeof TableScalarFieldEnum]
 
 
   export const KdsTicketScalarFieldEnum: {
@@ -137254,6 +138472,7 @@ export namespace Prisma {
     courierStatus: 'courierStatus',
     courierProvider: 'courierProvider',
     courierJobId: 'courierJobId',
+    tableId: 'tableId',
     customerName: 'customerName',
     customerPhone: 'customerPhone',
     paymentMethod: 'paymentMethod',
@@ -137356,6 +138575,19 @@ export namespace Prisma {
   };
 
   export type SignageDisplayOrderByRelevanceFieldEnum = (typeof SignageDisplayOrderByRelevanceFieldEnum)[keyof typeof SignageDisplayOrderByRelevanceFieldEnum]
+
+
+  export const TableOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    area: 'area',
+    status: 'status',
+    currentOrderId: 'currentOrderId'
+  };
+
+  export type TableOrderByRelevanceFieldEnum = (typeof TableOrderByRelevanceFieldEnum)[keyof typeof TableOrderByRelevanceFieldEnum]
 
 
   export const KdsTicketOrderByRelevanceFieldEnum: {
@@ -140328,6 +141560,7 @@ export namespace Prisma {
     printAgents?: PrintAgentListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
     signageDisplays?: SignageDisplayListRelationFilter
+    tables?: TableListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
@@ -140412,6 +141645,7 @@ export namespace Prisma {
     printAgents?: PrintAgentOrderByRelationAggregateInput
     kdsScreens?: KdsScreenOrderByRelationAggregateInput
     signageDisplays?: SignageDisplayOrderByRelationAggregateInput
+    tables?: TableOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
     userLocations?: UserLocationOrderByRelationAggregateInput
@@ -140500,6 +141734,7 @@ export namespace Prisma {
     printAgents?: PrintAgentListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
     signageDisplays?: SignageDisplayListRelationFilter
+    tables?: TableListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
@@ -143621,6 +144856,7 @@ export namespace Prisma {
     courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
+    tableId?: StringNullableFilter<"Order"> | string | null
     customerInfo?: JsonFilter<"Order">
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
@@ -143707,6 +144943,7 @@ export namespace Prisma {
     courierJobId?: SortOrderInput | SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
+    tableId?: SortOrderInput | SortOrder
     customerInfo?: SortOrder
     customerName?: SortOrderInput | SortOrder
     customerPhone?: SortOrderInput | SortOrder
@@ -143799,6 +145036,7 @@ export namespace Prisma {
     courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
+    tableId?: StringNullableFilter<"Order"> | string | null
     customerInfo?: JsonFilter<"Order">
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
@@ -143884,6 +145122,7 @@ export namespace Prisma {
     courierJobId?: SortOrderInput | SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
+    tableId?: SortOrderInput | SortOrder
     customerInfo?: SortOrder
     customerName?: SortOrderInput | SortOrder
     customerPhone?: SortOrderInput | SortOrder
@@ -143966,6 +145205,7 @@ export namespace Prisma {
     courierJobId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     status?: EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeWithAggregatesFilter<"Order"> | $Enums.FulfillmentType
+    tableId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     customerInfo?: JsonWithAggregatesFilter<"Order">
     customerName?: StringNullableWithAggregatesFilter<"Order"> | string | null
     customerPhone?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -144577,6 +145817,104 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"SignageDisplay"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"SignageDisplay"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"SignageDisplay"> | Date | string
+  }
+
+  export type TableWhereInput = {
+    AND?: TableWhereInput | TableWhereInput[]
+    OR?: TableWhereInput[]
+    NOT?: TableWhereInput | TableWhereInput[]
+    id?: StringFilter<"Table"> | string
+    tenantId?: StringFilter<"Table"> | string
+    locationId?: StringFilter<"Table"> | string
+    name?: StringFilter<"Table"> | string
+    seats?: IntNullableFilter<"Table"> | number | null
+    area?: StringNullableFilter<"Table"> | string | null
+    sortOrder?: IntFilter<"Table"> | number
+    isActive?: BoolFilter<"Table"> | boolean
+    status?: StringFilter<"Table"> | string
+    currentOrderId?: StringNullableFilter<"Table"> | string | null
+    openedAt?: DateTimeNullableFilter<"Table"> | Date | string | null
+    createdAt?: DateTimeFilter<"Table"> | Date | string
+    updatedAt?: DateTimeFilter<"Table"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type TableOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    seats?: SortOrderInput | SortOrder
+    area?: SortOrderInput | SortOrder
+    sortOrder?: SortOrder
+    isActive?: SortOrder
+    status?: SortOrder
+    currentOrderId?: SortOrderInput | SortOrder
+    openedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: TableOrderByRelevanceInput
+  }
+
+  export type TableWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: TableWhereInput | TableWhereInput[]
+    OR?: TableWhereInput[]
+    NOT?: TableWhereInput | TableWhereInput[]
+    tenantId?: StringFilter<"Table"> | string
+    locationId?: StringFilter<"Table"> | string
+    name?: StringFilter<"Table"> | string
+    seats?: IntNullableFilter<"Table"> | number | null
+    area?: StringNullableFilter<"Table"> | string | null
+    sortOrder?: IntFilter<"Table"> | number
+    isActive?: BoolFilter<"Table"> | boolean
+    status?: StringFilter<"Table"> | string
+    currentOrderId?: StringNullableFilter<"Table"> | string | null
+    openedAt?: DateTimeNullableFilter<"Table"> | Date | string | null
+    createdAt?: DateTimeFilter<"Table"> | Date | string
+    updatedAt?: DateTimeFilter<"Table"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id">
+
+  export type TableOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    seats?: SortOrderInput | SortOrder
+    area?: SortOrderInput | SortOrder
+    sortOrder?: SortOrder
+    isActive?: SortOrder
+    status?: SortOrder
+    currentOrderId?: SortOrderInput | SortOrder
+    openedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: TableCountOrderByAggregateInput
+    _avg?: TableAvgOrderByAggregateInput
+    _max?: TableMaxOrderByAggregateInput
+    _min?: TableMinOrderByAggregateInput
+    _sum?: TableSumOrderByAggregateInput
+  }
+
+  export type TableScalarWhereWithAggregatesInput = {
+    AND?: TableScalarWhereWithAggregatesInput | TableScalarWhereWithAggregatesInput[]
+    OR?: TableScalarWhereWithAggregatesInput[]
+    NOT?: TableScalarWhereWithAggregatesInput | TableScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Table"> | string
+    tenantId?: StringWithAggregatesFilter<"Table"> | string
+    locationId?: StringWithAggregatesFilter<"Table"> | string
+    name?: StringWithAggregatesFilter<"Table"> | string
+    seats?: IntNullableWithAggregatesFilter<"Table"> | number | null
+    area?: StringNullableWithAggregatesFilter<"Table"> | string | null
+    sortOrder?: IntWithAggregatesFilter<"Table"> | number
+    isActive?: BoolWithAggregatesFilter<"Table"> | boolean
+    status?: StringWithAggregatesFilter<"Table"> | string
+    currentOrderId?: StringNullableWithAggregatesFilter<"Table"> | string | null
+    openedAt?: DateTimeNullableWithAggregatesFilter<"Table"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Table"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Table"> | Date | string
   }
 
   export type KdsTicketWhereInput = {
@@ -152231,6 +153569,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -152314,6 +153653,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -152391,6 +153731,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -152474,6 +153815,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -156076,6 +157418,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -156162,6 +157505,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -156238,6 +157582,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -156324,6 +157669,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -156405,6 +157751,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -156474,6 +157821,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -156548,6 +157896,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -157220,6 +158569,117 @@ export namespace Prisma {
     orientation?: StringFieldUpdateOperationsInput | string
     config?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TableCreateInput = {
+    id?: string
+    tenantId: string
+    name: string
+    seats?: number | null
+    area?: string | null
+    sortOrder?: number
+    isActive?: boolean
+    status?: string
+    currentOrderId?: string | null
+    openedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutTablesInput
+  }
+
+  export type TableUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    seats?: number | null
+    area?: string | null
+    sortOrder?: number
+    isActive?: boolean
+    status?: string
+    currentOrderId?: string | null
+    openedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TableUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seats?: NullableIntFieldUpdateOperationsInput | number | null
+    area?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    currentOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutTablesNestedInput
+  }
+
+  export type TableUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seats?: NullableIntFieldUpdateOperationsInput | number | null
+    area?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    currentOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TableCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    seats?: number | null
+    area?: string | null
+    sortOrder?: number
+    isActive?: boolean
+    status?: string
+    currentOrderId?: string | null
+    openedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TableUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seats?: NullableIntFieldUpdateOperationsInput | number | null
+    area?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    currentOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TableUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seats?: NullableIntFieldUpdateOperationsInput | number | null
+    area?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    currentOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165578,6 +167038,12 @@ export namespace Prisma {
     none?: KdsScreenWhereInput
   }
 
+  export type TableListRelationFilter = {
+    every?: TableWhereInput
+    some?: TableWhereInput
+    none?: TableWhereInput
+  }
+
   export type LocationPaymentConfigNullableRelationFilter = {
     is?: LocationPaymentConfigWhereInput | null
     isNot?: LocationPaymentConfigWhereInput | null
@@ -165630,6 +167096,10 @@ export namespace Prisma {
   }
 
   export type KdsScreenOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TableOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -168165,6 +169635,7 @@ export namespace Prisma {
     courierJobId?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
+    tableId?: SortOrder
     customerInfo?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
@@ -168253,6 +169724,7 @@ export namespace Prisma {
     courierJobId?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
+    tableId?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
     deliveryLat?: SortOrder
@@ -168323,6 +169795,7 @@ export namespace Prisma {
     courierJobId?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
+    tableId?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
     deliveryLat?: SortOrder
@@ -168815,6 +170288,70 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type TableOrderByRelevanceInput = {
+    fields: TableOrderByRelevanceFieldEnum | TableOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type TableCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    seats?: SortOrder
+    area?: SortOrder
+    sortOrder?: SortOrder
+    isActive?: SortOrder
+    status?: SortOrder
+    currentOrderId?: SortOrder
+    openedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TableAvgOrderByAggregateInput = {
+    seats?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type TableMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    seats?: SortOrder
+    area?: SortOrder
+    sortOrder?: SortOrder
+    isActive?: SortOrder
+    status?: SortOrder
+    currentOrderId?: SortOrder
+    openedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TableMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    seats?: SortOrder
+    area?: SortOrder
+    sortOrder?: SortOrder
+    isActive?: SortOrder
+    status?: SortOrder
+    currentOrderId?: SortOrder
+    openedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TableSumOrderByAggregateInput = {
+    seats?: SortOrder
+    sortOrder?: SortOrder
   }
 
   export type KdsScreenRelationFilter = {
@@ -175468,6 +177005,13 @@ export namespace Prisma {
     connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
   }
 
+  export type TableCreateNestedManyWithoutLocationInput = {
+    create?: XOR<TableCreateWithoutLocationInput, TableUncheckedCreateWithoutLocationInput> | TableCreateWithoutLocationInput[] | TableUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: TableCreateOrConnectWithoutLocationInput | TableCreateOrConnectWithoutLocationInput[]
+    createMany?: TableCreateManyLocationInputEnvelope
+    connect?: TableWhereUniqueInput | TableWhereUniqueInput[]
+  }
+
   export type DeliveryZoneCreateNestedManyWithoutLocationInput = {
     create?: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput> | DeliveryZoneCreateWithoutLocationInput[] | DeliveryZoneUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: DeliveryZoneCreateOrConnectWithoutLocationInput | DeliveryZoneCreateOrConnectWithoutLocationInput[]
@@ -175612,6 +177156,13 @@ export namespace Prisma {
     connectOrCreate?: SignageDisplayCreateOrConnectWithoutLocationInput | SignageDisplayCreateOrConnectWithoutLocationInput[]
     createMany?: SignageDisplayCreateManyLocationInputEnvelope
     connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+  }
+
+  export type TableUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<TableCreateWithoutLocationInput, TableUncheckedCreateWithoutLocationInput> | TableCreateWithoutLocationInput[] | TableUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: TableCreateOrConnectWithoutLocationInput | TableCreateOrConnectWithoutLocationInput[]
+    createMany?: TableCreateManyLocationInputEnvelope
+    connect?: TableWhereUniqueInput | TableWhereUniqueInput[]
   }
 
   export type DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput = {
@@ -175809,6 +177360,20 @@ export namespace Prisma {
     update?: SignageDisplayUpdateWithWhereUniqueWithoutLocationInput | SignageDisplayUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: SignageDisplayUpdateManyWithWhereWithoutLocationInput | SignageDisplayUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
+  }
+
+  export type TableUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<TableCreateWithoutLocationInput, TableUncheckedCreateWithoutLocationInput> | TableCreateWithoutLocationInput[] | TableUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: TableCreateOrConnectWithoutLocationInput | TableCreateOrConnectWithoutLocationInput[]
+    upsert?: TableUpsertWithWhereUniqueWithoutLocationInput | TableUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: TableCreateManyLocationInputEnvelope
+    set?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    disconnect?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    delete?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    connect?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    update?: TableUpdateWithWhereUniqueWithoutLocationInput | TableUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: TableUpdateManyWithWhereWithoutLocationInput | TableUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: TableScalarWhereInput | TableScalarWhereInput[]
   }
 
   export type DeliveryZoneUpdateManyWithoutLocationNestedInput = {
@@ -176085,6 +177650,20 @@ export namespace Prisma {
     update?: SignageDisplayUpdateWithWhereUniqueWithoutLocationInput | SignageDisplayUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: SignageDisplayUpdateManyWithWhereWithoutLocationInput | SignageDisplayUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: SignageDisplayScalarWhereInput | SignageDisplayScalarWhereInput[]
+  }
+
+  export type TableUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<TableCreateWithoutLocationInput, TableUncheckedCreateWithoutLocationInput> | TableCreateWithoutLocationInput[] | TableUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: TableCreateOrConnectWithoutLocationInput | TableCreateOrConnectWithoutLocationInput[]
+    upsert?: TableUpsertWithWhereUniqueWithoutLocationInput | TableUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: TableCreateManyLocationInputEnvelope
+    set?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    disconnect?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    delete?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    connect?: TableWhereUniqueInput | TableWhereUniqueInput[]
+    update?: TableUpdateWithWhereUniqueWithoutLocationInput | TableUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: TableUpdateManyWithWhereWithoutLocationInput | TableUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: TableScalarWhereInput | TableScalarWhereInput[]
   }
 
   export type DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput = {
@@ -178353,6 +179932,20 @@ export namespace Prisma {
     delete?: BrandWhereInput | boolean
     connect?: BrandWhereUniqueInput
     update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutSignageDisplaysInput, BrandUpdateWithoutSignageDisplaysInput>, BrandUncheckedUpdateWithoutSignageDisplaysInput>
+  }
+
+  export type LocationCreateNestedOneWithoutTablesInput = {
+    create?: XOR<LocationCreateWithoutTablesInput, LocationUncheckedCreateWithoutTablesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutTablesInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutTablesNestedInput = {
+    create?: XOR<LocationCreateWithoutTablesInput, LocationUncheckedCreateWithoutTablesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutTablesInput
+    upsert?: LocationUpsertWithoutTablesInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutTablesInput, LocationUpdateWithoutTablesInput>, LocationUncheckedUpdateWithoutTablesInput>
   }
 
   export type KdsScreenCreateNestedOneWithoutTicketsInput = {
@@ -182335,6 +183928,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -182419,6 +184013,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -183368,6 +184963,7 @@ export namespace Prisma {
     courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
+    tableId?: StringNullableFilter<"Order"> | string | null
     customerInfo?: JsonFilter<"Order">
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
@@ -184902,6 +186498,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -184984,6 +186581,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -185139,6 +186737,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -185221,6 +186820,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -185964,6 +187564,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -186048,6 +187649,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -186792,6 +188394,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -186874,6 +188477,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -187080,6 +188684,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -187164,6 +188769,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -188380,6 +189986,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -188464,6 +190071,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -188785,6 +190393,46 @@ export namespace Prisma {
 
   export type SignageDisplayCreateManyLocationInputEnvelope = {
     data: SignageDisplayCreateManyLocationInput | SignageDisplayCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TableCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    seats?: number | null
+    area?: string | null
+    sortOrder?: number
+    isActive?: boolean
+    status?: string
+    currentOrderId?: string | null
+    openedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TableUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    seats?: number | null
+    area?: string | null
+    sortOrder?: number
+    isActive?: boolean
+    status?: string
+    currentOrderId?: string | null
+    openedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TableCreateOrConnectWithoutLocationInput = {
+    where: TableWhereUniqueInput
+    create: XOR<TableCreateWithoutLocationInput, TableUncheckedCreateWithoutLocationInput>
+  }
+
+  export type TableCreateManyLocationInputEnvelope = {
+    data: TableCreateManyLocationInput | TableCreateManyLocationInput[]
     skipDuplicates?: boolean
   }
 
@@ -189720,6 +191368,41 @@ export namespace Prisma {
     data: XOR<SignageDisplayUpdateManyMutationInput, SignageDisplayUncheckedUpdateManyWithoutLocationInput>
   }
 
+  export type TableUpsertWithWhereUniqueWithoutLocationInput = {
+    where: TableWhereUniqueInput
+    update: XOR<TableUpdateWithoutLocationInput, TableUncheckedUpdateWithoutLocationInput>
+    create: XOR<TableCreateWithoutLocationInput, TableUncheckedCreateWithoutLocationInput>
+  }
+
+  export type TableUpdateWithWhereUniqueWithoutLocationInput = {
+    where: TableWhereUniqueInput
+    data: XOR<TableUpdateWithoutLocationInput, TableUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type TableUpdateManyWithWhereWithoutLocationInput = {
+    where: TableScalarWhereInput
+    data: XOR<TableUpdateManyMutationInput, TableUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type TableScalarWhereInput = {
+    AND?: TableScalarWhereInput | TableScalarWhereInput[]
+    OR?: TableScalarWhereInput[]
+    NOT?: TableScalarWhereInput | TableScalarWhereInput[]
+    id?: StringFilter<"Table"> | string
+    tenantId?: StringFilter<"Table"> | string
+    locationId?: StringFilter<"Table"> | string
+    name?: StringFilter<"Table"> | string
+    seats?: IntNullableFilter<"Table"> | number | null
+    area?: StringNullableFilter<"Table"> | string | null
+    sortOrder?: IntFilter<"Table"> | number
+    isActive?: BoolFilter<"Table"> | boolean
+    status?: StringFilter<"Table"> | string
+    currentOrderId?: StringNullableFilter<"Table"> | string | null
+    openedAt?: DateTimeNullableFilter<"Table"> | Date | string | null
+    createdAt?: DateTimeFilter<"Table"> | Date | string
+    updatedAt?: DateTimeFilter<"Table"> | Date | string
+  }
+
   export type DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput = {
     where: DeliveryZoneWhereUniqueInput
     update: XOR<DeliveryZoneUpdateWithoutLocationInput, DeliveryZoneUncheckedUpdateWithoutLocationInput>
@@ -190475,6 +192158,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -190557,6 +192241,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -190758,6 +192443,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -190840,6 +192526,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -190915,6 +192602,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -190997,6 +192685,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -191089,6 +192778,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -191171,6 +192861,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -191790,6 +193481,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -191872,6 +193564,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -192055,6 +193748,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -192137,6 +193831,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -193176,6 +194871,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -193258,6 +194954,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -193350,6 +195047,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -193432,6 +195130,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -193607,6 +195306,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -193689,6 +195389,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -193886,6 +195587,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -193968,6 +195670,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -196345,6 +198048,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -196429,6 +198133,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -196806,6 +198511,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -196888,6 +198594,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -197083,6 +198790,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -197165,6 +198873,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -198115,6 +199824,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -198200,6 +199910,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -198358,6 +200069,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -198443,6 +200155,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -198559,6 +200272,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -198641,6 +200355,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -198836,6 +200551,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -198918,6 +200634,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -199103,6 +200820,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -199185,6 +200903,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -199277,6 +200996,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -199359,6 +201079,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -199499,6 +201220,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -199581,6 +201303,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -200212,6 +201935,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -200294,6 +202018,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -200736,6 +202461,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -200821,6 +202547,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -200912,6 +202639,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -200997,6 +202725,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -201072,6 +202801,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -201157,6 +202887,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -201248,6 +202979,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -201333,6 +203065,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -201448,6 +203181,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -201530,6 +203264,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -201650,6 +203385,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -201732,6 +203468,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -201824,6 +203561,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -201906,6 +203644,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -202101,6 +203840,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -202183,6 +203923,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -202306,6 +204047,342 @@ export namespace Prisma {
     channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
+  export type LocationCreateWithoutTablesInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutTablesInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutTablesInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutTablesInput, LocationUncheckedCreateWithoutTablesInput>
+  }
+
+  export type LocationUpsertWithoutTablesInput = {
+    update: XOR<LocationUpdateWithoutTablesInput, LocationUncheckedUpdateWithoutTablesInput>
+    create: XOR<LocationCreateWithoutTablesInput, LocationUncheckedCreateWithoutTablesInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutTablesInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutTablesInput, LocationUncheckedUpdateWithoutTablesInput>
+  }
+
+  export type LocationUpdateWithoutTablesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutTablesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
   export type KdsScreenCreateWithoutTicketsInput = {
     id?: string
     tenantId: string
@@ -202357,6 +204434,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -202442,6 +204520,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -202568,6 +204647,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -202653,6 +204733,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -202768,6 +204849,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -202850,6 +204932,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -203093,6 +205176,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -203174,6 +205258,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -203261,6 +205346,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -203342,6 +205428,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -203439,6 +205526,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -203521,6 +205609,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -203824,6 +205913,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -203909,6 +205999,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -204250,6 +206341,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -204335,6 +206427,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -204617,6 +206710,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -204699,6 +206793,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -205038,6 +207133,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -205119,6 +207215,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -205353,6 +207450,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -205435,6 +207533,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -205761,6 +207860,7 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -205843,6 +207943,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -206160,6 +208261,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -206242,6 +208344,7 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -207124,6 +209227,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -207206,6 +209310,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -207488,6 +209593,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -207570,6 +209676,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -207911,6 +210018,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -207996,6 +210104,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -208164,6 +210273,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -208249,6 +210359,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -208745,6 +210856,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -208830,6 +210942,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -209036,6 +211149,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -209121,6 +211235,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -212227,6 +214342,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -212309,6 +214425,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -212472,6 +214589,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -212554,6 +214672,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -213809,6 +215928,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -213891,6 +216011,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -213983,6 +216104,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -214065,6 +216187,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -214141,6 +216264,7 @@ export namespace Prisma {
     printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -214223,6 +216347,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -214315,6 +216440,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -214397,6 +216523,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -214501,6 +216628,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -215033,6 +217161,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215117,6 +217246,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215197,6 +217327,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216426,6 +218557,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -216495,6 +218627,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216579,6 +218712,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216659,6 +218793,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216854,6 +218989,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -217089,6 +219225,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -217171,6 +219308,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -217469,6 +219607,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217553,6 +219692,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217633,6 +219773,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218103,6 +220244,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -218238,6 +220380,21 @@ export namespace Prisma {
     orientation?: string
     config?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TableCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    seats?: number | null
+    area?: string | null
+    sortOrder?: number
+    isActive?: boolean
+    status?: string
+    currentOrderId?: string | null
+    openedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -218406,6 +220563,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218490,6 +220648,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218570,6 +220729,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218915,6 +221075,51 @@ export namespace Prisma {
     orientation?: StringFieldUpdateOperationsInput | string
     config?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TableUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seats?: NullableIntFieldUpdateOperationsInput | number | null
+    area?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    currentOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TableUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seats?: NullableIntFieldUpdateOperationsInput | number | null
+    area?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    currentOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TableUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seats?: NullableIntFieldUpdateOperationsInput | number | null
+    area?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    currentOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    openedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -219969,6 +222174,7 @@ export namespace Prisma {
     courierJobId?: string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -220089,6 +222295,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -220173,6 +222380,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -220253,6 +222461,7 @@ export namespace Prisma {
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -221155,6 +223364,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -221236,6 +223446,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -221373,6 +223584,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -221454,6 +223666,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -221921,6 +224134,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -222002,6 +224216,7 @@ export namespace Prisma {
     printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -223921,6 +226136,10 @@ export namespace Prisma {
      * @deprecated Use SignageDisplayDefaultArgs instead
      */
     export type SignageDisplayArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SignageDisplayDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use TableDefaultArgs instead
+     */
+    export type TableArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TableDefaultArgs<ExtArgs>
     /**
      * @deprecated Use KdsTicketDefaultArgs instead
      */
