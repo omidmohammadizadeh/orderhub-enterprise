@@ -1479,9 +1479,15 @@ export class OrdersService {
       return updated;
     });
 
+    // Only STAFF actors carry a real User id. WEBHOOK/SYSTEM changes pass a
+    // synthetic label (e.g. "webhook:UBER_EATS", "system") in `changedBy` that
+    // is NOT a User.id — writing it to auditLog.userId violated the FK and
+    // spammed warnings on every marketplace status push. Store the label in
+    // meta.changedBy instead and leave userId null for non-staff actors.
+    const auditUserId = actorType === "STAFF" ? changedBy : undefined;
     void this.audit.log({
       tenantId,
-      userId: changedBy,
+      userId: auditUserId,
       event: `order.status.${newStatus.toLowerCase()}`,
       resource: "order",
       resourceId: orderId,
@@ -1491,6 +1497,7 @@ export class OrdersService {
         locationId: order.locationId,
         platform: order.platform,
         actorType,
+        changedBy,
         cancelReason: dto.cancelReason,
       },
     });
