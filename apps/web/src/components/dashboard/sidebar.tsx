@@ -144,8 +144,10 @@ const financeNav: NavItem[] = [
 
 const secondaryNav: NavItem[] = [
   { href: "/dashboard/settings/kitchen", label: "Kitchen screens", icon: MonitorCheck, roles: MANAGER_TIER },
-  { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: MANAGER_TIER },
-  { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: MANAGER_TIER },
+  // Security / Branding / Sandbox are platform-admin-only — internal tooling
+  // and cross-tenant settings that client owners/managers should never see.
+  { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: ["PLATFORM_ADMIN"] },
+  { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
 ];
 
