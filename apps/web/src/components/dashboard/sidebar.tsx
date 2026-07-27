@@ -80,6 +80,7 @@ const FINANCE_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGE
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
+  { href: "/dashboard/tables", label: "Tables", icon: UtensilsCrossed, roles: STAFF_TIER },
   // Phase AW — Direct online ordering settings moved into the per-brand
   // settings drawer (Locations → Brands → DIRECT_ONLINE channel →
   // Connect). The settings are now per-brand so a kitchen running two
