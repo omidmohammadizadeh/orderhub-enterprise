@@ -936,6 +936,8 @@ export class OrdersService {
     if (dto.paymentProvider !== undefined) {
       posUpdate.paymentProvider = dto.paymentProvider;
     }
+    // Table Tabs — persist the table link so addRound() can append to the tab.
+    if (dto.tableId !== undefined) posUpdate.tableId = dto.tableId;
     if (dto.paymentStatus !== undefined) {
       posUpdate.paymentStatus = dto.paymentStatus as any;
     }

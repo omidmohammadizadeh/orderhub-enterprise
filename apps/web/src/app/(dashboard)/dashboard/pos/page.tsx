@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Search, ShoppingBag, Pencil, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { round2, type SelectedModifier, type ProductSku } from "@orderhub/shared";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import {
@@ -52,6 +52,7 @@ import {
 } from "@/lib/pos/idb-storage";
 import { startSyncWorker } from "@/lib/pos/sync-worker";
 import { useOnlineStatus, useSyncQueue } from "@/lib/pos/use-online-status";
+import { tablesClient } from "@/lib/api/tables.client";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -73,6 +74,34 @@ export default function PosPage() {
   } | null>(null);
   useEffect(() => startSyncWorker(), []);
 
+  // ── Table Tabs (dine-in) — active only when opened from the Tables floor
+  // (?tableId=…). Everything below is guarded on tableId, so ordinary takeaway
+  // POS is completely unaffected.
+  const searchParams = useSearchParams();
+  const tableId = searchParams.get("tableId");
+  const tableName = searchParams.get("tableName");
+  const tableQuery = useQuery({
+    queryKey: ["pos-table", tableId, selectedLocationId],
+    queryFn: () => tablesClient.list(selectedLocationId!),
+    enabled: !!tableId && !!selectedLocationId,
+    refetchInterval: 10_000,
+  });
+  const currentTable =
+    (tableQuery.data ?? []).find((t) => t.id === tableId) ?? null;
+  const tabOrderId = currentTable?.currentOrderId ?? null;
+  const tabOrderQuery = useQuery({
+    queryKey: ["pos-tab-order", tabOrderId],
+    queryFn: () =>
+      apiClient.get(`/v1/orders/${tabOrderId}`).then((r) => r.data),
+    enabled: !!tabOrderId,
+    refetchInterval: 10_000,
+  });
+  const tabTotal = Number((tabOrderQuery.data as any)?.total ?? 0);
+  const tabItemCount = ((tabOrderQuery.data as any)?.items ?? []).reduce(
+    (s: number, i: any) => s + (i.quantity ?? 0),
+    0,
+  );
+
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -87,6 +116,9 @@ export default function PosPage() {
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showPromosModal, setShowPromosModal] = useState(false);
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
+  // Table Tabs — true while the charge modal is settling a tab (so its close
+  // handler completes the order + frees the table when paid).
+  const [closingTab, setClosingTab] = useState(false);
   const [payLinkOrder, setPayLinkOrder] = useState<
     { id: string; amount: number; number: string; customerPhone?: string } | null
   >(null);
@@ -308,6 +340,58 @@ export default function PosPage() {
         marketingConsent: payload.marketingConsent,
       };
 
+      // ── Table Tabs (dine-in): send this round to the kitchen ──
+      // First send creates + links the tab order (fired to the kitchen via
+      // auto-accept); later sends append a round (fires only the new items).
+      // Payment is taken at the end via "Pay & close", not per round.
+      if (tableId) {
+        if (typeof navigator !== "undefined" && !navigator.onLine) {
+          throw new Error("Reconnect to use table service.");
+        }
+        if (tabOrderId) {
+          await apiClient.post(`/v1/orders/${tabOrderId}/rounds`, {
+            items: body.items,
+          });
+          return {
+            id: tabOrderId,
+            scheduled: false,
+            edited: false,
+            paymentMethod: "CASH",
+            total: tabTotal,
+            offline: false,
+            dineIn: "round" as const,
+          };
+        }
+        const created = (
+          await apiClient.post("/v1/orders", {
+            ...body,
+            fulfillmentType: "DINE_IN",
+            tableId,
+            paymentMethod: "CASH",
+            paymentStatus: "PENDING",
+          })
+        ).data as { id: string };
+        await tablesClient.linkOrder(tableId, created.id).catch(() => {});
+        try {
+          await apiClient.patch(`/v1/orders/${created.id}/status`, {
+            status: "ACCEPTED",
+            note: "Dine-in tab",
+          });
+        } catch (err: any) {
+          const msg = String(err?.response?.data?.message ?? "");
+          if (!/ACCEPTED\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) throw err;
+        }
+        return {
+          id: created.id,
+          scheduled: false,
+          edited: false,
+          paymentMethod: "CASH",
+          total: Number(payload.total ?? 0),
+          offline: false,
+          dineIn: "first" as const,
+        };
+      }
+
       // Phase AW-22 — edit branch: PATCH /v1/orders/:id/edit with a
       // narrower payload. Server enforces status / payment / source
       // constraints, replaces line items in a transaction, and
@@ -333,6 +417,7 @@ export default function PosPage() {
           paymentMethod: payload.paymentMethod,
           total: payload.total,
           offline: false,
+          dineIn: null,
         };
       }
 
@@ -373,6 +458,7 @@ export default function PosPage() {
           paymentMethod: payload.paymentMethod,
           total: payload.total,
           offline: true,
+          dineIn: null,
         };
       }
 
@@ -426,12 +512,38 @@ export default function PosPage() {
         paymentMethod: payload.paymentMethod,
         total: payload.total,
         offline: false,
+        dineIn: null,
       };
     },
     onSuccess: (
-      { id, scheduled, edited, paymentMethod, total, offline: wasOffline },
+      {
+        id,
+        scheduled,
+        edited,
+        paymentMethod,
+        total,
+        offline: wasOffline,
+        dineIn,
+      },
       variables,
     ) => {
+      // Dine-in tab: this round went to the kitchen. No charge now (pay at the
+      // end via "Pay & close"); just reset the cart and refresh the tab.
+      if (dineIn) {
+        setSubmitFeedback(
+          dineIn === "first"
+            ? `Tab opened for ${tableName ?? "table"} — sent to kitchen.`
+            : `Added to ${tableName ?? "table"} tab.`,
+        );
+        setCart([]);
+        setDraft({});
+        setCartResetKey((k) => k + 1);
+        if (selectedLocationId) clearCartDraft(selectedLocationId);
+        void tableQuery.refetch();
+        void tabOrderQuery.refetch();
+        window.setTimeout(() => setSubmitFeedback(null), 4000);
+        return;
+      }
       // Offline: the order is saved locally and will sync on reconnect. No
       // charge/pay-link modals (cash only), just confirm + reset.
       if (wasOffline) {
@@ -492,6 +604,36 @@ export default function PosPage() {
       window.setTimeout(() => setSubmitFeedback(null), 6000);
     },
   });
+
+  // ── Table Tabs: settle & close ────────────────────────────────────────────
+  const payAndCloseTab = () => {
+    if (!tabOrderId) return;
+    setClosingTab(true);
+    setChargeOrder({ id: tabOrderId, amount: tabTotal });
+  };
+  const handleChargeClose = async () => {
+    setChargeOrder(null);
+    if (!closingTab || !tabOrderId || !tableId) return;
+    setClosingTab(false);
+    try {
+      const ord = (await apiClient.get(`/v1/orders/${tabOrderId}`)).data as any;
+      if (ord?.paymentStatus === "PAID") {
+        // Best-effort complete (transition may be rejected — the free is what
+        // matters), then free the table and return to the floor.
+        await apiClient
+          .patch(`/v1/orders/${tabOrderId}/status`, {
+            status: "COMPLETED",
+            note: "Tab settled",
+          })
+          .catch(() => {});
+        await tablesClient.free(tableId).catch(() => {});
+        setSubmitFeedback(`${tableName ?? "Table"} settled and cleared.`);
+        router.push("/dashboard/tables");
+      }
+    } catch {
+      /* leave the tab open if we couldn't confirm payment */
+    }
+  };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const onProductClick = (item: MenuItem) => {
@@ -569,12 +711,37 @@ export default function PosPage() {
           </button>
         </div>
       )}
+      {/* Table Tabs — dine-in banner + settle */}
+      {tableId && (
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-md bg-indigo-50 px-3 py-2 text-sm text-indigo-900">
+          <span>
+            <b>Dine-in · {tableName ?? "Table"}</b>
+            {tabOrderId
+              ? ` — running tab: ${tabItemCount} item${
+                  tabItemCount === 1 ? "" : "s"
+                }, £${tabTotal.toFixed(2)}. Add items and “Send to kitchen”.`
+              : " — add items and “Send to kitchen” to open the tab."}
+          </span>
+          {tabOrderId && (
+            <button
+              onClick={payAndCloseTab}
+              className="shrink-0 rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+            >
+              Pay &amp; close · £{tabTotal.toFixed(2)}
+            </button>
+          )}
+        </div>
+      )}
       {/* Top bar */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900">POS</h1>
+          <h1 className="text-lg font-semibold text-zinc-900">
+            {tableId ? `POS · ${tableName ?? "Table"}` : "POS"}
+          </h1>
           <p className="text-sm text-zinc-500">
-            Walk-in, phone &amp; scheduled orders
+            {tableId
+              ? "Dine-in tab — items you add are sent to the kitchen."
+              : "Walk-in, phone & scheduled orders"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -715,7 +882,7 @@ export default function PosPage() {
           orderId={chargeOrder?.id ?? null}
           amount={chargeOrder?.amount ?? 0}
           locationId={selectedLocationId}
-          onClose={() => setChargeOrder(null)}
+          onClose={handleChargeClose}
         />
       )}
 

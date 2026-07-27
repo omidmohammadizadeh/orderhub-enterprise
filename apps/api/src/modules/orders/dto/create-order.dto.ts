@@ -72,6 +72,8 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() specialInstructions?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() scheduledFor?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() idempotencyKey?: string;
+  // Table Tabs — set on a DINE_IN order that is a table's running tab.
+  @ApiPropertyOptional() @IsOptional() @IsString() tableId?: string;
 
   @ApiProperty()
   @ValidateNested()

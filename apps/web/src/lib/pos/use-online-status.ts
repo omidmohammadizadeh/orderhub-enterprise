@@ -5,7 +5,8 @@
 // payment when the network is down.
 
 import { useCallback, useEffect, useState } from "react";
-import { listQueue, type QueuedOrder } from "./idb-storage";
+import type { QueuedOrder } from "./idb-storage";
+import { listQueue } from "./idb-storage";
 import { drainQueue } from "./sync-worker";
 
 export function useOnlineStatus(): boolean {
