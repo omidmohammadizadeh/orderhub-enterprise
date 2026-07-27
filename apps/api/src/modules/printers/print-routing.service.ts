@@ -62,6 +62,24 @@ export interface ResolveOptions {
   // a "this item won't print — assign a printer" warning instead of
   // silently dropping it.
   includeUnrouted?: boolean;
+  // Table Tabs — round chit. When set, route/print ONLY these items
+  // instead of the order's full item list (the round's new lines).
+  // Station routing still applies per item, so a drinks round goes to
+  // the bar printer and a food round to the kitchen.
+  itemsOverride?: {
+    menuItemId?: string | null;
+    name: string;
+    quantity: number;
+    modifiers?: { name: string; quantity?: number; price?: number }[];
+    notes?: string | null;
+  }[];
+  // Skip receipt / driver-slip / dispatch targets — kitchen tickets only.
+  // A round chit must never re-print the customer receipt.
+  kitchenOnly?: boolean;
+  // Replaces specialInstructions on the kitchen payload so the chit prints
+  // a bold "ROUND 2 — NEW ITEMS ONLY" banner via the existing NOTE block
+  // (zero renderer changes needed).
+  chitNote?: string;
 }
 
 interface OrderItemForRouting {
@@ -158,7 +176,10 @@ export class PrintRoutingService {
       locationPhone: brand?.phone ?? locationFull?.phone ?? null,
     };
 
-    const items: OrderItemForRouting[] = (order.items as any[]).map((i) => ({
+    // Table Tabs — a round chit routes only the round's NEW items; every
+    // other caller routes the order's full item list.
+    const sourceItems: any[] = opts.itemsOverride ?? (order.items as any[]);
+    const items: OrderItemForRouting[] = sourceItems.map((i) => ({
       menuItemId: i.menuItemId,
       categoryId: null, // resolved per-item below
       name: i.name,
@@ -265,13 +286,18 @@ export class PrintRoutingService {
           customerPhone: this.phoneWithAccessCode(order),
           fulfillmentType: order.fulfillmentType,
           deliveryAddress: this.formatDeliveryAddress(order),
-          specialInstructions: order.specialInstructions ?? null,
+          specialInstructions:
+            opts.chitNote ?? order.specialInstructions ?? null,
           receivedAt: order.receivedAt ?? order.createdAt,
           customerVisitCount,
           customerVisitTag,
         },
       });
     }
+
+    // Table Tabs — round chits are kitchen-only: never re-print the
+    // customer receipt or driver slip for an appended round.
+    if (opts.kitchenOnly) return targets;
 
     // Customer receipt — one per order. Prefer the explicit binding on
     // Location; for first-time setups where the operator hasn't

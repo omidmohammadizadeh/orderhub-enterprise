@@ -1313,6 +1313,13 @@ export class OrdersService {
     const addedTotal = items.reduce((s, i) => s + Number(i.totalPrice), 0);
     const addedCount = items.reduce((s, i) => s + i.quantity, 0);
 
+    // Round number for the paper chit: round 1 was the initial send, each
+    // prior "Tab round added" history row is one appended round since.
+    const priorRounds = await this.prisma.orderStatusHistory.count({
+      where: { orderId: order.id, note: { startsWith: "Tab round added" } },
+    });
+    const roundNumber = priorRounds + 2;
+
     const updated = await this.prisma.$transaction(async (tx) => {
       await tx.orderItem.createMany({
         data: items.map((it) => ({
@@ -1371,6 +1378,26 @@ export class OrdersService {
       orderId: updated.id,
       locationId: updated.locationId,
     });
+
+    // Paper round chit — ONLY the new items, routed per station, with a
+    // "ROUND N" banner. Best-effort: a printer problem must never fail
+    // the round itself (the KDS resync above already has the items).
+    void this.printJobs
+      .createRoundChit({
+        orderId: updated.id,
+        roundNumber,
+        items: items.map((it) => ({
+          name: it.name,
+          quantity: it.quantity,
+          modifiers: it.modifiers ?? [],
+          notes: it.notes ?? null,
+        })),
+      })
+      .catch((err: any) =>
+        this.logger.warn(
+          `Round chit failed for ${updated.id} (round ${roundNumber}): ${err?.message}`,
+        ),
+      );
 
     return updated;
   }

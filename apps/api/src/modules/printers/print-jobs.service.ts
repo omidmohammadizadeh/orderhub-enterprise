@@ -276,6 +276,112 @@ export class PrintJobsService {
     return created;
   }
 
+  // ── Table Tabs — round chit ─────────────────────────────────────────
+  //
+  // A dine-in tab round appends items to the existing order. The kitchen
+  // paper trail must show ONLY the new lines (the KDS already resyncs with
+  // per-item state) — re-firing the whole ticket would double-cook round 1.
+  // Routes the round's items through the normal station routing (drinks →
+  // bar printer, food → kitchen) with a bold "ROUND N — NEW ITEMS ONLY"
+  // note, kitchen tickets only (never the customer receipt).
+
+  async createRoundChit(args: {
+    orderId: string;
+    roundNumber: number;
+    items: {
+      name: string;
+      quantity: number;
+      modifiers?: { name: string; quantity?: number; price?: number }[];
+      notes?: string | null;
+    }[];
+  }): Promise<string[]> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: args.orderId },
+      select: { id: true, tenantId: true, locationId: true },
+    });
+    if (!order || !order.locationId) {
+      throw new NotFoundException("Order not found");
+    }
+
+    const targets = await this.routing.resolveForOrder(args.orderId, {
+      trigger: "ORDER_ACCEPTED",
+      kitchenOnly: true,
+      itemsOverride: args.items,
+      chitNote: `ROUND ${args.roundNumber} — NEW ITEMS ONLY`,
+    });
+    if (!targets.length) return [];
+
+    // Respect each kitchen printer's autoPrintRules — a printer that never
+    // auto-prints on accept shouldn't suddenly fire for rounds either.
+    const filtered = await this.filterTargetsByAutoRules(
+      targets,
+      "ORDER_ACCEPTED",
+    );
+    if (!filtered.length) return [];
+
+    const created: string[] = [];
+    for (const t of filtered) {
+      const idempotencyKey = `order:${args.orderId}:round:${args.roundNumber}:${t.stationId ?? "-"}`;
+      try {
+        const row = await (this.prisma as any).printJob.create({
+          data: {
+            tenantId: order.tenantId,
+            locationId: order.locationId,
+            orderId: args.orderId,
+            printerId: t.printerId,
+            stationId: t.stationId,
+            type: t.type,
+            status: "QUEUED",
+            payload: t.payload,
+            copies: t.copies,
+            trigger: "ORDER_ACCEPTED",
+            routeKey: t.routeKey,
+            idempotencyKey,
+          },
+        });
+        created.push(row.id);
+        // Same bridge-dashboard notification as createFromOrder — tablet
+        // bridges render + print from this event.
+        const liteForBridge = (() => {
+          const p = (t.payload ?? {}) as Record<string, any>;
+          const { brandLogoUrl, ...rest } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
+          return rest;
+        })();
+        this.socket.emitToLocation(
+          order.locationId,
+          "printer:job:created" as any,
+          {
+            id: row.id,
+            type: row.type,
+            printerId: row.printerId,
+            stationId: row.stationId,
+            status: row.status,
+            locationId: order.locationId,
+            orderId: args.orderId,
+            trigger: "ORDER_ACCEPTED",
+            copies: row.copies,
+            payload: liteForBridge,
+          } as any,
+        );
+      } catch (err: any) {
+        // Idempotent replay (double-tap of Send) — reuse the existing row.
+        if (err?.code === "P2002") {
+          const existing = await (this.prisma as any).printJob.findUnique({
+            where: { idempotencyKey },
+            select: { id: true },
+          });
+          if (existing) created.push(existing.id);
+          continue;
+        }
+        throw err;
+      }
+    }
+    this.logger.log(
+      `Round chit created for order ${args.orderId} (round ${args.roundNumber}): ${created.length} job(s)`,
+    );
+    return created;
+  }
+
   // ── Reprint ─────────────────────────────────────────────────────────
   //
   // Always emits NEW rows so the audit trail is intact. Reprints are

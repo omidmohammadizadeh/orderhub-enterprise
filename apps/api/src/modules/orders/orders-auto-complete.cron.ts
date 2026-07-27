@@ -43,15 +43,39 @@ export class OrdersAutoCompleteCron {
   @Cron("0 5 * * *")
   async run() {
     const cutoff = new Date(Date.now() - 60 * 60 * 1000); // 1h grace
+
+    // Table Tabs — an OPEN dine-in tab (the table is still OCCUPIED and points
+    // at this order as its running bill) must survive the rollover. It's real,
+    // unpaid revenue: force-completing it would silently close the bill
+    // without payment and strand the table as occupied-with-no-order. The tab
+    // ages off normally once it's settled (Pay & close → COMPLETED + table
+    // freed), so only genuinely open tabs are held back.
+    const openTabs = await this.prisma.table.findMany({
+      where: { status: "OCCUPIED", currentOrderId: { not: null } },
+      select: { currentOrderId: true },
+    });
+    const openTabOrderIds = openTabs
+      .map((t) => t.currentOrderId)
+      .filter((id): id is string => id !== null);
+
     const rows = await this.prisma.order.findMany({
       where: {
         status: {
           in: OrdersAutoCompleteCron.IN_FLIGHT_STATUSES as any,
         },
         updatedAt: { lt: cutoff },
+        ...(openTabOrderIds.length > 0 && {
+          id: { notIn: openTabOrderIds },
+        }),
       },
       select: { id: true, tenantId: true, status: true },
     });
+
+    if (openTabOrderIds.length > 0) {
+      this.logger.log(
+        `Auto-complete: holding back ${openTabOrderIds.length} open table tab(s) from the rollover.`,
+      );
+    }
 
     if (rows.length === 0) {
       this.logger.log("Auto-complete: no in-flight orders to roll over.");
