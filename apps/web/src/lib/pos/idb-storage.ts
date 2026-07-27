@@ -44,8 +44,15 @@ interface MenuCacheRow {
   cachedAt: number;
 }
 
+// Open ONCE and keep the connection open for the tab's lifetime. Opening +
+// closing a connection per operation (as an earlier version did) let a close
+// from one op abort another op's transaction / block the shared version, which
+// could make a write hang forever — the POS "Place order" would just spin.
+let dbPromise: Promise<IDBDatabase> | null = null;
+
 function idb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") {
       reject(new Error("IndexedDB unavailable"));
       return;
@@ -60,9 +67,22 @@ function idb(): Promise<IDBDatabase> {
         db.createObjectStore(QUEUE_STORE, { keyPath: "localId" });
       }
     };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error ?? new Error("IndexedDB open failed"));
+    // Another tab holding an older version blocks our upgrade — surface it
+    // instead of hanging silently.
+    req.onblocked = () =>
+      reject(new Error("IndexedDB blocked by another tab — close it and retry"));
+    req.onsuccess = () => {
+      const db = req.result;
+      // If a versionchange comes from another tab, close so it isn't blocked.
+      db.onversionchange = () => db.close();
+      resolve(db);
+    };
+    req.onerror = () => {
+      dbPromise = null; // let a later call retry a failed open
+      reject(req.error ?? new Error("IndexedDB open failed"));
+    };
   });
+  return dbPromise;
 }
 
 function tx<T>(
@@ -78,14 +98,10 @@ function tx<T>(
         let out: T | undefined;
         const r = run(s);
         if (r) r.onsuccess = () => (out = r.result);
-        t.oncomplete = () => {
-          db.close();
-          resolve(out);
-        };
-        t.onerror = () => {
-          db.close();
-          reject(t.error ?? new Error("IndexedDB tx failed"));
-        };
+        // Never close the shared connection here — it stays open for the tab.
+        t.oncomplete = () => resolve(out);
+        t.onerror = () => reject(t.error ?? new Error("IndexedDB tx failed"));
+        t.onabort = () => reject(t.error ?? new Error("IndexedDB tx aborted"));
       }),
   );
 }

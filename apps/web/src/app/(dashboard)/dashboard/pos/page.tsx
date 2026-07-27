@@ -347,13 +347,25 @@ export default function PosPage() {
             "You're offline — only cash orders can be taken. Reconnect to take card or online payments.",
           );
         }
-        await enqueueOrder({
-          localId,
-          locationId: selectedLocationId,
-          body,
-          total: Number(payload.total ?? 0),
-          customerName: payload.customerName || "Walk-in",
-        });
+        // Never let a stalled IndexedDB spin "Place order" forever — cap it.
+        await Promise.race([
+          enqueueOrder({
+            localId,
+            locationId: selectedLocationId,
+            body,
+            total: Number(payload.total ?? 0),
+            customerName: payload.customerName || "Walk-in",
+          }),
+          new Promise((_, reject) =>
+            window.setTimeout(
+              () =>
+                reject(
+                  new Error("Couldn't save the order on this device — try again."),
+                ),
+              5000,
+            ),
+          ),
+        ]);
         return {
           id: localId,
           scheduled: payload.isScheduled,
