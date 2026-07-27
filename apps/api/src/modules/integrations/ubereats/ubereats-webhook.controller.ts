@@ -223,6 +223,52 @@ export class UberEatsWebhookController {
         const result = await this.menuPublish.republishForStore(storeId);
         return { handled: true, ...result };
       }
+      case "store.status.changed": {
+        // Uber notifies us when a store's availability changes on their side
+        // (e.g. their ops paused it, or it went offline for hours). We PROCESS
+        // it (not just ack): resolve the store's new status and persist it as an
+        // activity row so the dashboard reflects reality and there is a clear
+        // "received AND processed" signal in the logs (Uber cert item).
+        const storeId: string = String(
+          body?.meta?.user_id ??
+            body?.store_id ??
+            body?.user_id ??
+            body?.resource_id ??
+            "",
+        );
+        if (!storeId) return { handled: false, reason: "no_store_id" };
+        const status =
+          body?.status ??
+          body?.store_status ??
+          body?.current_status ??
+          body?.data?.status ??
+          null;
+        try {
+          const conn = await this.prisma.brandPlatformConnection.findFirst({
+            where: { platform: "UBER_EATS", externalStoreId: storeId },
+            select: { tenantId: true, brandId: true, locationId: true },
+          });
+          if (conn?.tenantId) {
+            this.activity?.record({
+              tenantId: conn.tenantId,
+              brandId: conn.brandId,
+              locationId: conn.locationId,
+              category: "STATUS" as any,
+              channel: "UBER_EATS",
+              action: "store.status.changed",
+              status: "INFO",
+              message: `Uber store status changed → ${status ?? "unknown"} (processed)`,
+              details: { storeId, status },
+            });
+          }
+        } catch {
+          /* never fail the 200 back to Uber over a log write */
+        }
+        this.logger.log(
+          `Uber Eats store.status.changed store=${storeId} status=${status ?? "?"}`,
+        );
+        return { handled: true, status };
+      }
       default: {
         // orders.notification / orders.cancel / orders.release /
         // order.fulfillment_issues.resolved → the order router.
