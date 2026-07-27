@@ -231,24 +231,39 @@ export class UberEatsOrderService {
     if (!externalId) return { handled: false, reason: "no_order_id" };
     const row = await this.prisma.order.findFirst({
       where: { externalId, platform: "UBER_EATS" },
-      select: { id: true, tenantId: true, status: true },
+      select: {
+        id: true,
+        tenantId: true,
+        brandId: true,
+        locationId: true,
+        status: true,
+      },
     });
     if (!row) return { handled: false, reason: "order_not_found" };
-    try {
-      await this.orders.updateStatus(
-        row.id,
-        row.tenantId,
-        { status: "RIDER_ARRIVED" as any } as any,
-        "ubereats-webhook",
-        "WEBHOOK",
-      );
-      return { handled: true, orderId: row.id };
-    } catch (err: any) {
-      // Out-of-sequence release (e.g. order still PENDING) — log + move on.
-      this.logger.warn(
-        `Uber Eats orders.release for ${externalId} rejected: ${err?.message}`,
-      );
-      return { handled: false, reason: "transition_rejected", orderId: row.id };
-    }
+    // `orders.release` means Uber released the order from a hold (fraud check /
+    // scheduling window) TO THE STORE for preparation — it does NOT mean a
+    // courier has arrived. Previously we transitioned the order to
+    // RIDER_ARRIVED here, but that status isn't on the live board's active
+    // list, so a freshly-accepted order VANISHED from the kitchen ~1.5s after
+    // it appeared. Rider/courier state for Uber-delivered orders arrives
+    // separately via delivery.state_changed, and merchant-delivery orders have
+    // no Uber rider at all. So: DO NOT change status here — keep the order in
+    // its current active state (PENDING/ACCEPTED/PREPARING) so staff can see
+    // and prepare it. Just record the release for the activity log.
+    this.activity?.record({
+      tenantId: row.tenantId,
+      brandId: row.brandId,
+      locationId: row.locationId,
+      category: "ORDERS",
+      channel: "UBER_EATS",
+      action: "order.released",
+      status: "INFO",
+      message: `Uber released order to store for preparation (kept on board)`,
+      details: { uberOrderId: externalId, status: row.status },
+    });
+    this.logger.log(
+      `Uber Eats orders.release for ${externalId} — kept active (status=${row.status}, no transition)`,
+    );
+    return { handled: true, orderId: row.id };
   }
 }
