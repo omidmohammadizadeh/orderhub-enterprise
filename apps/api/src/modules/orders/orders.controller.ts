@@ -24,6 +24,34 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import type { UserRole } from "@orderhub/database";
+
+// Role tiers for POS/order operations. The schema carries BOTH the legacy role
+// names (TENANT_OWNER, CASHIER…) and the newer Team-Roles names (OWNER, STAFF,
+// DARK_KITCHEN_MANAGER) which coexist — a user assigned a Team Role was being
+// 403'd by decorators that only listed the legacy names. These tiers list both
+// so every equivalent role can operate the POS.
+//
+// POS_STAFF — anyone who can take an order at the till: admin, owner, manager,
+// dark-kitchen manager, and front-line staff/cashier.
+const POS_STAFF: UserRole[] = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "MANAGER",
+  "DARK_KITCHEN_MANAGER",
+  "CASHIER",
+  "STAFF",
+];
+// POS_MANAGER — supervisory actions (edit an order, create a test order):
+// everyone above except front-line staff/cashier.
+const POS_MANAGER: UserRole[] = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "MANAGER",
+  "DARK_KITCHEN_MANAGER",
+];
 
 @ApiTags("orders")
 @ApiBearerAuth()
@@ -34,7 +62,7 @@ export class OrdersController {
 
   // ── POST /api/v1/orders ───────────────────────────────
   @Post()
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...POS_STAFF)
   @ApiOperation({ summary: "Create a direct / POS order" })
   @ApiResponse({ status: 201 })
   async create(
@@ -50,7 +78,7 @@ export class OrdersController {
   // without involving a live delivery platform. Marked isSandbox=true so
   // it can be cleared via the sandbox endpoint and excluded from reports.
   @Post("test")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...POS_MANAGER)
   @ApiOperation({ summary: "Create a sandbox test order (Phase AJ)" })
   @ApiResponse({ status: 201 })
   async createTest(
@@ -139,7 +167,7 @@ export class OrdersController {
   // Transitions PENDING → ACCEPTED (triggering the print pipeline).
   @Post(":id/start-preparing")
   @HttpCode(HttpStatus.OK)
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...POS_STAFF)
   @ApiOperation({ summary: "Start preparing a scheduled order now" })
   async startPreparing(
     @Param("id") id: string,
@@ -167,7 +195,7 @@ export class OrdersController {
   // about. Constraints (status, payment, source) enforced server-
   // side too — this gate is just for permissions.
   @Patch(":id/edit")
-  @Roles("MANAGER", "DARK_KITCHEN_MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...POS_MANAGER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
@@ -186,13 +214,7 @@ export class OrdersController {
   // prior items + their KDS states) and fires only the new items to the
   // kitchen, unlike /edit which replaces everything.
   @Post(":id/rounds")
-  @Roles(
-    "CASHIER",
-    "MANAGER",
-    "DARK_KITCHEN_MANAGER",
-    "TENANT_OWNER",
-    "PLATFORM_ADMIN",
-  )
+  @Roles(...POS_STAFF)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Add a round of items to an open table tab" })
   async addRound(
@@ -230,7 +252,7 @@ export class OrdersController {
   // terminal). The Stripe Terminal flow settles PAID automatically; this is
   // the manual fallback.
   @Patch(":id/payment-status")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @Roles(...POS_STAFF)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set an order's payment status (PAID / PENDING)" })
   async setPaymentStatus(

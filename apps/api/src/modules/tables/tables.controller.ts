@@ -26,8 +26,16 @@ interface UpsertBody {
 // Table Tabs (dine-in). Layout CRUD is manager-tier; the operational actions
 // (list / seat / free / link a tab's order) are open to front-of-house staff
 // (CASHIER) too. Tenant scope comes from the verified JWT.
-const MANAGE = ["PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER"] as const;
-const OPERATE = ["PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER", "CASHIER"] as const;
+// Lists include BOTH legacy role names and the newer Team-Roles (OWNER, STAFF,
+// DARK_KITCHEN_MANAGER) so every equivalent role can run table service.
+const MANAGE = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "MANAGER",
+  "DARK_KITCHEN_MANAGER",
+] as const;
+const OPERATE = [...MANAGE, "CASHIER", "STAFF"] as const;
 
 @ApiTags("tables")
 @ApiBearerAuth()
