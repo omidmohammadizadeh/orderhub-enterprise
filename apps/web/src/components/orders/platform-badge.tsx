@@ -10,7 +10,11 @@ const FULFILLMENT_CONFIG: Record<string, { label: string; color: string }> = {
   PICKUP: { label: "Pickup", color: "bg-sky-100 text-sky-700" },
   DELIVERY: { label: "Delivery", color: "bg-emerald-100 text-emerald-700" },
   DINE_IN: { label: "Dine in", color: "bg-amber-100 text-amber-700" },
-  MERCHANT_DELIVERY: { label: "Own delivery", color: "bg-indigo-100 text-indigo-700" },
+  // MERCHANT_DELIVERY previously rendered "Own delivery" here, which read as a
+  // third order type next to Delivery/Pickup. The order TYPE is simply
+  // Delivery — who runs it (own driver vs platform courier) is already carried
+  // by the separate MERCHANT/PLATFORM delivery badge column.
+  MERCHANT_DELIVERY: { label: "Delivery", color: "bg-emerald-100 text-emerald-700" },
   PLATFORM_COURIER: { label: "Delivery", color: "bg-emerald-100 text-emerald-700" },
 };
 
