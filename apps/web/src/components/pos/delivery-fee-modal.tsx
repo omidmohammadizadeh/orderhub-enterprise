@@ -6,9 +6,13 @@
 // list for THIS location: each row = a postcode prefix + fee + optional
 // minimum order value. The cart panel's lookup hits the same zones.
 //
-// Postcode prefix is normalised to its first 4 chars (e.g. user types
-// "NE10 8YH" → stored as "NE10"). 4 chars covers the UK "outward+area"
-// granularity that POS operators commonly use to price delivery.
+// A zone key can be any length: a broad outward prefix (NE10), a 4-char
+// outward+area code (NE108 → NE108... wait: outward "NE10" or district
+// "NE108"), or a FULL postcode (NE10 8YH → NE108YH). We store it exactly as
+// typed (uppercased, no spaces) — the same normalisation online ordering uses
+// — and the cart's longest-prefix matcher picks the most specific zone the
+// customer's postcode starts with. This mirrors the storefront so POS and
+// online price delivery identically.
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,12 +24,12 @@ interface Props {
   onClose: () => void;
 }
 
-/** Take the first 4 characters of a UK postcode, uppercase, no whitespace.
- *  "ne10 8yh" → "NE10". "SW1A" stays "SW1A". Single-letter areas like
- *  "M1 1AA" still yield 4 chars ("M11A") — slightly odd, but the cart's
- *  longest-prefix matcher still does the right thing. */
+/** Uppercase, strip all whitespace — no truncation. Mirrors the backend
+ *  `normalisePostcode` so a partial prefix ("NE10"), a district ("NE108") and
+ *  a full postcode ("NE10 8YH" → "NE108YH") are all stored and matched the
+ *  same way online ordering does. */
 function normalisePrefix(raw: string): string {
-  return (raw ?? "").toUpperCase().replace(/\s+/g, "").slice(0, 4);
+  return (raw ?? "").toUpperCase().replace(/\s+/g, "");
 }
 
 export function DeliveryFeeModal({ locationId, onClose }: Props) {
@@ -99,7 +103,7 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
           <div>
             <h2 className="text-sm font-semibold text-zinc-900">Delivery fees</h2>
             <p className="text-xs text-zinc-500">
-              First 4 characters of the postcode — e.g. NE10, NE11, SW1A
+              Postcode prefix or full postcode — e.g. NE10, NE108, NE10 8YH
             </p>
           </div>
           <button
@@ -179,8 +183,8 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
             <input
               value={newPrefix}
               onChange={(e) => setNewPrefix(e.target.value.toUpperCase())}
-              placeholder="NE10"
-              maxLength={4}
+              placeholder="NE10 or NE10 8YH"
+              maxLength={8}
               className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs font-mono uppercase focus:border-zinc-900 focus:outline-none"
             />
             <input
@@ -219,9 +223,9 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
             <p className="mt-1.5 text-[11px] text-red-600">{error}</p>
           )}
           <p className="mt-1.5 text-[10px] text-zinc-400">
-            Tip: when the cart matches multiple zones, the longest postcode
-            prefix wins. So a broad "NE10" zone (£3) and a narrow "NE108"
-            override (£5) coexist.
+            Tip: when the cart matches multiple zones, the longest match wins —
+            so a broad "NE10" zone (£3), a narrower "NE108" district (£5) and a
+            single full postcode "NE10 8YH" (£6) can all coexist.
           </p>
         </div>
       </div>
