@@ -122,6 +122,7 @@ interface Storefront {
     scheduleSlotMinutes: number;
     minOrderForDelivery: string | number | null;
     heroImageUrl: string | null;
+    showItemImages?: boolean;
   };
   deliveryZones?: Array<{
     postcodePrefix: string;
@@ -1385,6 +1386,7 @@ function OrderPage() {
                         item={item}
                         promo={itemPromos[item.id] ?? null}
                         bogoTrigger={bogoTriggerSet.has(item.id)}
+                        showImage={cfg?.showItemImages ?? true}
                         onClick={() => handleProductClick(item)}
                       />
                     ))}
@@ -1688,11 +1690,13 @@ function ProductCard({
   item,
   promo,
   bogoTrigger,
+  showImage = true,
   onClick,
 }: {
   item: MenuItem;
   promo: { percentageOff: number; campaignName: string } | null;
   bogoTrigger?: boolean;
+  showImage?: boolean;
   onClick: () => void;
 }) {
   const basePrice = Number(item.basePrice);
@@ -1706,40 +1710,64 @@ function ProductCard({
       disabled={item.outOfStock}
       className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white text-left transition hover:shadow-md disabled:opacity-50"
     >
-      <div className="relative aspect-square w-full bg-zinc-50">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center text-zinc-300">
-            <ShoppingBag className="h-10 w-10" />
-          </div>
-        )}
-        {item.outOfStock && (
-          <span className="absolute top-2 left-2 rounded-md bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-            Out of stock
-          </span>
-        )}
-        {hasPromo && !item.outOfStock && (
-          <span className="absolute top-2 right-2 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-            {promo!.percentageOff}% OFF
-          </span>
-        )}
-        {bogoTrigger && !hasPromo && !item.outOfStock && (
-          <span className="absolute top-2 right-2 rounded-md bg-pink-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-            BUY 1 GET 1 FREE
-          </span>
-        )}
-        {bogoTrigger && !item.outOfStock && (
-          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-pink-50 px-2 py-0.5 text-[10px] font-semibold text-pink-700 ring-1 ring-pink-200">
-            🎁 Free item included
-          </span>
-        )}
-      </div>
+      {showImage && (
+        <div className="relative aspect-square w-full bg-zinc-50">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="grid h-full w-full place-items-center text-zinc-300">
+              <ShoppingBag className="h-10 w-10" />
+            </div>
+          )}
+          {item.outOfStock && (
+            <span className="absolute top-2 left-2 rounded-md bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+              Out of stock
+            </span>
+          )}
+          {hasPromo && !item.outOfStock && (
+            <span className="absolute top-2 right-2 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              {promo!.percentageOff}% OFF
+            </span>
+          )}
+          {bogoTrigger && !hasPromo && !item.outOfStock && (
+            <span className="absolute top-2 right-2 rounded-md bg-pink-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              BUY 1 GET 1 FREE
+            </span>
+          )}
+          {bogoTrigger && !item.outOfStock && (
+            <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-pink-50 px-2 py-0.5 text-[10px] font-semibold text-pink-700 ring-1 ring-pink-200">
+              🎁 Free item included
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex flex-1 flex-col gap-1 p-4">
+        {/* Image-off menus surface the same status badges inline, since the
+            image overlay that normally carries them isn't rendered. */}
+        {!showImage &&
+          (item.outOfStock || hasPromo || bogoTrigger) && (
+            <div className="flex flex-wrap gap-1">
+              {item.outOfStock && (
+                <span className="rounded-md bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                  Out of stock
+                </span>
+              )}
+              {hasPromo && !item.outOfStock && (
+                <span className="rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                  {promo!.percentageOff}% OFF
+                </span>
+              )}
+              {bogoTrigger && !item.outOfStock && (
+                <span className="rounded-md bg-pink-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                  BUY 1 GET 1 FREE
+                </span>
+              )}
+            </div>
+          )}
         <h3 className="text-sm font-bold text-zinc-900 line-clamp-1">
           {item.name}
         </h3>

@@ -159,6 +159,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
   const [scheduleDays, setScheduleDays] = useState("7");
   const [slotMins, setSlotMins] = useState("15");
   const [minDelivery, setMinDelivery] = useState("");
+  const [showItemImages, setShowItemImages] = useState(true);
   useEffect(() => {
     const c = cfgQuery.data;
     if (!c) return;
@@ -173,6 +174,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
     setMinDelivery(
       c.minOrderForDelivery != null ? String(c.minOrderForDelivery) : "",
     );
+    setShowItemImages(c.showItemImages ?? true);
   }, [cfgQuery.data]);
 
   // Re-seed state when the user reopens with a fresh row (different brand
@@ -252,6 +254,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
           scheduleMaxDaysAhead: Number(scheduleDays) || 7,
           scheduleSlotMinutes: Number(slotMins) || 15,
           minOrderForDelivery: minDelivery ? Number(minDelivery) : null,
+          showItemImages,
         }),
       ]).then(([updated]) => updated),
     onSuccess: (updated) => {
@@ -709,6 +712,19 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               onChange={setAcceptsCollection}
               disabled={!canEdit}
             />
+          </Section>
+
+          <Section title="Menu display">
+            <ToggleRow
+              label="Show item photos on the storefront"
+              value={showItemImages}
+              onChange={setShowItemImages}
+              disabled={!canEdit}
+            />
+            <p className="mt-1 text-[11px] text-zinc-500">
+              Off = a clean, text-only menu (no product images). Useful when you
+              don&rsquo;t have good photos for every item.
+            </p>
           </Section>
 
           <Section title="Scheduling">

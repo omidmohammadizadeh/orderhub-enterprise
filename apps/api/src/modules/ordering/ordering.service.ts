@@ -333,6 +333,7 @@ export class OrderingService {
         scheduleSlotMinutes: 15,
         minOrderForDelivery: null,
         heroImageUrl: null,
+        showItemImages: true,
       };
     // Online ordering delivery charges are configured in BRAND settings
     // (Brand → "Delivery postcodes & charges"), NOT the POS/location

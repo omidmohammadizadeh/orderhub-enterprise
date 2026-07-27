@@ -1425,6 +1425,10 @@ model DirectOrderingConfig {
   minOrderForDelivery  Decimal? @db.Decimal(10, 2)
   heroImageUrl         String?
 
+  // When false, the public storefront hides all item photos and shows a
+  // clean text-only menu (some operators prefer this, or lack good photos).
+  showItemImages Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

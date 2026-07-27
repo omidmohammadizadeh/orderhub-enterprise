@@ -1425,6 +1425,10 @@ model DirectOrderingConfig {
   minOrderForDelivery  Decimal? @db.Decimal(10, 2)
   heroImageUrl         String?
 
+  // When false, the public storefront hides all item photos and shows a
+  // clean text-only menu (some operators prefer this, or lack good photos).
+  showItemImages Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1469,7 +1473,7 @@ model LoyaltyAccount {
   @@map("loyalty_accounts")
 }
 
-// ── Promo Codes ──────────────────────────────���────────────────────────────────
+// ── Promo Codes ───────────────────────────────────────────────────────────────
 model PromoCode {
   id            String        @id @default(cuid())
   tenantId      String
@@ -1675,7 +1679,7 @@ model DeliveryZone {
   @@map("delivery_zones")
 }
 
-// ── LocationPaymentConfig (Phase AM) ─────────────────────────────────────────
+// ── LocationPaymentConfig (Phase AM) ──────────────────────────────��──────────
 // One row per location holding the merchant's payment provider preference.
 // Secrets/credentials stay in the existing `integrations` row — this only
 // tracks selection + which methods (cash/card terminal/online) are enabled.
@@ -2073,7 +2077,7 @@ model KdsTicket {
   @@map("kds_tickets")
 }
 
-// ── Printer ───────────────────────────────────────────────────────────────────
+// ── Printer ───────────────────────────────────────────��───────────────────────
 model Printer {
   id             String                @id @default(cuid())
   tenantId       String

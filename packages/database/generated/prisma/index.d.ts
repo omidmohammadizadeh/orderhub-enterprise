@@ -48712,6 +48712,7 @@ export namespace Prisma {
     scheduleSlotMinutes: number | null
     minOrderForDelivery: Decimal | null
     heroImageUrl: string | null
+    showItemImages: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -48731,6 +48732,7 @@ export namespace Prisma {
     scheduleSlotMinutes: number | null
     minOrderForDelivery: Decimal | null
     heroImageUrl: string | null
+    showItemImages: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -48750,6 +48752,7 @@ export namespace Prisma {
     scheduleSlotMinutes: number
     minOrderForDelivery: number
     heroImageUrl: number
+    showItemImages: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -48787,6 +48790,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: true
     minOrderForDelivery?: true
     heroImageUrl?: true
+    showItemImages?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -48806,6 +48810,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: true
     minOrderForDelivery?: true
     heroImageUrl?: true
+    showItemImages?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -48825,6 +48830,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: true
     minOrderForDelivery?: true
     heroImageUrl?: true
+    showItemImages?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -48931,6 +48937,7 @@ export namespace Prisma {
     scheduleSlotMinutes: number
     minOrderForDelivery: Decimal | null
     heroImageUrl: string | null
+    showItemImages: boolean
     createdAt: Date
     updatedAt: Date
     _count: DirectOrderingConfigCountAggregateOutputType | null
@@ -48969,6 +48976,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: boolean
     minOrderForDelivery?: boolean
     heroImageUrl?: boolean
+    showItemImages?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | DirectOrderingConfig$locationArgs<ExtArgs>
@@ -48990,6 +48998,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: boolean
     minOrderForDelivery?: boolean
     heroImageUrl?: boolean
+    showItemImages?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | DirectOrderingConfig$locationArgs<ExtArgs>
@@ -49011,6 +49020,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: boolean
     minOrderForDelivery?: boolean
     heroImageUrl?: boolean
+    showItemImages?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -49045,6 +49055,7 @@ export namespace Prisma {
       scheduleSlotMinutes: number
       minOrderForDelivery: Prisma.Decimal | null
       heroImageUrl: string | null
+      showItemImages: boolean
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["directOrderingConfig"]>
@@ -49456,6 +49467,7 @@ export namespace Prisma {
     readonly scheduleSlotMinutes: FieldRef<"DirectOrderingConfig", 'Int'>
     readonly minOrderForDelivery: FieldRef<"DirectOrderingConfig", 'Decimal'>
     readonly heroImageUrl: FieldRef<"DirectOrderingConfig", 'String'>
+    readonly showItemImages: FieldRef<"DirectOrderingConfig", 'Boolean'>
     readonly createdAt: FieldRef<"DirectOrderingConfig", 'DateTime'>
     readonly updatedAt: FieldRef<"DirectOrderingConfig", 'DateTime'>
   }
@@ -136333,6 +136345,7 @@ export namespace Prisma {
     scheduleSlotMinutes: 'scheduleSlotMinutes',
     minOrderForDelivery: 'minOrderForDelivery',
     heroImageUrl: 'heroImageUrl',
+    showItemImages: 'showItemImages',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -144025,6 +144038,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFilter<"DirectOrderingConfig"> | number
     minOrderForDelivery?: DecimalNullableFilter<"DirectOrderingConfig"> | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: StringNullableFilter<"DirectOrderingConfig"> | string | null
+    showItemImages?: BoolFilter<"DirectOrderingConfig"> | boolean
     createdAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
     updatedAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
     location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
@@ -144046,6 +144060,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: SortOrder
     minOrderForDelivery?: SortOrderInput | SortOrder
     heroImageUrl?: SortOrderInput | SortOrder
+    showItemImages?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
@@ -144071,6 +144086,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFilter<"DirectOrderingConfig"> | number
     minOrderForDelivery?: DecimalNullableFilter<"DirectOrderingConfig"> | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: StringNullableFilter<"DirectOrderingConfig"> | string | null
+    showItemImages?: BoolFilter<"DirectOrderingConfig"> | boolean
     createdAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
     updatedAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
     location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
@@ -144092,6 +144108,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: SortOrder
     minOrderForDelivery?: SortOrderInput | SortOrder
     heroImageUrl?: SortOrderInput | SortOrder
+    showItemImages?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: DirectOrderingConfigCountOrderByAggregateInput
@@ -144119,6 +144136,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntWithAggregatesFilter<"DirectOrderingConfig"> | number
     minOrderForDelivery?: DecimalNullableWithAggregatesFilter<"DirectOrderingConfig"> | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: StringNullableWithAggregatesFilter<"DirectOrderingConfig"> | string | null
+    showItemImages?: BoolWithAggregatesFilter<"DirectOrderingConfig"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"DirectOrderingConfig"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"DirectOrderingConfig"> | Date | string
   }
@@ -156493,6 +156511,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: number
     minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: string | null
+    showItemImages?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     location?: LocationCreateNestedOneWithoutDirectOrderingConfigInput
@@ -156514,6 +156533,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: number
     minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: string | null
+    showItemImages?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -156531,6 +156551,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneWithoutDirectOrderingConfigNestedInput
@@ -156552,6 +156573,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -156571,6 +156593,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: number
     minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: string | null
+    showItemImages?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -156588,6 +156611,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -156607,6 +156631,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -168887,6 +168912,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: SortOrder
     minOrderForDelivery?: SortOrder
     heroImageUrl?: SortOrder
+    showItemImages?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -168914,6 +168940,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: SortOrder
     minOrderForDelivery?: SortOrder
     heroImageUrl?: SortOrder
+    showItemImages?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -168933,6 +168960,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: SortOrder
     minOrderForDelivery?: SortOrder
     heroImageUrl?: SortOrder
+    showItemImages?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -188304,6 +188332,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: number
     minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: string | null
+    showItemImages?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     location?: LocationCreateNestedOneWithoutDirectOrderingConfigInput
@@ -188323,6 +188352,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: number
     minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: string | null
+    showItemImages?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -189304,6 +189334,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneWithoutDirectOrderingConfigNestedInput
@@ -189323,6 +189354,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -190578,6 +190610,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: number
     minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: string | null
+    showItemImages?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     brand?: BrandCreateNestedOneWithoutDirectOrderingConfigInput
@@ -190597,6 +190630,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: number
     minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: string | null
+    showItemImages?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -191510,6 +191544,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneWithoutDirectOrderingConfigNestedInput
@@ -191529,6 +191564,7 @@ export namespace Prisma {
     scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
     minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    showItemImages?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

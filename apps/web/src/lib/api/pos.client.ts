@@ -103,6 +103,7 @@ export interface DirectOrderingConfig {
   scheduleSlotMinutes: number;
   minOrderForDelivery: string | number | null;
   heroImageUrl: string | null;
+  showItemImages: boolean;
 }
 
 type DirectOrderingPatch = Partial<{
@@ -116,6 +117,7 @@ type DirectOrderingPatch = Partial<{
   scheduleSlotMinutes: number;
   minOrderForDelivery: number | null;
   heroImageUrl: string | null;
+  showItemImages: boolean;
 }>;
 
 export const directOrderingClient = {

@@ -18,6 +18,7 @@ export interface UpdateDirectOrderingConfigDto {
   scheduleSlotMinutes?: number;
   minOrderForDelivery?: number | null;
   heroImageUrl?: string | null;
+  showItemImages?: boolean;
 }
 
 @Injectable()
@@ -58,6 +59,7 @@ export class DirectOrderingService {
       scheduleSlotMinutes: 15,
       minOrderForDelivery: null,
       heroImageUrl: null,
+      showItemImages: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -99,6 +101,8 @@ export class DirectOrderingService {
     if (dto.minOrderForDelivery !== undefined)
       out.minOrderForDelivery = dto.minOrderForDelivery;
     if (dto.heroImageUrl !== undefined) out.heroImageUrl = dto.heroImageUrl;
+    if (dto.showItemImages !== undefined)
+      out.showItemImages = dto.showItemImages;
     return out;
   }
 
@@ -153,6 +157,7 @@ export class DirectOrderingService {
       scheduleSlotMinutes: 15,
       minOrderForDelivery: null,
       heroImageUrl: null,
+      showItemImages: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

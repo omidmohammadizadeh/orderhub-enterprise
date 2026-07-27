@@ -732,6 +732,7 @@ exports.Prisma.DirectOrderingConfigScalarFieldEnum = {
   scheduleSlotMinutes: 'scheduleSlotMinutes',
   minOrderForDelivery: 'minOrderForDelivery',
   heroImageUrl: 'heroImageUrl',
+  showItemImages: 'showItemImages',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
