@@ -271,17 +271,30 @@ export class KdsService {
 
     const key =
       modifierIndex != null ? `${orderItemId}::${modifierIndex}` : orderItemId;
-    const meta = (ticket.metadata ?? {}) as Record<string, any>;
-    const itemStates = { ...(meta.itemStates ?? {}) };
-    if (done) itemStates[key] = new Date().toISOString();
-    else delete itemStates[key];
 
-    await this.prisma.kdsTicket.update({
-      where: { id: ticket.id },
-      data: {
-        metadata: { ...meta, itemStates } as Prisma.InputJsonValue,
-      },
+    // Cross-screen sync: a line ticked done on ANY station is done for the
+    // whole kitchen — the grill striking "12\" Vegetarian" must show struck on
+    // the wrapping/expo screens that carry the same line too. So write the
+    // state onto EVERY ticket of this order (each screen still renders only
+    // its own routed items, so unrelated stations are unaffected).
+    const siblings = await this.prisma.kdsTicket.findMany({
+      where: { orderId },
+      select: { id: true, kdsScreenId: true, metadata: true },
     });
+    let itemStates: Record<string, string> = {};
+    for (const t of siblings) {
+      const meta = (t.metadata ?? {}) as Record<string, any>;
+      const states = { ...(meta.itemStates ?? {}) };
+      if (done) states[key] = new Date().toISOString();
+      else delete states[key];
+      await this.prisma.kdsTicket.update({
+        where: { id: t.id },
+        data: {
+          metadata: { ...meta, itemStates: states } as Prisma.InputJsonValue,
+        },
+      });
+      if (t.kdsScreenId === screenId) itemStates = states;
+    }
 
     this.socket.emitToLocation(screen.locationId, "kds:item:state", {
       screenId,
