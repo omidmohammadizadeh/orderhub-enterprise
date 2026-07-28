@@ -316,6 +316,8 @@ export default function PosPage() {
           totalPrice: round2(line.unitPrice * line.quantity),
           notes: line.notes,
           sku: line.plu ?? undefined,
+          // KDS station routing (category/item rules) matches on this.
+          menuItemId: line.menuItemId || undefined,
           modifiers: line.modifiers.map((m) => ({
             name: m.name,
             price: m.price,

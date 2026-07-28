@@ -509,6 +509,9 @@ export class OrdersService {
                 totalPrice: item.totalPrice,
                 modifiers: item.modifiers as Prisma.InputJsonValue,
                 notes: item.notes,
+                // POS sends the MenuItem id so KDS category/item routing
+                // rules can match; marketplace items omit it (null).
+                menuItemId: (item as any).menuItemId ?? null,
               })),
             },
           },
@@ -865,6 +868,9 @@ export class OrdersService {
         totalPrice: i.totalPrice,
         notes: i.notes,
         sku: i.sku,
+        // Carried through to OrderItem.menuItemId so KDS station rules
+        // (category/item routing) can match POS lines.
+        menuItemId: i.menuItemId,
         modifiers: (i.modifiers ?? []).map((m) => ({
           name: m.name,
           price: m.price,
@@ -1288,6 +1294,7 @@ export class OrdersService {
       totalPrice: number;
       modifiers?: { name: string; price: number; quantity?: number }[];
       notes?: string | null;
+      menuItemId?: string | null;
     }>,
     userId: string,
   ): Promise<Order> {
@@ -1330,6 +1337,8 @@ export class OrdersService {
           totalPrice: it.totalPrice,
           modifiers: (it.modifiers ?? []) as any,
           notes: it.notes ?? null,
+          // Round lines must route to stations like round-1 lines do.
+          menuItemId: it.menuItemId ?? null,
         })),
       });
       const u = await tx.order.update({

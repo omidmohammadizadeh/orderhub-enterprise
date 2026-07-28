@@ -228,6 +228,7 @@ export class OrdersController {
         totalPrice: number;
         modifiers?: { name: string; price: number; quantity?: number }[];
         notes?: string | null;
+        menuItemId?: string | null;
       }>;
     },
     @CurrentUser() user: AuthenticatedUser,

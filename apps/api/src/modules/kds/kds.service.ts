@@ -543,6 +543,18 @@ export class KdsService {
     let updated = 0;
     for (const ticket of existing) {
       const routed = routingByScreen.get(ticket.kdsScreenId);
+      // Diagnostic — one line per screen per resync so a "ticket vanished"
+      // report can be traced to the exact routing decision.
+      this.logger.log(
+        `KDS resync order ${orderId} screen ${ticket.kdsScreenId} (${ticket.screen?.name ?? "?"}): ` +
+          (routed === null
+            ? "DELETE — no items route here anymore"
+            : routed === undefined
+              ? "KEEP — screen not in routing map (inactive?)"
+              : routed.length === 0
+                ? "update — whole order"
+                : `update — ${routed.length} routed item(s)`),
+      );
       // Station no longer receives anything from this order → void its ticket.
       if (routed === null) {
         await this.prisma.kdsTicket.delete({ where: { id: ticket.id } });
