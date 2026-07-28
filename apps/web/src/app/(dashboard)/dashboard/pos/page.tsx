@@ -53,6 +53,7 @@ import {
 import { startSyncWorker } from "@/lib/pos/sync-worker";
 import { useOnlineStatus, useSyncQueue } from "@/lib/pos/use-online-status";
 import { tablesClient } from "@/lib/api/tables.client";
+import { SplitBillModal } from "@/components/pos/split-bill-modal";
 import { printOrderViaBridge } from "@/lib/printing/print-order";
 import { hasNativeBridge } from "@/lib/printing/bridge";
 
@@ -622,6 +623,7 @@ export default function PosPage() {
   // terminal flow (ChargeReaderModal); cash marks the tab PAID directly
   // (same manual fallback the Orders board uses) and frees the table.
   const [payChoiceOpen, setPayChoiceOpen] = useState(false);
+  const [splitOpen, setSplitOpen] = useState(false);
   const [settlingCash, setSettlingCash] = useState(false);
   const payAndCloseTab = () => {
     if (!tabOrderId) return;
@@ -823,6 +825,16 @@ export default function PosPage() {
                   💳 Card
                 </button>
                 <button
+                  onClick={() => {
+                    setPayChoiceOpen(false);
+                    setSplitOpen(true);
+                  }}
+                  disabled={settlingCash}
+                  className="rounded-md border border-indigo-300 bg-white px-3 py-1 text-xs font-semibold text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
+                >
+                  ⑂ Split
+                </button>
+                <button
                   onClick={() => setPayChoiceOpen(false)}
                   disabled={settlingCash}
                   className="rounded-md border border-indigo-200 bg-white px-2 py-1 text-xs font-medium text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
@@ -990,6 +1002,23 @@ export default function PosPage() {
 
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
+
+      {/* Table Tabs — split the bill across several part-payments. The
+          server settles + frees the table once they cover the total. */}
+      {splitOpen && tabOrderId && (
+        <SplitBillModal
+          orderId={tabOrderId}
+          tableName={tableName}
+          onClose={() => setSplitOpen(false)}
+          onSettled={() => {
+            setSplitOpen(false);
+            setSubmitFeedback(
+              `${tableName ?? "Table"} settled and cleared.`,
+            );
+            router.push("/dashboard/tables");
+          }}
+        />
+      )}
 
       {/* Stripe Terminal charge modal — opens after a "Card terminal" order
           is placed; charges it to the S700/WisePOS reader. */}

@@ -251,6 +251,31 @@ export class OrdersController {
     return { printed: jobIds.length, jobIds };
   }
 
+  // ── Split the bill ───────────────────────────────────
+  // GET  payments  → what's been paid and what's still owed
+  // POST payments  → record one part-payment (cash or card)
+  @Get(":id/payments")
+  @Roles(...POS_STAFF)
+  @ApiOperation({ summary: "Payments taken on a tab + remaining balance" })
+  paymentSummary(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.paymentSummary(id, user.tenantId);
+  }
+
+  @Post(":id/payments")
+  @Roles(...POS_STAFF)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Record a part-payment against a tab (split bill)" })
+  addPayment(
+    @Param("id") id: string,
+    @Body() dto: { amount: number; method: "CASH" | "CARD"; note?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.addPayment(id, user.tenantId, dto, user.userId);
+  }
+
   // ── PATCH /api/v1/orders/:id/status ──────────────────
   @Patch(":id/status")
   @HttpCode(HttpStatus.OK)

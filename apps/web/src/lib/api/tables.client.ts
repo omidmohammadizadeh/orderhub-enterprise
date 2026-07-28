@@ -75,4 +75,31 @@ export const tablesClient = {
     apiClient
       .post<{ printed: number }>(`/v1/orders/${orderId}/print-bill`, {})
       .then((r) => r.data),
+
+  // ── Split the bill ────────────────────────────────────────────────────
+  paymentSummary: (orderId: string) =>
+    apiClient
+      .get<PaymentSummary>(`/v1/orders/${orderId}/payments`)
+      .then((r) => r.data),
+
+  addPayment: (
+    orderId: string,
+    body: { amount: number; method: "CASH" | "CARD"; note?: string },
+  ) =>
+    apiClient
+      .post<PaymentSummary>(`/v1/orders/${orderId}/payments`, body)
+      .then((r) => r.data),
 };
+
+export interface PaymentSummary {
+  total: number;
+  paid: number;
+  remaining: number;
+  settled: boolean;
+  payments: {
+    id: string;
+    amount: string | number;
+    method: string;
+    createdAt: string;
+  }[];
+}

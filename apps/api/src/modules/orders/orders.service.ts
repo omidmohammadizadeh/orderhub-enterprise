@@ -1425,6 +1425,162 @@ export class OrdersService {
     return this.printJobs.printBill(orderId, tenantId);
   }
 
+  // ── Split the bill ────────────────────────────────────────────────────
+  //
+  // A tab can be settled in several parts ("we'll pay £20 cash, the rest on
+  // card", "split 4 ways"). Each part is a Payment row against the SAME
+  // order — reusing the existing model, so no new table and refunds/ledger
+  // keep working. When the parts cover the total the order flips to PAID and
+  // (for a dine-in tab) completes and frees the table automatically.
+
+  /** Payments taken so far + what's still owed. */
+  async paymentSummary(orderId: string, tenantId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: { id: true, total: true, paymentStatus: true, tableId: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    const payments = await this.prisma.payment.findMany({
+      where: { orderId, status: "SUCCEEDED" },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        amount: true,
+        method: true,
+        createdAt: true,
+        metadata: true,
+      },
+    });
+    const total = Number(order.total);
+    const paid = payments.reduce((s, p) => s + Number(p.amount), 0);
+    return {
+      total,
+      paid: round2(paid),
+      remaining: round2(Math.max(0, total - paid)),
+      settled: order.paymentStatus === "PAID",
+      payments,
+    };
+  }
+
+  /** Record one part-payment against the tab. */
+  async addPayment(
+    orderId: string,
+    tenantId: string,
+    dto: { amount: number; method: "CASH" | "CARD"; note?: string },
+    userId: string,
+  ) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: {
+        id: true,
+        total: true,
+        paymentStatus: true,
+        tableId: true,
+        locationId: true,
+        status: true,
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    const amount = round2(Number(dto.amount));
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new BadRequestException("Amount must be greater than zero");
+    }
+
+    const before = await this.paymentSummary(orderId, tenantId);
+    if (before.remaining <= 0) {
+      throw new BadRequestException("This bill is already fully paid");
+    }
+    // Guard against fat-finger overpayment beyond a rounding penny.
+    if (amount > before.remaining + 0.01) {
+      throw new BadRequestException(
+        `That's more than the £${before.remaining.toFixed(2)} still owed`,
+      );
+    }
+
+    await this.prisma.payment.create({
+      data: {
+        tenantId,
+        orderId,
+        amount,
+        currency: "gbp",
+        status: "SUCCEEDED",
+        method: dto.method,
+        netAmount: amount,
+        metadata: {
+          source: "SPLIT_BILL",
+          takenBy: userId,
+          note: dto.note ?? null,
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    const after = await this.paymentSummary(orderId, tenantId);
+    let settled = false;
+    if (after.remaining <= 0.01) {
+      settled = true;
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: "PAID" },
+      });
+      // Dine-in tabs finish the moment the money's in: complete the order
+      // and free the table so the floor plan is accurate without a second
+      // trip to the POS. Best-effort — the payment is what matters.
+      if (order.tableId) {
+        await this.completeAndFreeTable(orderId, tenantId, userId).catch((e) =>
+          this.logger.warn(
+            `Split-bill settle: complete/free failed for ${orderId}: ${e?.message}`,
+          ),
+        );
+      }
+    }
+    this.logger.log(
+      `Split payment £${amount.toFixed(2)} ${dto.method} on ${orderId} — ` +
+        `paid £${after.paid.toFixed(2)}/${after.total.toFixed(2)}${settled ? " (SETTLED)" : ""}`,
+    );
+    return { ...after, settled };
+  }
+
+  /**
+   * Close out a settled dine-in tab: force the order to COMPLETED and free
+   * its table. Uses a direct write rather than updateStatus because a tab
+   * legitimately sits in ACCEPTED/PREPARING when the money arrives, and the
+   * forward-only ladder would reject PREPARING → COMPLETED.
+   */
+  private async completeAndFreeTable(
+    orderId: string,
+    tenantId: string,
+    userId: string,
+  ) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: { id: true, status: true, tableId: true },
+    });
+    if (!order) return;
+    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: "COMPLETED" },
+      });
+      await this.prisma.orderStatusHistory.create({
+        data: {
+          orderId,
+          tenantId,
+          fromStatus: order.status,
+          toStatus: "COMPLETED",
+          actorType: "STAFF",
+          changedBy: userId,
+          note: "Tab settled — bill paid in full",
+        },
+      });
+    }
+    if (order.tableId) {
+      await this.prisma.table.updateMany({
+        where: { id: order.tableId },
+        data: { status: "FREE", currentOrderId: null, openedAt: null },
+      });
+    }
+  }
+
   // ── Status transitions ────────────────────────────────
 
   async updateStatus(
@@ -2295,4 +2451,9 @@ export class OrdersService {
       };
     });
   }
+}
+
+/** Money rounding — avoids 0.1+0.2 style drift when summing part-payments. */
+function round2(n: number): number {
+  return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 }
