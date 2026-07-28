@@ -201,7 +201,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
                 ),
               },
               "copiesNewOrder",
-              `*** ${table ? `TABLE ${table} · ` : ""}NEW ITEMS ***`,
+              `*** ${table ? `TABLE ${table} - ` : ""}NEW ITEMS ***`,
             );
           } else if (freshIds.length) {
             // Non-tab edits already reprint server-side; just track them.

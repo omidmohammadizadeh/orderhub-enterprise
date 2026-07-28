@@ -307,7 +307,7 @@ export class PrintJobsService {
       trigger: "ORDER_ACCEPTED",
       kitchenOnly: true,
       itemsOverride: args.items,
-      chitNote: `ROUND ${args.roundNumber} — NEW ITEMS ONLY`,
+      chitNote: `ROUND ${args.roundNumber} - NEW ITEMS ONLY`,
     });
     if (!targets.length) {
       this.logger.warn(

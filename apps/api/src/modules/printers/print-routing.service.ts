@@ -444,7 +444,7 @@ export class PrintRoutingService {
             ? {
                 ...p,
                 isBill: true,
-                paymentLabel: `*** BILL — TO PAY £${Number(order.total).toFixed(2)} ***`,
+                paymentLabel: `*** BILL - TO PAY £${Number(order.total).toFixed(2)} ***`,
               }
             : p;
         })(),
