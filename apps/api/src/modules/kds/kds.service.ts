@@ -727,6 +727,16 @@ export class KdsService {
   }
 
   private async maybeReadyAfterStationBump(orderId: string) {
+    // Table Tabs — a dine-in tab has NO stage ladder. Bumping every station
+    // means "this ROUND is cooked", not "the meal is over": the customer may
+    // order more at any time, and READY blocks addRound. The tab's order
+    // stays open (ACCEPTED/PREPARING) until Pay & close COMPLETEs it.
+    const tabCheck = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { tableId: true },
+    });
+    if (tabCheck?.tableId) return;
+
     // Any open station tickets left? (Expo tickets don't block READY here —
     // expo serving is its own step when an expo screen exists.)
     const tickets = await this.prisma.kdsTicket.findMany({
@@ -752,6 +762,13 @@ export class KdsService {
   private async serveOrder(orderId: string) {
     // Expo served the order: bump lingering station tickets + READY.
     await this.bumpAllForOrder(orderId);
+    // Table Tabs — expo serving a dine-in round hands food to the table, but
+    // the TAB stays open for more rounds; never push it to READY.
+    const tabCheck = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { tableId: true },
+    });
+    if (tabCheck?.tableId) return;
     if (this.onOrderProgress) {
       await this.onOrderProgress(orderId, "READY").catch((e) =>
         this.logger.warn(

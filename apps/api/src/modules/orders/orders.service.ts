@@ -1307,10 +1307,19 @@ export class OrdersService {
     if (!order.tableId) {
       throw new BadRequestException("This order is not a table tab");
     }
-    const EDITABLE = new Set<OrderStatus>(["PENDING", "ACCEPTED", "PREPARING"]);
+    // READY is included: a dine-in tab has no stage ladder (KDS bumps no
+    // longer READY tabs), but a tab that reached READY under the old rules —
+    // or via a manual board action — must still accept more rounds. Only a
+    // truly closed/cancelled tab refuses.
+    const EDITABLE = new Set<OrderStatus>([
+      "PENDING",
+      "ACCEPTED",
+      "PREPARING",
+      "READY",
+    ]);
     if (!EDITABLE.has(order.status)) {
       throw new BadRequestException(
-        "Can't add to this tab — it's already Ready or closed",
+        "Can't add to this tab — it's already closed",
       );
     }
     if (order.paymentStatus === "PAID") {
