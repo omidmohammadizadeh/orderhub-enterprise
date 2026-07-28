@@ -508,8 +508,29 @@ export class KdsService {
       where: { orderId },
       include: { screen: true },
     });
-    // No tickets yet (e.g. order still PENDING) — nothing to re-sync.
-    if (existing.length === 0) return { updated: 0 };
+    // No tickets at all. For a PENDING order that's normal (dispatch happens
+    // on accept). But an ACTIVE order with zero tickets means its original
+    // dispatch was LOST (e.g. the API restarted mid-accept during a deploy)
+    // — without this, every later round/edit succeeds on the server yet
+    // never reaches any screen. Heal it: run the full dispatch now.
+    if (existing.length === 0) {
+      const orderRow = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: { status: true },
+      });
+      if (
+        orderRow &&
+        ["ACCEPTED", "PREPARING", "READY"].includes(String(orderRow.status))
+      ) {
+        this.logger.warn(
+          `KDS resync: order ${orderId} is ${orderRow.status} with NO tickets — running full dispatch to heal`,
+        );
+        const healed = await this.dispatchOrderToScreens(orderId, locationId);
+        this.socket.emitToLocation(locationId, "kds:order:updated", { orderId });
+        return { updated: healed.created };
+      }
+      return { updated: 0 };
+    }
 
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
