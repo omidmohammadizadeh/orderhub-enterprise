@@ -108,7 +108,10 @@ function resolveCommandSet(p: any): string {
   return "ESCPOS";
 }
 
-export async function printOrderViaBridge(order: any): Promise<string> {
+export async function printOrderViaBridge(
+  order: any,
+  opts?: { billMode?: boolean },
+): Promise<string> {
   if (!hasNativeBridge()) {
     throw new Error(
       "Native printing only works inside the OrderHub Solutions tablet app.",
@@ -132,6 +135,14 @@ export async function printOrderViaBridge(order: any): Promise<string> {
   }
   // Build the payload once + resolve the receipt logo / QR offer once.
   const payload = buildPrintPayload(order);
+  // Table Tabs — "print the bill": same receipt, but the payment banner
+  // shouts TO PAY so a check can never be mistaken for a paid receipt.
+  if (opts?.billMode) {
+    (payload as any).isBill = true;
+    (payload as any).paymentLabel = `*** BILL — TO PAY £${Number(
+      order?.total ?? 0,
+    ).toFixed(2)} ***`;
+  }
   applyReceiptOffer(payload, await resolveReceiptOffer(order));
 
   // Print to each target independently. Crucially, one bad target must

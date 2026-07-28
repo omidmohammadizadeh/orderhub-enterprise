@@ -53,6 +53,8 @@ import {
 import { startSyncWorker } from "@/lib/pos/sync-worker";
 import { useOnlineStatus, useSyncQueue } from "@/lib/pos/use-online-status";
 import { tablesClient } from "@/lib/api/tables.client";
+import { printOrderViaBridge } from "@/lib/printing/print-order";
+import { hasNativeBridge } from "@/lib/printing/bridge";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -773,16 +775,30 @@ export default function PosPage() {
             <button
               onClick={async () => {
                 try {
-                  const r = await tablesClient.printBill(tabOrderId);
+                  // Tablets print through the Bluetooth bridge (the server
+                  // print-job path only feeds the desktop print agent), so
+                  // print locally when we're inside the tablet app and fall
+                  // back to a server job on desktop.
+                  const ord = (
+                    await apiClient.get(`/v1/orders/${tabOrderId}`)
+                  ).data;
+                  if (hasNativeBridge()) {
+                    await printOrderViaBridge(ord, { billMode: true });
+                    setSubmitFeedback("Bill printed.");
+                  } else {
+                    const r = await tablesClient.printBill(tabOrderId);
+                    setSubmitFeedback(
+                      r.printed
+                        ? "Bill sent to the receipt printer."
+                        : "No receipt printer set for this location.",
+                    );
+                  }
+                } catch (err: any) {
                   setSubmitFeedback(
-                    r.printed
-                      ? "Bill printed."
-                      : "No receipt printer set for this location.",
+                    err?.message ?? "Couldn't print the bill",
                   );
-                } catch {
-                  setSubmitFeedback("Couldn't print the bill");
                 }
-                window.setTimeout(() => setSubmitFeedback(null), 4000);
+                window.setTimeout(() => setSubmitFeedback(null), 5000);
               }}
               className="shrink-0 rounded-md border border-indigo-300 bg-white px-3 py-1 text-xs font-semibold text-indigo-900 hover:bg-indigo-100"
             >
