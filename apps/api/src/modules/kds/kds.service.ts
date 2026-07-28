@@ -140,7 +140,14 @@ export class KdsService {
 
   async removeScreen(screenId: string, tenantId: string) {
     await this.assertScreenAccess(screenId, tenantId);
-    await this.prisma.kdsScreen.delete({ where: { id: screenId } });
+    // Every screen that ever served an order has KdsTicket rows pointing at
+    // it, and the FK has no cascade — a bare delete 500s with
+    // kds_tickets_kdsScreenId_fkey. Tickets are per-screen working state
+    // (the order itself is untouched), so drop them with the screen.
+    await this.prisma.$transaction([
+      this.prisma.kdsTicket.deleteMany({ where: { kdsScreenId: screenId } }),
+      this.prisma.kdsScreen.delete({ where: { id: screenId } }),
+    ]);
   }
 
   // ── Tickets ────────────────────────────────────────────────────────────────
