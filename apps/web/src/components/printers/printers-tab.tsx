@@ -725,7 +725,12 @@ function PrinterSettingsDrawer({
   );
   const [printLogo, setPrintLogo] = useState<boolean>(!!d.printLogo);
   const [printQr, setPrintQr] = useState<boolean>(!!d.qrCode);
-  const [largeFont, setLargeFont] = useState<boolean>(!!d.largeFont);
+  // Receipt text size. Was a dead boolean ("Large font") that saved but
+  // never reached the renderer — seed from it so printers already ticked
+  // land on Large rather than silently resetting to Standard.
+  const [fontScale, setFontScale] = useState<"NORMAL" | "LARGE" | "XLARGE">(
+    (d.fontScale as any) ?? (d.largeFont ? "LARGE" : "NORMAL"),
+  );
   const [openDrawer, setOpenDrawer] = useState<boolean>(!!d.openCashDrawer);
   const [autoCut, setAutoCut] = useState<boolean>(printer.supportsCut);
   // Command language. Star printers speak Star Line Mode; Epson/Sunmi/other
@@ -751,7 +756,9 @@ function PrinterSettingsDrawer({
           copies: copiesNewOrder,
           printLogo,
           qrCode: printQr,
-          largeFont,
+          fontScale,
+          // Keep the legacy flag consistent for any older reader.
+          largeFont: fontScale !== "NORMAL",
           openCashDrawer: openDrawer,
           brand,
           commandSet: brand === "star" ? "STAR" : "ESCPOS",
@@ -855,6 +862,53 @@ function PrinterSettingsDrawer({
             </div>
           </Section>
 
+          <Section title="Receipt text size">
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  ["NORMAL", "Standard", "Compact"],
+                  ["LARGE", "Large", "Twice the height"],
+                  ["XLARGE", "Extra large", "Tall + wide"],
+                ] as const
+              ).map(([value, label, hint]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFontScale(value)}
+                  className={
+                    "rounded-md border px-3 py-2 text-left " +
+                    (fontScale === value
+                      ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
+                      : "border-zinc-300 bg-white hover:bg-zinc-50")
+                  }
+                >
+                  <span
+                    className={
+                      "block font-semibold text-zinc-900 " +
+                      (value === "NORMAL"
+                        ? "text-xs"
+                        : value === "LARGE"
+                          ? "text-sm"
+                          : "text-base")
+                    }
+                  >
+                    {label}
+                  </span>
+                  <span className="block text-[10px] text-zinc-500">
+                    {hint}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
+              Applies to item lines, the delivery address and the total —
+              the lines staff and drivers actually read. Options and
+              extras stay compact so the ticket doesn&apos;t get too long.
+              <span className="font-medium"> Extra large</span> also
+              doubles the width, so long item names wrap onto two lines.
+            </p>
+          </Section>
+
           <Section title="Receipt options">
             <div className="grid grid-cols-2 gap-2">
               <Toggle
@@ -866,11 +920,6 @@ function PrinterSettingsDrawer({
                 label="Print QR code"
                 value={printQr}
                 onChange={setPrintQr}
-              />
-              <Toggle
-                label="Large font"
-                value={largeFont}
-                onChange={setLargeFont}
               />
               <Toggle
                 label="Open cash drawer"

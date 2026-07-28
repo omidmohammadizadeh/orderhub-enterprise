@@ -23,6 +23,7 @@ import {
   renderReceiptBytes,
   hasNativeBridge,
   repeatReceipt,
+  resolveFontScale,
 } from "../lib/printing/bridge";
 import { buildPrintPayload } from "../lib/printing/order-receipt";
 import { resolveReceiptOffer, applyReceiptOffer } from "../lib/printing/print-order";
@@ -136,6 +137,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
             printLogo: p.defaults?.printLogo,
             qrCode: p.defaults?.qrCode,
             commandSet,
+            fontScale: resolveFontScale(p),
           });
           await writeToPrinter(p, repeatReceipt(single, copies));
           printedAny = true;

@@ -26,8 +26,51 @@ const CUT = [GS, 0x56, 0x42, 0x00];
 const reverseOn = () => [GS, 0x42, 0x01];
 const reverseOff = () => [GS, 0x42, 0x00];
 
+// GS ! n — character size. High nibble = width multiplier - 1, low
+// nibble = height multiplier - 1. Double HEIGHT alone (2,1) is the
+// sweet spot for item lines: twice as tall and easy to read across a
+// kitchen, but still the full column count so prices stay aligned on
+// the right. Double width halves the usable columns.
+const sizeOn = (w: number, h: number) => [
+  GS,
+  0x21,
+  ((Math.max(1, Math.min(8, w)) - 1) << 4) | (Math.max(1, Math.min(8, h)) - 1),
+];
+
+// How big the customer-facing lines print. Set per printer in
+// Printers → (pen icon) → Receipt options → Text size.
+//   NORMAL — the old compact ticket
+//   LARGE  — items, address and totals double height (recommended)
+//   XLARGE — items double height AND width, for older eyes / busy passes
+export type FontScale = "NORMAL" | "LARGE" | "XLARGE";
+
+export function normaliseFontScale(v: any): FontScale {
+  const s = String(v ?? "").toUpperCase();
+  if (s === "XLARGE" || s === "XL" || s === "EXTRA_LARGE") return "XLARGE";
+  if (s === "LARGE" || s === "L") return "LARGE";
+  if (s === "NORMAL" || s === "STANDARD" || s === "S") return "NORMAL";
+  return "NORMAL";
+}
+
+// Read the text size off a printer record. `largeFont` was the old
+// boolean toggle — it was saved but never actually reached the renderer,
+// so anyone who ticked it got no change. Honour it as LARGE so those
+// printers start printing the way their owner already asked for.
+export function resolveFontScale(printer: any): FontScale {
+  const d = printer?.defaults ?? {};
+  if (d.fontScale) return normaliseFontScale(d.fontScale);
+  return d.largeFont ? "LARGE" : "NORMAL";
+}
+
 function colsFor(paperWidth: number): number {
   return paperWidth === 58 ? 32 : 42;
+}
+
+// Light separator between individual items ("- - - - -"), as opposed to
+// the solid rule that closes a whole section. Cheap way to stop a long
+// order reading as one grey block.
+function dashes(cols: number): string {
+  return "- ".repeat(Math.floor(cols / 2)).trimEnd();
 }
 
 function strBytes(s: string): number[] {
@@ -47,6 +90,15 @@ function strBytes(s: string): number[] {
 function line(buf: number[], text: string) {
   for (const b of strBytes(text)) buf.push(b);
   buf.push(LF);
+}
+
+// wrap() splits on whitespace, so it eats any leading indent. Sub-lines
+// (modifiers, item notes) must hang under their item, so wrap the bare
+// text and re-apply the indent to every line including continuations.
+function indented(text: string, prefix: string, width: number): string[] {
+  return wrap(text, Math.max(8, width - prefix.length)).map(
+    (w) => prefix + w,
+  );
 }
 
 function padBetween(left: string, right: string, width: number): string {
@@ -352,9 +404,21 @@ export function qrEscPos(data: string, size = 6): number[] {
 export function buildOrderReceipt(
   payload: any,
   paperWidth: number = 80,
-  opts?: { logoBytes?: number[] | null; qr?: string | null },
+  opts?: {
+    logoBytes?: number[] | null;
+    qr?: string | null;
+    fontScale?: FontScale;
+  },
 ): Uint8Array {
   const cols = colsFor(paperWidth);
+  const scale = normaliseFontScale(opts?.fontScale);
+  // Item lines: taller on LARGE, taller AND wider on XLARGE. Double
+  // width halves the columns we have to lay a line out in, so every
+  // scaled block measures itself against `itemCols`, not `cols`.
+  const itemH = scale === "NORMAL" ? 1 : 2;
+  const itemW = scale === "XLARGE" ? 2 : 1;
+  const itemCols = Math.floor(cols / itemW);
+  const ITEM_ON = sizeOn(itemW, itemH);
   const buf: number[] = [];
   buf.push(...INIT);
 
@@ -441,16 +505,26 @@ export function buildOrderReceipt(
     line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
   if (payload?.customerPhone)
     line(buf, `Phone   : ${payload.customerPhone}`);
+  // Delivery address gets the same height bump as the items — it's read
+  // at arm's length in a car, in the dark. Height only, never double
+  // width: a wrapped postcode is worse than a small one.
   if (payload?.deliveryAddress) {
     line(buf, "Address :");
+    buf.push(...BOLD_ON, ...sizeOn(1, itemH));
     for (const w of wrap(String(payload.deliveryAddress), cols - 2))
       line(buf, `  ${w}`);
+    buf.push(...DOUBLE_OFF, ...BOLD_OFF);
   }
   line(buf, "-".repeat(cols));
 
   // ── Items ─────────────────────────────────────────────────────────
+  //
+  // The line staff actually read. Each item is its own block: a big bold
+  // "2x Item ............ £9.50" headline, its options indented beneath
+  // in normal weight, then a light dashed rule so a ten-line order never
+  // reads as one grey slab.
   const items = Array.isArray(payload?.items) ? payload.items : [];
-  for (const it of items) {
+  items.forEach((it: any, idx: number) => {
     const qty = String(it?.quantity ?? 1);
     const name = String(
       it?.name ?? it?.productName ?? it?.title ?? "Item",
@@ -463,19 +537,22 @@ export function buildOrderReceipt(
           : NaN;
     const priceStr = Number.isFinite(lineTotal) ? money(lineTotal) : "";
 
-    buf.push(...BOLD_ON);
+    buf.push(...BOLD_ON, ...ITEM_ON);
     const head = `${qty}x ${name}`;
-    if (head.length + 1 + priceStr.length <= cols) {
-      line(buf, padBetween(head, priceStr, cols));
+    if (head.length + 1 + priceStr.length <= itemCols) {
+      line(buf, padBetween(head, priceStr, itemCols));
     } else {
-      // Item name too long — wrap and put price on its own line
-      const wrapped = wrap(head, cols - priceStr.length - 1);
-      for (let i = 0; i < wrapped.length; i++) {
-        if (i === 0) line(buf, padBetween(wrapped[i]!, priceStr, cols));
-        else line(buf, wrapped[i]!);
-      }
+      // Item name too long for one line at this size — wrap the name,
+      // then right-align the price on the last line so the money column
+      // still reads straight down the ticket.
+      const wrapped = wrap(head, itemCols);
+      wrapped.forEach((w, i) => {
+        if (i === wrapped.length - 1 && priceStr)
+          line(buf, padBetween(w, priceStr, itemCols));
+        else line(buf, w);
+      });
     }
-    buf.push(...BOLD_OFF);
+    buf.push(...DOUBLE_OFF, ...BOLD_OFF);
 
     if (Array.isArray(it?.modifiers)) {
       for (const m of it.modifiers) {
@@ -485,17 +562,20 @@ export function buildOrderReceipt(
           typeof m?.price === "number" && m.price > 0
             ? `+${money(m.price)}`
             : "";
-        const mline = `  + ${mname}`;
+        const mline = `  - ${mname}`;
         if (mprice && mline.length + 1 + mprice.length <= cols)
           line(buf, padBetween(mline, mprice, cols));
-        else line(buf, mline);
+        else for (const w of indented(mname, "  - ", cols)) line(buf, w);
       }
     }
+    // Item note — bold, because a missed "NO ONIONS" is a remake.
     if (it?.notes) {
-      for (const w of wrap(`! ${String(it.notes)}`, cols - 4))
-        line(buf, `   ${w}`);
+      buf.push(...BOLD_ON);
+      for (const w of indented(String(it.notes), "  ** ", cols)) line(buf, w);
+      buf.push(...BOLD_OFF);
     }
-  }
+    if (idx < items.length - 1) line(buf, dashes(cols));
+  });
   line(buf, "-".repeat(cols));
 
   // ── Totals ────────────────────────────────────────────────────────
@@ -594,8 +674,18 @@ const STAR_CUT = [ESC, 0x64, 0x03]; // ESC d 3 — partial cut with feed
 export function buildOrderReceiptStar(
   payload: any,
   paperWidth: number = 80,
+  opts?: { fontScale?: FontScale },
 ): Uint8Array {
   const cols = colsFor(paperWidth);
+  // ESC i n1 n2 — n1 expands height, n2 expands width (0 = normal,
+  // 1 = double). Same policy as ESC/POS: LARGE is tall only, XLARGE is
+  // tall and wide (which halves the usable columns).
+  const scale = normaliseFontScale(opts?.fontScale);
+  const itemW = scale === "XLARGE" ? 2 : 1;
+  const itemCols = Math.floor(cols / itemW);
+  const STAR_ITEM_ON =
+    scale === "NORMAL" ? [] : [ESC, 0x69, 0x01, itemW === 2 ? 0x01 : 0x00];
+  const STAR_ITEM_OFF = scale === "NORMAL" ? [] : STAR_EXPAND_OFF;
   const buf: number[] = [];
   buf.push(ESC, 0x40); // ESC @ — initialise
 
@@ -671,14 +761,18 @@ export function buildOrderReceiptStar(
   if (payload?.customerPhone) line(buf, `Phone   : ${payload.customerPhone}`);
   if (payload?.deliveryAddress) {
     line(buf, "Address :");
+    buf.push(...STAR_BOLD_ON);
+    if (scale !== "NORMAL") buf.push(ESC, 0x69, 0x01, 0x00);
     for (const w of wrap(String(payload.deliveryAddress), cols - 2))
       line(buf, `  ${w}`);
+    if (scale !== "NORMAL") buf.push(...STAR_EXPAND_OFF);
+    buf.push(...STAR_BOLD_OFF);
   }
   line(buf, "-".repeat(cols));
 
   // ── Items ─────────────────────────────────────────────────────────
   const items = Array.isArray(payload?.items) ? payload.items : [];
-  for (const it of items) {
+  items.forEach((it: any, idx: number) => {
     const qty = String(it?.quantity ?? 1);
     const name = String(it?.name ?? it?.productName ?? it?.title ?? "Item");
     const lineTotal =
@@ -688,18 +782,19 @@ export function buildOrderReceiptStar(
           ? it.price * (it?.quantity ?? 1)
           : NaN;
     const priceStr = Number.isFinite(lineTotal) ? money(lineTotal) : "";
-    buf.push(...STAR_BOLD_ON);
+    buf.push(...STAR_BOLD_ON, ...STAR_ITEM_ON);
     const head = `${qty}x ${name}`;
-    if (head.length + 1 + priceStr.length <= cols) {
-      line(buf, padBetween(head, priceStr, cols));
+    if (head.length + 1 + priceStr.length <= itemCols) {
+      line(buf, padBetween(head, priceStr, itemCols));
     } else {
-      const wrapped = wrap(head, cols - priceStr.length - 1);
-      for (let i = 0; i < wrapped.length; i++) {
-        if (i === 0) line(buf, padBetween(wrapped[i]!, priceStr, cols));
-        else line(buf, wrapped[i]!);
-      }
+      const wrapped = wrap(head, itemCols);
+      wrapped.forEach((w, i) => {
+        if (i === wrapped.length - 1 && priceStr)
+          line(buf, padBetween(w, priceStr, itemCols));
+        else line(buf, w);
+      });
     }
-    buf.push(...STAR_BOLD_OFF);
+    buf.push(...STAR_ITEM_OFF, ...STAR_BOLD_OFF);
     if (Array.isArray(it?.modifiers)) {
       for (const m of it.modifiers) {
         const mname = String(m?.name ?? m?.title ?? "");
@@ -708,16 +803,19 @@ export function buildOrderReceiptStar(
           typeof m?.price === "number" && m.price > 0
             ? `+${money(m.price)}`
             : "";
-        const mline = `  + ${mname}`;
+        const mline = `  - ${mname}`;
         if (mprice && mline.length + 1 + mprice.length <= cols)
           line(buf, padBetween(mline, mprice, cols));
-        else line(buf, mline);
+        else for (const w of indented(mname, "  - ", cols)) line(buf, w);
       }
     }
-    if (it?.notes)
-      for (const w of wrap(`! ${String(it.notes)}`, cols - 4))
-        line(buf, `   ${w}`);
-  }
+    if (it?.notes) {
+      buf.push(...STAR_BOLD_ON);
+      for (const w of indented(String(it.notes), "  ** ", cols)) line(buf, w);
+      buf.push(...STAR_BOLD_OFF);
+    }
+    if (idx < items.length - 1) line(buf, dashes(cols));
+  });
   line(buf, "-".repeat(cols));
 
   // ── Totals ────────────────────────────────────────────────────────
@@ -803,12 +901,19 @@ export function buildTestReceiptStar(paperWidth: number = 80): Uint8Array {
 export async function renderReceiptBytes(
   payload: any,
   paperWidth: number = 80,
-  opts?: { printLogo?: boolean; qrCode?: boolean; commandSet?: string },
+  opts?: {
+    printLogo?: boolean;
+    qrCode?: boolean;
+    commandSet?: string;
+    fontScale?: FontScale;
+  },
 ): Promise<Uint8Array> {
   // Star printers speak Star Line Mode, not ESC/POS — render their own
   // command set (text + cut; logo/QR are ESC/POS-only for now).
   if (String(opts?.commandSet ?? "").toUpperCase() === "STAR") {
-    return buildOrderReceiptStar(payload, paperWidth);
+    return buildOrderReceiptStar(payload, paperWidth, {
+      fontScale: opts?.fontScale,
+    });
   }
   let logoBytes: number[] | null = null;
   if (opts?.printLogo !== false && payload?.brandLogoUrl) {
@@ -816,5 +921,9 @@ export async function renderReceiptBytes(
     logoBytes = await imageToRaster(String(payload.brandLogoUrl), maxDots);
   }
   const qr = opts?.qrCode && payload?.qrData ? String(payload.qrData) : null;
-  return buildOrderReceipt(payload, paperWidth, { logoBytes, qr });
+  return buildOrderReceipt(payload, paperWidth, {
+    logoBytes,
+    qr,
+    fontScale: opts?.fontScale,
+  });
 }
