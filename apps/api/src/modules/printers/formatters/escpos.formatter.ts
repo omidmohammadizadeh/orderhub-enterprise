@@ -82,6 +82,8 @@ export interface OrderPrintData {
   platform: string;
   orderSource: string;
   fulfillmentType: string;
+  // Table Tabs — set on dine-in orders; printed as "TABLE <name>".
+  tableName?: string | null;
   customerName: string;
   customerPhone?: string;
   deliveryAddress?: { line1: string; city: string; postcode: string };
@@ -149,6 +151,11 @@ export function buildReceiptDocument(order: OrderPrintData): PrintDocument {
   lines.push({ text: `Order #${orderNum}`, bold: true, size: "double-height", align: "center", linesBefore: 1 });
   lines.push({ text: order.platform.replace("_", " "), align: "center" });
   lines.push({ text: order.fulfillmentType.replace("_", " "), align: "center", linesAfter: 1 });
+  // Table Tabs — dine-in receipts name the table, big enough to read at
+  // the pass ("which table is this bill for?").
+  if (order.tableName) {
+    lines.push({ text: `TABLE ${order.tableName}`, align: "center", bold: true, size: "double", linesAfter: 1 });
+  }
 
   // Customer
   lines.push({ text: ruler() });
@@ -216,6 +223,10 @@ export function buildKitchenTicketDocument(order: OrderPrintData): PrintDocument
   lines.push({ text: "KITCHEN TICKET", align: "center", bold: true, size: "double", linesBefore: 1 });
   lines.push({ text: `#${order.displayId ?? "—"}`, align: "center", bold: true, size: "double", linesAfter: 1 });
   lines.push({ text: order.fulfillmentType.replace("_", " "), align: "center", bold: true });
+  // Table Tabs — the table IS the destination for a dine-in ticket/chit.
+  if (order.tableName) {
+    lines.push({ text: `TABLE ${order.tableName}`, align: "center", bold: true, size: "double" });
+  }
   lines.push({ text: order.customerName, align: "center" });
   // Cash-vs-paid banner above the items so the line cook / packer
   // sees it at the same moment they see the order number.

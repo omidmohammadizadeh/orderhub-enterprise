@@ -451,6 +451,11 @@ export class KdsService {
             metadata: {
               itemIds: routedItemIds,
               itemStates: {},
+              // Baseline for round-diffing: what this screen has seen. A
+              // later resync only re-opens the ticket for items NOT here.
+              seenItemIds: routedItemIds.length
+                ? routedItemIds
+                : order.items.map((i) => i.id),
             } as Prisma.InputJsonValue,
           },
           update: {},
@@ -541,45 +546,63 @@ export class KdsService {
     const routingByScreen = await this.computeRouting(order);
     const now = new Date().toISOString();
     let updated = 0;
+    const allItemIds = order.items.map((i) => i.id);
     for (const ticket of existing) {
       const routed = routingByScreen.get(ticket.kdsScreenId);
-      // Diagnostic — one line per screen per resync so a "ticket vanished"
-      // report can be traced to the exact routing decision.
-      this.logger.log(
-        `KDS resync order ${orderId} screen ${ticket.kdsScreenId} (${ticket.screen?.name ?? "?"}): ` +
-          (routed === null
-            ? "DELETE — no items route here anymore"
-            : routed === undefined
-              ? "KEEP — screen not in routing map (inactive?)"
-              : routed.length === 0
-                ? "update — whole order"
-                : `update — ${routed.length} routed item(s)`),
-      );
       // Station no longer receives anything from this order → void its ticket.
       if (routed === null) {
+        this.logger.log(
+          `KDS resync order ${orderId} screen ${ticket.kdsScreenId} (${ticket.screen?.name ?? "?"}): DELETE — no items route here anymore`,
+        );
         await this.prisma.kdsTicket.delete({ where: { id: ticket.id } });
         continue;
       }
       const meta = (ticket.metadata ?? {}) as Record<string, any>;
-      const validIds = new Set(order.items.map((i) => i.id));
+      const validIds = new Set(allItemIds);
       const prunedStates: Record<string, string> = {};
       for (const [k, v] of Object.entries(meta.itemStates ?? {})) {
         const itemId = k.split("::")[0]!;
         if (validIds.has(itemId)) prunedStates[k] = v as string;
       }
+      // Which items does this screen show after the edit? ([] = whole order.)
+      const shownNow = routed && routed.length ? routed : allItemIds;
+      // What had this screen already seen? (Falls back to the old routed
+      // subset for tickets that predate seenItemIds tracking.)
+      const seen: string[] | null = Array.isArray(meta.seenItemIds)
+        ? (meta.seenItemIds as string[])
+        : Array.isArray(meta.itemIds) && (meta.itemIds as string[]).length
+          ? (meta.itemIds as string[])
+          : null;
+      const freshIds = seen
+        ? shownNow.filter((id) => !seen.includes(id))
+        : shownNow;
+      // Only an edit that actually TOUCHES this station re-opens its bumped
+      // ticket: round 1 bumped on the grill must NOT be recalled when round 2
+      // is drinks-only. Untouched screens get their metadata refreshed
+      // silently (no re-open, no UPDATED banner, no chime).
+      const affected = freshIds.length > 0;
+      this.logger.log(
+        `KDS resync order ${orderId} screen ${ticket.kdsScreenId} (${ticket.screen?.name ?? "?"}): ` +
+          (routed && routed.length
+            ? `${routed.length} routed item(s)`
+            : "whole order") +
+          `, fresh=${freshIds.length} → ${affected ? "RE-OPEN" : "silent"}`,
+      );
       await this.prisma.kdsTicket.update({
         where: { id: ticket.id },
         data: {
-          bumpedAt: null, // re-open so the kitchen re-checks the edit
+          // Re-open only when this station gained items to cook.
+          bumpedAt: affected ? null : ticket.bumpedAt,
           metadata: {
             ...meta,
             itemIds: routed ?? [],
             itemStates: prunedStates,
-            updatedAt: now,
+            seenItemIds: shownNow,
+            ...(affected ? { updatedAt: now } : {}),
           } as Prisma.InputJsonValue,
         },
       });
-      updated++;
+      if (affected) updated++;
     }
 
     // Screens that route items from this order but have NO ticket yet — e.g.
@@ -598,6 +621,7 @@ export class KdsService {
             metadata: {
               itemIds: routed ?? [],
               itemStates: {},
+              seenItemIds: routed && routed.length ? routed : allItemIds,
               updatedAt: now,
             } as Prisma.InputJsonValue,
           },

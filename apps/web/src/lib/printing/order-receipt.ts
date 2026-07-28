@@ -87,6 +87,8 @@ export function buildPrintPayload(
     platform: displayChannelFor(order),
     orderSource: (order as any).orderSource ?? null,
     fulfillmentType: order.fulfillmentType,
+    // Table Tabs — dine-in prints name the table.
+    tableName: (order as any).tableName ?? null,
     // New / returning customer banner (matches the order card). Use the
     // server-supplied tag when present, otherwise derive from the count.
     customerVisitCount: (order as any).customerVisitCount ?? null,

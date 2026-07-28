@@ -426,6 +426,8 @@ export function buildOrderReceipt(
     line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
   if (payload?.fulfillmentType)
     line(buf, `Type    : ${payload.fulfillmentType}`);
+  // Table Tabs — dine-in prints name the table.
+  if (payload?.tableName) line(buf, `TABLE   : ${payload.tableName}`);
   // Always show the expected delivery / collection time.
   {
     const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
@@ -654,6 +656,8 @@ export function buildOrderReceiptStar(
     line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
   if (payload?.fulfillmentType)
     line(buf, `Type    : ${payload.fulfillmentType}`);
+  // Table Tabs — dine-in prints name the table.
+  if (payload?.tableName) line(buf, `TABLE   : ${payload.tableName}`);
   {
     const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
     const label = isDelivery ? "Deliver " : "Collect ";

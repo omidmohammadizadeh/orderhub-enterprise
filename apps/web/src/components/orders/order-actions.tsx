@@ -96,7 +96,11 @@ function buttonsForStatus(
       return isCollection
         ? [
             {
-              label: "Mark collected",
+              // Dine-in food isn't "collected" — the meal/tab is completed.
+              label:
+                fulfillmentType === "DINE_IN"
+                  ? "Mark completed"
+                  : "Mark collected",
               toStatus: "COMPLETED",
               icon: Check,
               variant: "primary",

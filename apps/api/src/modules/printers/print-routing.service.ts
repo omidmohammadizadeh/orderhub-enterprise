@@ -164,7 +164,18 @@ export class PrintRoutingService {
     const brandAddress = brandAddressLines.length
       ? brandAddressLines.join(", ")
       : null;
+    // Table Tabs — dine-in prints must name the table (receipt, kitchen
+    // ticket AND round chit all inherit this header).
+    let tableName: string | null = null;
+    if ((order as any).tableId) {
+      const tableRow = await this.prisma.table.findUnique({
+        where: { id: (order as any).tableId },
+        select: { name: true },
+      });
+      tableName = tableRow?.name ?? null;
+    }
     const header = {
+      tableName,
       brandName: brand?.name ?? null,
       brandLogoUrl: brand?.logoUrl ?? null,
       // Brand-name only on the receipt banner. Operators called this
@@ -649,6 +660,8 @@ export class PrintRoutingService {
 }
 
 type HeaderContext = {
+  // Table Tabs — dine-in prints carry the table name.
+  tableName?: string | null;
   brandName: string | null;
   brandLogoUrl: string | null;
   locationName: string | null;
@@ -656,6 +669,7 @@ type HeaderContext = {
   locationPhone: string | null;
 };
 const EMPTY_HEADER: HeaderContext = {
+  tableName: null,
   brandName: null,
   brandLogoUrl: null,
   locationName: null,
