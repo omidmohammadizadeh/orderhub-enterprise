@@ -24,13 +24,26 @@ export function ChargeReaderModal({
   locationId,
   amount,
   onClose,
+  partAmount,
+  onPaid,
 }: {
   open: boolean;
   orderId: string | null;
   locationId: string;
   amount: number;
   onClose: () => void;
+  /**
+   * Split bill: charge only this much rather than the whole order. The
+   * order stays open until the parts cover the total, so the manual
+   * "mark paid" escape hatch is hidden — it would settle the WHOLE bill
+   * off the back of one person's share.
+   */
+  partAmount?: number | null;
+  /** Fired once this charge has succeeded, before the modal closes. */
+  onPaid?: () => void;
 }) {
+  const isPart = typeof partAmount === "number" && partAmount > 0;
+  const chargeAmount = isPart ? partAmount : amount;
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [readerId, setReaderId] = useState<string | null>(null);
@@ -65,8 +78,10 @@ export function ChargeReaderModal({
       setError(null);
       setPaymentIntentId(null);
       setReaderId(null);
-      // In the native app, default to the on-device WisePad 3.
-      setMethod(nativeReader ? "wisepad" : "server");
+      // In the native app, default to the on-device WisePad 3 — except
+      // for a split, where the mobile charge endpoint takes no amount
+      // and would put the WHOLE bill on one person's card.
+      setMethod(nativeReader && !isPart ? "wisepad" : "server");
       setConnectedLabel(null);
       setConnecting(false);
       setSimulate(false);
@@ -87,7 +102,11 @@ export function ChargeReaderModal({
     setError(null);
     setPhase("charging");
     try {
-      const res = await terminalClient.charge(orderId, reader.id);
+      const res = await terminalClient.charge(
+        orderId,
+        reader.id,
+        isPart ? partAmount! : undefined,
+      );
       setPaymentIntentId(res.paymentIntentId);
       setPhase("waiting");
       // Poll until paid (the webhook may also settle it first).
@@ -98,6 +117,7 @@ export function ChargeReaderModal({
             if (pollRef.current) clearInterval(pollRef.current);
             setPhase("paid");
             toast.success("Card payment received");
+            onPaid?.();
             setTimeout(onClose, 1200);
           }
         } catch {
@@ -163,6 +183,7 @@ export function ChargeReaderModal({
             if (pollRef.current) clearInterval(pollRef.current);
             setPhase("paid");
             toast.success("Card payment received");
+            onPaid?.();
             setTimeout(onClose, 1200);
           }
         } catch {
@@ -228,10 +249,10 @@ export function ChargeReaderModal({
 
         <div className="space-y-4 p-5">
           <p className="text-center text-3xl font-bold text-zinc-900">
-            £{amount.toFixed(2)}
+            £{chargeAmount.toFixed(2)}
           </p>
 
-          {nativeReader && phase !== "paid" && (
+          {nativeReader && !isPart && phase !== "paid" && (
             <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 text-xs font-medium">
               <button
                 onClick={() => setMethod("wisepad")}
@@ -305,7 +326,7 @@ export function ChargeReaderModal({
                   {phase === "charging" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    `Charge £${amount.toFixed(2)} on reader`
+                    `Charge £${chargeAmount.toFixed(2)} on reader`
                   )}
                 </Button>
               )}
@@ -385,7 +406,7 @@ export function ChargeReaderModal({
                   {phase === "charging" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    `Charge £${amount.toFixed(2)} to reader`
+                    `Charge £${chargeAmount.toFixed(2)} to reader`
                   )}
                 </Button>
               )}
@@ -394,7 +415,10 @@ export function ChargeReaderModal({
             </>
           )}
 
-          {phase !== "paid" && (
+          {/* Hidden for a split: this marks the WHOLE order paid, which
+              would clear the table off one person's share. Staff take an
+              off-system part as Cash in the split modal instead. */}
+          {phase !== "paid" && !isPart && (
             <button
               onClick={markPaidManually}
               className="w-full text-center text-xs text-zinc-500 underline hover:text-zinc-700"

@@ -1009,6 +1009,7 @@ export default function PosPage() {
         <SplitBillModal
           orderId={tabOrderId}
           tableName={tableName}
+          locationId={selectedLocationId ?? undefined}
           onClose={() => setSplitOpen(false)}
           onSettled={() => {
             setSplitOpen(false);

@@ -98,13 +98,17 @@ export class TerminalController {
     summary: "Charge an order to a card reader — the reader prompts the customer",
   })
   charge(
-    @Body() body: { orderId: string; readerId: string },
+    @Body() body: { orderId: string; readerId: string; amount?: number },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.terminal.chargeOrder({
       tenantId: user.tenantId,
       orderId: body.orderId,
       readerId: body.readerId,
+      // Present only for a split bill — charges this part, not the
+      // whole order, and settlement holds the order open until the
+      // parts cover the total.
+      amount: body.amount,
     });
   }
 

@@ -878,6 +878,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   status: 'status',
   fulfillmentType: 'fulfillmentType',
   tableId: 'tableId',
+  covers: 'covers',
   customerInfo: 'customerInfo',
   customerName: 'customerName',
   customerPhone: 'customerPhone',
@@ -1027,6 +1028,41 @@ exports.Prisma.TableScalarFieldEnum = {
   status: 'status',
   currentOrderId: 'currentOrderId',
   openedAt: 'openedAt',
+  posX: 'posX',
+  posY: 'posY',
+  shape: 'shape',
+  width: 'width',
+  height: 'height',
+  bookableOnline: 'bookableOnline',
+  outOfService: 'outOfService',
+  outOfServiceNote: 'outOfServiceNote',
+  qrToken: 'qrToken',
+  qrEnabled: 'qrEnabled',
+  covers: 'covers',
+  serverId: 'serverId',
+  serverName: 'serverName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TableReservationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  tableId: 'tableId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  customerEmail: 'customerEmail',
+  partySize: 'partySize',
+  startsAt: 'startsAt',
+  durationMins: 'durationMins',
+  status: 'status',
+  source: 'source',
+  notes: 'notes',
+  orderId: 'orderId',
+  seatedAt: 'seatedAt',
+  cancelledAt: 'cancelledAt',
+  reference: 'reference',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2576,7 +2612,27 @@ exports.Prisma.TableOrderByRelevanceFieldEnum = {
   name: 'name',
   area: 'area',
   status: 'status',
-  currentOrderId: 'currentOrderId'
+  currentOrderId: 'currentOrderId',
+  shape: 'shape',
+  outOfServiceNote: 'outOfServiceNote',
+  qrToken: 'qrToken',
+  serverId: 'serverId',
+  serverName: 'serverName'
+};
+
+exports.Prisma.TableReservationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  tableId: 'tableId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  customerEmail: 'customerEmail',
+  status: 'status',
+  source: 'source',
+  notes: 'notes',
+  orderId: 'orderId',
+  reference: 'reference'
 };
 
 exports.Prisma.KdsTicketOrderByRelevanceFieldEnum = {
@@ -3694,6 +3750,7 @@ exports.Prisma.ModelName = {
   KdsScreen: 'KdsScreen',
   SignageDisplay: 'SignageDisplay',
   Table: 'Table',
+  TableReservation: 'TableReservation',
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',
   PrintJob: 'PrintJob',

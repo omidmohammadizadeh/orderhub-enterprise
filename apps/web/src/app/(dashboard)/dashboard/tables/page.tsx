@@ -5,19 +5,49 @@
 // once its tab is settled. Managers define the tables and toggle the feature on
 // for this location. Prices/payment reuse the normal POS + settle flow.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Utensils, Plus, Trash2, Pencil, X } from "lucide-react";
+import {
+  Utensils,
+  Plus,
+  Trash2,
+  Pencil,
+  X,
+  LayoutGrid,
+  List as ListIcon,
+  MoreHorizontal,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { queryKeys } from "@/lib/api/query-keys";
 import { locationsClient } from "@/lib/api/locations.client";
 import {
   tablesClient,
+  type LayoutNode,
   type RestaurantTable,
+  type SittingInput,
   type UpsertTableInput,
 } from "@/lib/api/tables.client";
+import { FloorPlan } from "@/components/tables/floor-plan";
+import { SeatDialog } from "@/components/tables/seat-dialog";
+import { TableActionsModal } from "@/components/tables/table-actions-modal";
+import { TableQrModal } from "@/components/tables/table-qr-modal";
+
+type View = "plan" | "list";
+const VIEW_KEY = "oh.tables.view";
+
+// Same list the API's @Roles(...MANAGE) uses on POST /v1/tables/layout —
+// showing "Edit layout" to a cashier would only earn them a 403.
+const MANAGE_ROLES = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "MANAGER",
+  "DARK_KITCHEN_MANAGER",
+];
 
 export default function TablesPage() {
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
@@ -26,6 +56,35 @@ export default function TablesPage() {
   const [manage, setManage] = useState(false);
   // Service essentials — "Move / merge" picker: the tab being moved.
   const [moveFrom, setMoveFrom] = useState<RestaurantTable | null>(null);
+
+  // Whichever view a till was left on is the one that shift wants back.
+  // Read after mount so the server and first client render agree.
+  const [view, setView] = useState<View>("plan");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(VIEW_KEY);
+      if (saved === "plan" || saved === "list") setView(saved);
+    } catch {
+      /* private mode — the default is fine */
+    }
+  }, []);
+  const chooseView = (v: View) => {
+    setView(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // Tile-level dialogs are keyed by id, not by a snapshot of the row, so a
+  // refetch (or a mutation the dialog itself fired) is reflected live.
+  const [seatId, setSeatId] = useState<string | null>(null);
+  const [actionsId, setActionsId] = useState<string | null>(null);
+  const [qrId, setQrId] = useState<string | null>(null);
+
+  const role = useAuthStore((s) => s.user?.role);
+  const canManage = !!role && MANAGE_ROLES.includes(role as string);
 
   const locationQuery = useQuery({
     queryKey: ["location", locationId],
@@ -44,27 +103,64 @@ export default function TablesPage() {
   const tables = tablesQuery.data ?? [];
 
   const toggleMut = useMutation({
-    mutationFn: (on: boolean) =>
-      locationsClient.update(locationId!, {
-        settings: { tableService: { enabled: on } },
-      } as any),
+    // The locations PATCH shallow-merges the TOP level of settings only,
+    // so sending a bare `{ tableService: { enabled } }` replaces the whole
+    // tableService object and silently wipes the reservations settings
+    // underneath it. Spread both levels.
+    mutationFn: (on: boolean) => {
+      const settings = ((locationQuery.data as any)?.settings ?? {}) as Record<
+        string,
+        any
+      >;
+      return locationsClient.update(locationId!, {
+        settings: {
+          ...settings,
+          tableService: { ...(settings.tableService ?? {}), enabled: on },
+        },
+      } as any);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["location", locationId] });
+      // The sidebar + reservations pages read the location under the
+      // shared key, so invalidate that too or the nav lags by a minute.
+      qc.invalidateQueries({ queryKey: queryKeys.locationDetail(locationId!) });
       toast.success("Saved");
     },
     onError: () => toast.error("Couldn't save"),
   });
 
   const seatMut = useMutation({
-    mutationFn: (t: RestaurantTable) => tablesClient.seat(t.id),
-    onSuccess: (_res, t) => {
+    mutationFn: (v: { table: RestaurantTable; input?: SittingInput }) =>
+      tablesClient.seat(v.table.id, v.input),
+    onSuccess: (_res, v) => {
       qc.invalidateQueries({ queryKey: ["tables", locationId] });
+      setSeatId(null);
+      setActionsId(null);
       // Take the order in the POS, scoped to this table (dine-in tab).
       router.push(
-        `/dashboard/pos?tableId=${t.id}&tableName=${encodeURIComponent(t.name)}`,
+        `/dashboard/pos?tableId=${v.table.id}&tableName=${encodeURIComponent(v.table.name)}`,
       );
     },
-    onError: () => toast.error("Couldn't open the table"),
+    // The API refuses to seat an out-of-service table and says why.
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message ?? "Couldn't open the table"),
+  });
+
+  const layoutMut = useMutation({
+    mutationFn: async (v: { nodes: LayoutNode[]; unplacedIds: string[] }) => {
+      // The layout endpoint always writes numbers, so "took it off the plan"
+      // has to go back through the normal update with explicit nulls.
+      for (const id of v.unplacedIds) {
+        await tablesClient.update(id, { posX: null, posY: null });
+      }
+      if (v.nodes.length) await tablesClient.saveLayout(locationId!, v.nodes);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tables", locationId] });
+      toast.success("Floor plan saved");
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message ?? "Couldn't save the floor plan"),
   });
 
   const openTab = (t: RestaurantTable) =>
@@ -76,6 +172,7 @@ export default function TablesPage() {
     mutationFn: (t: RestaurantTable) => tablesClient.free(t.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tables", locationId] });
+      setActionsId(null);
       toast.success("Table cleared");
     },
     onError: () => toast.error("Couldn't clear the table"),
@@ -127,6 +224,12 @@ export default function TablesPage() {
   const [editing, setEditing] = useState<RestaurantTable | null>(null);
   const [creating, setCreating] = useState(false);
 
+  const byId = (id: string | null) =>
+    id ? (tables.find((t) => t.id === id) ?? null) : null;
+  const seatTable = byId(seatId);
+  const actionsTable = byId(actionsId);
+  const qrTable = byId(qrId);
+
   if (!locationId) {
     return (
       <div className="p-6">
@@ -149,7 +252,29 @@ export default function TablesPage() {
             the end.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex rounded-md border border-zinc-200 p-0.5">
+            <button
+              onClick={() => chooseView("plan")}
+              className={`flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium ${
+                view === "plan"
+                  ? "bg-zinc-900 text-white"
+                  : "text-zinc-500 hover:text-zinc-900"
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> Floor plan
+            </button>
+            <button
+              onClick={() => chooseView("list")}
+              className={`flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium ${
+                view === "list"
+                  ? "bg-zinc-900 text-white"
+                  : "text-zinc-500 hover:text-zinc-900"
+              }`}
+            >
+              <ListIcon className="h-3.5 w-3.5" /> List
+            </button>
+          </div>
           <label className="flex items-center gap-2 text-sm text-zinc-700">
             <input
               type="checkbox"
@@ -178,6 +303,16 @@ export default function TablesPage() {
 
       {tablesQuery.isLoading ? (
         <p className="text-sm text-zinc-500">Loading…</p>
+      ) : tablesQuery.isError ? (
+        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          Couldn&apos;t load the tables.{" "}
+          <button
+            onClick={() => tablesQuery.refetch()}
+            className="underline hover:no-underline"
+          >
+            Try again
+          </button>
+        </div>
       ) : tables.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-200 p-10 text-center">
           <Utensils className="mx-auto h-8 w-8 text-zinc-300" />
@@ -186,6 +321,20 @@ export default function TablesPage() {
             floor.
           </p>
         </div>
+      ) : view === "plan" ? (
+        <FloorPlan
+          tables={tables}
+          serviceEnabled={enabled}
+          canManage={canManage}
+          onOpenTable={(t) =>
+            t.status === "OCCUPIED" ? openTab(t) : setSeatId(t.id)
+          }
+          onTableActions={(t) => setActionsId(t.id)}
+          onSaveLayout={(nodes, unplacedIds) =>
+            layoutMut.mutateAsync({ nodes, unplacedIds })
+          }
+          savingLayout={layoutMut.isPending}
+        />
       ) : (
         <div className="space-y-6">
           {areas.map(([area, list]) => (
@@ -205,6 +354,17 @@ export default function TablesPage() {
                           : "border-emerald-200 bg-emerald-50"
                       }`}
                     >
+                      {/* The list has no tiles to long-press, so availability
+                          / QR need their own way in. */}
+                      {!manage && (
+                        <button
+                          onClick={() => setActionsId(t.id)}
+                          aria-label={`Actions for ${t.name}`}
+                          className="absolute right-1 top-1 rounded p-1 text-zinc-400 hover:text-zinc-700"
+                        >
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                       {manage && (
                         <div className="absolute right-1 top-1 flex gap-0.5">
                           <button
@@ -267,11 +427,11 @@ export default function TablesPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => seatMut.mutate(t)}
-                              disabled={!enabled}
+                              onClick={() => setSeatId(t.id)}
+                              disabled={!enabled || t.outOfService}
                               className="w-full"
                             >
-                              Seat
+                              {t.outOfService ? "Out of service" : "Seat"}
                             </Button>
                           )}
                         </div>
@@ -356,6 +516,44 @@ export default function TablesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {seatTable && (
+        <SeatDialog
+          table={seatTable}
+          pending={seatMut.isPending}
+          onConfirm={(input) => seatMut.mutate({ table: seatTable, input })}
+          onClose={() => setSeatId(null)}
+        />
+      )}
+
+      {actionsTable && (
+        <TableActionsModal
+          table={actionsTable}
+          locationId={locationId}
+          serviceEnabled={enabled}
+          onClose={() => setActionsId(null)}
+          onOpenTab={() => openTab(actionsTable)}
+          onSeat={() => {
+            // Both are z-50 modals — hand over rather than stack them.
+            setActionsId(null);
+            setSeatId(actionsTable.id);
+          }}
+          onMoveMerge={() => {
+            setActionsId(null);
+            setMoveFrom(actionsTable);
+          }}
+          onClear={() => freeMut.mutate(actionsTable)}
+          onShowQr={() => setQrId(actionsTable.id)}
+        />
+      )}
+
+      {qrTable && (
+        <TableQrModal
+          table={qrTable}
+          locationId={locationId}
+          onClose={() => setQrId(null)}
+        />
       )}
 
       {(creating || editing) && (

@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
 import { tablesClient, type PaymentSummary } from "@/lib/api/tables.client";
 import { apiClient } from "@/lib/api/client";
+import { ChargeReaderModal } from "./charge-reader-modal";
 
 interface Props {
   orderId: string;
@@ -24,6 +25,12 @@ interface Props {
   onClose: () => void;
   /** Fired once the bill is fully settled (table freed server-side). */
   onSettled: () => void;
+  /**
+   * Needed to reach the location's card readers. When absent the Card
+   * button falls back to recording an off-system card payment, which is
+   * what shops with a standalone terminal actually do.
+   */
+  locationId?: string;
 }
 
 const money = (n: number) => `£${Number(n).toFixed(2)}`;
@@ -33,8 +40,12 @@ export function SplitBillModal({
   tableName,
   onClose,
   onSettled,
+  locationId,
 }: Props) {
   const qc = useQueryClient();
+  // Card readers charge the PART amount; the order stays open until the
+  // parts cover the total (see TerminalService.chargeOrder).
+  const [readerFor, setReaderFor] = useState<number | null>(null);
   const [amount, setAmount] = useState("");
   const [ways, setWays] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -281,7 +292,12 @@ export function SplitBillModal({
               )}
             </button>
             <button
-              onClick={() => pay.mutate("CARD")}
+              onClick={() =>
+                // With a location we can drive the reader for exactly
+                // this share; without one, fall back to recording an
+                // off-system card payment as before.
+                locationId ? setReaderFor(amountNum) : pay.mutate("CARD")
+              }
               disabled={!canPay}
               className="inline-flex items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
             >
@@ -324,6 +340,29 @@ export function SplitBillModal({
           )}
         </div>
       </div>
+
+      {/* Card reader for ONE share. The server records the part and only
+          settles the order once the parts cover the total, so closing
+          this modal mid-way leaves the tab correctly part-paid. */}
+      {readerFor != null && locationId && (
+        <ChargeReaderModal
+          open
+          orderId={orderId}
+          locationId={locationId}
+          amount={s?.total ?? readerFor}
+          partAmount={readerFor}
+          onPaid={() => {
+            // The part is banked server-side; refetch to move Paid/Left
+            // and let the server tell us whether that closed the bill.
+            summaryQuery.refetch().then((r) => {
+              if (r.data?.settled) onSettled();
+              else setAmount((r.data?.remaining ?? 0).toFixed(2));
+            });
+            qc.invalidateQueries({ queryKey: ["tables"] });
+          }}
+          onClose={() => setReaderFor(null)}
+        />
+      )}
     </div>
   );
 }

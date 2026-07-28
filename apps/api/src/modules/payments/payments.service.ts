@@ -709,6 +709,15 @@ export class PaymentsService {
     if (!payment) return;
     if (payment.status === PaymentRecordStatus.SUCCEEDED) return; // idempotent
 
+    // ── Split bill ────────────────────────────────────────────────────
+    // A part-payment settles ITSELF, not the bill. Marking the order PAID
+    // here would clear a £48 table off the back of a £20 card tap, so the
+    // order only flips once the banked parts actually cover the total.
+    if ((payment.metadata as any)?.split) {
+      await this.settleSplitPart(payment, pi);
+      return;
+    }
+
     await this.prisma.$transaction([
       (this.prisma as any).payment.update({
         where: { id: payment.id },
@@ -759,6 +768,71 @@ export class PaymentsService {
 
     this.logger.log(
       `Terminal payment settled: order ${payment.orderId} → PAID (pi ${pi?.id})`,
+    );
+  }
+
+  /**
+   * Bank one part of a split bill taken on a card reader.
+   *
+   * Marks just this Payment SUCCEEDED, then asks whether the parts now
+   * cover the order. Only the part that closes the gap flips the order
+   * to PAID — and, for a dine-in tab, fires `order.settled_in_full` so
+   * OrdersService can run the SAME complete-and-free-the-table routine
+   * the cash split path already uses (it owns the forward-only status
+   * ladder; duplicating that logic here is how the two paths drift).
+   */
+  private async settleSplitPart(payment: any, pi: any): Promise<void> {
+    await (this.prisma as any).payment.update({
+      where: { id: payment.id },
+      data: { status: PaymentRecordStatus.SUCCEEDED },
+    });
+
+    const order = await this.prisma.order.findUnique({
+      where: { id: payment.orderId },
+      select: {
+        id: true,
+        total: true,
+        tableId: true,
+        locationId: true,
+        paymentStatus: true,
+      },
+    });
+    if (!order) return;
+
+    const rows = await (this.prisma as any).payment.findMany({
+      where: { orderId: order.id, status: PaymentRecordStatus.SUCCEEDED },
+      select: { amount: true },
+    });
+    const paid =
+      Math.round(
+        rows.reduce((s: number, p: any) => s + Number(p.amount), 0) * 100,
+      ) / 100;
+    const total = Number(order.total);
+    const covered = paid >= total - 0.01;
+
+    if (covered && order.paymentStatus !== "PAID") {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: { paymentStatus: "PAID" as any },
+      });
+      if (order.tableId) {
+        this.events.emit("order.settled_in_full", {
+          orderId: order.id,
+          tenantId: payment.tenantId,
+          locationId: order.locationId,
+        });
+      }
+    }
+
+    this.socket.emitToTenant(payment.tenantId, "order:updated" as any, {
+      orderId: order.id,
+      paymentStatus: covered ? "PAID" : "PARTIAL",
+    } as any);
+
+    this.logger.log(
+      `Split card part settled: order ${order.id} £${Number(payment.amount).toFixed(2)} ` +
+        `— paid £${paid.toFixed(2)}/${total.toFixed(2)}` +
+        `${covered ? " (SETTLED)" : ""} (pi ${pi?.id})`,
     );
   }
 

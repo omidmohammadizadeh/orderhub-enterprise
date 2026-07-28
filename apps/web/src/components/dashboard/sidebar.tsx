@@ -36,6 +36,7 @@ import {
   Wallet,
   MessageSquare,
   Clapperboard,
+  CalendarDays,
   Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -45,6 +46,9 @@ import { humaniseRole } from "@/lib/api/team.client";
 import { getInitials } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { leadsClient } from "@/lib/api/leads.client";
+import { locationsClient } from "@/lib/api/locations.client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface NavItem {
   href: string;
@@ -52,6 +56,8 @@ interface NavItem {
   icon: React.ElementType;
   badge?: string;
   roles?: string[];
+  /** Hidden unless the selected location has dine-in table service on. */
+  requiresTableService?: boolean;
 }
 
 // Phase AR — every NavItem optionally declares which roles see it.
@@ -81,6 +87,17 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
   { href: "/dashboard/tables", label: "Tables", icon: UtensilsCrossed, roles: STAFF_TIER },
+  // Reservations only make sense once dine-in is switched on for this
+  // location. Tables itself stays unconditional on purpose — it's where
+  // the table-service toggle lives, so gating it would hide the only way
+  // to turn the feature on.
+  {
+    href: "/dashboard/reservations",
+    label: "Reservations",
+    icon: CalendarDays,
+    roles: STAFF_TIER,
+    requiresTableService: true,
+  },
   // Phase AW — Direct online ordering settings moved into the per-brand
   // settings drawer (Locations → Brands → DIRECT_ONLINE channel →
   // Connect). The settings are now per-brand so a kitchen running two
@@ -190,6 +207,23 @@ function _Sidebar() {
   });
   const unreadLeads = leadsCountQuery.data ?? 0;
 
+  // Dine-in nav (Reservations) only appears when the selected location has
+  // table service switched on. Shares the canonical location-detail cache
+  // with the pages themselves; no polling (this renders on every dashboard
+  // page), just a 1-minute staleness so switching the feature on shows up
+  // shortly after without a reload.
+  const selectedLocationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
+  const locationQuery = useQuery({
+    queryKey: queryKeys.locationDetail(selectedLocationId ?? ""),
+    queryFn: () => locationsClient.get(selectedLocationId!),
+    enabled: !!selectedLocationId,
+    staleTime: 60_000,
+  });
+  const tableServiceOn = !!(locationQuery.data as any)?.settings?.tableService
+    ?.enabled;
+
   return (
     <aside className="flex h-screen w-[220px] flex-shrink-0 flex-col bg-[#0a0a0b] border-r border-white/[0.06]">
       {/* ── Logo ─────────────────────────────────────── */}
@@ -217,8 +251,9 @@ function _Sidebar() {
               // Phase AP — items with a `roles` array are hidden from
               // users without that role. Server enforces too — this is
               // UI cleanliness.
-              !item.roles ||
-              (user?.role && item.roles.includes(user.role)),
+              (!item.roles ||
+                (user?.role && item.roles.includes(user.role))) &&
+              (!item.requiresTableService || tableServiceOn),
           )
           .map((item) => {
             // Phase AR — overlay the live unread-leads count onto

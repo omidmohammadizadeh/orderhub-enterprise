@@ -411,10 +411,22 @@ export class TerminalService {
 
   // ── Charge an order on a reader ───────────────────────────────────────────
 
+  /**
+   * Charge an order to a card reader.
+   *
+   * `amount` turns this into a PART payment for split bills ("£20 of
+   * this table's £48 on card"). Without it the whole order total is
+   * charged, exactly as before. The distinction is carried on the
+   * Payment row's metadata as `split: true`, because it changes what
+   * settlement means: a part payment must NOT mark the order PAID on
+   * its own — only the part that finally covers the balance does. See
+   * PaymentsService.settleTerminalPi.
+   */
   async chargeOrder(args: {
     tenantId: string;
     orderId: string;
     readerId: string;
+    amount?: number;
   }) {
     this.assertStripe();
     const order = await this.prisma.order.findFirst({
@@ -442,7 +454,32 @@ export class TerminalService {
     const reader = cfg.readers.find((r) => r.id === args.readerId);
     if (!reader) throw new NotFoundException("Reader not registered at this location");
 
-    const basketGbp = Number(order.total ?? 0);
+    const orderTotalGbp = Number(order.total ?? 0);
+    const isSplit = args.amount !== undefined && args.amount !== null;
+
+    // For a split, the ceiling is what's still OWED, not the order
+    // total — otherwise two concurrent part-charges could each pass a
+    // naive "<= total" check and together overcharge the table.
+    let basketGbp = orderTotalGbp;
+    if (isSplit) {
+      const requested = Math.round(Number(args.amount) * 100) / 100;
+      if (!Number.isFinite(requested) || requested <= 0) {
+        throw new BadRequestException("Amount must be greater than zero");
+      }
+      const alreadyPaid = await this.paidSoFarGbp(order.id);
+      const remaining = Math.round((orderTotalGbp - alreadyPaid) * 100) / 100;
+      if (remaining <= 0) {
+        throw new BadRequestException("This bill is already fully paid");
+      }
+      // A rounding penny of slack, same tolerance as the cash split path.
+      if (requested > remaining + 0.01) {
+        throw new BadRequestException(
+          `That's more than the £${remaining.toFixed(2)} still owed`,
+        );
+      }
+      basketGbp = requested;
+    }
+
     const amountPence = Math.round(basketGbp * 100);
     if (amountPence <= 0) throw new BadRequestException("Order total must be > 0");
 
@@ -458,6 +495,7 @@ export class TerminalService {
         tenantId: order.tenantId,
         locationId: order.locationId,
         source: "terminal",
+        ...(isSplit ? { split: "1" } : {}),
         ...(reader.simulated ? { testDrive: "1" } : {}),
       },
     };
@@ -497,16 +535,24 @@ export class TerminalService {
         tenantId: order.tenantId,
         orderId: order.id,
         stripePaymentIntentId: pi.id,
-        amount: order.total,
+        // The PART amount for a split, never the order total — this row
+        // is what paymentSummary() sums to decide when the bill is clear.
+        amount: basketGbp,
         currency: "gbp",
         status: "PROCESSING",
         method: "CARD",
-        metadata: { source: "terminal", readerId: args.readerId },
+        metadata: {
+          source: "terminal",
+          readerId: args.readerId,
+          ...(isSplit ? { split: true } : {}),
+        },
       },
     });
 
     this.logger.log(
-      `Terminal charge started: order ${order.id} £${basketGbp} on reader ${args.readerId} (pi ${pi.id})`,
+      `Terminal charge started: order ${order.id} £${basketGbp}` +
+        `${isSplit ? ` (split of £${orderTotalGbp})` : ""}` +
+        ` on reader ${args.readerId} (pi ${pi.id})`,
     );
     return {
       paymentIntentId: pi.id,
@@ -515,6 +561,20 @@ export class TerminalService {
       simulated: reader.simulated,
       amount: basketGbp,
     };
+  }
+
+  /**
+   * Sum of the part-payments already banked against an order. Only
+   * SUCCEEDED rows count — a PROCESSING one is a card still in the
+   * customer's hand and may yet be declined.
+   */
+  private async paidSoFarGbp(orderId: string): Promise<number> {
+    const rows = await (this.prisma as any).payment.findMany({
+      where: { orderId, status: "SUCCEEDED" },
+      select: { amount: true },
+    });
+    const sum = rows.reduce((s: number, p: any) => s + Number(p.amount), 0);
+    return Math.round(sum * 100) / 100;
   }
 
   /** Test drive: play the customer tapping their card on a simulated reader. */

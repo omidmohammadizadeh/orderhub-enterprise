@@ -9,7 +9,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { TablesService } from "./tables.service";
+import { TablesService, type LayoutNode } from "./tables.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
@@ -81,8 +81,94 @@ export class TablesController {
   @Post(":id/seat")
   @Roles(...OPERATE)
   @ApiOperation({ summary: "Seat a table (open its tab)" })
-  seat(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.tables.seat(user.tenantId, id);
+  seat(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      covers?: number | null;
+      serverId?: string | null;
+      serverName?: string | null;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const hasSitting =
+      body &&
+      (body.covers !== undefined ||
+        body.serverId !== undefined ||
+        body.serverName !== undefined);
+    return this.tables.seat(user.tenantId, id, hasSitting ? body : undefined);
+  }
+
+  // ── Floor plan ──────────────────────────────────────────────────────
+  @Post("layout")
+  @Roles(...MANAGE)
+  @ApiOperation({ summary: "Save the whole floor plan for a location" })
+  saveLayout(
+    @Body() body: { locationId: string; nodes: LayoutNode[] },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tables.saveLayout(
+      user.tenantId,
+      body.locationId,
+      body.nodes ?? [],
+    );
+  }
+
+  // ── Availability ────────────────────────────────────────────────────
+  @Post(":id/out-of-service")
+  @Roles(...OPERATE)
+  @ApiOperation({ summary: "Take a table out of service (or put it back)" })
+  outOfService(
+    @Param("id") id: string,
+    @Body() body: { outOfService: boolean; note?: string | null },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tables.setOutOfService(
+      user.tenantId,
+      id,
+      !!body.outOfService,
+      body.note,
+    );
+  }
+
+  @Post(":id/bookable")
+  @Roles(...OPERATE)
+  @ApiOperation({ summary: "Allow / stop online reservations for this table" })
+  bookable(
+    @Param("id") id: string,
+    @Body() body: { bookableOnline: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tables.setBookableOnline(
+      user.tenantId,
+      id,
+      !!body.bookableOnline,
+    );
+  }
+
+  // ── Current sitting ─────────────────────────────────────────────────
+  @Post(":id/sitting")
+  @Roles(...OPERATE)
+  @ApiOperation({ summary: "Set covers (guest count) and server on a tab" })
+  sitting(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      covers?: number | null;
+      serverId?: string | null;
+      serverName?: string | null;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tables.setSitting(user.tenantId, id, body);
+  }
+
+  // ── QR at table ─────────────────────────────────────────────────────
+  @Post(":id/qr")
+  @Roles(...MANAGE)
+  @ApiOperation({ summary: "Mint or rotate this table's QR ordering code" })
+  qr(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.tables.rotateQrToken(user.tenantId, id);
   }
 
   @Post(":id/link-order")

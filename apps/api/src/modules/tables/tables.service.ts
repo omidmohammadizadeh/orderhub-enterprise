@@ -19,6 +19,42 @@ interface UpsertTableInput {
   area?: string | null;
   sortOrder?: number;
   isActive?: boolean;
+  // Floor plan
+  posX?: number | null;
+  posY?: number | null;
+  shape?: string;
+  width?: number;
+  height?: number;
+  // Availability
+  bookableOnline?: boolean;
+  outOfService?: boolean;
+  outOfServiceNote?: string | null;
+  // QR at table
+  qrEnabled?: boolean;
+}
+
+/** One tile's position, as the floor-plan editor saves them in bulk. */
+export interface LayoutNode {
+  id: string;
+  posX: number;
+  posY: number;
+  shape?: string;
+  width?: number;
+  height?: number;
+  area?: string | null;
+}
+
+const SHAPES = new Set(["SQUARE", "ROUND", "RECT"]);
+
+// QR tokens are guessable-proof but readable enough to support over the
+// phone. No l/1/0/O.
+const TOKEN_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function randomToken(len = 12): string {
+  let out = "";
+  for (let i = 0; i < len; i++) {
+    out += TOKEN_ALPHABET[Math.floor(Math.random() * TOKEN_ALPHABET.length)];
+  }
+  return out;
 }
 
 @Injectable()
@@ -80,8 +116,163 @@ export class TablesService {
           : {}),
         ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
         ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+        ...(input.posX !== undefined ? { posX: input.posX } : {}),
+        ...(input.posY !== undefined ? { posY: input.posY } : {}),
+        ...(input.shape !== undefined && SHAPES.has(input.shape)
+          ? { shape: input.shape }
+          : {}),
+        ...(input.width !== undefined
+          ? { width: Math.max(1, Math.min(6, Math.round(input.width))) }
+          : {}),
+        ...(input.height !== undefined
+          ? { height: Math.max(1, Math.min(6, Math.round(input.height))) }
+          : {}),
+        ...(input.bookableOnline !== undefined
+          ? { bookableOnline: input.bookableOnline }
+          : {}),
+        ...(input.outOfService !== undefined
+          ? { outOfService: input.outOfService }
+          : {}),
+        ...(input.outOfServiceNote !== undefined
+          ? { outOfServiceNote: input.outOfServiceNote?.trim() || null }
+          : {}),
+        ...(input.qrEnabled !== undefined ? { qrEnabled: input.qrEnabled } : {}),
       },
     });
+  }
+
+  /**
+   * Save the whole floor plan in one go. The editor is drag-and-drop, so
+   * it sends every tile's final position at once rather than a PATCH per
+   * nudge — one round trip, and the layout can never be left half-saved
+   * with two tables sitting on the same cell.
+   */
+  async saveLayout(tenantId: string, locationId: string, nodes: LayoutNode[]) {
+    await this.assertLocation(tenantId, locationId);
+    const owned = await this.prisma.table.findMany({
+      where: { tenantId, locationId },
+      select: { id: true },
+    });
+    const ownedIds = new Set(owned.map((t) => t.id));
+    const clean = (nodes ?? []).filter((n) => n?.id && ownedIds.has(n.id));
+    if (!clean.length) return this.list(tenantId, locationId);
+
+    await this.prisma.$transaction(
+      clean.map((n) =>
+        this.prisma.table.update({
+          where: { id: n.id },
+          data: {
+            posX: Math.max(0, Math.round(Number(n.posX) || 0)),
+            posY: Math.max(0, Math.round(Number(n.posY) || 0)),
+            ...(n.shape && SHAPES.has(n.shape) ? { shape: n.shape } : {}),
+            ...(n.width
+              ? { width: Math.max(1, Math.min(6, Math.round(n.width))) }
+              : {}),
+            ...(n.height
+              ? { height: Math.max(1, Math.min(6, Math.round(n.height))) }
+              : {}),
+            ...(n.area !== undefined ? { area: n.area?.trim() || null } : {}),
+          },
+        }),
+      ),
+    );
+    return this.list(tenantId, locationId);
+  }
+
+  /**
+   * Take a table out of service (or put it back). Blocks BOTH walk-in
+   * seating and online booking — this is the "it's broken / we're
+   * holding it back" switch, distinct from bookableOnline which only
+   * stops the internet from taking it.
+   *
+   * Refuses while a tab is open: pulling a table with live food on it
+   * would strand the bill.
+   */
+  async setOutOfService(
+    tenantId: string,
+    id: string,
+    outOfService: boolean,
+    note?: string | null,
+  ) {
+    const t = await this.assertTable(tenantId, id);
+    if (outOfService && t.currentOrderId) {
+      throw new BadRequestException(
+        "This table has an open tab — settle it before taking the table out of service.",
+      );
+    }
+    return this.prisma.table.update({
+      where: { id },
+      data: {
+        outOfService,
+        outOfServiceNote: outOfService ? note?.trim() || null : null,
+      },
+    });
+  }
+
+  /** Allow / stop guests reserving this table online. */
+  async setBookableOnline(tenantId: string, id: string, bookable: boolean) {
+    await this.assertTable(tenantId, id);
+    return this.prisma.table.update({
+      where: { id },
+      data: { bookableOnline: bookable },
+    });
+  }
+
+  /**
+   * Covers (how many guests) + who's serving. Covers also lands on the
+   * order so spend-per-head survives the table being freed and re-seated
+   * later the same night.
+   */
+  async setSitting(
+    tenantId: string,
+    id: string,
+    input: { covers?: number | null; serverId?: string | null; serverName?: string | null },
+  ) {
+    const t = await this.assertTable(tenantId, id);
+    const covers =
+      input.covers === null || input.covers === undefined
+        ? input.covers === null
+          ? null
+          : undefined
+        : Math.max(0, Math.min(200, Math.round(Number(input.covers))));
+
+    const table = await this.prisma.table.update({
+      where: { id },
+      data: {
+        ...(covers !== undefined ? { covers } : {}),
+        ...(input.serverId !== undefined ? { serverId: input.serverId } : {}),
+        ...(input.serverName !== undefined
+          ? { serverName: input.serverName?.trim() || null }
+          : {}),
+      },
+    });
+    if (covers !== undefined && t.currentOrderId) {
+      await this.prisma.order
+        .update({ where: { id: t.currentOrderId }, data: { covers } })
+        .catch(() => undefined);
+    }
+    return table;
+  }
+
+  /**
+   * Mint (or rotate) this table's QR token. Rotating invalidates any
+   * sticker already on the table — that's the point: a photographed code
+   * can be killed without renaming the table or losing its history.
+   */
+  async rotateQrToken(tenantId: string, id: string) {
+    await this.assertTable(tenantId, id);
+    // Retry on the (vanishingly unlikely) unique collision.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        return await this.prisma.table.update({
+          where: { id },
+          data: { qrToken: randomToken(), qrEnabled: true },
+        });
+      } catch (e: any) {
+        if (e?.code !== "P2002" || attempt === 4) throw e;
+      }
+    }
+    throw new BadRequestException("Could not allocate a QR code, try again");
   }
 
   async remove(tenantId: string, id: string) {
@@ -96,12 +287,33 @@ export class TablesService {
   }
 
   /** Seat a free table (opens the tab; the order is created on first send). */
-  async seat(tenantId: string, id: string) {
+  async seat(
+    tenantId: string,
+    id: string,
+    input?: { covers?: number | null; serverId?: string | null; serverName?: string | null },
+  ) {
     const t = await this.assertTable(tenantId, id);
-    if (t.status === "OCCUPIED") return t; // idempotent
+    if (t.outOfService) {
+      throw new BadRequestException(
+        t.outOfServiceNote
+          ? `${t.name} is out of service — ${t.outOfServiceNote}`
+          : `${t.name} is out of service`,
+      );
+    }
+    if (t.status === "OCCUPIED" && !input) return t; // idempotent
     return this.prisma.table.update({
       where: { id },
-      data: { status: "OCCUPIED", openedAt: new Date() },
+      data: {
+        status: "OCCUPIED",
+        openedAt: t.openedAt ?? new Date(),
+        ...(input?.covers !== undefined
+          ? { covers: Math.max(0, Math.min(200, Math.round(Number(input.covers) || 0))) }
+          : {}),
+        ...(input?.serverId !== undefined ? { serverId: input.serverId } : {}),
+        ...(input?.serverName !== undefined
+          ? { serverName: input.serverName?.trim() || null }
+          : {}),
+      },
     });
   }
 
@@ -119,7 +331,16 @@ export class TablesService {
     await this.assertTable(tenantId, id);
     return this.prisma.table.update({
       where: { id },
-      data: { status: "FREE", currentOrderId: null, openedAt: null },
+      data: {
+        status: "FREE",
+        currentOrderId: null,
+        openedAt: null,
+        // The next party is a new sitting — never inherit the last one's
+        // guest count or server.
+        covers: null,
+        serverId: null,
+        serverName: null,
+      },
     });
   }
 
@@ -155,11 +376,23 @@ export class TablesService {
           status: "OCCUPIED",
           currentOrderId: orderId,
           openedAt: from.openedAt ?? new Date(),
+          // The same party, in different seats — their guest count and
+          // server move with them.
+          covers: from.covers,
+          serverId: from.serverId,
+          serverName: from.serverName,
         },
       }),
       this.prisma.table.update({
         where: { id: fromId },
-        data: { status: "FREE", currentOrderId: null, openedAt: null },
+        data: {
+          status: "FREE",
+          currentOrderId: null,
+          openedAt: null,
+          covers: null,
+          serverId: null,
+          serverName: null,
+        },
       }),
     ]);
     return movedTo;
@@ -211,9 +444,26 @@ export class TablesService {
         where: { id: src.id },
         data: { status: "CANCELLED", tableId: null },
       }),
+      // Two tables became one party: their covers add up.
+      this.prisma.table.update({
+        where: { id: intoId },
+        data: {
+          covers:
+            from.covers != null || into.covers != null
+              ? (from.covers ?? 0) + (into.covers ?? 0)
+              : null,
+        },
+      }),
       this.prisma.table.update({
         where: { id: fromId },
-        data: { status: "FREE", currentOrderId: null, openedAt: null },
+        data: {
+          status: "FREE",
+          currentOrderId: null,
+          openedAt: null,
+          covers: null,
+          serverId: null,
+          serverName: null,
+        },
       }),
     ]);
 

@@ -478,6 +478,7 @@ model Location {
   kdsScreens           KdsScreen[]
   signageDisplays      SignageDisplay[]
   tables               Table[]
+  tableReservations    TableReservation[]
   deliveryZones        DeliveryZone[]
   paymentConfig        LocationPaymentConfig?
   userLocations        UserLocation[]
@@ -1772,6 +1773,9 @@ model Order {
   fulfillmentType FulfillmentType @default(DELIVERY)
   // Table Tabs — set on a DINE_IN order that is a table's running tab.
   tableId         String?
+  // Guests on the tab, copied off the table at settle so dine-in
+  // reporting can do spend-per-head after the table is freed.
+  covers          Int?
 
   customerInfo  Json
   customerName  String?
@@ -2047,12 +2051,89 @@ model Table {
   status         String   @default("FREE")
   currentOrderId String?
   openedAt       DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+
+  // ── Floor plan (Phase 2) ────────────────────────────────────────────
+  // Position on the room grid. Null = never placed; the floor page falls
+  // back to the flat area/sortOrder list so existing tables keep working
+  // until someone actually opens the layout editor.
+  posX   Int?
+  posY   Int?
+  shape  String @default("SQUARE") // SQUARE | ROUND | RECT
+  width  Int    @default(1) // in grid cells
+  height Int    @default(1)
+
+  // ── Availability (Phase 2) ──────────────────────────────────────────
+  // bookableOnline: guests may reserve it from the storefront.
+  // outOfService : staff pulled it entirely (broken, being cleaned, held
+  //                back) — blocks BOTH walk-in seating and online
+  //                booking, unlike bookableOnline which only shuts the
+  //                internet out.
+  bookableOnline   Boolean @default(true)
+  outOfService     Boolean @default(false)
+  outOfServiceNote String?
+
+  // ── QR at table (Phase 3) ───────────────────────────────────────────
+  // Opaque token printed on the table's QR sticker. Rotatable without
+  // touching the table id, so a photographed code can be killed.
+  qrToken   String? @unique
+  qrEnabled Boolean @default(false)
+
+  // ── Current sitting ─────────────────────────────────────────────────
+  covers     Int? // guests on the open tab, for spend-per-head
+  serverId   String?
+  serverName String?
+
+  reservations TableReservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tenantId])
   @@index([locationId])
   @@map("tables")
+}
+
+// A booking. Staff-made (phone / walk-up) or guest-made from the
+// storefront when the location has online reservations switched on.
+//
+// tableId is NULLABLE on purpose: most restaurants take the booking
+// first and decide the actual table on the day. An unassigned
+// reservation still consumes capacity for its slot.
+model TableReservation {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  tableId    String?
+  table      Table?   @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  customerName  String
+  customerPhone String?
+  customerEmail String?
+  partySize     Int
+  startsAt      DateTime
+  durationMins  Int      @default(90)
+  // PENDING | CONFIRMED | SEATED | COMPLETED | CANCELLED | NO_SHOW
+  status        String   @default("CONFIRMED")
+  // ONLINE | STAFF | PHONE
+  source        String   @default("STAFF")
+  notes         String?
+  // Set when the party is seated — links the booking to its tab so the
+  // diary can show what they actually spent.
+  orderId     String?
+  seatedAt    DateTime?
+  cancelledAt DateTime?
+  // Guest-facing reference ("R-7QK4M2") for confirmations + lookups.
+  reference   String    @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId, startsAt])
+  @@index([tableId])
+  @@index([status])
+  @@map("table_reservations")
 }
 
 model KdsTicket {

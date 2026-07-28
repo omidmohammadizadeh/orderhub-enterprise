@@ -43,6 +43,7 @@ import { UsersModule } from "./modules/users/users.module";
 import { MenusModule } from "./modules/menus/menus.module";
 import { SignageModule } from "./modules/signage/signage.module";
 import { TablesModule } from "./modules/tables/tables.module";
+import { ReservationsModule } from "./modules/reservations/reservations.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
 import { OrdersModule } from "./modules/orders/orders.module";
 import { IntegrationsModule } from "./modules/integrations/integrations.module";
@@ -240,6 +241,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     MenusModule,
     SignageModule,
     TablesModule,
+    ReservationsModule,
     CatalogModule,
     OrdersModule,
     IntegrationsModule,

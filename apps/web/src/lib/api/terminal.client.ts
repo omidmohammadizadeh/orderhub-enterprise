@@ -40,7 +40,10 @@ export const terminalClient = {
       .delete(`/v1/payments/terminal/locations/${locationId}/readers/${readerId}`)
       .then((r) => r.data),
 
-  charge: (orderId: string, readerId: string) =>
+  // `amount` makes this a PART payment for a split bill — the reader
+  // takes just that much and the order stays open until the parts cover
+  // the total. Omit it to charge the whole order, as before.
+  charge: (orderId: string, readerId: string, amount?: number) =>
     apiClient
       .post<{
         paymentIntentId: string;
@@ -48,7 +51,11 @@ export const terminalClient = {
         status: string;
         simulated: boolean;
         amount: number;
-      }>(`/v1/payments/terminal/charge`, { orderId, readerId })
+      }>(`/v1/payments/terminal/charge`, {
+        orderId,
+        readerId,
+        ...(amount !== undefined ? { amount } : {}),
+      })
       .then((r) => r.data),
 
   simulatePresent: (readerId: string) =>

@@ -19,6 +19,7 @@ function makeService(opts: {
   feePence?: number;
   testKey?: boolean;
   withTestKey?: boolean;
+  paidParts?: Array<{ amount: number }>;
 }) {
   const order = opts.order ?? {
     id: "ord-1",
@@ -44,13 +45,18 @@ function makeService(opts: {
   };
 
   const paymentCreate = jest.fn().mockResolvedValue({ id: "pay-1" });
+  // Split bills read back the parts already banked to work out what's
+  // still owed; default to "nothing paid yet".
+  const paymentFindMany = jest
+    .fn()
+    .mockResolvedValue(opts.paidParts ?? []);
   const prisma = {
     order: { findFirst: jest.fn().mockResolvedValue(order) },
     location: {
       findFirst: jest.fn().mockResolvedValue(location),
       update: jest.fn().mockResolvedValue({}),
     },
-    payment: { create: paymentCreate },
+    payment: { create: paymentCreate, findMany: paymentFindMany },
   } as any;
 
   const config = {
@@ -189,5 +195,86 @@ describe("TerminalService simulated reader guard", () => {
       expect.objectContaining({ location: "tml_test", registration_code: "simulated-wpe" }),
     );
     expect((svc as any).isTestMode).toBe(true);
+  });
+});
+
+// ── Split bills on a card reader ─────────────────────────────────────
+//
+// A part-payment must charge ONLY its own amount and must never let the
+// order be settled early. The ceiling is what's still OWED, not the
+// order total, so two part-charges can't each pass a naive check and
+// together overcharge the table.
+describe("TerminalService.chargeOrder — split bill", () => {
+  it("charges only the requested part, not the order total", async () => {
+    const { svc, stripe, paymentCreate } = makeService({});
+    const out = await svc.chargeOrder({
+      tenantId: "t-1",
+      orderId: "ord-1",
+      readerId: "tmr_real",
+      amount: 10,
+    });
+
+    const pi = stripe.paymentIntents.create.mock.calls[0][0];
+    expect(pi.amount).toBe(1000); // £10, NOT the £24.50 order total
+    expect(pi.metadata).toMatchObject({ split: "1" });
+    expect(out.amount).toBe(10);
+
+    // The Payment row records the part, because paymentSummary() sums
+    // these rows to decide when the bill is clear.
+    const row = paymentCreate.mock.calls[0][0].data;
+    expect(Number(row.amount)).toBe(10);
+    expect(row.metadata).toMatchObject({ split: true });
+  });
+
+  it("caps the part at what is still owed, not the order total", async () => {
+    // £20 of the £24.50 already banked → only £4.50 left.
+    const { svc } = makeService({ paidParts: [{ amount: 20 }] });
+    await expect(
+      svc.chargeOrder({
+        tenantId: "t-1",
+        orderId: "ord-1",
+        readerId: "tmr_real",
+        amount: 10,
+      }),
+    ).rejects.toThrow(/more than the £4.50 still owed/);
+  });
+
+  it("allows the exact remaining balance", async () => {
+    const { svc, stripe } = makeService({ paidParts: [{ amount: 20 }] });
+    await svc.chargeOrder({
+      tenantId: "t-1",
+      orderId: "ord-1",
+      readerId: "tmr_real",
+      amount: 4.5,
+    });
+    expect(stripe.paymentIntents.create.mock.calls[0][0].amount).toBe(450);
+  });
+
+  it("refuses a part on an already-covered bill", async () => {
+    const { svc } = makeService({ paidParts: [{ amount: 24.5 }] });
+    await expect(
+      svc.chargeOrder({
+        tenantId: "t-1",
+        orderId: "ord-1",
+        readerId: "tmr_real",
+        amount: 5,
+      }),
+    ).rejects.toThrow(/already fully paid/);
+  });
+
+  it("rejects a zero or negative part", async () => {
+    const { svc } = makeService({});
+    await expect(
+      svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_real", amount: 0 }),
+    ).rejects.toThrow(/greater than zero/);
+  });
+
+  it("still charges the whole total when no amount is given", async () => {
+    const { svc, stripe } = makeService({ paidParts: [{ amount: 20 }] });
+    await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_real" });
+    // No `amount` = the original whole-order behaviour, untouched.
+    const pi = stripe.paymentIntents.create.mock.calls[0][0];
+    expect(pi.amount).toBe(2450);
+    expect(pi.metadata.split).toBeUndefined();
   });
 });

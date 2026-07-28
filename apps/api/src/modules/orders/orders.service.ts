@@ -210,6 +210,26 @@ export class OrdersService {
     await this.maybeAutoAccept(ev.orderId, ev.tenantId, ev.locationId);
   }
 
+  /**
+   * The last part of a split bill landed on a card reader and the
+   * payments module has just marked the order PAID. Close the tab the
+   * same way the cash split path does — this service owns the
+   * forward-only status ladder, so the completion has to happen here
+   * rather than being duplicated inside PaymentsService.
+   */
+  @OnEvent("order.settled_in_full")
+  async onOrderSettledInFull(ev: {
+    orderId: string;
+    tenantId: string;
+  }): Promise<void> {
+    await this.completeAndFreeTable(ev.orderId, ev.tenantId, "terminal").catch(
+      (e) =>
+        this.logger.warn(
+          `Split-card settle: complete/free failed for ${ev.orderId}: ${e?.message}`,
+        ),
+    );
+  }
+
   private async maybeAutoAccept(
     orderId: string,
     tenantId: string,
@@ -1546,7 +1566,7 @@ export class OrdersService {
    * legitimately sits in ACCEPTED/PREPARING when the money arrives, and the
    * forward-only ladder would reject PREPARING → COMPLETED.
    */
-  private async completeAndFreeTable(
+  async completeAndFreeTable(
     orderId: string,
     tenantId: string,
     userId: string,
