@@ -638,6 +638,7 @@ export default function PosPage() {
     try {
       await apiClient.patch(`/v1/orders/${tabOrderId}/payment-status`, {
         paymentStatus: "PAID",
+        paymentMethod: "CASH",
       });
       await apiClient
         .patch(`/v1/orders/${tabOrderId}/status`, {

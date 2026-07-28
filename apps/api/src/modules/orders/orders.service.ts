@@ -1694,6 +1694,9 @@ export class OrdersService {
     orderId: string,
     tenantId: string,
     paymentStatus: "PAID" | "PENDING" | "FAILED",
+    // How it was settled — recorded so the board/receipt say "Paid · Cash"
+    // rather than just "Paid" (table tabs settle cash at Pay & close).
+    paymentMethod?: string,
   ): Promise<Order> {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId },
@@ -1702,7 +1705,10 @@ export class OrdersService {
     if (!order) throw new NotFoundException("Order not found");
     const updated = await this.prisma.order.update({
       where: { id: orderId },
-      data: { paymentStatus: paymentStatus as any },
+      data: {
+        paymentStatus: paymentStatus as any,
+        ...(paymentMethod ? { paymentMethod: paymentMethod as any } : {}),
+      },
     });
     this.socket.emitOrderUpdated(order.locationId, {
       orderId,
@@ -1893,6 +1899,16 @@ export class OrdersService {
       include: ORDER_INCLUDE,
     });
     if (!order) throw new NotFoundException("Order not found");
+    // Table Tabs — resolve the table's name (Order.tableId has no Prisma
+    // relation) so the POS header and the tablet Bluetooth print path can
+    // show/print "TABLE T5" without a second round-trip.
+    if ((order as any).tableId) {
+      const t = await this.prisma.table.findUnique({
+        where: { id: (order as any).tableId },
+        select: { name: true },
+      });
+      (order as any).tableName = t?.name ?? null;
+    }
     return order;
   }
 

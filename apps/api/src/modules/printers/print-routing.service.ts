@@ -308,7 +308,69 @@ export class PrintRoutingService {
 
     // Table Tabs — round chits are kitchen-only: never re-print the
     // customer receipt or driver slip for an appended round.
-    if (opts.kitchenOnly) return targets;
+    if (opts.kitchenOnly) {
+      // Ticket-only shops (no KDS) usually have ONE printer and no station
+      // has a defaultPrinterId, so the loop above produced nothing and the
+      // round would silently never print. Fall back to the location's
+      // receipt printer (or any active receipt-capable printer) and send the
+      // round as a kitchen ticket there.
+      if (targets.length === 0) {
+        let fallbackPrinterId = order.location.receiptPrinterId;
+        if (!fallbackPrinterId) {
+          const anyPrinter = await this.prisma.printer.findFirst({
+            where: {
+              locationId: order.location.id,
+              isActive: true,
+              deletedAt: null,
+            },
+            select: { id: true },
+            orderBy: { createdAt: "asc" },
+          });
+          fallbackPrinterId = anyPrinter?.id ?? null;
+        }
+        if (fallbackPrinterId) {
+          targets.push({
+            type: "KITCHEN_TICKET",
+            printerId: fallbackPrinterId,
+            stationId: null,
+            copies: 1,
+            routeKey: this.makeRouteKey(
+              order.location.id,
+              fallbackPrinterId,
+              null,
+            ),
+            payload: {
+              ...header,
+              stationName: null,
+              items: items.map((i) => ({
+                name: this.cleanItemName(i.name),
+                quantity: i.quantity,
+                modifiers: i.modifiers ?? [],
+                notes: i.notes ?? null,
+              })),
+              orderNumber: order.displayId ?? order.orderNumber ?? null,
+              displayId: order.displayId ?? null,
+              platform: order.platform ?? null,
+              orderSource: order.orderSource ?? null,
+              customerName: order.customerName ?? null,
+              customerPhone: this.phoneWithAccessCode(order),
+              fulfillmentType: order.fulfillmentType,
+              deliveryAddress: this.formatDeliveryAddress(order),
+              specialInstructions:
+                opts.chitNote ?? order.specialInstructions ?? null,
+              receivedAt: order.receivedAt ?? order.createdAt,
+              customerVisitCount,
+              customerVisitTag,
+            },
+          });
+        } else {
+          this.logger.warn(
+            `Round chit for order ${orderId}: no kitchen station printer AND no receipt printer at location ${order.location.id} — nothing to print`,
+          );
+        }
+      }
+      return targets;
+    }
 
     // Customer receipt — one per order. Prefer the explicit binding on
     // Location; for first-time setups where the operator hasn't

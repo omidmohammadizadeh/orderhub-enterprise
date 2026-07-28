@@ -309,18 +309,20 @@ export class PrintJobsService {
       itemsOverride: args.items,
       chitNote: `ROUND ${args.roundNumber} — NEW ITEMS ONLY`,
     });
-    if (!targets.length) return [];
+    if (!targets.length) {
+      this.logger.warn(
+        `Round chit for order ${args.orderId} (round ${args.roundNumber}): no print targets resolved — check that a kitchen station or the location has a printer`,
+      );
+      return [];
+    }
 
-    // Respect each kitchen printer's autoPrintRules — a printer that never
-    // auto-prints on accept shouldn't suddenly fire for rounds either.
-    const filtered = await this.filterTargetsByAutoRules(
-      targets,
-      "ORDER_ACCEPTED",
-    );
-    if (!filtered.length) return [];
-
+    // NOTE: autoPrintRules are deliberately NOT applied here. Those rules
+    // gate *automatic* fan-out on status triggers; a round chit is an
+    // explicit operator action ("Send round to kitchen") and must reach the
+    // kitchen the same way the first ticket did — a shop whose printer has
+    // no ORDER_ACCEPTED rule would otherwise silently print nothing.
     const created: string[] = [];
-    for (const t of filtered) {
+    for (const t of targets) {
       const idempotencyKey = `order:${args.orderId}:round:${args.roundNumber}:${t.stationId ?? "-"}`;
       try {
         const row = await (this.prisma as any).printJob.create({

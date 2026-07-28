@@ -258,9 +258,18 @@ export class OrdersController {
   @ApiOperation({ summary: "Set an order's payment status (PAID / PENDING)" })
   async setPaymentStatus(
     @Param("id") id: string,
-    @Body() body: { paymentStatus: "PAID" | "PENDING" | "FAILED" },
+    @Body()
+    body: {
+      paymentStatus: "PAID" | "PENDING" | "FAILED";
+      paymentMethod?: string;
+    },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.orders.setPaymentStatus(id, user.tenantId, body.paymentStatus);
+    return this.orders.setPaymentStatus(
+      id,
+      user.tenantId,
+      body.paymentStatus,
+      body.paymentMethod,
+    );
   }
 }

@@ -123,13 +123,21 @@ const CHANNELS: Channel[] = [
 // nothing) until the Stripe webhook flips them to PAID server-side, at which
 // point they move into New and auto-accept/print.
 const isWaitingForPayment = (o: Order): boolean =>
-  o.status === "PENDING" &&
-  (o.paymentMethod === "PAYMENT_LINK" ||
-    o.paymentMethod === "QR_CODE" ||
-    // Card terminal (S700 / WisePad 3) collects payment now — holds here until
-    // the reader charge settles, same as a payment link.
-    o.paymentMethod === "CARD_TERMINAL") &&
-  o.paymentStatus !== "PAID";
+  // Table Tabs — an open dine-in tab is money on the floor: it sits in
+  // "Waiting for payment" for its whole life (through every round) until
+  // Pay & close settles it, at which point it's PAID + COMPLETED.
+  (o.fulfillmentType === "DINE_IN" &&
+    o.paymentStatus !== "PAID" &&
+    o.status !== "COMPLETED" &&
+    o.status !== "CANCELLED" &&
+    o.status !== "REJECTED") ||
+  (o.status === "PENDING" &&
+    (o.paymentMethod === "PAYMENT_LINK" ||
+      o.paymentMethod === "QR_CODE" ||
+      // Card terminal (S700 / WisePad 3) collects payment now — holds here
+      // until the reader charge settles, same as a payment link.
+      o.paymentMethod === "CARD_TERMINAL") &&
+    o.paymentStatus !== "PAID");
 
 const BUCKETS: Bucket[] = [
   {
@@ -149,21 +157,21 @@ const BUCKETS: Bucket[] = [
   {
     key: "ACCEPTED",
     label: "Accepted",
-    match: (o) => o.status === "ACCEPTED",
+    match: (o) => o.status === "ACCEPTED" && !isWaitingForPayment(o),
     pill: "bg-sky-50 text-sky-700",
     icon: CheckCircle2,
   },
   {
     key: "PREPARING",
     label: "Preparing",
-    match: (o) => o.status === "PREPARING",
+    match: (o) => o.status === "PREPARING" && !isWaitingForPayment(o),
     pill: "bg-amber-50 text-amber-700",
     icon: ChefHat,
   },
   {
     key: "READY",
     label: "Ready",
-    match: (o) => o.status === "READY",
+    match: (o) => o.status === "READY" && !isWaitingForPayment(o),
     pill: "bg-emerald-50 text-emerald-700",
     icon: CheckCircle2,
   },
