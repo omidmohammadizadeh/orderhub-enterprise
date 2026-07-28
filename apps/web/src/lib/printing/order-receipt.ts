@@ -37,6 +37,35 @@ export function paymentLabelFor(
   return "*** UNPAID ***";
 }
 
+// The POS / storefront cart writes OrderItem.name as
+//   "MEAL DEAL 4 (+CHIPS, CAN COKE) - Note: no salt"
+// (see buildCartItemName in @orderhub/shared) so the KDS parser can pull
+// the modifiers and note back out of a single column. The print payload
+// already carries both as STRUCTURED fields, so leaving the suffix in
+// the name prints every option twice — once in brackets on the headline
+// and again in the list underneath.
+//
+// Strip it for print only; the stored value is untouched because KDS
+// still depends on it. This mirrors cleanItemName() in the server's
+// print-routing.service.ts, which the desktop-agent path has always
+// applied — the tablet bridge renderer just never got the same
+// treatment, which is why bracketed names only showed up on tablets.
+//
+// The trailing "(...)" is only removed when the item ACTUALLY has
+// modifiers. A genuine menu name like "Pepsi (330ml)" with no options
+// keeps its brackets.
+export function cleanItemName(
+  raw: string | null | undefined,
+  hasModifiers: boolean,
+): string {
+  if (!raw) return "";
+  let s = String(raw);
+  const noteIdx = s.indexOf(" - Note: ");
+  if (noteIdx >= 0) s = s.slice(0, noteIdx);
+  if (hasModifiers) s = s.replace(/\s*\([^()]*\)\s*$/, "");
+  return s.trim() || String(raw).trim();
+}
+
 // `banner` is an optional reverse-video line printed at the very top —
 // used to stamp "ORDER CANCELLED" on a cancellation slip.
 export function buildPrintPayload(
@@ -108,7 +137,7 @@ export function buildPrintPayload(
     deliveryAddress,
     receivedAt: (order as any).receivedAt ?? (order as any).createdAt ?? null,
     items: (order.items ?? []).map((i: any) => ({
-      name: i.name,
+      name: cleanItemName(i.name, !!(i.modifiers?.length)),
       quantity: i.quantity,
       modifiers: Array.isArray(i.modifiers) ? i.modifiers : [],
       notes: i.notes ?? null,

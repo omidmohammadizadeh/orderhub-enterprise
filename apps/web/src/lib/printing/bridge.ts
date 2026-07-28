@@ -62,6 +62,13 @@ export function resolveFontScale(printer: any): FontScale {
   return d.largeFont ? "LARGE" : "NORMAL";
 }
 
+// Options / modifiers are sized separately from the item headline. Shops
+// vary: some want the toppings as loud as the item, others keep them
+// small so a 12-option meal deal doesn't run a foot of paper.
+export function resolveModifierScale(printer: any): FontScale {
+  return normaliseFontScale(printer?.defaults?.modifierScale);
+}
+
 function colsFor(paperWidth: number): number {
   return paperWidth === 58 ? 32 : 42;
 }
@@ -408,10 +415,17 @@ export function buildOrderReceipt(
     logoBytes?: number[] | null;
     qr?: string | null;
     fontScale?: FontScale;
+    modifierScale?: FontScale;
   },
 ): Uint8Array {
   const cols = colsFor(paperWidth);
   const scale = normaliseFontScale(opts?.fontScale);
+  const modScale = normaliseFontScale(opts?.modifierScale);
+  const modH = modScale === "NORMAL" ? 1 : 2;
+  const modW = modScale === "XLARGE" ? 2 : 1;
+  const modCols = Math.floor(cols / modW);
+  const MOD_ON = modScale === "NORMAL" ? [] : sizeOn(modW, modH);
+  const MOD_OFF = modScale === "NORMAL" ? [] : DOUBLE_OFF;
   // Item lines: taller on LARGE, taller AND wider on XLARGE. Double
   // width halves the columns we have to lay a line out in, so every
   // scaled block measures itself against `itemCols`, not `cols`.
@@ -554,7 +568,8 @@ export function buildOrderReceipt(
     }
     buf.push(...DOUBLE_OFF, ...BOLD_OFF);
 
-    if (Array.isArray(it?.modifiers)) {
+    if (Array.isArray(it?.modifiers) && it.modifiers.length) {
+      buf.push(...MOD_ON);
       for (const m of it.modifiers) {
         const mname = String(m?.name ?? m?.title ?? "");
         if (!mname) continue;
@@ -563,16 +578,19 @@ export function buildOrderReceipt(
             ? `+${money(m.price)}`
             : "";
         const mline = `  - ${mname}`;
-        if (mprice && mline.length + 1 + mprice.length <= cols)
-          line(buf, padBetween(mline, mprice, cols));
-        else for (const w of indented(mname, "  - ", cols)) line(buf, w);
+        if (mprice && mline.length + 1 + mprice.length <= modCols)
+          line(buf, padBetween(mline, mprice, modCols));
+        else for (const w of indented(mname, "  - ", modCols)) line(buf, w);
       }
+      buf.push(...MOD_OFF);
     }
-    // Item note — bold, because a missed "NO ONIONS" is a remake.
+    // Item note — bold, because a missed "NO ONIONS" is a remake. Sized
+    // with the options, since it's the same class of "don't miss this".
     if (it?.notes) {
-      buf.push(...BOLD_ON);
-      for (const w of indented(String(it.notes), "  ** ", cols)) line(buf, w);
-      buf.push(...BOLD_OFF);
+      buf.push(...BOLD_ON, ...MOD_ON);
+      for (const w of indented(String(it.notes), "  ** ", modCols))
+        line(buf, w);
+      buf.push(...MOD_OFF, ...BOLD_OFF);
     }
     if (idx < items.length - 1) line(buf, dashes(cols));
   });
@@ -674,7 +692,7 @@ const STAR_CUT = [ESC, 0x64, 0x03]; // ESC d 3 — partial cut with feed
 export function buildOrderReceiptStar(
   payload: any,
   paperWidth: number = 80,
-  opts?: { fontScale?: FontScale },
+  opts?: { fontScale?: FontScale; modifierScale?: FontScale },
 ): Uint8Array {
   const cols = colsFor(paperWidth);
   // ESC i n1 n2 — n1 expands height, n2 expands width (0 = normal,
@@ -686,6 +704,12 @@ export function buildOrderReceiptStar(
   const STAR_ITEM_ON =
     scale === "NORMAL" ? [] : [ESC, 0x69, 0x01, itemW === 2 ? 0x01 : 0x00];
   const STAR_ITEM_OFF = scale === "NORMAL" ? [] : STAR_EXPAND_OFF;
+  const modScale = normaliseFontScale(opts?.modifierScale);
+  const modW = modScale === "XLARGE" ? 2 : 1;
+  const modCols = Math.floor(cols / modW);
+  const STAR_MOD_ON =
+    modScale === "NORMAL" ? [] : [ESC, 0x69, 0x01, modW === 2 ? 0x01 : 0x00];
+  const STAR_MOD_OFF = modScale === "NORMAL" ? [] : STAR_EXPAND_OFF;
   const buf: number[] = [];
   buf.push(ESC, 0x40); // ESC @ — initialise
 
@@ -795,7 +819,8 @@ export function buildOrderReceiptStar(
       });
     }
     buf.push(...STAR_ITEM_OFF, ...STAR_BOLD_OFF);
-    if (Array.isArray(it?.modifiers)) {
+    if (Array.isArray(it?.modifiers) && it.modifiers.length) {
+      buf.push(...STAR_MOD_ON);
       for (const m of it.modifiers) {
         const mname = String(m?.name ?? m?.title ?? "");
         if (!mname) continue;
@@ -804,15 +829,17 @@ export function buildOrderReceiptStar(
             ? `+${money(m.price)}`
             : "";
         const mline = `  - ${mname}`;
-        if (mprice && mline.length + 1 + mprice.length <= cols)
-          line(buf, padBetween(mline, mprice, cols));
-        else for (const w of indented(mname, "  - ", cols)) line(buf, w);
+        if (mprice && mline.length + 1 + mprice.length <= modCols)
+          line(buf, padBetween(mline, mprice, modCols));
+        else for (const w of indented(mname, "  - ", modCols)) line(buf, w);
       }
+      buf.push(...STAR_MOD_OFF);
     }
     if (it?.notes) {
-      buf.push(...STAR_BOLD_ON);
-      for (const w of indented(String(it.notes), "  ** ", cols)) line(buf, w);
-      buf.push(...STAR_BOLD_OFF);
+      buf.push(...STAR_BOLD_ON, ...STAR_MOD_ON);
+      for (const w of indented(String(it.notes), "  ** ", modCols))
+        line(buf, w);
+      buf.push(...STAR_MOD_OFF, ...STAR_BOLD_OFF);
     }
     if (idx < items.length - 1) line(buf, dashes(cols));
   });
@@ -906,6 +933,7 @@ export async function renderReceiptBytes(
     qrCode?: boolean;
     commandSet?: string;
     fontScale?: FontScale;
+    modifierScale?: FontScale;
   },
 ): Promise<Uint8Array> {
   // Star printers speak Star Line Mode, not ESC/POS — render their own
@@ -913,6 +941,7 @@ export async function renderReceiptBytes(
   if (String(opts?.commandSet ?? "").toUpperCase() === "STAR") {
     return buildOrderReceiptStar(payload, paperWidth, {
       fontScale: opts?.fontScale,
+      modifierScale: opts?.modifierScale,
     });
   }
   let logoBytes: number[] | null = null;
@@ -925,5 +954,6 @@ export async function renderReceiptBytes(
     logoBytes,
     qr,
     fontScale: opts?.fontScale,
+    modifierScale: opts?.modifierScale,
   });
 }

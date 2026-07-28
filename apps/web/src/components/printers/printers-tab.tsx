@@ -728,8 +728,14 @@ function PrinterSettingsDrawer({
   // Receipt text size. Was a dead boolean ("Large font") that saved but
   // never reached the renderer — seed from it so printers already ticked
   // land on Large rather than silently resetting to Standard.
-  const [fontScale, setFontScale] = useState<"NORMAL" | "LARGE" | "XLARGE">(
+  const [fontScale, setFontScale] = useState<TextScale>(
     (d.fontScale as any) ?? (d.largeFont ? "LARGE" : "NORMAL"),
+  );
+  // Options / modifiers size independently of the item headline: a
+  // 12-option meal deal at double height runs a lot of paper, so shops
+  // that want big toppings opt in rather than getting it by default.
+  const [modifierScale, setModifierScale] = useState<TextScale>(
+    (d.modifierScale as any) ?? "NORMAL",
   );
   const [openDrawer, setOpenDrawer] = useState<boolean>(!!d.openCashDrawer);
   const [autoCut, setAutoCut] = useState<boolean>(printer.supportsCut);
@@ -757,6 +763,7 @@ function PrinterSettingsDrawer({
           printLogo,
           qrCode: printQr,
           fontScale,
+          modifierScale,
           // Keep the legacy flag consistent for any older reader.
           largeFont: fontScale !== "NORMAL",
           openCashDrawer: openDrawer,
@@ -862,50 +869,22 @@ function PrinterSettingsDrawer({
             </div>
           </Section>
 
-          <Section title="Receipt text size">
-            <div className="grid grid-cols-3 gap-2">
-              {(
-                [
-                  ["NORMAL", "Standard", "Compact"],
-                  ["LARGE", "Large", "Twice the height"],
-                  ["XLARGE", "Extra large", "Tall + wide"],
-                ] as const
-              ).map(([value, label, hint]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setFontScale(value)}
-                  className={
-                    "rounded-md border px-3 py-2 text-left " +
-                    (fontScale === value
-                      ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
-                      : "border-zinc-300 bg-white hover:bg-zinc-50")
-                  }
-                >
-                  <span
-                    className={
-                      "block font-semibold text-zinc-900 " +
-                      (value === "NORMAL"
-                        ? "text-xs"
-                        : value === "LARGE"
-                          ? "text-sm"
-                          : "text-base")
-                    }
-                  >
-                    {label}
-                  </span>
-                  <span className="block text-[10px] text-zinc-500">
-                    {hint}
-                  </span>
-                </button>
-              ))}
-            </div>
+          <Section title="Item text size">
+            <ScalePicker value={fontScale} onChange={setFontScale} />
             <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
               Applies to item lines, the delivery address and the total —
-              the lines staff and drivers actually read. Options and
-              extras stay compact so the ticket doesn&apos;t get too long.
+              the lines staff and drivers actually read.
               <span className="font-medium"> Extra large</span> also
               doubles the width, so long item names wrap onto two lines.
+            </p>
+          </Section>
+
+          <Section title="Options / extras text size">
+            <ScalePicker value={modifierScale} onChange={setModifierScale} />
+            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
+              The toppings and choices listed under each item. Kept
+              standard by default — a meal deal with a dozen options at
+              double height uses a lot of paper.
             </p>
           </Section>
 
@@ -963,6 +942,56 @@ function Th({ children }: { children?: React.ReactNode }) {
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-3 py-2 align-middle">{children}</td>;
 }
+// Thermal text sizing. Shared by the item headline and the options
+// beneath it so both read the same way in the drawer.
+type TextScale = "NORMAL" | "LARGE" | "XLARGE";
+
+const SCALE_OPTIONS: ReadonlyArray<readonly [TextScale, string, string]> = [
+  ["NORMAL", "Standard", "Compact"],
+  ["LARGE", "Large", "Twice the height"],
+  ["XLARGE", "Extra large", "Tall + wide"],
+];
+
+function ScalePicker({
+  value,
+  onChange,
+}: {
+  value: TextScale;
+  onChange: (v: TextScale) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {SCALE_OPTIONS.map(([option, label, hint]) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onChange(option)}
+          className={
+            "rounded-md border px-3 py-2 text-left " +
+            (value === option
+              ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
+              : "border-zinc-300 bg-white hover:bg-zinc-50")
+          }
+        >
+          <span
+            className={
+              "block font-semibold text-zinc-900 " +
+              (option === "NORMAL"
+                ? "text-xs"
+                : option === "LARGE"
+                  ? "text-sm"
+                  : "text-base")
+            }
+          >
+            {label}
+          </span>
+          <span className="block text-[10px] text-zinc-500">{hint}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Field({
   label,
   children,
