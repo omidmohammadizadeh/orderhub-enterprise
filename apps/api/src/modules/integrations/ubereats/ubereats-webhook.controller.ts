@@ -237,12 +237,31 @@ export class UberEatsWebhookController {
             "",
         );
         if (!storeId) return { handled: false, reason: "no_store_id" };
-        const status =
+        let status: string | null =
           body?.status ??
           body?.store_status ??
           body?.current_status ??
           body?.data?.status ??
           null;
+        // Live-verified 2026-07-28: Uber's store.status.changed payload
+        // carries ONLY {eventId, storeId} — no status field. Resolve the
+        // store's actual status with a follow-up read so the activity row
+        // says "→ OFFLINE/ONLINE" instead of "→ unknown".
+        if (!status) {
+          try {
+            const raw = await this.client.request<any>(
+              "GET",
+              `/v1/delivery/store/${encodeURIComponent(storeId)}/status`,
+              { scopes: ["eats.store"] },
+            );
+            status =
+              raw?.store_status ??
+              raw?.status ??
+              (typeof raw === "string" ? raw : null);
+          } catch {
+            /* best-effort — the webhook is still processed either way */
+          }
+        }
         try {
           const conn = await this.prisma.brandPlatformConnection.findFirst({
             where: { platform: "UBER_EATS", externalStoreId: storeId },
