@@ -769,6 +769,26 @@ export default function PosPage() {
                 }, £${tabTotal.toFixed(2)}. Add items and “Send to kitchen”.`
               : " — add items and “Send to kitchen” to open the tab."}
           </span>
+          {tabOrderId && !payChoiceOpen && (
+            <button
+              onClick={async () => {
+                try {
+                  const r = await tablesClient.printBill(tabOrderId);
+                  setSubmitFeedback(
+                    r.printed
+                      ? "Bill printed."
+                      : "No receipt printer set for this location.",
+                  );
+                } catch {
+                  setSubmitFeedback("Couldn't print the bill");
+                }
+                window.setTimeout(() => setSubmitFeedback(null), 4000);
+              }}
+              className="shrink-0 rounded-md border border-indigo-300 bg-white px-3 py-1 text-xs font-semibold text-indigo-900 hover:bg-indigo-100"
+            >
+              🧾 Print bill
+            </button>
+          )}
           {tabOrderId &&
             (payChoiceOpen ? (
               <span className="flex shrink-0 items-center gap-1.5">

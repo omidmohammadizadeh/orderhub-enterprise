@@ -1420,6 +1420,11 @@ export class OrdersService {
     return updated;
   }
 
+  /** Table Tabs — print the bill (unpaid check) for a tab. */
+  async printBill(orderId: string, tenantId: string): Promise<string[]> {
+    return this.printJobs.printBill(orderId, tenantId);
+  }
+
   // ── Status transitions ────────────────────────────────
 
   async updateStatus(

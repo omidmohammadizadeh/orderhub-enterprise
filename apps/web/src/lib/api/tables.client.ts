@@ -58,4 +58,21 @@ export const tablesClient = {
     apiClient
       .post<RestaurantTable>(`/v1/tables/${id}/link-order`, { orderId })
       .then((r) => r.data),
+
+  // Service essentials — the party moved seats, or two tables became one.
+  move: (id: string, toTableId: string) =>
+    apiClient
+      .post<RestaurantTable>(`/v1/tables/${id}/move`, { toTableId })
+      .then((r) => r.data),
+
+  merge: (id: string, intoTableId: string) =>
+    apiClient
+      .post<RestaurantTable>(`/v1/tables/${id}/merge`, { intoTableId })
+      .then((r) => r.data),
+
+  /** Print the customer's bill ("the check") for an open tab — unpaid. */
+  printBill: (orderId: string) =>
+    apiClient
+      .post<{ printed: number }>(`/v1/orders/${orderId}/print-bill`, {})
+      .then((r) => r.data),
 };

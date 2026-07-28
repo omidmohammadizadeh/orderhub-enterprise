@@ -24,6 +24,8 @@ export default function TablesPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const [manage, setManage] = useState(false);
+  // Service essentials — "Move / merge" picker: the tab being moved.
+  const [moveFrom, setMoveFrom] = useState<RestaurantTable | null>(null);
 
   const locationQuery = useQuery({
     queryKey: ["location", locationId],
@@ -77,6 +79,30 @@ export default function TablesPage() {
       toast.success("Table cleared");
     },
     onError: () => toast.error("Couldn't clear the table"),
+  });
+
+  const moveMut = useMutation({
+    mutationFn: (v: { fromId: string; toId: string }) =>
+      tablesClient.move(v.fromId, v.toId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tables", locationId] });
+      setMoveFrom(null);
+      toast.success("Tab moved");
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message ?? "Couldn't move the tab"),
+  });
+
+  const mergeMut = useMutation({
+    mutationFn: (v: { fromId: string; intoId: string }) =>
+      tablesClient.merge(v.fromId, v.intoId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tables", locationId] });
+      setMoveFrom(null);
+      toast.success("Tabs merged");
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message ?? "Couldn't merge the tabs"),
   });
 
   const removeMut = useMutation({
@@ -216,15 +242,26 @@ export default function TablesPage() {
                               >
                                 Open tab
                               </Button>
-                              <button
-                                onClick={() => {
-                                  if (confirm(`Clear table "${t.name}"?`))
-                                    freeMut.mutate(t);
-                                }}
-                                className="text-[11px] text-zinc-400 underline hover:text-zinc-700"
-                              >
-                                Clear table
-                              </button>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => setMoveFrom(t)}
+                                  className="text-[11px] text-indigo-600 underline hover:text-indigo-800"
+                                >
+                                  Move / merge
+                                </button>
+                                <span className="text-[11px] text-zinc-300">
+                                  ·
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Clear table "${t.name}"?`))
+                                      freeMut.mutate(t);
+                                  }}
+                                  className="text-[11px] text-zinc-400 underline hover:text-zinc-700"
+                                >
+                                  Clear
+                                </button>
+                              </div>
                             </div>
                           ) : (
                             <Button
@@ -245,6 +282,79 @@ export default function TablesPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Move / merge picker — choose the destination table for this tab. */}
+      {moveFrom && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 p-4"
+          onClick={() => setMoveFrom(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-lg bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="border-b border-zinc-200 px-5 py-3">
+              <h2 className="text-base font-semibold text-zinc-900">
+                Move or merge {moveFrom.name}
+              </h2>
+              <p className="text-[11px] text-zinc-500">
+                Pick a <b>free</b> table to move this tab to, or an{" "}
+                <b>occupied</b> one to merge both bills into it.
+              </p>
+            </div>
+            <div className="max-h-80 overflow-y-auto p-3">
+              {tables
+                .filter((t) => t.id !== moveFrom.id && t.isActive)
+                .map((t) => {
+                  const busy = t.status === "OCCUPIED";
+                  return (
+                    <button
+                      key={t.id}
+                      disabled={moveMut.isPending || mergeMut.isPending}
+                      onClick={() => {
+                        if (busy) {
+                          if (
+                            confirm(
+                              `Merge ${moveFrom.name} INTO ${t.name}? All items move onto ${t.name}'s bill and ${moveFrom.name} frees up.`,
+                            )
+                          )
+                            mergeMut.mutate({
+                              fromId: moveFrom.id,
+                              intoId: t.id,
+                            });
+                        } else {
+                          moveMut.mutate({ fromId: moveFrom.id, toId: t.id });
+                        }
+                      }}
+                      className="mb-1.5 flex w-full items-center justify-between rounded-md border border-zinc-200 px-3 py-2 text-left hover:border-indigo-300 hover:bg-indigo-50 disabled:opacity-50"
+                    >
+                      <span className="text-sm font-medium text-zinc-900">
+                        {t.name}
+                        {t.area ? (
+                          <span className="text-zinc-400"> · {t.area}</span>
+                        ) : null}
+                      </span>
+                      <span
+                        className={
+                          busy
+                            ? "rounded px-1.5 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-800"
+                            : "rounded px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800"
+                        }
+                      >
+                        {busy ? "Merge into" : "Move here"}
+                      </span>
+                    </button>
+                  );
+                })}
+            </div>
+            <div className="flex justify-end border-t border-zinc-100 px-5 py-3">
+              <Button variant="outline" onClick={() => setMoveFrom(null)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

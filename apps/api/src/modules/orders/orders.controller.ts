@@ -236,6 +236,21 @@ export class OrdersController {
     return this.orders.addRound(id, user.tenantId, dto.items, user.userId);
   }
 
+  // ── POST /api/v1/orders/:id/print-bill ───────────────
+  // Table Tabs — print the customer's bill ("the check") before payment.
+  // Receipt printer only, TO PAY banner, repeatable.
+  @Post(":id/print-bill")
+  @Roles(...POS_STAFF)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Print the bill for a table tab (unpaid check)" })
+  async printBill(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const jobIds = await this.orders.printBill(id, user.tenantId);
+    return { printed: jobIds.length, jobIds };
+  }
+
   // ── PATCH /api/v1/orders/:id/status ──────────────────
   @Patch(":id/status")
   @HttpCode(HttpStatus.OK)

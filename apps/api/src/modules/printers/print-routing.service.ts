@@ -80,6 +80,11 @@ export interface ResolveOptions {
   // a bold "ROUND 2 — NEW ITEMS ONLY" banner via the existing NOTE block
   // (zero renderer changes needed).
   chitNote?: string;
+  // Table Tabs — "print the bill". Customer-receipt targets only, with the
+  // payment banner swapped to an unmistakable TO PAY line so nobody mistakes
+  // the check for a paid receipt.
+  receiptOnly?: boolean;
+  billMode?: boolean;
 }
 
 interface OrderItemForRouting {
@@ -263,6 +268,9 @@ export class PrintRoutingService {
     const stationMap = new Map(stationDetails.map((s) => [s.id, s]));
 
     for (const [, bucket] of buckets) {
+      // Bill/check printing wants the customer receipt only — skip every
+      // kitchen station so the food line never sees a second copy.
+      if (opts.receiptOnly) break;
       const stationRow = bucket.stationId
         ? stationMap.get(bucket.stationId)
         : null;
@@ -425,10 +433,21 @@ export class PrintRoutingService {
           receiptPrinterId,
           null,
         ),
-        payload: this.buildReceiptPayload(order, items, header, {
-          customerVisitCount,
-          customerVisitTag,
-        }),
+        payload: (() => {
+          const p = this.buildReceiptPayload(order, items, header, {
+            customerVisitCount,
+            customerVisitTag,
+          });
+          // "Print the bill" — same receipt, but the payment banner shouts
+          // TO PAY so a check can never be mistaken for a paid receipt.
+          return opts.billMode
+            ? {
+                ...p,
+                isBill: true,
+                paymentLabel: `*** BILL — TO PAY £${Number(order.total).toFixed(2)} ***`,
+              }
+            : p;
+        })(),
       });
     }
 

@@ -102,4 +102,27 @@ export class TablesController {
   free(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.tables.free(user.tenantId, id);
   }
+
+  // ── Service essentials: move & merge ────────────────────────────────
+  @Post(":id/move")
+  @Roles(...OPERATE)
+  @ApiOperation({ summary: "Move this table's tab to another (free) table" })
+  move(
+    @Param("id") id: string,
+    @Body() body: { toTableId: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tables.moveTab(user.tenantId, id, body.toTableId);
+  }
+
+  @Post(":id/merge")
+  @Roles(...OPERATE)
+  @ApiOperation({ summary: "Merge this table's tab into another table's tab" })
+  merge(
+    @Param("id") id: string,
+    @Body() body: { intoTableId: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tables.mergeTabs(user.tenantId, id, body.intoTableId);
+  }
 }

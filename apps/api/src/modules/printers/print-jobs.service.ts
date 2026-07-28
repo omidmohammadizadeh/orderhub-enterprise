@@ -384,6 +384,78 @@ export class PrintJobsService {
     return created;
   }
 
+  // ── Table Tabs — print the bill ("the check") ───────────────────────
+  //
+  // The customer asks to see the bill BEFORE paying. Same receipt layout,
+  // customer-receipt printer only (never the kitchen), with a TO PAY banner
+  // so it can't be confused with a paid receipt. Can be printed repeatedly.
+
+  async printBill(orderId: string, tenantId: string): Promise<string[]> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: { id: true, tenantId: true, locationId: true },
+    });
+    if (!order || !order.locationId) {
+      throw new NotFoundException("Order not found");
+    }
+
+    const targets = await this.routing.resolveForOrder(orderId, {
+      trigger: "MANUAL_ONLY",
+      receiptOnly: true,
+      billMode: true,
+    });
+    if (!targets.length) {
+      this.logger.warn(
+        `Print bill for ${orderId}: no receipt printer resolved at location ${order.locationId}`,
+      );
+      return [];
+    }
+
+    const created: string[] = [];
+    for (const t of targets) {
+      const row = await (this.prisma as any).printJob.create({
+        data: {
+          tenantId: order.tenantId,
+          locationId: order.locationId,
+          orderId,
+          printerId: t.printerId,
+          stationId: null,
+          type: "CUSTOMER_RECEIPT",
+          status: "QUEUED",
+          payload: t.payload,
+          copies: t.copies,
+          trigger: "MANUAL_ONLY",
+          routeKey: t.routeKey,
+          // No idempotencyKey — staff legitimately reprint the bill.
+        },
+      });
+      created.push(row.id);
+      const liteForBridge = (() => {
+        const p = (t.payload ?? {}) as Record<string, any>;
+        const { brandLogoUrl, ...rest } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
+        return rest;
+      })();
+      this.socket.emitToLocation(
+        order.locationId,
+        "printer:job:created" as any,
+        {
+          id: row.id,
+          type: row.type,
+          printerId: row.printerId,
+          stationId: null,
+          status: row.status,
+          locationId: order.locationId,
+          orderId,
+          trigger: "MANUAL_ONLY",
+          copies: row.copies,
+          payload: liteForBridge,
+        } as any,
+      );
+    }
+    this.logger.log(`Bill printed for order ${orderId}: ${created.length} job(s)`);
+    return created;
+  }
+
   // ── Reprint ─────────────────────────────────────────────────────────
   //
   // Always emits NEW rows so the audit trail is intact. Reprints are
