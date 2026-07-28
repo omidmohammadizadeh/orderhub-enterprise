@@ -2145,6 +2145,32 @@ export class OrdersService {
   ): Promise<Array<T & { customerVisitCount: number; customerVisitTag: string }>> {
     if (rows.length === 0) return [] as any;
 
+    // Table Tabs — stamp the table's NAME onto dine-in rows (Order.tableId
+    // has no Prisma relation). The board shows it and the tablet print
+    // bridge prints "TABLE X" from the same field.
+    try {
+      const tableIds = [
+        ...new Set(
+          rows
+            .map((r) => (r as any).tableId as string | null | undefined)
+            .filter((id): id is string => !!id),
+        ),
+      ];
+      if (tableIds.length) {
+        const tables = await this.prisma.table.findMany({
+          where: { id: { in: tableIds } },
+          select: { id: true, name: true },
+        });
+        const byId = new Map(tables.map((t) => [t.id, t.name]));
+        for (const r of rows) {
+          const tid = (r as any).tableId;
+          if (tid) (r as any).tableName = byId.get(tid) ?? null;
+        }
+      }
+    } catch {
+      /* table names are cosmetic — never fail the board over them */
+    }
+
     // Build a per-row identity key. Marketplaces mask the customer
     // phone (Uber / Just Eat / Deliveroo / HubRise rotate the number
     // per order so dedup-by-phone always shows "NEW"), so for those

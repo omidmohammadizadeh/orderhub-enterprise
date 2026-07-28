@@ -38,6 +38,11 @@ export interface AutoPrintStatus {
 export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
   const printedNewRef = useRef<Set<string>>(new Set());
   const printedCancelRef = useRef<Set<string>>(new Set());
+  // Table Tabs — item ids already printed per order, so a later ROUND on an
+  // open tab prints a chit with ONLY the new lines. Without this the bridge
+  // printed an order exactly once (on first sight) and every subsequent
+  // round silently never reached the paper kitchen.
+  const printedItemsRef = useRef<Map<string, Set<string>>>(new Map());
   const seededRef = useRef(false);
   const [status, setStatus] = useState<AutoPrintStatus>({
     inApp: false,
@@ -83,6 +88,10 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
     if (!seededRef.current) {
       for (const o of orders) {
         printedNewRef.current.add(o.id);
+        printedItemsRef.current.set(
+          o.id,
+          new Set(((o as any).items ?? []).map((i: any) => i.id)),
+        );
         if (CANCELLED_STATUSES.has(String(o.status ?? "").toUpperCase()))
           printedCancelRef.current.add(o.id);
       }
@@ -164,9 +173,43 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           printedNewRef.current.add(o.id);
         } else if (hasItems(o)) {
           printedNewRef.current.add(o.id);
+          printedItemsRef.current.set(
+            o.id,
+            new Set(((o as any).items ?? []).map((i: any) => i.id)),
+          );
           void printToAll(o, "copiesNewOrder");
         }
         // partial order (no items yet): leave unseen, print when full
+      } else if (hasItems(o)) {
+        // Table Tabs — an already-printed DINE-IN tab that gained items is a
+        // new ROUND: print a chit with ONLY the new lines (the kitchen has
+        // the earlier rounds on paper already).
+        const seen = printedItemsRef.current.get(o.id);
+        const currentIds: string[] = ((o as any).items ?? []).map(
+          (i: any) => i.id,
+        );
+        if (seen) {
+          const freshIds = currentIds.filter((id) => !seen.has(id));
+          if (freshIds.length && (o as any).tableId && btPrinters.length) {
+            printedItemsRef.current.set(o.id, new Set(currentIds));
+            const table = (o as any).tableName;
+            void printToAll(
+              {
+                ...(o as any),
+                items: ((o as any).items ?? []).filter((i: any) =>
+                  freshIds.includes(i.id),
+                ),
+              },
+              "copiesNewOrder",
+              `*** ${table ? `TABLE ${table} · ` : ""}NEW ITEMS ***`,
+            );
+          } else if (freshIds.length) {
+            // Non-tab edits already reprint server-side; just track them.
+            printedItemsRef.current.set(o.id, new Set(currentIds));
+          }
+        } else {
+          printedItemsRef.current.set(o.id, new Set(currentIds));
+        }
       }
 
       if (CANCELLED_STATUSES.has(st) && !printedCancelRef.current.has(o.id)) {
@@ -176,6 +219,13 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       }
     }
 
+    // Same bound on the per-order item map (a long shift shouldn't grow it
+    // without limit).
+    if (printedItemsRef.current.size > 500) {
+      printedItemsRef.current = new Map(
+        Array.from(printedItemsRef.current.entries()).slice(-500),
+      );
+    }
     for (const ref of [printedNewRef, printedCancelRef]) {
       if (ref.current.size > 500)
         ref.current = new Set(Array.from(ref.current).slice(-500));
