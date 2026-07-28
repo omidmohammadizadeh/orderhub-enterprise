@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
 import { tablesClient, type PaymentSummary } from "@/lib/api/tables.client";
+import { apiClient } from "@/lib/api/client";
 
 interface Props {
   orderId: string;
@@ -37,6 +38,16 @@ export function SplitBillModal({
   const [amount, setAmount] = useState("");
   const [ways, setWays] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // "By item" — tick what this person is paying for; the amount is the sum.
+  const [byItem, setByItem] = useState(false);
+  const [picked, setPicked] = useState<Record<string, boolean>>({});
+
+  const orderQuery = useQuery<any>({
+    queryKey: ["tab-order-items", orderId],
+    queryFn: () => apiClient.get(`/v1/orders/${orderId}`).then((r) => r.data),
+    enabled: byItem,
+  });
+  const items: any[] = orderQuery.data?.items ?? [];
 
   const summaryQuery = useQuery<PaymentSummary>({
     queryKey: ["tab-payments", orderId],
@@ -162,6 +173,7 @@ export function SplitBillModal({
               <button
                 onClick={() => {
                   setWays(null);
+                  setByItem(false);
                   setAmount(remaining.toFixed(2));
                 }}
                 className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
@@ -169,6 +181,66 @@ export function SplitBillModal({
                 All
               </button>
             </div>
+          </div>
+
+          {/* By item — tick what this person had; the amount is the sum. */}
+          <div>
+            <button
+              onClick={() => {
+                setByItem((v) => !v);
+                setWays(null);
+                setPicked({});
+              }}
+              className="text-[11px] font-semibold uppercase tracking-wide text-indigo-600 hover:text-indigo-800"
+            >
+              {byItem ? "− Hide items" : "+ Pay for specific items"}
+            </button>
+            {byItem && (
+              <div className="mt-1.5 max-h-44 overflow-y-auto rounded-md border border-zinc-200 p-1.5">
+                {orderQuery.isLoading ? (
+                  <p className="py-3 text-center text-xs text-zinc-400">
+                    Loading items…
+                  </p>
+                ) : (
+                  items.map((it: any) => {
+                    const on = !!picked[it.id];
+                    return (
+                      <button
+                        key={it.id}
+                        onClick={() => {
+                          const next: Record<string, boolean> = {
+                            ...picked,
+                            [it.id]: !on,
+                          };
+                          setPicked(next);
+                          const sum = items
+                            .filter((x: any) => next[String(x.id)])
+                            .reduce(
+                              (s: number, x: any) => s + Number(x.totalPrice),
+                              0,
+                            );
+                          setAmount(Math.min(sum, remaining).toFixed(2));
+                        }}
+                        className={
+                          "mb-1 flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs " +
+                          (on
+                            ? "bg-indigo-50 text-indigo-900"
+                            : "hover:bg-zinc-50 text-zinc-700")
+                        }
+                      >
+                        <span>
+                          <span className="mr-1.5">{on ? "☑" : "☐"}</span>
+                          {it.quantity}× {it.name}
+                        </span>
+                        <span className="font-medium">
+                          {money(Number(it.totalPrice))}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            )}
           </div>
 
           {/* Amount */}
