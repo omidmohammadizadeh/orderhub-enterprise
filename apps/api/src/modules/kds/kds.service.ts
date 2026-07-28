@@ -549,6 +549,37 @@ export class KdsService {
       updated++;
     }
 
+    // Screens that route items from this order but have NO ticket yet — e.g.
+    // a dine-in round adds the first drinks line for the bar screen, or a
+    // POS edit adds an item for a station that had nothing in round 1. The
+    // docstring always promised "dispatch fills the gap"; now it does.
+    const existingScreenIds = new Set(existing.map((t) => t.kdsScreenId));
+    for (const [screenId, routed] of routingByScreen) {
+      if (routed === null || existingScreenIds.has(screenId)) continue;
+      try {
+        const ticket = await this.prisma.kdsTicket.upsert({
+          where: { kdsScreenId_orderId: { kdsScreenId: screenId, orderId } },
+          create: {
+            kdsScreenId: screenId,
+            orderId,
+            metadata: {
+              itemIds: routed ?? [],
+              itemStates: {},
+              updatedAt: now,
+            } as Prisma.InputJsonValue,
+          },
+          update: {},
+          include: TICKET_INCLUDE,
+        });
+        updated++;
+        this.socket.emitToLocation(locationId, "kds:ticket:new", ticket as any);
+      } catch (err: any) {
+        this.logger.warn(
+          `KDS resync ticket create failed (screen ${screenId}, order ${orderId}): ${err?.message}`,
+        );
+      }
+    }
+
     this.socket.emitToLocation(locationId, "kds:order:updated", { orderId });
     return { updated };
   }

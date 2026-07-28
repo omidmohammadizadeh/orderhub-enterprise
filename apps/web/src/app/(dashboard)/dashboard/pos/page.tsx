@@ -614,10 +614,46 @@ export default function PosPage() {
   });
 
   // ── Table Tabs: settle & close ────────────────────────────────────────────
+  // "Pay & close" opens a cash-or-card choice: card runs the existing
+  // terminal flow (ChargeReaderModal); cash marks the tab PAID directly
+  // (same manual fallback the Orders board uses) and frees the table.
+  const [payChoiceOpen, setPayChoiceOpen] = useState(false);
+  const [settlingCash, setSettlingCash] = useState(false);
   const payAndCloseTab = () => {
     if (!tabOrderId) return;
+    setPayChoiceOpen(true);
+  };
+  const settleCard = () => {
+    if (!tabOrderId) return;
+    setPayChoiceOpen(false);
     setClosingTab(true);
     setChargeOrder({ id: tabOrderId, amount: tabTotal });
+  };
+  const settleCash = async () => {
+    if (!tabOrderId || !tableId || settlingCash) return;
+    if (!window.confirm(`£${tabTotal.toFixed(2)} received in cash?`)) return;
+    setSettlingCash(true);
+    try {
+      await apiClient.patch(`/v1/orders/${tabOrderId}/payment-status`, {
+        paymentStatus: "PAID",
+      });
+      await apiClient
+        .patch(`/v1/orders/${tabOrderId}/status`, {
+          status: "COMPLETED",
+          note: "Tab settled — cash",
+        })
+        .catch(() => {});
+      await tablesClient.free(tableId).catch(() => {});
+      setPayChoiceOpen(false);
+      setSubmitFeedback(`${tableName ?? "Table"} settled (cash) and cleared.`);
+      router.push("/dashboard/tables");
+    } catch (err: any) {
+      setSubmitFeedback(
+        err?.response?.data?.message ?? "Cash settle failed — try again",
+      );
+    } finally {
+      setSettlingCash(false);
+    }
   };
   const handleChargeClose = async () => {
     setChargeOrder(null);
@@ -730,14 +766,39 @@ export default function PosPage() {
                 }, £${tabTotal.toFixed(2)}. Add items and “Send to kitchen”.`
               : " — add items and “Send to kitchen” to open the tab."}
           </span>
-          {tabOrderId && (
-            <button
-              onClick={payAndCloseTab}
-              className="shrink-0 rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
-            >
-              Pay &amp; close · £{tabTotal.toFixed(2)}
-            </button>
-          )}
+          {tabOrderId &&
+            (payChoiceOpen ? (
+              <span className="flex shrink-0 items-center gap-1.5">
+                <button
+                  onClick={settleCash}
+                  disabled={settlingCash}
+                  className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  💷 Cash
+                </button>
+                <button
+                  onClick={settleCard}
+                  disabled={settlingCash}
+                  className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  💳 Card
+                </button>
+                <button
+                  onClick={() => setPayChoiceOpen(false)}
+                  disabled={settlingCash}
+                  className="rounded-md border border-indigo-200 bg-white px-2 py-1 text-xs font-medium text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <button
+                onClick={payAndCloseTab}
+                className="shrink-0 rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+              >
+                Pay &amp; close · £{tabTotal.toFixed(2)}
+              </button>
+            ))}
         </div>
       )}
       {/* Top bar */}
