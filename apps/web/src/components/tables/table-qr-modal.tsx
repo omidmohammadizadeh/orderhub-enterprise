@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 import { Copy, Download, Printer, QrCode, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { tablesClient, type RestaurantTable } from "@/lib/api/tables.client";
@@ -43,6 +43,10 @@ export function TableQrModal({
   useEffect(() => setOrigin(window.location.origin), []);
 
   const cardRef = useRef<HTMLDivElement | null>(null);
+  // A second, print-resolution copy of the same code rendered to a CANVAS,
+  // kept off-screen purely so the PDF has real pixels to embed. The visible
+  // code stays an SVG (crisp at any zoom, and what the Print window lifts).
+  const pdfCanvasRef = useRef<HTMLDivElement | null>(null);
   const url = token ? `${origin}/t/${token}` : "";
 
   const mintMut = useMutation({
@@ -69,12 +73,12 @@ export function TableQrModal({
   // that wants card stock. A6 portrait, the usual table-tent size.
   const [saving, setSaving] = useState(false);
   const downloadPdf = async () => {
-    const svg = cardRef.current?.querySelector("svg")?.outerHTML;
-    if (!svg) return;
+    const canvas = pdfCanvasRef.current?.querySelector("canvas");
+    if (!canvas) return;
     setSaving(true);
     try {
       const blob = await buildQrCardPdf({
-        svg,
+        canvas,
         title: table.name,
         subtitle: "Scan to order",
         url,
@@ -155,7 +159,7 @@ export function TableQrModal({
               </Button>
             </div>
           ) : (
-            <div ref={cardRef} className="text-center">
+            <div ref={cardRef} className="relative text-center">
               <div className="inline-block rounded-lg border border-zinc-200 p-4">
                 {origin ? (
                   <QRCodeSVG value={url} size={180} />
@@ -167,6 +171,17 @@ export function TableQrModal({
                 Scan to order
               </p>
               <p className="mt-1 break-all text-[11px] text-zinc-400">{url}</p>
+
+              {/* Off-screen, print-resolution canvas for the PDF. Positioned
+                  away rather than display:none — a hidden canvas still
+                  paints, but keeping it laid out avoids relying on that. */}
+              <div
+                ref={pdfCanvasRef}
+                aria-hidden
+                className="pointer-events-none absolute -left-[9999px] top-0"
+              >
+                {origin ? <QRCodeCanvas value={url} size={700} /> : null}
+              </div>
             </div>
           )}
         </div>

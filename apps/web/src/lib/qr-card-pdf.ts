@@ -33,17 +33,23 @@ function approxWidth(s: string, size: number): number {
 }
 
 /**
- * Build the PDF. `svg` is the QR markup already on screen (so the file and
- * the preview can never disagree), rasterised through an offscreen canvas.
+ * Build the PDF from an already-rendered QR <canvas>.
+ *
+ * Taking a canvas rather than SVG markup is deliberate. The first version
+ * serialised the on-screen <svg> and loaded it through an Image, which
+ * fails in the browser: React does not put an `xmlns` on the element it
+ * renders, so `outerHTML` is not a standalone SVG document and the image
+ * load errors out. A canvas is already pixels — toDataURL cannot fail
+ * that way, and there is no async image load to go wrong at all.
  */
 export async function buildQrCardPdf(opts: {
-  svg: string;
+  canvas: HTMLCanvasElement;
   title: string;
   subtitle?: string;
   url: string;
 }): Promise<Blob> {
-  const qrPx = 700; // generous — the card is printed, not viewed on screen
-  const jpeg = await svgToJpeg(opts.svg, qrPx);
+  const jpeg = canvasToJpeg(opts.canvas);
+  const qrPx = opts.canvas.width;
 
   // ── Page geometry ──────────────────────────────────────────────────
   const qrSize = 62 * MM;
@@ -85,37 +91,30 @@ export async function buildQrCardPdf(opts: {
   return assemblePdf(content, jpeg, qrPx);
 }
 
-/** Rasterise SVG markup to JPEG bytes at `px` square. */
-async function svgToJpeg(svg: string, px: number): Promise<Uint8Array> {
-  // A QR is pure black-on-white, so JPEG's chroma loss is invisible and
-  // quality 0.92 keeps the modules crisp at print resolution.
-  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-  const objectUrl = URL.createObjectURL(blob);
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const el = new Image();
-      el.onload = () => resolve(el);
-      el.onerror = () => reject(new Error("Couldn't render the QR code"));
-      el.src = objectUrl;
-    });
-    const canvas = document.createElement("canvas");
-    canvas.width = px;
-    canvas.height = px;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas unavailable");
-    // JPEG has no alpha — paint the paper white or the quiet zone goes black.
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, px, px);
-    ctx.drawImage(img, 0, 0, px, px);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-    const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
-    const bin = atob(base64);
-    const out = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-    return out;
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
+/**
+ * Canvas → JPEG bytes. A QR is pure black-on-white, so JPEG's chroma loss
+ * is invisible and 0.92 keeps the modules crisp at print resolution.
+ *
+ * The source canvas is copied onto a white one first: qrcode.react leaves
+ * the quiet zone transparent, and JPEG has no alpha, so drawing it
+ * directly would turn the margin black and make the code unscannable.
+ */
+function canvasToJpeg(src: HTMLCanvasElement): Uint8Array {
+  const flat = document.createElement("canvas");
+  flat.width = src.width;
+  flat.height = src.height;
+  const ctx = flat.getContext("2d");
+  if (!ctx) throw new Error("Canvas unavailable");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, flat.width, flat.height);
+  ctx.drawImage(src, 0, 0);
+
+  const dataUrl = flat.toDataURL("image/jpeg", 0.92);
+  const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+  const bin = atob(base64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
 }
 
 /**
