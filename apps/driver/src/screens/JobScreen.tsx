@@ -162,6 +162,11 @@ export function JobScreen({
     return `tel:${dial}%2C%2C%2C${code}`;
   }
 
+  // Whichever number Call will actually dial is the one whose PIN matters.
+  const callPin = o.courierPhone
+    ? o.courierPhoneAccessCode
+    : o.customerPhoneAccessCode;
+
   function call() {
     if (o.courierPhone) {
       Linking.openURL(telUrl(o.courierPhone, o.courierPhoneAccessCode));
@@ -309,6 +314,16 @@ export function JobScreen({
         <Text style={styles.customer}>{o.customerName ?? "Customer"}</Text>
         {!!address && <Text style={styles.address}>{address}</Text>}
         {!!o.specialInstructions && <Text style={styles.note}>“{o.specialInstructions}”</Text>}
+
+        {/* Masked-number access code, shown as well as auto-dialled. Some
+            networks and diallers ignore pause characters in a tel: URL, and
+            a driver stood at a door with no way to see the PIN is stuck.
+            Belt as well as braces — Call still keys it in automatically. */}
+        {!!callPin && (
+          <Text style={styles.pin}>
+            CALL PIN <Text style={styles.pinCode}>{callPin}</Text>
+          </Text>
+        )}
 
         <View style={styles.metaRow}>
           <View style={styles.metaCell}>
@@ -504,6 +519,19 @@ const styles = StyleSheet.create({
   },
   metaCell: { flex: 1, paddingVertical: 12 },
   metaCellRight: { alignItems: "flex-end", borderLeftWidth: 1, borderLeftColor: "#e2e8f0", paddingLeft: 12 },
+  pin: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#92400e",
+    backgroundColor: "#fef3c7",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    letterSpacing: 0.5,
+    overflow: "hidden",
+  },
+  pinCode: { fontSize: 18, fontWeight: "800", color: "#78350f", letterSpacing: 1 },
   metaLabel: { fontSize: 11, color: "#94a3b8", fontWeight: "700", letterSpacing: 0.5 },
   metaValue: { fontSize: 18, fontWeight: "800", color: "#0F172A", marginTop: 2 },
   footer: { padding: 16, borderTopWidth: 1, borderTopColor: "#e2e8f0" },
