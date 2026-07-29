@@ -21,6 +21,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PosterImages } from "@/components/signage/poster-images";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { menusClient } from "@/lib/api/menus.client";
 import {
@@ -501,6 +502,13 @@ function DisplayEditor({
               </p>
             </div>
           </div>
+
+          <div className="mt-4 border-t border-zinc-100 pt-4">
+            <PosterImages
+              config={config}
+              onChange={(patch) => setConfig((c) => ({ ...c, ...patch }))}
+            />
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 border-t border-zinc-100 px-5 py-3">
@@ -510,7 +518,11 @@ function DisplayEditor({
           <Button
             onClick={() => saveMut.mutate()}
             disabled={
-              saveMut.isPending || !name.trim() || selected.length === 0
+              saveMut.isPending ||
+              !name.trim() ||
+              // Images-only boards never render a category, so requiring one
+              // would make a poster screen impossible to save.
+              (config.mode !== "IMAGES" && selected.length === 0)
             }
           >
             {display ? "Save changes" : "Create screen"}

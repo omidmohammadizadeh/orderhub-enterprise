@@ -16,6 +16,18 @@ export interface SignageConfig {
   text?: string;
   /** Physical screen rotation to match how the TV is mounted. */
   rotation?: 0 | 90 | 180 | 270;
+
+  // ── Poster / promo images ─────────────────────────────────────────────
+  /** What this screen shows. Defaults to MENU (the original behaviour). */
+  mode?: "MENU" | "IMAGES" | "MIXED";
+  /** Uploaded artwork (public https URLs), shown in this order. */
+  images?: string[];
+  /** Seconds each image holds. Default 10. */
+  imageSeconds?: number;
+  /** In MIXED, seconds the menu holds before the images run. Default 20. */
+  menuSeconds?: number;
+  /** contain = whole poster visible (default); cover = fill, may crop. */
+  imageFit?: "contain" | "cover";
 }
 
 export interface SignageDisplay {

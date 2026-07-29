@@ -22,6 +22,18 @@ export interface SignageConfig {
   pageRotationSeconds?: number; // if categories overflow, seconds per page
   refreshSeconds?: number; // how often the TV refetches (default 45)
   theme?: string; // "dark" | "light"
+
+  // ── Poster / promo images ───────────────────────────────────────────
+  // A screen can show the live menu, a slideshow of uploaded artwork
+  // (offers, opening hours, a promo poster), or alternate between them.
+  // Images are public https URLs from the uploads endpoint; they live in
+  // config rather than a new table because they are display settings —
+  // reordering them is a config write, not a migration.
+  mode?: "MENU" | "IMAGES" | "MIXED"; // default MENU (existing behaviour)
+  images?: string[];
+  imageSeconds?: number; // seconds per image (default 10)
+  menuSeconds?: number; // in MIXED, seconds the menu holds (default 20)
+  imageFit?: "contain" | "cover"; // default contain — never crop a poster
 }
 
 interface UpsertDisplayInput {

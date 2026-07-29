@@ -12,7 +12,7 @@
 //     largest font size at which all content fits the viewport (no scroll, no
 //     clipping), adapting to the screen size and how many items there are.
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import type { SignageBoard } from "@/lib/api/signage.client";
@@ -101,6 +101,49 @@ function useFitToScreen(
   }, []);
 }
 
+/**
+ * Which slide the board is showing.
+ *
+ * A screen can be the live menu (the original behaviour), a slideshow of
+ * uploaded posters, or both alternating. Slides are modelled as a flat
+ * list — "MENU" plus one entry per image — because that keeps MIXED from
+ * needing any special case beyond a per-slide duration.
+ *
+ * Uses a chained timeout rather than setInterval: the menu and the images
+ * hold for different lengths, so each slide has to schedule the next one
+ * itself. These screens run unattended for weeks, so the timer is always
+ * cleared on re-render — a leaked one would speed the board up every time
+ * the 45s poll returned new data.
+ */
+function useSlides(
+  mode: string | undefined,
+  images: string[],
+  imageSeconds: number,
+  menuSeconds: number,
+) {
+  const slides = useMemo<string[]>(() => {
+    if (mode === "IMAGES") return images.length ? images : [];
+    if (mode === "MIXED" && images.length) return ["MENU", ...images];
+    return [];
+  }, [mode, images]);
+
+  const [index, setIndex] = useState(0);
+
+  // A shrinking image list (one deleted) must not strand the index past the
+  // end, or the board goes blank until the next tick.
+  const safeIndex = slides.length ? index % slides.length : 0;
+
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const current = slides[safeIndex];
+    const ms = (current === "MENU" ? menuSeconds : imageSeconds) * 1000;
+    const id = setTimeout(() => setIndex((i) => (i + 1) % slides.length), ms);
+    return () => clearTimeout(id);
+  }, [slides, safeIndex, imageSeconds, menuSeconds]);
+
+  return { slides, current: slides.length ? slides[safeIndex] : null };
+}
+
 export default function SignageBoardPage() {
   const { token } = useParams<{ token: string }>();
   useWakeLock();
@@ -155,6 +198,17 @@ export default function SignageBoardPage() {
     rotation,
   ]);
 
+  // Poster slides. Config lives on the board payload, so switching a screen
+  // to images is a settings change the TV picks up on its next poll — no
+  // one has to walk over and touch the television.
+  const cfgImages = (board?.display.config.images ?? []).filter(Boolean);
+  const { current: slide } = useSlides(
+    board?.display.config.mode,
+    cfgImages,
+    Math.max(2, board?.display.config.imageSeconds ?? 10),
+    Math.max(2, board?.display.config.menuSeconds ?? 20),
+  );
+
   const goFullscreen = () => {
     rootRef.current?.requestFullscreen?.().catch(() => {});
   };
@@ -175,6 +229,11 @@ export default function SignageBoardPage() {
       </div>
     );
   }
+
+  // MENU mode has no slides at all; in IMAGES/MIXED the slide is either the
+  // literal "MENU" marker or an image URL. An IMAGES board with no artwork
+  // yet falls through to the menu rather than showing a black screen.
+  const posterSrc = slide && slide !== "MENU" ? slide : null;
 
   const showImages = board.display.config.showImages ?? false;
   const showLogo = board.display.config.showLogo ?? true;
@@ -209,6 +268,22 @@ export default function SignageBoardPage() {
         color: effectiveText,
       }}
     >
+      {posterSrc ? (
+        // Full-bleed poster. It sits INSIDE the rotated stage, so a screen
+        // mounted portrait shows the artwork the right way up like the menu.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={posterSrc}
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: board.display.config.imageFit ?? "contain",
+            display: "block",
+          }}
+        />
+      ) : (
+      <>
       <header className="flex shrink-0 items-center gap-4 px-[3vw] pb-[1vh] pt-[2.5vh]">
         {showLogo && board.location.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -311,6 +386,8 @@ export default function SignageBoardPage() {
           ))}
         </div>
       </div>
+      </>
+      )}
       </div>
     </div>
   );
