@@ -24,6 +24,7 @@ import {
   CreditCard,
   Send,
   Truck,
+  MapPin,
   Building2,
   Printer,
   Filter as FilterIcon,
@@ -183,11 +184,16 @@ const BUCKETS: Bucket[] = [
   {
     key: "DRIVER_ASSIGNED",
     label: "Driver assigned",
+    // RIDER_ARRIVED is overloaded: on a marketplace order it means the
+    // courier is at the SHOP (pre-pickup, belongs here); on our own-fleet
+    // orders the driver app sets it when they reach the CUSTOMER, which is
+    // after out-for-delivery and gets its own bucket below. outForDeliveryAt
+    // is the discriminator — it's only stamped once the driver has started.
     match: (o) =>
       o.status === "PENDING_DISPATCH" ||
       o.status === "ASSIGNED_DRIVER" ||
       o.status === "ACCEPTED_BY_DRIVER" ||
-      o.status === "RIDER_ARRIVED",
+      (o.status === "RIDER_ARRIVED" && !o.outForDeliveryAt),
     pill: "bg-violet-50 text-violet-700",
     icon: Truck,
   },
@@ -198,6 +204,17 @@ const BUCKETS: Bucket[] = [
       o.status === "OUT_FOR_DELIVERY" || o.status === "DISPATCHED",
     pill: "bg-orange-50 text-orange-700",
     icon: Truck,
+  },
+  {
+    // Our driver has reached the customer's door — the handover moment
+    // staff get asked about ("where is he?"). Deliberately its own bucket
+    // rather than lumped into Out for delivery, because it is the state
+    // the shop can actually answer the phone with.
+    key: "AT_CUSTOMER",
+    label: "At the customer",
+    match: (o) => o.status === "RIDER_ARRIVED" && !!o.outForDeliveryAt,
+    pill: "bg-amber-50 text-amber-700",
+    icon: MapPin,
   },
   {
     key: "COMPLETED",

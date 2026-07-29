@@ -11,6 +11,7 @@ import {
 } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
+import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
@@ -50,6 +51,7 @@ export class DriverAppService {
     private readonly prisma: PrismaService,
     private readonly hubriseSync: HubRiseOrderSyncService,
     private readonly chat: ChatService,
+    private readonly socket: SocketService,
   ) {}
 
   // ── Chat ────────────────────────────────────────────────────────────────────
@@ -507,6 +509,13 @@ export class DriverAppService {
         throw new BadRequestException(`Unknown action: ${action}`);
     }
 
+    // Tell the staff board. The driver app writes the order status straight
+    // to the database, and since the live board went socket-first there is
+    // no poll left to notice — so without this emit the dashboard sat on a
+    // stale status until someone refocused the tab. "Arrived at customer"
+    // and "delivered" simply never appeared.
+    await this.emitBoardUpdate(orderId);
+
     // Propagate the transition to HubRise (fire-and-forget; no-ops for
     // non-HubRise orders) so connected channels see the same lifecycle the
     // driver walks. Mirrors the operator-side OrdersService.updateStatus push.
@@ -516,5 +525,40 @@ export class DriverAppService {
     }
 
     return { ok: true, action };
+  }
+
+  /**
+   * Push the order's current state to the location's staff board, in the
+   * same shape OrdersService.updateStatus uses so the dashboard needs no
+   * special case for driver-driven transitions.
+   *
+   * Best-effort: a socket problem must never fail the driver's action —
+   * they are stood on a doorstep, and the write has already landed.
+   */
+  private async emitBoardUpdate(orderId: string): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: { select: { quantity: true } } },
+      });
+      if (!order?.locationId) return;
+      this.socket.emitOrderUpdated(order.locationId, {
+        orderId: order.id,
+        tenantId: order.tenantId,
+        locationId: order.locationId,
+        platform: order.platform,
+        orderSource: order.orderSource,
+        fulfillmentType: order.fulfillmentType,
+        displayId: order.displayId,
+        status: order.status,
+        total: Number(order.total),
+        itemCount: order.items.reduce((s, i) => s + (i.quantity ?? 0), 0),
+        customerName: (order as any).customerName ?? "",
+        scheduledFor: order.scheduledFor?.toISOString() ?? null,
+        createdAt: order.createdAt.toISOString(),
+      } as any);
+    } catch {
+      /* board refresh is cosmetic; never block the driver */
+    }
   }
 }
