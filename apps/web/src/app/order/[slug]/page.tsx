@@ -32,6 +32,7 @@ import { HeaderAuthButton } from "@/components/storefront/header-auth-button";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import {
   ShoppingBag,
+  CalendarDays,
   Plus,
   Minus,
   X,
@@ -49,6 +50,7 @@ import {
   Hourglass,
   Phone,
 } from "lucide-react";
+import { publicReservationsClient } from "@/lib/api/reservations.client";
 import { cn } from "@/lib/utils";
 import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
 import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
@@ -438,6 +440,19 @@ function OrderPage() {
   });
 
   const storefront = storefrontQuery.data;
+
+  // Does this location take table bookings from the web? Drives the
+  // "Book a table" button. Fetched separately (and only once the store
+  // is resolved) so a shop with reservations off pays nothing for it,
+  // and a failure here can never stop the menu rendering.
+  const reservationsQuery = useQuery({
+    queryKey: ["storefront-reservations", storefront?.location?.id],
+    queryFn: () => publicReservationsClient.settings(storefront!.location.id),
+    enabled: !!storefront?.location?.id,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const reservationSettings = reservationsQuery.data;
 
   // ── Derived data ─────────────────────────────────────────────────────────
 
@@ -1026,6 +1041,15 @@ function OrderPage() {
       )}`
     : null;
 
+  // "Book a table" — only for locations running table service AND taking
+  // bookings online. Both flags come from the public settings endpoint,
+  // so a shop that hasn't switched reservations on never sees the button
+  // (and a guest who guesses the URL still gets turned away server-side).
+  const bookingHref = reservationSettings?.tableServiceEnabled &&
+    reservationSettings?.onlineEnabled
+    ? `/book/${storefront.location.id}`
+    : null;
+
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Top nav */}
@@ -1069,6 +1093,24 @@ function OrderPage() {
                 <span className="whitespace-nowrap sm:hidden">WhatsApp AI</span>
                 <span className="hidden whitespace-nowrap sm:inline">
                   Try WhatsApp AI ordering
+                </span>
+              </a>
+            )}
+            {/* Book a table — sits next to Cart because booking and
+                ordering are the two things a diner comes here to do.
+                Outline, not solid, so it never competes with Cart. */}
+            {bookingHref && (
+              <a
+                href={bookingHref}
+                title="Book a table"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-2.5 py-2 text-xs font-semibold text-zinc-800 hover:border-zinc-400 hover:bg-zinc-50 sm:px-3 sm:text-sm"
+              >
+                <CalendarDays className="h-4 w-4 shrink-0" />
+                {/* One span, not two — a second element would inherit the
+                    flex gap on top of the word space and render
+                    "Book  a table". */}
+                <span className="whitespace-nowrap">
+                  Book<span className="hidden sm:inline"> a table</span>
                 </span>
               </a>
             )}
@@ -1177,6 +1219,19 @@ function OrderPage() {
                 ? `Scheduled ${formatScheduledFor(scheduledFor)}`
                 : "Schedule"}
             </button>
+
+            {/* Eating in? Sits with Delivery/Pickup because "how do I
+                want to be served" is the same question — but styled as a
+                link, not a fulfillment pill, since it leaves the menu. */}
+            {bookingHref && (
+              <a
+                href={bookingHref}
+                className="inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Book a table
+              </a>
+            )}
           </div>
 
           {!storefront.isOpen && (
