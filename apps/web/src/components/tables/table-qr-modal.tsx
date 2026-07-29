@@ -8,9 +8,10 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy, Printer, QrCode, RefreshCw, X } from "lucide-react";
+import { Copy, Download, Printer, QrCode, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { tablesClient, type RestaurantTable } from "@/lib/api/tables.client";
+import { buildQrCardPdf } from "@/lib/qr-card-pdf";
 
 const escapeHtml = (s: string) =>
   s.replace(
@@ -61,6 +62,36 @@ export function TableQrModal({
       toast.success("Link copied");
     } catch {
       toast.error("Couldn't copy — select the link and copy it manually");
+    }
+  };
+
+  // Download the same card as a real PDF, for sending to a print shop
+  // that wants card stock. A6 portrait, the usual table-tent size.
+  const [saving, setSaving] = useState(false);
+  const downloadPdf = async () => {
+    const svg = cardRef.current?.querySelector("svg")?.outerHTML;
+    if (!svg) return;
+    setSaving(true);
+    try {
+      const blob = await buildQrCardPdf({
+        svg,
+        title: table.name,
+        subtitle: "Scan to order",
+        url,
+      });
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = href;
+      // Table names carry spaces and slashes; keep the filename sane.
+      a.download = `${table.name.replace(/[^\w-]+/g, "-")}-qr.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(href);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't build the PDF");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -159,6 +190,14 @@ export function TableQrModal({
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={copy}>
                 <Copy className="mr-1 h-3.5 w-3.5" /> Copy link
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadPdf}
+                loading={saving}
+              >
+                <Download className="mr-1 h-3.5 w-3.5" /> PDF
               </Button>
               <Button size="sm" onClick={print}>
                 <Printer className="mr-1 h-3.5 w-3.5" /> Print

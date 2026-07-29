@@ -4,6 +4,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { SocketService } from "../../infrastructure/socket/socket.service";
 
 // Table reservations (Phase 3 of table service).
 //
@@ -59,7 +60,10 @@ function makeReference(): string {
 
 @Injectable()
 export class ReservationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socket: SocketService,
+  ) {}
 
   private async assertLocation(tenantId: string, locationId: string) {
     const loc = await this.prisma.location.findFirst({
@@ -314,6 +318,23 @@ export class ReservationsService {
       settings,
       { onlineOnly: true },
     );
+
+    // Nobody is watching the diary at 9pm on a Friday. Push the booking to
+    // every till at this location so it can chime and print, the same way a
+    // new online ORDER already announces itself.
+    this.socket.emitToLocation(created.locationId, "reservation:new" as any, {
+      id: created.id,
+      reference: created.reference,
+      locationId: created.locationId,
+      customerName: created.customerName,
+      customerPhone: created.customerPhone,
+      partySize: created.partySize,
+      startsAt: created.startsAt.toISOString(),
+      durationMins: created.durationMins,
+      tableName: created.table?.name ?? null,
+      notes: created.notes,
+      source: created.source,
+    } as any);
     // Never leak the internal table assignment to the guest.
     return {
       reference: created.reference,

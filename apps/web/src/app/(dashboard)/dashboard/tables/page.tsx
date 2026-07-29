@@ -31,7 +31,7 @@ import {
   type SittingInput,
   type UpsertTableInput,
 } from "@/lib/api/tables.client";
-import { FloorPlan } from "@/components/tables/floor-plan";
+import { FloorPlan, elapsedLabel } from "@/components/tables/floor-plan";
 import { SeatDialog } from "@/components/tables/seat-dialog";
 import { TableActionsModal } from "@/components/tables/table-actions-modal";
 import { TableQrModal } from "@/components/tables/table-qr-modal";
@@ -221,6 +221,42 @@ export default function TablesPage() {
     return [...map.entries()];
   }, [tables]);
 
+  // Which area the floor plan is showing. null = every area at once.
+  // Areas are derived from Table.area, so a brand-new area starts empty and
+  // becomes real as soon as a table is dropped onto its plan.
+  const [activeArea, setActiveArea] = useState<string | null>(null);
+  const areaNames = useMemo(
+    () => areas.map(([name]) => name),
+    [areas],
+  );
+  // An area the manager just invented, kept until a table lands in it.
+  const [pendingArea, setPendingArea] = useState<string | null>(null);
+  const areaTabs = useMemo(() => {
+    const all = [...areaNames];
+    if (pendingArea && !all.includes(pendingArea)) all.push(pendingArea);
+    return all;
+  }, [areaNames, pendingArea]);
+  // An area that gained its first table is no longer "pending".
+  useEffect(() => {
+    if (pendingArea && areaNames.includes(pendingArea)) setPendingArea(null);
+  }, [areaNames, pendingArea]);
+
+  const planTables = useMemo(
+    () =>
+      activeArea
+        ? tables.filter((t) => (t.area?.trim() || "Main") === activeArea)
+        : tables,
+    [tables, activeArea],
+  );
+
+  // The list view shows how long a table has been occupied too — the floor
+  // plan already did, and staff shouldn't have to switch view to see it.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const [editing, setEditing] = useState<RestaurantTable | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -322,8 +358,65 @@ export default function TablesPage() {
           </p>
         </div>
       ) : view === "plan" ? (
-        <FloorPlan
-          tables={tables}
+        <>
+          {/* Area tabs. A big site plans floor by floor, not all at once,
+              so the canvas shows one room at a time. "All areas" is still
+              there for a small shop that never split its floor up. */}
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => setActiveArea(null)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                activeArea === null
+                  ? "bg-zinc-900 text-white"
+                  : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+              }`}
+            >
+              All areas
+            </button>
+            {areaTabs.map((name) => (
+              <button
+                key={name}
+                onClick={() => setActiveArea(name)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                  activeArea === name
+                    ? "bg-zinc-900 text-white"
+                    : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                }`}
+              >
+                {name}
+                {pendingArea === name && (
+                  <span className="ml-1 text-[10px] opacity-60">(new)</span>
+                )}
+              </button>
+            ))}
+            {canManage && (
+              <button
+                onClick={() => {
+                  const name = prompt(
+                    "Name this area (e.g. Upstairs, Garden, Bar)",
+                  )?.trim();
+                  if (!name) return;
+                  setPendingArea(name);
+                  setActiveArea(name);
+                }}
+                className="rounded-full border border-dashed border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-500 hover:border-zinc-400 hover:text-zinc-700"
+              >
+                <Plus className="mr-0.5 inline h-3 w-3" /> New area
+              </button>
+            )}
+          </div>
+
+          {activeArea && planTables.length === 0 && (
+            <p className="mb-3 rounded-md border border-dashed border-zinc-300 bg-white px-4 py-3 text-xs text-zinc-500">
+              Nothing in <b>{activeArea}</b> yet. Open <b>Edit layout</b> and
+              drag a table across from <b>Not on the plan</b> — dropping it
+              here moves it into this area.
+            </p>
+          )}
+
+          <FloorPlan
+          tables={planTables}
+          activeArea={activeArea}
           serviceEnabled={enabled}
           canManage={canManage}
           onOpenTable={(t) =>
@@ -334,7 +427,8 @@ export default function TablesPage() {
             layoutMut.mutateAsync({ nodes, unplacedIds })
           }
           savingLayout={layoutMut.isPending}
-        />
+          />
+        </>
       ) : (
         <div className="space-y-6">
           {areas.map(([area, list]) => (
@@ -390,6 +484,18 @@ export default function TablesPage() {
                       <div className="text-[11px] text-zinc-500">
                         {t.seats ? `${t.seats} seats · ` : ""}
                         {occupied ? "Occupied" : "Free"}
+                        {occupied && elapsedLabel(t.openedAt, now) && (
+                          <span className="font-medium text-amber-700">
+                            {" · "}
+                            {elapsedLabel(t.openedAt, now)}
+                          </span>
+                        )}
+                        {occupied && t.covers ? (
+                          <span className="text-zinc-400">
+                            {" · "}
+                            {t.covers} guests
+                          </span>
+                        ) : null}
                       </div>
                       {!manage && (
                         <div className="mt-3">

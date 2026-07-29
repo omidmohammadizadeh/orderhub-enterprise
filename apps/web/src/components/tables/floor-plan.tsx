@@ -80,7 +80,7 @@ function firstPlacementSize(n: Node): { width: number; height: number } {
     : { width: n.width, height: n.height };
 }
 
-function elapsedLabel(from: string | null, now: number): string | null {
+export function elapsedLabel(from: string | null, now: number): string | null {
   if (!from) return null;
   const mins = Math.floor((now - new Date(from).getTime()) / 60_000);
   if (!Number.isFinite(mins) || mins < 0) return null;
@@ -108,6 +108,13 @@ interface FloorPlanProps {
   onTableActions: (t: RestaurantTable) => void;
   onSaveLayout: (nodes: LayoutNode[], unplacedIds: string[]) => Promise<unknown>;
   savingLayout: boolean;
+  /**
+   * Which area the plan is showing. null = every area at once. When an
+   * area is active, a table placed onto the canvas JOINS that area — that
+   * is how an area someone just invented gets its first table, since areas
+   * are derived from Table.area and can't exist empty.
+   */
+  activeArea?: string | null;
 }
 
 export function FloorPlan({
@@ -118,6 +125,7 @@ export function FloorPlan({
   onTableActions,
   onSaveLayout,
   savingLayout,
+  activeArea = null,
 }: FloorPlanProps) {
   const baseline = useMemo<Draft>(() => {
     const map: Draft = {};
@@ -200,9 +208,10 @@ export function FloorPlan({
     let n = nodeOf(t);
     if (fromTray) {
       const size = firstPlacementSize(n);
-      if (size.width !== n.width || size.height !== n.height) {
-        n = { ...n, ...size };
-        patch(t.id, size);
+      const joinArea = activeArea && n.area !== activeArea ? { area: activeArea } : {};
+      if (size.width !== n.width || size.height !== n.height || joinArea.area) {
+        n = { ...n, ...size, ...joinArea };
+        patch(t.id, { ...size, ...joinArea });
       }
     }
     const rect = canvasRef.current.getBoundingClientRect();
@@ -271,7 +280,13 @@ export function FloorPlan({
   const place = (t: RestaurantTable) => {
     const size = firstPlacementSize(nodeOf(t));
     const spot = firstFreeCell(size.width, size.height);
-    patch(t.id, { posX: spot.x, posY: spot.y, ...size });
+    patch(t.id, {
+      posX: spot.x,
+      posY: spot.y,
+      ...size,
+      // Dropping a table onto an area's plan is how it joins that area.
+      ...(activeArea ? { area: activeArea } : {}),
+    });
     setSelectedId(t.id);
   };
 
