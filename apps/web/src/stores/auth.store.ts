@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { authClient } from "../lib/api/auth.client";
@@ -124,6 +125,41 @@ export const useAuthStore = create<AuthStore>()(
     },
   ),
 );
+
+/**
+ * Has the persisted session been read back out of localStorage yet?
+ *
+ * This matters more than it looks. zustand v5 rehydrates through the
+ * storage adapter's getItem, which the middleware always awaits — so
+ * hydration completes in a microtask AFTER the store is created, and the
+ * very first render sees the SSR defaults (`isAuthenticated: false`).
+ *
+ * Anything that redirects on "not authenticated" must therefore wait for
+ * THIS, not merely for having mounted: a mount flag can win the race on a
+ * cold start and bounce a perfectly valid session to /login. That is the
+ * "it logs us out when I close and reopen the app" report — reopening is
+ * exactly when hydration has to happen and no token is in memory yet.
+ *
+ * Returns false during SSR and on the first client render (so the server
+ * and client agree), then flips once hydration lands.
+ */
+export function useAuthHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+    // Check-then-subscribe: hydration may finish between the check above
+    // and the listener being attached, so onFinishHydration alone can miss.
+    const unsub = useAuthStore.persist.onFinishHydration(() =>
+      setHydrated(true),
+    );
+    if (useAuthStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+  return hydrated;
+}
 
 // Cross-tab token freshness.
 //

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuthStore, useAuthHydrated } from "@/stores/auth.store";
 import { authClient } from "@/lib/api/auth.client";
 
 // Full-screen spinner shown while determining auth state
@@ -20,7 +20,8 @@ function AuthLoadingScreen() {
 // AuthGuard wraps the entire dashboard layout.
 //
 // Auth check sequence:
-//   1. Wait for Zustand to hydrate from localStorage (mounted state)
+//   1. Wait for Zustand to FINISH hydrating from localStorage (not just
+//      for this component to mount — hydration is async in zustand v5)
 //   2. If not authenticated → redirect to /login immediately
 //   3. If authenticated → hit /auth/me to validate the token is still live
 //      (the access token may have expired while the browser was closed)
@@ -30,7 +31,11 @@ function AuthLoadingScreen() {
 //   - Flash of dashboard content for unauthenticated users
 //   - Stale token acceptance (token expired but still in localStorage)
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
+  // Wait for the PERSISTED session to be read back, not merely for this
+  // component to mount. zustand v5 hydrates asynchronously, so a mount
+  // flag can fire while the store still holds its SSR defaults — which
+  // sent a valid session to /login on cold start. See useAuthHydrated.
+  const hydrated = useAuthHydrated();
   const [verified, setVerified] = useState(false);
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -39,15 +44,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const clearTokens = useAuthStore((s) => s.clearTokens);
   const router = useRouter();
 
-  // Step 1: Wait for Zustand hydration from localStorage.
-  // Without this, isAuthenticated is always false on first render (SSR default).
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // Step 2 + 3: Once hydrated, check auth state and validate with API.
   useEffect(() => {
-    if (!mounted) return;
+    if (!hydrated) return;
 
     if (!isAuthenticated || !accessToken) {
       router.replace("/login");
@@ -109,9 +108,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [mounted, isAuthenticated, accessToken, router, clearTokens, setUser]);
+  }, [hydrated, isAuthenticated, accessToken, router, clearTokens, setUser]);
 
-  if (!mounted || !verified) {
+  if (!hydrated || !verified) {
     return <AuthLoadingScreen />;
   }
 
