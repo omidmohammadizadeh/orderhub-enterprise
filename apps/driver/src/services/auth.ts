@@ -216,6 +216,9 @@ export interface JobOrder {
   platform: string | null;
   courierPhone: string | null;
   courierPhoneAccessCode: string | null;
+  // Same idea for the customer's own masked number (Uber Eats puts the code
+  // on customerInfo; the API flattens it onto the job).
+  customerPhoneAccessCode: string | null;
   // When the order is "due" (ISO) — mirrors the dispatch console countdown.
   deadlineAt: string | null;
 }

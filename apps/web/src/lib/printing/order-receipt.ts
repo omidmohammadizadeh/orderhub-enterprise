@@ -37,6 +37,26 @@ export function paymentLabelFor(
   return "*** UNPAID ***";
 }
 
+/**
+ * Customer phone with the marketplace access code appended, matching the
+ * server renderer's format exactly so a ticket reads the same whichever
+ * path printed it. Falls back to the bare number when there's no code
+ * (POS, storefront, WhatsApp).
+ */
+function phoneWithAccessCode(order: any): string | null {
+  const phone = order?.customerPhone ?? null;
+  if (!phone) return null;
+  // Adapters have put the code in three different places over time:
+  // Uber writes customerInfo.phoneAccessCode (+ metadata.phonePin),
+  // and the Order row has its own courierPhoneAccessCode column.
+  const code =
+    order?.customerInfo?.phoneAccessCode ??
+    order?.courierPhoneAccessCode ??
+    (order?.metadata as any)?.phonePin ??
+    null;
+  return code ? `${phone} PIN ${code}` : phone;
+}
+
 // The POS / storefront cart writes OrderItem.name as
 //   "MEAL DEAL 4 (+CHIPS, CAN COKE) - Note: no salt"
 // (see buildCartItemName in @orderhub/shared) so the KDS parser can pull
@@ -133,7 +153,16 @@ export function buildPrintPayload(
     scheduledFor: (order as any).scheduledFor ?? null,
     estimatedReadyAt: (order as any).estimatedReadyAt ?? null,
     customerName: (order as any).customerName ?? null,
-    customerPhone: (order as any).customerPhone ?? null,
+    // Marketplace orders (Uber Eats / Deliveroo / Just Eat / HubRise) mask
+    // the customer's number — dialling it only connects once the caller
+    // keys in the per-order access code, so the PIN has to be on the paper
+    // next to the number or the driver is stuck on the doorstep.
+    //
+    // The server-side renderer already joined these (phoneWithAccessCode in
+    // print-routing.service.ts) but that path only feeds the desktop print
+    // agent. Tablets build this payload themselves, which is why the PIN
+    // never reached a printed ticket.
+    customerPhone: phoneWithAccessCode(order),
     deliveryAddress,
     receivedAt: (order as any).receivedAt ?? (order as any).createdAt ?? null,
     items: (order.items ?? []).map((i: any) => ({

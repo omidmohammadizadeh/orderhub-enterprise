@@ -248,6 +248,8 @@ export class DriverAppService {
             status: true,
             customerName: true,
             customerPhone: true,
+            // Carries phoneAccessCode for masked marketplace numbers.
+            customerInfo: true,
             total: true,
             paymentMethod: true,
             deliveryAddress: true,
@@ -283,12 +285,21 @@ export class DriverAppService {
         estimatedReadyAt,
         preparationMinutes,
         createdAt,
+        customerInfo,
         ...orderRest
-      } = a.order;
+      } = a.order as typeof a.order & { customerInfo?: any };
       return {
         ...a,
         order: {
           ...orderRest,
+          // Flatten the masked-number access code out of the JSON blob so
+          // the app can dial it after a pause instead of the driver reading
+          // it off a ticket and keying it in on a doorstep. Adapters have
+          // used two homes for it, so check both.
+          customerPhoneAccessCode:
+            (customerInfo as any)?.phoneAccessCode ??
+            (orderRest as any).courierPhoneAccessCode ??
+            null,
           deadlineAt: deadlineFor({
             scheduledFor,
             estimatedReadyAt,

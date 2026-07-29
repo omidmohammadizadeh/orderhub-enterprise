@@ -136,17 +136,25 @@ export function JobScreen({
   }
 
   // Marketplace orders (Just Eat / Uber Eats / Deliveroo) mask the customer's
-  // number behind courierPhone; some need the access code dialled after a pause.
+  // number; dialling it only connects once the per-order access code is keyed
+  // in. Commas are dial-pause characters on both iOS and Android, so the code
+  // goes in automatically — a driver stood at a door should never be reading
+  // a PIN off a ticket and typing it into the keypad.
+  //
+  // The PIN is digits only: Uber formats it "700 58 389" for humans, and the
+  // dialler would choke on the spaces.
+  function telUrl(number: string, accessCode?: string | null) {
+    const code = accessCode ? String(accessCode).replace(/\D/g, "") : "";
+    return code ? `tel:${number},,${code}` : `tel:${number}`;
+  }
+
   function call() {
     if (o.courierPhone) {
-      const tel = o.courierPhoneAccessCode
-        ? `tel:${o.courierPhone},,${o.courierPhoneAccessCode}`
-        : `tel:${o.courierPhone}`;
-      Linking.openURL(tel);
+      Linking.openURL(telUrl(o.courierPhone, o.courierPhoneAccessCode));
       return;
     }
     if (o.customerPhone) {
-      Linking.openURL(`tel:${o.customerPhone}`);
+      Linking.openURL(telUrl(o.customerPhone, o.customerPhoneAccessCode));
       return;
     }
     Alert.alert("No phone", "No phone number on this order.");
