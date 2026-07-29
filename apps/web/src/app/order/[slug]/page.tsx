@@ -61,6 +61,7 @@ import type {
   MenuItem,
   MenuCategory,
 } from "@/lib/api/menus.client";
+import { round2 } from "@orderhub/shared";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -489,11 +490,12 @@ function OrderPage() {
     return best;
   }, [fulfillmentType, addrPostcode, storefront?.deliveryZones]);
 
-  const subtotal = cart.reduce(
-    (sum, l) =>
-      sum +
-      (l.unitPrice + l.modifiers.reduce((m, x) => m + x.price, 0)) * l.quantity,
-    0,
+  // unitPrice ALREADY includes the modifiers — calculateCartItem() returns
+  // basePrice + sum(modifiers), and that is what the modal shows as its
+  // total. Adding them again here charged every option twice: a 12"
+  // stuffed-crust Toscana rang up at £16.10 instead of £12.00.
+  const subtotal = round2(
+    cart.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0),
   );
   // Phase AP fix #1 — promo code: FREE_DELIVERY zeroes the fee,
   // FIXED/PERCENTAGE produce a discountAmount that comes off subtotal.
@@ -640,11 +642,9 @@ function OrderPage() {
     return cart.reduce((sum, l) => {
       if (l.unitPrice === 0) return sum;
       if (excludedItemIdSet.has(l.menuItemId)) return sum;
-      return (
-        sum +
-        (l.unitPrice + l.modifiers.reduce((m, x) => m + x.price, 0)) *
-          l.quantity
-      );
+      // Same rule as the subtotal: unitPrice is already modifier-inclusive,
+      // so double-adding here would unlock the freebie early.
+      return sum + l.unitPrice * l.quantity;
     }, 0);
   }, [cart, freeItem, excludedItemIdSet]);
   // Gift line auto-management: when eligible and a chosen freebie
@@ -2081,10 +2081,7 @@ function CartPanel(props: CartPanelProps) {
                     )}
                     <p className="mt-1 text-xs text-zinc-500">
                       £
-                      {(
-                        (l.unitPrice + l.modifiers.reduce((s, m) => s + m.price, 0)) *
-                        l.quantity
-                      ).toFixed(2)}
+                      {(l.unitPrice * l.quantity).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">

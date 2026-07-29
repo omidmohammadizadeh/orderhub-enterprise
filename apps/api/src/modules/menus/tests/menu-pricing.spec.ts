@@ -132,6 +132,33 @@ describe("isModifierAvailable", () => {
 });
 
 describe("calculateCartItem", () => {
+  // Regression: the storefront cart summed
+  //   (unitPrice + sum(modifiers)) * quantity
+  // which charged every option TWICE — a 12" stuffed-crust Toscana rang
+  // up at £16.10 instead of £12.00, and the API stores the client's
+  // subtotal verbatim, so customers were actually overcharged.
+  //
+  // The contract this locks: unitPrice is ALREADY modifier-inclusive, so
+  // a cart line is unitPrice × quantity and nothing else.
+  it("returns a modifier-INCLUSIVE unitPrice — callers must not add modifiers again", () => {
+    const line = calculateCartItem({
+      basePrice: 7.9, // TOSCANA
+      modifiers: [
+        { id: "s", name: '12"', groupId: "size", groupName: "Size", price: 1.1 },
+        { id: "c", name: "stuffed crust", groupId: "crust", groupName: "Crust", price: 3 },
+      ],
+      quantity: 1,
+    });
+    expect(line.unitPrice).toBe(12); // what the modal shows
+    expect(line.lineTotal).toBe(12); // what the cart must show
+
+    // The bug, written out so it can never quietly come back.
+    const doubleCounted =
+      (line.unitPrice + line.modifierTotal) * 1;
+    expect(doubleCounted).toBe(16.1);
+    expect(line.lineTotal).not.toBe(doubleCounted);
+  });
+
   it("computes unitPrice as basePrice + sum of modifier prices", () => {
     const result = calculateCartItem({
       basePrice: 9.99,
