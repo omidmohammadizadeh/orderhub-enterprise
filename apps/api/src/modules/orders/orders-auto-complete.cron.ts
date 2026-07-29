@@ -35,6 +35,11 @@ export class OrdersAutoCompleteCron {
     "ASSIGNED_DRIVER",
     "ACCEPTED_BY_DRIVER",
     "OUT_FOR_DELIVERY",
+    // Same reason the board needs it: a delivery can legitimately end the
+    // night sat in RIDER_ARRIVED (driver slid "arrived" but never
+    // "delivered"). Without it here the 5am rollover skipped those and
+    // they lingered on the board indefinitely.
+    "RIDER_ARRIVED",
   ] as const;
 
   constructor(private readonly prisma: PrismaService) {}

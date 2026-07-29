@@ -2262,6 +2262,12 @@ export class OrdersService {
                 "ASSIGNED_DRIVER",
                 "ACCEPTED_BY_DRIVER",
                 "OUT_FOR_DELIVERY",
+                // A driver sliding "Arrived at customer" sets RIDER_ARRIVED.
+                // Leaving it out of this list made the order VANISH from the
+                // board mid-delivery — it only came back when the driver
+                // slid "delivered" and it landed in COMPLETED. It is a live
+                // stage of a live order and belongs here.
+                "RIDER_ARRIVED",
                 "DISPATCHED",
               ],
             },
