@@ -137,15 +137,29 @@ export function JobScreen({
 
   // Marketplace orders (Just Eat / Uber Eats / Deliveroo) mask the customer's
   // number; dialling it only connects once the per-order access code is keyed
-  // in. Commas are dial-pause characters on both iOS and Android, so the code
-  // goes in automatically — a driver stood at a door should never be reading
-  // a PIN off a ticket and typing it into the keypad.
+  // in. Pauses in a tel: URL let the dialler do that itself — a driver stood
+  // at a door should never be reading a PIN off a ticket and typing it in.
   //
-  // The PIN is digits only: Uber formats it "700 58 389" for humans, and the
-  // dialler would choke on the spaces.
+  // Two things make this fiddly, and both silently dropped the PIN before:
+  //
+  //  1. THE NUMBER HAS SPACES. Uber sends "+44 1388 436844". A space
+  //     terminates a tel: URI, so everything after it — including the
+  //     ",,PIN" suffix — was thrown away and the call went through as a
+  //     plain number. Strip to a leading + and digits.
+  //  2. RAW COMMAS ARE UNRELIABLE. Some Android diallers drop a literal
+  //     comma while parsing the URI. %2C survives, and iOS decodes it back
+  //     to a comma, so the encoded form works on both.
+  //
+  // Three pauses ≈ 6s: enough for the marketplace's "enter your code"
+  // prompt to finish before the digits are sent. Too few and the PIN is
+  // keyed into silence and lost.
   function telUrl(number: string, accessCode?: string | null) {
+    const dial = String(number)
+      .replace(/[^\d+]/g, "") // spaces, brackets, dashes all break the URI
+      .replace(/(?!^)\+/g, ""); // a + is only valid as the very first char
     const code = accessCode ? String(accessCode).replace(/\D/g, "") : "";
-    return code ? `tel:${number},,${code}` : `tel:${number}`;
+    if (!code) return `tel:${dial}`;
+    return `tel:${dial}%2C%2C%2C${code}`;
   }
 
   function call() {
