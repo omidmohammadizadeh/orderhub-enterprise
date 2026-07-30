@@ -766,6 +766,20 @@ export class PaymentsService {
       });
     }
 
+    // A dine-in tab paid in full on the reader must close itself, exactly
+    // like the cash and split routes. Without this the order stayed PAID
+    // but ACCEPTED and the table stayed occupied — the POS was trying to
+    // finish the job with a status PATCH the forward-only ladder rejects
+    // ("Invalid status transition: ACCEPTED → COMPLETED"), so it never
+    // completed. OrdersService owns the ladder, so it does the closing.
+    if (paidOrder?.tableId) {
+      this.events.emit("order.settled_in_full", {
+        orderId: payment.orderId,
+        tenantId: payment.tenantId,
+        locationId: paidOrder.locationId,
+      });
+    }
+
     this.logger.log(
       `Terminal payment settled: order ${payment.orderId} → PAID (pi ${pi?.id})`,
     );

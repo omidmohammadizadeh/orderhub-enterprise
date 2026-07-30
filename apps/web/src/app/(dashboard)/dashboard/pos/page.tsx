@@ -677,15 +677,13 @@ export default function PosPage() {
     try {
       const ord = (await apiClient.get(`/v1/orders/${tabOrderId}`)).data as any;
       if (ord?.paymentStatus === "PAID") {
-        // Best-effort complete (transition may be rejected — the free is what
-        // matters), then free the table and return to the floor.
-        await apiClient
-          .patch(`/v1/orders/${tabOrderId}/status`, {
-            status: "COMPLETED",
-            note: "Tab settled",
-          })
-          .catch(() => {});
-        await tablesClient.free(tableId).catch(() => {});
+        // The server closes the tab now: settling a card payment on an
+        // order with a tableId fires order.settled_in_full, which writes
+        // COMPLETED (bypassing the forward-only ladder), frees the table
+        // and pushes the change to the board. We used to attempt a status
+        // PATCH here that the ladder ALWAYS rejected, so the order stayed
+        // Accepted — the comment even admitted it might fail. Just report
+        // and go back to the floor.
         setSubmitFeedback(`${tableName ?? "Table"} settled and cleared.`);
         router.push("/dashboard/tables");
       }
