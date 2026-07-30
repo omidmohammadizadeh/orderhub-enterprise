@@ -4,6 +4,7 @@ import { VideoStudioController } from "./video-studio.controller";
 import { VideoStudioService } from "./video-studio.service";
 import { VideoStudioCron } from "./video-studio.cron";
 import { ReplicateProvider } from "./replicate.provider";
+import { GeminiVideoProvider } from "./gemini-video.provider";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 
 // AI Video Studio — paid add-on. PrismaService is global; ScheduleModule
@@ -17,6 +18,7 @@ import { SupabaseStorageService } from "../uploads/supabase-storage.service";
     VideoStudioService,
     VideoStudioCron,
     ReplicateProvider,
+    GeminiVideoProvider,
     SupabaseStorageService,
   ],
   exports: [VideoStudioService],

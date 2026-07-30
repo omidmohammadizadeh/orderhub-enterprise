@@ -8,7 +8,13 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { ReplicateProvider } from "./replicate.provider";
+import { GeminiVideoProvider } from "./gemini-video.provider";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+
+// Generations are keyed by their provider job id in a single column. Gemini
+// operation names are prefixed so reconcile knows which provider to poll;
+// anything without the prefix is a Replicate prediction (all existing rows).
+const GEMINI_PREFIX = "gemini:";
 
 export interface GenerateVideoDto {
   imageUrl?: string; // video: source photo (required); image: optional reference
@@ -29,6 +35,10 @@ interface AdStyle {
   // "video" (default) or "image". Image styles produce a photo and reuse the
   // exact same credit/debit/refund + reconcile pipeline.
   kind: "video" | "image";
+  // Which backend renders this style. "gemini" = Google's Veo API direct,
+  // which is ~67% cheaper than the same family via Replicate. Falls back to
+  // Replicate automatically when GEMINI_API_KEY isn't set.
+  provider?: "replicate" | "gemini";
   model?: string; // undefined = base VIDEO_STUDIO_MODEL (Wan)
   imageKey?: string; // undefined = provider default ("image"); "" = no image
   // Some image models take the reference as an ARRAY (e.g. nano-banana's
@@ -64,8 +74,20 @@ export class VideoStudioService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly replicate: ReplicateProvider,
+    private readonly gemini: GeminiVideoProvider,
     private readonly storage: SupabaseStorageService,
   ) {}
+
+  /**
+   * Which provider actually renders a style. A style may ask for Gemini, but
+   * if no key is configured we quietly fall back to Replicate so the feature
+   * keeps working (rather than failing the moment this deploys ahead of the
+   * env var being set in Render).
+   */
+  private providerFor(style: AdStyle): "replicate" | "gemini" {
+    if (style.provider === "gemini" && this.gemini.isConfigured()) return "gemini";
+    return "replicate";
+  }
 
   private db() {
     return this.prisma as any;
@@ -92,6 +114,11 @@ export class VideoStudioService {
         id: "spokesperson",
         label: "Talking spokesperson (voice + sound)",
         kind: "video",
+        // Google's Veo API direct: Veo 3.1 Lite at 720p is $0.05/sec — $0.40
+        // for an 8s clip, vs $1.20 for the same clip through Replicate's
+        // veo-3-fast. The Replicate model below is the fallback when
+        // GEMINI_API_KEY isn't set.
+        provider: "gemini",
         model: process.env.VIDEO_STUDIO_SPOKESPERSON_MODEL || "google/veo-3-fast",
         // Veo takes a first-frame "image". Set VIDEO_STUDIO_SPOKESPERSON_IMAGE_KEY=""
         // to fall back to pure text-to-video if a model rejects the image field.
@@ -156,7 +183,7 @@ export class VideoStudioService {
       includedBalance: acc.includedBalance,
       topupBalance: acc.topupBalance,
       balance: acc.includedBalance + acc.topupBalance,
-      providerReady: this.replicate.isConfigured(),
+      providerReady: this.replicate.isConfigured() || this.gemini.isConfigured(),
       model: this.replicate.model,
       styles: this.styles().map((s) => ({
         id: s.id,
@@ -207,7 +234,8 @@ export class VideoStudioService {
         "The AI Studio add-on isn't active for this account.",
       );
     }
-    if (!this.replicate.isConfigured()) {
+    const provider = this.providerFor(style);
+    if (provider === "replicate" && !this.replicate.isConfigured()) {
       throw new BadRequestException("AI generation isn't configured on the server.");
     }
     if (style.needsScript && !dto.script?.trim()) {
@@ -256,7 +284,10 @@ export class VideoStudioService {
           brandId: dto.brandId ?? null,
           status: "QUEUED",
           kind: style.kind === "image" ? "IMAGE" : "VIDEO",
-          model: style.model || this.replicate.model,
+          model:
+            provider === "gemini"
+              ? this.gemini.model
+              : style.model || this.replicate.model,
           prompt: finalPrompt,
           sourceImageUrl: reference,
           creditsCost: cost,
@@ -274,21 +305,32 @@ export class VideoStudioService {
       return { gen };
     });
 
-    // Kick off the render. If Replicate rejects the request, refund immediately.
+    // Kick off the render. If the provider rejects the request, refund now.
     try {
-      const prediction = await this.replicate.createPrediction({
-        image: reference || undefined,
-        prompt: finalPrompt,
-        model: style.model,
-        imageKey: style.imageKey,
-        extra,
-      });
+      let jobId: string;
+      if (provider === "gemini") {
+        const op = await this.gemini.createOperation({
+          image: reference || undefined,
+          prompt: finalPrompt,
+          aspectRatio: dto.format ? ASPECT_RATIOS[dto.format] : undefined,
+        });
+        jobId = `${GEMINI_PREFIX}${op.id}`;
+      } else {
+        const prediction = await this.replicate.createPrediction({
+          image: reference || undefined,
+          prompt: finalPrompt,
+          model: style.model,
+          imageKey: style.imageKey,
+          extra,
+        });
+        jobId = prediction.id;
+      }
       return this.db().videoGeneration.update({
         where: { id: gen.id },
-        data: { status: "RENDERING", replicatePredictionId: prediction.id },
+        data: { status: "RENDERING", replicatePredictionId: jobId },
       });
     } catch (err: any) {
-      this.logger.error(`Replicate create failed for gen ${gen.id}: ${err?.message}`);
+      this.logger.error(`${provider} create failed for gen ${gen.id}: ${err?.message}`);
       await this.failAndRefund(gen, err?.message ?? "provider rejected the request");
       throw new BadRequestException(
         "Couldn't start the render — your credit was refunded. Please try again.",
@@ -298,7 +340,7 @@ export class VideoStudioService {
 
   // ── Reconcile (called by the cron) ───────────────────────────────────────
   async reconcile(): Promise<void> {
-    if (!this.replicate.isConfigured()) return;
+    if (!this.replicate.isConfigured() && !this.gemini.isConfigured()) return;
     const pending = await this.db().videoGeneration.findMany({
       where: { status: "RENDERING", replicatePredictionId: { not: null } },
       orderBy: { createdAt: "asc" },
@@ -306,7 +348,12 @@ export class VideoStudioService {
     });
     for (const gen of pending) {
       try {
-        const pred = await this.replicate.getPrediction(gen.replicatePredictionId);
+        const jobId: string = gen.replicatePredictionId;
+        if (jobId.startsWith(GEMINI_PREFIX)) {
+          await this.reconcileGemini(gen, jobId.slice(GEMINI_PREFIX.length));
+          continue;
+        }
+        const pred = await this.replicate.getPrediction(jobId);
         if (pred.status === "succeeded") {
           const url = this.replicate.outputUrl(pred.output);
           if (!url) {
@@ -330,11 +377,45 @@ export class VideoStudioService {
     }
   }
 
+  /** Poll one in-flight Gemini (Veo) operation and finalise it. */
+  private async reconcileGemini(gen: any, operationName: string): Promise<void> {
+    const op = await this.gemini.getOperation(operationName);
+    if (!op.done) return; // still rendering — next tick.
+    if (op.error || !op.videoUri) {
+      await this.failAndRefund(gen, op.error ?? "finished but produced no output");
+      return;
+    }
+    // Veo's file endpoint needs the API key, so the download has to go through
+    // the provider rather than persist()'s plain fetch.
+    const finalUrl = await this.persist(op.videoUri, gen.kind, (url) =>
+      this.gemini.fetchOutput(url),
+    );
+    if (finalUrl === op.videoUri) {
+      // persist() falls back to the provider URL when storage is unavailable.
+      // For Replicate that URL is publicly playable; a Veo file URI is not —
+      // it 401s without the key — so handing it to the browser would look like
+      // a successful render that won't play. Refund instead and let them retry.
+      this.logger.error(
+        `gen ${gen.id}: couldn't re-host the Veo output; refunding rather than storing an unplayable URI`,
+      );
+      await this.failAndRefund(gen, "couldn't save the finished video");
+      return;
+    }
+    await this.db().videoGeneration.update({
+      where: { id: gen.id },
+      data: { status: "READY", resultUrl: finalUrl },
+    });
+  }
+
   /** Re-host the provider's (temporary) output to our own storage. */
-  private async persist(providerUrl: string, kind?: string): Promise<string> {
+  private async persist(
+    providerUrl: string,
+    kind?: string,
+    fetcher?: (url: string) => Promise<Response>,
+  ): Promise<string> {
     try {
       if (!this.storage.isConfigured()) return providerUrl;
-      const res = await fetch(providerUrl);
+      const res = await (fetcher ? fetcher(providerUrl) : fetch(providerUrl));
       if (!res.ok) return providerUrl;
       const buf = Buffer.from(await res.arrayBuffer());
       const isImage =
