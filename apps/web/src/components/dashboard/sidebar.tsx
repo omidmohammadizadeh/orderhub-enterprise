@@ -37,6 +37,7 @@ import {
   MessageSquare,
   Clapperboard,
   CalendarDays,
+  MonitorSmartphone,
   Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -97,6 +98,14 @@ const primaryNav: NavItem[] = [
     icon: CalendarDays,
     roles: STAFF_TIER,
     requiresTableService: true,
+  },
+  // Self-service kiosk screens. Not gated on table service — a takeaway
+  // with no dine-in can still stand a kiosk in the doorway.
+  {
+    href: "/dashboard/kiosk",
+    label: "Kiosk",
+    icon: MonitorSmartphone,
+    roles: STAFF_TIER,
   },
   // Phase AW — Direct online ordering settings moved into the per-brand
   // settings drawer (Locations → Brands → DIRECT_ONLINE channel →

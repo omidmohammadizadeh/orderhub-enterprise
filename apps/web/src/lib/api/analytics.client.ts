@@ -111,6 +111,15 @@ export interface GroupDetail {
   orderCount: number;
 }
 
+export interface WalkInReport {
+  orders: number;
+  revenue: number;
+  avgOrderValue: number;
+  paidOrders: number;
+  unpaid: number;
+  byPaymentMethod: Array<{ method: string; count: number; revenue: number }>;
+}
+
 export interface DineInReport {
   orders: number;
   revenue: number;
@@ -133,6 +142,16 @@ export const analyticsClient = {
     if (f.locationId) params.locationId = f.locationId;
     return apiClient
       .get<DineInReport>("/v1/analytics/dine-in", { params })
+      .then((r) => r.data);
+  },
+
+  walkIn: (f: { startDate?: string; endDate?: string; locationId?: string }) => {
+    const params: Record<string, string> = {};
+    if (f.startDate) params.startDate = f.startDate;
+    if (f.endDate) params.endDate = f.endDate;
+    if (f.locationId) params.locationId = f.locationId;
+    return apiClient
+      .get<WalkInReport>("/v1/analytics/walk-in", { params })
       .then((r) => r.data);
   },
 

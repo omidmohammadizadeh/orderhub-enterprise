@@ -450,6 +450,7 @@ export default function AnalyticsPage() {
 
           {/* Dine-in service report — floor numbers, not sales ones. */}
           <section>
+            <WalkInPanel filters={filters} />
             <DineInPanel
               filters={{
                 from: filters.from,
@@ -709,6 +710,114 @@ function SmallTable({
  * one that actually tells a manager something: revenue alone can't
  * distinguish a busy night from an expensive one.
  */
+// Counter trade — POS walk-ins and kiosk orders. Kept apart from phone and
+// online because it behaves differently: no delivery cost, no marketing
+// consent, and it is the number that says whether a kiosk earns its space.
+function WalkInPanel({
+  filters,
+}: {
+  filters: { from: string; to: string; locationId?: string };
+}) {
+  const q = useQuery({
+    queryKey: ["walk-in-report", filters.from, filters.to, filters.locationId],
+    queryFn: () =>
+      analyticsClient.walkIn({
+        startDate: filters.from,
+        endDate: filters.to,
+        locationId: filters.locationId,
+      }),
+  });
+  const d = q.data;
+  const money = (n: number) => `£${Number(n ?? 0).toFixed(2)}`;
+
+  if (q.isLoading) {
+    return (
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 text-sm text-zinc-500">
+        Loading walk-in report…
+      </div>
+    );
+  }
+  if (q.isError) {
+    return (
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 text-sm text-red-600">
+        Couldn&rsquo;t load the walk-in report.
+      </div>
+    );
+  }
+  if (!d || d.orders === 0) {
+    return (
+      <div className="rounded-xl border border-zinc-200 bg-white p-5">
+        <h3 className="text-sm font-semibold text-zinc-900">Walk-in</h3>
+        <p className="mt-1 text-sm text-zinc-500">
+          No walk-in orders in this period. Counter sales appear here when
+          staff use the Walk-in button on the POS, and every kiosk order is
+          counted automatically.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white p-5">
+      <h3 className="text-sm font-semibold text-zinc-900">
+        Walk-in <span className="font-normal text-zinc-400">counter + kiosk</span>
+      </h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-4">
+        <WalkInCell label="Walk-in revenue" value={money(d.revenue)} hint={`${d.orders} order${d.orders === 1 ? "" : "s"}`} />
+        <WalkInCell label="Average order" value={money(d.avgOrderValue)} />
+        <WalkInCell label="Paid" value={String(d.paidOrders)} />
+        <WalkInCell
+          label="Unpaid"
+          value={String(d.unpaid)}
+          hint={d.unpaid > 0 ? "Waiting to be settled at the counter" : undefined}
+        />
+      </div>
+      {!!d.byPaymentMethod.length && (
+        <div className="mt-4 border-t border-zinc-100 pt-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+            How it was paid
+          </p>
+          <ul className="space-y-1">
+            {d.byPaymentMethod.map((m) => (
+              <li key={m.method} className="flex justify-between text-xs text-zinc-600">
+                <span>
+                  {m.method === "CASH"
+                    ? "Cash / at the counter"
+                    : m.method === "CARD"
+                      ? "Card"
+                      : m.method}
+                  <span className="ml-1.5 text-zinc-400">× {m.count}</span>
+                </span>
+                <span className="font-medium">{money(m.revenue)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WalkInCell({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+}) {
+  return (
+    <div className="rounded-lg bg-zinc-50 p-3">
+      <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+        {label}
+      </div>
+      <div className="mt-0.5 text-lg font-bold text-zinc-900">{value}</div>
+      {hint && <div className="mt-0.5 text-[10px] text-zinc-400">{hint}</div>}
+    </div>
+  );
+}
+
 function DineInPanel({
   filters,
 }: {
