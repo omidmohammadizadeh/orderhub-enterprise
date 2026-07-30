@@ -157,6 +157,53 @@ describe("GeminiVideoProvider", () => {
     });
   });
 
+  describe("fetchOutput", () => {
+    const p = provider({ GEMINI_API_KEY: "test-key" });
+    afterEach(() => jest.restoreAllMocks());
+
+    it("follows the storage redirect and drops the key off googleapis.com", async () => {
+      // Google's own example is `curl -L`; the download URI 302s to a storage
+      // host that rejects the API key.
+      const seen: Array<{ url: string; auth?: string }> = [];
+      global.fetch = jest.fn(async (url: any, init?: any) => {
+        const href = String(url);
+        seen.push({ url: href, auth: init?.headers?.["x-goog-api-key"] });
+        if (href.includes("googleapis.com")) {
+          return {
+            status: 302,
+            headers: { get: (h: string) => (h === "location" ? "https://storage.example/v.mp4" : null) },
+          } as any;
+        }
+        return { ok: true, status: 200 } as any;
+      }) as any;
+
+      const res = await p.fetchOutput(
+        "https://generativelanguage.googleapis.com/v1beta/files/abc:download?alt=media",
+      );
+      expect(res.ok).toBe(true);
+      expect(seen).toHaveLength(2);
+      expect(seen[0]!.auth).toBe("test-key"); // sent to Google
+      expect(seen[1]!.auth).toBeUndefined(); // NOT sent to the storage host
+    });
+
+    it("returns the response directly when there is no redirect", async () => {
+      global.fetch = jest.fn(async () => ({ ok: true, status: 200 }) as any) as any;
+      const res = await p.fetchOutput("https://generativelanguage.googleapis.com/x");
+      expect(res.ok).toBe(true);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("gives up rather than looping on a redirect cycle", async () => {
+      global.fetch = jest.fn(async () => ({
+        status: 302,
+        headers: { get: () => "https://generativelanguage.googleapis.com/loop" },
+      }) as any) as any;
+      await expect(
+        p.fetchOutput("https://generativelanguage.googleapis.com/loop"),
+      ).rejects.toThrow(/redirect limit/);
+    });
+  });
+
   describe("getOperation", () => {
     const p = provider({ GEMINI_API_KEY: "test-key" });
     const mockFetch = (payload: unknown) => {

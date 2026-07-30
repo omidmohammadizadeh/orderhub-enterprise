@@ -16,6 +16,11 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 // anything without the prefix is a Replicate prediction (all existing rows).
 const GEMINI_PREFIX = "gemini:";
 
+// How long to keep retrying the download of a finished Veo render before
+// giving up and refunding. Generous: the render is already paid for, so a
+// retry is free to us and a refund is not.
+const GEMINI_DOWNLOAD_GIVE_UP_MS = 20 * 60 * 1000;
+
 export interface GenerateVideoDto {
   imageUrl?: string; // video: source photo (required); image: optional reference
   prompt: string; // the marketing description / scene direction
@@ -393,10 +398,24 @@ export class VideoStudioService {
     if (finalUrl === op.videoUri) {
       // persist() falls back to the provider URL when storage is unavailable.
       // For Replicate that URL is publicly playable; a Veo file URI is not —
-      // it 401s without the key — so handing it to the browser would look like
-      // a successful render that won't play. Refund instead and let them retry.
+      // it needs the key — so handing it to the browser would look like a
+      // successful render that won't play.
+      //
+      // The video itself exists and Google has already charged for it, so a
+      // transient download blip must NOT be terminal: leave the row RENDERING
+      // and let the next tick retry (Veo operations stay queryable for ~2
+      // days). Only give up once it's clearly not coming back.
+      const ageMs = Date.now() - new Date(gen.createdAt).getTime();
+      if (ageMs < GEMINI_DOWNLOAD_GIVE_UP_MS) {
+        this.logger.warn(
+          `gen ${gen.id}: couldn't re-host the Veo output yet — retrying next tick`,
+        );
+        return;
+      }
       this.logger.error(
-        `gen ${gen.id}: couldn't re-host the Veo output; refunding rather than storing an unplayable URI`,
+        `gen ${gen.id}: still couldn't re-host the Veo output after ${Math.round(
+          ageMs / 60000,
+        )}m — refunding rather than storing an unplayable URI`,
       );
       await this.failAndRefund(gen, "couldn't save the finished video");
       return;
@@ -414,9 +433,19 @@ export class VideoStudioService {
     fetcher?: (url: string) => Promise<Response>,
   ): Promise<string> {
     try {
-      if (!this.storage.isConfigured()) return providerUrl;
+      if (!this.storage.isConfigured()) {
+        this.logger.warn("storage isn't configured — keeping the provider URL");
+        return providerUrl;
+      }
       const res = await (fetcher ? fetcher(providerUrl) : fetch(providerUrl));
-      if (!res.ok) return providerUrl;
+      if (!res.ok) {
+        // Silently returning here cost a debug cycle: the caller could only
+        // report "couldn't re-host", with no status to act on.
+        this.logger.warn(
+          `download for re-hosting failed ${res.status} ${res.statusText}`,
+        );
+        return providerUrl;
+      }
       const buf = Buffer.from(await res.arrayBuffer());
       const isImage =
         kind === "IMAGE" ||

@@ -205,9 +205,35 @@ export class GeminiVideoProvider {
   /**
    * Download a finished render. The file endpoint needs the API key, so the
    * fetch has to happen here rather than in the service's generic persist().
+   *
+   * Google's own example is `curl -L` — the download URI 302s to a storage
+   * host. Redirects are followed by hand so the API key can be DROPPED on the
+   * way out of googleapis.com: the storage host doesn't want it, and sending a
+   * credential to another origin is wrong regardless of whether it 400s.
    */
   async fetchOutput(uri: string): Promise<Response> {
     if (!this.apiKey) throw new Error("GEMINI_API_KEY not configured");
-    return fetch(uri, { headers: { "x-goog-api-key": this.apiKey } });
+    let url = uri;
+    for (let hop = 0; hop < 5; hop++) {
+      const authed = new URL(url).hostname.endsWith("googleapis.com");
+      const res = await fetch(url, {
+        redirect: "manual",
+        headers: authed ? { "x-goog-api-key": this.apiKey } : {},
+      });
+      if (res.status >= 300 && res.status < 400) {
+        const next = res.headers.get("location");
+        if (!next) return res;
+        url = new URL(next, url).toString();
+        continue;
+      }
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        this.logger.error(
+          `Veo download failed ${res.status} (hop ${hop}, authed=${authed}): ${body.slice(0, 300)}`,
+        );
+      }
+      return res;
+    }
+    throw new Error("Veo download exceeded the redirect limit");
   }
 }
