@@ -83,6 +83,13 @@ export default function PosPage() {
   const searchParams = useSearchParams();
   const tableId = searchParams.get("tableId");
   const tableName = searchParams.get("tableName");
+  // Unsent-basket persistence scope. This USED to be the location alone,
+  // which meant every table shared one draft — open TABEL 2 and TABEL 1's
+  // items were sitting in it. Each table needs its own, and takeaway keeps
+  // the plain location key so existing drafts survive.
+  const cartScopeKey = tableId
+    ? `${selectedLocationId}:table:${tableId}`
+    : String(selectedLocationId);
   const tableQuery = useQuery({
     queryKey: ["pos-table", tableId, selectedLocationId],
     queryFn: () => tablesClient.list(selectedLocationId!),
@@ -211,7 +218,7 @@ export default function PosPage() {
   useEffect(() => {
     if (!selectedLocationId) return;
     if (editOrderId) return;
-    const persisted = loadCartDraft<PersistedCart>(selectedLocationId);
+    const persisted = loadCartDraft<PersistedCart>(cartScopeKey);
     if (persisted) {
       setCart(persisted.cart ?? []);
       setDraft(persisted.draft ?? {});
@@ -219,12 +226,12 @@ export default function PosPage() {
       setCart([]);
       setDraft({});
     }
-  }, [selectedLocationId]);
+  }, [cartScopeKey]);
 
   useEffect(() => {
     if (!selectedLocationId) return;
-    saveCartDraft<PersistedCart>(selectedLocationId, { cart, draft });
-  }, [selectedLocationId, cart, draft]);
+    saveCartDraft<PersistedCart>(cartScopeKey, { cart, draft });
+  }, [cartScopeKey, cart, draft]);
 
   // ── Menu fetch ────────────────────────────────────────────────────────────
   const menuQuery = useQuery({
@@ -551,7 +558,7 @@ export default function PosPage() {
         setCart([]);
         setDraft({});
         setCartResetKey((k) => k + 1);
-        if (selectedLocationId) clearCartDraft(selectedLocationId);
+        if (selectedLocationId) clearCartDraft(cartScopeKey);
         void tableQuery.refetch();
         void tabOrderQuery.refetch();
         window.setTimeout(() => setSubmitFeedback(null), 4000);
@@ -566,7 +573,7 @@ export default function PosPage() {
         setCart([]);
         setDraft({});
         setCartResetKey((k) => k + 1);
-        if (selectedLocationId) clearCartDraft(selectedLocationId);
+        if (selectedLocationId) clearCartDraft(cartScopeKey);
         window.setTimeout(() => setSubmitFeedback(null), 6000);
         return;
       }
@@ -600,7 +607,7 @@ export default function PosPage() {
       setCart([]);
       setDraft({});
       setCartResetKey((k) => k + 1); // wipe the panel's internal fields
-      if (selectedLocationId) clearCartDraft(selectedLocationId);
+      if (selectedLocationId) clearCartDraft(cartScopeKey);
       if (edited) {
         // Drop edit-mode and return to a fresh POS cart.
         setEditOrderId(null);
@@ -771,7 +778,12 @@ export default function PosPage() {
               ? ` — running tab: ${tabItemCount} item${
                   tabItemCount === 1 ? "" : "s"
                 }, £${tabTotal.toFixed(2)}. Add items and “Send to kitchen”.`
-              : " — add items and “Send to kitchen” to open the tab."}
+              : currentTable?.status === "OCCUPIED"
+                ? // Seated but nothing sent yet. Say so explicitly: the
+                  // bill/settle actions need a real tab, and "new tab"
+                  // alone left staff wondering where the buttons went.
+                  " — seated, but no tab open yet. Send a round to start the bill."
+                : " — add items and “Send to kitchen” to open the tab."}
           </span>
           {tabOrderId && !payChoiceOpen && (
             <button
@@ -865,15 +877,18 @@ export default function PosPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowFeeModal(true)}
-            disabled={!selectedLocationId}
-            title="Configure delivery zones & fees for this location"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
-          >
-            <Truck className="h-3.5 w-3.5" /> Delivery fee
-          </button>
+          {/* Nothing is delivered from a table — hide it in dine-in. */}
+          {!tableId && (
+            <button
+              type="button"
+              onClick={() => setShowFeeModal(true)}
+              disabled={!selectedLocationId}
+              title="Configure delivery zones & fees for this location"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
+            >
+              <Truck className="h-3.5 w-3.5" /> Delivery fee
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setShowPromosModal(true)}
