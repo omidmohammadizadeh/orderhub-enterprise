@@ -38,8 +38,11 @@ export class GeminiVideoProvider {
   readonly model: string;
   /** 720p is the $0.05/sec tier; 1080p is $0.08/sec. Pinned deliberately. */
   private readonly resolution: string;
-  /** Veo accepts "4" | "6" | "8". */
-  private readonly durationSeconds: string;
+  /**
+   * Veo accepts 4 | 6 | 8, and rejects a string: "The value type for
+   * `durationSeconds` needs to be a number."
+   */
+  private readonly durationSeconds: number;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey =
@@ -51,8 +54,10 @@ export class GeminiVideoProvider {
       "veo-3.1-lite-generate-preview";
     this.resolution =
       this.config.get<string>("VIDEO_STUDIO_GEMINI_RESOLUTION") || "720p";
-    this.durationSeconds =
-      this.config.get<string>("VIDEO_STUDIO_GEMINI_DURATION") || "8";
+    const duration = Number(
+      this.config.get<string>("VIDEO_STUDIO_GEMINI_DURATION"),
+    );
+    this.durationSeconds = Number.isFinite(duration) && duration > 0 ? duration : 8;
   }
 
   isConfigured(): boolean {

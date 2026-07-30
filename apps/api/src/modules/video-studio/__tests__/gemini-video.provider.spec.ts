@@ -70,7 +70,7 @@ describe("GeminiVideoProvider", () => {
       const p = provider({ GEMINI_API_KEY: "k" });
       expect(p.model).toBe("veo-3.1-lite-generate-preview");
       expect((p as any).resolution).toBe("720p");
-      expect((p as any).durationSeconds).toBe("8");
+      expect((p as any).durationSeconds).toBe(8);
     });
 
     it("is not configured without a key, so the service falls back to Replicate", () => {
@@ -143,8 +143,10 @@ describe("GeminiVideoProvider", () => {
       expect(body.parameters).toEqual({
         aspectRatio: "9:16",
         resolution: "720p",
-        durationSeconds: "8",
+        durationSeconds: 8,
       });
+      // Veo rejects a stringified duration with a 400 INVALID_ARGUMENT.
+      expect(typeof body.parameters.durationSeconds).toBe("number");
     });
 
     it("authenticates with a header, never a query param", async () => {
