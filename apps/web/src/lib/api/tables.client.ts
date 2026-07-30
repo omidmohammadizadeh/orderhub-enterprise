@@ -172,7 +172,13 @@ export const tablesClient = {
 
   addPayment: (
     orderId: string,
-    body: { amount: number; method: "CASH" | "CARD"; note?: string },
+    body: {
+      amount: number;
+      method: "CASH" | "CARD";
+      note?: string;
+      /** Lines this part covers, so they can be crossed off the bill. */
+      itemIds?: string[];
+    },
   ) =>
     apiClient
       .post<PaymentSummary>(`/v1/orders/${orderId}/payments`, body)
@@ -184,6 +190,8 @@ export interface PaymentSummary {
   paid: number;
   remaining: number;
   settled: boolean;
+  /** OrderItem ids already settled by an earlier "pay by item" part. */
+  paidItemIds: string[];
   payments: {
     id: string;
     amount: string | number;

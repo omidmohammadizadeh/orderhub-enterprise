@@ -270,7 +270,15 @@ export class OrdersController {
   @ApiOperation({ summary: "Record a part-payment against a tab (split bill)" })
   addPayment(
     @Param("id") id: string,
-    @Body() dto: { amount: number; method: "CASH" | "CARD"; note?: string },
+    @Body()
+    dto: {
+      amount: number;
+      method: "CASH" | "CARD";
+      note?: string;
+      // Present when the part was paid "by item" — lets the till cross
+      // those lines off and refuse to charge them again.
+      itemIds?: string[];
+    },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.orders.addPayment(id, user.tenantId, dto, user.userId);

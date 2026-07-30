@@ -18,6 +18,20 @@ import { apiClient } from "@/lib/api/client";
 
 type Phase = "idle" | "charging" | "waiting" | "paid" | "error";
 
+// A card can be declined, cancelled on the reader, or simply not
+// presented. Before this, the poll only ever stopped on success, so a
+// decline left the modal spinning on "Follow the prompts on the reader…"
+// for ever — staff had to close it and lost the amount they had keyed in.
+// These are the terminal states that mean "over, and not paid".
+const FAILED_PI_STATUSES = new Set([
+  "requires_payment_method", // declined, or the card was removed
+  "canceled",
+]);
+function failureMessage(status: string): string {
+  if (status === "canceled") return "Payment cancelled on the reader.";
+  return "Card declined or not completed. You can try again.";
+}
+
 export function ChargeReaderModal({
   open,
   orderId,
@@ -119,9 +133,17 @@ export function ChargeReaderModal({
             toast.success("Card payment received");
             onPaid?.();
             setTimeout(onClose, 1200);
+            return;
+          }
+          if (FAILED_PI_STATUSES.has(s.status)) {
+            // Nothing was taken — leave the amount on screen so the same
+            // share can be retried on another card without re-keying it.
+            if (pollRef.current) clearInterval(pollRef.current);
+            setPhase("error");
+            setError(failureMessage(s.status));
           }
         } catch {
-          /* keep polling */
+          /* transient network — keep polling */
         }
       }, 2000);
     } catch (e: any) {
@@ -185,9 +207,15 @@ export function ChargeReaderModal({
             toast.success("Card payment received");
             onPaid?.();
             setTimeout(onClose, 1200);
+            return;
+          }
+          if (FAILED_PI_STATUSES.has(s.status)) {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setPhase("error");
+            setError(failureMessage(s.status));
           }
         } catch {
-          /* keep polling */
+          /* transient network — keep polling */
         }
       }, 1500);
     } catch (e: any) {
@@ -331,7 +359,21 @@ export function ChargeReaderModal({
                 </Button>
               )}
               {error && (
-                <p className="text-center text-sm text-red-600">{error}</p>
+                <div className="space-y-2">
+                  <p className="text-center text-sm text-red-600">{error}</p>
+                  {/* A decline is the normal case, not an exception — the
+                      customer offers another card. Retrying must keep the
+                      amount so nobody re-keys a split share, and it must
+                      NOT have recorded anything. */}
+                  {phase === "error" && (
+                    <Button
+                      onClick={method === "wisepad" ? chargeWisepad : startCharge}
+                      className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
+                    >
+                      Try again — £{chargeAmount.toFixed(2)}
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           ) : readers.length === 0 ? (
@@ -411,7 +453,19 @@ export function ChargeReaderModal({
                 </Button>
               )}
 
-              {error && <p className="text-center text-sm text-red-600">{error}</p>}
+              {error && (
+                <div className="space-y-2">
+                  <p className="text-center text-sm text-red-600">{error}</p>
+                  {phase === "error" && (
+                    <Button
+                      onClick={startCharge}
+                      className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
+                    >
+                      Try again — £{chargeAmount.toFixed(2)}
+                    </Button>
+                  )}
+                </div>
+              )}
             </>
           )}
 

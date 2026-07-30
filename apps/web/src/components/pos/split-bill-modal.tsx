@@ -46,6 +46,8 @@ export function SplitBillModal({
   // Card readers charge the PART amount; the order stays open until the
   // parts cover the total (see TerminalService.chargeOrder).
   const [readerFor, setReaderFor] = useState<number | null>(null);
+  // Asks WHICH card route before charging anything.
+  const [cardChoice, setCardChoice] = useState(false);
   const [amount, setAmount] = useState("");
   const [ways, setWays] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -72,16 +74,31 @@ export function SplitBillModal({
     if (s && !amount && !ways) setAmount(s.remaining.toFixed(2));
   }, [s, amount, ways]);
 
+  // Lines an earlier part already settled. They get crossed off and go
+  // untappable — the same physical plate must never be charged twice, and
+  // two staff closing one table from two tablets is normal.
+  const paidItemIds = new Set(s?.paidItemIds ?? []);
+  const unpaidItems = items.filter((it: any) => !paidItemIds.has(String(it.id)));
+
+  // Ticked, still-unpaid lines — what this part actually covers.
+  const pickedIds = unpaidItems
+    .filter((x: any) => picked[String(x.id)])
+    .map((x: any) => String(x.id));
+
   const pay = useMutation({
     mutationFn: (method: "CASH" | "CARD") =>
       tablesClient.addPayment(orderId, {
         amount: Number(amount),
         method,
         note: ways ? `Split ${ways} ways` : undefined,
+        // Only when paying by item — the server refuses ids already
+        // settled, so a double-tap or a second tablet can't charge twice.
+        itemIds: byItem ? pickedIds : undefined,
       }),
     onSuccess: (res) => {
       setError(null);
       qc.setQueryData(["tab-payments", orderId], res);
+      setPicked({});
       qc.invalidateQueries({ queryKey: ["tables"] });
       if (res.settled) {
         onSettled();
@@ -214,17 +231,23 @@ export function SplitBillModal({
                   </p>
                 ) : (
                   items.map((it: any) => {
-                    const on = !!picked[it.id];
+                    const isPaid = paidItemIds.has(String(it.id));
+                    const on = !isPaid && !!picked[it.id];
                     return (
                       <button
                         key={it.id}
+                        disabled={isPaid}
                         onClick={() => {
+                          if (isPaid) return;
                           const next: Record<string, boolean> = {
                             ...picked,
                             [it.id]: !on,
                           };
                           setPicked(next);
-                          const sum = items
+                          // Sum only UNPAID ticks — a stale tick on a line
+                          // someone else just settled must not inflate this
+                          // person's share.
+                          const sum = unpaidItems
                             .filter((x: any) => next[String(x.id)])
                             .reduce(
                               (s: number, x: any) => s + Number(x.totalPrice),
@@ -234,14 +257,23 @@ export function SplitBillModal({
                         }}
                         className={
                           "mb-1 flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs " +
-                          (on
-                            ? "bg-indigo-50 text-indigo-900"
-                            : "hover:bg-zinc-50 text-zinc-700")
+                          (isPaid
+                            ? "cursor-not-allowed bg-emerald-50/60 text-zinc-400 line-through"
+                            : on
+                              ? "bg-indigo-50 text-indigo-900"
+                              : "hover:bg-zinc-50 text-zinc-700")
                         }
                       >
                         <span>
-                          <span className="mr-1.5">{on ? "☑" : "☐"}</span>
+                          <span className="mr-1.5">
+                            {isPaid ? "✓" : on ? "☑" : "☐"}
+                          </span>
                           {it.quantity}× {it.name}
+                          {isPaid && (
+                            <span className="ml-1.5 rounded bg-emerald-100 px-1 py-px text-[9px] font-semibold uppercase tracking-wide text-emerald-700 no-underline">
+                              paid
+                            </span>
+                          )}
                         </span>
                         <span className="font-medium">
                           {money(Number(it.totalPrice))}
@@ -293,10 +325,11 @@ export function SplitBillModal({
             </button>
             <button
               onClick={() =>
-                // With a location we can drive the reader for exactly
-                // this share; without one, fall back to recording an
-                // off-system card payment as before.
-                locationId ? setReaderFor(amountNum) : pay.mutate("CARD")
+                // Two legitimate card routes and the till can't guess
+                // which: a Stripe reader we can drive for exactly this
+                // share, or the shop's own standalone machine where the
+                // amount is keyed in by hand and we only record it.
+                locationId ? setCardChoice(true) : pay.mutate("CARD")
               }
               disabled={!canPay}
               className="inline-flex items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
@@ -340,6 +373,50 @@ export function SplitBillModal({
           )}
         </div>
       </div>
+
+      {/* How is this share going on card? */}
+      {cardChoice && (
+        <div
+          className="fixed inset-0 z-[85] flex items-end justify-center bg-zinc-900/40 p-4 sm:items-center"
+          onClick={() => setCardChoice(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg bg-white p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="mb-1 text-sm font-semibold text-zinc-900">
+              Take {money(amountNum)} on card
+            </p>
+            <p className="mb-3 text-[11px] text-zinc-500">
+              Which machine is taking this share?
+            </p>
+            <button
+              onClick={() => {
+                setCardChoice(false);
+                setReaderFor(amountNum);
+              }}
+              className="mb-2 w-full rounded-md bg-indigo-600 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+            >
+              💳 Our Stripe card reader
+              <span className="mt-0.5 block text-[11px] font-normal opacity-80">
+                Sends the amount to the reader — no keying in
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setCardChoice(false);
+                pay.mutate("CARD");
+              }}
+              className="w-full rounded-md border border-zinc-300 px-3 py-3 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+            >
+              🏧 Our own card machine
+              <span className="mt-0.5 block text-[11px] font-normal text-zinc-500">
+                Key {money(amountNum)} in yourself, then record it here
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Card reader for ONE share. The server records the part and only
           settles the order once the parts cover the total, so closing

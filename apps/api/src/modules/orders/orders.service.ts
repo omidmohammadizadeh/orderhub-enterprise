@@ -1473,11 +1473,24 @@ export class OrdersService {
     });
     const total = Number(order.total);
     const paid = payments.reduce((s, p) => s + Number(p.amount), 0);
+    // Which lines have already been paid for. "Pay for specific items"
+    // records the ids it covered, so the till can cross them off and stop
+    // them being charged twice — two staff settling the same table from
+    // two tablets is a real scenario, not a hypothetical.
+    const paidItemIds = Array.from(
+      new Set(
+        payments.flatMap((p) => {
+          const ids = (p.metadata as any)?.itemIds;
+          return Array.isArray(ids) ? ids.map(String) : [];
+        }),
+      ),
+    );
     return {
       total,
       paid: round2(paid),
       remaining: round2(Math.max(0, total - paid)),
       settled: order.paymentStatus === "PAID",
+      paidItemIds,
       payments,
     };
   }
@@ -1486,7 +1499,13 @@ export class OrdersService {
   async addPayment(
     orderId: string,
     tenantId: string,
-    dto: { amount: number; method: "CASH" | "CARD"; note?: string },
+    dto: {
+      amount: number;
+      method: "CASH" | "CARD";
+      note?: string;
+      /** Lines this part covers, when paying by item. */
+      itemIds?: string[];
+    },
     userId: string,
   ) {
     const order = await this.prisma.order.findFirst({
@@ -1510,6 +1529,28 @@ export class OrdersService {
     if (before.remaining <= 0) {
       throw new BadRequestException("This bill is already fully paid");
     }
+
+    // Reject lines that someone has already settled. Without this the
+    // same item could be charged twice from two tills, and the paid-item
+    // strike-through would silently disagree with the money taken.
+    const itemIds = Array.from(new Set((dto.itemIds ?? []).map(String)));
+    if (itemIds.length) {
+      const alreadyPaid = itemIds.filter((id) =>
+        before.paidItemIds.includes(id),
+      );
+      if (alreadyPaid.length) {
+        throw new BadRequestException(
+          "Some of those items have already been paid for — reopen the split to see what's left.",
+        );
+      }
+      const owned = await this.prisma.orderItem.findMany({
+        where: { orderId, id: { in: itemIds } },
+        select: { id: true },
+      });
+      if (owned.length !== itemIds.length) {
+        throw new BadRequestException("Those items aren't on this bill");
+      }
+    }
     // Guard against fat-finger overpayment beyond a rounding penny.
     if (amount > before.remaining + 0.01) {
       throw new BadRequestException(
@@ -1530,6 +1571,7 @@ export class OrdersService {
           source: "SPLIT_BILL",
           takenBy: userId,
           note: dto.note ?? null,
+          ...(itemIds.length ? { itemIds } : {}),
         } as Prisma.InputJsonValue,
       },
     });
