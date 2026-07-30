@@ -91,6 +91,70 @@ describe("GeminiVideoProvider", () => {
     });
   });
 
+  describe("createOperation request body", () => {
+    const p = provider({ GEMINI_API_KEY: "test-key" });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    /**
+     * Route by URL, not call order — with no reference photo the Veo request
+     * is the only call made.
+     */
+    function mockFetches() {
+      const calls: Array<{ url: string; init?: any }> = [];
+      global.fetch = jest.fn(async (url: any, init?: any) => {
+        const href = String(url);
+        calls.push({ url: href, init });
+        if (href.includes("predictLongRunning")) {
+          return { ok: true, json: async () => ({ name: "models/x/operations/1" }) } as any;
+        }
+        return {
+          ok: true,
+          headers: { get: () => "image/jpeg" },
+          arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+        } as any;
+      }) as any;
+      return calls;
+    }
+
+    const veoCall = (calls: Array<{ url: string; init?: any }>) =>
+      calls.find((c) => c.url.includes("predictLongRunning"))!;
+
+    it("sends the image as bytesBase64Encoded, NOT inlineData", async () => {
+      // Regression guard: `inlineData` is the generateContent shape and this
+      // endpoint rejects it outright with a 400 INVALID_ARGUMENT.
+      const calls = mockFetches();
+      await p.createOperation({ prompt: "a pizza advert", image: "https://x/y.jpg" });
+      const body = JSON.parse(veoCall(calls).init.body);
+      const image = body.instances[0].image;
+      expect(image).toEqual({
+        mimeType: "image/jpeg",
+        bytesBase64Encoded: Buffer.from([1, 2, 3]).toString("base64"),
+      });
+      expect(image.inlineData).toBeUndefined();
+      expect(JSON.stringify(body)).not.toContain("inlineData");
+    });
+
+    it("sends prompt + parameters and omits image when none is given", async () => {
+      const calls = mockFetches();
+      await p.createOperation({ prompt: "a pizza advert", aspectRatio: "9:16" });
+      const body = JSON.parse(veoCall(calls).init.body);
+      expect(body.instances[0]).toEqual({ prompt: "a pizza advert" });
+      expect(body.parameters).toEqual({
+        aspectRatio: "9:16",
+        resolution: "720p",
+        durationSeconds: "8",
+      });
+    });
+
+    it("authenticates with a header, never a query param", async () => {
+      const calls = mockFetches();
+      await p.createOperation({ prompt: "x" });
+      expect(veoCall(calls).url).not.toContain("key=");
+      expect(veoCall(calls).init.headers["x-goog-api-key"]).toBe("test-key");
+    });
+  });
+
   describe("getOperation", () => {
     const p = provider({ GEMINI_API_KEY: "test-key" });
     const mockFetch = (payload: unknown) => {

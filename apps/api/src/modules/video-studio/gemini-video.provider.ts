@@ -15,7 +15,7 @@ import { ConfigService } from "@nestjs/config";
 //
 // Shape reference (ai.google.dev/gemini-api/docs/veo):
 //   POST /v1beta/models/{model}:predictLongRunning
-//   { instances: [{ prompt, image: { inlineData: { mimeType, data } } }],
+//   { instances: [{ prompt, image: { bytesBase64Encoded, mimeType } }],
 //     parameters: { aspectRatio, resolution, durationSeconds } }
 //   → { name: "models/.../operations/..." }
 //   GET /v1beta/{operation name} → { done, response?, error? }
@@ -78,17 +78,22 @@ export class GeminiVideoProvider {
   /**
    * Veo takes the start frame as inline base64, not a URL — so a hosted
    * reference photo has to be pulled down and re-encoded first.
+   *
+   * predictLongRunning is a `predict`-family endpoint, so the image goes in as
+   * { bytesBase64Encoded, mimeType }. The `inlineData` wrapper belongs to
+   * generateContent and is rejected here with
+   * "`inlineData` isn't supported by this model".
    */
   private async inlineImage(
     url: string,
-  ): Promise<{ mimeType: string; data: string }> {
+  ): Promise<{ mimeType: string; bytesBase64Encoded: string }> {
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`Couldn't read the product photo (${res.status})`);
     }
     const buf = Buffer.from(await res.arrayBuffer());
     const mimeType = res.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-    return { mimeType, data: buf.toString("base64") };
+    return { mimeType, bytesBase64Encoded: buf.toString("base64") };
   }
 
   /**
@@ -103,7 +108,7 @@ export class GeminiVideoProvider {
     if (!this.apiKey) throw new Error("GEMINI_API_KEY not configured");
     const instance: Record<string, unknown> = { prompt: input.prompt };
     if (input.image) {
-      instance.image = { inlineData: await this.inlineImage(input.image) };
+      instance.image = await this.inlineImage(input.image);
     }
     const body = {
       instances: [instance],
