@@ -44,7 +44,7 @@ const SYSTEM_PROMPT = `You are the Order Hub Admin Assistant — a co-pilot for 
 
 Tools:
 - READ (run freely): list_brands, list_locations, list_menus, get_menu, search_products, menu_health, duplicate_products_scan, list_orders, get_order.
-- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability, OR set an item's size tiers via a 'sizes' list), set_category_sizes (apply the same size tiers to EVERY item in a section — the right tool for "give all pizzas 10\"/12\" sizes"), add_modifier_group_to_category (create ONE shared modifier group and attach it to every item in a section — the right tool for "add a crust choice and extra toppings to all pizzas"; options can price per-size via pricesBySize), add_modifier_group_to_item (same for one item), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).
+- WRITE (require confirmation): build_menu (create a whole menu with categories, items, sizes and modifier groups in one shot), update_item (edit name/description/price/availability, OR set an item's size tiers via a 'sizes' list), set_category_sizes (apply the same size tiers to EVERY item in a section — the right tool for "give all pizzas 10\"/12\" sizes"), add_modifier_group_to_category (create ONE shared modifier group and attach it to every item in a section — the right tool for "add a crust choice and extra toppings to all pizzas"; options can price per-size via pricesBySize), add_modifier_group_to_item (same for one item), snooze_item / unsnooze_item (86 / un-86), publish_menu, generate_item_image (AI photo for one item), generate_menu_images (AI photos for a whole menu, background — say roughly how many and that it costs a little per image before confirming).\nBULK PRICING: to set one price across a whole section (\"make all pizzas £7.80\") use set_category_prices — ONE call. Never loop update_item per item for that: a 50-item section will exhaust the step budget and you will stop half-done. If a job genuinely needs more steps than you have, say so plainly and say what you already changed — never say you are applying something you have not applied.
 
 For a big multi-part request (e.g. sizes + two modifier groups across a whole section), do it step by step with the bulk tools: set_category_sizes FIRST (this defines the sizes), THEN add_modifier_group_to_category for each group (modifier groups attach onto the existing sizes). Confirm the whole plan once up front, then carry it out. get_menu now shows each item's sizes and modifierGroups (names) — use it to verify your work and to spot duplicates. Adding a group is idempotent (an item that already has a same-named group is skipped), and remove_modifier_group_from_category clears duplicates. If you ever see the same group name twice on items, remove it then add it once.
 
@@ -233,7 +233,22 @@ export class AgentService {
       }
       messages.push({ role: "user", content: results });
     }
-    return { reply: "That needed too many steps — try something more specific.", toolsUsed };
+    // Ran out of tool iterations. The old message was vague and, worse, the
+    // model's LAST turn was usually a promise ("applying it now") that never
+    // happened — an operator reasonably read that as done. Say plainly that
+    // it did NOT finish, and name the writes that DID land so a partial
+    // change is never mistaken for a complete one.
+    const writesRun = toolsUsed.filter((t) => WRITE_TOOL_NAMES.has(t));
+    const changed = writesRun.length
+      ? ` I did make these changes before stopping: ${[...new Set(writesRun)].join(", ")} — please check the menu, it may be partly updated.`
+      : " Nothing was changed.";
+    return {
+      reply:
+        "I ran out of steps before finishing, so I have NOT completed that request." +
+        changed +
+        " Ask me for one section at a time, or use a bulk tool (e.g. setting one price across a whole section) rather than item by item.",
+      toolsUsed,
+    };
   }
 
   private async runRead(tenantId: string, name: string, input: Record<string, any>) {
@@ -290,6 +305,59 @@ export class AgentService {
         await this.record(user, "agent.item.update", "menuItem", input.itemId, dto);
         return { ok: true, item: { id: (res as any)?.id, name: (res as any)?.name } };
       }
+      case "set_category_prices": {
+        // Why this exists: without it, "make all 55 pizzas £7.80" needed 55
+        // update_item calls, which overran MAX_TOOL_ITERATIONS. The agent
+        // would orient, run out of budget, and end its turn PROMISING the
+        // change instead of making it. One bulk call removes the whole
+        // failure mode.
+        const price = Number(input.price);
+        if (!Number.isFinite(price) || price < 0) {
+          return { error: "Provide a valid price." };
+        }
+        const pcat = await (this.prisma as any).menuCategory.findFirst({
+          where: {
+            menuId: input.menuId,
+            name: { equals: String(input.categoryName), mode: "insensitive" },
+            menu: { brand: { tenantId } },
+          },
+          select: { id: true, name: true, items: { select: { itemId: true } } },
+        });
+        if (!pcat) {
+          return { error: `No category named "${input.categoryName}" in that menu.` };
+        }
+        const pIds: string[] = pcat.items.map((i: any) => i.itemId);
+        let priced = 0;
+        const failed: string[] = [];
+        for (const itemId of pIds) {
+          try {
+            // basePrice ONLY — modifier and size pricing is untouched.
+            await this.menus.updateItem(itemId, tenantId, { basePrice: price } as any);
+            priced++;
+          } catch (e) {
+            failed.push(itemId);
+            this.logger.warn(
+              `set_category_prices: item ${itemId} failed: ${(e as Error).message}`,
+            );
+          }
+        }
+        await this.record(user, "agent.category.prices", "menuCategory", pcat.id, {
+          category: pcat.name,
+          price,
+          updated: priced,
+          failed: failed.length,
+        });
+        // Report failures explicitly — a partly-priced section that reads as
+        // success is worse than an error.
+        return {
+          ok: true,
+          category: pcat.name,
+          price,
+          updated: priced,
+          ...(failed.length ? { failed: failed.length } : {}),
+        };
+      }
+
       case "set_category_sizes": {
         if (!Array.isArray(input.sizes) || input.sizes.length === 0) {
           return { error: "Provide at least one size." };

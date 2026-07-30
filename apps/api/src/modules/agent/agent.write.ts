@@ -152,6 +152,25 @@ export const WRITE_TOOL_DEFS = [
     },
   },
   {
+    name: "set_category_prices",
+    description:
+      "Set the SAME base price on EVERY item in one category/section of a menu — the correct way to 'make all pizzas £7.80'. Runs as ONE bulk call; never loop update_item per item for this. Only touches the base price: sizes, crusts, toppings and every other modifier price are left exactly as they are. Use list_menus for the menuId and get_menu to see category names. Confirm with the operator first, then confirmed=true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        menuId: { type: "string" },
+        categoryName: {
+          type: "string",
+          description: "The section name, e.g. 'Pizzas' (case-insensitive).",
+        },
+        price: { type: "number", description: "New base price for every item in the section." },
+        confirmed: { type: "boolean" },
+      },
+      required: ["menuId", "categoryName", "price"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "add_modifier_group_to_category",
     description:
       "Add a modifier group (e.g. 'Choose your crust' or 'Extra toppings') to EVERY item in a category/section — the right tool for 'add these options to all pizzas'. For MULTI-SIZE items each size gets its OWN separate group, so 10\" and 12\" price independently (they never share a group). Give per-size option prices with pricesBySize keyed by the exact size name (e.g. {\"10\\\"\": 2.5, \"12\\\"\": 3}), or a flat price for all sizes. Runs as one bulk call. Use get_menu for category names + exact item size names. Confirm first, then confirmed=true.",
