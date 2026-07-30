@@ -984,6 +984,10 @@ export class OrdersService {
     }
     // Table Tabs — persist the table link so addRound() can append to the tab.
     if (dto.tableId !== undefined) posUpdate.tableId = dto.tableId;
+    // Counter trade — what the walk-in revenue report counts.
+    if ((dto as any).isWalkIn !== undefined) {
+      posUpdate.isWalkIn = !!(dto as any).isWalkIn;
+    }
     if (dto.paymentStatus !== undefined) {
       posUpdate.paymentStatus = dto.paymentStatus as any;
     }

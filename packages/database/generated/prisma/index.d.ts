@@ -254,6 +254,11 @@ export type SignageDisplay = $Result.DefaultSelection<Prisma.$SignageDisplayPayl
  */
 export type Table = $Result.DefaultSelection<Prisma.$TablePayload>
 /**
+ * Model KioskDevice
+ * 
+ */
+export type KioskDevice = $Result.DefaultSelection<Prisma.$KioskDevicePayload>
+/**
  * Model TableReservation
  * 
  */
@@ -2015,6 +2020,16 @@ export class PrismaClient<
   get table(): Prisma.TableDelegate<ExtArgs>;
 
   /**
+   * `prisma.kioskDevice`: Exposes CRUD operations for the **KioskDevice** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KioskDevices
+    * const kioskDevices = await prisma.kioskDevice.findMany()
+    * ```
+    */
+  get kioskDevice(): Prisma.KioskDeviceDelegate<ExtArgs>;
+
+  /**
    * `prisma.tableReservation`: Exposes CRUD operations for the **TableReservation** model.
     * Example usage:
     * ```ts
@@ -3172,6 +3187,7 @@ export namespace Prisma {
     KdsScreen: 'KdsScreen',
     SignageDisplay: 'SignageDisplay',
     Table: 'Table',
+    KioskDevice: 'KioskDevice',
     TableReservation: 'TableReservation',
     KdsTicket: 'KdsTicket',
     Printer: 'Printer',
@@ -3254,7 +3270,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -6615,6 +6631,76 @@ export namespace Prisma {
           count: {
             args: Prisma.TableCountArgs<ExtArgs>
             result: $Utils.Optional<TableCountAggregateOutputType> | number
+          }
+        }
+      }
+      KioskDevice: {
+        payload: Prisma.$KioskDevicePayload<ExtArgs>
+        fields: Prisma.KioskDeviceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KioskDeviceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KioskDeviceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>
+          }
+          findFirst: {
+            args: Prisma.KioskDeviceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KioskDeviceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>
+          }
+          findMany: {
+            args: Prisma.KioskDeviceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>[]
+          }
+          create: {
+            args: Prisma.KioskDeviceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>
+          }
+          createMany: {
+            args: Prisma.KioskDeviceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KioskDeviceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>[]
+          }
+          delete: {
+            args: Prisma.KioskDeviceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>
+          }
+          update: {
+            args: Prisma.KioskDeviceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>
+          }
+          deleteMany: {
+            args: Prisma.KioskDeviceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KioskDeviceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.KioskDeviceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KioskDevicePayload>
+          }
+          aggregate: {
+            args: Prisma.KioskDeviceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKioskDevice>
+          }
+          groupBy: {
+            args: Prisma.KioskDeviceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KioskDeviceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KioskDeviceCountArgs<ExtArgs>
+            result: $Utils.Optional<KioskDeviceCountAggregateOutputType> | number
           }
         }
       }
@@ -11917,6 +12003,7 @@ export namespace Prisma {
     signageDisplays: number
     tables: number
     tableReservations: number
+    kioskDevices: number
     deliveryZones: number
     userLocations: number
     platformConnections: number
@@ -11936,6 +12023,7 @@ export namespace Prisma {
     signageDisplays?: boolean | LocationCountOutputTypeCountSignageDisplaysArgs
     tables?: boolean | LocationCountOutputTypeCountTablesArgs
     tableReservations?: boolean | LocationCountOutputTypeCountTableReservationsArgs
+    kioskDevices?: boolean | LocationCountOutputTypeCountKioskDevicesArgs
     deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
     userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
     platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
@@ -12017,6 +12105,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountTableReservationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TableReservationWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountKioskDevicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KioskDeviceWhereInput
   }
 
   /**
@@ -27249,6 +27344,7 @@ export namespace Prisma {
     signageDisplays?: boolean | Location$signageDisplaysArgs<ExtArgs>
     tables?: boolean | Location$tablesArgs<ExtArgs>
     tableReservations?: boolean | Location$tableReservationsArgs<ExtArgs>
+    kioskDevices?: boolean | Location$kioskDevicesArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
@@ -27404,6 +27500,7 @@ export namespace Prisma {
     signageDisplays?: boolean | Location$signageDisplaysArgs<ExtArgs>
     tables?: boolean | Location$tablesArgs<ExtArgs>
     tableReservations?: boolean | Location$tableReservationsArgs<ExtArgs>
+    kioskDevices?: boolean | Location$kioskDevicesArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
@@ -27441,6 +27538,7 @@ export namespace Prisma {
       signageDisplays: Prisma.$SignageDisplayPayload<ExtArgs>[]
       tables: Prisma.$TablePayload<ExtArgs>[]
       tableReservations: Prisma.$TableReservationPayload<ExtArgs>[]
+      kioskDevices: Prisma.$KioskDevicePayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
       userLocations: Prisma.$UserLocationPayload<ExtArgs>[]
@@ -27890,6 +27988,7 @@ export namespace Prisma {
     signageDisplays<T extends Location$signageDisplaysArgs<ExtArgs> = {}>(args?: Subset<T, Location$signageDisplaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignageDisplayPayload<ExtArgs>, T, "findMany"> | Null>
     tables<T extends Location$tablesArgs<ExtArgs> = {}>(args?: Subset<T, Location$tablesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TablePayload<ExtArgs>, T, "findMany"> | Null>
     tableReservations<T extends Location$tableReservationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$tableReservationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TableReservationPayload<ExtArgs>, T, "findMany"> | Null>
+    kioskDevices<T extends Location$kioskDevicesArgs<ExtArgs> = {}>(args?: Subset<T, Location$kioskDevicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     userLocations<T extends Location$userLocationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$userLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany"> | Null>
@@ -28487,6 +28586,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TableReservationScalarFieldEnum | TableReservationScalarFieldEnum[]
+  }
+
+  /**
+   * Location.kioskDevices
+   */
+  export type Location$kioskDevicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    where?: KioskDeviceWhereInput
+    orderBy?: KioskDeviceOrderByWithRelationInput | KioskDeviceOrderByWithRelationInput[]
+    cursor?: KioskDeviceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: KioskDeviceScalarFieldEnum | KioskDeviceScalarFieldEnum[]
   }
 
   /**
@@ -57532,6 +57651,7 @@ export namespace Prisma {
     fulfillmentType: $Enums.FulfillmentType | null
     tableId: string | null
     covers: number | null
+    isWalkIn: boolean | null
     customerName: string | null
     customerPhone: string | null
     deliveryLat: number | null
@@ -57604,6 +57724,7 @@ export namespace Prisma {
     fulfillmentType: $Enums.FulfillmentType | null
     tableId: string | null
     covers: number | null
+    isWalkIn: boolean | null
     customerName: string | null
     customerPhone: string | null
     deliveryLat: number | null
@@ -57676,6 +57797,7 @@ export namespace Prisma {
     fulfillmentType: number
     tableId: number
     covers: number
+    isWalkIn: number
     customerInfo: number
     customerName: number
     customerPhone: number
@@ -57784,6 +57906,7 @@ export namespace Prisma {
     fulfillmentType?: true
     tableId?: true
     covers?: true
+    isWalkIn?: true
     customerName?: true
     customerPhone?: true
     deliveryLat?: true
@@ -57856,6 +57979,7 @@ export namespace Prisma {
     fulfillmentType?: true
     tableId?: true
     covers?: true
+    isWalkIn?: true
     customerName?: true
     customerPhone?: true
     deliveryLat?: true
@@ -57928,6 +58052,7 @@ export namespace Prisma {
     fulfillmentType?: true
     tableId?: true
     covers?: true
+    isWalkIn?: true
     customerInfo?: true
     customerName?: true
     customerPhone?: true
@@ -58091,6 +58216,7 @@ export namespace Prisma {
     fulfillmentType: $Enums.FulfillmentType
     tableId: string | null
     covers: number | null
+    isWalkIn: boolean
     customerInfo: JsonValue
     customerName: string | null
     customerPhone: string | null
@@ -58186,6 +58312,7 @@ export namespace Prisma {
     fulfillmentType?: boolean
     tableId?: boolean
     covers?: boolean
+    isWalkIn?: boolean
     customerInfo?: boolean
     customerName?: boolean
     customerPhone?: boolean
@@ -58275,6 +58402,7 @@ export namespace Prisma {
     fulfillmentType?: boolean
     tableId?: boolean
     covers?: boolean
+    isWalkIn?: boolean
     customerInfo?: boolean
     customerName?: boolean
     customerPhone?: boolean
@@ -58356,6 +58484,7 @@ export namespace Prisma {
     fulfillmentType?: boolean
     tableId?: boolean
     covers?: boolean
+    isWalkIn?: boolean
     customerInfo?: boolean
     customerName?: boolean
     customerPhone?: boolean
@@ -58471,6 +58600,7 @@ export namespace Prisma {
       fulfillmentType: $Enums.FulfillmentType
       tableId: string | null
       covers: number | null
+      isWalkIn: boolean
       customerInfo: Prisma.JsonValue
       customerName: string | null
       customerPhone: string | null
@@ -58949,6 +59079,7 @@ export namespace Prisma {
     readonly fulfillmentType: FieldRef<"Order", 'FulfillmentType'>
     readonly tableId: FieldRef<"Order", 'String'>
     readonly covers: FieldRef<"Order", 'Int'>
+    readonly isWalkIn: FieldRef<"Order", 'Boolean'>
     readonly customerInfo: FieldRef<"Order", 'Json'>
     readonly customerName: FieldRef<"Order", 'String'>
     readonly customerPhone: FieldRef<"Order", 'String'>
@@ -67667,6 +67798,995 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: TableInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model KioskDevice
+   */
+
+  export type AggregateKioskDevice = {
+    _count: KioskDeviceCountAggregateOutputType | null
+    _min: KioskDeviceMinAggregateOutputType | null
+    _max: KioskDeviceMaxAggregateOutputType | null
+  }
+
+  export type KioskDeviceMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    name: string | null
+    publicToken: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KioskDeviceMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    name: string | null
+    publicToken: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KioskDeviceCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    name: number
+    publicToken: number
+    isActive: number
+    config: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type KioskDeviceMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    name?: true
+    publicToken?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KioskDeviceMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    name?: true
+    publicToken?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KioskDeviceCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    name?: true
+    publicToken?: true
+    isActive?: true
+    config?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type KioskDeviceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KioskDevice to aggregate.
+     */
+    where?: KioskDeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KioskDevices to fetch.
+     */
+    orderBy?: KioskDeviceOrderByWithRelationInput | KioskDeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KioskDeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KioskDevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KioskDevices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KioskDevices
+    **/
+    _count?: true | KioskDeviceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KioskDeviceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KioskDeviceMaxAggregateInputType
+  }
+
+  export type GetKioskDeviceAggregateType<T extends KioskDeviceAggregateArgs> = {
+        [P in keyof T & keyof AggregateKioskDevice]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKioskDevice[P]>
+      : GetScalarType<T[P], AggregateKioskDevice[P]>
+  }
+
+
+
+
+  export type KioskDeviceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KioskDeviceWhereInput
+    orderBy?: KioskDeviceOrderByWithAggregationInput | KioskDeviceOrderByWithAggregationInput[]
+    by: KioskDeviceScalarFieldEnum[] | KioskDeviceScalarFieldEnum
+    having?: KioskDeviceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KioskDeviceCountAggregateInputType | true
+    _min?: KioskDeviceMinAggregateInputType
+    _max?: KioskDeviceMaxAggregateInputType
+  }
+
+  export type KioskDeviceGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    brandId: string | null
+    name: string
+    publicToken: string
+    isActive: boolean
+    config: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: KioskDeviceCountAggregateOutputType | null
+    _min: KioskDeviceMinAggregateOutputType | null
+    _max: KioskDeviceMaxAggregateOutputType | null
+  }
+
+  type GetKioskDeviceGroupByPayload<T extends KioskDeviceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KioskDeviceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KioskDeviceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KioskDeviceGroupByOutputType[P]>
+            : GetScalarType<T[P], KioskDeviceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KioskDeviceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    name?: boolean
+    publicToken?: boolean
+    isActive?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["kioskDevice"]>
+
+  export type KioskDeviceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    name?: boolean
+    publicToken?: boolean
+    isActive?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["kioskDevice"]>
+
+  export type KioskDeviceSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    name?: boolean
+    publicToken?: boolean
+    isActive?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type KioskDeviceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type KioskDeviceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $KioskDevicePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KioskDevice"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      brandId: string | null
+      name: string
+      publicToken: string
+      isActive: boolean
+      config: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["kioskDevice"]>
+    composites: {}
+  }
+
+  type KioskDeviceGetPayload<S extends boolean | null | undefined | KioskDeviceDefaultArgs> = $Result.GetResult<Prisma.$KioskDevicePayload, S>
+
+  type KioskDeviceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<KioskDeviceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: KioskDeviceCountAggregateInputType | true
+    }
+
+  export interface KioskDeviceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KioskDevice'], meta: { name: 'KioskDevice' } }
+    /**
+     * Find zero or one KioskDevice that matches the filter.
+     * @param {KioskDeviceFindUniqueArgs} args - Arguments to find a KioskDevice
+     * @example
+     * // Get one KioskDevice
+     * const kioskDevice = await prisma.kioskDevice.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KioskDeviceFindUniqueArgs>(args: SelectSubset<T, KioskDeviceFindUniqueArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one KioskDevice that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {KioskDeviceFindUniqueOrThrowArgs} args - Arguments to find a KioskDevice
+     * @example
+     * // Get one KioskDevice
+     * const kioskDevice = await prisma.kioskDevice.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KioskDeviceFindUniqueOrThrowArgs>(args: SelectSubset<T, KioskDeviceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first KioskDevice that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KioskDeviceFindFirstArgs} args - Arguments to find a KioskDevice
+     * @example
+     * // Get one KioskDevice
+     * const kioskDevice = await prisma.kioskDevice.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KioskDeviceFindFirstArgs>(args?: SelectSubset<T, KioskDeviceFindFirstArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first KioskDevice that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KioskDeviceFindFirstOrThrowArgs} args - Arguments to find a KioskDevice
+     * @example
+     * // Get one KioskDevice
+     * const kioskDevice = await prisma.kioskDevice.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KioskDeviceFindFirstOrThrowArgs>(args?: SelectSubset<T, KioskDeviceFindFirstOrThrowArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more KioskDevices that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KioskDeviceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KioskDevices
+     * const kioskDevices = await prisma.kioskDevice.findMany()
+     * 
+     * // Get first 10 KioskDevices
+     * const kioskDevices = await prisma.kioskDevice.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const kioskDeviceWithIdOnly = await prisma.kioskDevice.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KioskDeviceFindManyArgs>(args?: SelectSubset<T, KioskDeviceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a KioskDevice.
+     * @param {KioskDeviceCreateArgs} args - Arguments to create a KioskDevice.
+     * @example
+     * // Create one KioskDevice
+     * const KioskDevice = await prisma.kioskDevice.create({
+     *   data: {
+     *     // ... data to create a KioskDevice
+     *   }
+     * })
+     * 
+     */
+    create<T extends KioskDeviceCreateArgs>(args: SelectSubset<T, KioskDeviceCreateArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many KioskDevices.
+     * @param {KioskDeviceCreateManyArgs} args - Arguments to create many KioskDevices.
+     * @example
+     * // Create many KioskDevices
+     * const kioskDevice = await prisma.kioskDevice.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KioskDeviceCreateManyArgs>(args?: SelectSubset<T, KioskDeviceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KioskDevices and returns the data saved in the database.
+     * @param {KioskDeviceCreateManyAndReturnArgs} args - Arguments to create many KioskDevices.
+     * @example
+     * // Create many KioskDevices
+     * const kioskDevice = await prisma.kioskDevice.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KioskDevices and only return the `id`
+     * const kioskDeviceWithIdOnly = await prisma.kioskDevice.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KioskDeviceCreateManyAndReturnArgs>(args?: SelectSubset<T, KioskDeviceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a KioskDevice.
+     * @param {KioskDeviceDeleteArgs} args - Arguments to delete one KioskDevice.
+     * @example
+     * // Delete one KioskDevice
+     * const KioskDevice = await prisma.kioskDevice.delete({
+     *   where: {
+     *     // ... filter to delete one KioskDevice
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KioskDeviceDeleteArgs>(args: SelectSubset<T, KioskDeviceDeleteArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one KioskDevice.
+     * @param {KioskDeviceUpdateArgs} args - Arguments to update one KioskDevice.
+     * @example
+     * // Update one KioskDevice
+     * const kioskDevice = await prisma.kioskDevice.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KioskDeviceUpdateArgs>(args: SelectSubset<T, KioskDeviceUpdateArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more KioskDevices.
+     * @param {KioskDeviceDeleteManyArgs} args - Arguments to filter KioskDevices to delete.
+     * @example
+     * // Delete a few KioskDevices
+     * const { count } = await prisma.kioskDevice.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KioskDeviceDeleteManyArgs>(args?: SelectSubset<T, KioskDeviceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KioskDevices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KioskDeviceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KioskDevices
+     * const kioskDevice = await prisma.kioskDevice.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KioskDeviceUpdateManyArgs>(args: SelectSubset<T, KioskDeviceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one KioskDevice.
+     * @param {KioskDeviceUpsertArgs} args - Arguments to update or create a KioskDevice.
+     * @example
+     * // Update or create a KioskDevice
+     * const kioskDevice = await prisma.kioskDevice.upsert({
+     *   create: {
+     *     // ... data to create a KioskDevice
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KioskDevice we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KioskDeviceUpsertArgs>(args: SelectSubset<T, KioskDeviceUpsertArgs<ExtArgs>>): Prisma__KioskDeviceClient<$Result.GetResult<Prisma.$KioskDevicePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of KioskDevices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KioskDeviceCountArgs} args - Arguments to filter KioskDevices to count.
+     * @example
+     * // Count the number of KioskDevices
+     * const count = await prisma.kioskDevice.count({
+     *   where: {
+     *     // ... the filter for the KioskDevices we want to count
+     *   }
+     * })
+    **/
+    count<T extends KioskDeviceCountArgs>(
+      args?: Subset<T, KioskDeviceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KioskDeviceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KioskDevice.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KioskDeviceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KioskDeviceAggregateArgs>(args: Subset<T, KioskDeviceAggregateArgs>): Prisma.PrismaPromise<GetKioskDeviceAggregateType<T>>
+
+    /**
+     * Group by KioskDevice.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KioskDeviceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KioskDeviceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KioskDeviceGroupByArgs['orderBy'] }
+        : { orderBy?: KioskDeviceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KioskDeviceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKioskDeviceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KioskDevice model
+   */
+  readonly fields: KioskDeviceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KioskDevice.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KioskDeviceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KioskDevice model
+   */ 
+  interface KioskDeviceFieldRefs {
+    readonly id: FieldRef<"KioskDevice", 'String'>
+    readonly tenantId: FieldRef<"KioskDevice", 'String'>
+    readonly locationId: FieldRef<"KioskDevice", 'String'>
+    readonly brandId: FieldRef<"KioskDevice", 'String'>
+    readonly name: FieldRef<"KioskDevice", 'String'>
+    readonly publicToken: FieldRef<"KioskDevice", 'String'>
+    readonly isActive: FieldRef<"KioskDevice", 'Boolean'>
+    readonly config: FieldRef<"KioskDevice", 'Json'>
+    readonly createdAt: FieldRef<"KioskDevice", 'DateTime'>
+    readonly updatedAt: FieldRef<"KioskDevice", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KioskDevice findUnique
+   */
+  export type KioskDeviceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which KioskDevice to fetch.
+     */
+    where: KioskDeviceWhereUniqueInput
+  }
+
+  /**
+   * KioskDevice findUniqueOrThrow
+   */
+  export type KioskDeviceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which KioskDevice to fetch.
+     */
+    where: KioskDeviceWhereUniqueInput
+  }
+
+  /**
+   * KioskDevice findFirst
+   */
+  export type KioskDeviceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which KioskDevice to fetch.
+     */
+    where?: KioskDeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KioskDevices to fetch.
+     */
+    orderBy?: KioskDeviceOrderByWithRelationInput | KioskDeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KioskDevices.
+     */
+    cursor?: KioskDeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KioskDevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KioskDevices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KioskDevices.
+     */
+    distinct?: KioskDeviceScalarFieldEnum | KioskDeviceScalarFieldEnum[]
+  }
+
+  /**
+   * KioskDevice findFirstOrThrow
+   */
+  export type KioskDeviceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which KioskDevice to fetch.
+     */
+    where?: KioskDeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KioskDevices to fetch.
+     */
+    orderBy?: KioskDeviceOrderByWithRelationInput | KioskDeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KioskDevices.
+     */
+    cursor?: KioskDeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KioskDevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KioskDevices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KioskDevices.
+     */
+    distinct?: KioskDeviceScalarFieldEnum | KioskDeviceScalarFieldEnum[]
+  }
+
+  /**
+   * KioskDevice findMany
+   */
+  export type KioskDeviceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which KioskDevices to fetch.
+     */
+    where?: KioskDeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KioskDevices to fetch.
+     */
+    orderBy?: KioskDeviceOrderByWithRelationInput | KioskDeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KioskDevices.
+     */
+    cursor?: KioskDeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KioskDevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KioskDevices.
+     */
+    skip?: number
+    distinct?: KioskDeviceScalarFieldEnum | KioskDeviceScalarFieldEnum[]
+  }
+
+  /**
+   * KioskDevice create
+   */
+  export type KioskDeviceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a KioskDevice.
+     */
+    data: XOR<KioskDeviceCreateInput, KioskDeviceUncheckedCreateInput>
+  }
+
+  /**
+   * KioskDevice createMany
+   */
+  export type KioskDeviceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KioskDevices.
+     */
+    data: KioskDeviceCreateManyInput | KioskDeviceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KioskDevice createManyAndReturn
+   */
+  export type KioskDeviceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many KioskDevices.
+     */
+    data: KioskDeviceCreateManyInput | KioskDeviceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * KioskDevice update
+   */
+  export type KioskDeviceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a KioskDevice.
+     */
+    data: XOR<KioskDeviceUpdateInput, KioskDeviceUncheckedUpdateInput>
+    /**
+     * Choose, which KioskDevice to update.
+     */
+    where: KioskDeviceWhereUniqueInput
+  }
+
+  /**
+   * KioskDevice updateMany
+   */
+  export type KioskDeviceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KioskDevices.
+     */
+    data: XOR<KioskDeviceUpdateManyMutationInput, KioskDeviceUncheckedUpdateManyInput>
+    /**
+     * Filter which KioskDevices to update
+     */
+    where?: KioskDeviceWhereInput
+  }
+
+  /**
+   * KioskDevice upsert
+   */
+  export type KioskDeviceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the KioskDevice to update in case it exists.
+     */
+    where: KioskDeviceWhereUniqueInput
+    /**
+     * In case the KioskDevice found by the `where` argument doesn't exist, create a new KioskDevice with this data.
+     */
+    create: XOR<KioskDeviceCreateInput, KioskDeviceUncheckedCreateInput>
+    /**
+     * In case the KioskDevice was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KioskDeviceUpdateInput, KioskDeviceUncheckedUpdateInput>
+  }
+
+  /**
+   * KioskDevice delete
+   */
+  export type KioskDeviceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
+    /**
+     * Filter which KioskDevice to delete.
+     */
+    where: KioskDeviceWhereUniqueInput
+  }
+
+  /**
+   * KioskDevice deleteMany
+   */
+  export type KioskDeviceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KioskDevices to delete
+     */
+    where?: KioskDeviceWhereInput
+  }
+
+  /**
+   * KioskDevice without action
+   */
+  export type KioskDeviceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KioskDevice
+     */
+    select?: KioskDeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KioskDeviceInclude<ExtArgs> | null
   }
 
 
@@ -138044,6 +139164,7 @@ export namespace Prisma {
     fulfillmentType: 'fulfillmentType',
     tableId: 'tableId',
     covers: 'covers',
+    isWalkIn: 'isWalkIn',
     customerInfo: 'customerInfo',
     customerName: 'customerName',
     customerPhone: 'customerPhone',
@@ -138235,6 +139356,22 @@ export namespace Prisma {
   };
 
   export type TableScalarFieldEnum = (typeof TableScalarFieldEnum)[keyof typeof TableScalarFieldEnum]
+
+
+  export const KioskDeviceScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    name: 'name',
+    publicToken: 'publicToken',
+    isActive: 'isActive',
+    config: 'config',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type KioskDeviceScalarFieldEnum = (typeof KioskDeviceScalarFieldEnum)[keyof typeof KioskDeviceScalarFieldEnum]
 
 
   export const TableReservationScalarFieldEnum: {
@@ -140173,6 +141310,18 @@ export namespace Prisma {
   };
 
   export type TableOrderByRelevanceFieldEnum = (typeof TableOrderByRelevanceFieldEnum)[keyof typeof TableOrderByRelevanceFieldEnum]
+
+
+  export const KioskDeviceOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    name: 'name',
+    publicToken: 'publicToken'
+  };
+
+  export type KioskDeviceOrderByRelevanceFieldEnum = (typeof KioskDeviceOrderByRelevanceFieldEnum)[keyof typeof KioskDeviceOrderByRelevanceFieldEnum]
 
 
   export const TableReservationOrderByRelevanceFieldEnum: {
@@ -143165,6 +144314,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayListRelationFilter
     tables?: TableListRelationFilter
     tableReservations?: TableReservationListRelationFilter
+    kioskDevices?: KioskDeviceListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
@@ -143251,6 +144401,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayOrderByRelationAggregateInput
     tables?: TableOrderByRelationAggregateInput
     tableReservations?: TableReservationOrderByRelationAggregateInput
+    kioskDevices?: KioskDeviceOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
     userLocations?: UserLocationOrderByRelationAggregateInput
@@ -143341,6 +144492,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayListRelationFilter
     tables?: TableListRelationFilter
     tableReservations?: TableReservationListRelationFilter
+    kioskDevices?: KioskDeviceListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
@@ -146469,6 +147621,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     tableId?: StringNullableFilter<"Order"> | string | null
     covers?: IntNullableFilter<"Order"> | number | null
+    isWalkIn?: BoolFilter<"Order"> | boolean
     customerInfo?: JsonFilter<"Order">
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
@@ -146557,6 +147710,7 @@ export namespace Prisma {
     fulfillmentType?: SortOrder
     tableId?: SortOrderInput | SortOrder
     covers?: SortOrderInput | SortOrder
+    isWalkIn?: SortOrder
     customerInfo?: SortOrder
     customerName?: SortOrderInput | SortOrder
     customerPhone?: SortOrderInput | SortOrder
@@ -146651,6 +147805,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     tableId?: StringNullableFilter<"Order"> | string | null
     covers?: IntNullableFilter<"Order"> | number | null
+    isWalkIn?: BoolFilter<"Order"> | boolean
     customerInfo?: JsonFilter<"Order">
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
@@ -146738,6 +147893,7 @@ export namespace Prisma {
     fulfillmentType?: SortOrder
     tableId?: SortOrderInput | SortOrder
     covers?: SortOrderInput | SortOrder
+    isWalkIn?: SortOrder
     customerInfo?: SortOrder
     customerName?: SortOrderInput | SortOrder
     customerPhone?: SortOrderInput | SortOrder
@@ -146822,6 +147978,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeWithAggregatesFilter<"Order"> | $Enums.FulfillmentType
     tableId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     covers?: IntNullableWithAggregatesFilter<"Order"> | number | null
+    isWalkIn?: BoolWithAggregatesFilter<"Order"> | boolean
     customerInfo?: JsonWithAggregatesFilter<"Order">
     customerName?: StringNullableWithAggregatesFilter<"Order"> | string | null
     customerPhone?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -147599,6 +148756,87 @@ export namespace Prisma {
     serverName?: StringNullableWithAggregatesFilter<"Table"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Table"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Table"> | Date | string
+  }
+
+  export type KioskDeviceWhereInput = {
+    AND?: KioskDeviceWhereInput | KioskDeviceWhereInput[]
+    OR?: KioskDeviceWhereInput[]
+    NOT?: KioskDeviceWhereInput | KioskDeviceWhereInput[]
+    id?: StringFilter<"KioskDevice"> | string
+    tenantId?: StringFilter<"KioskDevice"> | string
+    locationId?: StringFilter<"KioskDevice"> | string
+    brandId?: StringNullableFilter<"KioskDevice"> | string | null
+    name?: StringFilter<"KioskDevice"> | string
+    publicToken?: StringFilter<"KioskDevice"> | string
+    isActive?: BoolFilter<"KioskDevice"> | boolean
+    config?: JsonFilter<"KioskDevice">
+    createdAt?: DateTimeFilter<"KioskDevice"> | Date | string
+    updatedAt?: DateTimeFilter<"KioskDevice"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type KioskDeviceOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    isActive?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: KioskDeviceOrderByRelevanceInput
+  }
+
+  export type KioskDeviceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    publicToken?: string
+    AND?: KioskDeviceWhereInput | KioskDeviceWhereInput[]
+    OR?: KioskDeviceWhereInput[]
+    NOT?: KioskDeviceWhereInput | KioskDeviceWhereInput[]
+    tenantId?: StringFilter<"KioskDevice"> | string
+    locationId?: StringFilter<"KioskDevice"> | string
+    brandId?: StringNullableFilter<"KioskDevice"> | string | null
+    name?: StringFilter<"KioskDevice"> | string
+    isActive?: BoolFilter<"KioskDevice"> | boolean
+    config?: JsonFilter<"KioskDevice">
+    createdAt?: DateTimeFilter<"KioskDevice"> | Date | string
+    updatedAt?: DateTimeFilter<"KioskDevice"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "publicToken">
+
+  export type KioskDeviceOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    isActive?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: KioskDeviceCountOrderByAggregateInput
+    _max?: KioskDeviceMaxOrderByAggregateInput
+    _min?: KioskDeviceMinOrderByAggregateInput
+  }
+
+  export type KioskDeviceScalarWhereWithAggregatesInput = {
+    AND?: KioskDeviceScalarWhereWithAggregatesInput | KioskDeviceScalarWhereWithAggregatesInput[]
+    OR?: KioskDeviceScalarWhereWithAggregatesInput[]
+    NOT?: KioskDeviceScalarWhereWithAggregatesInput | KioskDeviceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KioskDevice"> | string
+    tenantId?: StringWithAggregatesFilter<"KioskDevice"> | string
+    locationId?: StringWithAggregatesFilter<"KioskDevice"> | string
+    brandId?: StringNullableWithAggregatesFilter<"KioskDevice"> | string | null
+    name?: StringWithAggregatesFilter<"KioskDevice"> | string
+    publicToken?: StringWithAggregatesFilter<"KioskDevice"> | string
+    isActive?: BoolWithAggregatesFilter<"KioskDevice"> | boolean
+    config?: JsonWithAggregatesFilter<"KioskDevice">
+    createdAt?: DateTimeWithAggregatesFilter<"KioskDevice"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"KioskDevice"> | Date | string
   }
 
   export type TableReservationWhereInput = {
@@ -155386,6 +156624,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -155471,6 +156710,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -155550,6 +156790,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -155635,6 +156876,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -159246,6 +160488,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -159334,6 +160577,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -159412,6 +160656,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159500,6 +160745,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159583,6 +160829,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -159654,6 +160901,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159730,6 +160978,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -160608,6 +161857,96 @@ export namespace Prisma {
     covers?: NullableIntFieldUpdateOperationsInput | number | null
     serverId?: NullableStringFieldUpdateOperationsInput | string | null
     serverName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KioskDeviceCreateInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    isActive?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutKioskDevicesInput
+  }
+
+  export type KioskDeviceUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    isActive?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KioskDeviceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutKioskDevicesNestedInput
+  }
+
+  export type KioskDeviceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KioskDeviceCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    isActive?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KioskDeviceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KioskDeviceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -169130,6 +170469,12 @@ export namespace Prisma {
     none?: TableReservationWhereInput
   }
 
+  export type KioskDeviceListRelationFilter = {
+    every?: KioskDeviceWhereInput
+    some?: KioskDeviceWhereInput
+    none?: KioskDeviceWhereInput
+  }
+
   export type LocationPaymentConfigNullableRelationFilter = {
     is?: LocationPaymentConfigWhereInput | null
     isNot?: LocationPaymentConfigWhereInput | null
@@ -169190,6 +170535,10 @@ export namespace Prisma {
   }
 
   export type TableReservationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type KioskDeviceOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -171730,6 +173079,7 @@ export namespace Prisma {
     fulfillmentType?: SortOrder
     tableId?: SortOrder
     covers?: SortOrder
+    isWalkIn?: SortOrder
     customerInfo?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
@@ -171821,6 +173171,7 @@ export namespace Prisma {
     fulfillmentType?: SortOrder
     tableId?: SortOrder
     covers?: SortOrder
+    isWalkIn?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
     deliveryLat?: SortOrder
@@ -171893,6 +173244,7 @@ export namespace Prisma {
     fulfillmentType?: SortOrder
     tableId?: SortOrder
     covers?: SortOrder
+    isWalkIn?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
     deliveryLat?: SortOrder
@@ -172499,6 +173851,49 @@ export namespace Prisma {
     width?: SortOrder
     height?: SortOrder
     covers?: SortOrder
+  }
+
+  export type KioskDeviceOrderByRelevanceInput = {
+    fields: KioskDeviceOrderByRelevanceFieldEnum | KioskDeviceOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type KioskDeviceCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    isActive?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KioskDeviceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KioskDeviceMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    publicToken?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type TableNullableRelationFilter = {
@@ -179253,6 +180648,13 @@ export namespace Prisma {
     connect?: TableReservationWhereUniqueInput | TableReservationWhereUniqueInput[]
   }
 
+  export type KioskDeviceCreateNestedManyWithoutLocationInput = {
+    create?: XOR<KioskDeviceCreateWithoutLocationInput, KioskDeviceUncheckedCreateWithoutLocationInput> | KioskDeviceCreateWithoutLocationInput[] | KioskDeviceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: KioskDeviceCreateOrConnectWithoutLocationInput | KioskDeviceCreateOrConnectWithoutLocationInput[]
+    createMany?: KioskDeviceCreateManyLocationInputEnvelope
+    connect?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+  }
+
   export type DeliveryZoneCreateNestedManyWithoutLocationInput = {
     create?: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput> | DeliveryZoneCreateWithoutLocationInput[] | DeliveryZoneUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: DeliveryZoneCreateOrConnectWithoutLocationInput | DeliveryZoneCreateOrConnectWithoutLocationInput[]
@@ -179411,6 +180813,13 @@ export namespace Prisma {
     connectOrCreate?: TableReservationCreateOrConnectWithoutLocationInput | TableReservationCreateOrConnectWithoutLocationInput[]
     createMany?: TableReservationCreateManyLocationInputEnvelope
     connect?: TableReservationWhereUniqueInput | TableReservationWhereUniqueInput[]
+  }
+
+  export type KioskDeviceUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<KioskDeviceCreateWithoutLocationInput, KioskDeviceUncheckedCreateWithoutLocationInput> | KioskDeviceCreateWithoutLocationInput[] | KioskDeviceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: KioskDeviceCreateOrConnectWithoutLocationInput | KioskDeviceCreateOrConnectWithoutLocationInput[]
+    createMany?: KioskDeviceCreateManyLocationInputEnvelope
+    connect?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
   }
 
   export type DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput = {
@@ -179636,6 +181045,20 @@ export namespace Prisma {
     update?: TableReservationUpdateWithWhereUniqueWithoutLocationInput | TableReservationUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: TableReservationUpdateManyWithWhereWithoutLocationInput | TableReservationUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: TableReservationScalarWhereInput | TableReservationScalarWhereInput[]
+  }
+
+  export type KioskDeviceUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<KioskDeviceCreateWithoutLocationInput, KioskDeviceUncheckedCreateWithoutLocationInput> | KioskDeviceCreateWithoutLocationInput[] | KioskDeviceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: KioskDeviceCreateOrConnectWithoutLocationInput | KioskDeviceCreateOrConnectWithoutLocationInput[]
+    upsert?: KioskDeviceUpsertWithWhereUniqueWithoutLocationInput | KioskDeviceUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: KioskDeviceCreateManyLocationInputEnvelope
+    set?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    disconnect?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    delete?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    connect?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    update?: KioskDeviceUpdateWithWhereUniqueWithoutLocationInput | KioskDeviceUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: KioskDeviceUpdateManyWithWhereWithoutLocationInput | KioskDeviceUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: KioskDeviceScalarWhereInput | KioskDeviceScalarWhereInput[]
   }
 
   export type DeliveryZoneUpdateManyWithoutLocationNestedInput = {
@@ -179940,6 +181363,20 @@ export namespace Prisma {
     update?: TableReservationUpdateWithWhereUniqueWithoutLocationInput | TableReservationUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: TableReservationUpdateManyWithWhereWithoutLocationInput | TableReservationUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: TableReservationScalarWhereInput | TableReservationScalarWhereInput[]
+  }
+
+  export type KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<KioskDeviceCreateWithoutLocationInput, KioskDeviceUncheckedCreateWithoutLocationInput> | KioskDeviceCreateWithoutLocationInput[] | KioskDeviceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: KioskDeviceCreateOrConnectWithoutLocationInput | KioskDeviceCreateOrConnectWithoutLocationInput[]
+    upsert?: KioskDeviceUpsertWithWhereUniqueWithoutLocationInput | KioskDeviceUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: KioskDeviceCreateManyLocationInputEnvelope
+    set?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    disconnect?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    delete?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    connect?: KioskDeviceWhereUniqueInput | KioskDeviceWhereUniqueInput[]
+    update?: KioskDeviceUpdateWithWhereUniqueWithoutLocationInput | KioskDeviceUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: KioskDeviceUpdateManyWithWhereWithoutLocationInput | KioskDeviceUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: KioskDeviceScalarWhereInput | KioskDeviceScalarWhereInput[]
   }
 
   export type DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput = {
@@ -182264,6 +183701,20 @@ export namespace Prisma {
     update?: TableReservationUpdateWithWhereUniqueWithoutTableInput | TableReservationUpdateWithWhereUniqueWithoutTableInput[]
     updateMany?: TableReservationUpdateManyWithWhereWithoutTableInput | TableReservationUpdateManyWithWhereWithoutTableInput[]
     deleteMany?: TableReservationScalarWhereInput | TableReservationScalarWhereInput[]
+  }
+
+  export type LocationCreateNestedOneWithoutKioskDevicesInput = {
+    create?: XOR<LocationCreateWithoutKioskDevicesInput, LocationUncheckedCreateWithoutKioskDevicesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutKioskDevicesInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutKioskDevicesNestedInput = {
+    create?: XOR<LocationCreateWithoutKioskDevicesInput, LocationUncheckedCreateWithoutKioskDevicesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutKioskDevicesInput
+    upsert?: LocationUpsertWithoutKioskDevicesInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutKioskDevicesInput, LocationUpdateWithoutKioskDevicesInput>, LocationUncheckedUpdateWithoutKioskDevicesInput>
   }
 
   export type LocationCreateNestedOneWithoutTableReservationsInput = {
@@ -186278,6 +187729,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -186364,6 +187816,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -187315,6 +188768,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     tableId?: StringNullableFilter<"Order"> | string | null
     covers?: IntNullableFilter<"Order"> | number | null
+    isWalkIn?: BoolFilter<"Order"> | boolean
     customerInfo?: JsonFilter<"Order">
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
@@ -188851,6 +190305,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -188935,6 +190390,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -189092,6 +190548,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -189176,6 +190633,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -189921,6 +191379,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -190007,6 +191466,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -190755,6 +192215,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -190839,6 +192300,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -191047,6 +192509,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -191133,6 +192596,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -192353,6 +193817,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -192439,6 +193904,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -192880,6 +194346,40 @@ export namespace Prisma {
 
   export type TableReservationCreateManyLocationInputEnvelope = {
     data: TableReservationCreateManyLocationInput | TableReservationCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type KioskDeviceCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    isActive?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KioskDeviceUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    isActive?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KioskDeviceCreateOrConnectWithoutLocationInput = {
+    where: KioskDeviceWhereUniqueInput
+    create: XOR<KioskDeviceCreateWithoutLocationInput, KioskDeviceUncheckedCreateWithoutLocationInput>
+  }
+
+  export type KioskDeviceCreateManyLocationInputEnvelope = {
+    data: KioskDeviceCreateManyLocationInput | KioskDeviceCreateManyLocationInput[]
     skipDuplicates?: boolean
   }
 
@@ -193906,6 +195406,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"TableReservation"> | Date | string
   }
 
+  export type KioskDeviceUpsertWithWhereUniqueWithoutLocationInput = {
+    where: KioskDeviceWhereUniqueInput
+    update: XOR<KioskDeviceUpdateWithoutLocationInput, KioskDeviceUncheckedUpdateWithoutLocationInput>
+    create: XOR<KioskDeviceCreateWithoutLocationInput, KioskDeviceUncheckedCreateWithoutLocationInput>
+  }
+
+  export type KioskDeviceUpdateWithWhereUniqueWithoutLocationInput = {
+    where: KioskDeviceWhereUniqueInput
+    data: XOR<KioskDeviceUpdateWithoutLocationInput, KioskDeviceUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type KioskDeviceUpdateManyWithWhereWithoutLocationInput = {
+    where: KioskDeviceScalarWhereInput
+    data: XOR<KioskDeviceUpdateManyMutationInput, KioskDeviceUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type KioskDeviceScalarWhereInput = {
+    AND?: KioskDeviceScalarWhereInput | KioskDeviceScalarWhereInput[]
+    OR?: KioskDeviceScalarWhereInput[]
+    NOT?: KioskDeviceScalarWhereInput | KioskDeviceScalarWhereInput[]
+    id?: StringFilter<"KioskDevice"> | string
+    tenantId?: StringFilter<"KioskDevice"> | string
+    locationId?: StringFilter<"KioskDevice"> | string
+    brandId?: StringNullableFilter<"KioskDevice"> | string | null
+    name?: StringFilter<"KioskDevice"> | string
+    publicToken?: StringFilter<"KioskDevice"> | string
+    isActive?: BoolFilter<"KioskDevice"> | boolean
+    config?: JsonFilter<"KioskDevice">
+    createdAt?: DateTimeFilter<"KioskDevice"> | Date | string
+    updatedAt?: DateTimeFilter<"KioskDevice"> | Date | string
+  }
+
   export type DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput = {
     where: DeliveryZoneWhereUniqueInput
     update: XOR<DeliveryZoneUpdateWithoutLocationInput, DeliveryZoneUncheckedUpdateWithoutLocationInput>
@@ -194665,6 +196197,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -194749,6 +196282,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -194952,6 +196486,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -195036,6 +196571,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -195113,6 +196649,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -195197,6 +196734,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -195291,6 +196829,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -195375,6 +196914,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -195996,6 +197536,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -196080,6 +197621,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -196265,6 +197807,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -196349,6 +197892,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -197390,6 +198934,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -197474,6 +199019,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -197568,6 +199114,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -197652,6 +199199,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -197829,6 +199377,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -197913,6 +199462,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -198112,6 +199662,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -198196,6 +199747,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -200575,6 +202127,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -200661,6 +202214,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -201040,6 +202594,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -201124,6 +202679,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -201321,6 +202877,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -201405,6 +202962,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -202357,6 +203915,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -202444,6 +204003,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -202604,6 +204164,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -202691,6 +204252,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -202809,6 +204371,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -202893,6 +204456,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -203090,6 +204654,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -203174,6 +204739,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -203361,6 +204927,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
@@ -203445,6 +205012,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
@@ -203539,6 +205107,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
@@ -203623,6 +205192,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
@@ -203765,6 +205335,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -203849,6 +205420,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -204482,6 +206054,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -204566,6 +206139,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -205010,6 +206584,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -205097,6 +206672,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -205190,6 +206766,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -205277,6 +206854,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -205354,6 +206932,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -205441,6 +207020,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -205534,6 +207114,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -205621,6 +207202,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -205738,6 +207320,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -205822,6 +207405,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -205944,6 +207528,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -206028,6 +207613,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -206122,6 +207708,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -206206,6 +207793,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -206403,6 +207991,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -206487,6 +208076,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -206674,6 +208264,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -206758,6 +208349,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -206904,6 +208496,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -206988,6 +208581,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -207016,6 +208610,350 @@ export namespace Prisma {
   export type TableReservationUpdateManyWithWhereWithoutTableInput = {
     where: TableReservationScalarWhereInput
     data: XOR<TableReservationUpdateManyMutationInput, TableReservationUncheckedUpdateManyWithoutTableInput>
+  }
+
+  export type LocationCreateWithoutKioskDevicesInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutKioskDevicesInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutKioskDevicesInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutKioskDevicesInput, LocationUncheckedCreateWithoutKioskDevicesInput>
+  }
+
+  export type LocationUpsertWithoutKioskDevicesInput = {
+    update: XOR<LocationUpdateWithoutKioskDevicesInput, LocationUncheckedUpdateWithoutKioskDevicesInput>
+    create: XOR<LocationCreateWithoutKioskDevicesInput, LocationUncheckedCreateWithoutKioskDevicesInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutKioskDevicesInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutKioskDevicesInput, LocationUncheckedUpdateWithoutKioskDevicesInput>
+  }
+
+  export type LocationUpdateWithoutKioskDevicesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutKioskDevicesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutTableReservationsInput = {
@@ -207082,6 +209020,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -207166,6 +209105,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -207323,6 +209263,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -207407,6 +209348,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -207543,6 +209485,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -207630,6 +209573,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -207758,6 +209702,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -207845,6 +209790,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -207962,6 +209908,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -208046,6 +209993,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -208291,6 +210239,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -208374,6 +210323,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -208463,6 +210413,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -208546,6 +210497,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -208645,6 +210597,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -208729,6 +210682,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -209034,6 +210988,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -209121,6 +211076,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -209464,6 +211420,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -209551,6 +211508,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -209835,6 +211793,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -209919,6 +211878,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -210260,6 +212220,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -210343,6 +212304,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -210579,6 +212541,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -210663,6 +212626,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -210991,6 +212955,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -211075,6 +213040,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -211394,6 +213360,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -211478,6 +213445,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -212362,6 +214330,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -212446,6 +214415,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -212730,6 +214700,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -212814,6 +214785,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -213157,6 +215129,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -213244,6 +215217,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -213414,6 +215388,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -213501,6 +215476,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -213999,6 +215975,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -214086,6 +216063,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -214294,6 +216272,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -214381,6 +216360,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217489,6 +219469,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -217573,6 +219554,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -217738,6 +219720,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -217822,6 +219805,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -219079,6 +221063,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -219163,6 +221148,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -219257,6 +221243,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -219341,6 +221328,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -219419,6 +221407,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
     tables?: TableCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
@@ -219503,6 +221492,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
     tables?: TableUncheckedCreateNestedManyWithoutLocationInput
     tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -219597,6 +221587,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -219681,6 +221672,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -219787,6 +221779,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -220321,6 +222314,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -220407,6 +222401,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -220489,6 +222484,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -221720,6 +223716,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -221791,6 +223788,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -221877,6 +223875,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -221959,6 +223958,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -222156,6 +224156,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -222393,6 +224394,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -222477,6 +224479,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -222777,6 +224780,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -222863,6 +224867,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -222945,6 +224950,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -223417,6 +225423,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -223605,6 +225612,18 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type KioskDeviceCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    name: string
+    publicToken: string
+    isActive?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type DeliveryZoneCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -223771,6 +225790,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -223857,6 +225877,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -223939,6 +225960,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -224433,6 +226455,42 @@ export namespace Prisma {
     seatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reference?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KioskDeviceUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KioskDeviceUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KioskDeviceUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -225489,6 +227547,7 @@ export namespace Prisma {
     fulfillmentType?: $Enums.FulfillmentType
     tableId?: string | null
     covers?: number | null
+    isWalkIn?: boolean
     customerInfo: JsonNullValueInput | InputJsonValue
     customerName?: string | null
     customerPhone?: string | null
@@ -225611,6 +227670,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -225697,6 +227757,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -225779,6 +227840,7 @@ export namespace Prisma {
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     tableId?: NullableStringFieldUpdateOperationsInput | string | null
     covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
     customerInfo?: JsonNullValueInput | InputJsonValue
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226767,6 +228829,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -226850,6 +228913,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -226989,6 +229053,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -227072,6 +229137,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -227541,6 +229607,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
     tables?: TableUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
@@ -227624,6 +229691,7 @@ export namespace Prisma {
     signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
     tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
     tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -229551,6 +231619,10 @@ export namespace Prisma {
      * @deprecated Use TableDefaultArgs instead
      */
     export type TableArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TableDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use KioskDeviceDefaultArgs instead
+     */
+    export type KioskDeviceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KioskDeviceDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TableReservationDefaultArgs instead
      */

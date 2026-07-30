@@ -53,6 +53,8 @@ export type DiscountType = null | "PROMO_CODE" | "PERCENTAGE" | "FIXED_AMOUNT" |
 
 // What the panel hands the parent when "Place order" is clicked.
 export interface PlaceOrderPayload {
+  /** Counter trade — no customer details taken. Drives walk-in reporting. */
+  isWalkIn?: boolean;
   customerName: string;
   customerPhone: string;
   callerId?: string;
@@ -616,6 +618,7 @@ export function PosCartPanel(props: CartPanelProps) {
       ? new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString()
       : undefined;
     await onPlaceOrder({
+      isWalkIn: walkIn,
       customerName: walkIn ? "Walk-in" : customerName.trim() || "Walk-in",
       customerPhone: walkIn ? "" : customerPhone.trim(),
       callerId: callerId.trim() || undefined,

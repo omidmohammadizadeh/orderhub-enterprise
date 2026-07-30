@@ -144,6 +144,26 @@ export class AnalyticsController {
     });
   }
 
+  @Get("walk-in")
+  @ApiOperation({
+    summary: "Walk-in report — counter + kiosk revenue, split by how it was paid",
+  })
+  @ApiQuery({ name: "locationId", required: false })
+  @ApiQuery({ name: "startDate", required: false })
+  @ApiQuery({ name: "endDate", required: false })
+  getWalkInReport(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+    @Query("startDate") startDate?: string,
+    @Query("endDate") endDate?: string,
+  ) {
+    return this.analytics.getWalkInReport(user.tenantId, {
+      locationId,
+      startDate: parseDate(startDate, sevenDaysAgo()),
+      endDate: parseDate(endDate, new Date()),
+    });
+  }
+
   @Get("dine-in")
   @ApiOperation({
     summary: "Dine-in report — covers, spend per head, table time, write-offs",

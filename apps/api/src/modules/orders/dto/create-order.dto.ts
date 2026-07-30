@@ -78,6 +78,11 @@ export class CreateOrderDto {
   // Table Tabs — set on a DINE_IN order that is a table's running tab.
   @ApiPropertyOptional() @IsOptional() @IsString() tableId?: string;
 
+  // Counter trade — POS walk-in or a self-service kiosk. Tagged rather than
+  // inferred from the customer name, so the walk-in report can't be fooled
+  // by a customer actually called "Walk-in".
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isWalkIn?: boolean;
+
   @ApiProperty()
   @ValidateNested()
   @Type(() => CustomerInfoDto)

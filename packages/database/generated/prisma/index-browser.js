@@ -879,6 +879,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   fulfillmentType: 'fulfillmentType',
   tableId: 'tableId',
   covers: 'covers',
+  isWalkIn: 'isWalkIn',
   customerInfo: 'customerInfo',
   customerName: 'customerName',
   customerPhone: 'customerPhone',
@@ -1041,6 +1042,19 @@ exports.Prisma.TableScalarFieldEnum = {
   covers: 'covers',
   serverId: 'serverId',
   serverName: 'serverName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.KioskDeviceScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  name: 'name',
+  publicToken: 'publicToken',
+  isActive: 'isActive',
+  config: 'config',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2620,6 +2634,15 @@ exports.Prisma.TableOrderByRelevanceFieldEnum = {
   serverName: 'serverName'
 };
 
+exports.Prisma.KioskDeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  name: 'name',
+  publicToken: 'publicToken'
+};
+
 exports.Prisma.TableReservationOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -3750,6 +3773,7 @@ exports.Prisma.ModelName = {
   KdsScreen: 'KdsScreen',
   SignageDisplay: 'SignageDisplay',
   Table: 'Table',
+  KioskDevice: 'KioskDevice',
   TableReservation: 'TableReservation',
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',

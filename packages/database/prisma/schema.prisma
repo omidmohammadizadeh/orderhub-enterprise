@@ -479,6 +479,7 @@ model Location {
   signageDisplays      SignageDisplay[]
   tables               Table[]
   tableReservations    TableReservation[]
+  kioskDevices         KioskDevice[]
   deliveryZones        DeliveryZone[]
   paymentConfig        LocationPaymentConfig?
   userLocations        UserLocation[]
@@ -1776,6 +1777,10 @@ model Order {
   // Guests on the tab, copied off the table at settle so dine-in
   // reporting can do spend-per-head after the table is freed.
   covers          Int?
+  // Counter trade: a POS walk-in or a self-service kiosk order. Tagged
+  // explicitly rather than inferred from customerName == "Walk-in", which
+  // breaks the first time a customer is actually called that.
+  isWalkIn        Boolean @default(false)
 
   customerInfo  Json
   customerName  String?
@@ -2094,6 +2099,31 @@ model Table {
   @@index([tenantId])
   @@index([locationId])
   @@map("tables")
+}
+
+// A self-service kiosk screen standing in the shop. Same shape as
+// SignageDisplay and Table.qrToken: per-location, opened by an unguessable
+// token, no login on the device.
+//
+// Kiosk orders are always walk-in collection — there is no table and no
+// address to take — so the device carries no fulfilment choice at all.
+model KioskDevice {
+  id          String   @id @default(cuid())
+  tenantId    String
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId     String?
+  name        String
+  publicToken String   @unique
+  isActive    Boolean  @default(true)
+  // { allowCardPayment, allowPayAtCounter, categoryIds?, theme? }
+  config      Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("kiosk_devices")
 }
 
 // A booking. Staff-made (phone / walk-up) or guest-made from the

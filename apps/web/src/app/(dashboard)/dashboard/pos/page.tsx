@@ -332,6 +332,9 @@ export default function PosPage() {
         ...(brandId && { brandId }),
         orderSource: "POS" as const,
         fulfillmentType: payload.fulfillmentType,
+        // Counter trade — tagged so walk-in revenue can be reported apart
+        // from phone and online orders.
+        ...(payload.isWalkIn ? { isWalkIn: true } : {}),
         customerInfo: {
           name: payload.customerName,
           phone: payload.customerPhone || undefined,

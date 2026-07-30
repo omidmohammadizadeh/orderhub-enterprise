@@ -1877,4 +1877,66 @@ export class AnalyticsService {
     };
   }
 
+  /**
+   * Walk-in (counter) trade — POS orders taken without customer details and
+   * self-service kiosk orders. Read off the explicit Order.isWalkIn tag, NOT
+   * inferred from customerName == "Walk-in", which would miscount the first
+   * time a customer is genuinely called that.
+   *
+   * Reported apart from phone and online because it behaves differently:
+   * no delivery cost, no marketing consent, and it is the number that tells
+   * an operator whether a kiosk is earning its floor space.
+   */
+  async getWalkInReport(
+    tenantId: string,
+    opts: { locationId?: string; startDate: Date; endDate: Date },
+  ) {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        tenantId,
+        isWalkIn: true,
+        ...(opts.locationId ? { locationId: opts.locationId } : {}),
+        createdAt: { gte: opts.startDate, lte: opts.endDate },
+        status: { notIn: ["CANCELLED", "REJECTED", "FAILED"] },
+      },
+      select: {
+        total: true,
+        paymentStatus: true,
+        paymentMethod: true,
+        createdAt: true,
+      },
+    });
+
+    // Local, same as getDineInReport — the class has no shared helper.
+    const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+    const revenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
+    const paid = orders.filter((o) => o.paymentStatus === "PAID");
+
+    // Split by how they settled, so "pay at counter" volume from a kiosk is
+    // visible against card — that is the operational question (how much cash
+    // is the till still handling).
+    const byMethod = new Map<string, { count: number; revenue: number }>();
+    for (const o of orders) {
+      const key = String(o.paymentMethod ?? "UNKNOWN");
+      const row = byMethod.get(key) ?? { count: 0, revenue: 0 };
+      row.count += 1;
+      row.revenue += Number(o.total);
+      byMethod.set(key, row);
+    }
+
+    return {
+      orders: orders.length,
+      revenue: round2(revenue),
+      avgOrderValue: orders.length ? round2(revenue / orders.length) : 0,
+      paidOrders: paid.length,
+      unpaid: orders.length - paid.length,
+      byPaymentMethod: [...byMethod.entries()]
+        .map(([method, v]) => ({
+          method,
+          count: v.count,
+          revenue: round2(v.revenue),
+        }))
+        .sort((a, b) => b.revenue - a.revenue),
+    };
+  }
 }
