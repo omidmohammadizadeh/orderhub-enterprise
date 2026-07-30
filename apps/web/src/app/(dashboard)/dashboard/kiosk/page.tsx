@@ -196,29 +196,42 @@ export default function KioskPage() {
         //                    once the payment succeeds.
         //                    Sending CASH here — as this first did — put
         //                    unpaid food in front of the kitchen.
-        paymentMethod: payment === "CARD" ? ("CARD" as const) : ("CASH" as const),
+        // CARD_TERMINAL, not "CARD": the DTO enum is
+        // CASH | CARD_TERMINAL | ONLINE_CARD | PAYMENT_LINK | QR_CODE |
+        // EXTERNAL, and sending "CARD" was rejected with a 400 before the
+        // order was even created. The service maps CARD_TERMINAL onto the
+        // unpaid-card hold that keeps it off the kitchen until it settles.
+        paymentMethod:
+          payment === "CARD" ? ("CARD_TERMINAL" as const) : ("CASH" as const),
         paymentStatus: "PENDING" as const,
         idempotencyKey: `kiosk-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       };
       const res = await apiClient.post("/v1/orders", body);
-      return { data: res.data as any, payment };
+      const created = res.data as any;
+      const orderId = created?.id ?? created?.order?.id;
+      // Read the order back for its number rather than guessing at the
+      // create response's shape — that guess is why the confirmation showed
+      // no number at all, which is the one thing a customer needs to
+      // collect. Best-effort: a missing number must not fail a paid order.
+      let displayId: string | null =
+        created?.displayId ?? created?.orderNumber ?? null;
+      if (!displayId && orderId) {
+        try {
+          const full = (await apiClient.get(`/v1/orders/${orderId}`)).data as any;
+          displayId = full?.displayId ?? full?.orderNumber ?? null;
+        } catch {
+          /* keep going — the order exists either way */
+        }
+      }
+      return { data: created, orderId, displayId, payment };
     },
-    onSuccess: ({ data, payment }) => {
-      // The order number lives on the created order; earlier this read a
-      // shape that isn't always present, so the confirmation showed no
-      // number at all — the one thing the customer needs to collect.
-      const num =
-        data?.displayId ?? data?.orderNumber ?? data?.order?.displayId ?? null;
+    onSuccess: ({ orderId, displayId, payment }) => {
       if (payment === "CARD") {
         // Nothing is confirmed yet — take the money first.
-        setPendingCard({
-          orderId: data?.id ?? data?.order?.id,
-          displayId: num,
-          amount: subtotal,
-        });
+        setPendingCard({ orderId, displayId, amount: subtotal });
         return;
       }
-      setDone({ displayId: num, total: subtotal, paid: payment });
+      setDone({ displayId, total: subtotal, paid: payment });
       setCart([]);
       setBasketOpen(false);
     },
