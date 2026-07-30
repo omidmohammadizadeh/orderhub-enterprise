@@ -1,250 +1,490 @@
 "use client";
 
-// Self-service kiosk screens — register a device, get the URL it opens.
+// Kiosk — a self-service till.
 //
-// Mirrors the signage page: the screen itself carries no login, just an
-// unguessable token, so the whole job here is minting that token and
-// getting it onto the device.
+// This is the POS, narrowed to what a customer can safely do on their own:
+// always walk-in collection, no customer details, and only two ways to pay.
+// It is NOT a separate ordering system — it fetches the same menu
+// (getActiveMenuForLocation) and posts to the same POST /v1/orders as the
+// till, so a kiosk order is indistinguishable downstream: Orders board,
+// KDS, print, walk-in reporting.
+//
+// The device signs in as a user with the KIOSK role, which can reach this
+// page and nothing else. Access is revoked by disabling that account.
+//
+// Design constraints that differ from the till: the person is standing,
+// unaided, possibly with a queue behind them. Large targets, no chrome to
+// get lost in, and the screen returns itself to a clean state so an
+// abandoned basket never becomes the next customer's order.
 
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { QRCodeSVG } from "qrcode.react";
-import { Copy, MonitorSmartphone, Plus, RefreshCw, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import {
+  buildCartItemName,
+  calculateCartItem,
+  round2,
+  type SelectedModifier,
+} from "@orderhub/shared";
+import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-import { kioskClient, type KioskDevice } from "@/lib/api/kiosk.client";
+import { menusClient, type MenuItem } from "@/lib/api/menus.client";
+import { modifierGroupsClient } from "@/lib/api/catalog.client";
+import { apiClient } from "@/lib/api/client";
+
+interface Line {
+  key: string;
+  menuItemId: string;
+  displayName: string;
+  unitPrice: number;
+  quantity: number;
+  modifiers: SelectedModifier[];
+  notes?: string;
+}
+
+const money = (n: number) => `£${Number(n ?? 0).toFixed(2)}`;
+
+// An untouched basket clears itself. Someone who walks off mid-order must
+// not leave their food on screen for the next person to pay for.
+const IDLE_RESET_MS = 90_000;
 
 export default function KioskPage() {
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
-  const qc = useQueryClient();
-  const [name, setName] = useState("");
-  const [origin, setOrigin] = useState("");
 
-  // window is client-only, and the URL must be whatever host the operator
-  // is actually on (custom domains included).
-  useEffect(() => setOrigin(window.location.origin), []);
-
-  const listQuery = useQuery({
-    queryKey: ["kiosks", locationId],
-    queryFn: () => kioskClient.list(locationId!),
+  const menuQuery = useQuery({
+    queryKey: ["kiosk-menu", locationId],
+    queryFn: () => menusClient.getActiveMenuForLocation(locationId!),
     enabled: !!locationId,
+    // A kiosk runs unattended all day; it has to pick up 86'd items and
+    // price changes without anyone touching it.
+    refetchInterval: 60_000,
+    staleTime: 30_000,
   });
-  const kiosks = listQuery.data ?? [];
+  const menu = menuQuery.data as any;
+  const brandId = menu?.brandId as string | undefined;
 
-  const invalidate = () =>
-    qc.invalidateQueries({ queryKey: ["kiosks", locationId] });
+  const groupsQuery = useQuery({
+    queryKey: ["kiosk-groups", brandId],
+    queryFn: () => modifierGroupsClient.list(brandId!),
+    enabled: !!brandId,
+  });
+  const allGroups = (groupsQuery.data ?? []) as any[];
 
-  const createMut = useMutation({
-    mutationFn: () =>
-      kioskClient.create({ locationId: locationId!, name: name.trim() }),
-    onSuccess: () => {
-      setName("");
-      invalidate();
-      toast.success("Kiosk added");
+  const categories: any[] = menu?.categories ?? [];
+  const [activeCat, setActiveCat] = useState<string | null>(null);
+  const currentCat =
+    categories.find((c) => c.id === activeCat) ?? categories[0] ?? null;
+
+  const [cart, setCart] = useState<Line[]>([]);
+  const [modalItem, setModalItem] = useState<MenuItem | null>(null);
+  const [basketOpen, setBasketOpen] = useState(false);
+  const [done, setDone] = useState<{
+    displayId: string | null;
+    total: number;
+    paid: "CARD" | "COUNTER";
+  } | null>(null);
+
+  // Latch against a double-tap on a touchscreen: React state lags a fast
+  // second touch by a frame.
+  const placingRef = useRef(false);
+
+  const subtotal = round2(
+    cart.reduce((s, l) => s + l.unitPrice * l.quantity, 0),
+  );
+  const count = cart.reduce((s, l) => s + l.quantity, 0);
+
+  const reset = useCallback(() => {
+    setCart([]);
+    setBasketOpen(false);
+    setDone(null);
+    setActiveCat(null);
+  }, []);
+
+  useEffect(() => {
+    if (!cart.length || done) return;
+    let t = setTimeout(reset, IDLE_RESET_MS);
+    const bump = () => {
+      clearTimeout(t);
+      t = setTimeout(reset, IDLE_RESET_MS);
+    };
+    window.addEventListener("pointerdown", bump);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("pointerdown", bump);
+    };
+  }, [cart.length, done, reset]);
+
+  useEffect(() => {
+    if (!done) return;
+    const t = setTimeout(reset, 12_000);
+    return () => clearTimeout(t);
+  }, [done, reset]);
+
+  const addLine = (l: Omit<Line, "key">) =>
+    setCart((prev) => [
+      ...prev,
+      { ...l, key: `${l.menuItemId}-${Date.now()}-${prev.length}` },
+    ]);
+
+  const onItemTap = (item: any) => {
+    const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
+    if (hasMods || item.hasMultipleSkus) {
+      setModalItem(item);
+      return;
+    }
+    const b = calculateCartItem({
+      basePrice: Number(item.basePrice ?? 0),
+      modifiers: [],
+      quantity: 1,
+    });
+    addLine({
+      menuItemId: item.id,
+      displayName: buildCartItemName({
+        productName: item.name,
+        modifiers: [],
+        note: null,
+      }),
+      unitPrice: b.unitPrice,
+      quantity: 1,
+      modifiers: [],
+    });
+  };
+
+  const place = useMutation({
+    mutationFn: async (payment: "CARD" | "COUNTER") => {
+      const body = {
+        locationId: locationId!,
+        ...(brandId ? { brandId } : {}),
+        orderSource: "POS" as const,
+        fulfillmentType: "PICKUP" as const,
+        // Counter trade — this is what the walk-in report counts.
+        isWalkIn: true,
+        customerInfo: { name: "Kiosk" },
+        items: cart.map((l) => ({
+          name: l.displayName,
+          quantity: l.quantity,
+          // unitPrice ALREADY includes modifiers (calculateCartItem), so a
+          // line is unitPrice × quantity. Adding them again is exactly what
+          // overcharged the online storefront.
+          unitPrice: l.unitPrice,
+          totalPrice: round2(l.unitPrice * l.quantity),
+          modifiers: l.modifiers.map((m) => ({
+            name: m.name,
+            price: m.price,
+            quantity: 1,
+          })),
+          notes: l.notes,
+          // Load-bearing: KDS station routing matches on menuItemId.
+          menuItemId: l.menuItemId,
+        })),
+        subtotal,
+        total: subtotal,
+        // Both routes are settled at the counter by a member of staff, so
+        // both are recorded as CASH/PENDING — the till takes the money and
+        // marks it paid, exactly as it would for a phoned-in collection.
+        paymentMethod: "CASH" as const,
+        paymentStatus: "PENDING" as const,
+        idempotencyKey: `kiosk-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      };
+      const res = await apiClient.post("/v1/orders", body);
+      return { data: res.data as any, payment };
     },
-    onError: (e: any) =>
-      toast.error(e?.response?.data?.message ?? "Couldn't add the kiosk"),
-  });
-
-  const updateMut = useMutation({
-    mutationFn: (v: { id: string; input: any }) =>
-      kioskClient.update(v.id, v.input),
-    onSuccess: invalidate,
-  });
-
-  const rotateMut = useMutation({
-    mutationFn: (id: string) => kioskClient.rotateToken(id),
-    onSuccess: () => {
-      invalidate();
-      toast.success("New link issued — the old one has stopped working");
+    onSuccess: ({ data, payment }) => {
+      setDone({
+        displayId: data?.displayId ?? data?.orderNumber ?? null,
+        total: subtotal,
+        paid: payment,
+      });
+      setCart([]);
+      setBasketOpen(false);
+    },
+    onSettled: () => {
+      placingRef.current = false;
     },
   });
 
-  const removeMut = useMutation({
-    mutationFn: (id: string) => kioskClient.remove(id),
-    onSuccess: () => {
-      invalidate();
-      toast.success("Kiosk removed");
-    },
-  });
+  const submit = (payment: "CARD" | "COUNTER") => {
+    if (placingRef.current || place.isPending || !cart.length) return;
+    placingRef.current = true;
+    place.mutate(payment);
+  };
 
-  const urlFor = (k: KioskDevice) => `${origin}/kiosk/${k.publicToken}`;
-
+  // ── Gates ───────────────────────────────────────────────────────────
   if (!locationId) {
     return (
-      <div className="p-8 text-sm text-zinc-500">
-        Pick a location to manage its kiosks.
-      </div>
+      <Full>
+        <p className="text-2xl font-semibold text-zinc-800">
+          No location selected
+        </p>
+        <p className="mt-2 text-zinc-500">
+          Please ask a member of staff to set this screen up.
+        </p>
+      </Full>
+    );
+  }
+  if (menuQuery.isLoading) {
+    return (
+      <Full>
+        <Loader2 className="h-10 w-10 animate-spin text-zinc-400" />
+        <p className="mt-4 text-lg text-zinc-500">Just a moment…</p>
+      </Full>
+    );
+  }
+  if (menuQuery.isError || !categories.length) {
+    return (
+      <Full>
+        <p className="text-2xl font-semibold text-zinc-800">
+          No menu available
+        </p>
+        <p className="mt-2 max-w-md text-center text-zinc-500">
+          Please order at the counter — a member of staff will be happy to
+          help.
+        </p>
+      </Full>
+    );
+  }
+
+  if (done) {
+    return (
+      <Full>
+        <div className="text-center">
+          <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-emerald-100 text-5xl">
+            ✓
+          </div>
+          <h1 className="mt-6 text-4xl font-bold text-zinc-900">Order placed</h1>
+          {done.displayId && (
+            <p className="mt-2 text-6xl font-black tracking-tight text-emerald-700">
+              #{done.displayId}
+            </p>
+          )}
+          <p className="mt-6 max-w-md text-xl text-zinc-600">
+            Please pay {money(done.total)} at the counter
+            {done.paid === "CARD" ? " by card" : ""} and give them your number.
+          </p>
+          <button
+            onClick={reset}
+            className="mt-10 rounded-xl bg-zinc-900 px-12 py-6 text-2xl font-semibold text-white"
+          >
+            Done
+          </button>
+        </div>
+      </Full>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-zinc-900">
-          <MonitorSmartphone className="h-6 w-6" /> Kiosk
-        </h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Self-service screens in the shop. Customers order and collect at the
-          counter — always walk-in, never delivery. The menu is the same one
-          your till uses, so prices and sold-out items always match.
-        </p>
-      </div>
-
-      {/* Add */}
-      <div className="mb-6 flex gap-2">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Screen name (e.g. Front door, Window 2)"
-          className="w-full max-w-sm rounded-md border border-zinc-200 px-3 py-2 text-sm"
-        />
-        <Button
-          onClick={() => createMut.mutate()}
-          disabled={!name.trim()}
-          loading={createMut.isPending}
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add kiosk
-        </Button>
-      </div>
-
-      {listQuery.isLoading ? (
-        <p className="text-sm text-zinc-400">Loading…</p>
-      ) : !kiosks.length ? (
-        <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center">
-          <MonitorSmartphone className="mx-auto h-8 w-8 text-zinc-300" />
-          <p className="mt-3 text-sm text-zinc-600">
-            No kiosk screens yet. Add one, then open its link on the tablet or
-            screen you want customers to use.
+    <div className="flex h-[calc(100vh-4rem)] flex-col bg-zinc-50">
+      <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-900">Order here</h1>
+          <p className="text-sm text-zinc-500">
+            Tap to add · collect at the counter
           </p>
         </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {kiosks.map((k) => (
-            <div
-              key={k.id}
-              className="rounded-xl border border-zinc-200 bg-white p-5"
+        {cart.length > 0 && (
+          <button
+            onClick={reset}
+            className="rounded-lg border border-zinc-200 px-5 py-3 text-base font-medium text-zinc-500"
+          >
+            Start again
+          </button>
+        )}
+      </header>
+
+      <div className="flex gap-2 overflow-x-auto border-b border-zinc-200 bg-white px-6 py-3">
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setActiveCat(c.id)}
+            className={
+              "shrink-0 rounded-full px-6 py-3 text-base font-semibold " +
+              (currentCat?.id === c.id
+                ? "bg-zinc-900 text-white"
+                : "bg-zinc-100 text-zinc-700")
+            }
+          >
+            {c.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6 pb-28">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {(currentCat?.items ?? []).map((link: any) => {
+            const item = link.item ?? link;
+            if (item?.isAvailable === false) return null;
+            const sold = item?.outOfStock === true;
+            return (
+              <button
+                key={item.id}
+                disabled={sold}
+                onClick={() => onItemTap(item)}
+                className={
+                  "rounded-2xl border bg-white p-5 text-left shadow-sm transition " +
+                  (sold
+                    ? "cursor-not-allowed border-zinc-100 opacity-50"
+                    : "border-zinc-200 active:scale-[0.98]")
+                }
+              >
+                <div className="text-xl font-semibold leading-tight text-zinc-900">
+                  {item.name}
+                </div>
+                {item.description && (
+                  <p className="mt-1 line-clamp-2 text-sm text-zinc-500">
+                    {item.description}
+                  </p>
+                )}
+                <div className="mt-3 text-2xl font-bold text-zinc-900">
+                  {sold ? "Sold out" : money(Number(item.basePrice ?? 0))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {count > 0 && !basketOpen && (
+        <button
+          onClick={() => setBasketOpen(true)}
+          className="fixed inset-x-0 bottom-0 flex items-center justify-between bg-zinc-900 px-6 py-5 text-white"
+        >
+          <span className="flex items-center gap-3 text-lg font-semibold">
+            <ShoppingBag className="h-6 w-6" /> {count} item
+            {count === 1 ? "" : "s"}
+          </span>
+          <span className="text-2xl font-bold">{money(subtotal)}</span>
+        </button>
+      )}
+
+      {basketOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-white">
+          <header className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
+            <h2 className="text-2xl font-bold">Your order</h2>
+            <button
+              onClick={() => setBasketOpen(false)}
+              className="rounded-lg border border-zinc-200 px-5 py-3 text-base font-medium"
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-zinc-900">
-                    {k.name}
-                  </h2>
-                  <p className="text-[11px] text-zinc-400">
-                    {k.isActive ? "Active" : "Disabled"}
+              Add more
+            </button>
+          </header>
+
+          <div className="flex-1 overflow-y-auto p-6">
+            {cart.map((l) => (
+              <div
+                key={l.key}
+                className="mb-3 flex items-center gap-3 rounded-xl border border-zinc-200 p-4"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-semibold text-zinc-900">
+                    {l.displayName}
+                  </p>
+                  <p className="text-base text-zinc-500">
+                    {money(l.unitPrice * l.quantity)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-zinc-200 p-2">
-                  {origin ? <QRCodeSVG value={urlFor(k)} size={92} /> : null}
-                </div>
-              </div>
-
-              <p className="mt-3 break-all rounded bg-zinc-50 p-2 text-[11px] text-zinc-500">
-                {urlFor(k)}
-              </p>
-
-              <div className="mt-3 space-y-2">
-                <Toggle
-                  label="Pay at the counter"
-                  hint="Order goes to the kitchen unpaid; staff take the money"
-                  checked={k.config?.allowPayAtCounter !== false}
-                  onChange={(v) =>
-                    updateMut.mutate({
-                      id: k.id,
-                      input: { config: { ...k.config, allowPayAtCounter: v } },
-                    })
-                  }
-                />
-                <Toggle
-                  label="Pay by card"
-                  hint="Staff take the card at the counter"
-                  checked={k.config?.allowCardPayment !== false}
-                  onChange={(v) =>
-                    updateMut.mutate({
-                      id: k.id,
-                      input: { config: { ...k.config, allowCardPayment: v } },
-                    })
-                  }
-                />
-                <Toggle
-                  label="Screen enabled"
-                  hint="Turn off to take this kiosk out of service"
-                  checked={k.isActive}
-                  onChange={(v) =>
-                    updateMut.mutate({ id: k.id, input: { isActive: v } })
-                  }
-                />
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    navigator.clipboard
-                      .writeText(urlFor(k))
-                      .then(() => toast.success("Link copied"))
-                      .catch(() => toast.error("Couldn't copy"));
-                  }}
-                >
-                  <Copy className="mr-1 h-3.5 w-3.5" /> Copy link
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (
-                      confirm(
-                        "Issue a new link? The screen currently showing this kiosk will stop working until you reopen it.",
-                      )
+                <button
+                  onClick={() =>
+                    setCart((p) =>
+                      p
+                        .map((x) =>
+                          x.key === l.key
+                            ? { ...x, quantity: x.quantity - 1 }
+                            : x,
+                        )
+                        .filter((x) => x.quantity > 0),
                     )
-                      rotateMut.mutate(k.id);
-                  }}
+                  }
+                  className="grid h-14 w-14 place-items-center rounded-lg bg-zinc-100"
                 >
-                  <RefreshCw className="mr-1 h-3.5 w-3.5" /> New link
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm(`Remove "${k.name}"?`)) removeMut.mutate(k.id);
-                  }}
+                  <Minus className="h-6 w-6" />
+                </button>
+                <span className="w-8 text-center text-xl font-bold">
+                  {l.quantity}
+                </span>
+                <button
+                  onClick={() =>
+                    setCart((p) =>
+                      p.map((x) =>
+                        x.key === l.key
+                          ? { ...x, quantity: x.quantity + 1 }
+                          : x,
+                      ),
+                    )
+                  }
+                  className="grid h-14 w-14 place-items-center rounded-lg bg-zinc-100"
                 >
-                  <Trash2 className="mr-1 h-3.5 w-3.5" /> Remove
-                </Button>
+                  <Plus className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={() =>
+                    setCart((p) => p.filter((x) => x.key !== l.key))
+                  }
+                  className="grid h-14 w-14 place-items-center rounded-lg text-zinc-400"
+                >
+                  <Trash2 className="h-6 w-6" />
+                </button>
               </div>
+            ))}
+          </div>
+
+          <div className="border-t border-zinc-200 p-6">
+            <div className="mb-4 flex items-center justify-between text-2xl font-bold">
+              <span>Total</span>
+              <span>{money(subtotal)}</span>
             </div>
-          ))}
+            {place.isError && (
+              <p className="mb-3 rounded-lg bg-red-50 p-3 text-center text-base text-red-700">
+                That didn&rsquo;t go through. Try again, or order at the
+                counter.
+              </p>
+            )}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                onClick={() => submit("CARD")}
+                disabled={place.isPending}
+                className="rounded-xl bg-emerald-600 py-7 text-xl font-bold text-white disabled:opacity-60"
+              >
+                {place.isPending ? "Sending…" : "Pay by card"}
+              </button>
+              <button
+                onClick={() => submit("COUNTER")}
+                disabled={place.isPending}
+                className="rounded-xl bg-zinc-900 py-7 text-xl font-bold text-white disabled:opacity-60"
+              >
+                {place.isPending ? "Sending…" : "Pay at the counter"}
+              </button>
+            </div>
+          </div>
         </div>
+      )}
+
+      {modalItem && (
+        <ModifierSelectionModal
+          item={modalItem}
+          allModifierGroups={allGroups}
+          open={!!modalItem}
+          onClose={() => setModalItem(null)}
+          onAdd={(line) => {
+            addLine({
+              menuItemId: line.menuItemId,
+              displayName: line.displayName,
+              unitPrice: line.unitPrice,
+              quantity: line.quantity,
+              modifiers: line.modifiers,
+              notes: line.notes,
+            });
+            setModalItem(null);
+          }}
+        />
       )}
     </div>
   );
 }
 
-function Toggle({
-  label,
-  hint,
-  checked,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function Full({ children }: { children: React.ReactNode }) {
   return (
-    <label className="flex cursor-pointer items-start gap-2">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 h-4 w-4 rounded border-zinc-300"
-      />
-      <span className="text-xs">
-        <span className="font-medium text-zinc-800">{label}</span>
-        <span className="block text-[11px] text-zinc-500">{hint}</span>
-      </span>
-    </label>
+    <div className="grid h-[calc(100vh-4rem)] place-items-center bg-zinc-50 p-8">
+      <div className="flex flex-col items-center">{children}</div>
+    </div>
   );
 }

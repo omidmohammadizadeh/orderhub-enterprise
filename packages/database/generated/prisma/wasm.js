@@ -3299,7 +3299,8 @@ exports.UserRole = exports.$Enums.UserRole = {
   DARK_KITCHEN_MANAGER: 'DARK_KITCHEN_MANAGER',
   STAFF: 'STAFF',
   ONBOARDING_AGENT: 'ONBOARDING_AGENT',
-  FINANCIAL_AGENT: 'FINANCIAL_AGENT'
+  FINANCIAL_AGENT: 'FINANCIAL_AGENT',
+  KIOSK: 'KIOSK'
 };
 
 exports.LeadSource = exports.$Enums.LeadSource = {

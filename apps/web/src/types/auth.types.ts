@@ -2,6 +2,11 @@
 // Do NOT import from @orderhub/shared here to keep the web bundle clean;
 // these are manually kept in sync with the backend DTOs.
 
+// Mirrors the API's UserRole enum. This had drifted — the Team Roles
+// (OWNER, DARK_KITCHEN_MANAGER, STAFF, ONBOARDING_AGENT, FINANCIAL_AGENT)
+// are assignable in the Team Roles UI and returned by /auth/me, but were
+// missing here, so any comparison against them failed to typecheck and
+// role checks had to cast through `string`.
 export type UserRole =
   | "PLATFORM_ADMIN"
   | "TENANT_OWNER"
@@ -9,7 +14,15 @@ export type UserRole =
   | "CASHIER"
   | "KITCHEN_STAFF"
   | "DRIVER"
-  | "VIEWER";
+  | "VIEWER"
+  // Team Roles
+  | "OWNER"
+  | "DARK_KITCHEN_MANAGER"
+  | "STAFF"
+  | "ONBOARDING_AGENT"
+  | "FINANCIAL_AGENT"
+  // A self-service kiosk device account — reaches the Kiosk tab only.
+  | "KIOSK";
 
 export interface UserProfile {
   id: string;

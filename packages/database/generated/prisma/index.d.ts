@@ -628,7 +628,8 @@ export const UserRole: {
   DARK_KITCHEN_MANAGER: 'DARK_KITCHEN_MANAGER',
   STAFF: 'STAFF',
   ONBOARDING_AGENT: 'ONBOARDING_AGENT',
-  FINANCIAL_AGENT: 'FINANCIAL_AGENT'
+  FINANCIAL_AGENT: 'FINANCIAL_AGENT',
+  KIOSK: 'KIOSK'
 };
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]

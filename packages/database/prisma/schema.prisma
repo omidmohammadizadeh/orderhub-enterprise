@@ -3611,6 +3611,13 @@ enum UserRole {
   STAFF
   ONBOARDING_AGENT
   FINANCIAL_AGENT
+
+  // A self-service kiosk device signs in as its own restricted user. It can
+  // reach the Kiosk tab and nothing else — not orders, not takings, not the
+  // menu editor. Making the device a ROLE rather than a secret URL means
+  // access is revoked by disabling an account, and every kiosk order is
+  // attributable to a real user id.
+  KIOSK
 }
 
 enum OAuthProvider {

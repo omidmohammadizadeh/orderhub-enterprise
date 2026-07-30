@@ -105,7 +105,9 @@ const primaryNav: NavItem[] = [
     href: "/dashboard/kiosk",
     label: "Kiosk",
     icon: MonitorSmartphone,
-    roles: STAFF_TIER,
+    // The kiosk device signs in as a KIOSK user, which reaches this and
+    // nothing else — see the filter below.
+    roles: [...STAFF_TIER, "KIOSK"],
   },
   // Phase AW — Direct online ordering settings moved into the per-brand
   // settings drawer (Locations → Brands → DIRECT_ONLINE channel →
@@ -257,6 +259,11 @@ function _Sidebar() {
         {primaryNav
           .filter(
             (item) =>
+              // A kiosk device account gets exactly one destination. This
+              // is belt-and-braces with the route guard in the dashboard
+              // layout — a customer must never be one stray tap away from
+              // takings or the menu editor.
+              (user?.role !== "KIOSK" || item.href === "/dashboard/kiosk") &&
               // Phase AP — items with a `roles` array are hidden from
               // users without that role. Server enforces too — this is
               // UI cleanliness.
