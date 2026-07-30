@@ -17,6 +17,7 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import { OrdersService, OrderFilters } from "./orders.service";
+import { VoidItemsService } from "./void-items.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { EditOrderDto } from "./dto/edit-order.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
@@ -58,7 +59,52 @@ const POS_MANAGER: UserRole[] = [
 @BillingExempt() // Live order operations must never be blocked by billing status
 @Controller({ path: "orders", version: "1" })
 export class OrdersController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(
+    private readonly orders: OrdersService,
+    private readonly voidItems: VoidItemsService,
+  ) {}
+
+  // ── Void / comp a line, gated on a manager PIN ──────────────────────
+  @Post("locations/:locationId/manager-pin")
+  @Roles(...POS_MANAGER)
+  @ApiOperation({ summary: "Set this location's manager PIN (stored hashed)" })
+  setManagerPin(
+    @Param("locationId") locationId: string,
+    @Body() body: { pin: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.voidItems.setManagerPin(user.tenantId, locationId, body.pin);
+  }
+
+  @Get("locations/:locationId/manager-pin")
+  @Roles(...POS_STAFF)
+  @ApiOperation({ summary: "Is a manager PIN configured here?" })
+  managerPinConfigured(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.voidItems.hasManagerPin(user.tenantId, locationId);
+  }
+
+  @Post(":id/items/:itemId/void")
+  @Roles(...POS_STAFF)
+  @ApiOperation({ summary: "Void or comp one line off an unpaid bill" })
+  voidLine(
+    @Param("id") id: string,
+    @Param("itemId") itemId: string,
+    @Body() body: { pin: string; reason: string; type?: "VOID" | "COMP" },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.voidItems.voidItem({
+      tenantId: user.tenantId,
+      orderId: id,
+      itemId,
+      pin: body.pin,
+      reason: body.reason,
+      type: body.type ?? "VOID",
+      userId: user.userId ?? "staff",
+    });
+  }
 
   // ── POST /api/v1/orders ───────────────────────────────
   @Post()

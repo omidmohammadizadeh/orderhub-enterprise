@@ -111,7 +111,31 @@ export interface GroupDetail {
   orderCount: number;
 }
 
+export interface DineInReport {
+  orders: number;
+  revenue: number;
+  serviceCharge: number;
+  covers: number;
+  ordersWithCovers: number;
+  spendPerHead: number;
+  avgOrderValue: number;
+  avgTableMinutes: number;
+  unpaid: number;
+  voids: { count: number; value: number };
+  comps: { count: number; value: number };
+}
+
 export const analyticsClient = {
+  dineIn: (f: { startDate?: string; endDate?: string; locationId?: string }) => {
+    const params: Record<string, string> = {};
+    if (f.startDate) params.startDate = f.startDate;
+    if (f.endDate) params.endDate = f.endDate;
+    if (f.locationId) params.locationId = f.locationId;
+    return apiClient
+      .get<DineInReport>("/v1/analytics/dine-in", { params })
+      .then((r) => r.data);
+  },
+
   customerInsights: (f: { from?: string; to?: string; locationId?: string }) => {
     const params: Record<string, string> = {};
     if (f.from) params.from = f.from;

@@ -179,6 +179,9 @@ export function buildPrintPayload(
     })),
     subtotal: Number((order as any).subtotal ?? 0),
     deliveryFee: Number((order as any).deliveryFee ?? 0),
+    // Service charge prints as its own line — a customer querying the bill
+    // must be able to see what the extra was for.
+    serviceCharge: Number((order as any).serviceCharge ?? 0),
     taxAmount: Number((order as any).taxAmount ?? 0),
     discount: Number((order as any).discount ?? 0),
     total: Number(order.total ?? 0),

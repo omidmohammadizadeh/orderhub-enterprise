@@ -1777,4 +1777,104 @@ export class AnalyticsService {
     // month
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   }
+
+  /**
+   * Dine-in service report.
+   *
+   * The numbers a restaurant manager actually runs a floor on: covers,
+   * spend per head, how long a table is held, what the service charge
+   * brought in, and what was written off. Spend per head is the reason
+   * covers get captured at all — revenue alone can't tell a busy night
+   * from an expensive one.
+   *
+   * Only DINE_IN orders count. Voided lines are already zeroed on the
+   * order, so revenue here is what was actually billable.
+   */
+  async getDineInReport(
+    tenantId: string,
+    filters: { locationId?: string; startDate: Date; endDate: Date },
+  ) {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        tenantId,
+        fulfillmentType: "DINE_IN",
+        ...(filters.locationId ? { locationId: filters.locationId } : {}),
+        createdAt: { gte: filters.startDate, lte: filters.endDate },
+        status: { notIn: ["CANCELLED", "REJECTED", "FAILED"] },
+      },
+      select: {
+        id: true,
+        total: true,
+        subtotal: true,
+        serviceCharge: true,
+        covers: true,
+        createdAt: true,
+        updatedAt: true,
+        paymentStatus: true,
+        tableId: true,
+        items: { select: { metadata: true } },
+      },
+    });
+
+    const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+    const revenue = orders.reduce((s, o) => s + Number(o.total), 0);
+    const serviceCharge = orders.reduce(
+      (s, o) => s + Number(o.serviceCharge ?? 0),
+      0,
+    );
+    // Only orders that recorded a guest count can feed spend-per-head;
+    // averaging over tables that never set covers would understate it.
+    const withCovers = orders.filter((o) => (o.covers ?? 0) > 0);
+    const covers = withCovers.reduce((s, o) => s + (o.covers ?? 0), 0);
+    const coveredRevenue = withCovers.reduce((s, o) => s + Number(o.total), 0);
+
+    // Table time: created → last touched. It over-reads slightly on a tab
+    // edited after settling, which is why it is labelled "average" and not
+    // billed on.
+    const durations = orders
+      .map((o) => o.updatedAt.getTime() - o.createdAt.getTime())
+      .filter((ms) => ms > 0 && ms < 8 * 3600_000);
+    const avgTableMinutes = durations.length
+      ? Math.round(
+          durations.reduce((s, ms) => s + ms, 0) / durations.length / 60_000,
+        )
+      : 0;
+
+    // Write-offs, split by kind — a void is a training problem, a comp is
+    // a decision. Lumping them together hides both.
+    let voidCount = 0;
+    let voidValue = 0;
+    let compCount = 0;
+    let compValue = 0;
+    for (const o of orders) {
+      for (const it of o.items) {
+        const v = (it.metadata as any)?.void;
+        if (!v) continue;
+        const worth = Number(v.originalTotal ?? 0);
+        if (String(v.type).toUpperCase() === "COMP") {
+          compCount++;
+          compValue += worth;
+        } else {
+          voidCount++;
+          voidValue += worth;
+        }
+      }
+    }
+
+    return {
+      orders: orders.length,
+      revenue: round2(revenue),
+      serviceCharge: round2(serviceCharge),
+      covers,
+      ordersWithCovers: withCovers.length,
+      spendPerHead: covers > 0 ? round2(coveredRevenue / covers) : 0,
+      avgOrderValue: orders.length ? round2(revenue / orders.length) : 0,
+      avgTableMinutes,
+      unpaid: orders.filter((o) => o.paymentStatus !== "PAID").length,
+      voids: { count: voidCount, value: round2(voidValue) },
+      comps: { count: compCount, value: round2(compValue) },
+    };
+  }
+
 }

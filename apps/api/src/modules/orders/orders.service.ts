@@ -15,6 +15,7 @@ import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+import { computeServiceCharge, readServiceCharge } from "./service-charge";
 import { AuditLogService } from "../auth/services/audit-log.service";
 import { OutboxService } from "../outbox/outbox.service";
 import { PrintQueueService } from "../printers/print-queue.service";
@@ -474,6 +475,7 @@ export class OrdersService {
             subtotal: canonical.subtotal,
             taxAmount: canonical.taxAmount,
             deliveryFee: canonical.deliveryFee,
+            serviceCharge: (canonical as any).serviceCharge ?? 0,
             discount: canonical.discount,
             total: canonical.total,
             specialInstructions: canonical.specialInstructions,
@@ -858,16 +860,32 @@ export class OrdersService {
     // all show that name regardless of which menu built the cart. Storefront
     // (DIRECT) orders keep their own brand pin from the checkout.
     let effectiveBrandId = (dto as any).brandId as string | undefined;
-    if (resolvedSource !== "DIRECT" && dto.locationId) {
+    // Also carries the service-charge config — one fetch, two uses.
+    let locationSettings: unknown = null;
+    if (dto.locationId) {
       const loc = await this.prisma.location.findFirst({
         where: { id: dto.locationId },
         select: { settings: true },
       });
+      locationSettings = loc?.settings ?? null;
       const posBrandId = (loc?.settings as any)?.posBrandId as
         | string
         | undefined;
-      if (posBrandId) effectiveBrandId = posBrandId;
+      if (resolvedSource !== "DIRECT" && posBrandId) {
+        effectiveBrandId = posBrandId;
+      }
     }
+
+    // Service charge is decided HERE, not by the till. A client-computed
+    // charge could be edited, omitted, or drift from the
+    // location's settings — and the storefront overcharge bug already
+    // showed what trusting client money maths costs.
+    const svc = computeServiceCharge({
+      settings: locationSettings,
+      fulfillmentType: dto.fulfillmentType ?? "DELIVERY",
+      subtotal: Number(dto.subtotal ?? 0),
+      discount: Number(dto.discount ?? 0),
+    });
 
     const canonical = {
       externalId: `${idPrefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -900,8 +918,10 @@ export class OrdersService {
       subtotal: dto.subtotal,
       taxAmount: dto.taxAmount ?? 0,
       deliveryFee: dto.deliveryFee ?? 0,
+      serviceCharge: svc.amount,
       discount: dto.discount ?? 0,
-      total: dto.total,
+      // The charge is added on top of whatever the till totalled.
+      total: round2(Number(dto.total ?? 0) + svc.amount),
       specialInstructions: dto.specialInstructions,
       scheduledFor,
       idempotencyKey: dto.idempotencyKey,
@@ -1347,6 +1367,22 @@ export class OrdersService {
     }
 
     const addedTotal = items.reduce((s, i) => s + Number(i.totalPrice), 0);
+    // A service charge is a percentage, so every round moves it. Recompute
+    // from the location's live config instead of scaling the old figure —
+    // the operator may have changed the rate mid-service.
+    const newSubtotal = round2(Number(order.subtotal) + addedTotal);
+    const roundLoc = order.locationId
+      ? await this.prisma.location.findUnique({
+          where: { id: order.locationId },
+          select: { settings: true },
+        })
+      : null;
+    const newServiceCharge = computeServiceCharge({
+      settings: roundLoc?.settings ?? null,
+      fulfillmentType: order.fulfillmentType,
+      subtotal: newSubtotal,
+      discount: Number(order.discount ?? 0),
+    }).amount;
     const addedCount = items.reduce((s, i) => s + i.quantity, 0);
 
     // Round number for the paper chit: round 1 was the initial send, each
@@ -1375,8 +1411,17 @@ export class OrdersService {
         // Adding items lifts subtotal + total by the same amount (fees/discount
         // unchanged), so no need to re-derive the whole bill.
         data: {
-          subtotal: Number(order.subtotal) + addedTotal,
-          total: Number(order.total) + addedTotal,
+          subtotal: newSubtotal,
+          serviceCharge: newServiceCharge,
+          // Rebuild from parts rather than adding to the old total, or the
+          // previous round's service charge would be counted twice.
+          total: round2(
+            newSubtotal -
+              Number(order.discount ?? 0) +
+              Number(order.deliveryFee ?? 0) +
+              Number(order.taxAmount ?? 0) +
+              newServiceCharge,
+          ),
           updatedAt: new Date(),
         },
       });

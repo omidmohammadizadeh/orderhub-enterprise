@@ -1794,6 +1794,10 @@ model Order {
   taxAmount     Decimal @default(0) @db.Decimal(10, 2)
   serviceCharge Decimal @default(0) @db.Decimal(10, 2)
   deliveryFee   Decimal @default(0) @db.Decimal(10, 2)
+  // Auto-applied service charge (dine-in). Stored on the order rather than
+  // folded into subtotal so receipts, refunds and dine-in reporting can all
+  // see it as its own line.
+  serviceCharge Decimal @default(0) @db.Decimal(10, 2)
   discount      Decimal @default(0) @db.Decimal(10, 2)
   total         Decimal @db.Decimal(10, 2)
 

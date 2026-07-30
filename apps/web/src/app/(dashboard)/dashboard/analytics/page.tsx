@@ -13,6 +13,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
+  Utensils,
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
@@ -447,6 +448,17 @@ export default function AnalyticsPage() {
             </div>
           </section>
 
+          {/* Dine-in service report — floor numbers, not sales ones. */}
+          <section>
+            <DineInPanel
+              filters={{
+                from: filters.from,
+                to: filters.to,
+                locationId: filters.locationId,
+              }}
+            />
+          </section>
+
           {/* Channel + Brand + Location */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             <Card title="Sales by channel" subtitle="Revenue and order count">
@@ -687,6 +699,124 @@ function SmallTable({
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/**
+ * Dine-in service report. Separate from the revenue charts on purpose —
+ * these are floor-management numbers, not sales ones. Spend per head is the
+ * one that actually tells a manager something: revenue alone can't
+ * distinguish a busy night from an expensive one.
+ */
+function DineInPanel({
+  filters,
+}: {
+  filters: { from: string; to: string; locationId?: string };
+}) {
+  const q = useQuery({
+    queryKey: ["dine-in-report", filters.from, filters.to, filters.locationId],
+    queryFn: () =>
+      analyticsClient.dineIn({
+        startDate: filters.from,
+        endDate: filters.to,
+        locationId: filters.locationId,
+      }),
+  });
+  const d = q.data;
+  const money = (n: number) => `£${Number(n ?? 0).toFixed(2)}`;
+
+  if (q.isLoading) {
+    return (
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 text-sm text-zinc-500">
+        Loading dine-in report…
+      </div>
+    );
+  }
+  if (q.isError) {
+    return (
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 text-sm text-red-600">
+        Couldn&rsquo;t load the dine-in report.
+      </div>
+    );
+  }
+  if (!d || d.orders === 0) {
+    return (
+      <div className="rounded-xl border border-zinc-200 bg-white p-5">
+        <h3 className="text-sm font-semibold text-zinc-900">Dine-in</h3>
+        <p className="mt-1 text-sm text-zinc-500">
+          No dine-in orders in this period. Table service has to be switched on
+          for a location, and tabs opened from the Tables page, before anything
+          appears here.
+        </p>
+      </div>
+    );
+  }
+
+  const cells: Array<[string, string, string?]> = [
+    ["Covers", String(d.covers), `${d.ordersWithCovers} of ${d.orders} tabs recorded a guest count`],
+    ["Spend per head", money(d.spendPerHead), "Only tabs with covers counted"],
+    ["Dine-in revenue", money(d.revenue), `${d.orders} tab${d.orders === 1 ? "" : "s"}`],
+    ["Average tab", money(d.avgOrderValue)],
+    ["Service charge", money(d.serviceCharge)],
+    ["Avg table time", `${d.avgTableMinutes}m`, "Opened to last touched"],
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-zinc-200 bg-white p-5">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-900">
+          <Utensils className="h-4 w-4" /> Dine-in service
+        </h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {cells.map(([label, value, hint]) => (
+            <div key={label} className="rounded-lg bg-zinc-50 p-3">
+              <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+                {label}
+              </div>
+              <div className="text-lg font-semibold text-zinc-900">{value}</div>
+              {hint && (
+                <div className="mt-0.5 text-[10px] text-zinc-400">{hint}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Write-offs. Voids and comps are shown apart because they mean
+          different things — a void is a training problem, a comp is a
+          decision someone made. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4">
+          <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+            Voided (rung in by mistake)
+          </div>
+          <div className="text-lg font-semibold text-zinc-900">
+            {money(d.voids.value)}
+          </div>
+          <div className="text-[11px] text-zinc-400">
+            {d.voids.count} line{d.voids.count === 1 ? "" : "s"}
+          </div>
+        </div>
+        <div className="rounded-xl border border-zinc-200 bg-white p-4">
+          <div className="text-[10px] uppercase tracking-wide text-zinc-500">
+            Comped (given away)
+          </div>
+          <div className="text-lg font-semibold text-zinc-900">
+            {money(d.comps.value)}
+          </div>
+          <div className="text-[11px] text-zinc-400">
+            {d.comps.count} line{d.comps.count === 1 ? "" : "s"}
+          </div>
+        </div>
+      </div>
+
+      {d.unpaid > 0 && (
+        <p className="rounded-md bg-amber-50 p-3 text-[12px] text-amber-800">
+          {d.unpaid} dine-in {d.unpaid === 1 ? "tab is" : "tabs are"} still
+          unpaid in this period.
+        </p>
+      )}
     </div>
   );
 }

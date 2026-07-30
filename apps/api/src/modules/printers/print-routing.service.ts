@@ -635,6 +635,7 @@ export class PrintRoutingService {
       subtotal: Number(order.subtotal ?? 0),
       taxAmount: Number(order.taxAmount ?? 0),
       deliveryFee: Number(order.deliveryFee ?? 0),
+      serviceCharge: Number((order as any).serviceCharge ?? 0),
       discount: Number(order.discount ?? 0),
       total: Number(order.total ?? 0),
       paymentMethod: order.paymentMethod,

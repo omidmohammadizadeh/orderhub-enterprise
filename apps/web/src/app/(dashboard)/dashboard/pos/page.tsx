@@ -34,7 +34,7 @@ import { PromosModal } from "@/components/pos/promos-modal";
 // own sidebar entry (/dashboard/direct-ordering). The modal import and
 // button below are gone; the settings page itself still uses
 // DirectOrderingSettings (re-exported from this file).
-import { Truck, Tag } from "lucide-react";
+import { Truck, Tag, Percent, Ban } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
@@ -54,6 +54,8 @@ import { startSyncWorker } from "@/lib/pos/sync-worker";
 import { useOnlineStatus, useSyncQueue } from "@/lib/pos/use-online-status";
 import { tablesClient } from "@/lib/api/tables.client";
 import { SplitBillModal } from "@/components/pos/split-bill-modal";
+import { ServiceChargeModal } from "@/components/pos/service-charge-modal";
+import { VoidItemModal } from "@/components/pos/void-item-modal";
 import { printOrderViaBridge } from "@/lib/printing/print-order";
 import { hasNativeBridge } from "@/lib/printing/bridge";
 
@@ -125,6 +127,8 @@ export default function PosPage() {
   // Phase AM — manager-side modals on the POS top bar.
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showPromosModal, setShowPromosModal] = useState(false);
+  const [showServiceCharge, setShowServiceCharge] = useState(false);
+  const [voidOpen, setVoidOpen] = useState(false);
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
   // Table Tabs — true while the charge modal is settling a tab (so its close
   // handler completes the order + frees the table when paid).
@@ -786,6 +790,15 @@ export default function PosPage() {
           </span>
           {tabOrderId && !payChoiceOpen && (
             <button
+              onClick={() => setVoidOpen(true)}
+              className="mr-2 inline-flex shrink-0 items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+              title="Void or comp a line (manager PIN)"
+            >
+              <Ban className="h-3.5 w-3.5" /> Void
+            </button>
+          )}
+          {tabOrderId && !payChoiceOpen && (
+            <button
               onClick={async () => {
                 try {
                   // Tablets print through the Bluetooth bridge (the server
@@ -888,6 +901,15 @@ export default function PosPage() {
               <Truck className="h-3.5 w-3.5" /> Delivery fee
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setShowServiceCharge(true)}
+            disabled={!selectedLocationId}
+            title="Add a service charge automatically to bills"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            <Percent className="h-3.5 w-3.5" /> Service charge
+          </button>
           <button
             type="button"
             onClick={() => setShowPromosModal(true)}
@@ -1016,6 +1038,26 @@ export default function PosPage() {
 
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
+
+      {showServiceCharge && selectedLocationId && (
+        <ServiceChargeModal
+          locationId={selectedLocationId}
+          onClose={() => setShowServiceCharge(false)}
+        />
+      )}
+
+      {voidOpen && tabOrderId && selectedLocationId && (
+        <VoidItemModal
+          orderId={tabOrderId}
+          locationId={selectedLocationId}
+          onClose={() => setVoidOpen(false)}
+          onChanged={() => {
+            // Totals moved — refresh the tab so the banner and Pay & close
+            // show the reduced figure straight away.
+            void tabOrderQuery.refetch();
+          }}
+        />
+      )}
 
       {/* Table Tabs — split the bill across several part-payments. The
           server settles + frees the table once they cover the total. */}

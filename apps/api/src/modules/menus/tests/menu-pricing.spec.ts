@@ -265,3 +265,78 @@ describe("buildCartItemName (KDS parser depends on this format)", () => {
     ).toBe("10 inch Margherita");
   });
 });
+
+// ── Service charge ───────────────────────────────────────────────────
+import { computeServiceCharge, readServiceCharge } from "../../orders/service-charge";
+
+describe("computeServiceCharge", () => {
+  const on = { serviceCharge: { enabled: true, percent: 10, dineInOnly: true } };
+
+  it("adds the percentage to a dine-in bill", () => {
+    const r = computeServiceCharge({
+      settings: on,
+      fulfillmentType: "DINE_IN",
+      subtotal: 60,
+    });
+    expect(r.amount).toBe(6);
+  });
+
+  it("charges on the DISCOUNTED subtotal, not the gross", () => {
+    // Charging service on money the customer didn't pay would be
+    // indefensible if anyone ever checked.
+    const r = computeServiceCharge({
+      settings: on,
+      fulfillmentType: "DINE_IN",
+      subtotal: 60,
+      discount: 10,
+    });
+    expect(r.amount).toBe(5);
+  });
+
+  it("skips takeaway and delivery when dineInOnly", () => {
+    for (const t of ["PICKUP", "DELIVERY", "MERCHANT_DELIVERY"]) {
+      expect(
+        computeServiceCharge({ settings: on, fulfillmentType: t, subtotal: 60 })
+          .amount,
+      ).toBe(0);
+    }
+  });
+
+  it("applies to every channel when dineInOnly is off", () => {
+    const r = computeServiceCharge({
+      settings: { serviceCharge: { enabled: true, percent: 10, dineInOnly: false } },
+      fulfillmentType: "DELIVERY",
+      subtotal: 60,
+    });
+    expect(r.amount).toBe(6);
+  });
+
+  it("is zero when disabled or unset", () => {
+    expect(
+      computeServiceCharge({ settings: {}, fulfillmentType: "DINE_IN", subtotal: 60 })
+        .amount,
+    ).toBe(0);
+    expect(
+      computeServiceCharge({
+        settings: { serviceCharge: { enabled: false, percent: 10 } },
+        fulfillmentType: "DINE_IN",
+        subtotal: 60,
+      }).amount,
+    ).toBe(0);
+  });
+
+  it("clamps a fat-fingered percentage at 25%", () => {
+    // A typo'd 1000 must not quadruple someone's bill.
+    expect(readServiceCharge({ serviceCharge: { enabled: true, percent: 1000 } }).percent).toBe(25);
+  });
+
+  it("never charges on a negative base", () => {
+    const r = computeServiceCharge({
+      settings: on,
+      fulfillmentType: "DINE_IN",
+      subtotal: 10,
+      discount: 25,
+    });
+    expect(r.amount).toBe(0);
+  });
+});

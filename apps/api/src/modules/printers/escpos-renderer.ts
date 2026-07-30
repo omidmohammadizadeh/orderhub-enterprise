@@ -173,6 +173,11 @@ export function renderToEscPos(
       write(pad("Delivery fee", width - 10) + padRight(fee.toFixed(2), 10));
       newline();
     }
+    if (Number(payload.serviceCharge ?? 0) > 0) {
+      const svc = Number(payload.serviceCharge);
+      write(pad("Service charge", width - 10) + padRight(svc.toFixed(2), 10));
+      newline();
+    }
     if (Number(payload.discount ?? 0) > 0) {
       write(pad("Discount", width - 10) + padRight((-Number(payload.discount)).toFixed(2), 10));
       newline();

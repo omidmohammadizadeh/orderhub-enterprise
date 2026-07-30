@@ -602,11 +602,12 @@ export function buildOrderReceipt(
     if (s) line(buf, padBetween(label, s, cols));
   };
   showRow("Subtotal", payload?.subtotal);
-  if (
-    typeof payload?.deliveryFee === "number" &&
-    payload.deliveryFee > 0
-  )
+  if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0)
     showRow("Delivery", payload.deliveryFee);
+  // Service charge is its own line so a customer querying the bill can see
+  // exactly what the extra was.
+  if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0)
+    showRow("Service", payload.serviceCharge);
   if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0)
     showRow("Tax", payload.taxAmount);
   if (typeof payload?.discount === "number" && payload.discount > 0)
@@ -853,6 +854,10 @@ export function buildOrderReceiptStar(
   showRow("Subtotal", payload?.subtotal);
   if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0)
     showRow("Delivery", payload.deliveryFee);
+  // Star renderer needs the same service-charge line as ESC/POS, or a Star
+  // shop's bill silently wouldn't add up.
+  if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0)
+    showRow("Service", payload.serviceCharge);
   if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0)
     showRow("Tax", payload.taxAmount);
   if (typeof payload?.discount === "number" && payload.discount > 0)

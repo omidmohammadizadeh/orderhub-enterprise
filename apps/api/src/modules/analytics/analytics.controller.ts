@@ -144,6 +144,26 @@ export class AnalyticsController {
     });
   }
 
+  @Get("dine-in")
+  @ApiOperation({
+    summary: "Dine-in report — covers, spend per head, table time, write-offs",
+  })
+  @ApiQuery({ name: "locationId", required: false })
+  @ApiQuery({ name: "startDate", required: false })
+  @ApiQuery({ name: "endDate", required: false })
+  getDineInReport(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+    @Query("startDate") startDate?: string,
+    @Query("endDate") endDate?: string,
+  ) {
+    return this.analytics.getDineInReport(user.tenantId, {
+      locationId,
+      startDate: parseDate(startDate, sevenDaysAgo()),
+      endDate: parseDate(endDate, new Date()),
+    });
+  }
+
   @Get("platforms")
   @ApiOperation({ summary: "Platform comparison — revenue, orders, cancellation rate" })
   @ApiQuery({ name: "locationId", required: false })
