@@ -31,6 +31,7 @@ import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
 import { apiClient } from "@/lib/api/client";
+import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
 
 interface Line {
   key: string;
@@ -87,6 +88,12 @@ export default function KioskPage() {
   // Latch against a double-tap on a touchscreen: React state lags a fast
   // second touch by a frame.
   const placingRef = useRef(false);
+  // A card order sitting unpaid, waiting on the reader.
+  const [pendingCard, setPendingCard] = useState<{
+    orderId: string;
+    displayId: string | null;
+    amount: number;
+  } | null>(null);
 
   const subtotal = round2(
     cart.reduce((s, l) => s + l.unitPrice * l.quantity, 0),
@@ -152,7 +159,7 @@ export default function KioskPage() {
 
   const place = useMutation({
     mutationFn: async (payment: "CARD" | "COUNTER") => {
-      const body = {
+      const body: Record<string, any> = {
         locationId: locationId!,
         ...(brandId ? { brandId } : {}),
         orderSource: "POS" as const,
@@ -179,10 +186,17 @@ export default function KioskPage() {
         })),
         subtotal,
         total: subtotal,
-        // Both routes are settled at the counter by a member of staff, so
-        // both are recorded as CASH/PENDING — the till takes the money and
-        // marks it paid, exactly as it would for a phoned-in collection.
-        paymentMethod: "CASH" as const,
+        // PAY AT COUNTER  → CASH/PENDING: goes to the kitchen now, staff
+        //                    take the money when the customer collects.
+        // PAY BY CARD      → CARD/PENDING: the server treats an unpaid card
+        //                    order as "waiting for payment" and holds it OFF
+        //                    the board, the KDS and the printer until it
+        //                    settles (isUnpaidCard in orders.service). The
+        //                    reader is opened next; the kitchen only sees it
+        //                    once the payment succeeds.
+        //                    Sending CASH here — as this first did — put
+        //                    unpaid food in front of the kitchen.
+        paymentMethod: payment === "CARD" ? ("CARD" as const) : ("CASH" as const),
         paymentStatus: "PENDING" as const,
         idempotencyKey: `kiosk-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       };
@@ -190,11 +204,21 @@ export default function KioskPage() {
       return { data: res.data as any, payment };
     },
     onSuccess: ({ data, payment }) => {
-      setDone({
-        displayId: data?.displayId ?? data?.orderNumber ?? null,
-        total: subtotal,
-        paid: payment,
-      });
+      // The order number lives on the created order; earlier this read a
+      // shape that isn't always present, so the confirmation showed no
+      // number at all — the one thing the customer needs to collect.
+      const num =
+        data?.displayId ?? data?.orderNumber ?? data?.order?.displayId ?? null;
+      if (payment === "CARD") {
+        // Nothing is confirmed yet — take the money first.
+        setPendingCard({
+          orderId: data?.id ?? data?.order?.id,
+          displayId: num,
+          amount: subtotal,
+        });
+        return;
+      }
+      setDone({ displayId: num, total: subtotal, paid: payment });
       setCart([]);
       setBasketOpen(false);
     },
@@ -320,12 +344,25 @@ export default function KioskPage() {
                 disabled={sold}
                 onClick={() => onItemTap(item)}
                 className={
-                  "rounded-2xl border bg-white p-5 text-left shadow-sm transition " +
+                  "overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition " +
                   (sold
                     ? "cursor-not-allowed border-zinc-100 opacity-50"
                     : "border-zinc-200 active:scale-[0.98]")
                 }
               >
+                {/* Food sells on the picture. A kiosk is the one surface
+                    where the customer has never seen the menu before, so the
+                    image carries more than the name does. Fixed aspect so a
+                    grid of mixed-ratio photos doesn't go ragged. */}
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="aspect-[4/3] w-full bg-zinc-100 object-cover"
+                  />
+                ) : null}
+                <div className="p-5">
                 <div className="text-xl font-semibold leading-tight text-zinc-900">
                   {item.name}
                 </div>
@@ -336,6 +373,7 @@ export default function KioskPage() {
                 )}
                 <div className="mt-3 text-2xl font-bold text-zinc-900">
                   {sold ? "Sold out" : money(Number(item.basePrice ?? 0))}
+                </div>
                 </div>
               </button>
             );
@@ -456,6 +494,32 @@ export default function KioskPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {pendingCard && locationId && (
+        <ChargeReaderModal
+          open
+          orderId={pendingCard.orderId}
+          locationId={locationId}
+          amount={pendingCard.amount}
+          onPaid={() => {
+            // Paid — the server releases it to the kitchen and the printer.
+            setDone({
+              displayId: pendingCard.displayId,
+              total: pendingCard.amount,
+              paid: "CARD",
+            });
+            setCart([]);
+            setBasketOpen(false);
+            setPendingCard(null);
+          }}
+          onClose={() => {
+            // Closed without paying. The order exists but is unpaid, so the
+            // kitchen has NOT seen it — staff can settle or void it at the
+            // till. Say so rather than pretending it went through.
+            setPendingCard(null);
+          }}
+        />
       )}
 
       {modalItem && (
