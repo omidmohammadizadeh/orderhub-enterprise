@@ -728,6 +728,9 @@ function PrinterSettingsDrawer({
   // Receipt text size. Was a dead boolean ("Large font") that saved but
   // never reached the renderer — seed from it so printers already ticked
   // land on Large rather than silently resetting to Standard.
+  const [printFont, setPrintFont] = useState<"A" | "B">(
+    (d.printFont as any) === "B" ? "B" : "A",
+  );
   const [fontScale, setFontScale] = useState<TextScale>(
     (d.fontScale as any) ?? (d.largeFont ? "LARGE" : "NORMAL"),
   );
@@ -763,6 +766,7 @@ function PrinterSettingsDrawer({
           printLogo,
           qrCode: printQr,
           fontScale,
+          printFont,
           modifierScale,
           // Keep the legacy flag consistent for any older reader.
           largeFont: fontScale !== "NORMAL",
@@ -867,6 +871,40 @@ function PrinterSettingsDrawer({
                 />
               </Field>
             </div>
+          </Section>
+
+          <Section title="Typeface">
+            <div className="flex gap-1.5">
+              {(
+                [
+                  ["A", "Standard", "Wider, heavier — easiest to read"],
+                  ["B", "Condensed", "~⅓ more characters per line"],
+                ] as const
+              ).map(([value, label, hint]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setPrintFont(value)}
+                  className={
+                    printFont === value
+                      ? "flex-1 rounded-md bg-zinc-900 px-2 py-2 text-xs font-semibold text-white"
+                      : "flex-1 rounded-md border border-zinc-200 px-2 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                  }
+                >
+                  {label}
+                  <span className="mt-0.5 block text-[10px] font-normal opacity-70">
+                    {hint}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
+              Thermal printers hold two fonts in ROM — these are the only two
+              they can print as text. Anything else would have to be sent as
+              an image per line, which is slow and comes out greyer.
+              <span className="font-medium"> Condensed</span> is worth trying
+              if long item names keep wrapping, or on a 58mm roll.
+            </p>
           </Section>
 
           <Section title="Item text size">

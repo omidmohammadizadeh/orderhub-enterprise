@@ -16,6 +16,7 @@ import {
   repeatReceipt,
   resolveFontScale,
   resolveModifierScale,
+  resolvePrintFont,
 } from "./bridge";
 import { buildPrintPayload } from "./order-receipt";
 
@@ -170,6 +171,7 @@ export async function printOrderViaBridge(
         commandSet: resolveCommandSet(p),
         fontScale: resolveFontScale(p),
         modifierScale: resolveModifierScale(p),
+        printFont: resolvePrintFont(p),
       });
       await writeToPrinter(p, repeatReceipt(single, copies));
       printed++;

@@ -69,6 +69,35 @@ export function resolveModifierScale(printer: any): FontScale {
   return normaliseFontScale(printer?.defaults?.modifierScale);
 }
 
+// Typeface. ESC/POS thermal printers carry two built-in fonts and no more —
+// they are ROM bitmaps, not scalable outlines, so "any font you like" is not
+// physically available. What you can choose is:
+//   A — the standard face: wider, heavier, easier to read across a pass
+//   B — a narrow condensed face: ~40% more characters per line, useful for
+//       long item names or a 58mm roll
+// Anything beyond these two would have to be rendered as an image per line,
+// which is slow on a thermal head and prints noticeably greyer.
+export type PrintFont = "A" | "B";
+
+export function normalisePrintFont(v: any): PrintFont {
+  return String(v ?? "").toUpperCase() === "B" ? "B" : "A";
+}
+
+export function resolvePrintFont(printer: any): PrintFont {
+  return normalisePrintFont(printer?.defaults?.printFont);
+}
+
+// ESC M n — select character font (0 = A, 1 = B).
+const selectFont = (f: PrintFont) => [0x1b, 0x4d, f === "B" ? 1 : 0];
+
+// Font B is physically narrower, so a line fits more characters. Getting
+// this wrong is what makes a "condensed" receipt look ragged: the text
+// changes width but the column maths doesn't follow it.
+function colsForFont(paperWidth: number, font: PrintFont): number {
+  const base = paperWidth === 58 ? 32 : 42;
+  return font === "B" ? Math.floor(base * 1.33) : base;
+}
+
 function colsFor(paperWidth: number): number {
   return paperWidth === 58 ? 32 : 42;
 }
@@ -416,9 +445,11 @@ export function buildOrderReceipt(
     qr?: string | null;
     fontScale?: FontScale;
     modifierScale?: FontScale;
+    printFont?: PrintFont;
   },
 ): Uint8Array {
-  const cols = colsFor(paperWidth);
+  const font = normalisePrintFont(opts?.printFont);
+  const cols = colsForFont(paperWidth, font);
   const scale = normaliseFontScale(opts?.fontScale);
   const modScale = normaliseFontScale(opts?.modifierScale);
   const modH = modScale === "NORMAL" ? 1 : 2;
@@ -435,6 +466,9 @@ export function buildOrderReceipt(
   const ITEM_ON = sizeOn(itemW, itemH);
   const buf: number[] = [];
   buf.push(...INIT);
+  // Select the typeface once, straight after INIT — INIT resets it, so
+  // this has to come after or the choice is silently discarded.
+  buf.push(...selectFont(font));
 
   // ── Logo (top, centered) ──────────────────────────────────────────
   if (opts?.logoBytes && opts.logoBytes.length) {
@@ -939,6 +973,7 @@ export async function renderReceiptBytes(
     commandSet?: string;
     fontScale?: FontScale;
     modifierScale?: FontScale;
+    printFont?: PrintFont;
   },
 ): Promise<Uint8Array> {
   // Star printers speak Star Line Mode, not ESC/POS — render their own
@@ -960,5 +995,6 @@ export async function renderReceiptBytes(
     qr,
     fontScale: opts?.fontScale,
     modifierScale: opts?.modifierScale,
+    printFont: opts?.printFont,
   });
 }

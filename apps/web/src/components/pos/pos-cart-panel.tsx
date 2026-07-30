@@ -154,6 +154,8 @@ export function PosCartPanel(props: CartPanelProps) {
 
   // ── Cart-adjacent state ────────────────────────────────────────────────────
   const [customerName, setCustomerName] = useState(initialDraft?.customerName ?? "");
+  // Counter trade: skip the name/phone boxes entirely.
+  const [walkIn, setWalkIn] = useState(false);
   const [customerPhone, setCustomerPhone] = useState(initialDraft?.customerPhone ?? "");
   // Ticked by default — the customer can decline SMS offers at the till.
   const [smsConsent, setSmsConsent] = useState(true);
@@ -614,8 +616,8 @@ export function PosCartPanel(props: CartPanelProps) {
       ? new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString()
       : undefined;
     await onPlaceOrder({
-      customerName: customerName.trim() || "Walk-in",
-      customerPhone: customerPhone.trim(),
+      customerName: walkIn ? "Walk-in" : customerName.trim() || "Walk-in",
+      customerPhone: walkIn ? "" : customerPhone.trim(),
       callerId: callerId.trim() || undefined,
       fulfillmentType,
       notes: notes.trim() || undefined,
@@ -767,6 +769,35 @@ export function PosCartPanel(props: CartPanelProps) {
 
         {/* Customer / Guest */}
         <Section title={dineIn ? "Guest (optional)" : "Customer"}>
+          {/* Walk-in — the counter case. Name and phone were already
+              optional for collection, but staff still tabbed through two
+              empty boxes on every order. One tap now skips them, and the
+              order is filed as "Walk-in" so reporting can separate counter
+              trade from phone and online. */}
+          {!dineIn && (
+            <button
+              type="button"
+              onClick={() => {
+                const next = !walkIn;
+                setWalkIn(next);
+                if (next) {
+                  setCustomerName("");
+                  setCustomerPhone("");
+                  setCallerId("");
+                  setSmsConsent(false);
+                }
+              }}
+              className={
+                "mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold " +
+                (walkIn
+                  ? "bg-zinc-900 text-white"
+                  : "border border-zinc-200 text-zinc-700 hover:bg-zinc-50")
+              }
+            >
+              {walkIn ? "✓ Walk-in — no details needed" : "🚶 Walk-in customer"}
+            </button>
+          )}
+          {!walkIn && (
           <div className="grid grid-cols-2 gap-2">
             <Input
               value={customerName}
@@ -780,9 +811,10 @@ export function PosCartPanel(props: CartPanelProps) {
               type="tel"
             />
           </div>
+          )}
           {/* Caller ID + SMS consent are phone-order concepts — a seated
               guest never rings in, and consent capture happens online. */}
-          {!dineIn && (
+          {!dineIn && !walkIn && (
             <>
               <div className="mt-2 flex items-center gap-1.5">
                 <Phone className="h-3 w-3 text-zinc-400" />

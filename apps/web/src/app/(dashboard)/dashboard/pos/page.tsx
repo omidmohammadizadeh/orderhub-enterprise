@@ -36,6 +36,7 @@ import { PromosModal } from "@/components/pos/promos-modal";
 // DirectOrderingSettings (re-exported from this file).
 import { Truck, Tag, Percent, Ban, KeyRound } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { useAuthStore } from "@/stores/auth.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
 import { apiClient } from "@/lib/api/client";
@@ -131,6 +132,17 @@ export default function PosPage() {
   const [showServiceCharge, setShowServiceCharge] = useState(false);
   const [voidOpen, setVoidOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
+  // The PIN authorises removing charges, so only supervisory roles see or
+  // set it. Same list the API's @Roles(...POS_MANAGER) enforces — the button
+  // is a convenience, the server is the actual gate.
+  const posRole = useAuthStore((st) => st.user?.role);
+  const canManagePin = [
+    "PLATFORM_ADMIN",
+    "TENANT_OWNER",
+    "OWNER",
+    "MANAGER",
+    "DARK_KITCHEN_MANAGER",
+  ].includes(String(posRole));
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
   // Table Tabs — true while the charge modal is settling a tab (so its close
   // handler completes the order + frees the table when paid).
@@ -903,6 +915,7 @@ export default function PosPage() {
               <Truck className="h-3.5 w-3.5" /> Delivery fee
             </button>
           )}
+          {canManagePin && (
           <button
             type="button"
             onClick={() => setPinOpen(true)}
@@ -912,6 +925,7 @@ export default function PosPage() {
           >
             <KeyRound className="h-3.5 w-3.5" /> Manager PIN
           </button>
+          )}
           <button
             type="button"
             onClick={() => setShowServiceCharge(true)}
@@ -1050,7 +1064,7 @@ export default function PosPage() {
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
 
-      {pinOpen && selectedLocationId && (
+      {pinOpen && selectedLocationId && canManagePin && (
         <ManagerPinModal
           locationId={selectedLocationId}
           onClose={() => setPinOpen(false)}
