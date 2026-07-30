@@ -7,6 +7,7 @@ import {
 import { randomBytes } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
+import { MenusService } from "../menus/menus.service";
 
 // Self-service kiosk — a screen standing in the shop that customers order
 // from themselves.
@@ -59,6 +60,7 @@ export class KioskService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly orders: OrdersService,
+    private readonly menus: MenusService,
   ) {}
 
   private newToken(): string {
@@ -163,8 +165,28 @@ export class KioskService {
     });
     if (!kiosk) throw new NotFoundException("This kiosk is not set up");
 
+    // The menu is resolved SERVER-side, by the same call the POS and the
+    // menu boards use — findActiveMenuForLocation. The screen is never
+    // asked to pick a menu, so a kiosk cannot drift from the till: same
+    // prices, same 86'd items, same per-location assignment. (An earlier
+    // draft had the screen fetch the storefront menu by slug, which is a
+    // different resolution path and would have diverged the moment a
+    // location published a POS-only menu.)
+    const menu = await this.menus.findActiveMenuForLocation(
+      kiosk.locationId,
+      kiosk.tenantId,
+    );
+
     const cfg = (kiosk.config ?? {}) as any;
+    // An optional whitelist — a kiosk in the doorway might only sell the
+    // quick stuff. Empty means the whole menu.
+    const only: string[] = Array.isArray(cfg.categoryIds) ? cfg.categoryIds : [];
+    const categories = ((menu as any)?.categories ?? []).filter(
+      (c: any) => !only.length || only.includes(c.id),
+    );
+
     return {
+      menu: menu ? { ...(menu as any), categories } : null,
       kioskId: kiosk.id,
       kioskName: kiosk.name,
       locationId: kiosk.locationId,
