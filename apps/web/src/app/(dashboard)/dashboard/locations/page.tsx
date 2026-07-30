@@ -8,7 +8,7 @@
 // expanded.
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   ChevronDown,
   ChevronUp,
@@ -22,11 +22,14 @@ import {
   Loader2,
   Copy,
   Check,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { locationsClient, type Location } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { queryKeys } from "@/lib/api/query-keys";
 
 // Roles allowed to create new locations and open the per-location
 // settings drawer. OWNER + DARK_KITCHEN_MANAGER run their stores but
@@ -286,6 +289,7 @@ function LocationCard({
             Location settings
           </ActionChip>
         )}
+        <KioskLockChip location={location} />
         <ActionChip icon={<Clock className="h-3 w-3" />} onClick={onHours}>
           Opening hours
         </ActionChip>
@@ -313,6 +317,48 @@ function LocationCard({
 
       {expanded && <ExpandedSection locationId={location.id} />}
     </li>
+  );
+}
+
+// Kiosk mode lock. When on, the dashboard chrome a customer must never
+// touch — profile/sign-out, notifications, expand, search — is hidden on
+// this location's screens. PLATFORM_ADMIN only: it is the difference
+// between a locked-down kiosk and a tablet a customer can sign out of, so
+// it should not be something a busy manager flips by accident.
+function KioskLockChip({ location }: { location: any }) {
+  const qc = useQueryClient();
+  const role = useAuthStore((s) => s.user?.role);
+  const locked = !!(location?.settings as any)?.kiosk?.locked;
+
+  const toggle = useMutation({
+    mutationFn: () => {
+      const settings = ((location?.settings ?? {}) as Record<string, any>);
+      // The locations PATCH shallow-merges the TOP level only, so both
+      // levels have to be spread or sibling settings are wiped.
+      return locationsClient.update(location.id, {
+        settings: {
+          ...settings,
+          kiosk: { ...(settings.kiosk ?? {}), locked: !locked },
+        },
+      } as any);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["locations"] });
+      qc.invalidateQueries({ queryKey: queryKeys.locationDetail(location.id) });
+      toast.success(locked ? "Kiosk mode unlocked" : "Kiosk mode locked");
+    },
+    onError: () => toast.error("Couldn't change kiosk mode"),
+  });
+
+  if (role !== "PLATFORM_ADMIN") return null;
+
+  return (
+    <ActionChip
+      icon={locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+      onClick={() => toggle.mutate()}
+    >
+      {locked ? "Kiosk locked" : "Lock kiosk mode"}
+    </ActionChip>
   );
 }
 

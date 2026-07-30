@@ -6,6 +6,11 @@ import { UserMenu } from "./user-menu";
 import { LiveNotifications } from "./live-notifications";
 import { cn } from "@/lib/utils";
 import { useLayoutStore } from "@/stores/layout.store";
+import { useQuery } from "@tanstack/react-query";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { useAuthStore } from "@/stores/auth.store";
+import { locationsClient } from "@/lib/api/locations.client";
+import { queryKeys } from "@/lib/api/query-keys";
 
 const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/orders": { title: "Orders", description: "Live and recent orders" },
@@ -47,6 +52,27 @@ export function Topbar() {
   const collapsed = useLayoutStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useLayoutStore((s) => s.toggleSidebar);
 
+  // Kiosk mode lock (Locations → Lock kiosk mode, admin only). With it on,
+  // the chrome a customer must never touch is hidden: sign-out, alerts,
+  // fullscreen and search. Without it, a customer standing at the screen
+  // can sign the device out of the account it runs on.
+  //
+  // Also applied unconditionally to a KIOSK role account, whatever the
+  // location setting says — that account exists only to serve a kiosk, so
+  // the chrome is never appropriate for it.
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
+  const role = useAuthStore((s) => s.user?.role);
+  const locQuery = useQuery({
+    queryKey: queryKeys.locationDetail(locationId ?? ""),
+    queryFn: () => locationsClient.get(locationId!),
+    enabled: !!locationId,
+    staleTime: 60_000,
+  });
+  const kioskLocked =
+    role === "KIOSK" ||
+    !!((locQuery.data as any)?.settings?.kiosk?.locked &&
+      pathname?.startsWith("/dashboard/kiosk"));
+
   return (
     <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-6">
       {/* Left: page title */}
@@ -59,8 +85,10 @@ export function Topbar() {
         </div>
       </div>
 
-      {/* Right: actions */}
+      {/* Right: actions — all hidden when the kiosk is locked. */}
       <div className="flex items-center gap-1">
+        {!kioskLocked && (
+          <>
         {/* Search trigger (opens command palette later) */}
         <button
           className={cn(
@@ -99,6 +127,8 @@ export function Topbar() {
         <div className="ml-1 h-6 w-px bg-zinc-200" />
 
         <UserMenu />
+          </>
+        )}
       </div>
     </header>
   );
