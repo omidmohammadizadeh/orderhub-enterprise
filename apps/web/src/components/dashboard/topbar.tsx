@@ -104,10 +104,18 @@ export function Topbar() {
           </kbd>
         </button>
 
+          </>
+        )}
+
         {/* Phase AW-28 — Sidebar collapse toggle. Maximize hides the
             rail so wide tables (Orders, Analytics) get the whole
             viewport width. Persisted across reloads via the layout
-            store. */}
+            store.
+
+            Deliberately OUTSIDE the kiosk-lock block: a kiosk wants to run
+            fullscreen, and this is the control that gets it there. It
+            changes nothing but the layout — unlike sign-out, alerts and
+            search, there is nothing here a customer can do harm with. */}
         <button
           type="button"
           onClick={toggleSidebar}
@@ -122,11 +130,13 @@ export function Topbar() {
           )}
         </button>
 
-        <LiveNotifications />
+        {!kioskLocked && (
+          <>
+            <LiveNotifications />
 
-        <div className="ml-1 h-6 w-px bg-zinc-200" />
+            <div className="ml-1 h-6 w-px bg-zinc-200" />
 
-        <UserMenu />
+            <UserMenu />
           </>
         )}
       </div>
