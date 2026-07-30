@@ -212,6 +212,47 @@ export default function TablesPage() {
       toast.error(e?.response?.data?.message ?? "Couldn't delete"),
   });
 
+  // Defined areas. Previously an "area" only existed because a table had
+  // typed that string, so the Area box was free text and every new table
+  // invented another area ("Terrace", "terrace", "Teracce"). They now have
+  // a home in location settings; the table editor picks from the list.
+  // Areas already in use on existing tables are folded in so nothing that
+  // predates this disappears.
+  const definedAreas: string[] = useMemo(() => {
+    const fromSettings = Array.isArray(
+      ((locationQuery.data as any)?.settings as any)?.tableService?.areas,
+    )
+      ? (((locationQuery.data as any).settings as any).tableService
+          .areas as string[])
+      : [];
+    const inUse = tables.map((t) => t.area?.trim()).filter(Boolean) as string[];
+    return [...new Set([...fromSettings, ...inUse])].sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }, [locationQuery.data, tables]);
+
+  const addArea = useMutation({
+    mutationFn: (name: string) => {
+      const settings = ((locationQuery.data as any)?.settings ?? {}) as Record<
+        string,
+        any
+      >;
+      const ts = (settings.tableService ?? {}) as Record<string, any>;
+      const next = [...new Set([...(ts.areas ?? []), name])];
+      // The locations PATCH shallow-merges the TOP level only — both levels
+      // have to be spread or the sibling settings are wiped.
+      return locationsClient.update(locationId!, {
+        settings: { ...settings, tableService: { ...ts, areas: next } },
+      } as any);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["location", locationId] });
+      qc.invalidateQueries({ queryKey: queryKeys.locationDetail(locationId!) });
+      toast.success("Area added");
+    },
+    onError: () => toast.error("Couldn't add the area"),
+  });
+
   const areas = useMemo(() => {
     const map = new Map<string, RestaurantTable[]>();
     for (const t of tables) {
@@ -319,6 +360,19 @@ export default function TablesPage() {
             />
             Table service on for this location
           </label>
+          {manage && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const name = window.prompt(
+                  "Area name (e.g. Upstairs, Terrace, Bar)",
+                )?.trim();
+                if (name) addArea.mutate(name);
+              }}
+            >
+              + Add area
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setManage((m) => !m)}>
             {manage ? "Done" : "Manage tables"}
           </Button>
@@ -665,6 +719,7 @@ export default function TablesPage() {
       {(creating || editing) && (
         <TableEditor
           locationId={locationId}
+          areas={definedAreas}
           table={editing}
           onClose={() => {
             setCreating(false);
@@ -683,11 +738,14 @@ export default function TablesPage() {
 
 function TableEditor({
   locationId,
+  areas,
   table,
   onClose,
   onSaved,
 }: {
   locationId: string;
+  /** Areas defined for this location — chosen, not typed. */
+  areas: string[];
   table: RestaurantTable | null;
   onClose: () => void;
   onSaved: () => void;
@@ -756,12 +814,24 @@ function TableEditor({
               <label className="mb-1 block text-sm font-medium text-zinc-700">
                 Area (optional)
               </label>
-              <input
+              <select
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
-                placeholder="e.g. Terrace"
                 className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm"
-              />
+              >
+                <option value="">No area</option>
+                {areas.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+              {!areas.length && (
+                <p className="mt-1 text-[11px] text-zinc-400">
+                  No areas yet — close this and use{" "}
+                  <b>Manage tables → + Add area</b> first.
+                </p>
+              )}
             </div>
           </div>
         </div>
