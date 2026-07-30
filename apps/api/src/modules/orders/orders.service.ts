@@ -1638,8 +1638,43 @@ export class OrdersService {
     if (order.tableId) {
       await this.prisma.table.updateMany({
         where: { id: order.tableId },
-        data: { status: "FREE", currentOrderId: null, openedAt: null },
+        data: {
+          status: "FREE",
+          currentOrderId: null,
+          openedAt: null,
+          // A freed table is a NEW sitting — never inherit the last
+          // party's guest count or server.
+          covers: null,
+          serverId: null,
+          serverName: null,
+        },
       });
+    }
+
+    // Tell the board. This writes COMPLETED straight to the database to
+    // bypass the forward-only ladder, which means nothing else emits for
+    // it — without this the settled tab sat on the Orders board as
+    // Accepted until someone refreshed the page.
+    const settled = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: { select: { quantity: true } } },
+    });
+    if (settled?.locationId) {
+      this.socket.emitOrderUpdated(settled.locationId, {
+        orderId: settled.id,
+        tenantId: settled.tenantId,
+        locationId: settled.locationId,
+        platform: settled.platform,
+        orderSource: settled.orderSource,
+        fulfillmentType: settled.fulfillmentType,
+        displayId: settled.displayId,
+        status: settled.status,
+        total: Number(settled.total),
+        itemCount: settled.items.reduce((s, i) => s + (i.quantity ?? 0), 0),
+        customerName: (settled as any).customerName ?? "",
+        scheduledFor: settled.scheduledFor?.toISOString() ?? null,
+        createdAt: settled.createdAt.toISOString(),
+      } as any);
     }
   }
 

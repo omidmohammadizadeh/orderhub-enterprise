@@ -647,17 +647,18 @@ export default function PosPage() {
     if (!window.confirm(`£${tabTotal.toFixed(2)} received in cash?`)) return;
     setSettlingCash(true);
     try {
-      await apiClient.patch(`/v1/orders/${tabOrderId}/payment-status`, {
-        paymentStatus: "PAID",
-        paymentMethod: "CASH",
+      // Settle through the split-payment endpoint, not payment-status +
+      // a status PATCH. The PATCH was being REJECTED — the forward-only
+      // ladder refuses ACCEPTED → COMPLETED ("Invalid status transition")
+      // — so the table freed but the order sat on the board as Accepted
+      // for ever. The payments path marks it PAID, writes COMPLETED
+      // directly (it is allowed to bypass the ladder), frees the table and
+      // emits to the board, all server-side in one call.
+      await tablesClient.addPayment(tabOrderId, {
+        amount: Number(tabTotal.toFixed(2)),
+        method: "CASH",
+        note: "Tab settled — cash",
       });
-      await apiClient
-        .patch(`/v1/orders/${tabOrderId}/status`, {
-          status: "COMPLETED",
-          note: "Tab settled — cash",
-        })
-        .catch(() => {});
-      await tablesClient.free(tableId).catch(() => {});
       setPayChoiceOpen(false);
       setSubmitFeedback(`${tableName ?? "Table"} settled (cash) and cleared.`);
       router.push("/dashboard/tables");
