@@ -34,7 +34,7 @@ import { PromosModal } from "@/components/pos/promos-modal";
 // own sidebar entry (/dashboard/direct-ordering). The modal import and
 // button below are gone; the settings page itself still uses
 // DirectOrderingSettings (re-exported from this file).
-import { Truck, Tag, Percent, Ban } from "lucide-react";
+import { Truck, Tag, Percent, Ban, KeyRound } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
@@ -56,6 +56,7 @@ import { tablesClient } from "@/lib/api/tables.client";
 import { SplitBillModal } from "@/components/pos/split-bill-modal";
 import { ServiceChargeModal } from "@/components/pos/service-charge-modal";
 import { VoidItemModal } from "@/components/pos/void-item-modal";
+import { ManagerPinModal } from "@/components/pos/manager-pin-modal";
 import { printOrderViaBridge } from "@/lib/printing/print-order";
 import { hasNativeBridge } from "@/lib/printing/bridge";
 
@@ -129,6 +130,7 @@ export default function PosPage() {
   const [showPromosModal, setShowPromosModal] = useState(false);
   const [showServiceCharge, setShowServiceCharge] = useState(false);
   const [voidOpen, setVoidOpen] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
   // Table Tabs — true while the charge modal is settling a tab (so its close
   // handler completes the order + frees the table when paid).
@@ -903,6 +905,15 @@ export default function PosPage() {
           )}
           <button
             type="button"
+            onClick={() => setPinOpen(true)}
+            disabled={!selectedLocationId}
+            title="Set the PIN that authorises voids and comps"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            <KeyRound className="h-3.5 w-3.5" /> Manager PIN
+          </button>
+          <button
+            type="button"
             onClick={() => setShowServiceCharge(true)}
             disabled={!selectedLocationId}
             title="Add a service charge automatically to bills"
@@ -1038,6 +1049,13 @@ export default function PosPage() {
 
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
+
+      {pinOpen && selectedLocationId && (
+        <ManagerPinModal
+          locationId={selectedLocationId}
+          onClose={() => setPinOpen(false)}
+        />
+      )}
 
       {showServiceCharge && selectedLocationId && (
         <ServiceChargeModal
