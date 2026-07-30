@@ -85,6 +85,28 @@ export function useAuth() {
   return { tokens, hydrated, fromFreshLogin, setTokens };
 }
 
+/**
+ * Overwrite the stored pair WITHOUT touching React state.
+ *
+ * The WebView rotates its own refresh token while the app runs, and this app
+ * re-injects whatever it holds on every launch. Left un-synced, that stored
+ * pair goes stale within minutes and a relaunch replays a revoked token —
+ * which the server correctly rejects, dropping the operator on the sign-in
+ * page after they swiped the app closed.
+ *
+ * State is deliberately untouched: `PosWebView` derives its initial URL from
+ * `tokens`, so setting state here would reload the WebView mid-shift and
+ * throw away whatever the till was in the middle of.
+ */
+export async function persistTokens(next: AuthTokens): Promise<void> {
+  inMemoryAccess = next.accessToken;
+  try {
+    await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(next));
+  } catch {
+    /* a failed write only costs us the next cold start, never this session */
+  }
+}
+
 // API login responses: { tokens: { accessToken, refreshToken, ... }, user }.
 // We keep BOTH tokens so the web's auth callback page can rebuild its
 // Zustand auth store (it persists refreshToken too).

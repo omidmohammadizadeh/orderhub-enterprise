@@ -101,6 +101,15 @@ export const useAuthStore = create<AuthStore>()(
 
       setTokens: (accessToken, refreshToken) => {
         set({ accessToken, refreshToken, isAuthenticated: true });
+        // Keep the native tablet shell's copy in step.
+        //
+        // The mobile app injects the tokens it holds in SecureStore on EVERY
+        // launch. That copy was written once at login and never updated, so
+        // after the web app rotated its refresh token a few times, killing
+        // and reopening the app replayed a long-revoked token — and the
+        // operator landed back on the sign-in page. Rotation happens here,
+        // so this is the place to tell native about it.
+        pushTokensToNative(accessToken, refreshToken);
       },
 
       clearTokens: () => {
@@ -173,6 +182,24 @@ export function useAuthHydrated(): boolean {
 //   2. a `storage` listener rehydrates this tab's store whenever another tab
 //      writes new tokens, keeping the access token current too.
 const PERSIST_KEY = "orderhub-auth";
+
+/**
+ * Hand the current token pair to the native shell, if we are inside one.
+ * A no-op in a normal browser. Failures are swallowed: this is a
+ * convenience for the next cold start, never something a running session
+ * should depend on.
+ */
+function pushTokensToNative(accessToken: string, refreshToken: string): void {
+  try {
+    const rn = (window as any)?.ReactNativeWebView;
+    if (!rn?.postMessage) return;
+    rn.postMessage(
+      JSON.stringify({ type: "tokens", accessToken, refreshToken }),
+    );
+  } catch {
+    /* not in a WebView, or the bridge is gone — nothing to do */
+  }
+}
 
 function freshestRefreshToken(): string | null {
   try {

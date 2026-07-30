@@ -30,7 +30,7 @@ import * as Linking from "expo-linking";
 import Constants from "expo-constants";
 
 import { signOutGoogle } from "@/services/google";
-import type { AuthTokens } from "@/services/auth";
+import { persistTokens, type AuthTokens } from "@/services/auth";
 import {
   listBondedDevices,
   sendBytesOverBt,
@@ -222,7 +222,19 @@ export function PosWebView({ tokens, onSignOut }: Props) {
   const onMessage = async (e: WebViewMessageEvent) => {
     try {
       const msg = JSON.parse(e.nativeEvent.data);
-      if (msg?.type === "signout") {
+      if (msg?.type === "tokens" && msg?.accessToken && msg?.refreshToken) {
+        // The web app rotated its refresh token. Persist the new pair so the
+        // NEXT cold start injects a live token instead of the snapshot taken
+        // at login — replaying that stale one is what dumped operators back
+        // on the sign-in page after swiping the app closed.
+        //
+        // Deliberately does not touch React state: re-rendering here would
+        // change `initialUrl` and reload the WebView mid-shift.
+        await persistTokens({
+          accessToken: String(msg.accessToken),
+          refreshToken: String(msg.refreshToken),
+        });
+      } else if (msg?.type === "signout") {
         await signOutGoogle();
         onSignOut();
       } else if (msg?.type === "openExternal" && msg?.url) {
