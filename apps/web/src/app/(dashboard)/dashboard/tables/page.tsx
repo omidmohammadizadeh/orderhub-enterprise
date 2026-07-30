@@ -253,6 +253,71 @@ export default function TablesPage() {
     onError: () => toast.error("Couldn't add the area"),
   });
 
+  const renameArea = useMutation({
+    mutationFn: async (v: { from: string; to: string }) => {
+      const settings = ((locationQuery.data as any)?.settings ?? {}) as Record<
+        string,
+        any
+      >;
+      const ts = (settings.tableService ?? {}) as Record<string, any>;
+      const next = [
+        ...new Set(
+          ((ts.areas ?? []) as string[]).map((a) => (a === v.from ? v.to : a)),
+        ),
+      ];
+      await locationsClient.update(locationId!, {
+        settings: { ...settings, tableService: { ...ts, areas: next } },
+      } as any);
+      // Re-file every table that was in the old area. Renaming the list
+      // alone would leave the tables pointing at an area that no longer
+      // exists, and they'd vanish into an orphan section on the floor.
+      await Promise.all(
+        tables
+          .filter((t) => (t.area ?? "") === v.from)
+          .map((t) => tablesClient.update(t.id, { area: v.to })),
+      );
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["location", locationId] });
+      qc.invalidateQueries({ queryKey: ["tables", locationId] });
+      toast.success("Area renamed");
+    },
+    onError: () => toast.error("Couldn't rename the area"),
+  });
+
+  const deleteArea = useMutation({
+    mutationFn: async (name: string) => {
+      const settings = ((locationQuery.data as any)?.settings ?? {}) as Record<
+        string,
+        any
+      >;
+      const ts = (settings.tableService ?? {}) as Record<string, any>;
+      await locationsClient.update(locationId!, {
+        settings: {
+          ...settings,
+          tableService: {
+            ...ts,
+            areas: ((ts.areas ?? []) as string[]).filter((a) => a !== name),
+          },
+        },
+      } as any);
+      // Tables are NOT deleted with the area — that would destroy real
+      // data over an organisational change. They just lose their area and
+      // fall back to the default section, where they can be re-filed.
+      await Promise.all(
+        tables
+          .filter((t) => (t.area ?? "") === name)
+          .map((t) => tablesClient.update(t.id, { area: null })),
+      );
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["location", locationId] });
+      qc.invalidateQueries({ queryKey: ["tables", locationId] });
+      toast.success("Area removed — its tables kept, now with no area");
+    },
+    onError: () => toast.error("Couldn't remove the area"),
+  });
+
   const areas = useMemo(() => {
     const map = new Map<string, RestaurantTable[]>();
     for (const t of tables) {
@@ -383,6 +448,70 @@ export default function TablesPage() {
           )}
         </div>
       </div>
+
+      {manage && (
+        <div className="mb-4 rounded-lg border border-zinc-200 bg-white p-4">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+            Areas ({definedAreas.length})
+          </p>
+          {!definedAreas.length ? (
+            <p className="text-xs text-zinc-500">
+              No areas yet. Use <b>+ Add area</b> above, then pick one when you
+              add a table.
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {definedAreas.map((a) => {
+                const used = tables.filter(
+                  (t) => (t.area ?? "") === a,
+                ).length;
+                return (
+                  <li
+                    key={a}
+                    className="flex items-center gap-2 rounded-md border border-zinc-200 px-3 py-1.5"
+                  >
+                    <span className="text-xs font-medium text-zinc-800">
+                      {a}
+                    </span>
+                    <span className="text-[10px] text-zinc-400">
+                      {used} table{used === 1 ? "" : "s"}
+                    </span>
+                    <button
+                      type="button"
+                      title="Rename"
+                      onClick={() => {
+                        const to = window.prompt(`Rename "${a}" to:`, a)?.trim();
+                        if (to && to !== a)
+                          renameArea.mutate({ from: a, to });
+                      }}
+                      className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      title="Delete area"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            used
+                              ? `Remove the area "${a}"?\n\nIts ${used} table${used === 1 ? "" : "s"} will be kept — they just won't be in an area any more.`
+                              : `Remove the area "${a}"?`,
+                          )
+                        )
+                          deleteArea.mutate(a);
+                      }}
+                      className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
       {!enabled && (
         <div className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
