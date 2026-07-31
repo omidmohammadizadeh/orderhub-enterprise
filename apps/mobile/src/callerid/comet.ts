@@ -19,7 +19,10 @@ type OnNumber = (phone: string, rawLine: string) => void;
 type OnLog = (msg: string) => void;
 
 const BAUD_CANDIDATES = [1200, 9600, 4800, 2400] as const;
-const PROBE_MS = 12_000; // listen this long per baud before moving on
+// How many bytes to collect before judging whether a baud is wrong. Small
+// enough that one ring's burst is a verdict, big enough that a couple of
+// stray bytes on an idle line don't trigger a pointless re-hunt.
+const GARBAGE_SAMPLE_BYTES = 40;
 const DEDUPE_MS = 10_000; // Comet repeats the burst on every ring
 
 // Matches 0…/+44… UK numbers inside an arbitrary line once spacing/dashes
@@ -82,7 +85,14 @@ export async function startCometReader(onNumber: OnNumber, onLog: OnLog = () => 
           continue;
         }
 
-        const result = await listenOnPort(port, baud, onNumber, onLog);
+        const result = await listenOnPort(
+          port,
+          baud,
+          onNumber,
+          onLog,
+          () => UsbSerialManager.list(),
+          device.deviceId,
+        );
         try {
           port.close();
         } catch {
@@ -114,24 +124,53 @@ function listenOnPort(
   baud: number,
   onNumber: OnNumber,
   onLog: OnLog,
+  listDevices: () => Promise<any[]>,
+  deviceId: any,
 ): Promise<"garbage" | "locked" | "unplugged"> {
   return new Promise((resolve) => {
     let buffer = "";
     let printable = 0;
     let total = 0;
     let locked = false;
+    let settled = false;
     const lastSeen = new Map<string, number>();
 
-    const probeTimer = setTimeout(() => {
-      if (locked) return; // saw good text — keep listening indefinitely
-      const ratio = total === 0 ? 1 : printable / total;
-      if (total > 0 && ratio < 0.7) {
-        onLog(`callerid: ${baud} baud looks wrong (ascii ${(ratio * 100) | 0}%) — hunting on`);
-        cleanup();
-        resolve("garbage");
+    const settle = (result: "garbage" | "locked" | "unplugged") => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(result);
+    };
+
+    // Wrong-baud detection is DATA-driven, not time-driven.
+    //
+    // This used to be a one-shot 12s timer: if the line happened to be quiet
+    // during those 12 seconds (the normal case — a shop's phone is not
+    // ringing when the tablet boots) the timer fired, found total === 0, and
+    // deliberately stayed on the current baud. The timer never ran again, so
+    // when a call finally arrived at a DIFFERENT baud the incoming garbage
+    // could no longer trigger the hunt. The reader sat on 1200 forever and
+    // silently never produced a number.
+    //
+    // Now we judge whenever enough bytes have actually arrived, no matter how
+    // long the line stayed quiet first. Silence still costs nothing — we
+    // simply don't decide until there is something to decide on.
+    const judge = () => {
+      if (locked || settled) return;
+      if (total < GARBAGE_SAMPLE_BYTES) return;
+      const ratio = printable / total;
+      if (ratio < 0.7) {
+        onLog(
+          `callerid: ${baud} baud looks wrong (ascii ${(ratio * 100) | 0}% of ${total}B) — hunting on`,
+        );
+        settle("garbage");
+      } else {
+        // Mostly printable but no complete line yet — keep listening; a
+        // terminator will arrive and lock us in.
+        total = 0;
+        printable = 0;
       }
-      // total === 0 → line just hasn't rung yet; stay on this baud.
-    }, PROBE_MS);
+    };
 
     const sub = port.onReceived((event: any) => {
       // Library delivers hex-encoded bytes.
@@ -163,10 +202,11 @@ function listenOnPort(
           if (buffer.length > 200) buffer = buffer.slice(-200);
         }
       }
+      judge();
     });
 
     const cleanup = () => {
-      clearTimeout(probeTimer);
+      clearInterval(alive);
       try {
         sub?.remove?.();
       } catch {
@@ -174,15 +214,29 @@ function listenOnPort(
       }
     };
 
-    // The lib surfaces disconnects as an error/close on read; poll the
-    // device list as a fallback so unplugging doesn't strand us.
+    // Unplug watchdog. This previously only checked `stopped`, so it never
+    // actually returned "unplugged" — pulling the Comet out (or a USB reset)
+    // stranded the reader on a dead port until the whole app was restarted.
+    // Poll the device list so the outer loop gets control back and can
+    // re-acquire the box on its own.
     const alive = setInterval(async () => {
       if (stopped) {
-        clearInterval(alive);
-        cleanup();
-        resolve(locked ? "locked" : "garbage");
+        settle(locked ? "locked" : "garbage");
+        return;
       }
-    }, 2_000);
+      try {
+        const devices = await listDevices();
+        const stillThere = (devices ?? []).some(
+          (d: any) => d?.deviceId === deviceId,
+        );
+        if (!stillThere) {
+          onLog("callerid: USB device disappeared — re-acquiring");
+          settle("unplugged");
+        }
+      } catch {
+        /* transient list failure — try again next tick */
+      }
+    }, 5_000);
   });
 }
 

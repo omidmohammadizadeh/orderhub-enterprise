@@ -94,19 +94,32 @@ export function CallerIdPopup({
   // shell dispatches "native:callerid" with the ringing number. Forward it to
   // the API (which matches + broadcasts "callerid:ring" back to every tablet).
   useEffect(() => {
-    if (!nativeLocationId) return;
     const recent = new Map<string, number>();
     const onNative = (e: Event) => {
       const d = (e as CustomEvent).detail as { phone?: string };
       const phone = d?.phone?.trim();
       if (!phone) return;
+      // The listener is registered even without a location so a dropped ring
+      // is VISIBLE. Previously we returned early and the box's number went
+      // nowhere with no trace — indistinguishable from broken hardware.
+      if (!nativeLocationId) {
+        console.warn(
+          `caller-id: ring from ${phone} ignored — pick a single location in the switcher so we know which shop's line rang.`,
+        );
+        return;
+      }
       const now = Date.now();
       if (now - (recent.get(phone) ?? 0) < 10_000) return;
       recent.set(phone, now);
       apiClient
         .post("/v1/customers/caller-id/ring", { locationId: nativeLocationId, phone })
-        .catch(() => {
-          /* best-effort; the next ring retries */
+        .catch((err) => {
+          // Best-effort (the next ring retries), but say so — a silently
+          // swallowed 401/403 here looks exactly like a dead Comet box.
+          console.error(
+            `caller-id: couldn't broadcast the ring for ${phone}:`,
+            err?.response?.status ?? err?.message ?? err,
+          );
         });
     };
     window.addEventListener("native:callerid", onNative);

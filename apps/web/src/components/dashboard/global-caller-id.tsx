@@ -35,10 +35,23 @@ export function GlobalCallerIdPopup() {
   const names: Record<string, string> = {};
   for (const l of locations ?? []) names[l.id] = l.name;
 
+  // Which location a NATIVE ring (the Comet USB box on this tablet) is posted
+  // against. This used to be `selectedLocationId` alone, which meant a hub
+  // tablet left on "All locations" read the number off the box and then threw
+  // it away — CallerIdPopup bails when nativeLocationId is null, so no tablet
+  // ever popped and nothing was logged. Single-site shops (who are most of
+  // the Comet users) hit that by simply not touching the location switcher.
+  //
+  // Fall back to the only location when there is exactly one. With several
+  // locations on "All locations" we genuinely cannot tell which shop's
+  // landline rang, so the popup warns instead of failing silently.
+  const nativeLocationId =
+    selectedLocationId ?? (allIds.length === 1 ? allIds[0]! : null);
+
   return (
     <CallerIdPopup
       locationIds={ids}
-      nativeLocationId={selectedLocationId}
+      nativeLocationId={nativeLocationId}
       locationNames={names}
     />
   );
