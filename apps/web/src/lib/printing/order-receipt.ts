@@ -107,7 +107,21 @@ export function buildPrintPayload(
       : typeof locAddr === "string"
         ? locAddr
         : null);
+  // Order.deliveryAddress (Json) is the CANONICAL address — it's what every
+  // marketplace ingest writes. The flat addressLine1/2/city/postcode columns
+  // are only a mirror the POS path fills in, so reading them alone printed no
+  // address at all on Deliveroo/Uber merchant-delivery tickets: the drawer
+  // showed it (it reads the JSON) while the driver's ticket had nothing.
+  // Canonical first, mirror as the fallback.
+  const addrJson = (order as any).deliveryAddress;
   const deliveryAddress =
+    (addrJson && typeof addrJson === "object"
+      ? [addrJson.line1, addrJson.line2, addrJson.city, addrJson.postcode]
+          .filter(Boolean)
+          .join(", ")
+      : typeof addrJson === "string"
+        ? addrJson.trim()
+        : "") ||
     [
       (order as any).addressLine1,
       (order as any).addressLine2,
@@ -115,7 +129,8 @@ export function buildPrintPayload(
       (order as any).postcode,
     ]
       .filter(Boolean)
-      .join(", ") || null;
+      .join(", ") ||
+    null;
   return {
     banner: opts?.banner ?? null,
     // Brand logo for the receipt header (rastered to ESC/POS by the

@@ -109,14 +109,42 @@ function dashes(cols: number): string {
   return "- ".repeat(Math.floor(cols / 2)).trimEnd();
 }
 
+// Punctuation that routinely reaches a ticket from menus, marketplace notes
+// and our own separators, transliterated to ASCII. Without this each one
+// prints as a bare "?" — a customer note reading "NO CUTLERY ? Ring the
+// doorbell" looks like corrupted data rather than two instructions.
+const TRANSLIT: Record<string, string> = {
+  "·": "-", // · middot (our own separator between notes)
+  "•": "-", // • bullet
+  "–": "-", // – en dash
+  "—": "-", // — em dash
+  "‘": "'", // ' curly quotes
+  "’": "'",
+  "‚": "'",
+  "“": '"',
+  "”": '"',
+  "…": "...", // … ellipsis
+  " ": " ", // non-breaking space
+  "½": "1/2",
+  "¼": "1/4",
+  "¾": "3/4",
+  "×": "x", // × multiplication sign
+  "€": "EUR",
+};
+
 function strBytes(s: string): number[] {
-  // CP437 / ASCII subset only — non-ASCII becomes "?". Real menus
-  // shouldn't have funky glyphs on a thermal printer anyway.
-  // Exception: £ (U+00A3) maps to 0x9C, its CP437 position, so prices
-  // print with the pound sign instead of "?".
+  // CP437 / ASCII subset only — anything we can't render becomes "?".
+  // Exceptions: £ (U+00A3) maps to 0x9C, its CP437 position, so prices print
+  // with the pound sign; and the TRANSLIT table above rewrites common
+  // punctuation to a readable ASCII equivalent first.
   const out: number[] = [];
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
+  for (const ch of s) {
+    const mapped = TRANSLIT[ch];
+    if (mapped !== undefined) {
+      for (let j = 0; j < mapped.length; j++) out.push(mapped.charCodeAt(j));
+      continue;
+    }
+    const c = ch.charCodeAt(0);
     if (c === 0x00a3) out.push(0x9c); // £
     else out.push(c < 0x80 ? c : 0x3f);
   }
