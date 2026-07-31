@@ -493,6 +493,26 @@ export class VideoStudioService {
     });
   }
 
+  /**
+   * Cancel a stuck or unwanted generation and refund the credit.
+   *
+   * The provider job is left to finish on its own — we can't un-bill a render
+   * that's already running, and abandoning the row is what the operator
+   * actually wants (the card stops saying "Rendering…" forever). Reuses
+   * failAndRefund so the refund can't double-apply if reconcile lands at the
+   * same moment.
+   */
+  async cancelGeneration(id: string, tenantId: string) {
+    const gen = await this.getGeneration(id, tenantId);
+    if (!["QUEUED", "RENDERING"].includes(String(gen.status))) {
+      throw new BadRequestException(
+        "That generation has already finished — nothing to cancel.",
+      );
+    }
+    await this.failAndRefund(gen, "cancelled");
+    return this.getGeneration(id, tenantId);
+  }
+
   // ── Reads ────────────────────────────────────────────────────────────────
   async listGenerations(tenantId: string, limit = 30) {
     return this.db().videoGeneration.findMany({

@@ -147,6 +147,11 @@ export default function VideoStudioPage() {
     mutationFn: () => videoStudioClient.adminTopup(10),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["video-studio"] }),
   });
+  const cancelGen = useMutation({
+    mutationFn: (id: string) => videoStudioClient.cancel(id),
+    // Refresh both the card list and the balance — cancelling refunds.
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["video-studio"] }),
+  });
 
   const isImage = style?.kind === "image";
   const canGenerate =
@@ -436,6 +441,16 @@ export default function VideoStudioPage() {
                       <div className="flex h-full flex-col items-center justify-center gap-2 text-zinc-400">
                         <Loader2 className="h-6 w-6 animate-spin" />
                         <span className="text-xs">Rendering…</span>
+                        {/* A render that can't finish would otherwise spin
+                            here forever, holding the credit with it. */}
+                        <button
+                          type="button"
+                          onClick={() => cancelGen.mutate(g.id)}
+                          disabled={cancelGen.isPending}
+                          className="mt-1 rounded-md border border-zinc-600 px-2 py-0.5 text-[11px] text-zinc-300 hover:bg-zinc-700 disabled:opacity-50"
+                        >
+                          Cancel & refund
+                        </button>
                       </div>
                     )}
                   </div>

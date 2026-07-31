@@ -17,6 +17,7 @@ import {
   resolveFontScale,
   resolveModifierScale,
   resolvePrintFont,
+  buildDrawerKick,
 } from "./bridge";
 import { buildPrintPayload } from "./order-receipt";
 
@@ -109,6 +110,44 @@ function resolveCommandSet(p: any): string {
   if (brand === "star") return "STAR";
   if (/star/i.test(String(p?.model ?? ""))) return "STAR";
   return "ESCPOS";
+}
+
+/**
+ * Pop the cash drawer at a location.
+ *
+ * The drawer is wired to the receipt printer's DK port, so this is a
+ * zero-paper print job. Unlike printing an order we target exactly ONE
+ * printer — firing every printer at the site would rattle the kitchen
+ * printer too — preferring the front-counter one, which is where the
+ * till drawer physically is.
+ */
+export async function openCashDrawerViaBridge(
+  locationId: string,
+): Promise<string> {
+  if (!hasNativeBridge()) {
+    throw new Error(
+      "The cash drawer opens through the printer, which only works inside the OrderHub Solutions tablet app.",
+    );
+  }
+  const printers = await printersClient.list(locationId);
+  const reachable = printers.filter(
+    (p: any) =>
+      p.locationId === locationId &&
+      (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
+      p.ipAddress &&
+      p.isActive !== false &&
+      bridgeSupportsPrinter(p),
+  );
+  if (reachable.length === 0) {
+    throw new Error(
+      "No reachable printer for this location — the drawer opens via the receipt printer.",
+    );
+  }
+  // Front counter first (that's the till), then anything else.
+  const target =
+    reachable.find((p: any) => p.kind === "FRONT_COUNTER") ?? reachable[0]!;
+  await writeToPrinter(target, buildDrawerKick(resolveCommandSet(target)));
+  return target.name ?? "printer";
 }
 
 export async function printOrderViaBridge(

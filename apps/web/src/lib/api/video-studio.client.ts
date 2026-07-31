@@ -59,6 +59,10 @@ export const videoStudioClient = {
     apiClient
       .get<VideoGeneration>(`/v1/video-studio/generations/${id}`)
       .then((r) => r.data),
+  cancel: (id: string) =>
+    apiClient
+      .post<VideoGeneration>(`/v1/video-studio/generations/${id}/cancel`)
+      .then((r) => r.data),
   // Admin/testing hooks (replaced by Stripe in Phase 2).
   adminActivate: (includedMonthly = 15) =>
     apiClient

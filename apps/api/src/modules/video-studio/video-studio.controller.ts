@@ -79,6 +79,13 @@ export class VideoStudioController {
     return this.studio.getGeneration(id, user.tenantId);
   }
 
+  @Post("generations/:id/cancel")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Cancel an in-flight generation and refund its credit" })
+  cancel(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.studio.cancelGeneration(id, user.tenantId);
+  }
+
   // ── Admin/testing hooks (Stripe wiring replaces these in Phase 2) ─────────
   @Post("admin/activate")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER")

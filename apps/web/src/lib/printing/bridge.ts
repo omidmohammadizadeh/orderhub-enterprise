@@ -248,6 +248,30 @@ export function bytesToBase64(bytes: Uint8Array): string {
 
 // ── Receipt templates ──────────────────────────────────────────────
 
+// ── Cash drawer ─────────────────────────────────────────────────────
+//
+// A till drawer isn't wired to the computer — it hangs off the RJ11
+// "DK" port on the receipt printer and only opens when the printer
+// pulses it. So "open the drawer" is a print job with no paper: send
+// the kick bytes down the same Bluetooth/LAN socket the receipts use.
+//
+// ESC p m t1 t2 — pulse connector pin `m` for t1 on / t2 off (x2ms).
+// Drawers are wired to either pin 2 or pin 5 depending on the cable,
+// and there's no way to detect which. Both pulses are sent: the pin
+// that isn't connected does nothing, so this is harmless and saves the
+// operator diagnosing a cable they can't see.
+export function buildDrawerKick(commandSet?: string): Uint8Array {
+  if (String(commandSet ?? "").toUpperCase() === "STAR") {
+    // Star Line Mode: BEL fires the drawer. ESC BEL n t sets the pulse
+    // first so drawers that need a longer pulse still latch.
+    return new Uint8Array([ESC, 0x07, 0x0b, 0x37, 0x07]);
+  }
+  return new Uint8Array([
+    ESC, 0x70, 0x00, 0x19, 0xfa, // pin 2
+    ESC, 0x70, 0x01, 0x19, 0xfa, // pin 5
+  ]);
+}
+
 export function buildTestReceipt(paperWidth: number = 80): Uint8Array {
   const buf: number[] = [];
   buf.push(...INIT);

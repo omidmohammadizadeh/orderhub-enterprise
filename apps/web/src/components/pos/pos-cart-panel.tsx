@@ -23,6 +23,8 @@ import {
   type PromoValidateResult,
 } from "@/lib/api/pos.client";
 import { useOnlineStatus } from "@/lib/pos/use-online-status";
+import { hasNativeBridge } from "@/lib/printing/bridge";
+import { openCashDrawerViaBridge } from "@/lib/printing/print-order";
 
 // ── Types the parent feeds in ────────────────────────────────────────────────
 export interface CartLine {
@@ -153,6 +155,28 @@ export function PosCartPanel(props: CartPanelProps) {
     onDraftChange,
     dineIn,
   } = props;
+
+  // ── Cash drawer (no-sale) ──────────────────────────────────────────────────
+  // The drawer hangs off the receipt printer's DK port, so this only works
+  // inside the tablet app where the print bridge lives. Resolved after mount:
+  // window.OrderHubBT isn't there during SSR.
+  const [drawerAvailable, setDrawerAvailable] = useState(false);
+  const [drawerBusy, setDrawerBusy] = useState(false);
+  const [drawerFeedback, setDrawerFeedback] = useState<string | null>(null);
+  useEffect(() => setDrawerAvailable(hasNativeBridge()), []);
+  const openDrawer = async () => {
+    setDrawerBusy(true);
+    setDrawerFeedback(null);
+    try {
+      const name = await openCashDrawerViaBridge(locationId);
+      setDrawerFeedback(`Drawer opened at ${name}.`);
+    } catch (err: any) {
+      setDrawerFeedback(err?.message ?? "Couldn't open the cash drawer.");
+    } finally {
+      setDrawerBusy(false);
+      window.setTimeout(() => setDrawerFeedback(null), 5000);
+    }
+  };
 
   // ── Cart-adjacent state ────────────────────────────────────────────────────
   const [customerName, setCustomerName] = useState(initialDraft?.customerName ?? "");
@@ -674,15 +698,36 @@ export function PosCartPanel(props: CartPanelProps) {
       )}
       <div className="border-b border-zinc-200 px-3 py-2 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-zinc-900">Current order</h2>
-        <button
-          type="button"
-          onClick={onClearCart}
-          disabled={cart.length === 0}
-          className="text-xs text-zinc-400 hover:text-red-600 disabled:opacity-30"
-        >
-          Clear
-        </button>
+        <div className="flex items-center gap-2">
+          {/* No-sale drawer pop — needed for change, refunds and cashing up,
+              independently of any order. Hidden outside the tablet app,
+              where there's no printer to pulse the drawer. */}
+          {drawerAvailable && (
+            <button
+              type="button"
+              onClick={openDrawer}
+              disabled={drawerBusy}
+              className="inline-flex items-center gap-1 rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+              title="Pop the cash drawer (no sale)"
+            >
+              💷 {drawerBusy ? "Opening…" : "Open drawer"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClearCart}
+            disabled={cart.length === 0}
+            className="text-xs text-zinc-400 hover:text-red-600 disabled:opacity-30"
+          >
+            Clear
+          </button>
+        </div>
       </div>
+      {drawerFeedback && (
+        <div className="border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[11px] text-zinc-700">
+          {drawerFeedback}
+        </div>
+      )}
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
