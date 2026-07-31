@@ -34,7 +34,7 @@ import { PromosModal } from "@/components/pos/promos-modal";
 // own sidebar entry (/dashboard/direct-ordering). The modal import and
 // button below are gone; the settings page itself still uses
 // DirectOrderingSettings (re-exported from this file).
-import { Truck, Tag, Percent, Ban, KeyRound } from "lucide-react";
+import { Truck, Tag, Percent, Ban, KeyRound, Banknote } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
@@ -58,7 +58,10 @@ import { SplitBillModal } from "@/components/pos/split-bill-modal";
 import { ServiceChargeModal } from "@/components/pos/service-charge-modal";
 import { VoidItemModal } from "@/components/pos/void-item-modal";
 import { ManagerPinModal } from "@/components/pos/manager-pin-modal";
-import { printOrderViaBridge } from "@/lib/printing/print-order";
+import {
+  printOrderViaBridge,
+  openCashDrawerViaBridge,
+} from "@/lib/printing/print-order";
 import { hasNativeBridge } from "@/lib/printing/bridge";
 
 interface PersistedCart {
@@ -126,6 +129,23 @@ export default function PosPage() {
   const [cartResetKey, setCartResetKey] = useState(0);
   const [search, setSearch] = useState("");
   const [submitFeedback, setSubmitFeedback] = useState<string | null>(null);
+  // ── Cash drawer (no sale) ────────────────────────────────────────────────
+  // The drawer is wired to the receipt printer's DK port, not to the tablet,
+  // so opening it is a paperless print job down the same bridge.
+  const [drawerBusy, setDrawerBusy] = useState(false);
+  const openDrawer = async () => {
+    if (!selectedLocationId) return;
+    setDrawerBusy(true);
+    try {
+      const name = await openCashDrawerViaBridge(selectedLocationId);
+      setSubmitFeedback(`Cash drawer opened at ${name}.`);
+    } catch (err: any) {
+      setSubmitFeedback(err?.message ?? "Couldn't open the cash drawer.");
+    } finally {
+      setDrawerBusy(false);
+      window.setTimeout(() => setSubmitFeedback(null), 6000);
+    }
+  };
   // Phase AM — manager-side modals on the POS top bar.
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showPromosModal, setShowPromosModal] = useState(false);
@@ -906,6 +926,20 @@ export default function PosPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* No-sale drawer pop — for change, refunds and cashing up, with no
+              order involved. Always shown (not gated on the bridge) so staff
+              can find it; on a desktop browser it explains that the drawer
+              opens through the printer, which only the tablet app can reach. */}
+          <button
+            type="button"
+            onClick={openDrawer}
+            disabled={!selectedLocationId || drawerBusy}
+            title="Pop the cash drawer (no sale)"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            <Banknote className="h-3.5 w-3.5" />{" "}
+            {drawerBusy ? "Opening…" : "Open cash drawer"}
+          </button>
           {/* Nothing is delivered from a table — hide it in dine-in. */}
           {!tableId && (
             <button
