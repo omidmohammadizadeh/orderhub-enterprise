@@ -4338,3 +4338,76 @@ model Review {
   @@index([brandId, status])
   @@map("reviews")
 }
+
+// A shared basket several people add to before it becomes one order.
+//
+// Scalar-only relations on purpose (same as Review): Order/Location/Brand are
+// large, frequently-edited models and a stray duplicate field there breaks
+// every build.
+//
+// The basket is NOT an Order. It becomes one only when the host places it, so
+// an abandoned group order never reaches the kitchen or the order board.
+model GroupOrder {
+  id       String @id @default(cuid())
+  tenantId String
+  // Public join token — what the share link carries. Indexed and unique
+  // because every guest request looks the basket up by it.
+  token      String  @unique
+  locationId String
+  brandId    String?
+  // Whoever opened it. Nullable: a guest host may not have an account.
+  hostCustomerId String?
+  hostName       String?
+  // OPEN — still accepting items. LOCKED — host closed it, paying.
+  // PLACED — became an order. EXPIRED / CANCELLED — never will.
+  status String @default("OPEN")
+  // Set once placed, so the basket and its order can be reconciled.
+  orderId String? @unique
+  // DELIVERY | PICKUP — chosen by the host up front because it changes the
+  // fees everyone is splitting.
+  fulfillmentType String @default("DELIVERY")
+  // HOST_PAYS — host settles the whole basket. SPLIT — each guest pays for
+  // their own lines before it can be placed.
+  paymentMode String @default("HOST_PAYS")
+  // Abandoned baskets are common; without an expiry they accumulate forever
+  // holding promo allocations.
+  expiresAt DateTime?
+  placedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([tenantId, status])
+  @@index([locationId, status])
+  @@map("group_orders")
+}
+
+// One person's line in a shared basket. Mirrors the cart-item shape the
+// storefront already builds, plus who added it — that attribution is what
+// makes the kitchen ticket baggable per person.
+model GroupOrderItem {
+  id           String @id @default(cuid())
+  groupOrderId String
+  // Guest identity is a name, not an account — people join by link.
+  addedByName String
+  // Stable per-guest id (browser-scoped) so someone can edit or remove their
+  // OWN lines without being able to touch anyone else's.
+  addedByRef String
+  // The cart line as the storefront composes it (product, size, modifiers,
+  // notes). Kept as JSON so this stays in step with cart changes without a
+  // migration each time.
+  cartItem Json
+  quantity Int    @default(1)
+  // Modifier-inclusive line total in pounds, as the storefront calculated it.
+  lineTotal Float
+  // Locked once this guest has paid for their share — a later edit would
+  // change an amount that has already been charged.
+  isPaid    Boolean   @default(false)
+  paidAt    DateTime?
+  paymentId String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([groupOrderId])
+  @@index([groupOrderId, addedByRef])
+  @@map("group_order_items")
+}
