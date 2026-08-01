@@ -18,12 +18,49 @@ export class SupabaseStorageService {
     const url = this.config.get<string>("SUPABASE_URL");
     const key = this.config.get<string>("SUPABASE_SERVICE_ROLE_KEY");
     this.bucket = this.config.get<string>("SUPABASE_STORAGE_BUCKET") || "menu-images";
-    this.client =
-      url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
+    this.client = url && key ? this.buildClient(url, key) : null;
     if (!this.client) {
       this.logger.warn(
         "Supabase not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY) — image uploads fall back to data URLs",
       );
+    }
+  }
+
+  /**
+   * Build the Supabase client without ever being able to take the API down.
+   *
+   * We only use Storage, but supabase-js is all-or-nothing: its constructor
+   * always builds a RealtimeClient, and on Node < 22 (no global WebSocket)
+   * that THROWS. Because this service is constructed at boot, that turned an
+   * optional image-hosting feature into a total startup failure the moment
+   * the env vars were finally set.
+   *
+   * Two guards, in order of preference:
+   *  1. hand Realtime a `ws` transport so it constructs cleanly;
+   *  2. if anything still throws, degrade to null — uploads fall back to data
+   *     URLs exactly as they did when Supabase was unconfigured. An optional
+   *     dependency must never be able to stop orders being taken.
+   */
+  private buildClient(url: string, key: string): SupabaseClient | null {
+    try {
+      // Node 20 has no global WebSocket. Resolved lazily so a missing package
+      // is a degraded feature, not a crash.
+      let transport: unknown;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        transport = require("ws");
+      } catch {
+        transport = undefined;
+      }
+      return createClient(url, key, {
+        auth: { persistSession: false },
+        ...(transport ? { realtime: { transport: transport as any } } : {}),
+      });
+    } catch (e: any) {
+      this.logger.error(
+        `Supabase client failed to initialise — image uploads will fall back to data URLs: ${e?.message ?? e}`,
+      );
+      return null;
     }
   }
 
