@@ -31,6 +31,7 @@ import { UberEatsManageModal } from "@/components/locations/ubereats-manage-moda
 import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
 import { apiClient } from "@/lib/api/client";
+import { StorePickerModal } from "@/components/locations/store-picker-modal";
 import toast from "react-hot-toast";
 
 // Phase AU — HubRise lives on Location (not Brand) because the access
@@ -479,6 +480,7 @@ function UberEatsRow({
     Array<{ storeId: string; name: string; address: string | null }>
   >([]);
   const [picking, setPicking] = useState(false);
+  const [storePickerOpen, setStorePickerOpen] = useState(false);
   // All post-connect management (status, hours, holiday hours, disconnect)
   // lives in the Manage modal — keeps this card compact.
   const [manageOpen, setManageOpen] = useState(false);
@@ -559,24 +561,15 @@ function UberEatsRow({
                   still provisioning your test store, retry shortly.
                 </p>
               ) : (
-                <>
-                  <p className="text-[10px] text-zinc-500">
-                    Choose the Uber Eats store to connect:
-                  </p>
-                  {stores.map((s) => (
-                    <button
-                      key={s.storeId}
-                      onClick={() => link.mutate(s.storeId)}
-                      disabled={link.isPending}
-                      className="block w-full rounded-md border border-zinc-200 px-2 py-1 text-left text-[11px] hover:border-zinc-900 disabled:opacity-50"
-                    >
-                      <span className="font-medium">{s.name || s.storeId}</span>
-                      {s.address && (
-                        <span className="text-zinc-500"> · {s.address}</span>
-                      )}
-                    </button>
-                  ))}
-                </>
+                // Opens the searchable modal rather than dumping every store
+                // into this narrow column — accounts routinely hold 40+ sites
+                // with near-identical names.
+                <button
+                  onClick={() => setStorePickerOpen(true)}
+                  className="block w-full rounded-md border border-zinc-900 bg-zinc-900 px-2 py-1.5 text-[11px] font-semibold text-white hover:bg-zinc-800"
+                >
+                  Choose store to connect ({stores.length})
+                </button>
               )}
               <button
                 onClick={() => listStores.mutate()}
@@ -585,6 +578,19 @@ function UberEatsRow({
               >
                 Refresh stores
               </button>
+              {storePickerOpen && (
+                <StorePickerModal
+                  title="Connect an Uber Eats store"
+                  stores={stores}
+                  busy={link.isPending}
+                  onPick={(storeId) => {
+                    setStorePickerOpen(false);
+                    link.mutate(storeId);
+                  }}
+                  onClose={() => setStorePickerOpen(false)}
+                  onRefresh={() => listStores.mutate()}
+                />
+              )}
             </div>
           ) : connected ? (
             <p className="text-[10px] text-zinc-500">
