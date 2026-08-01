@@ -74,6 +74,7 @@ import { DriversModule } from "./modules/drivers/drivers.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { BillingModule } from "./modules/billing/billing.module";
 import { VideoStudioModule } from "./modules/video-studio/video-studio.module";
+import { GroupOrdersModule } from "./modules/group-orders/group-orders.module";
 import { ReviewsModule } from "./modules/reviews/reviews.module";
 import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
@@ -269,6 +270,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     PaymentsModule,
     BillingModule,
     VideoStudioModule,
+    GroupOrdersModule,
     ReviewsModule,
     SubscriptionsModule,
     NotificationsModule,
