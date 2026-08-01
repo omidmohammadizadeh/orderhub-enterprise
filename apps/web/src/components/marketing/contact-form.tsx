@@ -51,10 +51,10 @@ export function ContactForm({ webhookUrl: _webhookUrl = "" }: Props) {
         firstName,
         lastName,
         email: email.trim(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
         companyName: restaurant.trim() || undefined,
         numberOfLocations: locations,
-        message: message.trim() || undefined,
+        message: message.trim(),
         source: "MARKETING_SITE",
       });
       setStatus("sent");
@@ -147,10 +147,11 @@ export function ContactForm({ webhookUrl: _webhookUrl = "" }: Props) {
             </Field>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Phone">
+            <Field label="Phone" required>
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                required
                 placeholder="+44 …"
                 type="tel"
                 className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
@@ -179,10 +180,11 @@ export function ContactForm({ webhookUrl: _webhookUrl = "" }: Props) {
               <option value="20+">20+</option>
             </select>
           </Field>
-          <Field label="What do you need help with?">
+          <Field label="What do you need help with?" required>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              required
               rows={3}
               placeholder="Tell us a bit about your current setup…"
               className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"

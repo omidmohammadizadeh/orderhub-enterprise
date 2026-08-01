@@ -402,3 +402,182 @@ function Bubble({
     </div>
   );
 }
+
+// ── Table floor plan ─────────────────────────────────────────────────────────
+// Mirrors the real Tables screen: colour-coded tiles, occupied tables carrying
+// their running total and how long they've been seated.
+export function FloorPlanMockup() {
+  const tables = [
+    { name: "T1", seats: 2, state: "free" as const },
+    { name: "T2", seats: 4, state: "busy" as const, total: "48.20", mins: 42 },
+    { name: "T3", seats: 4, state: "free" as const },
+    { name: "T4", seats: 6, state: "busy" as const, total: "112.60", mins: 18 },
+    { name: "T5", seats: 2, state: "bill" as const, total: "31.00", mins: 65 },
+    { name: "T6", seats: 4, state: "free" as const },
+  ];
+  return (
+    <BrowserFrame>
+      <div className="bg-white p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-[13px] font-bold text-zinc-900">Main floor</p>
+            <p className="text-[10px] text-zinc-400">2 free · 3 occupied</p>
+          </div>
+          <div className="flex gap-2 text-[9px]">
+            <span className="flex items-center gap-1 text-zinc-500">
+              <i className="h-2 w-2 rounded-full bg-emerald-400" /> Free
+            </span>
+            <span className="flex items-center gap-1 text-zinc-500">
+              <i className="h-2 w-2 rounded-full bg-amber-400" /> Seated
+            </span>
+            <span className="flex items-center gap-1 text-zinc-500">
+              <i className="h-2 w-2 rounded-full bg-violet-400" /> Bill asked
+            </span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {tables.map((t) => (
+            <div
+              key={t.name}
+              className={
+                "rounded-lg border p-2.5 " +
+                (t.state === "free"
+                  ? "border-emerald-200 bg-emerald-50/60"
+                  : t.state === "bill"
+                    ? "border-violet-200 bg-violet-50/60"
+                    : "border-amber-200 bg-amber-50/60")
+              }
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] font-bold text-zinc-900">
+                  {t.name}
+                </span>
+                <span className="text-[9px] text-zinc-400">{t.seats}p</span>
+              </div>
+              {t.state === "free" ? (
+                <p className="mt-1.5 text-[10px] font-medium text-emerald-600">
+                  Available
+                </p>
+              ) : (
+                <>
+                  <p className="mt-1.5 text-[12px] font-bold text-zinc-900">
+                    £{t.total}
+                  </p>
+                  <p className="text-[9px] text-zinc-400">{t.mins} min</p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </BrowserFrame>
+  );
+}
+
+// ── Split-the-bill sheet ─────────────────────────────────────────────────────
+export function SplitBillMockup() {
+  const rows = [
+    { name: "Mixed Grill", price: "18.50", paid: true },
+    { name: "Chicken Shish", price: "13.90", paid: true },
+    { name: "Lamb Doner", price: "12.40", paid: false },
+    { name: "Halloumi Fries", price: "6.50", paid: false },
+  ];
+  return (
+    <PhoneFrame>
+      <div className="flex h-full flex-col bg-white">
+        <div className="border-b border-zinc-100 px-4 py-3">
+          <p className="text-[13px] font-bold text-zinc-900">Table 4 · Split</p>
+          <p className="text-[10px] text-zinc-400">Tap items to pay for them</p>
+        </div>
+        <div className="flex-1 space-y-1.5 p-3">
+          {rows.map((r) => (
+            <div
+              key={r.name}
+              className={
+                "flex items-center justify-between rounded-lg border px-3 py-2 " +
+                (r.paid
+                  ? "border-zinc-100 bg-zinc-50"
+                  : "border-zinc-200 bg-white")
+              }
+            >
+              <span
+                className={
+                  "text-[11px] font-medium " +
+                  (r.paid ? "text-zinc-300 line-through" : "text-zinc-800")
+                }
+              >
+                {r.name}
+              </span>
+              <span
+                className={
+                  "text-[11px] font-bold " +
+                  (r.paid ? "text-zinc-300 line-through" : "text-zinc-900")
+                }
+              >
+                £{r.price}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-zinc-100 p-3">
+          <div className="mb-2 flex items-center justify-between text-[11px]">
+            <span className="text-zinc-500">Left to pay</span>
+            <span className="font-bold text-zinc-900">£18.90</span>
+          </div>
+          <div className="rounded-lg bg-zinc-900 py-2 text-center text-[11px] font-bold text-white">
+            Charge card reader
+          </div>
+        </div>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+// ── Caller ID pop-up ─────────────────────────────────────────────────────────
+// The card that lands on every till the moment the landline rings.
+export function CallerIdMockup() {
+  return (
+    <BrowserFrame>
+      <div className="bg-zinc-50 p-5">
+        <div className="mx-auto max-w-[300px] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg">
+          <div className="flex items-center gap-2 bg-emerald-500 px-3 py-2">
+            <Phone className="h-3.5 w-3.5 text-white" />
+            <span className="text-[11px] font-bold text-white">
+              Incoming call
+            </span>
+            <span className="ml-auto text-[10px] text-white/80">now</span>
+          </div>
+          <div className="p-3.5">
+            <p className="text-[15px] font-bold text-zinc-900">Sarah Whitton</p>
+            <p className="text-[11px] text-zinc-500">0191 486 2909</p>
+            <div className="mt-2 inline-flex rounded-full bg-violet-50 px-2 py-0.5 text-[9px] font-bold text-violet-700">
+              RETURNING · 14 ORDERS
+            </div>
+            <div className="mt-3 rounded-lg bg-zinc-50 p-2.5">
+              <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400">
+                Last address
+              </p>
+              <p className="mt-0.5 text-[11px] text-zinc-700">
+                12 Rectory Road, Gateshead, NE8 4EJ
+              </p>
+              <p className="mt-1.5 text-[9px] font-semibold uppercase tracking-wide text-zinc-400">
+                Usual order
+              </p>
+              <p className="mt-0.5 text-[11px] text-zinc-700">
+                Large Pepperoni · Garlic Bread
+              </p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-zinc-200 py-1.5 text-center text-[10px] font-semibold text-zinc-600">
+                Dismiss
+              </div>
+              <div className="rounded-lg bg-zinc-900 py-1.5 text-center text-[10px] font-bold text-white">
+                Start order
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </BrowserFrame>
+  );
+}

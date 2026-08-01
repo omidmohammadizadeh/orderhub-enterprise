@@ -45,6 +45,16 @@ const SOLUTIONS: MenuItem[] = [
     href: "/solutions/dispatch",
   },
   {
+    label: "Table ordering",
+    description: "QR ordering, floor plan and split bills",
+    href: "/solutions/table-ordering",
+  },
+  {
+    label: "Caller ID",
+    description: "The phone rings and you already know them",
+    href: "/solutions/caller-id",
+  },
+  {
     label: "WhatsApp AI ordering",
     description: "Take orders in the chat customers use",
     href: "/solutions/whatsapp-ordering",

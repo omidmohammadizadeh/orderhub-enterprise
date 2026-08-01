@@ -47,6 +47,18 @@ export const SOLUTION_META: RouteMeta[] = [
     description:
       "Customers order on WhatsApp in plain English; an AI assistant builds the basket, sends a Stripe pay link and drops it on your board.",
   },
+  {
+    slug: "table-ordering",
+    name: "Table ordering",
+    description:
+      "QR ordering at the table, a live floor plan, running tabs across every round, and bills split any way your guests ask.",
+  },
+  {
+    slug: "caller-id",
+    name: "Caller ID",
+    description:
+      "The landline rings and every till pops the caller's name, address and order history — answer by name and start the order in one tap.",
+  },
 ];
 
 export const INTEGRATION_META: RouteMeta[] = [

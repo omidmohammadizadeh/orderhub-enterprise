@@ -8,6 +8,13 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  Users,
+  PhoneCall,
+  CalendarClock,
+  Percent,
+  SplitSquareHorizontal,
+  QrCode,
+  LayoutGrid,
   Banknote,
   Bike,
   BrainCircuit,
@@ -39,6 +46,9 @@ import {
   PosBoardMockup,
   StorefrontMockup,
   WhatsAppChatMockup,
+  FloorPlanMockup,
+  SplitBillMockup,
+  CallerIdMockup,
 } from "./mockups";
 
 export interface Capability {
@@ -356,6 +366,109 @@ export const SOLUTIONS: Solution[] = [
           "Pay without leaving WhatsApp",
         ],
         mockup: <WhatsAppChatMockup />,
+      },
+    ],
+  },
+  {
+    slug: "table-ordering",
+    name: "Table ordering",
+    navDescription: "QR ordering, floor plan and split bills",
+    accent: "#f59e0b",
+    icon: UtensilsCrossed,
+    badge: "Table service",
+    title: "Run the room, not just the pass",
+    subtitle:
+      "Build your floor plan, let guests order from a QR code on the table, keep a running tab across every round, then split the bill any way they ask. Dine-in works the way delivery already does — on the same till, the same menu and the same kitchen screen.",
+    highlights: ["QR ordering at the table", "Split any bill", "Live floor plan"],
+    heroMockup: <FloorPlanMockup />,
+    stats: [
+      { value: 0, label: "Extra tablets on the pass" },
+      { value: 100, suffix: "%", label: "Of the bill you keep" },
+      { value: 1, label: "Menu behind every channel" },
+    ],
+    capabilities: [
+      { icon: LayoutGrid, title: "Your actual floor plan", body: "Drag out rooms, areas and tables in the shapes your room really has. Colour-coded live: free, seated, bill requested — with each table's running total and how long they've been sat." },
+      { icon: QrCode, title: "QR ordering at the table", body: "A unique code per table. Guests scan, browse your real menu with photos, and order round after round without waving anyone down. Every order lands on the same kitchen screen." },
+      { icon: SplitSquareHorizontal, title: "Split the bill properly", body: "By item or by amount. Paid items cross off the screen live so two staff can take payments at once without double-charging anybody." },
+      { icon: CreditCard, title: "Pay how they like", body: "Card on your Stripe reader, cash, or a payment link sent to their phone. A declined card retries without losing the tab." },
+      { icon: Percent, title: "Service charge and tips", body: "Set an automatic service charge per location, add tips at the reader, and see exactly what the team earned in reporting." },
+      { icon: CalendarClock, title: "Reservations built in", body: "Take bookings from your own site straight into the diary, with covers, and mark tables unavailable so nobody double-books a table you're holding." },
+      { icon: ShieldCheck, title: "Manager PIN on voids", body: "Voiding or comping a line needs a manager PIN, and every one is logged — so a busy Saturday doesn't become a stock mystery on Monday." },
+      { icon: Printer, title: "Rounds print as they're sent", body: "Each round fires only its new items to the kitchen, so the pass never re-cooks a starter because someone added a side." },
+    ],
+    flow: [
+      { title: "Lay out your room", body: "Create areas and tables once — the floor plan mirrors the room your staff actually walk." },
+      { title: "Seat the table", body: "Tap a table to open a tab, or the guest scans the QR code and starts one themselves." },
+      { title: "Rounds go to the kitchen", body: "Every round fires only the new items, keeping earlier tickets and their tick-states intact." },
+      { title: "Pay and turn the table", body: "Settle in full or split it. The table frees itself and the order completes — no refresh, no chasing." },
+    ],
+    showcases: [
+      {
+        eyebrow: "QR at the table",
+        title: "Guests order without waiting for anyone",
+        body: "A code on the table opens your real menu — photos, sizes, modifiers and live sold-out flags. They add rounds through the meal and it all lands on one tab.",
+        bullets: [
+          "One code per table",
+          "Same menu as the till",
+          "Rounds land on the same tab",
+        ],
+        mockup: <FloorPlanMockup />,
+      },
+      {
+        eyebrow: "Splitting up",
+        title: "The awkward bit, handled",
+        body: "Six people, four cards, one who only had a starter. Split by item or amount, watch paid items cross off live, and take two payments at once without anything being charged twice.",
+        bullets: [
+          "Split by item or amount",
+          "Paid items lock instantly",
+          "Retry a decline without losing the tab",
+        ],
+        mockup: <SplitBillMockup />,
+      },
+    ],
+  },
+  {
+    slug: "caller-id",
+    name: "Caller ID",
+    navDescription: "The phone rings and you already know them",
+    accent: "#38bdf8",
+    icon: PhoneCall,
+    badge: "Caller ID",
+    title: "Know who's calling before you say hello",
+    subtitle:
+      "Plug a caller-ID box into the shop's landline and every till pops the caller's name, address and order history the moment it rings. Answer with their name, tap once, and the order is half-built before they've finished saying it.",
+    highlights: ["Pops on every till", "Address pre-filled", "Order history on screen"],
+    heroMockup: <CallerIdMockup />,
+    stats: [
+      { value: 0, suffix: "s", label: "Spent asking for their address" },
+      { value: 1, label: "Tap to start their order" },
+      { value: 100, suffix: "%", label: "Of tills get the pop-up" },
+    ],
+    capabilities: [
+      { icon: PhoneCall, title: "Rings every screen at once", body: "One box on the landline, and the card appears on every till in the shop — whoever is free takes it." },
+      { icon: Users, title: "Recognises returning customers", body: "Matched against your own customer records: their name, how many orders they've placed and what they usually get." },
+      { icon: MapPin, title: "Address already filled in", body: "Their last delivery address is on the card and drops straight into the order — no spelling out a postcode over a busy kitchen." },
+      { icon: ShoppingBag, title: "One tap to start", body: "Tap Start order and the POS opens with the customer attached. No name, no number, no retyping." },
+      { icon: Sparkles, title: "New callers too", body: "An unknown number still pops, so you can take the details once and never ask for them again." },
+      { icon: Clock, title: "Nothing is missed", body: "The card holds for a minute and logs against the customer, so a call taken during a rush is still there when you get back to it." },
+    ],
+    flow: [
+      { title: "Plug in the box", body: "A caller-ID unit sits between the landline and one tablet in the shop. Ten-minute job, no rewiring." },
+      { title: "The phone rings", body: "The number is read off the line and matched against your customers instantly." },
+      { title: "Every till pops", body: "Name, history and last address appear on every screen at once." },
+      { title: "Tap and take the order", body: "Start order opens the POS with everything already attached." },
+    ],
+    showcases: [
+      {
+        eyebrow: "On the counter",
+        title: "The busiest phone in the shop, made easy",
+        body: "Friday at eight, four people waiting and the phone going. Answering with “Hi Sarah, the usual to Rectory Road?” takes ten seconds instead of two minutes — and sounds like a shop that knows its regulars.",
+        bullets: [
+          "Answer by name",
+          "Address and usual order on screen",
+          "Works on every till at once",
+        ],
+        mockup: <CallerIdMockup />,
       },
     ],
   },
