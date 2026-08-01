@@ -38,7 +38,8 @@ import {
   Clapperboard,
   CalendarDays,
   MonitorSmartphone,
-  Bot } from "lucide-react";
+  Bot,
+  Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -129,6 +130,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
+  { href: "/dashboard/reviews", label: "Reviews", icon: Star, roles: MANAGER_TIER },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: [...MANAGER_TIER, "MANAGER"] },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },

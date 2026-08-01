@@ -489,7 +489,7 @@ model Location {
   merchantSubscription MerchantSubscription?
   menuAssignments      MenuChannelAssignment[]
   itemChannelSnoozes   MenuItemChannelAvailability[]
-  homeDrivers          Driver[]                     @relation("DriverHomeLocation")
+  homeDrivers          Driver[]                      @relation("DriverHomeLocation")
 
   // Phase AS-1 — print routing defaults.
   //   defaultKitchenStation — every kitchen ticket that doesn't match
@@ -542,7 +542,7 @@ model Location {
   hubriseConnectedAt DateTime?
 
   // Phase BH — Stuart last-mile courier config (per location).
-  stuartConfig StuartConfig?
+  stuartConfig     StuartConfig?
   // Phase BI — Uber Direct courier config (per location).
   uberDirectConfig UberDirectConfig?
 
@@ -586,15 +586,15 @@ model Location {
   printToken String? @unique
 
   // Online ordering
-  slug           String? @unique
-  openingHours   Json    @default("[]")
-  deliveryConfig Json    @default("{}")
+  slug              String? @unique
+  openingHours      Json    @default("[]")
+  deliveryConfig    Json    @default("{}")
   // Phase AZ — location-level prep time (base + busy-mode extra), mirroring
   // the brand fields. HubRise + WhatsApp fall back to these when the brand
   // hasn't set its own hours/prep.
   prepTime          Int?
   busyExtraPrepTime Int?
-  onboardingStep Int     @default(0)
+  onboardingStep    Int     @default(0)
 
   // ── Go-live lifecycle ─────────────────────────────────
   goLiveStatus    LocationGoLiveStatus @default(DRAFT)
@@ -756,9 +756,9 @@ model Menu {
   // Published to HubRise as data.variants[] + price_overrides[].
   pricingVariants Json @default("[]")
 
-  categories  MenuCategory[]
-  versions    MenuVersion[]
-  assignments MenuChannelAssignment[]
+  categories       MenuCategory[]
+  versions         MenuVersion[]
+  assignments      MenuChannelAssignment[]
   // Brands that point one of their channels' pricing at THIS menu (Phase BF
   // — this is the "Variant menu" other brands' Uber Eats/Deliveroo/
   // WhatsApp/Online channels borrow pricing from).
@@ -786,13 +786,13 @@ model Menu {
 // menu.brandId at publish time so the unique index has no NULL-distinct
 // hole (multi-brand kitchens serve several brand storefronts per location).
 model MenuChannelAssignment {
-  id         String   @id @default(cuid())
-  tenantId   String?
-  menuId     String
-  menu       Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  locationId String
-  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  brandId    String
+  id          String   @id @default(cuid())
+  tenantId    String?
+  menuId      String
+  menu        Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId     String
   // ONLINE | POS | WHATSAPP | HUBRISE | UBER_EATS | DELIVEROO | JUST_EAT —
   // same free-form channel strings as Menu.publishedTo.
   channel     String
@@ -819,13 +819,13 @@ model MenuChannelAssignment {
 // that brand resolves from it from then on, regardless of which menu is
 // actually being published.
 model BrandChannelSource {
-  id           String   @id @default(cuid())
+  id           String @id @default(cuid())
   brandId      String
-  brand        Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brand        Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
   // ONLINE | WHATSAPP | JUST_EAT | UBER_EATS | DELIVEROO
   channel      String
   sourceMenuId String
-  sourceMenu   Menu     @relation(fields: [sourceMenuId], references: [id], onDelete: Cascade)
+  sourceMenu   Menu   @relation(fields: [sourceMenuId], references: [id], onDelete: Cascade)
   // The operator picks this explicitly from the source menu's
   // pricingVariants (e.g. "monster burgerz — Deliveroo") — not derived.
   // Publish for this channel/brand then does BOTH: prices every item from
@@ -1160,23 +1160,23 @@ model ModifierGroup {
 }
 
 model ModifierOption {
-  id                 String        @id @default(cuid())
-  groupId            String
-  group              ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id                       String        @id @default(cuid())
+  groupId                  String
+  group                    ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   // Phase AK — Base44 lets the same modifier (e.g. "Extra cheese")
   // belong to multiple groups. We keep groupId above as the "primary"
   // group (so existing service code keeps working) and add a parallel
   // array of additional group memberships. Imports populate both;
   // POS lookups can match either.
-  modifierGroupIds   String[]      @default([])
-  name               String
-  description        String?
+  modifierGroupIds         String[]      @default([])
+  name                     String
+  description              String?
   // Base price for this modifier when no size key matches. Already
   // existed; renamed conceptually to "default price". pricesBySize
   // below is the authoritative per-size table.
-  priceAdjustment    Decimal       @default(0) @db.Decimal(10, 2)
+  priceAdjustment          Decimal       @default(0) @db.Decimal(10, 2)
   // PLU — same role as MenuItem.plu. Used by Deliveroo PLU validation.
-  plu                String?
+  plu                      String?
   // ── Per-size pricing + PLU ─────────────────────────────────────────
   // Used when the parent product is a multi-SKU pizza-style item. Keys
   // are size strings (e.g. "10", "12", "14") extracted from the size
@@ -1189,22 +1189,22 @@ model ModifierOption {
   //     key here, the option is HIDDEN (not just disabled).
   //   - if pricesBySize is empty, the option is always visible at
   //     priceAdjustment.
-  pricesBySize       Json          @default("{}")
-  skuPlus            Json          @default("{}")
+  pricesBySize             Json          @default("{}")
+  skuPlus                  Json          @default("{}")
   // Per-variant price overrides keyed by pricing-variant ref, e.g.
   // { "UBER_EATS": 0.75, "var_kiosk": 0.50 }. Empty = this option costs
   // priceAdjustment on every variant. Published as option price_overrides.
-  platformPricingOverrides Json     @default("{}")
-  imageUrl           String?
-  allergens          String[]
-  isDefault          Boolean       @default(false)
-  isAvailable        Boolean       @default(true)
-  visibleToCustomers Boolean       @default(true)
+  platformPricingOverrides Json          @default("{}")
+  imageUrl                 String?
+  allergens                String[]
+  isDefault                Boolean       @default(false)
+  isAvailable              Boolean       @default(true)
+  visibleToCustomers       Boolean       @default(true)
   // Scheduled restore — same pattern as MenuItem.availableRestoreAt.
-  availableRestoreAt DateTime?
-  sortOrder          Int           @default(0)
+  availableRestoreAt       DateTime?
+  sortOrder                Int           @default(0)
   // Membership in many menus. Same rationale as MenuCategory.menuIds.
-  menuIds            String[]      @default([])
+  menuIds                  String[]      @default([])
 
   // Per-channel tax — % points, matches MenuItem.
   deliveryTax Decimal @default(0) @db.Decimal(5, 2)
@@ -1780,7 +1780,7 @@ model Order {
   // Counter trade: a POS walk-in or a self-service kiosk order. Tagged
   // explicitly rather than inferred from customerName == "Walk-in", which
   // breaks the first time a customer is actually called that.
-  isWalkIn        Boolean @default(false)
+  isWalkIn        Boolean         @default(false)
 
   customerInfo  Json
   customerName  String?
@@ -2022,20 +2022,20 @@ model KdsScreen {
 // no-login TV URL (/signage/<token>); tenantId is denormalised because Location
 // scopes to a tenant via brand, not a column (same pattern as KdsScreen).
 model SignageDisplay {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   tenantId    String
   locationId  String
-  location    Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
   brandId     String?
-  brand       Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  brand       Brand?   @relation(fields: [brandId], references: [id], onDelete: SetNull)
   name        String
-  publicToken String    @unique
-  categoryIds String[]  @default([])
-  orientation String    @default("landscape")
-  config      Json      @default("{}")
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  publicToken String   @unique
+  categoryIds String[] @default([])
+  orientation String   @default("landscape")
+  config      Json     @default("{}")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([tenantId])
   @@index([locationId])
@@ -2047,16 +2047,16 @@ model SignageDisplay {
 // order per table) and is null when the table is free. tenantId is denormalised
 // (Location scopes to a tenant via brand, same pattern as KdsScreen/Signage).
 model Table {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   tenantId       String
   locationId     String
-  location       Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  location       Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
   name           String
   seats          Int?
   area           String?
-  sortOrder      Int      @default(0)
-  isActive       Boolean  @default(true)
-  status         String   @default("FREE")
+  sortOrder      Int       @default(0)
+  isActive       Boolean   @default(true)
+  status         String    @default("FREE")
   currentOrderId String?
   openedAt       DateTime?
 
@@ -2145,19 +2145,19 @@ model TableReservation {
   customerEmail String?
   partySize     Int
   startsAt      DateTime
-  durationMins  Int      @default(90)
+  durationMins  Int       @default(90)
   // PENDING | CONFIRMED | SEATED | COMPLETED | CANCELLED | NO_SHOW
-  status        String   @default("CONFIRMED")
+  status        String    @default("CONFIRMED")
   // ONLINE | STAFF | PHONE
-  source        String   @default("STAFF")
+  source        String    @default("STAFF")
   notes         String?
   // Set when the party is seated — links the booking to its tab so the
   // diary can show what they actually spent.
-  orderId     String?
-  seatedAt    DateTime?
-  cancelledAt DateTime?
+  orderId       String?
+  seatedAt      DateTime?
+  cancelledAt   DateTime?
   // Guest-facing reference ("R-7QK4M2") for confirmations + lookups.
-  reference   String    @unique
+  reference     String    @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -4005,19 +4005,19 @@ enum VideoCreditReason {
 }
 
 model VideoStudioAccount {
-  id       String @id @default(cuid())
-  tenantId String @unique
+  id                   String    @id @default(cuid())
+  tenantId             String    @unique
   // Add-on entitlement — flipped on by the Stripe add-on subscription webhook.
-  addonActive          Boolean @default(false)
-  stripeSubscriptionId String? @unique
+  addonActive          Boolean   @default(false)
+  stripeSubscriptionId String?   @unique
   // Monthly included allowance (reset each billing period) vs purchased
   // top-ups (persist). Total spendable = includedBalance + topupBalance.
-  includedMonthly Int       @default(0)
-  includedBalance Int       @default(0)
-  topupBalance    Int       @default(0)
-  lastGrantAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  includedMonthly      Int       @default(0)
+  includedBalance      Int       @default(0)
+  topupBalance         Int       @default(0)
+  lastGrantAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   @@map("video_studio_accounts")
 }
@@ -4167,15 +4167,15 @@ model MarketingSmsCampaign {
 // dedupe (unique [campaignId, phone] means a number can't be texted twice by
 // the same blast even if it appears in the audience more than once).
 model MarketingSmsRecipient {
-  id         String               @id @default(cuid())
-  campaignId String
-  campaign   MarketingSmsCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  tenantId   String
-  contactId  String?
-  phone      String
-  status     String // SENT | FAILED | SKIPPED
-  reason     String? // opted_out | duplicate | insufficient_balance | error text
-  segments   Int     @default(0)
+  id           String               @id @default(cuid())
+  campaignId   String
+  campaign     MarketingSmsCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tenantId     String
+  contactId    String?
+  phone        String
+  status       String // SENT | FAILED | SKIPPED
+  reason       String? // opted_out | duplicate | insufficient_balance | error text
+  segments     Int                  @default(0)
   smsMessageId String?
 
   createdAt DateTime @default(now())
@@ -4191,13 +4191,13 @@ model MarketingSmsRecipient {
 // unless the balance covers it. Balance is stored in MINOR units (pennies) as an
 // integer to avoid float drift. One wallet per tenant.
 model Wallet {
-  id       String @id @default(cuid())
-  tenantId String
+  id         String  @id @default(cuid())
+  tenantId   String
   // Location this wallet funds. null = the tenant-wide wallet (admin / sends
   // with no location). SMS marketing + payment-link SMS are location-scoped, so
   // each site funds and spends its own balance.
   locationId String?
-  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant     Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   balanceMinor Int    @default(0) // pennies (GBP); may dip slightly negative on a rare multi-segment send
   currency     String @default("GBP")
@@ -4264,14 +4264,14 @@ model StuartConfig {
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   // "sandbox" (bot couriers, api.sandbox.stuart.com) | "production".
-  environment String @default("sandbox")
+  environment    String  @default("sandbox")
   // Encrypted { clientId, clientSecret } envelope (CredentialEncryptionService).
-  credentials Json
+  credentials    Json
   // Shared secret we hand to Stuart as the webhook auth header value; the
   // receiver rejects any callback whose header doesn't match. Generated on save.
   webhookAuthKey String
   // Master on/off for this location. Dispatch refuses when false or unset.
-  active Boolean @default(false)
+  active         Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -4290,7 +4290,7 @@ model UberDirectConfig {
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   // "sandbox" (test mode) | "production".
-  environment String @default("sandbox")
+  environment String  @default("sandbox")
   // Encrypted { customerId, clientId, clientSecret, signingKey } envelope.
   // signingKey verifies inbound webhooks (HMAC-SHA256 of the raw body).
   credentials Json
@@ -4300,4 +4300,41 @@ model UberDirectConfig {
   updatedAt DateTime @updatedAt
 
   @@map("uber_direct_configs")
+}
+
+// Customer reviews of a completed order. Deliberately scalar-only (no Prisma
+// relation fields) so adding it doesn't touch Order/Location/Brand — those
+// models are large and edited often, and a stray duplicate field there breaks
+// every build.
+//
+// One review per order, enforced by the unique orderId: the review is earned
+// by an actual purchase, which is the whole point versus an open review site.
+model Review {
+  id           String    @id @default(cuid())
+  tenantId     String
+  // The order being reviewed. Unique — a customer reviews an order once.
+  orderId      String    @unique
+  locationId   String
+  brandId      String?
+  customerId   String?
+  // Display name captured at submit time. Denormalised on purpose: the review
+  // should keep reading "Bruce" even if that customer record is later merged
+  // or deleted.
+  customerName String?
+  rating       Int // 1..5
+  comment      String?
+  // PUBLISHED — visible on the storefront. HIDDEN — kept for the operator's
+  // records but not shown publicly.
+  status       String    @default("PUBLISHED")
+  // Operator's public response.
+  reply        String?
+  repliedAt    DateTime?
+  repliedBy    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([locationId, status])
+  @@index([brandId, status])
+  @@map("reviews")
 }

@@ -2053,6 +2053,24 @@ exports.Prisma.UberDirectConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ReviewScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  customerId: 'customerId',
+  customerName: 'customerName',
+  rating: 'rating',
+  comment: 'comment',
+  status: 'status',
+  reply: 'reply',
+  repliedAt: 'repliedAt',
+  repliedBy: 'repliedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3275,6 +3293,20 @@ exports.Prisma.UberDirectConfigOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   environment: 'environment'
 };
+
+exports.Prisma.ReviewOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  customerId: 'customerId',
+  customerName: 'customerName',
+  comment: 'comment',
+  status: 'status',
+  reply: 'reply',
+  repliedBy: 'repliedBy'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3841,7 +3873,8 @@ exports.Prisma.ModelName = {
   Wallet: 'Wallet',
   WalletTransaction: 'WalletTransaction',
   StuartConfig: 'StuartConfig',
-  UberDirectConfig: 'UberDirectConfig'
+  UberDirectConfig: 'UberDirectConfig',
+  Review: 'Review'
 };
 
 /**

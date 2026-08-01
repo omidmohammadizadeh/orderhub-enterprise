@@ -4301,3 +4301,40 @@ model UberDirectConfig {
 
   @@map("uber_direct_configs")
 }
+
+// Customer reviews of a completed order. Deliberately scalar-only (no Prisma
+// relation fields) so adding it doesn't touch Order/Location/Brand — those
+// models are large and edited often, and a stray duplicate field there breaks
+// every build.
+//
+// One review per order, enforced by the unique orderId: the review is earned
+// by an actual purchase, which is the whole point versus an open review site.
+model Review {
+  id           String    @id @default(cuid())
+  tenantId     String
+  // The order being reviewed. Unique — a customer reviews an order once.
+  orderId      String    @unique
+  locationId   String
+  brandId      String?
+  customerId   String?
+  // Display name captured at submit time. Denormalised on purpose: the review
+  // should keep reading "Bruce" even if that customer record is later merged
+  // or deleted.
+  customerName String?
+  rating       Int // 1..5
+  comment      String?
+  // PUBLISHED — visible on the storefront. HIDDEN — kept for the operator's
+  // records but not shown publicly.
+  status       String    @default("PUBLISHED")
+  // Operator's public response.
+  reply        String?
+  repliedAt    DateTime?
+  repliedBy    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([locationId, status])
+  @@index([brandId, status])
+  @@map("reviews")
+}

@@ -36,6 +36,8 @@ import {
 } from "lucide-react";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import { LoginModal } from "@/components/storefront/login-modal";
+import { LeaveReviewModal } from "@/components/storefront/leave-review-modal";
+import { reviewsClient } from "@/lib/api/reviews.client";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -108,6 +110,11 @@ function MyOrdersInner() {
   const [error, setError] = useState<string | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+  // Which past orders the customer has already reviewed, so the card shows
+  // "Reviewed" instead of inviting a second one (the API rejects duplicates,
+  // but finding that out by tapping is a poor way to learn it).
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
+  const [reviewingOrder, setReviewingOrder] = useState<Order | null>(null);
   // Phase AW-30 follow-up — useSearchParams is reactive and SSR-safe.
   // The previous `typeof window !== "undefined" && new URLSearchParams(...)`
   // pattern returned null during SSR + hydration, so the Back-to-menu
@@ -150,7 +157,18 @@ function MyOrdersInner() {
           ...(brandIdFromUrl ? { brandId: brandIdFromUrl } : {}),
         },
       })
-      .then((res) => setOrders(res.data))
+      .then((res) => {
+        setOrders(res.data);
+        // Ask which of these are already reviewed. Best-effort: if it fails the
+        // buttons just stay active and the API still blocks a duplicate.
+        const ids = (res.data?.history ?? []).map((o: Order) => o.id);
+        if (ids.length) {
+          reviewsClient
+            .reviewed(ids)
+            .then((done) => setReviewedIds(new Set(done)))
+            .catch(() => {});
+        }
+      })
       .catch((err: any) => {
         setError(
           err?.response?.data?.message ??
@@ -244,6 +262,8 @@ function MyOrdersInner() {
                     order={o}
                     onView={() => setViewingOrder(o)}
                     onReorder={() => handleReorder(o)}
+                    reviewed={reviewedIds.has(o.id)}
+                    onReview={() => setReviewingOrder(o)}
                   />
                 ))}
               </Section>
@@ -260,6 +280,18 @@ function MyOrdersInner() {
         brandId={brandIdFromUrl}
         onAuthenticated={() => setLoginOpen(false)}
       />
+      {reviewingOrder && (
+        <LeaveReviewModal
+          orderId={reviewingOrder.id}
+          merchantName={
+            reviewingOrder.brand?.name ?? reviewingOrder.location.name
+          }
+          onClose={() => setReviewingOrder(null)}
+          onSubmitted={() =>
+            setReviewedIds((prev) => new Set(prev).add(reviewingOrder.id))
+          }
+        />
+      )}
 
       {/* View-details drawer */}
       {viewingOrder && (
@@ -395,10 +427,14 @@ function HistoryCard({
   order,
   onView,
   onReorder,
+  reviewed,
+  onReview,
 }: {
   order: Order;
   onView: () => void;
   onReorder: () => void;
+  reviewed: boolean;
+  onReview: () => void;
 }) {
   const meta = STATUS_META[order.status] ?? STATUS_META.COMPLETED!;
   const date = useMemo(
@@ -436,21 +472,19 @@ function HistoryCard({
           <RefreshCw className="h-3.5 w-3.5" />
           Order again
         </ActionButton>
-        {order.location.googleReviewUrl ? (
-          <a
-            href={order.location.googleReviewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+        {reviewed ? (
+          <span className="flex items-center justify-center gap-1.5 border-l border-zinc-100 px-3 py-3 text-sm font-semibold text-green-600">
+            <Star className="h-3.5 w-3.5 fill-green-600" />
+            Reviewed
+          </span>
+        ) : (
+          <button
+            onClick={onReview}
             className="flex items-center justify-center gap-1.5 border-l border-zinc-100 px-3 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50"
           >
             <Star className="h-3.5 w-3.5" />
-            Leave Google review
-          </a>
-        ) : (
-          <span className="flex items-center justify-center gap-1.5 border-l border-zinc-100 px-3 py-3 text-sm text-zinc-300">
-            <Star className="h-3.5 w-3.5" />
-            Review unavailable
-          </span>
+            Leave a review
+          </button>
         )}
       </div>
     </article>
