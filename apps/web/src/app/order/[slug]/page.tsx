@@ -28,6 +28,10 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
+import {
+  RatingPill,
+  StorefrontReviews,
+} from "@/components/storefront/storefront-reviews";
 import { HeaderAuthButton } from "@/components/storefront/header-auth-button";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import {
@@ -1181,6 +1185,18 @@ function OrderPage() {
                 >
                   <Info className="h-3.5 w-3.5" /> Info
                 </button>
+                {/* Your own rating, from your own customers — the reason we
+                    stopped sending people to Google. Renders nothing until a
+                    shop actually has reviews. */}
+                <RatingPill
+                  brandId={brandId ?? undefined}
+                  locationId={storefront?.location?.id}
+                  onClick={() =>
+                    document
+                      .getElementById("reviews")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                />
               </div>
               {headerAddress && (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-500">
@@ -1450,6 +1466,13 @@ function OrderPage() {
               </section>
             ))
           )}
+
+          {/* Customer reviews — below the menu, where a browsing customer
+              lands after scrolling. Renders nothing until the shop has one. */}
+          <StorefrontReviews
+            brandId={brandId ?? undefined}
+            locationId={storefront?.location?.id}
+          />
         </div>
       </div>
 
