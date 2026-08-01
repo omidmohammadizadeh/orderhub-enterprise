@@ -658,6 +658,23 @@ export class BrandsService {
 
   async remove(brandId: string, tenantId: string) {
     await this.assertAccess(brandId, tenantId);
+    // Refuse while a marketplace is still linked. The connection row cascades
+    // off the brand but the link at the PROVIDER's end does not: Uber/Deliveroo
+    // would keep sending orders for a brand that no longer exists here, and
+    // they'd land with no brand to attach to. Make the operator disconnect
+    // first so the channel is torn down at both ends.
+    const live = await this.prisma.brandPlatformConnection.findMany({
+      where: { brandId, status: { in: ["connected", "pending", "suspended"] } },
+      select: { platform: true },
+    });
+    if (live.length) {
+      const names = [...new Set(live.map((c) => c.platform))].join(", ");
+      throw new BadRequestException(
+        `Disconnect ${names} before removing this brand.`,
+      );
+    }
+    // Soft delete — historical orders keep their brandId, so reporting and
+    // past receipts stay intact.
     await this.prisma.brand.update({
       where: { id: brandId },
       data: { deletedAt: new Date() },

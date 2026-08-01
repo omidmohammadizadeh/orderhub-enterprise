@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Pencil, X } from "lucide-react";
+import { AlertTriangle, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
 import { BrandPlatformGrid } from "./brand-platform-grid";
 import { ImageUploader } from "@/components/products/image-uploader";
@@ -35,6 +35,27 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
   // are owned by the modal itself so cancelling doesn't dirty the drawer
   // state.
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  // Brand pending removal — holds the brand so the dialog can name it.
+  // Removing a brand takes its menus and storefront with it, so it is never
+  // a one-tap action.
+  const [confirmDelete, setConfirmDelete] = useState<Brand | null>(null);
+
+  const remove = useMutation({
+    mutationFn: (brandId: string) => brandsClient.remove(brandId),
+    onSuccess: (_d, brandId) => {
+      setConfirmDelete(null);
+      // Drop the selection if it was the deleted brand, else the tab list
+      // falls back to the first brand on its own.
+      setSelectedBrandId((cur) => (cur === brandId ? null : cur));
+      qc.invalidateQueries({ queryKey: ["brands"] });
+    },
+    onError: (e: any) => {
+      // The API refuses while a marketplace is still linked — surface that
+      // reason verbatim, it tells the operator exactly what to do next.
+      setErr(e?.response?.data?.message ?? e.message ?? "Couldn't remove the brand");
+      setConfirmDelete(null);
+    },
+  });
 
   const create = useMutation({
     mutationFn: () =>
@@ -144,6 +165,18 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
                       >
                         <Pencil className="h-3 w-3" />
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setErr(null);
+                          setConfirmDelete(active);
+                        }}
+                        disabled={remove.isPending}
+                        title="Remove brand"
+                        className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
                     </div>
                     <div className="p-3">
                       <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-400">
@@ -199,6 +232,55 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
             qc.invalidateQueries({ queryKey: ["brands"] });
           }}
         />
+      )}
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setConfirmDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-red-50 p-2">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-zinc-900">
+                  Remove {confirmDelete.name}?
+                </h3>
+                <p className="mt-1.5 text-xs text-zinc-600">
+                  This brand and its menus will no longer appear anywhere in the
+                  system, including the POS and its storefront.
+                </p>
+                <p className="mt-1.5 text-xs text-zinc-500">
+                  Past orders are kept, so your reports and history stay
+                  correct. If the brand is still connected to a marketplace,
+                  disconnect that channel first.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(null)}
+                className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => remove.mutate(confirmDelete.id)}
+                disabled={remove.isPending}
+                className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {remove.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
+                Remove brand
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
