@@ -22,6 +22,7 @@ export class TelnyxCallControlService {
   private readonly publicKey?: string;
   private readonly voice: string;
   private readonly language: string;
+  private readonly engine: string;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>("TELNYX_API_KEY") || undefined;
@@ -30,6 +31,7 @@ export class TelnyxCallControlService {
     // judges, and an American voice on a Durham takeaway line lands badly.
     this.voice = this.config.get<string>("TELNYX_VOICE") || "Polly.Amy-Neural";
     this.language = this.config.get<string>("TELNYX_VOICE_LANGUAGE") || "en-GB";
+    this.engine = this.config.get<string>("TELNYX_TRANSCRIPTION_ENGINE") || "B";
   }
 
   configured(): boolean {
@@ -125,11 +127,19 @@ export class TelnyxCallControlService {
    * back as if the caller had said it, and the conversation talks itself into
    * a corner within two turns.
    */
-  startTranscription(callControlId: string) {
+  startTranscription(callControlId: string, hints: string[] = []) {
     return this.command(callControlId, "transcription_start", {
       language: this.language,
+      // Engine B (Deepgram) rather than the default. The first live call came
+      // back at 0.33–0.62 confidence on 8kHz PSTN audio — the default engine
+      // is tuned for clean wideband speech, not a mobile in a car park.
+      transcription_engine: this.engine,
       transcription_tracks: "inbound",
       interim_results: false,
+      // Tell the engine which unusual words to expect. "Shish", "halloumi"
+      // and "peri peri" are exactly what a general model mangles, and we
+      // already have the menu loaded.
+      ...(hints.length ? { hints: hints.slice(0, 100) } : {}),
     });
   }
 
