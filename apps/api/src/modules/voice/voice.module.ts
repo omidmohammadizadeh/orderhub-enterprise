@@ -3,6 +3,8 @@ import { OrdersModule } from "../orders/orders.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { WhatsAppModule } from "../whatsapp/whatsapp.module";
 import { VoiceController } from "./voice.controller";
+import { VoiceTelnyxController } from "./voice-telnyx.controller";
+import { TelnyxCallControlService } from "./telnyx-call-control.service";
 import { VoiceService } from "./voice.service";
 import { VoiceAiService } from "./voice-ai.service";
 import { VoiceContextService } from "./voice-context.service";
@@ -21,8 +23,13 @@ import { VoiceContextService } from "./voice-context.service";
 // billing and the gate that decides whether we pick up at all.
 @Module({
   imports: [OrdersModule, PaymentsModule, WhatsAppModule],
-  controllers: [VoiceController],
-  providers: [VoiceService, VoiceAiService, VoiceContextService],
+  controllers: [VoiceController, VoiceTelnyxController],
+  providers: [
+    VoiceService,
+    VoiceAiService,
+    VoiceContextService,
+    TelnyxCallControlService,
+  ],
   exports: [VoiceService],
 })
 export class VoiceModule {}

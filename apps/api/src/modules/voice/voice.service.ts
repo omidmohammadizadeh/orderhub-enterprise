@@ -97,20 +97,24 @@ export class VoiceService {
     }
 
     const knownName = await this.knownCallerName(ctx.tenantId, args.from);
+    const greeting = this.ai.greeting(ctx, knownName);
+    // Seed the greeting as the first assistant turn. It's what the caller
+    // actually heard, so the model has to know it already said it — otherwise
+    // its first reply introduces the shop a second time. It also saves the
+    // telephony layer a column: the greeting to play is simply turn zero.
+    const state = emptyState();
+    state.turns.push({ role: "assistant", text: greeting });
+
     await this.db().voiceCall.update({
       where: { id: call.id },
       data: {
         status: "ANSWERED",
         answeredAt: new Date(),
-        transcript: emptyState() as any,
+        transcript: state as any,
       },
     });
 
-    return {
-      answer: true,
-      callId: call.id,
-      greeting: this.ai.greeting(ctx, knownName),
-    };
+    return { answer: true, callId: call.id, greeting };
   }
 
   /** One turn of conversation: what the caller said in, what to say back out. */
