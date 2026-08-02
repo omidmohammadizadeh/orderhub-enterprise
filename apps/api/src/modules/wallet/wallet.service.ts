@@ -26,7 +26,10 @@ try {
 // rather than changing what a restaurant pays. Override globally with env
 // SMS_PRICE_PER_SEGMENT_MINOR, or per wallet with
 // wallets.smsPricePerSegmentMinor.
-const DEFAULT_PRICE_PER_SEGMENT_MINOR = 10; // 10p per segment
+const DEFAULT_PRICE_PER_SEGMENT_MINOR = 5; // 5p per segment
+// Real Twilio UK cost is ~4.4p ($0.056 at current FX), so 5p is close to
+// pass-through. Wallets with their own smsPricePerSegmentMinor keep it —
+// this is only the default for tenants that never had one set.
 
 // Platform sell price per ANSWERED AI phone call (pence). Our own cost is
 // roughly 15p for a three-minute call (telephony + speech-to-text + Claude +
@@ -57,7 +60,7 @@ export interface WalletSummary {
 }
 
 /**
- * Prepaid SMS wallet. Restaurants top up a GBP balance up front and every
+ * Prepaid wallet. Restaurants top up a GBP balance up front and every
  * billable SMS debits it per Twilio segment, so OrderHub never fronts Twilio
  * costs. Balances are integer pennies to avoid float drift.
  *
@@ -158,7 +161,7 @@ export class WalletService {
     const allowed = await this.accessibleLocationIds(tenantId, userId, role);
     if (allowed && (locationId == null || !allowed.includes(locationId))) {
       throw new ForbiddenException(
-        "You don't have access to this location's SMS wallet.",
+        "You don't have access to this location's wallet.",
       );
     }
   }
@@ -253,7 +256,7 @@ export class WalletService {
     const estCost = this.estimateSegments(body) * rate;
     if (wallet.balanceMinor < estCost) {
       throw new BadRequestException(
-        "Your SMS wallet balance is too low to send this text. Top up your wallet to continue.",
+        "Your wallet balance is too low to send this text. Top up your wallet to continue.",
       );
     }
   }
@@ -729,7 +732,7 @@ export class WalletService {
             currency: "gbp",
             unit_amount: amountMinor,
             product_data: {
-              name: "SMS wallet top-up",
+              name: "Wallet top-up",
               description: "Prepaid balance for sending payment links & marketing texts",
             },
           },

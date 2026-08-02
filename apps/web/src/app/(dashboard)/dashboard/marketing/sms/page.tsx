@@ -68,7 +68,7 @@ export default function SmsMarketingPage() {
           href="/dashboard/wallet"
           className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
-          <WalletIcon className="h-4 w-4 text-emerald-600" /> SMS Wallet
+          <WalletIcon className="h-4 w-4 text-emerald-600" /> Wallet
         </Link>
       </div>
 

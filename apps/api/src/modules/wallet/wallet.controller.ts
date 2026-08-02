@@ -14,7 +14,7 @@ export class WalletController {
   // GET /v1/wallet — balance, rate, low-balance flag.
   @Get()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
-  @ApiOperation({ summary: "SMS wallet summary (balance, per-segment price)" })
+  @ApiOperation({ summary: "Wallet summary (balance, per-segment and per-call prices)" })
   async getWallet(
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId?: string,

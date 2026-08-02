@@ -1,4 +1,4 @@
-// SMS wallet — prepaid balance clients top up to send payment links & marketing
+// Wallet — prepaid balance clients top up to send payment links & marketing
 // texts. Balance is billed per Twilio segment. All amounts are MINOR units
 // (pennies) end-to-end to avoid float drift.
 

@@ -26,6 +26,10 @@ export interface VoiceContext extends WaMenuContext {
   transferNumber?: string | null;
   /** Operator kill switch — the AI answers only when this is on. */
   enabled: boolean;
+  /** Answer without charging. For our own testing: a £1 debit per attempt
+   *  makes tuning the conversation cost real money, and an empty wallet
+   *  would stop the phone answering mid-session. */
+  testMode: boolean;
   timezone?: string | null;
   openingHours?: unknown;
   address?: {
@@ -132,6 +136,7 @@ export class VoiceContextService {
       // Default OFF. An AI that starts answering a restaurant's phone because
       // a number got assigned is not a feature.
       enabled: settings.voiceAiEnabled === true,
+      testMode: settings.voiceTestMode === true,
       timezone: location.timezone ?? null,
       openingHours: location.openingHours ?? null,
       address: {

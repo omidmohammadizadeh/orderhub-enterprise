@@ -621,7 +621,7 @@ export class MarketingSmsService {
     }
     if (!preview.canAfford) {
       throw new BadRequestException(
-        `Your SMS wallet needs about £${(preview.costMinor / 100).toFixed(2)} to send this (${preview.recipients} recipients). Top up and try again.`,
+        `Your wallet needs about £${(preview.costMinor / 100).toFixed(2)} to send this (${preview.recipients} recipients). Top up and try again.`,
       );
     }
 

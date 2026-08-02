@@ -87,7 +87,13 @@ export class VoiceService {
 
     // The money gate. Tries the saved card inline before refusing, so a shop
     // with auto top-up on never notices the balance ran out.
-    const verdict = await this.wallet.canAnswerVoiceCall(ctx.tenantId, ctx.locationId);
+    //
+    // Test mode skips it entirely: while we're tuning the conversation, every
+    // attempt would otherwise cost £1 and an empty wallet would stop the phone
+    // answering halfway through a session.
+    const verdict = ctx.testMode
+      ? { ok: true as const, balanceMinor: 0, priceMinor: 0, reason: undefined }
+      : await this.wallet.canAnswerVoiceCall(ctx.tenantId, ctx.locationId);
     if (!verdict.ok) {
       await this.markNotAnswered(call.id, verdict.reason ?? "NO_FUNDS");
       this.logger.warn(
@@ -180,6 +186,15 @@ export class VoiceService {
       },
     });
 
+    // Test calls are free. Checked from the location rather than carried on
+    // the call, so turning test mode ON mid-session can't retroactively bill
+    // calls that were already answered under it — and turning it OFF starts
+    // charging from the next call, not this one.
+    if (await this.isTestLocation(updated.locationId)) {
+      this.logger.log(`Voice call ${updated.id} in test mode — not billed`);
+      return;
+    }
+
     await this.wallet.debitForVoiceCall({
       tenantId: updated.tenantId,
       locationId: updated.locationId,
@@ -187,6 +202,23 @@ export class VoiceService {
       durationSeconds: updated.durationSeconds ?? 0,
       status: updated.status,
     });
+  }
+
+  /** One cheap read — no menu load — so the end of a call stays light. */
+  private async isTestLocation(locationId?: string | null): Promise<boolean> {
+    if (!locationId) return false;
+    try {
+      const loc = await this.db().location.findUnique({
+        where: { id: locationId },
+        select: { settings: true },
+      });
+      return (loc?.settings as any)?.voiceTestMode === true;
+    } catch {
+      // If we can't tell, bill it. Silently giving away calls is the worse
+      // failure — an over-charge gets noticed and refunded, an under-charge
+      // never does.
+      return false;
+    }
   }
 
   private async markNotAnswered(callId: string, reason: string): Promise<void> {

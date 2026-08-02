@@ -213,6 +213,9 @@ function GeneralTab({
   const [voiceTransferNumber, setVoiceTransferNumber] = useState<string>(
     (location as any)?.settings?.voiceTransferNumber ?? "",
   );
+  const [voiceTestMode, setVoiceTestMode] = useState<boolean>(
+    (location as any)?.settings?.voiceTestMode === true,
+  );
   const posBrandsQuery = useQuery({
     queryKey: ["brands", "location", location?.id, "pos-display"],
     queryFn: () => brandsClient.list(location!.id),
@@ -328,6 +331,7 @@ function GeneralTab({
           voiceNumber: voiceNumber.trim() || null,
           voiceAiEnabled: voiceAiEnabled === true,
           voiceTransferNumber: voiceTransferNumber.trim() || null,
+          voiceTestMode: voiceTestMode === true,
         },
       } as any),
     onSuccess: () => {
@@ -770,6 +774,22 @@ function GeneralTab({
           something it can&apos;t do. Leave blank to use the shop&apos;s own
           number.
         </p>
+        <label className="flex cursor-pointer items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5">
+          <input
+            type="checkbox"
+            checked={voiceTestMode}
+            onChange={(e) => setVoiceTestMode(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="text-xs text-amber-900">
+            <strong>Test mode — don&apos;t charge for calls</strong>
+            <span className="mt-0.5 block text-[11px] text-amber-800">
+              Answers as normal but takes nothing from the wallet, and works
+              even on an empty balance. For our own testing — turn it off before
+              the shop goes live, or their calls are free.
+            </span>
+          </span>
+        </label>
         <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
           <input
             type="checkbox"

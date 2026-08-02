@@ -1,6 +1,7 @@
 "use client";
 
-// SMS Wallet — prepaid balance for sending payment links & marketing texts.
+// Wallet — prepaid balance the shop spends on texts, AI phone calls and
+// courier dispatch. Named plainly because it stopped being SMS-only.
 // Clients top up by card (Stripe Checkout); every SMS debits the balance per
 // Twilio segment. This page shows the balance, a top-up panel, and a statement.
 
@@ -74,7 +75,7 @@ function WalletInner() {
           <WalletIcon className="h-6 w-6" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">SMS Wallet</h1>
+          <h1 className="text-xl font-bold text-zinc-900">Wallet</h1>
           <p className="text-sm text-zinc-500">
             Prepaid balance for payment links & marketing texts
           </p>

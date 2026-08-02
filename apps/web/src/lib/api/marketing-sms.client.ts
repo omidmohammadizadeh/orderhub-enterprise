@@ -1,4 +1,4 @@
-// Marketing SMS — consented audience + broadcasts, billed from the SMS wallet.
+// Marketing SMS — consented audience + broadcasts, billed from the wallet.
 
 import { apiClient } from "./client";
 
