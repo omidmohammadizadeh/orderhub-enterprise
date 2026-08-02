@@ -1,6 +1,13 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { WalletService } from "../wallet/wallet.service";
+import {
+  defaultSmsFrom,
+  isSmsConfigured,
+  sendSmsViaProvider,
+  smsConfigHint,
+  smsProvider,
+} from "./sms-provider";
 
 export type SmsPurpose = "PAYMENT_LINK" | "MARKETING" | "OTHER";
 
@@ -29,7 +36,8 @@ const WALLET_PURPOSE: Record<SmsPurpose, string> = {
 /**
  * Single billable SMS send path. Every message we send on a tenant's behalf
  * (payment links, marketing) goes through here so it's:
- *   1. sent via Twilio, and
+ *   1. sent via whichever provider SMS_PROVIDER names (see sms-provider.ts),
+ *      and
  *   2. logged to sms_messages — the per-restaurant usage ledger the
  *      pass-through billing totals from.
  * Message bodies are NOT stored (privacy); only recipient + purpose + segments.
@@ -43,71 +51,41 @@ export class SmsService {
     private readonly wallet: WalletService,
   ) {}
 
-  /** True when Twilio credentials are set so the operator UI can offer SMS. */
+  /** True when the active provider's credentials are set, so the operator UI
+   *  can offer SMS. */
   isConfigured(): boolean {
-    const provider = process.env.SMS_PROVIDER ?? "TWILIO";
-    if (provider === "TWILIO") {
-      return !!(
-        process.env.TWILIO_ACCOUNT_SID &&
-        process.env.TWILIO_AUTH_TOKEN &&
-        process.env.TWILIO_FROM
-      );
-    }
-    if (provider === "VONAGE") {
-      return !!(process.env.VONAGE_API_KEY && process.env.VONAGE_API_SECRET);
-    }
-    return false;
+    return isSmsConfigured();
   }
 
   async send(args: SendSmsArgs): Promise<{ ok: true; sid?: string; segments: number }> {
     if (!this.isConfigured()) {
       throw new BadRequestException(
-        "SMS isn't set up yet. Add your Twilio credentials (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_FROM) to enable sending.",
+        `SMS isn't set up yet. Add your ${smsProvider()} credentials (${smsConfigHint()}) to enable sending.`,
       );
     }
 
     // Prepaid-wallet gate: refuse a billable send the balance can't cover BEFORE
-    // hitting Twilio, so we never pay for a text the tenant hasn't funded.
+    // calling the provider, so we never pay for a text the tenant hasn't funded.
     const bill = args.bill !== false;
     if (bill) {
       await this.wallet.assertCanAffordSms(args.tenantId, args.body, args.locationId);
     }
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-    const authToken = process.env.TWILIO_AUTH_TOKEN!;
     const from = await this.resolveFrom(args);
 
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-    const payload = new URLSearchParams({ To: args.to, From: from, Body: args.body });
-    const credentials = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
-
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${credentials}`,
-        },
-        body: payload.toString(),
+      // Segment counting is the provider's, not ours: Twilio's num_segments
+      // and Telnyx's parts mean the same thing, so the wallet bills the same
+      // either way.
+      const sent = await sendSmsViaProvider({
+        to: args.to,
+        from,
+        body: args.body,
       });
-      const text = await res.text();
-      if (!res.ok) {
-        // Surface Twilio's own message ("The number is unverified" on trial,
-        // "not a valid phone number", etc.) so the operator sees why.
-        let msg = `Twilio HTTP ${res.status}`;
-        try {
-          msg = JSON.parse(text)?.message ?? msg;
-        } catch {
-          /* keep default */
-        }
-        await this.log(args, { status: "FAILED", error: msg.slice(0, 500) });
-        throw new BadRequestException(`SMS failed: ${msg}`);
-      }
-      const json = JSON.parse(text) as { sid?: string; num_segments?: string };
-      const segments = Number(json.num_segments) || 1;
+      const segments = sent.segments;
       const smsMessageId = await this.log(args, {
         status: "SENT",
-        providerSid: json.sid,
+        providerSid: sent.id,
         segments,
       });
       // Charge the wallet. Never throws — the message already went out; a debit
@@ -115,7 +93,7 @@ export class SmsService {
       //
       // Payment-link texts are billed at a FLAT single segment (7p): the
       // customer-facing product is "7p per payment link". A hosted Stripe
-      // checkout URL is long enough to span several Twilio segments, so
+      // checkout URL is long enough to span several segments, so
       // charging per actual segment would over-bill the restaurant (a single
       // link came out at 9 segments / 63p). We still record the true segment
       // count on the SmsMessage row for our own cost tracking. Marketing texts
@@ -131,7 +109,7 @@ export class SmsService {
           createdBy: args.createdBy ?? null,
         });
       }
-      return { ok: true, sid: json.sid, segments };
+      return { ok: true, sid: sent.id, segments };
     } catch (err: any) {
       if (err instanceof BadRequestException) throw err;
       await this.log(args, { status: "FAILED", error: String(err?.message ?? err).slice(0, 500) });
@@ -140,8 +118,9 @@ export class SmsService {
   }
 
   /**
-   * The Twilio "From" for a send, resolved per LOCATION so each client texts
-   * from their OWN number/name. Falls back to the shared TWILIO_FROM env.
+   * The "From" for a send, resolved per LOCATION so each client texts from
+   * their OWN number/name. Falls back to the provider's shared sender
+   * (TWILIO_FROM / TELNYX_FROM).
    *
    * Per-location config lives on Location.settings (no migration):
    *   smsSenderName — alphanumeric sender ID (≤11 chars), shows the shop name.
@@ -155,7 +134,7 @@ export class SmsService {
    *    else the location's number, else the shared number.
    */
   private async resolveFrom(args: SendSmsArgs): Promise<string> {
-    const globalFrom = process.env.TWILIO_FROM!;
+    const globalFrom = defaultSmsFrom();
     if (!args.locationId) return globalFrom;
     let name = "";
     let number = "";
@@ -191,7 +170,7 @@ export class SmsService {
           toNumber: args.to,
           purpose: args.purpose,
           segments: meta.segments ?? 1,
-          provider: process.env.SMS_PROVIDER ?? "TWILIO",
+          provider: smsProvider(),
           providerSid: meta.providerSid ?? null,
           status: meta.status,
           error: meta.error ?? null,

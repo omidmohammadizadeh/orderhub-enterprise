@@ -79,6 +79,29 @@ services:
         sync: false
       - key: STRIPE_PUBLISHABLE_KEY
         sync: false
+      # ── SMS (Twilio or Telnyx — one env var switches every send path) ──
+      # SMS_PROVIDER: TWILIO (default) | TELNYX | VONAGE. Switching it moves
+      # billable sends (payment links, marketing) AND system notifications at
+      # once; the inbound STOP webhook accepts either provider's shape on the
+      # same URL, so it doesn't need re-pointing.
+      #
+      # Telnyx setup: API key from Mission Control, TELNYX_FROM as either a
+      # UK E.164 number or an alphanumeric sender ID, and
+      # TELNYX_MESSAGING_PROFILE_ID — REQUIRED whenever the sender is a name
+      # rather than a number. TELNYX_PUBLIC_KEY (Account → Keys) turns on
+      # Ed25519 verification of the inbound webhook; unset means accept-all.
+      # Point the profile's inbound webhook at
+      # https://<api-host>/api/v1/marketing-sms/inbound
+      - key: SMS_PROVIDER
+        value: TWILIO
+      - key: TELNYX_API_KEY
+        sync: false
+      - key: TELNYX_FROM
+        sync: false
+      - key: TELNYX_MESSAGING_PROFILE_ID
+        sync: false
+      - key: TELNYX_PUBLIC_KEY
+        sync: false
       # ── Optional: provider credentials ──
       - key: UBER_EATS_CLIENT_ID
         sync: false

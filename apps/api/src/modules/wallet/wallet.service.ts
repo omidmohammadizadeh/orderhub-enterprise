@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { isSmsConfigured } from "../sms/sms-provider";
 
 // Stripe is loaded lazily (mirrors subscriptions.service / billing) so a missing
 // key never crashes boot — FREE_PILOT tenants may not have Stripe on day 1.
@@ -18,11 +19,14 @@ try {
   Stripe = null;
 }
 
-// Platform sell price per SMS segment (pence). Twilio's UK cost is ~5.6p/seg,
-// so 10p leaves a healthy margin (payment links are 1 segment via the short
-// link). Override globally with env SMS_PRICE_PER_SEGMENT_MINOR, or per wallet
-// with wallets.smsPricePerSegmentMinor.
-const DEFAULT_PRICE_PER_SEGMENT_MINOR = 10; // 10p per Twilio segment
+// Platform sell price per SMS segment (pence). Twilio's published UK rate is
+// $0.056/message (~5.6p at parity), so 10p leaves a healthy margin (payment
+// links are 1 segment via the short link). The sell price is deliberately NOT
+// tied to the provider: switching to a cheaper carrier widens the margin
+// rather than changing what a restaurant pays. Override globally with env
+// SMS_PRICE_PER_SEGMENT_MINOR, or per wallet with
+// wallets.smsPricePerSegmentMinor.
+const DEFAULT_PRICE_PER_SEGMENT_MINOR = 10; // 10p per segment
 
 export interface WalletSummary {
   balanceMinor: number;
@@ -77,18 +81,7 @@ export class WalletService {
   }
 
   private smsConfigured(): boolean {
-    const provider = process.env.SMS_PROVIDER ?? "TWILIO";
-    if (provider === "TWILIO") {
-      return !!(
-        process.env.TWILIO_ACCOUNT_SID &&
-        process.env.TWILIO_AUTH_TOKEN &&
-        process.env.TWILIO_FROM
-      );
-    }
-    if (provider === "VONAGE") {
-      return !!(process.env.VONAGE_API_KEY && process.env.VONAGE_API_SECRET);
-    }
-    return false;
+    return isSmsConfigured();
   }
 
   /**

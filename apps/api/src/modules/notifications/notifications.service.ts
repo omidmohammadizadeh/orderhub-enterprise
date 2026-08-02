@@ -5,6 +5,13 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { NotificationChannel, NotificationType, DevicePlatform } from "@orderhub/database";
+import {
+  defaultSmsFrom,
+  isSmsConfigured,
+  sendSmsViaProvider,
+  smsConfigHint,
+  smsProvider,
+} from "../sms/sms-provider";
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
@@ -272,67 +279,21 @@ export class NotificationsService {
   }
 
   private async sendSms(phone: string, message: string): Promise<void> {
-    const provider = process.env.SMS_PROVIDER ?? "TWILIO";
-
-    if (provider === "TWILIO") {
-      const accountSid = process.env.TWILIO_ACCOUNT_SID;
-      const authToken = process.env.TWILIO_AUTH_TOKEN;
-      const from = process.env.TWILIO_FROM;
-
-      if (!accountSid || !authToken || !from) {
-        this.logger.warn(
-          "TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_FROM not set — skipping SMS",
-        );
-        return;
-      }
-
-      const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-      const body = new URLSearchParams({ To: phone, From: from, Body: message });
-      const credentials = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${credentials}`,
-        },
-        body: body.toString(),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Twilio HTTP ${response.status}: ${text}`);
-      }
-    } else if (provider === "VONAGE") {
-      // Vonage (Nexmo) skeleton — set VONAGE_API_KEY and VONAGE_API_SECRET
-      const apiKey = process.env.VONAGE_API_KEY;
-      const apiSecret = process.env.VONAGE_API_SECRET;
-      const vonageFrom = process.env.VONAGE_FROM ?? "OrderHub";
-
-      if (!apiKey || !apiSecret) {
-        this.logger.warn("VONAGE_API_KEY/VONAGE_API_SECRET not set — skipping SMS");
-        return;
-      }
-
-      const response = await fetch("https://rest.nexmo.com/sms/json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          api_key: apiKey,
-          api_secret: apiSecret,
-          to: phone,
-          from: vonageFrom,
-          text: message,
-        }),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Vonage HTTP ${response.status}: ${text}`);
-      }
-    } else {
-      this.logger.warn(`Unknown SMS_PROVIDER "${provider}" — skipping SMS`);
+    // System notifications (not billed to a tenant wallet) go out through the
+    // same provider layer as customer-facing SMS, so SMS_PROVIDER switches
+    // both at once — otherwise a provider swap silently leaves half the
+    // traffic on the old vendor's invoice.
+    if (!isSmsConfigured()) {
+      this.logger.warn(
+        `${smsProvider()} not configured (${smsConfigHint()}) — skipping SMS`,
+      );
+      return;
     }
+    await sendSmsViaProvider({
+      to: phone,
+      from: defaultSmsFrom(),
+      body: message,
+    });
   }
 
   private async sendEmail(to: string, subject: string, html: string): Promise<void> {

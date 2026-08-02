@@ -8,7 +8,6 @@ import {
   Query,
   Req,
   Res,
-  Header,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
@@ -19,6 +18,7 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import { parseInboundSms, verifyTelnyxSignature } from "../sms/sms-provider";
 
 // SMS marketing is a money feature — restricted to owners/admin/financial agent,
 // NOT managers or general staff.
@@ -176,24 +176,50 @@ export class MarketingSmsController {
     return this.svc.sendCampaign(user.tenantId, id, user.userId, user.role);
   }
 
-  // ── Inbound STOP/START (Twilio) ───────────────────────────────────────────────
+  // ── Inbound STOP/START ────────────────────────────────────────────────────
+  //
+  // One URL, both providers. Twilio posts form-encoded From/Body and expects
+  // TwiML back; Telnyx posts JSON (data.payload.from.phone_number) and expects
+  // any 2xx within two seconds. Keeping a single endpoint means switching
+  // SMS_PROVIDER doesn't require re-pointing a webhook that, if missed, would
+  // silently stop honouring opt-outs — the one failure here with a regulator
+  // attached to it.
 
   @Post("inbound")
   @Public()
   @HttpCode(HttpStatus.OK)
-  @Header("Content-Type", "text/xml")
-  @ApiOperation({ summary: "Twilio inbound-SMS webhook — handles STOP/START opt-out" })
+  @ApiOperation({
+    summary: "Inbound-SMS webhook (Twilio or Telnyx) — handles STOP/START opt-out",
+  })
   async inbound(@Req() req: Request, @Res() res: Response) {
-    // Twilio posts application/x-www-form-urlencoded { From, Body, ... }.
-    const b: any = req.body ?? {};
-    const from = b.From ?? b.from ?? "";
-    const body = b.Body ?? b.body ?? "";
-    try {
-      if (from) await this.svc.handleInbound(String(from), String(body));
-    } catch {
-      /* never fail the webhook — Twilio would retry */
+    const raw: any = req.body ?? {};
+    const isTelnyx = !!raw?.data?.payload;
+
+    if (isTelnyx) {
+      const rawBody =
+        (req as any).rawBody?.toString("utf8") ?? JSON.stringify(raw);
+      const ok = verifyTelnyxSignature(
+        rawBody,
+        req.headers["telnyx-signature-ed25519"] as string | undefined,
+        req.headers["telnyx-timestamp"] as string | undefined,
+      );
+      if (!ok) {
+        // 200, not 4xx: a rejected signature is not something Telnyx should
+        // retry, and we don't want a forged payload driving retry storms.
+        return res.status(HttpStatus.OK).json({ ok: false });
+      }
     }
+
+    const { from, text } = parseInboundSms(raw);
+    try {
+      if (from) await this.svc.handleInbound(from, text);
+    } catch {
+      /* never fail the webhook — both providers would retry */
+    }
+
+    if (isTelnyx) return res.status(HttpStatus.OK).json({ ok: true });
     // Empty TwiML → no auto-reply (Twilio's own STOP confirmation still fires).
-    res.send("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response></Response>");
+    res.set("Content-Type", "text/xml");
+    res.send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   }
 }
