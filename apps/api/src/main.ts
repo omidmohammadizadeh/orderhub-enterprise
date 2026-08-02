@@ -9,6 +9,8 @@ import compression from "compression";
 import { WinstonModule } from "nest-winston";
 import { AppModule } from "./app.module";
 import { winstonConfig } from "./config/logger.config";
+import { PrismaService } from "./infrastructure/database/prisma.service";
+import { createCorsOriginCheck } from "./config/cors.config";
 
 async function bootstrap() {
   const logger = WinstonModule.createLogger(winstonConfig);
@@ -74,13 +76,26 @@ async function bootstrap() {
     .map((o) => o.trim())
     .filter(Boolean);
 
-  app.enableCors({
-    origin: (origin, callback) => {
-      // Allow no-origin requests (same-origin, curl, mobile, server-to-server)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin "${origin}" is not allowed`));
+  // Brand custom domains are storefronts we serve, but they're operator-
+  // managed and can't be baked into an env var — see cors.config.ts for why a
+  // refusal must never throw.
+  const prismaForCors = app.get(PrismaService);
+  const cors = createCorsOriginCheck({
+    allowedOrigins,
+    loadCustomDomains: async () => {
+      const rows = await prismaForCors.brand.findMany({
+        where: { customDomain: { not: null }, deletedAt: null },
+        select: { customDomain: true },
+      });
+      return rows.map((r) => r.customDomain ?? "");
     },
+  });
+  await cors.warm().catch((err) =>
+    logger.warn?.(`CORS: could not load brand custom domains — ${err.message}`),
+  );
+
+  app.enableCors({
+    origin: cors.origin,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-tenant-id", "x-request-id"],
