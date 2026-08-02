@@ -114,29 +114,6 @@ export class VoiceTelnyxController {
    *  large pepperoni" becomes an order for something else entirely. */
   private static readonly MIN_CONFIDENCE = 0.5;
 
-  /** Menu words for the recogniser — the shop's actual dish names. */
-  private async menuHints(ccid: string): Promise<string[]> {
-    try {
-      const call = await this.db().voiceCall.findUnique({
-        where: { providerCallId: ccid },
-        select: { toNumber: true },
-      });
-      if (!call?.toNumber) return [];
-      const ctx = await this.contexts.resolve(call.toNumber);
-      if (!ctx) return [];
-      const words = new Set<string>();
-      for (const item of ctx.items) {
-        words.add(item.name);
-        for (const g of item.modifierGroups) {
-          for (const o of g.options) words.add(o.name);
-        }
-      }
-      return [...words].filter((w) => w.length > 2);
-    } catch {
-      return [];
-    }
-  }
-
   // ── Handlers ────────────────────────────────────────────────────────────
 
   private async onInitiated(ccid: string, p: any): Promise<void> {
@@ -177,7 +154,34 @@ export class VoiceTelnyxController {
         ? first.text
         : "Hello, thanks for calling. How can I help?";
     await this.telnyx.speak(ccid, greeting);
-    await this.telnyx.startTranscription(ccid, await this.menuHints(ccid));
+
+    // If we can't listen, say so and hand over. A failed transcription command
+    // used to leave the caller talking into a line that wasn't listening —
+    // 48 seconds of silence is a worse outcome than any error message.
+    const listening = await this.telnyx.startTranscription(ccid);
+    if (!listening) {
+      this.logger.error(`Transcription failed to start on ${ccid} — handing over`);
+      const call = await this.db().voiceCall.findUnique({
+        where: { providerCallId: ccid },
+        select: { id: true, toNumber: true },
+      });
+      const ctx = call?.toNumber ? await this.contexts.resolve(call.toNumber) : null;
+      await this.telnyx.speak(
+        ccid,
+        "Sorry, I'm having trouble hearing you. Let me put you through to the shop.",
+      );
+      if (ctx?.transferNumber) {
+        if (call) {
+          await this.db().voiceCall.update({
+            where: { id: call.id },
+            data: { status: "TRANSFERRED", outcome: "TRANSFERRED" },
+          });
+        }
+        await this.telnyx.transfer(ccid, ctx.transferNumber);
+      } else {
+        setTimeout(() => void this.telnyx.hangup(ccid), 5000);
+      }
+    }
   }
 
   private async onTranscription(ccid: string, p: any): Promise<void> {

@@ -78,10 +78,10 @@ export class TelnyxCallControlService {
     callControlId: string,
     action: string,
     body: Record<string, unknown> = {},
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!this.apiKey) {
       this.logger.warn(`TELNYX_API_KEY not set — dropping ${action}`);
-      return;
+      return false;
     }
     try {
       const res = await fetch(
@@ -97,13 +97,13 @@ export class TelnyxCallControlService {
       );
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        // Losing a command mid-call is not fatal on its own — the caller may
-        // just hear silence — so log loudly and let the call continue rather
-        // than throwing into a webhook Telnyx will retry.
         this.logger.error(`Telnyx ${action} failed ${res.status}: ${text.slice(0, 300)}`);
+        return false;
       }
+      return true;
     } catch (e: any) {
       this.logger.error(`Telnyx ${action} threw: ${e?.message ?? e}`);
+      return false;
     }
   }
 
@@ -123,23 +123,25 @@ export class TelnyxCallControlService {
   /**
    * Start live transcription of the CALLER only.
    *
-   * `inbound` matters: transcribing both tracks feeds the AI its own speech
-   * back as if the caller had said it, and the conversation talks itself into
-   * a corner within two turns.
+   * Only documented parameters go in here. The first attempt carried a `hints`
+   * array and `interim_results` alongside engine B — `hints` isn't a top-level
+   * parameter at all (engine settings live under transcription_engine_config)
+   * and interim results are engine-A only. Telnyx 400'd the command, we logged
+   * it and carried on, and the caller spent 48 seconds talking to a line that
+   * was not listening. Hence the boolean return, and the caller who checks it.
+   *
+   * `inbound` matters too: transcribing both tracks feeds the AI its own
+   * speech back as if the caller had said it, and the conversation talks
+   * itself into a corner within two turns.
    */
-  startTranscription(callControlId: string, hints: string[] = []) {
+  startTranscription(callControlId: string): Promise<boolean> {
     return this.command(callControlId, "transcription_start", {
       language: this.language,
-      // Engine B (Deepgram) rather than the default. The first live call came
-      // back at 0.33–0.62 confidence on 8kHz PSTN audio — the default engine
-      // is tuned for clean wideband speech, not a mobile in a car park.
+      // B is Telnyx's own engine — more accurate and cheaper than the Google
+      // default, which is what the first live call was using at 0.33–0.62
+      // confidence.
       transcription_engine: this.engine,
       transcription_tracks: "inbound",
-      interim_results: false,
-      // Tell the engine which unusual words to expect. "Shish", "halloumi"
-      // and "peri peri" are exactly what a general model mangles, and we
-      // already have the menu loaded.
-      ...(hints.length ? { hints: hints.slice(0, 100) } : {}),
     });
   }
 
