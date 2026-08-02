@@ -201,6 +201,18 @@ function GeneralTab({
   const [callerIdNumber, setCallerIdNumber] = useState<string>(
     (location as any)?.settings?.callerIdNumber ?? "",
   );
+  // AI phone line — the Telnyx number this shop's overflow calls forward to,
+  // and the kill switch. Default OFF: assigning a number must never be what
+  // starts an AI answering a restaurant's phone.
+  const [voiceNumber, setVoiceNumber] = useState<string>(
+    (location as any)?.settings?.voiceNumber ?? "",
+  );
+  const [voiceAiEnabled, setVoiceAiEnabled] = useState<boolean>(
+    (location as any)?.settings?.voiceAiEnabled === true,
+  );
+  const [voiceTransferNumber, setVoiceTransferNumber] = useState<string>(
+    (location as any)?.settings?.voiceTransferNumber ?? "",
+  );
   const posBrandsQuery = useQuery({
     queryKey: ["brands", "location", location?.id, "pos-display"],
     queryFn: () => brandsClient.list(location!.id),
@@ -313,6 +325,9 @@ function GeneralTab({
           smsSenderName: smsSenderName.trim() || null,
           smsNumber: smsNumber.trim() || null,
           callerIdNumber: callerIdNumber.trim() || null,
+          voiceNumber: voiceNumber.trim() || null,
+          voiceAiEnabled: voiceAiEnabled === true,
+          voiceTransferNumber: voiceTransferNumber.trim() || null,
         },
       } as any),
     onSuccess: () => {
@@ -714,6 +729,63 @@ function GeneralTab({
           The SMS number must be a number in your Twilio account. Marketing texts
           send from it so customers can reply &ldquo;STOP&rdquo; to opt out.
         </p>
+      </div>
+
+      {/* AI phone line. Separate card from SMS on purpose: this is the one
+          setting that makes a machine answer a restaurant's phone, and it
+          should never be something an operator flips by accident while
+          editing a sender name. */}
+      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">AI phone line</h3>
+          <p className="text-[11px] text-zinc-500">
+            Answers calls this shop can&apos;t get to, takes the order, and puts
+            it on the board. Billed per answered call from the wallet.
+          </p>
+        </div>
+        <Field label="AI phone number">
+          <input
+            value={voiceNumber}
+            onChange={(e) => setVoiceNumber(e.target.value)}
+            placeholder="+447..."
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          />
+        </Field>
+        <p className="text-[11px] text-zinc-400">
+          The number the AI answers on. Don&apos;t give this to customers — set
+          the shop&apos;s existing line to <strong>forward on no answer</strong>{" "}
+          to it, so callers keep dialling the number they already know and the
+          AI only picks up what staff couldn&apos;t.
+        </p>
+        <Field label="Transfer calls to">
+          <input
+            value={voiceTransferNumber}
+            onChange={(e) => setVoiceTransferNumber(e.target.value)}
+            placeholder="Defaults to this shop's phone number"
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          />
+        </Field>
+        <p className="text-[11px] text-zinc-400">
+          Where the AI sends a caller who asks for a person, complains, or wants
+          something it can&apos;t do. Leave blank to use the shop&apos;s own
+          number.
+        </p>
+        <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
+          <input
+            type="checkbox"
+            checked={voiceAiEnabled}
+            onChange={(e) => setVoiceAiEnabled(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="text-xs text-zinc-700">
+            <strong>Let the AI answer calls for this shop</strong>
+            <span className="mt-0.5 block text-[11px] text-zinc-500">
+              Off by default. With this off the number simply doesn&apos;t
+              answer, so calls keep ringing at the shop exactly as they do now —
+              switching it off is always safe.
+            </span>
+          </span>
+        </label>
       </div>
 
       <Field label="Status">
