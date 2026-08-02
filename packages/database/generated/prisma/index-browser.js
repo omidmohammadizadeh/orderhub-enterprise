@@ -2071,6 +2071,40 @@ exports.Prisma.ReviewScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.GroupOrderScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  token: 'token',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  hostCustomerId: 'hostCustomerId',
+  hostName: 'hostName',
+  hostRef: 'hostRef',
+  status: 'status',
+  orderId: 'orderId',
+  fulfillmentType: 'fulfillmentType',
+  paymentMode: 'paymentMode',
+  expiresAt: 'expiresAt',
+  placedAt: 'placedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GroupOrderItemScalarFieldEnum = {
+  id: 'id',
+  groupOrderId: 'groupOrderId',
+  addedByName: 'addedByName',
+  addedByRef: 'addedByRef',
+  cartItem: 'cartItem',
+  quantity: 'quantity',
+  lineTotal: 'lineTotal',
+  isPaid: 'isPaid',
+  paidAt: 'paidAt',
+  paymentId: 'paymentId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3307,6 +3341,29 @@ exports.Prisma.ReviewOrderByRelevanceFieldEnum = {
   reply: 'reply',
   repliedBy: 'repliedBy'
 };
+
+exports.Prisma.GroupOrderOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  token: 'token',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  hostCustomerId: 'hostCustomerId',
+  hostName: 'hostName',
+  hostRef: 'hostRef',
+  status: 'status',
+  orderId: 'orderId',
+  fulfillmentType: 'fulfillmentType',
+  paymentMode: 'paymentMode'
+};
+
+exports.Prisma.GroupOrderItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  groupOrderId: 'groupOrderId',
+  addedByName: 'addedByName',
+  addedByRef: 'addedByRef',
+  paymentId: 'paymentId'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3874,7 +3931,9 @@ exports.Prisma.ModelName = {
   WalletTransaction: 'WalletTransaction',
   StuartConfig: 'StuartConfig',
   UberDirectConfig: 'UberDirectConfig',
-  Review: 'Review'
+  Review: 'Review',
+  GroupOrder: 'GroupOrder',
+  GroupOrderItem: 'GroupOrderItem'
 };
 
 /**

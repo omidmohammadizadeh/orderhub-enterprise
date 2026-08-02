@@ -4358,6 +4358,11 @@ model GroupOrder {
   // Whoever opened it. Nullable: a guest host may not have an account.
   hostCustomerId String?
   hostName       String?
+  // The host's browser-scoped ref — same shape as GroupOrderItem.addedByRef.
+  // Closing, placing and cancelling the basket are host-only actions, and with
+  // no login this ref is the only credential there is. It is NEVER returned in
+  // the public view: any guest who could read it could place the order.
+  hostRef String?
   // OPEN — still accepting items. LOCKED — host closed it, paying.
   // PLACED — became an order. EXPIRED / CANCELLED — never will.
   status String @default("OPEN")

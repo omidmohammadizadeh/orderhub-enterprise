@@ -29,10 +29,12 @@ export class GroupOrdersController {
   create(
     @Body()
     body: {
-      tenantId: string;
+      // No tenantId: it's derived from the location server-side. A public
+      // route must not let the caller name the tenant it writes to.
       locationId: string;
       brandId?: string;
       hostName: string;
+      hostRef?: string;
       hostCustomerId?: string;
       fulfillmentType?: string;
       paymentMode?: string;
@@ -44,8 +46,10 @@ export class GroupOrdersController {
   @Public()
   @Get(":token")
   @ApiOperation({ summary: "The shared basket, its lines and per-person totals" })
-  get(@Param("token") token: string) {
-    return this.groups.getByToken(token);
+  get(@Param("token") token: string, @Query("ref") ref?: string) {
+    // `ref` is the caller's own browser ref — it only decides whether they're
+    // told they're the host. The host's ref itself is never returned.
+    return this.groups.getByToken(token, ref);
   }
 
   @Public()
@@ -81,16 +85,16 @@ export class GroupOrdersController {
   @Post(":token/lock")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Host closes the basket so the total can't move" })
-  lock(@Param("token") token: string) {
-    return this.groups.lock(token);
+  lock(@Param("token") token: string, @Body() body?: { hostRef?: string }) {
+    return this.groups.lock(token, body?.hostRef);
   }
 
   @Public()
   @Post(":token/unlock")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Host reopens a locked basket" })
-  unlock(@Param("token") token: string) {
-    return this.groups.unlock(token);
+  unlock(@Param("token") token: string, @Body() body?: { hostRef?: string }) {
+    return this.groups.unlock(token, body?.hostRef);
   }
 
   @Public()
@@ -114,6 +118,7 @@ export class GroupOrdersController {
       paymentMethod?: string;
       paymentStatus?: string;
       idempotencyKey?: string;
+      hostRef?: string;
     },
   ) {
     return this.groups.place(token, body);
@@ -123,7 +128,7 @@ export class GroupOrdersController {
   @Post(":token/cancel")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Abandon a group order" })
-  cancel(@Param("token") token: string) {
-    return this.groups.cancel(token);
+  cancel(@Param("token") token: string, @Body() body?: { hostRef?: string }) {
+    return this.groups.cancel(token, body?.hostRef);
   }
 }

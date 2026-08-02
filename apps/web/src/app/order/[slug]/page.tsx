@@ -24,8 +24,8 @@
 //     methods the operator turned off
 
 import { Suspense, useEffect, useMemo, useRef, useState, useReducer } from "react";
-import { useParams, useSearchParams } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import {
@@ -53,7 +53,17 @@ import {
   Receipt,
   Hourglass,
   Phone,
+  Users,
 } from "lucide-react";
+import { GroupBasketPanel } from "@/components/storefront/group-basket-panel";
+import { StartGroupOrderModal } from "@/components/storefront/start-group-order-modal";
+import {
+  getGuestName,
+  getGuestRef,
+  groupOrdersClient,
+  setGuestName,
+  type GroupOrderView,
+} from "@/lib/api/group-orders.client";
 import { publicReservationsClient } from "@/lib/api/reservations.client";
 import { cn } from "@/lib/utils";
 import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
@@ -245,6 +255,14 @@ function OrderPage() {
   // — no flicker, no double-fetch from stale state.
   const searchParams = useSearchParams();
   const brandId = searchParams?.get("brand") ?? null;
+  // Group ordering — ?group=<token> puts this whole page in group mode: the
+  // menu, modifier sheet and product cards work exactly as they do normally,
+  // but an "Add" lands in the shared basket instead of the local cart. The
+  // token comes from the share link (via the join page), never from state, so
+  // a refresh or a returning tab picks the same basket back up.
+  const groupToken = searchParams?.get("group") ?? null;
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -603,7 +621,10 @@ function OrderPage() {
   //   total math (unitPrice + sum(modifiers)) stays at 0 for the
   //   freebie.
   useEffect(() => {
-    if (!bogo) return;
+    // Campaign freebies mirror the LOCAL cart, which group mode doesn't use —
+    // and the group place path doesn't re-resolve campaigns server-side, so a
+    // freebie added here would be a promise the order never keeps.
+    if (!bogo || groupToken) return;
     const triggerLines = cart.filter(
       (l) =>
         bogoTriggerSet.has(l.menuItemId) && l.unitPrice > 0 && !l.bogoOf,
@@ -635,7 +656,7 @@ function OrderPage() {
         },
       });
     }
-  }, [cart, bogo, bogoTriggerSet]);
+  }, [cart, bogo, bogoTriggerSet, groupToken]);
 
   // Phase AW-19 — eligible spend for FREE_ITEM unlock = subtotal of
   // all paid lines whose item category is NOT in the exclusion set.
@@ -656,7 +677,7 @@ function OrderPage() {
   // changes, remove the existing gift first. Marker = freeItemOf
   // on the cart line.
   useEffect(() => {
-    if (!freeItem) return;
+    if (!freeItem || groupToken) return; // see the BOGO effect above
     const giftLine = cart.find((l) => (l as any).freeItemOf);
     const eligible = eligibleSubtotal >= freeItem.minOrder;
     if (!eligible || !chosenFreeItemId) {
@@ -686,7 +707,7 @@ function OrderPage() {
         } as any,
       });
     }
-  }, [cart, freeItem, eligibleSubtotal, chosenFreeItemId, itemsById]);
+  }, [cart, freeItem, eligibleSubtotal, chosenFreeItemId, itemsById, groupToken]);
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
@@ -758,6 +779,221 @@ function OrderPage() {
     }
     return lists;
   }, [allCategories, activeCategory, search]);
+
+  // ── Group ordering ───────────────────────────────────────────────────────
+  //
+  // One shared basket, several people, one order at the end. The local cart is
+  // left alone while group mode is on: adds go straight to the API so everyone
+  // sees them, which is the entire point.
+
+  const [groupRef, setGroupRef] = useState("");
+  const [groupPanelOpen, setGroupPanelOpen] = useState(false);
+  const [startGroupOpen, setStartGroupOpen] = useState(false);
+  const [groupError, setGroupError] = useState<string | null>(null);
+  const [removingGroupItemId, setRemovingGroupItemId] = useState<string | null>(
+    null,
+  );
+  // localStorage is client-only, so the ref can't be read during render.
+  useEffect(() => setGroupRef(getGuestRef()), []);
+
+  const groupKey = ["group-order", groupToken, groupRef] as const;
+  const groupQuery = useQuery<GroupOrderView>({
+    queryKey: groupKey,
+    queryFn: () => groupOrdersClient.get(String(groupToken), groupRef),
+    enabled: !!groupToken && !!groupRef,
+    // Someone else adding chips has to show up without a refresh. Guests have
+    // no account, so there is no socket room for them to join — a five-second
+    // poll is the honest way to keep a shared basket live.
+    refetchInterval: 5_000,
+    retry: false,
+  });
+  const basket = groupQuery.data ?? null;
+  const groupMode = !!groupToken;
+  const groupOpen = basket?.status === "OPEN";
+  const groupCount = basket?.items.reduce((s, i) => s + i.quantity, 0) ?? 0;
+
+  // Delivery vs collection is the host's call, made before anyone joined,
+  // because it decides the fees the group is sharing. Mirror it into the
+  // page's own state so prep times, the delivery-zone match and the pills all
+  // agree with the basket.
+  const groupFulfillment = basket?.fulfillmentType;
+  useEffect(() => {
+    if (!groupFulfillment) return;
+    const next = groupFulfillment === "DELIVERY" ? "DELIVERY" : "PICKUP";
+    setFulfillmentType((cur) => (cur === next ? cur : next));
+  }, [groupFulfillment]);
+
+  const groupErrorFrom = (err: unknown, fallback: string) =>
+    ((err as any)?.response?.data?.message as string) ?? fallback;
+
+  const applyBasket = (view: GroupOrderView) => {
+    queryClient.setQueryData(groupKey, view);
+    setGroupError(null);
+  };
+
+  const startGroup = useMutation({
+    mutationFn: (vars: { name: string; fulfillmentType: "DELIVERY" | "PICKUP" }) =>
+      groupOrdersClient.create({
+        locationId: storefront!.location.id,
+        brandId: brandId ?? undefined,
+        hostName: vars.name,
+        hostRef: groupRef,
+        fulfillmentType: vars.fulfillmentType,
+      }),
+    onSuccess: (view, vars) => {
+      setGuestName(vars.name);
+      setStartGroupOpen(false);
+      // Put the token in the URL rather than in state: the host can now
+      // refresh, or come back tomorrow, and still be in the same basket.
+      router.replace(
+        `/order/${slug}?group=${encodeURIComponent(view.token)}${
+          brandId ? `&brand=${encodeURIComponent(brandId)}` : ""
+        }`,
+      );
+      queryClient.setQueryData(["group-order", view.token, groupRef], view);
+      setGroupPanelOpen(true);
+    },
+  });
+
+  const addToGroup = useMutation({
+    mutationFn: (line: Omit<CartLine, "id">) => {
+      const name = getGuestName();
+      // No name yet (a link opened straight into the menu, or a cleared
+      // browser): the join page is where that gets asked for.
+      if (!name) {
+        router.push(`/order/${slug}/group/${groupToken}`);
+        return Promise.reject(new Error("NO_NAME"));
+      }
+      return groupOrdersClient.addItem(String(groupToken), {
+        addedByName: name,
+        addedByRef: groupRef,
+        cartItem: {
+          name: line.displayName,
+          unitPrice: line.unitPrice,
+          menuItemId: line.menuItemId,
+          notes: line.notes || undefined,
+          // Same shape the ordinary checkout sends: name + price only.
+          modifiers: line.modifiers.map((m) => ({
+            name: m.name,
+            price: m.price,
+          })),
+        },
+        quantity: line.quantity,
+        // unitPrice is already modifier-inclusive — the same rule the local
+        // cart's subtotal follows. Adding modifiers again here would charge
+        // every option twice.
+        lineTotal: round2(line.unitPrice * line.quantity),
+      });
+    },
+    onSuccess: (view) => applyBasket(view),
+    onError: (err) => {
+      if ((err as Error)?.message === "NO_NAME") return;
+      setGroupError(groupErrorFrom(err, "Couldn't add that to the basket."));
+    },
+  });
+
+  const removeFromGroup = useMutation({
+    mutationFn: (itemId: string) => {
+      setRemovingGroupItemId(itemId);
+      return groupOrdersClient.removeItem(String(groupToken), itemId, groupRef);
+    },
+    onSuccess: (view) => applyBasket(view),
+    onError: (err) =>
+      setGroupError(groupErrorFrom(err, "Couldn't remove that item.")),
+    onSettled: () => setRemovingGroupItemId(null),
+  });
+
+  const lockGroup = useMutation({
+    mutationFn: (next: "lock" | "unlock") =>
+      next === "lock"
+        ? groupOrdersClient.lock(String(groupToken), groupRef)
+        : groupOrdersClient.unlock(String(groupToken), groupRef),
+    onSuccess: (view) => applyBasket(view),
+    onError: (err) =>
+      setGroupError(groupErrorFrom(err, "Couldn't close the basket.")),
+  });
+
+  const placeGroup = useMutation({
+    mutationFn: () =>
+      groupOrdersClient.place(String(groupToken), {
+        hostRef: groupRef,
+        customerInfo: {
+          name: customerName,
+          phone: customerPhone || undefined,
+          email: customerEmail || undefined,
+        },
+        deliveryAddress:
+          basket?.fulfillmentType === "DELIVERY"
+            ? {
+                line1: addrLine1,
+                line2: addrFlat || undefined,
+                city: addrCity,
+                postcode: addrPostcode,
+                country: "GB",
+              }
+            : undefined,
+        deliveryFee:
+          basket?.fulfillmentType === "DELIVERY" ? deliveryFee : 0,
+        specialInstructions: notes || undefined,
+        paymentMethod,
+        // Stable per basket: a double-tap on Place order can't become two
+        // orders, and neither can a retry after a dropped connection.
+        idempotencyKey: `group-${groupToken}`,
+      }),
+    onSuccess: (order) => {
+      if (order?.checkoutUrl && typeof window !== "undefined") {
+        window.location.href = order.checkoutUrl;
+        return;
+      }
+      setGroupPanelOpen(false);
+      setConfirmedOrderId(order.id);
+      // Drop ?group= so the tracking screen — and a refresh of it — isn't
+      // still pointed at a basket that has already become an order.
+      if (typeof window !== "undefined") {
+        window.history.replaceState(
+          {},
+          "",
+          `${window.location.pathname}${brandId ? `?brand=${brandId}` : ""}`,
+        );
+      }
+    },
+    onError: (err) =>
+      setGroupError(groupErrorFrom(err, "Couldn't place the group order.")),
+  });
+
+  const cancelGroup = useMutation({
+    mutationFn: () => groupOrdersClient.cancel(String(groupToken), groupRef),
+    onSuccess: () => {
+      setGroupPanelOpen(false);
+      router.replace(`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`);
+    },
+    onError: (err) =>
+      setGroupError(groupErrorFrom(err, "Couldn't cancel the group order.")),
+  });
+
+  /**
+   * The single door into a basket. Everything that adds an item — a tap on a
+   * simple product, or the modifier sheet's Add — goes through here, so group
+   * mode can never be half-applied.
+   */
+  const addLine = (line: Omit<CartLine, "id">) => {
+    if (groupMode) {
+      // A closed, placed or expired basket takes nothing more. Refuse here
+      // rather than round-tripping to a 400 the customer would only see if
+      // they thought to open the basket panel.
+      if (basket && basket.status !== "OPEN") {
+        setGroupError(
+          basket.status === "LOCKED"
+            ? `${basket.hostName ?? "The host"} has closed the basket — nothing else can be added.`
+            : "This group order is closed. Start your own order to keep going.",
+        );
+        return;
+      }
+      addToGroup.mutate(line);
+      return;
+    }
+    dispatch({ type: "ADD", line });
+  };
 
   // ── Checkout ─────────────────────────────────────────────────────────────
 
@@ -1124,17 +1360,33 @@ function OrderPage() {
               onLogout={logoutCustomer}
               myOrdersHref={`/order/${slug}/my-orders${brandId ? `?brand=${brandId}` : ""}`}
             />
-            <button
-              onClick={() => setCartOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-            >
-              <ShoppingBag className="h-4 w-4" /> Cart
-              {cartCount > 0 && (
-                <span className="ml-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-orange-600">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+            {/* In group mode the personal cart isn't the basket that
+                matters, so the pill opens the shared one instead. */}
+            {groupMode ? (
+              <button
+                onClick={() => setGroupPanelOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+              >
+                <Users className="h-4 w-4" /> Group
+                {groupCount > 0 && (
+                  <span className="ml-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-orange-600">
+                    {groupCount}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={() => setCartOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+              >
+                <ShoppingBag className="h-4 w-4" /> Cart
+                {cartCount > 0 && (
+                  <span className="ml-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-orange-600">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -1211,7 +1463,10 @@ function OrderPage() {
             {acceptDelivery && (
               <FulfillmentPill
                 active={fulfillmentType === "DELIVERY"}
-                onClick={() => setFulfillmentType("DELIVERY")}
+                // Fixed by the host in group mode — it decides the fees the
+                // whole group is sharing, so it can't move once people have
+                // started adding.
+                onClick={() => !groupMode && setFulfillmentType("DELIVERY")}
                 icon={<Bike className="h-4 w-4" />}
                 label="Delivery"
                 sub={`${cfg?.deliveryPrepMinutes ?? 45} mins`}
@@ -1220,21 +1475,37 @@ function OrderPage() {
             {acceptCollection && (
               <FulfillmentPill
                 active={fulfillmentType === "PICKUP"}
-                onClick={() => setFulfillmentType("PICKUP")}
+                onClick={() => !groupMode && setFulfillmentType("PICKUP")}
                 icon={<ShoppingBag className="h-4 w-4" />}
                 label="Pickup"
                 sub={`${cfg?.collectionPrepMinutes ?? 20} mins`}
               />
             )}
-            <button
-              onClick={() => setScheduleOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-300"
-            >
-              <Clock className="h-4 w-4" />
-              {scheduledFor
-                ? `Scheduled ${formatScheduledFor(scheduledFor)}`
-                : "Schedule"}
-            </button>
+            {!groupMode && (
+              <button
+                onClick={() => setScheduleOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-300"
+              >
+                <Clock className="h-4 w-4" />
+                {scheduledFor
+                  ? `Scheduled ${formatScheduledFor(scheduledFor)}`
+                  : "Schedule"}
+              </button>
+            )}
+
+            {/* Order together — one basket, several people, one order. Sits
+                with the fulfillment pills because "who's eating" is the same
+                kind of decision as "how does it get here". Hidden while the
+                shop is paused, like every other way into a basket. */}
+            {!groupMode && !storefront.closed && (
+              <button
+                onClick={() => setStartGroupOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
+              >
+                <Users className="h-4 w-4" />
+                Order together
+              </button>
+            )}
 
             {/* Eating in? Sits with Delivery/Pickup because "how do I
                 want to be served" is the same question — but styled as a
@@ -1249,6 +1520,98 @@ function OrderPage() {
               </a>
             )}
           </div>
+
+          {/* Group mode — say so plainly and permanently. Without this the
+              customer adds three things, opens the cart out of habit, finds it
+              empty and assumes the site is broken. */}
+          {groupMode && (basket || groupQuery.error) && (
+            <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-xs text-orange-900">
+              {groupQuery.error || !basket ? (
+                <>
+                  <p className="font-semibold">This group order isn&apos;t available</p>
+                  <p className="mt-0.5 text-[11px] text-orange-800">
+                    {((groupQuery.error as any)?.response?.data?.message as string) ??
+                      "The link may have expired."}{" "}
+                    <a
+                      className="underline"
+                      href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
+                    >
+                      Order on your own instead
+                    </a>
+                    .
+                  </p>
+                </>
+              ) : basket.status === "PLACED" ? (
+                <>
+                  <p className="font-semibold">
+                    This group order has already been placed
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-orange-800">
+                    Anything you add now would be a separate order.{" "}
+                    <a
+                      className="underline"
+                      href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
+                    >
+                      Start your own
+                    </a>
+                    .
+                  </p>
+                </>
+              ) : basket.status === "CANCELLED" || basket.status === "EXPIRED" ? (
+                <>
+                  <p className="font-semibold">
+                    This group order is {basket.status === "EXPIRED" ? "expired" : "cancelled"}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-orange-800">
+                    <a
+                      className="underline"
+                      href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
+                    >
+                      Order on your own instead
+                    </a>
+                    .
+                  </p>
+                </>
+              ) : (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1.5 font-semibold">
+                      <Users className="h-3.5 w-3.5" />
+                      {basket.isHost
+                        ? "Your group order"
+                        : `${basket.hostName ?? "A friend"}'s group order`}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-orange-800">
+                      {basket.status === "LOCKED"
+                        ? `Basket closed — ${
+                            basket.isHost
+                              ? "finish checkout in the basket"
+                              : `${basket.hostName ?? "the host"} is checking out`
+                          }.`
+                        : `Everything you add goes in together · ${
+                            basket.people.length
+                          } ${basket.people.length === 1 ? "person" : "people"} · £${basket.subtotal.toFixed(
+                            2,
+                          )}`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setGroupPanelOpen(true)}
+                    className="shrink-0 rounded-full bg-orange-500 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-orange-600"
+                  >
+                    View basket
+                  </button>
+                </div>
+              )}
+              {/* Failures from an Add belong here, not only in the panel —
+                  the customer is looking at the menu when they happen. */}
+              {groupError && (
+                <p className="mt-2 border-t border-orange-200 pt-2 text-[11px] text-red-700">
+                  {groupError}
+                </p>
+              )}
+            </div>
+          )}
 
           {!storefront.isOpen && (
             <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
@@ -1291,7 +1654,7 @@ function OrderPage() {
               </p>
             </div>
           )}
-          {storeCampaign && !storefront.closed && (storeCampaign.percentageOff != null || storeCampaign.amountOff != null) && (
+          {storeCampaign && !groupMode && !storefront.closed && (storeCampaign.percentageOff != null || storeCampaign.amountOff != null) && (
             <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
               <p className="font-semibold">
                 🎉{" "}
@@ -1311,7 +1674,7 @@ function OrderPage() {
           )}
           {/* Phase AW-19 — items-only campaign banner. Only shown when
               there's no storewide campaign already taking the slot. */}
-          {bogo && !storefront.closed && (
+          {bogo && !groupMode && !storefront.closed && (
             <div className="mt-4 rounded-md border border-pink-200 bg-pink-50 px-4 py-2 text-xs text-pink-900">
               <p className="font-semibold">🎁 Buy 1, get 1 free</p>
               <p className="mt-0.5 text-[11px] text-pink-800">
@@ -1329,7 +1692,7 @@ function OrderPage() {
               </p>
             </div>
           )}
-          {freeItem && !storefront.closed && (() => {
+          {freeItem && !groupMode && !storefront.closed && (() => {
             const eligible = eligibleSubtotal >= freeItem.minOrder;
             const remaining = Math.max(0, freeItem.minOrder - eligibleSubtotal);
             const named = freeItem.freeItemIds
@@ -1476,6 +1839,96 @@ function OrderPage() {
         </div>
       </div>
 
+      {/* Shared basket — replaces the cart panel entirely in group mode. */}
+      {groupPanelOpen && basket && (
+        <GroupBasketPanel
+          basket={basket}
+          myRef={groupRef}
+          shareUrl={groupOrdersClient.shareUrl(String(slug), basket.token)}
+          onClose={() => setGroupPanelOpen(false)}
+          onRemoveItem={(id) => removeFromGroup.mutate(id)}
+          removingItemId={removingGroupItemId}
+          onLock={() => lockGroup.mutate("lock")}
+          onUnlock={() => lockGroup.mutate("unlock")}
+          onPlace={() => placeGroup.mutate()}
+          onCancel={() => {
+            if (
+              window.confirm(
+                "Cancel this group order? Everyone's items will be lost.",
+              )
+            ) {
+              cancelGroup.mutate();
+            }
+          }}
+          isLocking={lockGroup.isPending}
+          isPlacing={placeGroup.isPending}
+          actionError={groupError}
+          customerName={customerName}
+          setCustomerName={setCustomerName}
+          customerPhone={customerPhone}
+          setCustomerPhone={setCustomerPhone}
+          customerEmail={customerEmail}
+          setCustomerEmail={setCustomerEmail}
+          addrFlat={addrFlat}
+          setAddrFlat={setAddrFlat}
+          addrLine1={addrLine1}
+          setAddrLine1={setAddrLine1}
+          addrCity={addrCity}
+          setAddrCity={setAddrCity}
+          addrPostcode={addrPostcode}
+          setAddrPostcode={(v) => {
+            setAddrPostcode(v);
+            if (postcodeSuggestions.length > 0) setPostcodeSuggestions([]);
+            if (postcodeLookupNote) setPostcodeLookupNote(null);
+          }}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          acceptsCash={cfg?.acceptsCash ?? true}
+          acceptsCard={cfg?.acceptsCard ?? true}
+          notes={notes}
+          setNotes={setNotes}
+          deliveryFee={deliveryFee}
+          matchedZone={matchedZone}
+          postcodeSuggestions={postcodeSuggestions}
+          postcodeLookupNote={postcodeLookupNote}
+          postcodeLookupLoading={postcodeLookupLoading}
+          onPostcodeLookup={() => runPostcodeLookup()}
+          onPickPostcodeSuggestion={(s) => {
+            if (s.line1) setAddrLine1(s.line1);
+            if (s.city) setAddrCity(s.city);
+            if (s.postcode) setAddrPostcode(s.postcode);
+            setPostcodeSuggestions([]);
+            setPostcodeLookupNote(null);
+          }}
+        />
+      )}
+
+      {startGroupOpen && (
+        <StartGroupOrderModal
+          storeName={headerTitle}
+          initialName={
+            getGuestName() ||
+            (authCustomer
+              ? `${authCustomer.firstName} ${authCustomer.lastName}`.trim()
+              : "")
+          }
+          fulfillmentType={fulfillmentType}
+          acceptDelivery={acceptDelivery}
+          acceptCollection={acceptCollection}
+          isCreating={startGroup.isPending}
+          error={
+            startGroup.error
+              ? ((startGroup.error as any)?.response?.data?.message ??
+                "Couldn't start the group order. Try again.")
+              : null
+          }
+          onStart={(name, type) =>
+            startGroup.mutate({ name, fulfillmentType: type })
+          }
+          onClose={() => setStartGroupOpen(false)}
+        />
+      )}
+
       {/* Cart side panel */}
       {cartOpen && (
         <CartPanel
@@ -1590,18 +2043,17 @@ function OrderPage() {
             const unitPrice = promo
               ? Math.round(line.unitPrice * (1 - promo.percentageOff / 100) * 100) / 100
               : line.unitPrice;
-            dispatch({
-              type: "ADD",
-              line: {
-                menuItemId: line.menuItemId,
-                displayName: line.displayName,
-                unitPrice,
-                quantity: line.quantity,
-                modifiers: line.modifiers,
-                selectedSku: line.selectedSku,
-                notes: line.notes,
-                plu: line.plu,
-              },
+            // addLine, not dispatch — in group mode this has to land in the
+            // shared basket instead of the local cart.
+            addLine({
+              menuItemId: line.menuItemId,
+              displayName: line.displayName,
+              unitPrice,
+              quantity: line.quantity,
+              modifiers: line.modifiers,
+              selectedSku: line.selectedSku,
+              notes: line.notes,
+              plu: line.plu,
             });
             // Phase AP follow-up: adding from the modifier modal no
             // longer auto-pops the cart. The customer browses through
@@ -1685,18 +2137,15 @@ function OrderPage() {
     const unitPrice = promo
       ? Math.round(Number(item.basePrice) * (1 - promo.percentageOff / 100) * 100) / 100
       : Number(item.basePrice);
-    dispatch({
-      type: "ADD",
-      line: {
-        menuItemId: item.id,
-        displayName: item.name,
-        unitPrice,
-        quantity: 1,
-        modifiers: [],
-        selectedSku: null,
-        notes: "",
-        plu: item.plu ?? null,
-      },
+    addLine({
+      menuItemId: item.id,
+      displayName: item.name,
+      unitPrice,
+      quantity: 1,
+      modifiers: [],
+      selectedSku: null,
+      notes: "",
+      plu: item.plu ?? null,
     });
     // Phase AP follow-up: do NOT auto-pop the cart. Customer keeps
     // browsing the menu; they tap the Cart pill when they're ready

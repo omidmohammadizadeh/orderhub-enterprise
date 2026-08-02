@@ -598,6 +598,16 @@ export type UberDirectConfig = $Result.DefaultSelection<Prisma.$UberDirectConfig
  * 
  */
 export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
+/**
+ * Model GroupOrder
+ * 
+ */
+export type GroupOrder = $Result.DefaultSelection<Prisma.$GroupOrderPayload>
+/**
+ * Model GroupOrderItem
+ * 
+ */
+export type GroupOrderItem = $Result.DefaultSelection<Prisma.$GroupOrderItemPayload>
 
 /**
  * Enums
@@ -2714,6 +2724,26 @@ export class PrismaClient<
     * ```
     */
   get review(): Prisma.ReviewDelegate<ExtArgs>;
+
+  /**
+   * `prisma.groupOrder`: Exposes CRUD operations for the **GroupOrder** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GroupOrders
+    * const groupOrders = await prisma.groupOrder.findMany()
+    * ```
+    */
+  get groupOrder(): Prisma.GroupOrderDelegate<ExtArgs>;
+
+  /**
+   * `prisma.groupOrderItem`: Exposes CRUD operations for the **GroupOrderItem** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GroupOrderItems
+    * const groupOrderItems = await prisma.groupOrderItem.findMany()
+    * ```
+    */
+  get groupOrderItem(): Prisma.GroupOrderItemDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3271,7 +3301,9 @@ export namespace Prisma {
     WalletTransaction: 'WalletTransaction',
     StuartConfig: 'StuartConfig',
     UberDirectConfig: 'UberDirectConfig',
-    Review: 'Review'
+    Review: 'Review',
+    GroupOrder: 'GroupOrder',
+    GroupOrderItem: 'GroupOrderItem'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3287,7 +3319,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "groupOrder" | "groupOrderItem"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -11478,6 +11510,146 @@ export namespace Prisma {
           count: {
             args: Prisma.ReviewCountArgs<ExtArgs>
             result: $Utils.Optional<ReviewCountAggregateOutputType> | number
+          }
+        }
+      }
+      GroupOrder: {
+        payload: Prisma.$GroupOrderPayload<ExtArgs>
+        fields: Prisma.GroupOrderFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GroupOrderFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GroupOrderFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>
+          }
+          findFirst: {
+            args: Prisma.GroupOrderFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GroupOrderFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>
+          }
+          findMany: {
+            args: Prisma.GroupOrderFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>[]
+          }
+          create: {
+            args: Prisma.GroupOrderCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>
+          }
+          createMany: {
+            args: Prisma.GroupOrderCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GroupOrderCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>[]
+          }
+          delete: {
+            args: Prisma.GroupOrderDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>
+          }
+          update: {
+            args: Prisma.GroupOrderUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>
+          }
+          deleteMany: {
+            args: Prisma.GroupOrderDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GroupOrderUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.GroupOrderUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderPayload>
+          }
+          aggregate: {
+            args: Prisma.GroupOrderAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGroupOrder>
+          }
+          groupBy: {
+            args: Prisma.GroupOrderGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GroupOrderGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GroupOrderCountArgs<ExtArgs>
+            result: $Utils.Optional<GroupOrderCountAggregateOutputType> | number
+          }
+        }
+      }
+      GroupOrderItem: {
+        payload: Prisma.$GroupOrderItemPayload<ExtArgs>
+        fields: Prisma.GroupOrderItemFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GroupOrderItemFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GroupOrderItemFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>
+          }
+          findFirst: {
+            args: Prisma.GroupOrderItemFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GroupOrderItemFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>
+          }
+          findMany: {
+            args: Prisma.GroupOrderItemFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>[]
+          }
+          create: {
+            args: Prisma.GroupOrderItemCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>
+          }
+          createMany: {
+            args: Prisma.GroupOrderItemCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GroupOrderItemCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>[]
+          }
+          delete: {
+            args: Prisma.GroupOrderItemDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>
+          }
+          update: {
+            args: Prisma.GroupOrderItemUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>
+          }
+          deleteMany: {
+            args: Prisma.GroupOrderItemDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GroupOrderItemUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.GroupOrderItemUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupOrderItemPayload>
+          }
+          aggregate: {
+            args: Prisma.GroupOrderItemAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGroupOrderItem>
+          }
+          groupBy: {
+            args: Prisma.GroupOrderItemGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GroupOrderItemGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GroupOrderItemCountArgs<ExtArgs>
+            result: $Utils.Optional<GroupOrderItemCountAggregateOutputType> | number
           }
         }
       }
@@ -139396,6 +139568,2012 @@ export namespace Prisma {
 
 
   /**
+   * Model GroupOrder
+   */
+
+  export type AggregateGroupOrder = {
+    _count: GroupOrderCountAggregateOutputType | null
+    _min: GroupOrderMinAggregateOutputType | null
+    _max: GroupOrderMaxAggregateOutputType | null
+  }
+
+  export type GroupOrderMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    token: string | null
+    locationId: string | null
+    brandId: string | null
+    hostCustomerId: string | null
+    hostName: string | null
+    hostRef: string | null
+    status: string | null
+    orderId: string | null
+    fulfillmentType: string | null
+    paymentMode: string | null
+    expiresAt: Date | null
+    placedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GroupOrderMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    token: string | null
+    locationId: string | null
+    brandId: string | null
+    hostCustomerId: string | null
+    hostName: string | null
+    hostRef: string | null
+    status: string | null
+    orderId: string | null
+    fulfillmentType: string | null
+    paymentMode: string | null
+    expiresAt: Date | null
+    placedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GroupOrderCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    token: number
+    locationId: number
+    brandId: number
+    hostCustomerId: number
+    hostName: number
+    hostRef: number
+    status: number
+    orderId: number
+    fulfillmentType: number
+    paymentMode: number
+    expiresAt: number
+    placedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GroupOrderMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    token?: true
+    locationId?: true
+    brandId?: true
+    hostCustomerId?: true
+    hostName?: true
+    hostRef?: true
+    status?: true
+    orderId?: true
+    fulfillmentType?: true
+    paymentMode?: true
+    expiresAt?: true
+    placedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GroupOrderMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    token?: true
+    locationId?: true
+    brandId?: true
+    hostCustomerId?: true
+    hostName?: true
+    hostRef?: true
+    status?: true
+    orderId?: true
+    fulfillmentType?: true
+    paymentMode?: true
+    expiresAt?: true
+    placedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GroupOrderCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    token?: true
+    locationId?: true
+    brandId?: true
+    hostCustomerId?: true
+    hostName?: true
+    hostRef?: true
+    status?: true
+    orderId?: true
+    fulfillmentType?: true
+    paymentMode?: true
+    expiresAt?: true
+    placedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GroupOrderAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupOrder to aggregate.
+     */
+    where?: GroupOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrders to fetch.
+     */
+    orderBy?: GroupOrderOrderByWithRelationInput | GroupOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GroupOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GroupOrders
+    **/
+    _count?: true | GroupOrderCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GroupOrderMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GroupOrderMaxAggregateInputType
+  }
+
+  export type GetGroupOrderAggregateType<T extends GroupOrderAggregateArgs> = {
+        [P in keyof T & keyof AggregateGroupOrder]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGroupOrder[P]>
+      : GetScalarType<T[P], AggregateGroupOrder[P]>
+  }
+
+
+
+
+  export type GroupOrderGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupOrderWhereInput
+    orderBy?: GroupOrderOrderByWithAggregationInput | GroupOrderOrderByWithAggregationInput[]
+    by: GroupOrderScalarFieldEnum[] | GroupOrderScalarFieldEnum
+    having?: GroupOrderScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GroupOrderCountAggregateInputType | true
+    _min?: GroupOrderMinAggregateInputType
+    _max?: GroupOrderMaxAggregateInputType
+  }
+
+  export type GroupOrderGroupByOutputType = {
+    id: string
+    tenantId: string
+    token: string
+    locationId: string
+    brandId: string | null
+    hostCustomerId: string | null
+    hostName: string | null
+    hostRef: string | null
+    status: string
+    orderId: string | null
+    fulfillmentType: string
+    paymentMode: string
+    expiresAt: Date | null
+    placedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: GroupOrderCountAggregateOutputType | null
+    _min: GroupOrderMinAggregateOutputType | null
+    _max: GroupOrderMaxAggregateOutputType | null
+  }
+
+  type GetGroupOrderGroupByPayload<T extends GroupOrderGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GroupOrderGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GroupOrderGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GroupOrderGroupByOutputType[P]>
+            : GetScalarType<T[P], GroupOrderGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GroupOrderSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    token?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    hostCustomerId?: boolean
+    hostName?: boolean
+    hostRef?: boolean
+    status?: boolean
+    orderId?: boolean
+    fulfillmentType?: boolean
+    paymentMode?: boolean
+    expiresAt?: boolean
+    placedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["groupOrder"]>
+
+  export type GroupOrderSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    token?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    hostCustomerId?: boolean
+    hostName?: boolean
+    hostRef?: boolean
+    status?: boolean
+    orderId?: boolean
+    fulfillmentType?: boolean
+    paymentMode?: boolean
+    expiresAt?: boolean
+    placedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["groupOrder"]>
+
+  export type GroupOrderSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    token?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    hostCustomerId?: boolean
+    hostName?: boolean
+    hostRef?: boolean
+    status?: boolean
+    orderId?: boolean
+    fulfillmentType?: boolean
+    paymentMode?: boolean
+    expiresAt?: boolean
+    placedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $GroupOrderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GroupOrder"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      token: string
+      locationId: string
+      brandId: string | null
+      hostCustomerId: string | null
+      hostName: string | null
+      hostRef: string | null
+      status: string
+      orderId: string | null
+      fulfillmentType: string
+      paymentMode: string
+      expiresAt: Date | null
+      placedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["groupOrder"]>
+    composites: {}
+  }
+
+  type GroupOrderGetPayload<S extends boolean | null | undefined | GroupOrderDefaultArgs> = $Result.GetResult<Prisma.$GroupOrderPayload, S>
+
+  type GroupOrderCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<GroupOrderFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: GroupOrderCountAggregateInputType | true
+    }
+
+  export interface GroupOrderDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GroupOrder'], meta: { name: 'GroupOrder' } }
+    /**
+     * Find zero or one GroupOrder that matches the filter.
+     * @param {GroupOrderFindUniqueArgs} args - Arguments to find a GroupOrder
+     * @example
+     * // Get one GroupOrder
+     * const groupOrder = await prisma.groupOrder.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GroupOrderFindUniqueArgs>(args: SelectSubset<T, GroupOrderFindUniqueArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one GroupOrder that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {GroupOrderFindUniqueOrThrowArgs} args - Arguments to find a GroupOrder
+     * @example
+     * // Get one GroupOrder
+     * const groupOrder = await prisma.groupOrder.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GroupOrderFindUniqueOrThrowArgs>(args: SelectSubset<T, GroupOrderFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first GroupOrder that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderFindFirstArgs} args - Arguments to find a GroupOrder
+     * @example
+     * // Get one GroupOrder
+     * const groupOrder = await prisma.groupOrder.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GroupOrderFindFirstArgs>(args?: SelectSubset<T, GroupOrderFindFirstArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first GroupOrder that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderFindFirstOrThrowArgs} args - Arguments to find a GroupOrder
+     * @example
+     * // Get one GroupOrder
+     * const groupOrder = await prisma.groupOrder.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GroupOrderFindFirstOrThrowArgs>(args?: SelectSubset<T, GroupOrderFindFirstOrThrowArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more GroupOrders that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GroupOrders
+     * const groupOrders = await prisma.groupOrder.findMany()
+     * 
+     * // Get first 10 GroupOrders
+     * const groupOrders = await prisma.groupOrder.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const groupOrderWithIdOnly = await prisma.groupOrder.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GroupOrderFindManyArgs>(args?: SelectSubset<T, GroupOrderFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a GroupOrder.
+     * @param {GroupOrderCreateArgs} args - Arguments to create a GroupOrder.
+     * @example
+     * // Create one GroupOrder
+     * const GroupOrder = await prisma.groupOrder.create({
+     *   data: {
+     *     // ... data to create a GroupOrder
+     *   }
+     * })
+     * 
+     */
+    create<T extends GroupOrderCreateArgs>(args: SelectSubset<T, GroupOrderCreateArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many GroupOrders.
+     * @param {GroupOrderCreateManyArgs} args - Arguments to create many GroupOrders.
+     * @example
+     * // Create many GroupOrders
+     * const groupOrder = await prisma.groupOrder.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GroupOrderCreateManyArgs>(args?: SelectSubset<T, GroupOrderCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GroupOrders and returns the data saved in the database.
+     * @param {GroupOrderCreateManyAndReturnArgs} args - Arguments to create many GroupOrders.
+     * @example
+     * // Create many GroupOrders
+     * const groupOrder = await prisma.groupOrder.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GroupOrders and only return the `id`
+     * const groupOrderWithIdOnly = await prisma.groupOrder.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GroupOrderCreateManyAndReturnArgs>(args?: SelectSubset<T, GroupOrderCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a GroupOrder.
+     * @param {GroupOrderDeleteArgs} args - Arguments to delete one GroupOrder.
+     * @example
+     * // Delete one GroupOrder
+     * const GroupOrder = await prisma.groupOrder.delete({
+     *   where: {
+     *     // ... filter to delete one GroupOrder
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GroupOrderDeleteArgs>(args: SelectSubset<T, GroupOrderDeleteArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one GroupOrder.
+     * @param {GroupOrderUpdateArgs} args - Arguments to update one GroupOrder.
+     * @example
+     * // Update one GroupOrder
+     * const groupOrder = await prisma.groupOrder.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GroupOrderUpdateArgs>(args: SelectSubset<T, GroupOrderUpdateArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more GroupOrders.
+     * @param {GroupOrderDeleteManyArgs} args - Arguments to filter GroupOrders to delete.
+     * @example
+     * // Delete a few GroupOrders
+     * const { count } = await prisma.groupOrder.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GroupOrderDeleteManyArgs>(args?: SelectSubset<T, GroupOrderDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GroupOrders
+     * const groupOrder = await prisma.groupOrder.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GroupOrderUpdateManyArgs>(args: SelectSubset<T, GroupOrderUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one GroupOrder.
+     * @param {GroupOrderUpsertArgs} args - Arguments to update or create a GroupOrder.
+     * @example
+     * // Update or create a GroupOrder
+     * const groupOrder = await prisma.groupOrder.upsert({
+     *   create: {
+     *     // ... data to create a GroupOrder
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GroupOrder we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GroupOrderUpsertArgs>(args: SelectSubset<T, GroupOrderUpsertArgs<ExtArgs>>): Prisma__GroupOrderClient<$Result.GetResult<Prisma.$GroupOrderPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of GroupOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderCountArgs} args - Arguments to filter GroupOrders to count.
+     * @example
+     * // Count the number of GroupOrders
+     * const count = await prisma.groupOrder.count({
+     *   where: {
+     *     // ... the filter for the GroupOrders we want to count
+     *   }
+     * })
+    **/
+    count<T extends GroupOrderCountArgs>(
+      args?: Subset<T, GroupOrderCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GroupOrderCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GroupOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GroupOrderAggregateArgs>(args: Subset<T, GroupOrderAggregateArgs>): Prisma.PrismaPromise<GetGroupOrderAggregateType<T>>
+
+    /**
+     * Group by GroupOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupOrderGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupOrderGroupByArgs['orderBy'] }
+        : { orderBy?: GroupOrderGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupOrderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGroupOrderGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GroupOrder model
+   */
+  readonly fields: GroupOrderFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GroupOrder.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GroupOrderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GroupOrder model
+   */ 
+  interface GroupOrderFieldRefs {
+    readonly id: FieldRef<"GroupOrder", 'String'>
+    readonly tenantId: FieldRef<"GroupOrder", 'String'>
+    readonly token: FieldRef<"GroupOrder", 'String'>
+    readonly locationId: FieldRef<"GroupOrder", 'String'>
+    readonly brandId: FieldRef<"GroupOrder", 'String'>
+    readonly hostCustomerId: FieldRef<"GroupOrder", 'String'>
+    readonly hostName: FieldRef<"GroupOrder", 'String'>
+    readonly hostRef: FieldRef<"GroupOrder", 'String'>
+    readonly status: FieldRef<"GroupOrder", 'String'>
+    readonly orderId: FieldRef<"GroupOrder", 'String'>
+    readonly fulfillmentType: FieldRef<"GroupOrder", 'String'>
+    readonly paymentMode: FieldRef<"GroupOrder", 'String'>
+    readonly expiresAt: FieldRef<"GroupOrder", 'DateTime'>
+    readonly placedAt: FieldRef<"GroupOrder", 'DateTime'>
+    readonly createdAt: FieldRef<"GroupOrder", 'DateTime'>
+    readonly updatedAt: FieldRef<"GroupOrder", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GroupOrder findUnique
+   */
+  export type GroupOrderFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrder to fetch.
+     */
+    where: GroupOrderWhereUniqueInput
+  }
+
+  /**
+   * GroupOrder findUniqueOrThrow
+   */
+  export type GroupOrderFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrder to fetch.
+     */
+    where: GroupOrderWhereUniqueInput
+  }
+
+  /**
+   * GroupOrder findFirst
+   */
+  export type GroupOrderFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrder to fetch.
+     */
+    where?: GroupOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrders to fetch.
+     */
+    orderBy?: GroupOrderOrderByWithRelationInput | GroupOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupOrders.
+     */
+    cursor?: GroupOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupOrders.
+     */
+    distinct?: GroupOrderScalarFieldEnum | GroupOrderScalarFieldEnum[]
+  }
+
+  /**
+   * GroupOrder findFirstOrThrow
+   */
+  export type GroupOrderFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrder to fetch.
+     */
+    where?: GroupOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrders to fetch.
+     */
+    orderBy?: GroupOrderOrderByWithRelationInput | GroupOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupOrders.
+     */
+    cursor?: GroupOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupOrders.
+     */
+    distinct?: GroupOrderScalarFieldEnum | GroupOrderScalarFieldEnum[]
+  }
+
+  /**
+   * GroupOrder findMany
+   */
+  export type GroupOrderFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrders to fetch.
+     */
+    where?: GroupOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrders to fetch.
+     */
+    orderBy?: GroupOrderOrderByWithRelationInput | GroupOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GroupOrders.
+     */
+    cursor?: GroupOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrders.
+     */
+    skip?: number
+    distinct?: GroupOrderScalarFieldEnum | GroupOrderScalarFieldEnum[]
+  }
+
+  /**
+   * GroupOrder create
+   */
+  export type GroupOrderCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * The data needed to create a GroupOrder.
+     */
+    data: XOR<GroupOrderCreateInput, GroupOrderUncheckedCreateInput>
+  }
+
+  /**
+   * GroupOrder createMany
+   */
+  export type GroupOrderCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GroupOrders.
+     */
+    data: GroupOrderCreateManyInput | GroupOrderCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupOrder createManyAndReturn
+   */
+  export type GroupOrderCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many GroupOrders.
+     */
+    data: GroupOrderCreateManyInput | GroupOrderCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupOrder update
+   */
+  export type GroupOrderUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * The data needed to update a GroupOrder.
+     */
+    data: XOR<GroupOrderUpdateInput, GroupOrderUncheckedUpdateInput>
+    /**
+     * Choose, which GroupOrder to update.
+     */
+    where: GroupOrderWhereUniqueInput
+  }
+
+  /**
+   * GroupOrder updateMany
+   */
+  export type GroupOrderUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GroupOrders.
+     */
+    data: XOR<GroupOrderUpdateManyMutationInput, GroupOrderUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupOrders to update
+     */
+    where?: GroupOrderWhereInput
+  }
+
+  /**
+   * GroupOrder upsert
+   */
+  export type GroupOrderUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * The filter to search for the GroupOrder to update in case it exists.
+     */
+    where: GroupOrderWhereUniqueInput
+    /**
+     * In case the GroupOrder found by the `where` argument doesn't exist, create a new GroupOrder with this data.
+     */
+    create: XOR<GroupOrderCreateInput, GroupOrderUncheckedCreateInput>
+    /**
+     * In case the GroupOrder was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GroupOrderUpdateInput, GroupOrderUncheckedUpdateInput>
+  }
+
+  /**
+   * GroupOrder delete
+   */
+  export type GroupOrderDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+    /**
+     * Filter which GroupOrder to delete.
+     */
+    where: GroupOrderWhereUniqueInput
+  }
+
+  /**
+   * GroupOrder deleteMany
+   */
+  export type GroupOrderDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupOrders to delete
+     */
+    where?: GroupOrderWhereInput
+  }
+
+  /**
+   * GroupOrder without action
+   */
+  export type GroupOrderDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrder
+     */
+    select?: GroupOrderSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GroupOrderItem
+   */
+
+  export type AggregateGroupOrderItem = {
+    _count: GroupOrderItemCountAggregateOutputType | null
+    _avg: GroupOrderItemAvgAggregateOutputType | null
+    _sum: GroupOrderItemSumAggregateOutputType | null
+    _min: GroupOrderItemMinAggregateOutputType | null
+    _max: GroupOrderItemMaxAggregateOutputType | null
+  }
+
+  export type GroupOrderItemAvgAggregateOutputType = {
+    quantity: number | null
+    lineTotal: number | null
+  }
+
+  export type GroupOrderItemSumAggregateOutputType = {
+    quantity: number | null
+    lineTotal: number | null
+  }
+
+  export type GroupOrderItemMinAggregateOutputType = {
+    id: string | null
+    groupOrderId: string | null
+    addedByName: string | null
+    addedByRef: string | null
+    quantity: number | null
+    lineTotal: number | null
+    isPaid: boolean | null
+    paidAt: Date | null
+    paymentId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GroupOrderItemMaxAggregateOutputType = {
+    id: string | null
+    groupOrderId: string | null
+    addedByName: string | null
+    addedByRef: string | null
+    quantity: number | null
+    lineTotal: number | null
+    isPaid: boolean | null
+    paidAt: Date | null
+    paymentId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GroupOrderItemCountAggregateOutputType = {
+    id: number
+    groupOrderId: number
+    addedByName: number
+    addedByRef: number
+    cartItem: number
+    quantity: number
+    lineTotal: number
+    isPaid: number
+    paidAt: number
+    paymentId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GroupOrderItemAvgAggregateInputType = {
+    quantity?: true
+    lineTotal?: true
+  }
+
+  export type GroupOrderItemSumAggregateInputType = {
+    quantity?: true
+    lineTotal?: true
+  }
+
+  export type GroupOrderItemMinAggregateInputType = {
+    id?: true
+    groupOrderId?: true
+    addedByName?: true
+    addedByRef?: true
+    quantity?: true
+    lineTotal?: true
+    isPaid?: true
+    paidAt?: true
+    paymentId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GroupOrderItemMaxAggregateInputType = {
+    id?: true
+    groupOrderId?: true
+    addedByName?: true
+    addedByRef?: true
+    quantity?: true
+    lineTotal?: true
+    isPaid?: true
+    paidAt?: true
+    paymentId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GroupOrderItemCountAggregateInputType = {
+    id?: true
+    groupOrderId?: true
+    addedByName?: true
+    addedByRef?: true
+    cartItem?: true
+    quantity?: true
+    lineTotal?: true
+    isPaid?: true
+    paidAt?: true
+    paymentId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GroupOrderItemAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupOrderItem to aggregate.
+     */
+    where?: GroupOrderItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrderItems to fetch.
+     */
+    orderBy?: GroupOrderItemOrderByWithRelationInput | GroupOrderItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GroupOrderItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrderItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrderItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GroupOrderItems
+    **/
+    _count?: true | GroupOrderItemCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: GroupOrderItemAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GroupOrderItemSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GroupOrderItemMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GroupOrderItemMaxAggregateInputType
+  }
+
+  export type GetGroupOrderItemAggregateType<T extends GroupOrderItemAggregateArgs> = {
+        [P in keyof T & keyof AggregateGroupOrderItem]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGroupOrderItem[P]>
+      : GetScalarType<T[P], AggregateGroupOrderItem[P]>
+  }
+
+
+
+
+  export type GroupOrderItemGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupOrderItemWhereInput
+    orderBy?: GroupOrderItemOrderByWithAggregationInput | GroupOrderItemOrderByWithAggregationInput[]
+    by: GroupOrderItemScalarFieldEnum[] | GroupOrderItemScalarFieldEnum
+    having?: GroupOrderItemScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GroupOrderItemCountAggregateInputType | true
+    _avg?: GroupOrderItemAvgAggregateInputType
+    _sum?: GroupOrderItemSumAggregateInputType
+    _min?: GroupOrderItemMinAggregateInputType
+    _max?: GroupOrderItemMaxAggregateInputType
+  }
+
+  export type GroupOrderItemGroupByOutputType = {
+    id: string
+    groupOrderId: string
+    addedByName: string
+    addedByRef: string
+    cartItem: JsonValue
+    quantity: number
+    lineTotal: number
+    isPaid: boolean
+    paidAt: Date | null
+    paymentId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: GroupOrderItemCountAggregateOutputType | null
+    _avg: GroupOrderItemAvgAggregateOutputType | null
+    _sum: GroupOrderItemSumAggregateOutputType | null
+    _min: GroupOrderItemMinAggregateOutputType | null
+    _max: GroupOrderItemMaxAggregateOutputType | null
+  }
+
+  type GetGroupOrderItemGroupByPayload<T extends GroupOrderItemGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GroupOrderItemGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GroupOrderItemGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GroupOrderItemGroupByOutputType[P]>
+            : GetScalarType<T[P], GroupOrderItemGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GroupOrderItemSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupOrderId?: boolean
+    addedByName?: boolean
+    addedByRef?: boolean
+    cartItem?: boolean
+    quantity?: boolean
+    lineTotal?: boolean
+    isPaid?: boolean
+    paidAt?: boolean
+    paymentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["groupOrderItem"]>
+
+  export type GroupOrderItemSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupOrderId?: boolean
+    addedByName?: boolean
+    addedByRef?: boolean
+    cartItem?: boolean
+    quantity?: boolean
+    lineTotal?: boolean
+    isPaid?: boolean
+    paidAt?: boolean
+    paymentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["groupOrderItem"]>
+
+  export type GroupOrderItemSelectScalar = {
+    id?: boolean
+    groupOrderId?: boolean
+    addedByName?: boolean
+    addedByRef?: boolean
+    cartItem?: boolean
+    quantity?: boolean
+    lineTotal?: boolean
+    isPaid?: boolean
+    paidAt?: boolean
+    paymentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $GroupOrderItemPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GroupOrderItem"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      groupOrderId: string
+      addedByName: string
+      addedByRef: string
+      cartItem: Prisma.JsonValue
+      quantity: number
+      lineTotal: number
+      isPaid: boolean
+      paidAt: Date | null
+      paymentId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["groupOrderItem"]>
+    composites: {}
+  }
+
+  type GroupOrderItemGetPayload<S extends boolean | null | undefined | GroupOrderItemDefaultArgs> = $Result.GetResult<Prisma.$GroupOrderItemPayload, S>
+
+  type GroupOrderItemCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<GroupOrderItemFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: GroupOrderItemCountAggregateInputType | true
+    }
+
+  export interface GroupOrderItemDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GroupOrderItem'], meta: { name: 'GroupOrderItem' } }
+    /**
+     * Find zero or one GroupOrderItem that matches the filter.
+     * @param {GroupOrderItemFindUniqueArgs} args - Arguments to find a GroupOrderItem
+     * @example
+     * // Get one GroupOrderItem
+     * const groupOrderItem = await prisma.groupOrderItem.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GroupOrderItemFindUniqueArgs>(args: SelectSubset<T, GroupOrderItemFindUniqueArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one GroupOrderItem that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {GroupOrderItemFindUniqueOrThrowArgs} args - Arguments to find a GroupOrderItem
+     * @example
+     * // Get one GroupOrderItem
+     * const groupOrderItem = await prisma.groupOrderItem.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GroupOrderItemFindUniqueOrThrowArgs>(args: SelectSubset<T, GroupOrderItemFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first GroupOrderItem that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderItemFindFirstArgs} args - Arguments to find a GroupOrderItem
+     * @example
+     * // Get one GroupOrderItem
+     * const groupOrderItem = await prisma.groupOrderItem.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GroupOrderItemFindFirstArgs>(args?: SelectSubset<T, GroupOrderItemFindFirstArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first GroupOrderItem that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderItemFindFirstOrThrowArgs} args - Arguments to find a GroupOrderItem
+     * @example
+     * // Get one GroupOrderItem
+     * const groupOrderItem = await prisma.groupOrderItem.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GroupOrderItemFindFirstOrThrowArgs>(args?: SelectSubset<T, GroupOrderItemFindFirstOrThrowArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more GroupOrderItems that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderItemFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GroupOrderItems
+     * const groupOrderItems = await prisma.groupOrderItem.findMany()
+     * 
+     * // Get first 10 GroupOrderItems
+     * const groupOrderItems = await prisma.groupOrderItem.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const groupOrderItemWithIdOnly = await prisma.groupOrderItem.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GroupOrderItemFindManyArgs>(args?: SelectSubset<T, GroupOrderItemFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a GroupOrderItem.
+     * @param {GroupOrderItemCreateArgs} args - Arguments to create a GroupOrderItem.
+     * @example
+     * // Create one GroupOrderItem
+     * const GroupOrderItem = await prisma.groupOrderItem.create({
+     *   data: {
+     *     // ... data to create a GroupOrderItem
+     *   }
+     * })
+     * 
+     */
+    create<T extends GroupOrderItemCreateArgs>(args: SelectSubset<T, GroupOrderItemCreateArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many GroupOrderItems.
+     * @param {GroupOrderItemCreateManyArgs} args - Arguments to create many GroupOrderItems.
+     * @example
+     * // Create many GroupOrderItems
+     * const groupOrderItem = await prisma.groupOrderItem.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GroupOrderItemCreateManyArgs>(args?: SelectSubset<T, GroupOrderItemCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GroupOrderItems and returns the data saved in the database.
+     * @param {GroupOrderItemCreateManyAndReturnArgs} args - Arguments to create many GroupOrderItems.
+     * @example
+     * // Create many GroupOrderItems
+     * const groupOrderItem = await prisma.groupOrderItem.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GroupOrderItems and only return the `id`
+     * const groupOrderItemWithIdOnly = await prisma.groupOrderItem.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GroupOrderItemCreateManyAndReturnArgs>(args?: SelectSubset<T, GroupOrderItemCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a GroupOrderItem.
+     * @param {GroupOrderItemDeleteArgs} args - Arguments to delete one GroupOrderItem.
+     * @example
+     * // Delete one GroupOrderItem
+     * const GroupOrderItem = await prisma.groupOrderItem.delete({
+     *   where: {
+     *     // ... filter to delete one GroupOrderItem
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GroupOrderItemDeleteArgs>(args: SelectSubset<T, GroupOrderItemDeleteArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one GroupOrderItem.
+     * @param {GroupOrderItemUpdateArgs} args - Arguments to update one GroupOrderItem.
+     * @example
+     * // Update one GroupOrderItem
+     * const groupOrderItem = await prisma.groupOrderItem.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GroupOrderItemUpdateArgs>(args: SelectSubset<T, GroupOrderItemUpdateArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more GroupOrderItems.
+     * @param {GroupOrderItemDeleteManyArgs} args - Arguments to filter GroupOrderItems to delete.
+     * @example
+     * // Delete a few GroupOrderItems
+     * const { count } = await prisma.groupOrderItem.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GroupOrderItemDeleteManyArgs>(args?: SelectSubset<T, GroupOrderItemDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupOrderItems.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderItemUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GroupOrderItems
+     * const groupOrderItem = await prisma.groupOrderItem.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GroupOrderItemUpdateManyArgs>(args: SelectSubset<T, GroupOrderItemUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one GroupOrderItem.
+     * @param {GroupOrderItemUpsertArgs} args - Arguments to update or create a GroupOrderItem.
+     * @example
+     * // Update or create a GroupOrderItem
+     * const groupOrderItem = await prisma.groupOrderItem.upsert({
+     *   create: {
+     *     // ... data to create a GroupOrderItem
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GroupOrderItem we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GroupOrderItemUpsertArgs>(args: SelectSubset<T, GroupOrderItemUpsertArgs<ExtArgs>>): Prisma__GroupOrderItemClient<$Result.GetResult<Prisma.$GroupOrderItemPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of GroupOrderItems.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderItemCountArgs} args - Arguments to filter GroupOrderItems to count.
+     * @example
+     * // Count the number of GroupOrderItems
+     * const count = await prisma.groupOrderItem.count({
+     *   where: {
+     *     // ... the filter for the GroupOrderItems we want to count
+     *   }
+     * })
+    **/
+    count<T extends GroupOrderItemCountArgs>(
+      args?: Subset<T, GroupOrderItemCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GroupOrderItemCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GroupOrderItem.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderItemAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GroupOrderItemAggregateArgs>(args: Subset<T, GroupOrderItemAggregateArgs>): Prisma.PrismaPromise<GetGroupOrderItemAggregateType<T>>
+
+    /**
+     * Group by GroupOrderItem.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupOrderItemGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupOrderItemGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupOrderItemGroupByArgs['orderBy'] }
+        : { orderBy?: GroupOrderItemGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupOrderItemGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGroupOrderItemGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GroupOrderItem model
+   */
+  readonly fields: GroupOrderItemFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GroupOrderItem.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GroupOrderItemClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GroupOrderItem model
+   */ 
+  interface GroupOrderItemFieldRefs {
+    readonly id: FieldRef<"GroupOrderItem", 'String'>
+    readonly groupOrderId: FieldRef<"GroupOrderItem", 'String'>
+    readonly addedByName: FieldRef<"GroupOrderItem", 'String'>
+    readonly addedByRef: FieldRef<"GroupOrderItem", 'String'>
+    readonly cartItem: FieldRef<"GroupOrderItem", 'Json'>
+    readonly quantity: FieldRef<"GroupOrderItem", 'Int'>
+    readonly lineTotal: FieldRef<"GroupOrderItem", 'Float'>
+    readonly isPaid: FieldRef<"GroupOrderItem", 'Boolean'>
+    readonly paidAt: FieldRef<"GroupOrderItem", 'DateTime'>
+    readonly paymentId: FieldRef<"GroupOrderItem", 'String'>
+    readonly createdAt: FieldRef<"GroupOrderItem", 'DateTime'>
+    readonly updatedAt: FieldRef<"GroupOrderItem", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GroupOrderItem findUnique
+   */
+  export type GroupOrderItemFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrderItem to fetch.
+     */
+    where: GroupOrderItemWhereUniqueInput
+  }
+
+  /**
+   * GroupOrderItem findUniqueOrThrow
+   */
+  export type GroupOrderItemFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrderItem to fetch.
+     */
+    where: GroupOrderItemWhereUniqueInput
+  }
+
+  /**
+   * GroupOrderItem findFirst
+   */
+  export type GroupOrderItemFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrderItem to fetch.
+     */
+    where?: GroupOrderItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrderItems to fetch.
+     */
+    orderBy?: GroupOrderItemOrderByWithRelationInput | GroupOrderItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupOrderItems.
+     */
+    cursor?: GroupOrderItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrderItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrderItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupOrderItems.
+     */
+    distinct?: GroupOrderItemScalarFieldEnum | GroupOrderItemScalarFieldEnum[]
+  }
+
+  /**
+   * GroupOrderItem findFirstOrThrow
+   */
+  export type GroupOrderItemFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrderItem to fetch.
+     */
+    where?: GroupOrderItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrderItems to fetch.
+     */
+    orderBy?: GroupOrderItemOrderByWithRelationInput | GroupOrderItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupOrderItems.
+     */
+    cursor?: GroupOrderItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrderItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrderItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupOrderItems.
+     */
+    distinct?: GroupOrderItemScalarFieldEnum | GroupOrderItemScalarFieldEnum[]
+  }
+
+  /**
+   * GroupOrderItem findMany
+   */
+  export type GroupOrderItemFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * Filter, which GroupOrderItems to fetch.
+     */
+    where?: GroupOrderItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupOrderItems to fetch.
+     */
+    orderBy?: GroupOrderItemOrderByWithRelationInput | GroupOrderItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GroupOrderItems.
+     */
+    cursor?: GroupOrderItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupOrderItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupOrderItems.
+     */
+    skip?: number
+    distinct?: GroupOrderItemScalarFieldEnum | GroupOrderItemScalarFieldEnum[]
+  }
+
+  /**
+   * GroupOrderItem create
+   */
+  export type GroupOrderItemCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * The data needed to create a GroupOrderItem.
+     */
+    data: XOR<GroupOrderItemCreateInput, GroupOrderItemUncheckedCreateInput>
+  }
+
+  /**
+   * GroupOrderItem createMany
+   */
+  export type GroupOrderItemCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GroupOrderItems.
+     */
+    data: GroupOrderItemCreateManyInput | GroupOrderItemCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupOrderItem createManyAndReturn
+   */
+  export type GroupOrderItemCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many GroupOrderItems.
+     */
+    data: GroupOrderItemCreateManyInput | GroupOrderItemCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupOrderItem update
+   */
+  export type GroupOrderItemUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * The data needed to update a GroupOrderItem.
+     */
+    data: XOR<GroupOrderItemUpdateInput, GroupOrderItemUncheckedUpdateInput>
+    /**
+     * Choose, which GroupOrderItem to update.
+     */
+    where: GroupOrderItemWhereUniqueInput
+  }
+
+  /**
+   * GroupOrderItem updateMany
+   */
+  export type GroupOrderItemUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GroupOrderItems.
+     */
+    data: XOR<GroupOrderItemUpdateManyMutationInput, GroupOrderItemUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupOrderItems to update
+     */
+    where?: GroupOrderItemWhereInput
+  }
+
+  /**
+   * GroupOrderItem upsert
+   */
+  export type GroupOrderItemUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * The filter to search for the GroupOrderItem to update in case it exists.
+     */
+    where: GroupOrderItemWhereUniqueInput
+    /**
+     * In case the GroupOrderItem found by the `where` argument doesn't exist, create a new GroupOrderItem with this data.
+     */
+    create: XOR<GroupOrderItemCreateInput, GroupOrderItemUncheckedCreateInput>
+    /**
+     * In case the GroupOrderItem was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GroupOrderItemUpdateInput, GroupOrderItemUncheckedUpdateInput>
+  }
+
+  /**
+   * GroupOrderItem delete
+   */
+  export type GroupOrderItemDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+    /**
+     * Filter which GroupOrderItem to delete.
+     */
+    where: GroupOrderItemWhereUniqueInput
+  }
+
+  /**
+   * GroupOrderItem deleteMany
+   */
+  export type GroupOrderItemDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupOrderItems to delete
+     */
+    where?: GroupOrderItemWhereInput
+  }
+
+  /**
+   * GroupOrderItem without action
+   */
+  export type GroupOrderItemDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupOrderItem
+     */
+    select?: GroupOrderItemSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -141709,6 +143887,46 @@ export namespace Prisma {
   export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
+  export const GroupOrderScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    token: 'token',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    hostCustomerId: 'hostCustomerId',
+    hostName: 'hostName',
+    hostRef: 'hostRef',
+    status: 'status',
+    orderId: 'orderId',
+    fulfillmentType: 'fulfillmentType',
+    paymentMode: 'paymentMode',
+    expiresAt: 'expiresAt',
+    placedAt: 'placedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GroupOrderScalarFieldEnum = (typeof GroupOrderScalarFieldEnum)[keyof typeof GroupOrderScalarFieldEnum]
+
+
+  export const GroupOrderItemScalarFieldEnum: {
+    id: 'id',
+    groupOrderId: 'groupOrderId',
+    addedByName: 'addedByName',
+    addedByRef: 'addedByRef',
+    cartItem: 'cartItem',
+    quantity: 'quantity',
+    lineTotal: 'lineTotal',
+    isPaid: 'isPaid',
+    paidAt: 'paidAt',
+    paymentId: 'paymentId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GroupOrderItemScalarFieldEnum = (typeof GroupOrderItemScalarFieldEnum)[keyof typeof GroupOrderItemScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -143313,6 +145531,35 @@ export namespace Prisma {
   };
 
   export type ReviewOrderByRelevanceFieldEnum = (typeof ReviewOrderByRelevanceFieldEnum)[keyof typeof ReviewOrderByRelevanceFieldEnum]
+
+
+  export const GroupOrderOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    token: 'token',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    hostCustomerId: 'hostCustomerId',
+    hostName: 'hostName',
+    hostRef: 'hostRef',
+    status: 'status',
+    orderId: 'orderId',
+    fulfillmentType: 'fulfillmentType',
+    paymentMode: 'paymentMode'
+  };
+
+  export type GroupOrderOrderByRelevanceFieldEnum = (typeof GroupOrderOrderByRelevanceFieldEnum)[keyof typeof GroupOrderOrderByRelevanceFieldEnum]
+
+
+  export const GroupOrderItemOrderByRelevanceFieldEnum: {
+    id: 'id',
+    groupOrderId: 'groupOrderId',
+    addedByName: 'addedByName',
+    addedByRef: 'addedByRef',
+    paymentId: 'paymentId'
+  };
+
+  export type GroupOrderItemOrderByRelevanceFieldEnum = (typeof GroupOrderItemOrderByRelevanceFieldEnum)[keyof typeof GroupOrderItemOrderByRelevanceFieldEnum]
 
 
   /**
@@ -156338,6 +158585,204 @@ export namespace Prisma {
     repliedBy?: StringNullableWithAggregatesFilter<"Review"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
+  }
+
+  export type GroupOrderWhereInput = {
+    AND?: GroupOrderWhereInput | GroupOrderWhereInput[]
+    OR?: GroupOrderWhereInput[]
+    NOT?: GroupOrderWhereInput | GroupOrderWhereInput[]
+    id?: StringFilter<"GroupOrder"> | string
+    tenantId?: StringFilter<"GroupOrder"> | string
+    token?: StringFilter<"GroupOrder"> | string
+    locationId?: StringFilter<"GroupOrder"> | string
+    brandId?: StringNullableFilter<"GroupOrder"> | string | null
+    hostCustomerId?: StringNullableFilter<"GroupOrder"> | string | null
+    hostName?: StringNullableFilter<"GroupOrder"> | string | null
+    hostRef?: StringNullableFilter<"GroupOrder"> | string | null
+    status?: StringFilter<"GroupOrder"> | string
+    orderId?: StringNullableFilter<"GroupOrder"> | string | null
+    fulfillmentType?: StringFilter<"GroupOrder"> | string
+    paymentMode?: StringFilter<"GroupOrder"> | string
+    expiresAt?: DateTimeNullableFilter<"GroupOrder"> | Date | string | null
+    placedAt?: DateTimeNullableFilter<"GroupOrder"> | Date | string | null
+    createdAt?: DateTimeFilter<"GroupOrder"> | Date | string
+    updatedAt?: DateTimeFilter<"GroupOrder"> | Date | string
+  }
+
+  export type GroupOrderOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    token?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    hostCustomerId?: SortOrderInput | SortOrder
+    hostName?: SortOrderInput | SortOrder
+    hostRef?: SortOrderInput | SortOrder
+    status?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    fulfillmentType?: SortOrder
+    paymentMode?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    placedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: GroupOrderOrderByRelevanceInput
+  }
+
+  export type GroupOrderWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token?: string
+    orderId?: string
+    AND?: GroupOrderWhereInput | GroupOrderWhereInput[]
+    OR?: GroupOrderWhereInput[]
+    NOT?: GroupOrderWhereInput | GroupOrderWhereInput[]
+    tenantId?: StringFilter<"GroupOrder"> | string
+    locationId?: StringFilter<"GroupOrder"> | string
+    brandId?: StringNullableFilter<"GroupOrder"> | string | null
+    hostCustomerId?: StringNullableFilter<"GroupOrder"> | string | null
+    hostName?: StringNullableFilter<"GroupOrder"> | string | null
+    hostRef?: StringNullableFilter<"GroupOrder"> | string | null
+    status?: StringFilter<"GroupOrder"> | string
+    fulfillmentType?: StringFilter<"GroupOrder"> | string
+    paymentMode?: StringFilter<"GroupOrder"> | string
+    expiresAt?: DateTimeNullableFilter<"GroupOrder"> | Date | string | null
+    placedAt?: DateTimeNullableFilter<"GroupOrder"> | Date | string | null
+    createdAt?: DateTimeFilter<"GroupOrder"> | Date | string
+    updatedAt?: DateTimeFilter<"GroupOrder"> | Date | string
+  }, "id" | "token" | "orderId">
+
+  export type GroupOrderOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    token?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    hostCustomerId?: SortOrderInput | SortOrder
+    hostName?: SortOrderInput | SortOrder
+    hostRef?: SortOrderInput | SortOrder
+    status?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    fulfillmentType?: SortOrder
+    paymentMode?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    placedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GroupOrderCountOrderByAggregateInput
+    _max?: GroupOrderMaxOrderByAggregateInput
+    _min?: GroupOrderMinOrderByAggregateInput
+  }
+
+  export type GroupOrderScalarWhereWithAggregatesInput = {
+    AND?: GroupOrderScalarWhereWithAggregatesInput | GroupOrderScalarWhereWithAggregatesInput[]
+    OR?: GroupOrderScalarWhereWithAggregatesInput[]
+    NOT?: GroupOrderScalarWhereWithAggregatesInput | GroupOrderScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GroupOrder"> | string
+    tenantId?: StringWithAggregatesFilter<"GroupOrder"> | string
+    token?: StringWithAggregatesFilter<"GroupOrder"> | string
+    locationId?: StringWithAggregatesFilter<"GroupOrder"> | string
+    brandId?: StringNullableWithAggregatesFilter<"GroupOrder"> | string | null
+    hostCustomerId?: StringNullableWithAggregatesFilter<"GroupOrder"> | string | null
+    hostName?: StringNullableWithAggregatesFilter<"GroupOrder"> | string | null
+    hostRef?: StringNullableWithAggregatesFilter<"GroupOrder"> | string | null
+    status?: StringWithAggregatesFilter<"GroupOrder"> | string
+    orderId?: StringNullableWithAggregatesFilter<"GroupOrder"> | string | null
+    fulfillmentType?: StringWithAggregatesFilter<"GroupOrder"> | string
+    paymentMode?: StringWithAggregatesFilter<"GroupOrder"> | string
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"GroupOrder"> | Date | string | null
+    placedAt?: DateTimeNullableWithAggregatesFilter<"GroupOrder"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"GroupOrder"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GroupOrder"> | Date | string
+  }
+
+  export type GroupOrderItemWhereInput = {
+    AND?: GroupOrderItemWhereInput | GroupOrderItemWhereInput[]
+    OR?: GroupOrderItemWhereInput[]
+    NOT?: GroupOrderItemWhereInput | GroupOrderItemWhereInput[]
+    id?: StringFilter<"GroupOrderItem"> | string
+    groupOrderId?: StringFilter<"GroupOrderItem"> | string
+    addedByName?: StringFilter<"GroupOrderItem"> | string
+    addedByRef?: StringFilter<"GroupOrderItem"> | string
+    cartItem?: JsonFilter<"GroupOrderItem">
+    quantity?: IntFilter<"GroupOrderItem"> | number
+    lineTotal?: FloatFilter<"GroupOrderItem"> | number
+    isPaid?: BoolFilter<"GroupOrderItem"> | boolean
+    paidAt?: DateTimeNullableFilter<"GroupOrderItem"> | Date | string | null
+    paymentId?: StringNullableFilter<"GroupOrderItem"> | string | null
+    createdAt?: DateTimeFilter<"GroupOrderItem"> | Date | string
+    updatedAt?: DateTimeFilter<"GroupOrderItem"> | Date | string
+  }
+
+  export type GroupOrderItemOrderByWithRelationInput = {
+    id?: SortOrder
+    groupOrderId?: SortOrder
+    addedByName?: SortOrder
+    addedByRef?: SortOrder
+    cartItem?: SortOrder
+    quantity?: SortOrder
+    lineTotal?: SortOrder
+    isPaid?: SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    paymentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: GroupOrderItemOrderByRelevanceInput
+  }
+
+  export type GroupOrderItemWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: GroupOrderItemWhereInput | GroupOrderItemWhereInput[]
+    OR?: GroupOrderItemWhereInput[]
+    NOT?: GroupOrderItemWhereInput | GroupOrderItemWhereInput[]
+    groupOrderId?: StringFilter<"GroupOrderItem"> | string
+    addedByName?: StringFilter<"GroupOrderItem"> | string
+    addedByRef?: StringFilter<"GroupOrderItem"> | string
+    cartItem?: JsonFilter<"GroupOrderItem">
+    quantity?: IntFilter<"GroupOrderItem"> | number
+    lineTotal?: FloatFilter<"GroupOrderItem"> | number
+    isPaid?: BoolFilter<"GroupOrderItem"> | boolean
+    paidAt?: DateTimeNullableFilter<"GroupOrderItem"> | Date | string | null
+    paymentId?: StringNullableFilter<"GroupOrderItem"> | string | null
+    createdAt?: DateTimeFilter<"GroupOrderItem"> | Date | string
+    updatedAt?: DateTimeFilter<"GroupOrderItem"> | Date | string
+  }, "id">
+
+  export type GroupOrderItemOrderByWithAggregationInput = {
+    id?: SortOrder
+    groupOrderId?: SortOrder
+    addedByName?: SortOrder
+    addedByRef?: SortOrder
+    cartItem?: SortOrder
+    quantity?: SortOrder
+    lineTotal?: SortOrder
+    isPaid?: SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    paymentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GroupOrderItemCountOrderByAggregateInput
+    _avg?: GroupOrderItemAvgOrderByAggregateInput
+    _max?: GroupOrderItemMaxOrderByAggregateInput
+    _min?: GroupOrderItemMinOrderByAggregateInput
+    _sum?: GroupOrderItemSumOrderByAggregateInput
+  }
+
+  export type GroupOrderItemScalarWhereWithAggregatesInput = {
+    AND?: GroupOrderItemScalarWhereWithAggregatesInput | GroupOrderItemScalarWhereWithAggregatesInput[]
+    OR?: GroupOrderItemScalarWhereWithAggregatesInput[]
+    NOT?: GroupOrderItemScalarWhereWithAggregatesInput | GroupOrderItemScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GroupOrderItem"> | string
+    groupOrderId?: StringWithAggregatesFilter<"GroupOrderItem"> | string
+    addedByName?: StringWithAggregatesFilter<"GroupOrderItem"> | string
+    addedByRef?: StringWithAggregatesFilter<"GroupOrderItem"> | string
+    cartItem?: JsonWithAggregatesFilter<"GroupOrderItem">
+    quantity?: IntWithAggregatesFilter<"GroupOrderItem"> | number
+    lineTotal?: FloatWithAggregatesFilter<"GroupOrderItem"> | number
+    isPaid?: BoolWithAggregatesFilter<"GroupOrderItem"> | boolean
+    paidAt?: DateTimeNullableWithAggregatesFilter<"GroupOrderItem"> | Date | string | null
+    paymentId?: StringNullableWithAggregatesFilter<"GroupOrderItem"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"GroupOrderItem"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GroupOrderItem"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -170376,6 +172821,244 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type GroupOrderCreateInput = {
+    id?: string
+    tenantId: string
+    token: string
+    locationId: string
+    brandId?: string | null
+    hostCustomerId?: string | null
+    hostName?: string | null
+    hostRef?: string | null
+    status?: string
+    orderId?: string | null
+    fulfillmentType?: string
+    paymentMode?: string
+    expiresAt?: Date | string | null
+    placedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GroupOrderUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    token: string
+    locationId: string
+    brandId?: string | null
+    hostCustomerId?: string | null
+    hostName?: string | null
+    hostRef?: string | null
+    status?: string
+    orderId?: string | null
+    fulfillmentType?: string
+    paymentMode?: string
+    expiresAt?: Date | string | null
+    placedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GroupOrderUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostName?: NullableStringFieldUpdateOperationsInput | string | null
+    hostRef?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    fulfillmentType?: StringFieldUpdateOperationsInput | string
+    paymentMode?: StringFieldUpdateOperationsInput | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    placedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupOrderUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostName?: NullableStringFieldUpdateOperationsInput | string | null
+    hostRef?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    fulfillmentType?: StringFieldUpdateOperationsInput | string
+    paymentMode?: StringFieldUpdateOperationsInput | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    placedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupOrderCreateManyInput = {
+    id?: string
+    tenantId: string
+    token: string
+    locationId: string
+    brandId?: string | null
+    hostCustomerId?: string | null
+    hostName?: string | null
+    hostRef?: string | null
+    status?: string
+    orderId?: string | null
+    fulfillmentType?: string
+    paymentMode?: string
+    expiresAt?: Date | string | null
+    placedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GroupOrderUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostName?: NullableStringFieldUpdateOperationsInput | string | null
+    hostRef?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    fulfillmentType?: StringFieldUpdateOperationsInput | string
+    paymentMode?: StringFieldUpdateOperationsInput | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    placedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupOrderUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    hostName?: NullableStringFieldUpdateOperationsInput | string | null
+    hostRef?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    fulfillmentType?: StringFieldUpdateOperationsInput | string
+    paymentMode?: StringFieldUpdateOperationsInput | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    placedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupOrderItemCreateInput = {
+    id?: string
+    groupOrderId: string
+    addedByName: string
+    addedByRef: string
+    cartItem: JsonNullValueInput | InputJsonValue
+    quantity?: number
+    lineTotal: number
+    isPaid?: boolean
+    paidAt?: Date | string | null
+    paymentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GroupOrderItemUncheckedCreateInput = {
+    id?: string
+    groupOrderId: string
+    addedByName: string
+    addedByRef: string
+    cartItem: JsonNullValueInput | InputJsonValue
+    quantity?: number
+    lineTotal: number
+    isPaid?: boolean
+    paidAt?: Date | string | null
+    paymentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GroupOrderItemUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupOrderId?: StringFieldUpdateOperationsInput | string
+    addedByName?: StringFieldUpdateOperationsInput | string
+    addedByRef?: StringFieldUpdateOperationsInput | string
+    cartItem?: JsonNullValueInput | InputJsonValue
+    quantity?: IntFieldUpdateOperationsInput | number
+    lineTotal?: FloatFieldUpdateOperationsInput | number
+    isPaid?: BoolFieldUpdateOperationsInput | boolean
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupOrderItemUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupOrderId?: StringFieldUpdateOperationsInput | string
+    addedByName?: StringFieldUpdateOperationsInput | string
+    addedByRef?: StringFieldUpdateOperationsInput | string
+    cartItem?: JsonNullValueInput | InputJsonValue
+    quantity?: IntFieldUpdateOperationsInput | number
+    lineTotal?: FloatFieldUpdateOperationsInput | number
+    isPaid?: BoolFieldUpdateOperationsInput | boolean
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupOrderItemCreateManyInput = {
+    id?: string
+    groupOrderId: string
+    addedByName: string
+    addedByRef: string
+    cartItem: JsonNullValueInput | InputJsonValue
+    quantity?: number
+    lineTotal: number
+    isPaid?: boolean
+    paidAt?: Date | string | null
+    paymentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GroupOrderItemUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupOrderId?: StringFieldUpdateOperationsInput | string
+    addedByName?: StringFieldUpdateOperationsInput | string
+    addedByRef?: StringFieldUpdateOperationsInput | string
+    cartItem?: JsonNullValueInput | InputJsonValue
+    quantity?: IntFieldUpdateOperationsInput | number
+    lineTotal?: FloatFieldUpdateOperationsInput | number
+    isPaid?: BoolFieldUpdateOperationsInput | boolean
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupOrderItemUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupOrderId?: StringFieldUpdateOperationsInput | string
+    addedByName?: StringFieldUpdateOperationsInput | string
+    addedByRef?: StringFieldUpdateOperationsInput | string
+    cartItem?: JsonNullValueInput | InputJsonValue
+    quantity?: IntFieldUpdateOperationsInput | number
+    lineTotal?: FloatFieldUpdateOperationsInput | number
+    isPaid?: BoolFieldUpdateOperationsInput | boolean
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -179967,6 +182650,128 @@ export namespace Prisma {
 
   export type ReviewSumOrderByAggregateInput = {
     rating?: SortOrder
+  }
+
+  export type GroupOrderOrderByRelevanceInput = {
+    fields: GroupOrderOrderByRelevanceFieldEnum | GroupOrderOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type GroupOrderCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    token?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    hostCustomerId?: SortOrder
+    hostName?: SortOrder
+    hostRef?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrder
+    fulfillmentType?: SortOrder
+    paymentMode?: SortOrder
+    expiresAt?: SortOrder
+    placedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GroupOrderMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    token?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    hostCustomerId?: SortOrder
+    hostName?: SortOrder
+    hostRef?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrder
+    fulfillmentType?: SortOrder
+    paymentMode?: SortOrder
+    expiresAt?: SortOrder
+    placedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GroupOrderMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    token?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    hostCustomerId?: SortOrder
+    hostName?: SortOrder
+    hostRef?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrder
+    fulfillmentType?: SortOrder
+    paymentMode?: SortOrder
+    expiresAt?: SortOrder
+    placedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GroupOrderItemOrderByRelevanceInput = {
+    fields: GroupOrderItemOrderByRelevanceFieldEnum | GroupOrderItemOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type GroupOrderItemCountOrderByAggregateInput = {
+    id?: SortOrder
+    groupOrderId?: SortOrder
+    addedByName?: SortOrder
+    addedByRef?: SortOrder
+    cartItem?: SortOrder
+    quantity?: SortOrder
+    lineTotal?: SortOrder
+    isPaid?: SortOrder
+    paidAt?: SortOrder
+    paymentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GroupOrderItemAvgOrderByAggregateInput = {
+    quantity?: SortOrder
+    lineTotal?: SortOrder
+  }
+
+  export type GroupOrderItemMaxOrderByAggregateInput = {
+    id?: SortOrder
+    groupOrderId?: SortOrder
+    addedByName?: SortOrder
+    addedByRef?: SortOrder
+    quantity?: SortOrder
+    lineTotal?: SortOrder
+    isPaid?: SortOrder
+    paidAt?: SortOrder
+    paymentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GroupOrderItemMinOrderByAggregateInput = {
+    id?: SortOrder
+    groupOrderId?: SortOrder
+    addedByName?: SortOrder
+    addedByRef?: SortOrder
+    quantity?: SortOrder
+    lineTotal?: SortOrder
+    isPaid?: SortOrder
+    paidAt?: SortOrder
+    paymentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GroupOrderItemSumOrderByAggregateInput = {
+    quantity?: SortOrder
+    lineTotal?: SortOrder
   }
 
   export type BrandCreateNestedManyWithoutTenantInput = {
@@ -233351,6 +236156,14 @@ export namespace Prisma {
      * @deprecated Use ReviewDefaultArgs instead
      */
     export type ReviewArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReviewDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use GroupOrderDefaultArgs instead
+     */
+    export type GroupOrderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = GroupOrderDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use GroupOrderItemDefaultArgs instead
+     */
+    export type GroupOrderItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = GroupOrderItemDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany
