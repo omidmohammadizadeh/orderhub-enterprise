@@ -39,6 +39,9 @@ import { VariantPriceResolverModule } from "../menus/variant-price-resolver.modu
     WhatsAppNotifyService,
     WhatsAppReconcileCron,
   ],
-  exports: [WhatsAppService],
+  // WhatsAppMenuService is exported for the AI phone line, which serves the
+  // same live menu (serving assignments, variant pricing, 86'd items) rather
+  // than growing a second copy that drifts out of step.
+  exports: [WhatsAppService, WhatsAppMenuService],
 })
 export class WhatsAppModule {}

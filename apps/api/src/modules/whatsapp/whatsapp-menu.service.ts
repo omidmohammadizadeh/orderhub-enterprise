@@ -107,10 +107,33 @@ export class WhatsAppMenuService {
     private readonly variantResolver: VariantPriceResolverService,
   ) {}
 
-  /** Resolve the location + live menu for an inbound WhatsApp message. */
-  async resolveContext(phoneNumberId?: string): Promise<WaMenuContext | null> {
-    const resolved = await this.resolveConnection(phoneNumberId);
-    const locationId = resolved?.locationId ?? null;
+  /**
+   * Resolve the location + live menu for an inbound WhatsApp message.
+   *
+   * `opts` exists so the AI phone line can reuse this whole pipeline (variant
+   * pricing, serving assignments, availability, modifier groups) instead of
+   * growing a second copy that drifts. Both options are opt-in and default to
+   * the exact WhatsApp behaviour, so no existing caller changes.
+   */
+  async resolveContext(
+    phoneNumberId?: string,
+    opts?: {
+      /** Skip the WhatsApp-integration lookup — the caller already knows the
+       *  location (the voice line resolves it from the number that was dialled). */
+      locationIdOverride?: string;
+      /** Channel used for the serving-assignment + publishedTo lookups.
+       *  Defaults to WHATSAPP. An unknown channel simply finds no assignment
+       *  and falls through to the location's active menu, same as the
+       *  storefront — so a shop that has never published to PHONE still gets
+       *  the right menu. */
+      channel?: string;
+    },
+  ): Promise<WaMenuContext | null> {
+    const channel = opts?.channel ?? "WHATSAPP";
+    const resolved = opts?.locationIdOverride
+      ? null
+      : await this.resolveConnection(phoneNumberId);
+    const locationId = opts?.locationIdOverride ?? resolved?.locationId ?? null;
     if (!locationId) {
       this.logger.warn(
         `No WhatsApp location for phoneNumberId=${phoneNumberId ?? "—"} (set WHATSAPP_LOCATION_ID or connect an integration)`,
@@ -139,7 +162,7 @@ export class WhatsAppMenuService {
     const variantMap = location.brandId
       ? await this.variantResolver.forBrandChannel({
           brandId: location.brandId,
-          channel: "WHATSAPP",
+          channel,
         })
       : null;
 
@@ -158,7 +181,7 @@ export class WhatsAppMenuService {
       // publishedTo cascade below keeps un-republished setups working.
       const assignedMenuId = await this.menuAssignments.resolveAssignedMenuId({
         locationId: location.id,
-        channel: "WHATSAPP",
+        channel,
         preferBrandId: location.brandId,
       });
       menu = assignedMenuId
@@ -178,7 +201,7 @@ export class WhatsAppMenuService {
             locationId: location.id,
             isActive: true,
             deletedAt: null,
-            publishedTo: { has: "WHATSAPP" },
+            publishedTo: { has: channel },
           },
           orderBy: { updatedAt: "desc" },
           include: MENU_INCLUDE,
@@ -188,7 +211,7 @@ export class WhatsAppMenuService {
             brandId: location.brandId,
             isActive: true,
             deletedAt: null,
-            publishedTo: { has: "WHATSAPP" },
+            publishedTo: { has: channel },
           },
           orderBy: { updatedAt: "desc" },
           include: MENU_INCLUDE,
