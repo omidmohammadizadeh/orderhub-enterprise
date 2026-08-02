@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { OrdersService } from "../orders/orders.service";
 
 // Group ordering — a shared basket several people add to before it becomes
 // one order.
@@ -25,7 +26,10 @@ const DEFAULT_TTL_HOURS = 6;
 export class GroupOrdersService {
   private readonly logger = new Logger(GroupOrdersService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly orders: OrdersService,
+  ) {}
 
   private db() {
     return this.prisma as any;
@@ -191,8 +195,8 @@ export class GroupOrdersService {
 
   /**
    * Stop accepting items so the total can't move while the host is paying.
-   * Placing the order is the next step and is deliberately NOT wired yet —
-   * see the module README note.
+   * place() then requires LOCKED, so nobody can slip a line in between the
+   * host seeing a total and agreeing to it.
    */
   async lock(token: string) {
     const basket = await this.openBasket(token);
@@ -221,6 +225,132 @@ export class GroupOrdersService {
       data: { status: "OPEN" },
     });
     return this.getByToken(token);
+  }
+
+  /**
+   * Turn the basket into a real Order.
+   *
+   * Deliberately does NOT invent a payment path: it composes a CreateOrderDto
+   * and hands it to OrdersService.create, so a group order is created,
+   * printed, routed and paid for exactly like any other online order. Phase 1
+   * is HOST_PAYS, so there is one payer and one total — nothing to split.
+   *
+   * The basket's stored `cartItem` is the contract between the storefront and
+   * this method: it must carry { name, unitPrice, menuItemId?, notes?,
+   * modifiers? }. Both ends are ours, so the shape is defined here rather
+   * than guessed.
+   */
+  async place(
+    token: string,
+    input: {
+      customerInfo: { name: string; phone?: string; email?: string };
+      deliveryAddress?: {
+        line1: string;
+        line2?: string;
+        city: string;
+        postcode: string;
+        country?: string;
+      };
+      deliveryFee?: number;
+      specialInstructions?: string;
+      paymentMethod?: string;
+      paymentStatus?: string;
+      idempotencyKey?: string;
+    },
+  ) {
+    const basket = await this.db().groupOrder.findUnique({ where: { token } });
+    if (!basket) throw new NotFoundException("Group order not found");
+    if (basket.status === "PLACED") {
+      // Idempotent: a double-tap on "Place order" returns the same order
+      // rather than creating a second one.
+      return this.db().order.findUnique({ where: { id: basket.orderId } });
+    }
+    if (basket.status !== "LOCKED") {
+      throw new BadRequestException(
+        "Close the basket before placing the order",
+      );
+    }
+    const items = await this.db().groupOrderItem.findMany({
+      where: { groupOrderId: basket.id },
+      orderBy: { createdAt: "asc" },
+    });
+    if (!items.length) throw new BadRequestException("The basket is empty");
+
+    const isDelivery = basket.fulfillmentType === "DELIVERY";
+    if (isDelivery && !input.deliveryAddress) {
+      throw new BadRequestException("A delivery address is required");
+    }
+
+    const orderItems = items.map((it: any) => {
+      const c = (it.cartItem ?? {}) as any;
+      const name = String(c.name ?? "Item");
+      const unitPrice = Number(c.unitPrice ?? it.lineTotal / (it.quantity || 1));
+      return {
+        // Whose line this is, carried into the item name so the kitchen
+        // ticket can be bagged per person. This is the whole operational
+        // point of group ordering for a collection order.
+        name: `${name} (${it.addedByName})`,
+        quantity: it.quantity,
+        unitPrice: Math.round(unitPrice * 100) / 100,
+        totalPrice: Math.round(it.lineTotal * 100) / 100,
+        ...(c.menuItemId ? { menuItemId: String(c.menuItemId) } : {}),
+        ...(c.notes ? { notes: String(c.notes) } : {}),
+        ...(Array.isArray(c.modifiers) && c.modifiers.length
+          ? {
+              modifiers: c.modifiers.map((m: any) => ({
+                name: String(m?.name ?? ""),
+                price: Number(m?.price ?? 0),
+                ...(m?.quantity ? { quantity: Number(m.quantity) } : {}),
+              })),
+            }
+          : {}),
+      };
+    });
+
+    const subtotal =
+      Math.round(items.reduce((s: number, i: any) => s + i.lineTotal, 0) * 100) / 100;
+    const deliveryFee = isDelivery ? Number(input.deliveryFee ?? 0) : 0;
+    const total = Math.round((subtotal + deliveryFee) * 100) / 100;
+
+    const dto: any = {
+      locationId: basket.locationId,
+      ...(basket.brandId ? { brandId: basket.brandId } : {}),
+      orderSource: "ONLINE",
+      fulfillmentType: isDelivery ? "DELIVERY" : "PICKUP",
+      customerInfo: input.customerInfo,
+      ...(input.deliveryAddress ? { deliveryAddress: input.deliveryAddress } : {}),
+      items: orderItems,
+      subtotal,
+      ...(deliveryFee > 0 ? { deliveryFee } : {}),
+      total,
+      // Name the group on the ticket so the shop knows why one order has
+      // items labelled with five different people on it.
+      specialInstructions: [
+        `GROUP ORDER — ${items.length} item(s) from ${
+          new Set(items.map((i: any) => i.addedByRef)).size
+        } people`,
+        input.specialInstructions,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      ...(input.paymentMethod ? { paymentMethod: input.paymentMethod } : {}),
+      ...(input.paymentStatus ? { paymentStatus: input.paymentStatus } : {}),
+      ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
+    };
+
+    const order = await this.orders.create(dto, basket.tenantId);
+
+    // Only mark PLACED once the order actually exists — if create() throws,
+    // the basket stays LOCKED and the host can retry rather than being left
+    // with a basket that claims to be placed and no order.
+    await this.db().groupOrder.update({
+      where: { id: basket.id },
+      data: { status: "PLACED", orderId: (order as any).id, placedAt: new Date() },
+    });
+    this.logger.log(
+      `group order ${basket.token} placed as order ${(order as any).id}`,
+    );
+    return order;
   }
 
   async cancel(token: string) {

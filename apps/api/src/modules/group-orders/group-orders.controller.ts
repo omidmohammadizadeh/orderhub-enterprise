@@ -94,6 +94,32 @@ export class GroupOrdersController {
   }
 
   @Public()
+  @Post(":token/place")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Host places the locked basket as a real order" })
+  place(
+    @Param("token") token: string,
+    @Body()
+    body: {
+      customerInfo: { name: string; phone?: string; email?: string };
+      deliveryAddress?: {
+        line1: string;
+        line2?: string;
+        city: string;
+        postcode: string;
+        country?: string;
+      };
+      deliveryFee?: number;
+      specialInstructions?: string;
+      paymentMethod?: string;
+      paymentStatus?: string;
+      idempotencyKey?: string;
+    },
+  ) {
+    return this.groups.place(token, body);
+  }
+
+  @Public()
   @Post(":token/cancel")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Abandon a group order" })
