@@ -599,6 +599,11 @@ export type UberDirectConfig = $Result.DefaultSelection<Prisma.$UberDirectConfig
  */
 export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
 /**
+ * Model VoiceCall
+ * 
+ */
+export type VoiceCall = $Result.DefaultSelection<Prisma.$VoiceCallPayload>
+/**
  * Model GroupOrder
  * 
  */
@@ -2726,6 +2731,16 @@ export class PrismaClient<
   get review(): Prisma.ReviewDelegate<ExtArgs>;
 
   /**
+   * `prisma.voiceCall`: Exposes CRUD operations for the **VoiceCall** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VoiceCalls
+    * const voiceCalls = await prisma.voiceCall.findMany()
+    * ```
+    */
+  get voiceCall(): Prisma.VoiceCallDelegate<ExtArgs>;
+
+  /**
    * `prisma.groupOrder`: Exposes CRUD operations for the **GroupOrder** model.
     * Example usage:
     * ```ts
@@ -3302,6 +3317,7 @@ export namespace Prisma {
     StuartConfig: 'StuartConfig',
     UberDirectConfig: 'UberDirectConfig',
     Review: 'Review',
+    VoiceCall: 'VoiceCall',
     GroupOrder: 'GroupOrder',
     GroupOrderItem: 'GroupOrderItem'
   };
@@ -3319,7 +3335,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "groupOrder" | "groupOrderItem"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -11510,6 +11526,76 @@ export namespace Prisma {
           count: {
             args: Prisma.ReviewCountArgs<ExtArgs>
             result: $Utils.Optional<ReviewCountAggregateOutputType> | number
+          }
+        }
+      }
+      VoiceCall: {
+        payload: Prisma.$VoiceCallPayload<ExtArgs>
+        fields: Prisma.VoiceCallFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VoiceCallFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VoiceCallFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>
+          }
+          findFirst: {
+            args: Prisma.VoiceCallFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VoiceCallFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>
+          }
+          findMany: {
+            args: Prisma.VoiceCallFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>[]
+          }
+          create: {
+            args: Prisma.VoiceCallCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>
+          }
+          createMany: {
+            args: Prisma.VoiceCallCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VoiceCallCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>[]
+          }
+          delete: {
+            args: Prisma.VoiceCallDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>
+          }
+          update: {
+            args: Prisma.VoiceCallUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>
+          }
+          deleteMany: {
+            args: Prisma.VoiceCallDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VoiceCallUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.VoiceCallUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VoiceCallPayload>
+          }
+          aggregate: {
+            args: Prisma.VoiceCallAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVoiceCall>
+          }
+          groupBy: {
+            args: Prisma.VoiceCallGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VoiceCallGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VoiceCallCountArgs<ExtArgs>
+            result: $Utils.Optional<VoiceCallCountAggregateOutputType> | number
           }
         }
       }
@@ -134428,13 +134514,19 @@ export namespace Prisma {
   export type WalletAvgAggregateOutputType = {
     balanceMinor: number | null
     smsPricePerSegmentMinor: number | null
+    voicePricePerCallMinor: number | null
     lowBalanceThresholdMinor: number | null
+    autoTopupThresholdMinor: number | null
+    autoTopupAmountMinor: number | null
   }
 
   export type WalletSumAggregateOutputType = {
     balanceMinor: number | null
     smsPricePerSegmentMinor: number | null
+    voicePricePerCallMinor: number | null
     lowBalanceThresholdMinor: number | null
+    autoTopupThresholdMinor: number | null
+    autoTopupAmountMinor: number | null
   }
 
   export type WalletMinAggregateOutputType = {
@@ -134444,8 +134536,16 @@ export namespace Prisma {
     balanceMinor: number | null
     currency: string | null
     smsPricePerSegmentMinor: number | null
+    voicePricePerCallMinor: number | null
     lowBalanceThresholdMinor: number | null
     stripeCustomerId: string | null
+    autoTopupEnabled: boolean | null
+    autoTopupThresholdMinor: number | null
+    autoTopupAmountMinor: number | null
+    stripePaymentMethodId: string | null
+    autoTopupLastAt: Date | null
+    autoTopupFailedAt: Date | null
+    autoTopupFailureReason: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -134457,8 +134557,16 @@ export namespace Prisma {
     balanceMinor: number | null
     currency: string | null
     smsPricePerSegmentMinor: number | null
+    voicePricePerCallMinor: number | null
     lowBalanceThresholdMinor: number | null
     stripeCustomerId: string | null
+    autoTopupEnabled: boolean | null
+    autoTopupThresholdMinor: number | null
+    autoTopupAmountMinor: number | null
+    stripePaymentMethodId: string | null
+    autoTopupLastAt: Date | null
+    autoTopupFailedAt: Date | null
+    autoTopupFailureReason: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -134470,8 +134578,16 @@ export namespace Prisma {
     balanceMinor: number
     currency: number
     smsPricePerSegmentMinor: number
+    voicePricePerCallMinor: number
     lowBalanceThresholdMinor: number
     stripeCustomerId: number
+    autoTopupEnabled: number
+    autoTopupThresholdMinor: number
+    autoTopupAmountMinor: number
+    stripePaymentMethodId: number
+    autoTopupLastAt: number
+    autoTopupFailedAt: number
+    autoTopupFailureReason: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -134481,13 +134597,19 @@ export namespace Prisma {
   export type WalletAvgAggregateInputType = {
     balanceMinor?: true
     smsPricePerSegmentMinor?: true
+    voicePricePerCallMinor?: true
     lowBalanceThresholdMinor?: true
+    autoTopupThresholdMinor?: true
+    autoTopupAmountMinor?: true
   }
 
   export type WalletSumAggregateInputType = {
     balanceMinor?: true
     smsPricePerSegmentMinor?: true
+    voicePricePerCallMinor?: true
     lowBalanceThresholdMinor?: true
+    autoTopupThresholdMinor?: true
+    autoTopupAmountMinor?: true
   }
 
   export type WalletMinAggregateInputType = {
@@ -134497,8 +134619,16 @@ export namespace Prisma {
     balanceMinor?: true
     currency?: true
     smsPricePerSegmentMinor?: true
+    voicePricePerCallMinor?: true
     lowBalanceThresholdMinor?: true
     stripeCustomerId?: true
+    autoTopupEnabled?: true
+    autoTopupThresholdMinor?: true
+    autoTopupAmountMinor?: true
+    stripePaymentMethodId?: true
+    autoTopupLastAt?: true
+    autoTopupFailedAt?: true
+    autoTopupFailureReason?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -134510,8 +134640,16 @@ export namespace Prisma {
     balanceMinor?: true
     currency?: true
     smsPricePerSegmentMinor?: true
+    voicePricePerCallMinor?: true
     lowBalanceThresholdMinor?: true
     stripeCustomerId?: true
+    autoTopupEnabled?: true
+    autoTopupThresholdMinor?: true
+    autoTopupAmountMinor?: true
+    stripePaymentMethodId?: true
+    autoTopupLastAt?: true
+    autoTopupFailedAt?: true
+    autoTopupFailureReason?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -134523,8 +134661,16 @@ export namespace Prisma {
     balanceMinor?: true
     currency?: true
     smsPricePerSegmentMinor?: true
+    voicePricePerCallMinor?: true
     lowBalanceThresholdMinor?: true
     stripeCustomerId?: true
+    autoTopupEnabled?: true
+    autoTopupThresholdMinor?: true
+    autoTopupAmountMinor?: true
+    stripePaymentMethodId?: true
+    autoTopupLastAt?: true
+    autoTopupFailedAt?: true
+    autoTopupFailureReason?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -134623,8 +134769,16 @@ export namespace Prisma {
     balanceMinor: number
     currency: string
     smsPricePerSegmentMinor: number | null
+    voicePricePerCallMinor: number | null
     lowBalanceThresholdMinor: number
     stripeCustomerId: string | null
+    autoTopupEnabled: boolean
+    autoTopupThresholdMinor: number
+    autoTopupAmountMinor: number
+    stripePaymentMethodId: string | null
+    autoTopupLastAt: Date | null
+    autoTopupFailedAt: Date | null
+    autoTopupFailureReason: string | null
     createdAt: Date
     updatedAt: Date
     _count: WalletCountAggregateOutputType | null
@@ -134655,8 +134809,16 @@ export namespace Prisma {
     balanceMinor?: boolean
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
+    voicePricePerCallMinor?: boolean
     lowBalanceThresholdMinor?: boolean
     stripeCustomerId?: boolean
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: boolean
+    autoTopupAmountMinor?: boolean
+    stripePaymentMethodId?: boolean
+    autoTopupLastAt?: boolean
+    autoTopupFailedAt?: boolean
+    autoTopupFailureReason?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -134671,8 +134833,16 @@ export namespace Prisma {
     balanceMinor?: boolean
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
+    voicePricePerCallMinor?: boolean
     lowBalanceThresholdMinor?: boolean
     stripeCustomerId?: boolean
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: boolean
+    autoTopupAmountMinor?: boolean
+    stripePaymentMethodId?: boolean
+    autoTopupLastAt?: boolean
+    autoTopupFailedAt?: boolean
+    autoTopupFailureReason?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -134685,8 +134855,16 @@ export namespace Prisma {
     balanceMinor?: boolean
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
+    voicePricePerCallMinor?: boolean
     lowBalanceThresholdMinor?: boolean
     stripeCustomerId?: boolean
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: boolean
+    autoTopupAmountMinor?: boolean
+    stripePaymentMethodId?: boolean
+    autoTopupLastAt?: boolean
+    autoTopupFailedAt?: boolean
+    autoTopupFailureReason?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -134713,8 +134891,16 @@ export namespace Prisma {
       balanceMinor: number
       currency: string
       smsPricePerSegmentMinor: number | null
+      voicePricePerCallMinor: number | null
       lowBalanceThresholdMinor: number
       stripeCustomerId: string | null
+      autoTopupEnabled: boolean
+      autoTopupThresholdMinor: number
+      autoTopupAmountMinor: number
+      stripePaymentMethodId: string | null
+      autoTopupLastAt: Date | null
+      autoTopupFailedAt: Date | null
+      autoTopupFailureReason: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["wallet"]>
@@ -135118,8 +135304,16 @@ export namespace Prisma {
     readonly balanceMinor: FieldRef<"Wallet", 'Int'>
     readonly currency: FieldRef<"Wallet", 'String'>
     readonly smsPricePerSegmentMinor: FieldRef<"Wallet", 'Int'>
+    readonly voicePricePerCallMinor: FieldRef<"Wallet", 'Int'>
     readonly lowBalanceThresholdMinor: FieldRef<"Wallet", 'Int'>
     readonly stripeCustomerId: FieldRef<"Wallet", 'String'>
+    readonly autoTopupEnabled: FieldRef<"Wallet", 'Boolean'>
+    readonly autoTopupThresholdMinor: FieldRef<"Wallet", 'Int'>
+    readonly autoTopupAmountMinor: FieldRef<"Wallet", 'Int'>
+    readonly stripePaymentMethodId: FieldRef<"Wallet", 'String'>
+    readonly autoTopupLastAt: FieldRef<"Wallet", 'DateTime'>
+    readonly autoTopupFailedAt: FieldRef<"Wallet", 'DateTime'>
+    readonly autoTopupFailureReason: FieldRef<"Wallet", 'String'>
     readonly createdAt: FieldRef<"Wallet", 'DateTime'>
     readonly updatedAt: FieldRef<"Wallet", 'DateTime'>
   }
@@ -135510,6 +135704,7 @@ export namespace Prisma {
     segments: number | null
     smsMessageId: string | null
     orderId: string | null
+    voiceCallId: string | null
     locationId: string | null
     stripeCheckoutId: string | null
     stripePaymentIntentId: string | null
@@ -135530,6 +135725,7 @@ export namespace Prisma {
     segments: number | null
     smsMessageId: string | null
     orderId: string | null
+    voiceCallId: string | null
     locationId: string | null
     stripeCheckoutId: string | null
     stripePaymentIntentId: string | null
@@ -135550,6 +135746,7 @@ export namespace Prisma {
     segments: number
     smsMessageId: number
     orderId: number
+    voiceCallId: number
     locationId: number
     stripeCheckoutId: number
     stripePaymentIntentId: number
@@ -135584,6 +135781,7 @@ export namespace Prisma {
     segments?: true
     smsMessageId?: true
     orderId?: true
+    voiceCallId?: true
     locationId?: true
     stripeCheckoutId?: true
     stripePaymentIntentId?: true
@@ -135604,6 +135802,7 @@ export namespace Prisma {
     segments?: true
     smsMessageId?: true
     orderId?: true
+    voiceCallId?: true
     locationId?: true
     stripeCheckoutId?: true
     stripePaymentIntentId?: true
@@ -135624,6 +135823,7 @@ export namespace Prisma {
     segments?: true
     smsMessageId?: true
     orderId?: true
+    voiceCallId?: true
     locationId?: true
     stripeCheckoutId?: true
     stripePaymentIntentId?: true
@@ -135731,6 +135931,7 @@ export namespace Prisma {
     segments: number | null
     smsMessageId: string | null
     orderId: string | null
+    voiceCallId: string | null
     locationId: string | null
     stripeCheckoutId: string | null
     stripePaymentIntentId: string | null
@@ -135770,6 +135971,7 @@ export namespace Prisma {
     segments?: boolean
     smsMessageId?: boolean
     orderId?: boolean
+    voiceCallId?: boolean
     locationId?: boolean
     stripeCheckoutId?: boolean
     stripePaymentIntentId?: boolean
@@ -135791,6 +135993,7 @@ export namespace Prisma {
     segments?: boolean
     smsMessageId?: boolean
     orderId?: boolean
+    voiceCallId?: boolean
     locationId?: boolean
     stripeCheckoutId?: boolean
     stripePaymentIntentId?: boolean
@@ -135812,6 +136015,7 @@ export namespace Prisma {
     segments?: boolean
     smsMessageId?: boolean
     orderId?: boolean
+    voiceCallId?: boolean
     locationId?: boolean
     stripeCheckoutId?: boolean
     stripePaymentIntentId?: boolean
@@ -135844,6 +136048,7 @@ export namespace Prisma {
       segments: number | null
       smsMessageId: string | null
       orderId: string | null
+      voiceCallId: string | null
       locationId: string | null
       stripeCheckoutId: string | null
       stripePaymentIntentId: string | null
@@ -136255,6 +136460,7 @@ export namespace Prisma {
     readonly segments: FieldRef<"WalletTransaction", 'Int'>
     readonly smsMessageId: FieldRef<"WalletTransaction", 'String'>
     readonly orderId: FieldRef<"WalletTransaction", 'String'>
+    readonly voiceCallId: FieldRef<"WalletTransaction", 'String'>
     readonly locationId: FieldRef<"WalletTransaction", 'String'>
     readonly stripeCheckoutId: FieldRef<"WalletTransaction", 'String'>
     readonly stripePaymentIntentId: FieldRef<"WalletTransaction", 'String'>
@@ -139564,6 +139770,1134 @@ export namespace Prisma {
      * Select specific fields to fetch from the Review
      */
     select?: ReviewSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model VoiceCall
+   */
+
+  export type AggregateVoiceCall = {
+    _count: VoiceCallCountAggregateOutputType | null
+    _avg: VoiceCallAvgAggregateOutputType | null
+    _sum: VoiceCallSumAggregateOutputType | null
+    _min: VoiceCallMinAggregateOutputType | null
+    _max: VoiceCallMaxAggregateOutputType | null
+  }
+
+  export type VoiceCallAvgAggregateOutputType = {
+    durationSeconds: number | null
+    billedMinor: number | null
+  }
+
+  export type VoiceCallSumAggregateOutputType = {
+    durationSeconds: number | null
+    billedMinor: number | null
+  }
+
+  export type VoiceCallMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    providerCallId: string | null
+    provider: string | null
+    fromNumber: string | null
+    toNumber: string | null
+    direction: string | null
+    status: string | null
+    notAnsweredReason: string | null
+    answeredAt: Date | null
+    endedAt: Date | null
+    durationSeconds: number | null
+    outcome: string | null
+    orderId: string | null
+    reservationId: string | null
+    wasOverflow: boolean | null
+    billedMinor: number | null
+    billedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VoiceCallMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    providerCallId: string | null
+    provider: string | null
+    fromNumber: string | null
+    toNumber: string | null
+    direction: string | null
+    status: string | null
+    notAnsweredReason: string | null
+    answeredAt: Date | null
+    endedAt: Date | null
+    durationSeconds: number | null
+    outcome: string | null
+    orderId: string | null
+    reservationId: string | null
+    wasOverflow: boolean | null
+    billedMinor: number | null
+    billedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VoiceCallCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    providerCallId: number
+    provider: number
+    fromNumber: number
+    toNumber: number
+    direction: number
+    status: number
+    notAnsweredReason: number
+    answeredAt: number
+    endedAt: number
+    durationSeconds: number
+    outcome: number
+    orderId: number
+    reservationId: number
+    wasOverflow: number
+    billedMinor: number
+    billedAt: number
+    transcript: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VoiceCallAvgAggregateInputType = {
+    durationSeconds?: true
+    billedMinor?: true
+  }
+
+  export type VoiceCallSumAggregateInputType = {
+    durationSeconds?: true
+    billedMinor?: true
+  }
+
+  export type VoiceCallMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    providerCallId?: true
+    provider?: true
+    fromNumber?: true
+    toNumber?: true
+    direction?: true
+    status?: true
+    notAnsweredReason?: true
+    answeredAt?: true
+    endedAt?: true
+    durationSeconds?: true
+    outcome?: true
+    orderId?: true
+    reservationId?: true
+    wasOverflow?: true
+    billedMinor?: true
+    billedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VoiceCallMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    providerCallId?: true
+    provider?: true
+    fromNumber?: true
+    toNumber?: true
+    direction?: true
+    status?: true
+    notAnsweredReason?: true
+    answeredAt?: true
+    endedAt?: true
+    durationSeconds?: true
+    outcome?: true
+    orderId?: true
+    reservationId?: true
+    wasOverflow?: true
+    billedMinor?: true
+    billedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VoiceCallCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    providerCallId?: true
+    provider?: true
+    fromNumber?: true
+    toNumber?: true
+    direction?: true
+    status?: true
+    notAnsweredReason?: true
+    answeredAt?: true
+    endedAt?: true
+    durationSeconds?: true
+    outcome?: true
+    orderId?: true
+    reservationId?: true
+    wasOverflow?: true
+    billedMinor?: true
+    billedAt?: true
+    transcript?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VoiceCallAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VoiceCall to aggregate.
+     */
+    where?: VoiceCallWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VoiceCalls to fetch.
+     */
+    orderBy?: VoiceCallOrderByWithRelationInput | VoiceCallOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VoiceCallWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VoiceCalls from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VoiceCalls.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VoiceCalls
+    **/
+    _count?: true | VoiceCallCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: VoiceCallAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: VoiceCallSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VoiceCallMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VoiceCallMaxAggregateInputType
+  }
+
+  export type GetVoiceCallAggregateType<T extends VoiceCallAggregateArgs> = {
+        [P in keyof T & keyof AggregateVoiceCall]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVoiceCall[P]>
+      : GetScalarType<T[P], AggregateVoiceCall[P]>
+  }
+
+
+
+
+  export type VoiceCallGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VoiceCallWhereInput
+    orderBy?: VoiceCallOrderByWithAggregationInput | VoiceCallOrderByWithAggregationInput[]
+    by: VoiceCallScalarFieldEnum[] | VoiceCallScalarFieldEnum
+    having?: VoiceCallScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VoiceCallCountAggregateInputType | true
+    _avg?: VoiceCallAvgAggregateInputType
+    _sum?: VoiceCallSumAggregateInputType
+    _min?: VoiceCallMinAggregateInputType
+    _max?: VoiceCallMaxAggregateInputType
+  }
+
+  export type VoiceCallGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    brandId: string | null
+    providerCallId: string | null
+    provider: string
+    fromNumber: string | null
+    toNumber: string | null
+    direction: string
+    status: string
+    notAnsweredReason: string | null
+    answeredAt: Date | null
+    endedAt: Date | null
+    durationSeconds: number | null
+    outcome: string | null
+    orderId: string | null
+    reservationId: string | null
+    wasOverflow: boolean
+    billedMinor: number | null
+    billedAt: Date | null
+    transcript: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: VoiceCallCountAggregateOutputType | null
+    _avg: VoiceCallAvgAggregateOutputType | null
+    _sum: VoiceCallSumAggregateOutputType | null
+    _min: VoiceCallMinAggregateOutputType | null
+    _max: VoiceCallMaxAggregateOutputType | null
+  }
+
+  type GetVoiceCallGroupByPayload<T extends VoiceCallGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VoiceCallGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VoiceCallGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VoiceCallGroupByOutputType[P]>
+            : GetScalarType<T[P], VoiceCallGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VoiceCallSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    providerCallId?: boolean
+    provider?: boolean
+    fromNumber?: boolean
+    toNumber?: boolean
+    direction?: boolean
+    status?: boolean
+    notAnsweredReason?: boolean
+    answeredAt?: boolean
+    endedAt?: boolean
+    durationSeconds?: boolean
+    outcome?: boolean
+    orderId?: boolean
+    reservationId?: boolean
+    wasOverflow?: boolean
+    billedMinor?: boolean
+    billedAt?: boolean
+    transcript?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["voiceCall"]>
+
+  export type VoiceCallSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    providerCallId?: boolean
+    provider?: boolean
+    fromNumber?: boolean
+    toNumber?: boolean
+    direction?: boolean
+    status?: boolean
+    notAnsweredReason?: boolean
+    answeredAt?: boolean
+    endedAt?: boolean
+    durationSeconds?: boolean
+    outcome?: boolean
+    orderId?: boolean
+    reservationId?: boolean
+    wasOverflow?: boolean
+    billedMinor?: boolean
+    billedAt?: boolean
+    transcript?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["voiceCall"]>
+
+  export type VoiceCallSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    providerCallId?: boolean
+    provider?: boolean
+    fromNumber?: boolean
+    toNumber?: boolean
+    direction?: boolean
+    status?: boolean
+    notAnsweredReason?: boolean
+    answeredAt?: boolean
+    endedAt?: boolean
+    durationSeconds?: boolean
+    outcome?: boolean
+    orderId?: boolean
+    reservationId?: boolean
+    wasOverflow?: boolean
+    billedMinor?: boolean
+    billedAt?: boolean
+    transcript?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $VoiceCallPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VoiceCall"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      brandId: string | null
+      providerCallId: string | null
+      provider: string
+      fromNumber: string | null
+      toNumber: string | null
+      direction: string
+      status: string
+      notAnsweredReason: string | null
+      answeredAt: Date | null
+      endedAt: Date | null
+      durationSeconds: number | null
+      outcome: string | null
+      orderId: string | null
+      reservationId: string | null
+      wasOverflow: boolean
+      billedMinor: number | null
+      billedAt: Date | null
+      transcript: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["voiceCall"]>
+    composites: {}
+  }
+
+  type VoiceCallGetPayload<S extends boolean | null | undefined | VoiceCallDefaultArgs> = $Result.GetResult<Prisma.$VoiceCallPayload, S>
+
+  type VoiceCallCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<VoiceCallFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: VoiceCallCountAggregateInputType | true
+    }
+
+  export interface VoiceCallDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VoiceCall'], meta: { name: 'VoiceCall' } }
+    /**
+     * Find zero or one VoiceCall that matches the filter.
+     * @param {VoiceCallFindUniqueArgs} args - Arguments to find a VoiceCall
+     * @example
+     * // Get one VoiceCall
+     * const voiceCall = await prisma.voiceCall.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VoiceCallFindUniqueArgs>(args: SelectSubset<T, VoiceCallFindUniqueArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one VoiceCall that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {VoiceCallFindUniqueOrThrowArgs} args - Arguments to find a VoiceCall
+     * @example
+     * // Get one VoiceCall
+     * const voiceCall = await prisma.voiceCall.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VoiceCallFindUniqueOrThrowArgs>(args: SelectSubset<T, VoiceCallFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first VoiceCall that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VoiceCallFindFirstArgs} args - Arguments to find a VoiceCall
+     * @example
+     * // Get one VoiceCall
+     * const voiceCall = await prisma.voiceCall.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VoiceCallFindFirstArgs>(args?: SelectSubset<T, VoiceCallFindFirstArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first VoiceCall that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VoiceCallFindFirstOrThrowArgs} args - Arguments to find a VoiceCall
+     * @example
+     * // Get one VoiceCall
+     * const voiceCall = await prisma.voiceCall.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VoiceCallFindFirstOrThrowArgs>(args?: SelectSubset<T, VoiceCallFindFirstOrThrowArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more VoiceCalls that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VoiceCallFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VoiceCalls
+     * const voiceCalls = await prisma.voiceCall.findMany()
+     * 
+     * // Get first 10 VoiceCalls
+     * const voiceCalls = await prisma.voiceCall.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const voiceCallWithIdOnly = await prisma.voiceCall.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VoiceCallFindManyArgs>(args?: SelectSubset<T, VoiceCallFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a VoiceCall.
+     * @param {VoiceCallCreateArgs} args - Arguments to create a VoiceCall.
+     * @example
+     * // Create one VoiceCall
+     * const VoiceCall = await prisma.voiceCall.create({
+     *   data: {
+     *     // ... data to create a VoiceCall
+     *   }
+     * })
+     * 
+     */
+    create<T extends VoiceCallCreateArgs>(args: SelectSubset<T, VoiceCallCreateArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many VoiceCalls.
+     * @param {VoiceCallCreateManyArgs} args - Arguments to create many VoiceCalls.
+     * @example
+     * // Create many VoiceCalls
+     * const voiceCall = await prisma.voiceCall.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VoiceCallCreateManyArgs>(args?: SelectSubset<T, VoiceCallCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VoiceCalls and returns the data saved in the database.
+     * @param {VoiceCallCreateManyAndReturnArgs} args - Arguments to create many VoiceCalls.
+     * @example
+     * // Create many VoiceCalls
+     * const voiceCall = await prisma.voiceCall.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VoiceCalls and only return the `id`
+     * const voiceCallWithIdOnly = await prisma.voiceCall.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VoiceCallCreateManyAndReturnArgs>(args?: SelectSubset<T, VoiceCallCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a VoiceCall.
+     * @param {VoiceCallDeleteArgs} args - Arguments to delete one VoiceCall.
+     * @example
+     * // Delete one VoiceCall
+     * const VoiceCall = await prisma.voiceCall.delete({
+     *   where: {
+     *     // ... filter to delete one VoiceCall
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VoiceCallDeleteArgs>(args: SelectSubset<T, VoiceCallDeleteArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one VoiceCall.
+     * @param {VoiceCallUpdateArgs} args - Arguments to update one VoiceCall.
+     * @example
+     * // Update one VoiceCall
+     * const voiceCall = await prisma.voiceCall.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VoiceCallUpdateArgs>(args: SelectSubset<T, VoiceCallUpdateArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more VoiceCalls.
+     * @param {VoiceCallDeleteManyArgs} args - Arguments to filter VoiceCalls to delete.
+     * @example
+     * // Delete a few VoiceCalls
+     * const { count } = await prisma.voiceCall.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VoiceCallDeleteManyArgs>(args?: SelectSubset<T, VoiceCallDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VoiceCalls.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VoiceCallUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VoiceCalls
+     * const voiceCall = await prisma.voiceCall.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VoiceCallUpdateManyArgs>(args: SelectSubset<T, VoiceCallUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one VoiceCall.
+     * @param {VoiceCallUpsertArgs} args - Arguments to update or create a VoiceCall.
+     * @example
+     * // Update or create a VoiceCall
+     * const voiceCall = await prisma.voiceCall.upsert({
+     *   create: {
+     *     // ... data to create a VoiceCall
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VoiceCall we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VoiceCallUpsertArgs>(args: SelectSubset<T, VoiceCallUpsertArgs<ExtArgs>>): Prisma__VoiceCallClient<$Result.GetResult<Prisma.$VoiceCallPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of VoiceCalls.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VoiceCallCountArgs} args - Arguments to filter VoiceCalls to count.
+     * @example
+     * // Count the number of VoiceCalls
+     * const count = await prisma.voiceCall.count({
+     *   where: {
+     *     // ... the filter for the VoiceCalls we want to count
+     *   }
+     * })
+    **/
+    count<T extends VoiceCallCountArgs>(
+      args?: Subset<T, VoiceCallCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VoiceCallCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VoiceCall.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VoiceCallAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VoiceCallAggregateArgs>(args: Subset<T, VoiceCallAggregateArgs>): Prisma.PrismaPromise<GetVoiceCallAggregateType<T>>
+
+    /**
+     * Group by VoiceCall.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VoiceCallGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VoiceCallGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VoiceCallGroupByArgs['orderBy'] }
+        : { orderBy?: VoiceCallGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VoiceCallGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVoiceCallGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VoiceCall model
+   */
+  readonly fields: VoiceCallFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VoiceCall.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VoiceCallClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VoiceCall model
+   */ 
+  interface VoiceCallFieldRefs {
+    readonly id: FieldRef<"VoiceCall", 'String'>
+    readonly tenantId: FieldRef<"VoiceCall", 'String'>
+    readonly locationId: FieldRef<"VoiceCall", 'String'>
+    readonly brandId: FieldRef<"VoiceCall", 'String'>
+    readonly providerCallId: FieldRef<"VoiceCall", 'String'>
+    readonly provider: FieldRef<"VoiceCall", 'String'>
+    readonly fromNumber: FieldRef<"VoiceCall", 'String'>
+    readonly toNumber: FieldRef<"VoiceCall", 'String'>
+    readonly direction: FieldRef<"VoiceCall", 'String'>
+    readonly status: FieldRef<"VoiceCall", 'String'>
+    readonly notAnsweredReason: FieldRef<"VoiceCall", 'String'>
+    readonly answeredAt: FieldRef<"VoiceCall", 'DateTime'>
+    readonly endedAt: FieldRef<"VoiceCall", 'DateTime'>
+    readonly durationSeconds: FieldRef<"VoiceCall", 'Int'>
+    readonly outcome: FieldRef<"VoiceCall", 'String'>
+    readonly orderId: FieldRef<"VoiceCall", 'String'>
+    readonly reservationId: FieldRef<"VoiceCall", 'String'>
+    readonly wasOverflow: FieldRef<"VoiceCall", 'Boolean'>
+    readonly billedMinor: FieldRef<"VoiceCall", 'Int'>
+    readonly billedAt: FieldRef<"VoiceCall", 'DateTime'>
+    readonly transcript: FieldRef<"VoiceCall", 'Json'>
+    readonly createdAt: FieldRef<"VoiceCall", 'DateTime'>
+    readonly updatedAt: FieldRef<"VoiceCall", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VoiceCall findUnique
+   */
+  export type VoiceCallFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * Filter, which VoiceCall to fetch.
+     */
+    where: VoiceCallWhereUniqueInput
+  }
+
+  /**
+   * VoiceCall findUniqueOrThrow
+   */
+  export type VoiceCallFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * Filter, which VoiceCall to fetch.
+     */
+    where: VoiceCallWhereUniqueInput
+  }
+
+  /**
+   * VoiceCall findFirst
+   */
+  export type VoiceCallFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * Filter, which VoiceCall to fetch.
+     */
+    where?: VoiceCallWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VoiceCalls to fetch.
+     */
+    orderBy?: VoiceCallOrderByWithRelationInput | VoiceCallOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VoiceCalls.
+     */
+    cursor?: VoiceCallWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VoiceCalls from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VoiceCalls.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VoiceCalls.
+     */
+    distinct?: VoiceCallScalarFieldEnum | VoiceCallScalarFieldEnum[]
+  }
+
+  /**
+   * VoiceCall findFirstOrThrow
+   */
+  export type VoiceCallFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * Filter, which VoiceCall to fetch.
+     */
+    where?: VoiceCallWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VoiceCalls to fetch.
+     */
+    orderBy?: VoiceCallOrderByWithRelationInput | VoiceCallOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VoiceCalls.
+     */
+    cursor?: VoiceCallWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VoiceCalls from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VoiceCalls.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VoiceCalls.
+     */
+    distinct?: VoiceCallScalarFieldEnum | VoiceCallScalarFieldEnum[]
+  }
+
+  /**
+   * VoiceCall findMany
+   */
+  export type VoiceCallFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * Filter, which VoiceCalls to fetch.
+     */
+    where?: VoiceCallWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VoiceCalls to fetch.
+     */
+    orderBy?: VoiceCallOrderByWithRelationInput | VoiceCallOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VoiceCalls.
+     */
+    cursor?: VoiceCallWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VoiceCalls from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VoiceCalls.
+     */
+    skip?: number
+    distinct?: VoiceCallScalarFieldEnum | VoiceCallScalarFieldEnum[]
+  }
+
+  /**
+   * VoiceCall create
+   */
+  export type VoiceCallCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * The data needed to create a VoiceCall.
+     */
+    data: XOR<VoiceCallCreateInput, VoiceCallUncheckedCreateInput>
+  }
+
+  /**
+   * VoiceCall createMany
+   */
+  export type VoiceCallCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VoiceCalls.
+     */
+    data: VoiceCallCreateManyInput | VoiceCallCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VoiceCall createManyAndReturn
+   */
+  export type VoiceCallCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many VoiceCalls.
+     */
+    data: VoiceCallCreateManyInput | VoiceCallCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VoiceCall update
+   */
+  export type VoiceCallUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * The data needed to update a VoiceCall.
+     */
+    data: XOR<VoiceCallUpdateInput, VoiceCallUncheckedUpdateInput>
+    /**
+     * Choose, which VoiceCall to update.
+     */
+    where: VoiceCallWhereUniqueInput
+  }
+
+  /**
+   * VoiceCall updateMany
+   */
+  export type VoiceCallUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VoiceCalls.
+     */
+    data: XOR<VoiceCallUpdateManyMutationInput, VoiceCallUncheckedUpdateManyInput>
+    /**
+     * Filter which VoiceCalls to update
+     */
+    where?: VoiceCallWhereInput
+  }
+
+  /**
+   * VoiceCall upsert
+   */
+  export type VoiceCallUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * The filter to search for the VoiceCall to update in case it exists.
+     */
+    where: VoiceCallWhereUniqueInput
+    /**
+     * In case the VoiceCall found by the `where` argument doesn't exist, create a new VoiceCall with this data.
+     */
+    create: XOR<VoiceCallCreateInput, VoiceCallUncheckedCreateInput>
+    /**
+     * In case the VoiceCall was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VoiceCallUpdateInput, VoiceCallUncheckedUpdateInput>
+  }
+
+  /**
+   * VoiceCall delete
+   */
+  export type VoiceCallDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
+    /**
+     * Filter which VoiceCall to delete.
+     */
+    where: VoiceCallWhereUniqueInput
+  }
+
+  /**
+   * VoiceCall deleteMany
+   */
+  export type VoiceCallDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VoiceCalls to delete
+     */
+    where?: VoiceCallWhereInput
+  }
+
+  /**
+   * VoiceCall without action
+   */
+  export type VoiceCallDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VoiceCall
+     */
+    select?: VoiceCallSelect<ExtArgs> | null
   }
 
 
@@ -143805,8 +145139,16 @@ export namespace Prisma {
     balanceMinor: 'balanceMinor',
     currency: 'currency',
     smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
+    voicePricePerCallMinor: 'voicePricePerCallMinor',
     lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
     stripeCustomerId: 'stripeCustomerId',
+    autoTopupEnabled: 'autoTopupEnabled',
+    autoTopupThresholdMinor: 'autoTopupThresholdMinor',
+    autoTopupAmountMinor: 'autoTopupAmountMinor',
+    stripePaymentMethodId: 'stripePaymentMethodId',
+    autoTopupLastAt: 'autoTopupLastAt',
+    autoTopupFailedAt: 'autoTopupFailedAt',
+    autoTopupFailureReason: 'autoTopupFailureReason',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -143826,6 +145168,7 @@ export namespace Prisma {
     segments: 'segments',
     smsMessageId: 'smsMessageId',
     orderId: 'orderId',
+    voiceCallId: 'voiceCallId',
     locationId: 'locationId',
     stripeCheckoutId: 'stripeCheckoutId',
     stripePaymentIntentId: 'stripePaymentIntentId',
@@ -143885,6 +145228,35 @@ export namespace Prisma {
   };
 
   export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+  export const VoiceCallScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    providerCallId: 'providerCallId',
+    provider: 'provider',
+    fromNumber: 'fromNumber',
+    toNumber: 'toNumber',
+    direction: 'direction',
+    status: 'status',
+    notAnsweredReason: 'notAnsweredReason',
+    answeredAt: 'answeredAt',
+    endedAt: 'endedAt',
+    durationSeconds: 'durationSeconds',
+    outcome: 'outcome',
+    orderId: 'orderId',
+    reservationId: 'reservationId',
+    wasOverflow: 'wasOverflow',
+    billedMinor: 'billedMinor',
+    billedAt: 'billedAt',
+    transcript: 'transcript',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VoiceCallScalarFieldEnum = (typeof VoiceCallScalarFieldEnum)[keyof typeof VoiceCallScalarFieldEnum]
 
 
   export const GroupOrderScalarFieldEnum: {
@@ -145470,7 +146842,9 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     currency: 'currency',
-    stripeCustomerId: 'stripeCustomerId'
+    stripeCustomerId: 'stripeCustomerId',
+    stripePaymentMethodId: 'stripePaymentMethodId',
+    autoTopupFailureReason: 'autoTopupFailureReason'
   };
 
   export type WalletOrderByRelevanceFieldEnum = (typeof WalletOrderByRelevanceFieldEnum)[keyof typeof WalletOrderByRelevanceFieldEnum]
@@ -145485,6 +146859,7 @@ export namespace Prisma {
     purpose: 'purpose',
     smsMessageId: 'smsMessageId',
     orderId: 'orderId',
+    voiceCallId: 'voiceCallId',
     locationId: 'locationId',
     stripeCheckoutId: 'stripeCheckoutId',
     stripePaymentIntentId: 'stripePaymentIntentId',
@@ -145531,6 +146906,26 @@ export namespace Prisma {
   };
 
   export type ReviewOrderByRelevanceFieldEnum = (typeof ReviewOrderByRelevanceFieldEnum)[keyof typeof ReviewOrderByRelevanceFieldEnum]
+
+
+  export const VoiceCallOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    providerCallId: 'providerCallId',
+    provider: 'provider',
+    fromNumber: 'fromNumber',
+    toNumber: 'toNumber',
+    direction: 'direction',
+    status: 'status',
+    notAnsweredReason: 'notAnsweredReason',
+    outcome: 'outcome',
+    orderId: 'orderId',
+    reservationId: 'reservationId'
+  };
+
+  export type VoiceCallOrderByRelevanceFieldEnum = (typeof VoiceCallOrderByRelevanceFieldEnum)[keyof typeof VoiceCallOrderByRelevanceFieldEnum]
 
 
   export const GroupOrderOrderByRelevanceFieldEnum: {
@@ -158140,8 +159535,16 @@ export namespace Prisma {
     balanceMinor?: IntFilter<"Wallet"> | number
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
+    voicePricePerCallMinor?: IntNullableFilter<"Wallet"> | number | null
     lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
+    autoTopupEnabled?: BoolFilter<"Wallet"> | boolean
+    autoTopupThresholdMinor?: IntFilter<"Wallet"> | number
+    autoTopupAmountMinor?: IntFilter<"Wallet"> | number
+    stripePaymentMethodId?: StringNullableFilter<"Wallet"> | string | null
+    autoTopupLastAt?: DateTimeNullableFilter<"Wallet"> | Date | string | null
+    autoTopupFailedAt?: DateTimeNullableFilter<"Wallet"> | Date | string | null
+    autoTopupFailureReason?: StringNullableFilter<"Wallet"> | string | null
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -158155,8 +159558,16 @@ export namespace Prisma {
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrderInput | SortOrder
+    voicePricePerCallMinor?: SortOrderInput | SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrderInput | SortOrder
+    autoTopupEnabled?: SortOrder
+    autoTopupThresholdMinor?: SortOrder
+    autoTopupAmountMinor?: SortOrder
+    stripePaymentMethodId?: SortOrderInput | SortOrder
+    autoTopupLastAt?: SortOrderInput | SortOrder
+    autoTopupFailedAt?: SortOrderInput | SortOrder
+    autoTopupFailureReason?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
@@ -158175,8 +159586,16 @@ export namespace Prisma {
     balanceMinor?: IntFilter<"Wallet"> | number
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
+    voicePricePerCallMinor?: IntNullableFilter<"Wallet"> | number | null
     lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
+    autoTopupEnabled?: BoolFilter<"Wallet"> | boolean
+    autoTopupThresholdMinor?: IntFilter<"Wallet"> | number
+    autoTopupAmountMinor?: IntFilter<"Wallet"> | number
+    stripePaymentMethodId?: StringNullableFilter<"Wallet"> | string | null
+    autoTopupLastAt?: DateTimeNullableFilter<"Wallet"> | Date | string | null
+    autoTopupFailedAt?: DateTimeNullableFilter<"Wallet"> | Date | string | null
+    autoTopupFailureReason?: StringNullableFilter<"Wallet"> | string | null
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -158190,8 +159609,16 @@ export namespace Prisma {
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrderInput | SortOrder
+    voicePricePerCallMinor?: SortOrderInput | SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrderInput | SortOrder
+    autoTopupEnabled?: SortOrder
+    autoTopupThresholdMinor?: SortOrder
+    autoTopupAmountMinor?: SortOrder
+    stripePaymentMethodId?: SortOrderInput | SortOrder
+    autoTopupLastAt?: SortOrderInput | SortOrder
+    autoTopupFailedAt?: SortOrderInput | SortOrder
+    autoTopupFailureReason?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: WalletCountOrderByAggregateInput
@@ -158211,8 +159638,16 @@ export namespace Prisma {
     balanceMinor?: IntWithAggregatesFilter<"Wallet"> | number
     currency?: StringWithAggregatesFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
+    voicePricePerCallMinor?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
     lowBalanceThresholdMinor?: IntWithAggregatesFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableWithAggregatesFilter<"Wallet"> | string | null
+    autoTopupEnabled?: BoolWithAggregatesFilter<"Wallet"> | boolean
+    autoTopupThresholdMinor?: IntWithAggregatesFilter<"Wallet"> | number
+    autoTopupAmountMinor?: IntWithAggregatesFilter<"Wallet"> | number
+    stripePaymentMethodId?: StringNullableWithAggregatesFilter<"Wallet"> | string | null
+    autoTopupLastAt?: DateTimeNullableWithAggregatesFilter<"Wallet"> | Date | string | null
+    autoTopupFailedAt?: DateTimeNullableWithAggregatesFilter<"Wallet"> | Date | string | null
+    autoTopupFailureReason?: StringNullableWithAggregatesFilter<"Wallet"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
   }
@@ -158232,6 +159667,7 @@ export namespace Prisma {
     segments?: IntNullableFilter<"WalletTransaction"> | number | null
     smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
     orderId?: StringNullableFilter<"WalletTransaction"> | string | null
+    voiceCallId?: StringNullableFilter<"WalletTransaction"> | string | null
     locationId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
@@ -158253,6 +159689,7 @@ export namespace Prisma {
     segments?: SortOrderInput | SortOrder
     smsMessageId?: SortOrderInput | SortOrder
     orderId?: SortOrderInput | SortOrder
+    voiceCallId?: SortOrderInput | SortOrder
     locationId?: SortOrderInput | SortOrder
     stripeCheckoutId?: SortOrderInput | SortOrder
     stripePaymentIntentId?: SortOrderInput | SortOrder
@@ -158265,6 +159702,7 @@ export namespace Prisma {
 
   export type WalletTransactionWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    voiceCallId?: string
     AND?: WalletTransactionWhereInput | WalletTransactionWhereInput[]
     OR?: WalletTransactionWhereInput[]
     NOT?: WalletTransactionWhereInput | WalletTransactionWhereInput[]
@@ -158285,7 +159723,7 @@ export namespace Prisma {
     createdBy?: StringNullableFilter<"WalletTransaction"> | string | null
     createdAt?: DateTimeFilter<"WalletTransaction"> | Date | string
     wallet?: XOR<WalletRelationFilter, WalletWhereInput>
-  }, "id">
+  }, "id" | "voiceCallId">
 
   export type WalletTransactionOrderByWithAggregationInput = {
     id?: SortOrder
@@ -158299,6 +159737,7 @@ export namespace Prisma {
     segments?: SortOrderInput | SortOrder
     smsMessageId?: SortOrderInput | SortOrder
     orderId?: SortOrderInput | SortOrder
+    voiceCallId?: SortOrderInput | SortOrder
     locationId?: SortOrderInput | SortOrder
     stripeCheckoutId?: SortOrderInput | SortOrder
     stripePaymentIntentId?: SortOrderInput | SortOrder
@@ -158327,6 +159766,7 @@ export namespace Prisma {
     segments?: IntNullableWithAggregatesFilter<"WalletTransaction"> | number | null
     smsMessageId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     orderId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
+    voiceCallId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     locationId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     stripeCheckoutId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
     stripePaymentIntentId?: StringNullableWithAggregatesFilter<"WalletTransaction"> | string | null
@@ -158585,6 +160025,151 @@ export namespace Prisma {
     repliedBy?: StringNullableWithAggregatesFilter<"Review"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
+  }
+
+  export type VoiceCallWhereInput = {
+    AND?: VoiceCallWhereInput | VoiceCallWhereInput[]
+    OR?: VoiceCallWhereInput[]
+    NOT?: VoiceCallWhereInput | VoiceCallWhereInput[]
+    id?: StringFilter<"VoiceCall"> | string
+    tenantId?: StringFilter<"VoiceCall"> | string
+    locationId?: StringFilter<"VoiceCall"> | string
+    brandId?: StringNullableFilter<"VoiceCall"> | string | null
+    providerCallId?: StringNullableFilter<"VoiceCall"> | string | null
+    provider?: StringFilter<"VoiceCall"> | string
+    fromNumber?: StringNullableFilter<"VoiceCall"> | string | null
+    toNumber?: StringNullableFilter<"VoiceCall"> | string | null
+    direction?: StringFilter<"VoiceCall"> | string
+    status?: StringFilter<"VoiceCall"> | string
+    notAnsweredReason?: StringNullableFilter<"VoiceCall"> | string | null
+    answeredAt?: DateTimeNullableFilter<"VoiceCall"> | Date | string | null
+    endedAt?: DateTimeNullableFilter<"VoiceCall"> | Date | string | null
+    durationSeconds?: IntNullableFilter<"VoiceCall"> | number | null
+    outcome?: StringNullableFilter<"VoiceCall"> | string | null
+    orderId?: StringNullableFilter<"VoiceCall"> | string | null
+    reservationId?: StringNullableFilter<"VoiceCall"> | string | null
+    wasOverflow?: BoolFilter<"VoiceCall"> | boolean
+    billedMinor?: IntNullableFilter<"VoiceCall"> | number | null
+    billedAt?: DateTimeNullableFilter<"VoiceCall"> | Date | string | null
+    transcript?: JsonNullableFilter<"VoiceCall">
+    createdAt?: DateTimeFilter<"VoiceCall"> | Date | string
+    updatedAt?: DateTimeFilter<"VoiceCall"> | Date | string
+  }
+
+  export type VoiceCallOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    providerCallId?: SortOrderInput | SortOrder
+    provider?: SortOrder
+    fromNumber?: SortOrderInput | SortOrder
+    toNumber?: SortOrderInput | SortOrder
+    direction?: SortOrder
+    status?: SortOrder
+    notAnsweredReason?: SortOrderInput | SortOrder
+    answeredAt?: SortOrderInput | SortOrder
+    endedAt?: SortOrderInput | SortOrder
+    durationSeconds?: SortOrderInput | SortOrder
+    outcome?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    reservationId?: SortOrderInput | SortOrder
+    wasOverflow?: SortOrder
+    billedMinor?: SortOrderInput | SortOrder
+    billedAt?: SortOrderInput | SortOrder
+    transcript?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: VoiceCallOrderByRelevanceInput
+  }
+
+  export type VoiceCallWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    providerCallId?: string
+    AND?: VoiceCallWhereInput | VoiceCallWhereInput[]
+    OR?: VoiceCallWhereInput[]
+    NOT?: VoiceCallWhereInput | VoiceCallWhereInput[]
+    tenantId?: StringFilter<"VoiceCall"> | string
+    locationId?: StringFilter<"VoiceCall"> | string
+    brandId?: StringNullableFilter<"VoiceCall"> | string | null
+    provider?: StringFilter<"VoiceCall"> | string
+    fromNumber?: StringNullableFilter<"VoiceCall"> | string | null
+    toNumber?: StringNullableFilter<"VoiceCall"> | string | null
+    direction?: StringFilter<"VoiceCall"> | string
+    status?: StringFilter<"VoiceCall"> | string
+    notAnsweredReason?: StringNullableFilter<"VoiceCall"> | string | null
+    answeredAt?: DateTimeNullableFilter<"VoiceCall"> | Date | string | null
+    endedAt?: DateTimeNullableFilter<"VoiceCall"> | Date | string | null
+    durationSeconds?: IntNullableFilter<"VoiceCall"> | number | null
+    outcome?: StringNullableFilter<"VoiceCall"> | string | null
+    orderId?: StringNullableFilter<"VoiceCall"> | string | null
+    reservationId?: StringNullableFilter<"VoiceCall"> | string | null
+    wasOverflow?: BoolFilter<"VoiceCall"> | boolean
+    billedMinor?: IntNullableFilter<"VoiceCall"> | number | null
+    billedAt?: DateTimeNullableFilter<"VoiceCall"> | Date | string | null
+    transcript?: JsonNullableFilter<"VoiceCall">
+    createdAt?: DateTimeFilter<"VoiceCall"> | Date | string
+    updatedAt?: DateTimeFilter<"VoiceCall"> | Date | string
+  }, "id" | "providerCallId">
+
+  export type VoiceCallOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    providerCallId?: SortOrderInput | SortOrder
+    provider?: SortOrder
+    fromNumber?: SortOrderInput | SortOrder
+    toNumber?: SortOrderInput | SortOrder
+    direction?: SortOrder
+    status?: SortOrder
+    notAnsweredReason?: SortOrderInput | SortOrder
+    answeredAt?: SortOrderInput | SortOrder
+    endedAt?: SortOrderInput | SortOrder
+    durationSeconds?: SortOrderInput | SortOrder
+    outcome?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    reservationId?: SortOrderInput | SortOrder
+    wasOverflow?: SortOrder
+    billedMinor?: SortOrderInput | SortOrder
+    billedAt?: SortOrderInput | SortOrder
+    transcript?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VoiceCallCountOrderByAggregateInput
+    _avg?: VoiceCallAvgOrderByAggregateInput
+    _max?: VoiceCallMaxOrderByAggregateInput
+    _min?: VoiceCallMinOrderByAggregateInput
+    _sum?: VoiceCallSumOrderByAggregateInput
+  }
+
+  export type VoiceCallScalarWhereWithAggregatesInput = {
+    AND?: VoiceCallScalarWhereWithAggregatesInput | VoiceCallScalarWhereWithAggregatesInput[]
+    OR?: VoiceCallScalarWhereWithAggregatesInput[]
+    NOT?: VoiceCallScalarWhereWithAggregatesInput | VoiceCallScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VoiceCall"> | string
+    tenantId?: StringWithAggregatesFilter<"VoiceCall"> | string
+    locationId?: StringWithAggregatesFilter<"VoiceCall"> | string
+    brandId?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    providerCallId?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    provider?: StringWithAggregatesFilter<"VoiceCall"> | string
+    fromNumber?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    toNumber?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    direction?: StringWithAggregatesFilter<"VoiceCall"> | string
+    status?: StringWithAggregatesFilter<"VoiceCall"> | string
+    notAnsweredReason?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    answeredAt?: DateTimeNullableWithAggregatesFilter<"VoiceCall"> | Date | string | null
+    endedAt?: DateTimeNullableWithAggregatesFilter<"VoiceCall"> | Date | string | null
+    durationSeconds?: IntNullableWithAggregatesFilter<"VoiceCall"> | number | null
+    outcome?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    reservationId?: StringNullableWithAggregatesFilter<"VoiceCall"> | string | null
+    wasOverflow?: BoolWithAggregatesFilter<"VoiceCall"> | boolean
+    billedMinor?: IntNullableWithAggregatesFilter<"VoiceCall"> | number | null
+    billedAt?: DateTimeNullableWithAggregatesFilter<"VoiceCall"> | Date | string | null
+    transcript?: JsonNullableWithAggregatesFilter<"VoiceCall">
+    createdAt?: DateTimeWithAggregatesFilter<"VoiceCall"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VoiceCall"> | Date | string
   }
 
   export type GroupOrderWhereInput = {
@@ -172309,8 +173894,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutWalletsInput
@@ -172324,8 +173917,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: WalletTransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -172337,8 +173938,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutWalletsNestedInput
@@ -172352,8 +173961,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: WalletTransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -172366,8 +173983,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -172378,8 +174003,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -172391,8 +174024,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -172408,6 +174049,7 @@ export namespace Prisma {
     segments?: number | null
     smsMessageId?: string | null
     orderId?: string | null
+    voiceCallId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -172429,6 +174071,7 @@ export namespace Prisma {
     segments?: number | null
     smsMessageId?: string | null
     orderId?: string | null
+    voiceCallId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -172448,6 +174091,7 @@ export namespace Prisma {
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceCallId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -172469,6 +174113,7 @@ export namespace Prisma {
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceCallId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -172489,6 +174134,7 @@ export namespace Prisma {
     segments?: number | null
     smsMessageId?: string | null
     orderId?: string | null
+    voiceCallId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -172508,6 +174154,7 @@ export namespace Prisma {
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceCallId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -172528,6 +174175,7 @@ export namespace Prisma {
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceCallId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -172817,6 +174465,188 @@ export namespace Prisma {
     reply?: NullableStringFieldUpdateOperationsInput | string | null
     repliedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     repliedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VoiceCallCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    providerCallId?: string | null
+    provider?: string
+    fromNumber?: string | null
+    toNumber?: string | null
+    direction?: string
+    status?: string
+    notAnsweredReason?: string | null
+    answeredAt?: Date | string | null
+    endedAt?: Date | string | null
+    durationSeconds?: number | null
+    outcome?: string | null
+    orderId?: string | null
+    reservationId?: string | null
+    wasOverflow?: boolean
+    billedMinor?: number | null
+    billedAt?: Date | string | null
+    transcript?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VoiceCallUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    providerCallId?: string | null
+    provider?: string
+    fromNumber?: string | null
+    toNumber?: string | null
+    direction?: string
+    status?: string
+    notAnsweredReason?: string | null
+    answeredAt?: Date | string | null
+    endedAt?: Date | string | null
+    durationSeconds?: number | null
+    outcome?: string | null
+    orderId?: string | null
+    reservationId?: string | null
+    wasOverflow?: boolean
+    billedMinor?: number | null
+    billedAt?: Date | string | null
+    transcript?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VoiceCallUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    fromNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    direction?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    notAnsweredReason?: NullableStringFieldUpdateOperationsInput | string | null
+    answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    outcome?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    wasOverflow?: BoolFieldUpdateOperationsInput | boolean
+    billedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    billedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcript?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VoiceCallUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    fromNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    direction?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    notAnsweredReason?: NullableStringFieldUpdateOperationsInput | string | null
+    answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    outcome?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    wasOverflow?: BoolFieldUpdateOperationsInput | boolean
+    billedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    billedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcript?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VoiceCallCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    providerCallId?: string | null
+    provider?: string
+    fromNumber?: string | null
+    toNumber?: string | null
+    direction?: string
+    status?: string
+    notAnsweredReason?: string | null
+    answeredAt?: Date | string | null
+    endedAt?: Date | string | null
+    durationSeconds?: number | null
+    outcome?: string | null
+    orderId?: string | null
+    reservationId?: string | null
+    wasOverflow?: boolean
+    billedMinor?: number | null
+    billedAt?: Date | string | null
+    transcript?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VoiceCallUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    fromNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    direction?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    notAnsweredReason?: NullableStringFieldUpdateOperationsInput | string | null
+    answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    outcome?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    wasOverflow?: BoolFieldUpdateOperationsInput | boolean
+    billedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    billedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcript?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VoiceCallUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerCallId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    fromNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    toNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    direction?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    notAnsweredReason?: NullableStringFieldUpdateOperationsInput | string | null
+    answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    outcome?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    reservationId?: NullableStringFieldUpdateOperationsInput | string | null
+    wasOverflow?: BoolFieldUpdateOperationsInput | boolean
+    billedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    billedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    transcript?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -182380,8 +184210,16 @@ export namespace Prisma {
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
+    voicePricePerCallMinor?: SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrder
+    autoTopupEnabled?: SortOrder
+    autoTopupThresholdMinor?: SortOrder
+    autoTopupAmountMinor?: SortOrder
+    stripePaymentMethodId?: SortOrder
+    autoTopupLastAt?: SortOrder
+    autoTopupFailedAt?: SortOrder
+    autoTopupFailureReason?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -182389,7 +184227,10 @@ export namespace Prisma {
   export type WalletAvgOrderByAggregateInput = {
     balanceMinor?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
+    voicePricePerCallMinor?: SortOrder
     lowBalanceThresholdMinor?: SortOrder
+    autoTopupThresholdMinor?: SortOrder
+    autoTopupAmountMinor?: SortOrder
   }
 
   export type WalletMaxOrderByAggregateInput = {
@@ -182399,8 +184240,16 @@ export namespace Prisma {
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
+    voicePricePerCallMinor?: SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrder
+    autoTopupEnabled?: SortOrder
+    autoTopupThresholdMinor?: SortOrder
+    autoTopupAmountMinor?: SortOrder
+    stripePaymentMethodId?: SortOrder
+    autoTopupLastAt?: SortOrder
+    autoTopupFailedAt?: SortOrder
+    autoTopupFailureReason?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -182412,8 +184261,16 @@ export namespace Prisma {
     balanceMinor?: SortOrder
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
+    voicePricePerCallMinor?: SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrder
+    autoTopupEnabled?: SortOrder
+    autoTopupThresholdMinor?: SortOrder
+    autoTopupAmountMinor?: SortOrder
+    stripePaymentMethodId?: SortOrder
+    autoTopupLastAt?: SortOrder
+    autoTopupFailedAt?: SortOrder
+    autoTopupFailureReason?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -182421,7 +184278,10 @@ export namespace Prisma {
   export type WalletSumOrderByAggregateInput = {
     balanceMinor?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
+    voicePricePerCallMinor?: SortOrder
     lowBalanceThresholdMinor?: SortOrder
+    autoTopupThresholdMinor?: SortOrder
+    autoTopupAmountMinor?: SortOrder
   }
 
   export type WalletRelationFilter = {
@@ -182447,6 +184307,7 @@ export namespace Prisma {
     segments?: SortOrder
     smsMessageId?: SortOrder
     orderId?: SortOrder
+    voiceCallId?: SortOrder
     locationId?: SortOrder
     stripeCheckoutId?: SortOrder
     stripePaymentIntentId?: SortOrder
@@ -182473,6 +184334,7 @@ export namespace Prisma {
     segments?: SortOrder
     smsMessageId?: SortOrder
     orderId?: SortOrder
+    voiceCallId?: SortOrder
     locationId?: SortOrder
     stripeCheckoutId?: SortOrder
     stripePaymentIntentId?: SortOrder
@@ -182493,6 +184355,7 @@ export namespace Prisma {
     segments?: SortOrder
     smsMessageId?: SortOrder
     orderId?: SortOrder
+    voiceCallId?: SortOrder
     locationId?: SortOrder
     stripeCheckoutId?: SortOrder
     stripePaymentIntentId?: SortOrder
@@ -182650,6 +184513,98 @@ export namespace Prisma {
 
   export type ReviewSumOrderByAggregateInput = {
     rating?: SortOrder
+  }
+
+  export type VoiceCallOrderByRelevanceInput = {
+    fields: VoiceCallOrderByRelevanceFieldEnum | VoiceCallOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type VoiceCallCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    providerCallId?: SortOrder
+    provider?: SortOrder
+    fromNumber?: SortOrder
+    toNumber?: SortOrder
+    direction?: SortOrder
+    status?: SortOrder
+    notAnsweredReason?: SortOrder
+    answeredAt?: SortOrder
+    endedAt?: SortOrder
+    durationSeconds?: SortOrder
+    outcome?: SortOrder
+    orderId?: SortOrder
+    reservationId?: SortOrder
+    wasOverflow?: SortOrder
+    billedMinor?: SortOrder
+    billedAt?: SortOrder
+    transcript?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VoiceCallAvgOrderByAggregateInput = {
+    durationSeconds?: SortOrder
+    billedMinor?: SortOrder
+  }
+
+  export type VoiceCallMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    providerCallId?: SortOrder
+    provider?: SortOrder
+    fromNumber?: SortOrder
+    toNumber?: SortOrder
+    direction?: SortOrder
+    status?: SortOrder
+    notAnsweredReason?: SortOrder
+    answeredAt?: SortOrder
+    endedAt?: SortOrder
+    durationSeconds?: SortOrder
+    outcome?: SortOrder
+    orderId?: SortOrder
+    reservationId?: SortOrder
+    wasOverflow?: SortOrder
+    billedMinor?: SortOrder
+    billedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VoiceCallMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    providerCallId?: SortOrder
+    provider?: SortOrder
+    fromNumber?: SortOrder
+    toNumber?: SortOrder
+    direction?: SortOrder
+    status?: SortOrder
+    notAnsweredReason?: SortOrder
+    answeredAt?: SortOrder
+    endedAt?: SortOrder
+    durationSeconds?: SortOrder
+    outcome?: SortOrder
+    orderId?: SortOrder
+    reservationId?: SortOrder
+    wasOverflow?: SortOrder
+    billedMinor?: SortOrder
+    billedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VoiceCallSumOrderByAggregateInput = {
+    durationSeconds?: SortOrder
+    billedMinor?: SortOrder
   }
 
   export type GroupOrderOrderByRelevanceInput = {
@@ -192826,8 +194781,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: WalletTransactionCreateNestedManyWithoutWalletInput
@@ -192839,8 +194802,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: WalletTransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -193663,8 +195634,16 @@ export namespace Prisma {
     balanceMinor?: IntFilter<"Wallet"> | number
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
+    voicePricePerCallMinor?: IntNullableFilter<"Wallet"> | number | null
     lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
+    autoTopupEnabled?: BoolFilter<"Wallet"> | boolean
+    autoTopupThresholdMinor?: IntFilter<"Wallet"> | number
+    autoTopupAmountMinor?: IntFilter<"Wallet"> | number
+    stripePaymentMethodId?: StringNullableFilter<"Wallet"> | string | null
+    autoTopupLastAt?: DateTimeNullableFilter<"Wallet"> | Date | string | null
+    autoTopupFailedAt?: DateTimeNullableFilter<"Wallet"> | Date | string | null
+    autoTopupFailureReason?: StringNullableFilter<"Wallet"> | string | null
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
@@ -225044,6 +227023,7 @@ export namespace Prisma {
     segments?: number | null
     smsMessageId?: string | null
     orderId?: string | null
+    voiceCallId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -225063,6 +227043,7 @@ export namespace Prisma {
     segments?: number | null
     smsMessageId?: string | null
     orderId?: string | null
+    voiceCallId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -225183,6 +227164,7 @@ export namespace Prisma {
     segments?: IntNullableFilter<"WalletTransaction"> | number | null
     smsMessageId?: StringNullableFilter<"WalletTransaction"> | string | null
     orderId?: StringNullableFilter<"WalletTransaction"> | string | null
+    voiceCallId?: StringNullableFilter<"WalletTransaction"> | string | null
     locationId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripeCheckoutId?: StringNullableFilter<"WalletTransaction"> | string | null
     stripePaymentIntentId?: StringNullableFilter<"WalletTransaction"> | string | null
@@ -225197,8 +227179,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutWalletsInput
@@ -225211,8 +227201,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -225239,8 +227237,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutWalletsNestedInput
@@ -225253,8 +227259,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -226304,8 +228318,16 @@ export namespace Prisma {
     balanceMinor?: number
     currency?: string
     smsPricePerSegmentMinor?: number | null
+    voicePricePerCallMinor?: number | null
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
+    autoTopupEnabled?: boolean
+    autoTopupThresholdMinor?: number
+    autoTopupAmountMinor?: number
+    stripePaymentMethodId?: string | null
+    autoTopupLastAt?: Date | string | null
+    autoTopupFailedAt?: Date | string | null
+    autoTopupFailureReason?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -227469,8 +229491,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: WalletTransactionUpdateManyWithoutWalletNestedInput
@@ -227482,8 +229512,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: WalletTransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -227495,8 +229533,16 @@ export namespace Prisma {
     balanceMinor?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoTopupThresholdMinor?: IntFieldUpdateOperationsInput | number
+    autoTopupAmountMinor?: IntFieldUpdateOperationsInput | number
+    stripePaymentMethodId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoTopupLastAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoTopupFailureReason?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -235490,6 +237536,7 @@ export namespace Prisma {
     segments?: number | null
     smsMessageId?: string | null
     orderId?: string | null
+    voiceCallId?: string | null
     locationId?: string | null
     stripeCheckoutId?: string | null
     stripePaymentIntentId?: string | null
@@ -235509,6 +237556,7 @@ export namespace Prisma {
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceCallId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235528,6 +237576,7 @@ export namespace Prisma {
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceCallId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235547,6 +237596,7 @@ export namespace Prisma {
     segments?: NullableIntFieldUpdateOperationsInput | number | null
     smsMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceCallId?: NullableStringFieldUpdateOperationsInput | string | null
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -236156,6 +238206,10 @@ export namespace Prisma {
      * @deprecated Use ReviewDefaultArgs instead
      */
     export type ReviewArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReviewDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use VoiceCallDefaultArgs instead
+     */
+    export type VoiceCallArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = VoiceCallDefaultArgs<ExtArgs>
     /**
      * @deprecated Use GroupOrderDefaultArgs instead
      */

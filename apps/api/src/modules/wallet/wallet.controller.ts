@@ -71,4 +71,35 @@ export class WalletController {
       body?.locationId ?? null,
     );
   }
+
+  // POST /v1/wallet/auto-topup — keep the AI phone line funded without anyone
+  // watching the balance. The card comes from a normal top-up (saved
+  // off-session), so enabling this without one is refused rather than silently
+  // doing nothing.
+  @Post("auto-topup")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "Enable/configure automatic wallet top-up" })
+  async setAutoTopup(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body()
+    body: {
+      enabled?: boolean;
+      thresholdMinor?: number;
+      amountMinor?: number;
+      locationId?: string;
+    },
+  ) {
+    await this.wallet.assertLocationAccess(
+      user.tenantId,
+      body?.locationId ?? null,
+      user.userId,
+      user.role,
+    );
+    await this.wallet.setAutoTopup(user.tenantId, body?.locationId ?? null, {
+      enabled: body?.enabled !== false,
+      thresholdMinor: body?.thresholdMinor,
+      amountMinor: body?.amountMinor,
+    });
+    return this.wallet.getSummary(user.tenantId, body?.locationId ?? null);
+  }
 }

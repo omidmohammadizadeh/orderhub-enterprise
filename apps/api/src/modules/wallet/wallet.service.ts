@@ -28,13 +28,32 @@ try {
 // wallets.smsPricePerSegmentMinor.
 const DEFAULT_PRICE_PER_SEGMENT_MINOR = 10; // 10p per segment
 
+// Platform sell price per ANSWERED AI phone call (pence). Our own cost is
+// roughly 15p for a three-minute call (telephony + speech-to-text + Claude +
+// text-to-speech), so £1 is a ~6x margin — and on a £25 order it is 4% of order
+// value, against 14–30% for the delivery aggregators the shop is comparing us
+// to. Override globally with VOICE_PRICE_PER_CALL_MINOR, or per wallet with
+// wallets.voicePricePerCallMinor (founding-customer pricing).
+const DEFAULT_VOICE_PRICE_PER_CALL_MINOR = 100; // £1 per answered call
+
 export interface WalletSummary {
   balanceMinor: number;
   currency: string;
   pricePerSegmentMinor: number;
+  voicePricePerCallMinor: number;
   lowBalanceThresholdMinor: number;
   lowBalance: boolean;
   smsConfigured: boolean;
+  /** Answered AI calls this balance still covers. null if voice is free. */
+  callsRemaining: number | null;
+  autoTopup: {
+    enabled: boolean;
+    thresholdMinor: number;
+    amountMinor: number;
+    cardOnFile: boolean;
+    failedAt: Date | null;
+    failureReason: string | null;
+  };
 }
 
 /**
@@ -147,13 +166,29 @@ export class WalletService {
   async getSummary(tenantId: string, locationId?: string | null): Promise<WalletSummary> {
     const wallet = await this.getOrCreate(tenantId, locationId);
     const rate = this.pricePerSegment(wallet);
+    const voiceRate = this.voicePricePerCallMinor(wallet);
     return {
       balanceMinor: wallet.balanceMinor,
       currency: wallet.currency,
       pricePerSegmentMinor: rate,
+      voicePricePerCallMinor: voiceRate,
       lowBalanceThresholdMinor: wallet.lowBalanceThresholdMinor,
       lowBalance: wallet.balanceMinor < wallet.lowBalanceThresholdMinor,
       smsConfigured: this.smsConfigured(),
+      // How many more calls this balance answers. The number the operator
+      // actually wants when the AI is live — "£4.20" means nothing, "4 more
+      // calls" means top up now.
+      callsRemaining: voiceRate > 0 ? Math.floor(wallet.balanceMinor / voiceRate) : null,
+      autoTopup: {
+        enabled: !!wallet.autoTopupEnabled,
+        thresholdMinor: wallet.autoTopupThresholdMinor,
+        amountMinor: wallet.autoTopupAmountMinor,
+        cardOnFile: !!wallet.stripePaymentMethodId,
+        // A declined card is the quiet killer — it must reach the operator's
+        // screen, because the symptom is a phone that stops being answered.
+        failedAt: wallet.autoTopupFailedAt ?? null,
+        failureReason: wallet.autoTopupFailureReason ?? null,
+      },
     };
   }
 
@@ -267,6 +302,267 @@ export class WalletService {
         `Wallet debit failed for tenant ${args.tenantId}: ${e?.message ?? e}`,
       );
     }
+  }
+
+  // ── AI voice receptionist ───────────────────────────────────────────────
+  //
+  // Billed PER ANSWERED CALL, not per minute. Two reasons, and both matter:
+  // our own cost is per conversation-turn rather than per second, so a per-
+  // minute price would be passing on a number that doesn't reflect what we pay;
+  // and we control how long the call lasts, so per-minute billing would charge
+  // the shop more whenever our agent is slow. A shop that spots that incentive
+  // never trusts the bill again.
+
+  /** Platform default price per answered call (pennies). £1. */
+  voicePricePerCallMinor(wallet?: { voicePricePerCallMinor?: number | null } | null): number {
+    const raw = this.config.get<string>("VOICE_PRICE_PER_CALL_MINOR");
+    const n = raw ? parseInt(raw, 10) : NaN;
+    const platform = Number.isFinite(n) && n >= 0 ? n : DEFAULT_VOICE_PRICE_PER_CALL_MINOR;
+    return wallet?.voicePricePerCallMinor ?? platform;
+  }
+
+  /**
+   * A call is only billable if the AI actually did something for the shop.
+   * A wrong number that hangs up after three seconds must never cost £1 — that
+   * is the argument you only have to lose once. The rule lives here, in one
+   * place, and is shown to the operator on the dashboard verbatim.
+   */
+  static readonly MIN_BILLABLE_SECONDS = 10;
+
+  isBillableCall(call: { status?: string | null; durationSeconds?: number | null }): boolean {
+    if (call.status !== "COMPLETED" && call.status !== "TRANSFERRED") return false;
+    return (call.durationSeconds ?? 0) >= WalletService.MIN_BILLABLE_SECONDS;
+  }
+
+  /**
+   * THE gate: may the AI pick up this call?
+   *
+   * Deliberately returns a verdict instead of throwing — the telephony webhook
+   * has to make an answer/don't-answer decision in milliseconds, and an
+   * exception is the wrong shape for "the shop is out of credit".
+   *
+   * Not answering is a SAFE failure. The AI sits behind forward-on-no-answer,
+   * so a call we decline simply keeps ringing at the shop, exactly as it did
+   * before the AI existed. We degrade to the old world; we never eat the call.
+   *
+   * Tries auto top-up inline before refusing — that is the whole point of
+   * holding a card on file, and it is the difference between a shop losing
+   * their AI at 8pm on a Friday and never noticing anything happened.
+   */
+  async canAnswerVoiceCall(
+    tenantId: string,
+    locationId: string | null,
+  ): Promise<{ ok: boolean; reason?: string; balanceMinor: number; priceMinor: number }> {
+    let wallet = await this.getOrCreate(tenantId, locationId);
+    const price = this.voicePricePerCallMinor(wallet);
+
+    if (wallet.balanceMinor >= price) {
+      // Already fine — but if we're near the floor, refill in the background so
+      // the NEXT call doesn't have to wait on Stripe.
+      if (wallet.balanceMinor < (wallet.autoTopupThresholdMinor ?? 0)) {
+        void this.tryAutoTopup(wallet).catch(() => undefined);
+      }
+      return { ok: true, balanceMinor: wallet.balanceMinor, priceMinor: price };
+    }
+
+    // Below the price. Last chance: charge the saved card and re-read.
+    const topped = await this.tryAutoTopup(wallet).catch(() => null);
+    if (topped) wallet = topped;
+
+    if (wallet.balanceMinor >= price) {
+      return { ok: true, balanceMinor: wallet.balanceMinor, priceMinor: price };
+    }
+    return {
+      ok: false,
+      reason: "NO_FUNDS",
+      balanceMinor: wallet.balanceMinor,
+      priceMinor: price,
+    };
+  }
+
+  /**
+   * Charge for one completed call. Idempotent at the DATABASE level via the
+   * unique index on walletTransaction.voiceCallId — provider webhooks retry,
+   * and "one call, one charge" has to be true even when our code runs twice.
+   *
+   * Never throws into the call path: the conversation already happened.
+   */
+  async debitForVoiceCall(args: {
+    tenantId: string;
+    locationId: string | null;
+    voiceCallId: string;
+    durationSeconds: number;
+    status: string;
+  }): Promise<{ chargedMinor: number } | null> {
+    if (!this.isBillableCall(args)) {
+      this.logger.log(
+        `Voice call ${args.voiceCallId} not billable (${args.status}, ${args.durationSeconds}s)`,
+      );
+      return null;
+    }
+    try {
+      const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+      const cost = this.voicePricePerCallMinor(wallet);
+      const result = await this.prisma.$transaction(async (tx: any) => {
+        // Create the ledger row FIRST. If this call was already charged, the
+        // unique index rejects it here and we abort before touching the
+        // balance — the ordering is what makes double-billing impossible.
+        await tx.walletTransaction.create({
+          data: {
+            tenantId: args.tenantId,
+            walletId: wallet.id,
+            type: "DEBIT",
+            amountMinor: -cost,
+            // Filled in below once we know the post-debit balance.
+            balanceAfterMinor: 0,
+            currency: wallet.currency,
+            purpose: "VOICE_CALL",
+            voiceCallId: args.voiceCallId,
+            locationId: args.locationId ?? null,
+            description: `AI phone call (${args.durationSeconds}s) @ ${cost}p`,
+          },
+        });
+        const updated = await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceMinor: { decrement: cost } },
+        });
+        await tx.walletTransaction.updateMany({
+          where: { voiceCallId: args.voiceCallId },
+          data: { balanceAfterMinor: updated.balanceMinor },
+        });
+        await tx.voiceCall.update({
+          where: { id: args.voiceCallId },
+          data: { billedMinor: cost, billedAt: new Date() },
+        });
+        return updated;
+      });
+      // Below the floor after this call — refill now rather than on the next
+      // ring, so the top-up latency never lands inside a customer's call.
+      if (result.balanceMinor < (wallet.autoTopupThresholdMinor ?? 0)) {
+        void this.tryAutoTopup(wallet).catch(() => undefined);
+      }
+      return { chargedMinor: cost };
+    } catch (e: any) {
+      // A unique-constraint violation here is the happy path for a retried
+      // webhook: the call was already charged. Anything else is a real error.
+      if (e?.code === "P2002") {
+        this.logger.log(`Voice call ${args.voiceCallId} already billed — skipping`);
+        return null;
+      }
+      this.logger.error(
+        `Voice call debit failed for ${args.voiceCallId}: ${e?.message ?? e}`,
+      );
+      return null;
+    }
+  }
+
+  // ── Auto top-up ─────────────────────────────────────────────────────────
+
+  /** Don't fire two auto top-ups inside this window. A bug or a burst of calls
+   *  must not be able to drain the operator's card. */
+  private static readonly AUTO_TOPUP_COOLDOWN_MS = 5 * 60_000;
+
+  /**
+   * Charge the saved card off-session and credit the wallet. Returns the
+   * updated wallet on success, null when it didn't (or shouldn't) run.
+   *
+   * A failure here is recorded on the wallet, not just logged: a declined card
+   * means the phone stops being answered, and the operator has to be able to
+   * SEE that on the dashboard rather than discover it from a customer.
+   */
+  async tryAutoTopup(wallet: any): Promise<any | null> {
+    if (!wallet?.autoTopupEnabled) return null;
+    if (!wallet.stripePaymentMethodId || !wallet.stripeCustomerId) return null;
+    if (!this.stripe) return null;
+    const last = wallet.autoTopupLastAt ? new Date(wallet.autoTopupLastAt).getTime() : 0;
+    if (Date.now() - last < WalletService.AUTO_TOPUP_COOLDOWN_MS) return null;
+
+    const amount = Math.max(500, wallet.autoTopupAmountMinor ?? 2000);
+
+    // Stamp the attempt BEFORE calling Stripe. If the process dies mid-charge,
+    // the cooldown still holds and we can't double-charge on restart.
+    await this.db().wallet.update({
+      where: { id: wallet.id },
+      data: { autoTopupLastAt: new Date() },
+    });
+
+    try {
+      const pi = await this.stripe.paymentIntents.create(
+        {
+          amount,
+          currency: (wallet.currency ?? "GBP").toLowerCase(),
+          customer: wallet.stripeCustomerId,
+          payment_method: wallet.stripePaymentMethodId,
+          off_session: true,
+          confirm: true,
+          description: "OrderHub wallet auto top-up",
+          metadata: {
+            tenantId: wallet.tenantId,
+            walletId: wallet.id,
+            locationId: wallet.locationId ?? "",
+            autoTopup: "true",
+          },
+        },
+        { idempotencyKey: `auto-topup-${wallet.id}-${Math.floor(Date.now() / 60_000)}` },
+      );
+      if (pi.status !== "succeeded") {
+        throw new Error(`payment intent ${pi.status}`);
+      }
+      // Reuse the same credit path as a manual top-up so there is exactly one
+      // place that turns money into balance.
+      await this.creditFromStripePi(pi);
+      await this.db().wallet.update({
+        where: { id: wallet.id },
+        data: { autoTopupFailedAt: null, autoTopupFailureReason: null },
+      });
+      this.logger.log(
+        `Auto top-up ${amount}p succeeded for wallet ${wallet.id} (tenant ${wallet.tenantId})`,
+      );
+      return this.db().wallet.findUnique({ where: { id: wallet.id } });
+    } catch (e: any) {
+      const reason =
+        e?.raw?.message ?? e?.message ?? "Card declined";
+      await this.db()
+        .wallet.update({
+          where: { id: wallet.id },
+          data: { autoTopupFailedAt: new Date(), autoTopupFailureReason: String(reason).slice(0, 300) },
+        })
+        .catch(() => undefined);
+      this.logger.error(`Auto top-up failed for wallet ${wallet.id}: ${reason}`);
+      return null;
+    }
+  }
+
+  /** Operator-facing auto top-up settings. Enabling without a saved card is
+   *  refused rather than silently useless — the card comes from a top-up. */
+  async setAutoTopup(
+    tenantId: string,
+    locationId: string | null,
+    input: { enabled: boolean; thresholdMinor?: number; amountMinor?: number },
+  ): Promise<any> {
+    const wallet = await this.getOrCreate(tenantId, locationId);
+    if (input.enabled && !wallet.stripePaymentMethodId) {
+      throw new BadRequestException(
+        "Add a card first — top up once and tick “save this card”, then auto top-up can be switched on.",
+      );
+    }
+    const threshold = input.thresholdMinor ?? wallet.autoTopupThresholdMinor;
+    const amount = input.amountMinor ?? wallet.autoTopupAmountMinor;
+    if (amount < 500) {
+      throw new BadRequestException("Minimum auto top-up is £5.");
+    }
+    if (threshold < 0 || threshold > 50_000) {
+      throw new BadRequestException("Auto top-up trigger must be between £0 and £500.");
+    }
+    return this.db().wallet.update({
+      where: { id: wallet.id },
+      data: {
+        autoTopupEnabled: input.enabled,
+        autoTopupThresholdMinor: threshold,
+        autoTopupAmountMinor: amount,
+        ...(input.enabled ? { autoTopupFailedAt: null, autoTopupFailureReason: null } : {}),
+      },
+    });
   }
 
   // ── Dispatch (courier) fee ──────────────────────────────────────────────
@@ -442,6 +738,11 @@ export class WalletService {
       // metadata is copied onto the PaymentIntent so the webhook can identify
       // this as a wallet top-up (vs an order payment) and credit the balance.
       payment_intent_data: {
+        // Keep the card on file so auto top-up can charge it later without the
+        // operator present. Without this the whole auto top-up feature is dead
+        // on arrival — there is nothing to charge — and the phone goes quiet
+        // the first time a wallet empties out of hours.
+        setup_future_usage: "off_session",
         metadata: {
           purpose: "wallet_topup",
           tenantId,
@@ -485,6 +786,24 @@ export class WalletService {
     if (already) {
       this.logger.debug(`wallet_topup PI ${pi.id} already credited — skipping`);
       return;
+    }
+
+    // Remember the card. setup_future_usage on the Checkout Session means
+    // Stripe has attached it to the customer; storing the id here is what makes
+    // auto top-up possible on every later refill. Best-effort — a top-up must
+    // never fail because we couldn't save a card for next time.
+    const savedPm =
+      (typeof pi?.payment_method === "string" ? pi.payment_method : pi?.payment_method?.id) ??
+      null;
+    if (savedPm && pi?.metadata?.walletId) {
+      await this.db()
+        .wallet.update({
+          where: { id: pi.metadata.walletId },
+          data: { stripePaymentMethodId: savedPm },
+        })
+        .catch((e: any) =>
+          this.logger.warn(`Could not save card for wallet ${pi.metadata.walletId}: ${e?.message}`),
+        );
     }
 
     // Credit the EXACT wallet the top-up was started for (walletId is stamped on

@@ -2004,8 +2004,16 @@ exports.Prisma.WalletScalarFieldEnum = {
   balanceMinor: 'balanceMinor',
   currency: 'currency',
   smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
+  voicePricePerCallMinor: 'voicePricePerCallMinor',
   lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
   stripeCustomerId: 'stripeCustomerId',
+  autoTopupEnabled: 'autoTopupEnabled',
+  autoTopupThresholdMinor: 'autoTopupThresholdMinor',
+  autoTopupAmountMinor: 'autoTopupAmountMinor',
+  stripePaymentMethodId: 'stripePaymentMethodId',
+  autoTopupLastAt: 'autoTopupLastAt',
+  autoTopupFailedAt: 'autoTopupFailedAt',
+  autoTopupFailureReason: 'autoTopupFailureReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2022,6 +2030,7 @@ exports.Prisma.WalletTransactionScalarFieldEnum = {
   segments: 'segments',
   smsMessageId: 'smsMessageId',
   orderId: 'orderId',
+  voiceCallId: 'voiceCallId',
   locationId: 'locationId',
   stripeCheckoutId: 'stripeCheckoutId',
   stripePaymentIntentId: 'stripePaymentIntentId',
@@ -2067,6 +2076,32 @@ exports.Prisma.ReviewScalarFieldEnum = {
   reply: 'reply',
   repliedAt: 'repliedAt',
   repliedBy: 'repliedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VoiceCallScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  providerCallId: 'providerCallId',
+  provider: 'provider',
+  fromNumber: 'fromNumber',
+  toNumber: 'toNumber',
+  direction: 'direction',
+  status: 'status',
+  notAnsweredReason: 'notAnsweredReason',
+  answeredAt: 'answeredAt',
+  endedAt: 'endedAt',
+  durationSeconds: 'durationSeconds',
+  outcome: 'outcome',
+  orderId: 'orderId',
+  reservationId: 'reservationId',
+  wasOverflow: 'wasOverflow',
+  billedMinor: 'billedMinor',
+  billedAt: 'billedAt',
+  transcript: 'transcript',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -3294,7 +3329,9 @@ exports.Prisma.WalletOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   currency: 'currency',
-  stripeCustomerId: 'stripeCustomerId'
+  stripeCustomerId: 'stripeCustomerId',
+  stripePaymentMethodId: 'stripePaymentMethodId',
+  autoTopupFailureReason: 'autoTopupFailureReason'
 };
 
 exports.Prisma.WalletTransactionOrderByRelevanceFieldEnum = {
@@ -3306,6 +3343,7 @@ exports.Prisma.WalletTransactionOrderByRelevanceFieldEnum = {
   purpose: 'purpose',
   smsMessageId: 'smsMessageId',
   orderId: 'orderId',
+  voiceCallId: 'voiceCallId',
   locationId: 'locationId',
   stripeCheckoutId: 'stripeCheckoutId',
   stripePaymentIntentId: 'stripePaymentIntentId',
@@ -3340,6 +3378,23 @@ exports.Prisma.ReviewOrderByRelevanceFieldEnum = {
   status: 'status',
   reply: 'reply',
   repliedBy: 'repliedBy'
+};
+
+exports.Prisma.VoiceCallOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  providerCallId: 'providerCallId',
+  provider: 'provider',
+  fromNumber: 'fromNumber',
+  toNumber: 'toNumber',
+  direction: 'direction',
+  status: 'status',
+  notAnsweredReason: 'notAnsweredReason',
+  outcome: 'outcome',
+  orderId: 'orderId',
+  reservationId: 'reservationId'
 };
 
 exports.Prisma.GroupOrderOrderByRelevanceFieldEnum = {
@@ -3932,6 +3987,7 @@ exports.Prisma.ModelName = {
   StuartConfig: 'StuartConfig',
   UberDirectConfig: 'UberDirectConfig',
   Review: 'Review',
+  VoiceCall: 'VoiceCall',
   GroupOrder: 'GroupOrder',
   GroupOrderItem: 'GroupOrderItem'
 };

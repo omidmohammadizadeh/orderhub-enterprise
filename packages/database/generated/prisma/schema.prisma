@@ -4205,11 +4205,36 @@ model Wallet {
   // Per-tenant price per SMS segment (pennies). null → the platform default
   // (SMS_PRICE_PER_SEGMENT_MINOR env, default 7p). Lets us give bespoke rates.
   smsPricePerSegmentMinor  Int?
+  // Per-tenant price per answered AI voice call (pennies). null → the platform
+  // default (VOICE_PRICE_PER_CALL_MINOR env, default 100p). Per CALL, not per
+  // minute: our own cost is per-conversation-turn rather than per-second, and a
+  // per-minute price would bill the shop for our agent being slow.
+  voicePricePerCallMinor   Int?
   // Warn the operator when balance drops below this (pennies). Default £2.
   lowBalanceThresholdMinor Int  @default(200)
 
   // Platform-account Stripe customer, reused across top-ups (created lazily).
   stripeCustomerId String?
+
+  // ── Auto top-up ────────────────────────────────────────────────────────
+  // An empty wallet means the AI stops answering the phone — silently, at the
+  // busiest hour, and the shop won't find out until Monday. Auto top-up is what
+  // stops that happening, so the saved card is part of the product, not a
+  // convenience.
+  autoTopupEnabled        Boolean   @default(false)
+  // Refill when the balance drops below this (pennies). Default £10.
+  autoTopupThresholdMinor Int       @default(1000)
+  // How much to add each time (pennies). Default £20.
+  autoTopupAmountMinor    Int       @default(2000)
+  // Card saved off-session at the first manual top-up (setup_future_usage).
+  stripePaymentMethodId   String?
+  // Throttle: never fire two auto top-ups inside the cooldown, so a bug or a
+  // burst of calls can't drain the operator's card.
+  autoTopupLastAt         DateTime?
+  // A declined card must be VISIBLE — otherwise the first anyone knows is the
+  // phone going quiet. Cleared on the next success.
+  autoTopupFailedAt       DateTime?
+  autoTopupFailureReason  String?
 
   transactions WalletTransaction[]
 
@@ -4235,10 +4260,14 @@ model WalletTransaction {
   currency          String @default("GBP")
 
   // Context for statement lines + reconciliation.
-  purpose               String? // SMS_PAYMENT_LINK | SMS_MARKETING | SMS_OTHER | TOPUP | DISPATCH_FEE
+  purpose               String? // SMS_PAYMENT_LINK | SMS_MARKETING | SMS_OTHER | TOPUP | DISPATCH_FEE | VOICE_CALL
   segments              Int? // for SMS debits — how many parts were charged
   smsMessageId          String? // links to the sms_messages row
   orderId               String? // DISPATCH_FEE debits — the dispatched order
+  // VOICE_CALL debits. Unique: the billing hook can fire more than once for a
+  // call (provider webhook retries, a reconnect), and the database is the only
+  // honest place to make "one call, one charge" true.
+  voiceCallId           String? @unique
   locationId            String?
   stripeCheckoutId      String?
   stripePaymentIntentId String? // top-ups — idempotency key for webhook credit
@@ -4347,6 +4376,78 @@ model Review {
 //
 // The basket is NOT an Order. It becomes one only when the host places it, so
 // an abandoned group order never reaches the kitchen or the order board.
+// One inbound phone call handled by the AI receptionist.
+//
+// Written the moment the call arrives — BEFORE we decide whether to answer — so
+// a refused-for-no-funds call is still a row the operator can see. That matters
+// more than it sounds: the failure mode we're designing against is a phone that
+// quietly stops being answered, and a row here is the difference between the
+// shop finding out on the dashboard and finding out from an angry customer.
+//
+// Scalar-only relations, same reasoning as GroupOrder/Review: Order, Location
+// and Brand are large and edited often, and a duplicate field on them has
+// broken builds before.
+model VoiceCall {
+  id         String  @id @default(cuid())
+  tenantId   String
+  locationId String
+  brandId    String?
+
+  // The provider's handle for the call (Telnyx call_control_id). Unique so a
+  // replayed webhook updates the existing row rather than forking a second one.
+  providerCallId String? @unique
+  provider       String  @default("TELNYX")
+
+  fromNumber String?
+  toNumber   String?
+  direction  String  @default("INBOUND")
+
+  // RINGING — arrived, not yet answered.
+  // ANSWERED — the AI picked up and the conversation ran.
+  // COMPLETED — ended normally.
+  // NOT_ANSWERED — we deliberately didn't pick up (no funds / AI disabled /
+  //   outside hours). The caller keeps ringing at the shop exactly as they did
+  //   before the AI existed, so this is a degraded state, never a lost call.
+  // TRANSFERRED — handed to a human.
+  // FAILED — something broke on our side.
+  status String @default("RINGING")
+
+  // Why we didn't answer, when status is NOT_ANSWERED. NO_FUNDS is the one the
+  // operator needs surfaced loudly.
+  notAnsweredReason String?
+
+  answeredAt      DateTime?
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  // What the call was actually for — this is what the "recovered calls" figure
+  // on the dashboard is built from, and what justifies the per-call price.
+  // ORDER | RESERVATION | ORDER_STATUS | ENQUIRY | TRANSFERRED | ABANDONED
+  outcome       String?
+  orderId       String?
+  reservationId String?
+  // Was the shop's own line unanswered when this arrived? Set by the
+  // forward-on-no-answer path — the honest definition of a recovered call.
+  wasOverflow   Boolean @default(false)
+
+  // Billing. billedMinor is null until the call is charged; a call can be
+  // answered and still never billed (too short to bill for).
+  billedMinor Int?
+  billedAt    DateTime?
+
+  // Full turn-by-turn record. The operator can read what the AI told their
+  // customer — non-negotiable for trust in a system that speaks for them.
+  transcript Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([locationId, createdAt])
+  @@index([locationId, status])
+  @@map("voice_calls")
+}
+
 model GroupOrder {
   id              String    @id @default(cuid())
   tenantId        String
