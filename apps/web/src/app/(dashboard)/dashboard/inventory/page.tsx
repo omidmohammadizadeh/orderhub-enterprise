@@ -17,7 +17,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, X, AlertCircle, Check } from "lucide-react";
+import { Loader2, X, AlertCircle, Check, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
 import {
@@ -89,6 +89,16 @@ export default function InventoryPage() {
     refetchInterval: 30_000,
   });
   const items = matrixQuery.data?.items ?? [];
+
+  /**
+   * Phone only — which product's channel panel is open.
+   *
+   * Held as an id, not the object, so the panel re-reads the item from the
+   * refreshed list after each toggle. Capturing the object would leave the
+   * switches showing whatever was true when the panel opened.
+   */
+  const [panelItemId, setPanelItemId] = useState<string | null>(null);
+  const panelItem = items.find((i: InventoryItem) => i.id === panelItemId) ?? null;
 
   // ── Mutations ───────────────────────────────────────────────────────
   const qc = useQueryClient();
@@ -247,7 +257,63 @@ export default function InventoryPage() {
             : "No published menu for this brand yet — publish a menu to manage its availability here."}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+        <>
+        {/* Phone: a plain list, one row per product, opening a panel of
+            switches. The matrix is the right shape on a tablet — eight
+            columns you can compare at a glance — and the wrong shape on a
+            phone, where it becomes a horizontal scroll you have to drag back
+            and forth to work out which channel you're looking at. */}
+        <div className="flex flex-col gap-2 md:hidden">
+          {items.map((item: InventoryItem) => {
+            const off = CHANNELS.filter(
+              (c) => item.snoozes[c] ?? (item.snoozes as any).ALL,
+            ).length;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setPanelItemId(item.id)}
+                className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-left active:bg-zinc-50"
+              >
+                {item.imageUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="h-10 w-10 shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-zinc-100 text-[11px] font-bold text-zinc-500">
+                    {item.name.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-zinc-900">
+                    {item.name}
+                  </p>
+                  <p className="text-[11px] text-zinc-500">
+                    £{Number(item.basePrice).toFixed(2)}
+                    {item.plu ? ` · ${item.plu}` : ""}
+                  </p>
+                </div>
+                {/* The count is the point of the row: you're scanning for the
+                    thing that's off, not reading prices. */}
+                {off === 0 ? (
+                  <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                    All on
+                  </span>
+                ) : (
+                  <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                    {off} off
+                  </span>
+                )}
+                <ChevronRight className="h-4 w-4 shrink-0 text-zinc-400" />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-lg border border-zinc-200 bg-white md:block">
           {/* min-w-max is what makes the overflow-x-auto above do anything.
               With w-full alone the eight columns (Product + 7 channels) are
               squeezed into whatever the viewport is — about 47px each on a
@@ -337,6 +403,69 @@ export default function InventoryPage() {
               ))}
             </tbody>
           </table>
+        </div>
+        </>
+      )}
+
+      {/* Phone: the channel switches for one product.
+          z-40, below the duration sheet's z-50 — picking "off" opens that on
+          top of this, and the panel stays put underneath so you land back on
+          the same product afterwards. */}
+      {panelItem && (
+        <div
+          className="fixed inset-0 z-40 flex items-end bg-black/40 md:hidden"
+          onClick={() => setPanelItemId(null)}
+        >
+          <div
+            className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="truncate text-sm font-semibold text-zinc-900">
+                  {panelItem.name}
+                </h2>
+                <p className="text-[11px] text-zinc-500">
+                  £{Number(panelItem.basePrice).toFixed(2)}
+                  {panelItem.plu ? ` · ${panelItem.plu}` : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPanelItemId(null)}
+                className="shrink-0 rounded-md p-1 text-zinc-500 hover:bg-zinc-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-col divide-y divide-zinc-100">
+              {CHANNELS.map((c) => {
+                const snoozed =
+                  panelItem.snoozes[c] ?? (panelItem.snoozes as any).ALL;
+                const isGlobal = snoozed && snoozed.locationId == null;
+                return (
+                  <div
+                    key={c}
+                    className="flex items-center justify-between gap-3 py-2.5"
+                  >
+                    <span className="text-sm font-medium text-zinc-800">
+                      {CHANNEL_LABELS[c]}
+                    </span>
+                    <ChannelToggle
+                      on={!snoozed}
+                      expiresAt={snoozed?.expiresAt ?? null}
+                      scope={snoozed ? (isGlobal ? "all" : "here") : null}
+                      onClick={() => handleToggle(panelItem, c)}
+                      busy={
+                        snoozeMutation.isPending || unsnoozeMutation.isPending
+                      }
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 

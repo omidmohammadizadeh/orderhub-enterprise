@@ -219,7 +219,10 @@ export default function ReservationsPage() {
 
       {/* ── Day picker + counts ─────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3">
-        <div className="flex items-center gap-2">
+        {/* flex-wrap on the inner group too. The outer container wrapped, but
+            this row didn't, so on a phone the Today button was pushed past
+            the right edge and clipped rather than moving to a second line. */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setDate((d) => shiftDate(d, -1))}
             aria-label="Previous day"
@@ -252,7 +255,9 @@ export default function ReservationsPage() {
           </span>
         </div>
 
-        <div className="flex items-center gap-5">
+        {/* Full width on a phone so the three counts space themselves out
+            instead of huddling against one edge. */}
+        <div className="flex w-full items-center justify-between gap-5 sm:w-auto sm:justify-start">
           <Stat label="Covers" value={counts.covers} />
           <Stat label="Bookings" value={counts.bookings} />
           <Stat label="Unassigned" value={counts.unassigned} />

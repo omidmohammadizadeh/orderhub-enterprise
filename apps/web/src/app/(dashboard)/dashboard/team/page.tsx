@@ -251,7 +251,75 @@ function MembersTable({
   if (loading) return <Skeleton />;
   if (!members.length) return <Empty message="No team members yet." />;
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+    <>
+    {/* Phone: a card per member.
+        The table has seven columns and its wrapper is overflow-HIDDEN, so on
+        a phone the rightmost column was clipped away entirely — and that is
+        the column holding Edit and Remove. The buttons existed; there was
+        simply no way to reach them, which reads as "you cannot change
+        someone's role on a phone". */}
+    <div className="flex flex-col gap-2 md:hidden">
+      {members.map((m) => (
+        <div
+          key={m.id}
+          className="rounded-lg border border-zinc-200 bg-white p-3"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-zinc-900">
+                {[m.firstName, m.lastName].filter(Boolean).join(" ") || m.email}
+              </p>
+              <p className="truncate text-[11px] text-zinc-500">{m.email}</p>
+            </div>
+            <RolePill role={m.role} />
+          </div>
+
+          <div className="mt-2 flex flex-col gap-1">
+            <ScopeList items={m.locations.map((l) => l.name)} icon={MapPin} />
+            <ScopeList items={m.brands.map((b) => b.name)} icon={Building2} />
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-zinc-100 pt-2">
+            <span className="text-[11px] text-zinc-500">
+              {m.lastLoginAt
+                ? `Last login ${new Date(m.lastLoginAt).toLocaleDateString()}`
+                : "Never logged in"}
+            </span>
+            {isAdminRole(m.role) ? (
+              <span
+                title="Admin account — full access, protected"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400"
+              >
+                <Lock className="h-3.5 w-3.5" /> Protected
+              </span>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                {/* Labelled rather than icon-only: a bare pen at the bottom
+                    of a card is a guessing game, and this is the action the
+                    page exists for. */}
+                <button
+                  type="button"
+                  onClick={() => onEdit(m)}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-700"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(m)}
+                  title="Remove from team"
+                  className="rounded-md border border-zinc-200 p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div className="hidden overflow-hidden rounded-lg border border-zinc-200 bg-white md:block">
       <table className="min-w-full divide-y divide-zinc-200 text-sm">
         <thead className="bg-zinc-50 text-xs uppercase tracking-wider text-zinc-500">
           <tr>
@@ -328,6 +396,7 @@ function MembersTable({
         </tbody>
       </table>
     </div>
+    </>
   );
 }
 

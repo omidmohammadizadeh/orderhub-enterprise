@@ -401,8 +401,12 @@ export default function AnalyticsPage() {
 
           {/* Main chart + tab strip */}
           <section className="rounded-lg border border-zinc-200 bg-white">
-            <header className="flex items-center justify-between border-b border-zinc-100 px-4 py-2">
-              <nav className="flex items-center gap-3">
+            {/* Phone: tabs on their own line, scrolling sideways inside the
+                card; the window summary sits beneath. Side by side, four tab
+                labels and two date ranges were each squeezed into a column a
+                word wide. */}
+            <header className="flex flex-col gap-1.5 border-b border-zinc-100 px-4 py-2 md:flex-row md:items-center md:justify-between">
+              <nav className="-mx-4 flex items-center gap-3 overflow-x-auto px-4 md:mx-0 md:px-0">
                 {[
                   { id: "revenue", label: "Revenue" },
                   { id: "orders", label: "Orders" },
@@ -413,7 +417,7 @@ export default function AnalyticsPage() {
                     key={t.id}
                     type="button"
                     onClick={() => setTab(t.id as any)}
-                    className={`pb-1 text-sm font-medium ${
+                    className={`shrink-0 whitespace-nowrap pb-1 text-sm font-medium ${
                       tab === t.id
                         ? "border-b-2 border-emerald-600 text-zinc-900"
                         : "text-zinc-500 hover:text-zinc-800"
@@ -423,12 +427,18 @@ export default function AnalyticsPage() {
                   </button>
                 ))}
               </nav>
-              <span className="text-[11px] text-zinc-400">
+              <span className="shrink-0 whitespace-nowrap text-[11px] text-zinc-400">
                 <Calendar className="inline h-3 w-3 mr-1" />
                 {new Date(data.window.from).toLocaleDateString()} →{" "}
-                {new Date(data.window.to).toLocaleDateString()} · vs prior{" "}
-                {new Date(data.window.prevFrom).toLocaleDateString()} →{" "}
-                {new Date(data.window.prevTo).toLocaleDateString()}
+                {new Date(data.window.to).toLocaleDateString()}
+                {/* The comparison window is context, not the headline — on a
+                    phone it doubles the length of the line for something you
+                    can already see plotted. */}
+                <span className="hidden md:inline">
+                  {" "}· vs prior{" "}
+                  {new Date(data.window.prevFrom).toLocaleDateString()} →{" "}
+                  {new Date(data.window.prevTo).toLocaleDateString()}
+                </span>
               </span>
             </header>
             <div className="p-4">
@@ -930,6 +940,21 @@ function DineInPanel({
   );
 }
 
+/**
+ * Recharts sizes its tooltip from the content, with no upper bound. At a
+ * phone width "Day 2026-08-01 / This period : £1,079.90" is wider than the
+ * plot area, so the box hangs outside the card. Capping the width and
+ * shrinking the text keeps it inside; allowEscapeViewBox is spelled out
+ * rather than left to the default so a future Recharts upgrade can't quietly
+ * change it.
+ */
+const TOOLTIP_PROPS = {
+  allowEscapeViewBox: { x: false, y: false },
+  wrapperStyle: { maxWidth: "min(260px, 70vw)", zIndex: 10 },
+  contentStyle: { fontSize: 11, padding: "6px 8px", borderRadius: 8 },
+  labelStyle: { fontSize: 11, marginBottom: 2 },
+} as const;
+
 function RevenueChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) {
   return (
     <ResponsiveContainer width="100%" height={320}>
@@ -944,6 +969,7 @@ function RevenueChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) 
         <XAxis dataKey="date" tick={{ fontSize: 10 }} />
         <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `£${v}`} />
         <Tooltip
+          {...TOOLTIP_PROPS}
           formatter={(v: number) => fmtGBP(v)}
           labelFormatter={(label) => `Day ${label}`}
         />
@@ -975,7 +1001,7 @@ function OrdersChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} />
         <YAxis tick={{ fontSize: 10 }} />
-        <Tooltip />
+        <Tooltip {...TOOLTIP_PROPS} />
         <Bar dataKey="orders" name="Orders" fill="#f97316" />
       </BarChart>
     </ResponsiveContainer>
@@ -995,7 +1021,7 @@ function AovChart({ data }: { data: Array<{ date: string; aov: number }> }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} />
         <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `£${v}`} />
-        <Tooltip formatter={(v: number) => fmtGBP(v)} />
+        <Tooltip {...TOOLTIP_PROPS} formatter={(v: number) => fmtGBP(v)} />
         <Area
           type="monotone"
           dataKey="aov"
@@ -1012,7 +1038,7 @@ function BreakdownPie({ data }: { data: AnalyticsOverview["byChannel"] }) {
   return (
     <ResponsiveContainer width="100%" height={320}>
       <PieChart>
-        <Tooltip formatter={(v: number) => fmtGBP(v)} />
+        <Tooltip {...TOOLTIP_PROPS} formatter={(v: number) => fmtGBP(v)} />
         <Legend wrapperStyle={{ fontSize: 11 }} />
         <Pie
           data={data}

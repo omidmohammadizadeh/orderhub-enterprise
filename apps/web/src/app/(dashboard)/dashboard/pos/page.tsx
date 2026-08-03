@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Search, ShoppingBag, Pencil, X } from "lucide-react";
+import { Search, ShoppingBag, Pencil, X, SlidersHorizontal } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { round2, type SelectedModifier, type ProductSku } from "@orderhub/shared";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
@@ -130,6 +130,8 @@ export default function PosPage() {
   /** Phone only — the cart is a full-screen step rather than a side column.
    *  Ignored from md up, where the cart is always on screen. */
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  /** Phone only — the header tools live in a bottom sheet. */
+  const [toolsOpen, setToolsOpen] = useState(false);
   /** Summary for the phone bottom bar. Modifier prices are included so the
    *  figure matches what the cart panel shows a tap later — a bar that says
    *  £9.50 opening onto a £12.00 basket reads as a bug. */
@@ -802,6 +804,64 @@ export default function PosPage() {
 
   const clearCart = useCallback(() => setCart([]), []);
 
+  /**
+   * The header tools, defined once and rendered twice — as a button row from
+   * md up, and as a bottom sheet on a phone. Declaring them as data rather
+   * than duplicating five buttons is what stops the phone quietly losing one
+   * the next time somebody adds a sixth.
+   */
+  const posTools = [
+    {
+      key: "drawer",
+      // Always listed (not gated on the bridge) so staff can find it; on a
+      // desktop browser it explains that the drawer opens through the
+      // printer, which only the tablet app can reach.
+      label: drawerBusy ? "Opening…" : "Open cash drawer",
+      title: "Pop the cash drawer (no sale)",
+      icon: Banknote,
+      onClick: openDrawer,
+      disabled: !selectedLocationId || drawerBusy,
+      show: true,
+    },
+    {
+      key: "fee",
+      label: "Delivery fee",
+      title: "Configure delivery zones & fees for this location",
+      icon: Truck,
+      onClick: () => setShowFeeModal(true),
+      disabled: !selectedLocationId,
+      // Nothing is delivered from a table — hide it in dine-in.
+      show: !tableId,
+    },
+    {
+      key: "pin",
+      label: "Manager PIN",
+      title: "Set the PIN that authorises voids and comps",
+      icon: KeyRound,
+      onClick: () => setPinOpen(true),
+      disabled: !selectedLocationId,
+      show: canManagePin,
+    },
+    {
+      key: "service",
+      label: "Service charge",
+      title: "Add a service charge automatically to bills",
+      icon: Percent,
+      onClick: () => setShowServiceCharge(true),
+      disabled: !selectedLocationId,
+      show: true,
+    },
+    {
+      key: "promos",
+      label: "Promos",
+      title: "Set up quick-discount promos for this location",
+      icon: Tag,
+      onClick: () => setShowPromosModal(true),
+      disabled: !selectedLocationId,
+      show: true,
+    },
+  ].filter((t) => t.show);
+
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col gap-3">
       {editOrderId && (
@@ -823,9 +883,13 @@ export default function PosPage() {
           </button>
         </div>
       )}
-      {/* Table Tabs — dine-in banner + settle */}
+      {/* Table Tabs — dine-in banner + settle.
+          Phone: the sentence gets its own line and the settle buttons sit in
+          a wrapping row beneath it. Side by side, the text was squeezed into
+          a ~90px column reading one word per line while Pay & close hung off
+          the right edge. */}
       {tableId && (
-        <div className="mb-2 flex items-center justify-between gap-2 rounded-md bg-indigo-50 px-3 py-2 text-sm text-indigo-900">
+        <div className="mb-2 flex flex-col gap-2 rounded-md bg-indigo-50 px-3 py-2 text-sm text-indigo-900 md:flex-row md:items-center md:justify-between">
           <span>
             <b>Dine-in · {tableName ?? "Table"}</b>
             {tabOrderId
@@ -839,10 +903,11 @@ export default function PosPage() {
                   " — seated, but no tab open yet. Send a round to start the bill."
                 : " — add items and “Send to kitchen” to open the tab."}
           </span>
+          <div className="flex flex-wrap items-center gap-2 md:shrink-0 md:flex-nowrap">
           {tabOrderId && !payChoiceOpen && (
             <button
               onClick={() => setVoidOpen(true)}
-              className="mr-2 inline-flex shrink-0 items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
               title="Void or comp a line (manager PIN)"
             >
               <Ban className="h-3.5 w-3.5" /> Void
@@ -920,83 +985,98 @@ export default function PosPage() {
             ) : (
               <button
                 onClick={payAndCloseTab}
-                className="shrink-0 rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                className="shrink-0 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
               >
                 Pay &amp; close · £{tabTotal.toFixed(2)}
               </button>
             ))}
+          </div>
         </div>
       )}
-      {/* Top bar */}
+      {/* Top bar.
+          These five are settings, not per-order actions — you touch them
+          once a shift, if that. On a phone they were squeezing the title
+          into a one-word-per-line column and still running off the right
+          edge, so below md they collapse behind a single button and the
+          screen goes to the products instead. */}
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold text-zinc-900">
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-semibold text-zinc-900">
             {tableId ? `POS · ${tableName ?? "Table"}` : "POS"}
           </h1>
-          <p className="text-sm text-zinc-500">
+          {/* The subtitle is orientation, not information — on a phone the
+              vertical space is worth more than the sentence. */}
+          <p className="hidden text-sm text-zinc-500 md:block">
             {tableId
               ? "Dine-in tab — items you add are sent to the kitchen."
               : "Walk-in, phone & scheduled orders"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* No-sale drawer pop — for change, refunds and cashing up, with no
-              order involved. Always shown (not gated on the bridge) so staff
-              can find it; on a desktop browser it explains that the drawer
-              opens through the printer, which only the tablet app can reach. */}
-          <button
-            type="button"
-            onClick={openDrawer}
-            disabled={!selectedLocationId || drawerBusy}
-            title="Pop the cash drawer (no sale)"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
-          >
-            <Banknote className="h-3.5 w-3.5" />{" "}
-            {drawerBusy ? "Opening…" : "Open cash drawer"}
-          </button>
-          {/* Nothing is delivered from a table — hide it in dine-in. */}
-          {!tableId && (
+
+        <button
+          type="button"
+          onClick={() => setToolsOpen(true)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 md:hidden"
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" /> Tools
+        </button>
+
+        <div className="hidden items-center gap-2 md:flex">
+          {posTools.map((t) => (
             <button
+              key={t.key}
               type="button"
-              onClick={() => setShowFeeModal(true)}
-              disabled={!selectedLocationId}
-              title="Configure delivery zones & fees for this location"
+              onClick={t.onClick}
+              disabled={t.disabled}
+              title={t.title}
               className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
             >
-              <Truck className="h-3.5 w-3.5" /> Delivery fee
+              <t.icon className="h-3.5 w-3.5" /> {t.label}
             </button>
-          )}
-          {canManagePin && (
-          <button
-            type="button"
-            onClick={() => setPinOpen(true)}
-            disabled={!selectedLocationId}
-            title="Set the PIN that authorises voids and comps"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
-          >
-            <KeyRound className="h-3.5 w-3.5" /> Manager PIN
-          </button>
-          )}
-          <button
-            type="button"
-            onClick={() => setShowServiceCharge(true)}
-            disabled={!selectedLocationId}
-            title="Add a service charge automatically to bills"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
-          >
-            <Percent className="h-3.5 w-3.5" /> Service charge
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowPromosModal(true)}
-            disabled={!selectedLocationId}
-            title="Set up quick-discount promos for this location"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
-          >
-            <Tag className="h-3.5 w-3.5" /> Promos
-          </button>
+          ))}
         </div>
       </div>
+
+      {/* Phone: the same tools as a bottom sheet. */}
+      {toolsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden"
+          onClick={() => setToolsOpen(false)}
+        >
+          <div
+            className="w-full rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-zinc-900">Tools</h2>
+              <button
+                type="button"
+                onClick={() => setToolsOpen(false)}
+                className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {posTools.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => {
+                    setToolsOpen(false);
+                    t.onClick();
+                  }}
+                  disabled={t.disabled}
+                  className="inline-flex items-center gap-2.5 rounded-lg border border-zinc-200 px-3 py-3 text-left text-sm font-medium text-zinc-700 disabled:opacity-50"
+                >
+                  <t.icon className="h-4 w-4 shrink-0 text-zinc-500" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {(!online || pendingSync > 0) && (
         <div
