@@ -613,6 +613,16 @@ export type GroupOrder = $Result.DefaultSelection<Prisma.$GroupOrderPayload>
  * 
  */
 export type GroupOrderItem = $Result.DefaultSelection<Prisma.$GroupOrderItemPayload>
+/**
+ * Model CustomerPushSubscription
+ * 
+ */
+export type CustomerPushSubscription = $Result.DefaultSelection<Prisma.$CustomerPushSubscriptionPayload>
+/**
+ * Model CustomerPushOrder
+ * 
+ */
+export type CustomerPushOrder = $Result.DefaultSelection<Prisma.$CustomerPushOrderPayload>
 
 /**
  * Enums
@@ -2759,6 +2769,26 @@ export class PrismaClient<
     * ```
     */
   get groupOrderItem(): Prisma.GroupOrderItemDelegate<ExtArgs>;
+
+  /**
+   * `prisma.customerPushSubscription`: Exposes CRUD operations for the **CustomerPushSubscription** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerPushSubscriptions
+    * const customerPushSubscriptions = await prisma.customerPushSubscription.findMany()
+    * ```
+    */
+  get customerPushSubscription(): Prisma.CustomerPushSubscriptionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.customerPushOrder`: Exposes CRUD operations for the **CustomerPushOrder** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerPushOrders
+    * const customerPushOrders = await prisma.customerPushOrder.findMany()
+    * ```
+    */
+  get customerPushOrder(): Prisma.CustomerPushOrderDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3319,7 +3349,9 @@ export namespace Prisma {
     Review: 'Review',
     VoiceCall: 'VoiceCall',
     GroupOrder: 'GroupOrder',
-    GroupOrderItem: 'GroupOrderItem'
+    GroupOrderItem: 'GroupOrderItem',
+    CustomerPushSubscription: 'CustomerPushSubscription',
+    CustomerPushOrder: 'CustomerPushOrder'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3335,7 +3367,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -11739,6 +11771,146 @@ export namespace Prisma {
           }
         }
       }
+      CustomerPushSubscription: {
+        payload: Prisma.$CustomerPushSubscriptionPayload<ExtArgs>
+        fields: Prisma.CustomerPushSubscriptionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomerPushSubscriptionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomerPushSubscriptionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>
+          }
+          findFirst: {
+            args: Prisma.CustomerPushSubscriptionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomerPushSubscriptionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>
+          }
+          findMany: {
+            args: Prisma.CustomerPushSubscriptionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>[]
+          }
+          create: {
+            args: Prisma.CustomerPushSubscriptionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>
+          }
+          createMany: {
+            args: Prisma.CustomerPushSubscriptionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomerPushSubscriptionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>[]
+          }
+          delete: {
+            args: Prisma.CustomerPushSubscriptionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>
+          }
+          update: {
+            args: Prisma.CustomerPushSubscriptionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomerPushSubscriptionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomerPushSubscriptionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CustomerPushSubscriptionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushSubscriptionPayload>
+          }
+          aggregate: {
+            args: Prisma.CustomerPushSubscriptionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomerPushSubscription>
+          }
+          groupBy: {
+            args: Prisma.CustomerPushSubscriptionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomerPushSubscriptionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomerPushSubscriptionCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomerPushSubscriptionCountAggregateOutputType> | number
+          }
+        }
+      }
+      CustomerPushOrder: {
+        payload: Prisma.$CustomerPushOrderPayload<ExtArgs>
+        fields: Prisma.CustomerPushOrderFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomerPushOrderFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomerPushOrderFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>
+          }
+          findFirst: {
+            args: Prisma.CustomerPushOrderFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomerPushOrderFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>
+          }
+          findMany: {
+            args: Prisma.CustomerPushOrderFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>[]
+          }
+          create: {
+            args: Prisma.CustomerPushOrderCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>
+          }
+          createMany: {
+            args: Prisma.CustomerPushOrderCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomerPushOrderCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>[]
+          }
+          delete: {
+            args: Prisma.CustomerPushOrderDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>
+          }
+          update: {
+            args: Prisma.CustomerPushOrderUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomerPushOrderDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomerPushOrderUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CustomerPushOrderUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPushOrderPayload>
+          }
+          aggregate: {
+            args: Prisma.CustomerPushOrderAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomerPushOrder>
+          }
+          groupBy: {
+            args: Prisma.CustomerPushOrderGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomerPushOrderGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomerPushOrderCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomerPushOrderCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -13658,6 +13830,37 @@ export namespace Prisma {
    */
   export type WalletCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WalletTransactionWhereInput
+  }
+
+
+  /**
+   * Count Type CustomerPushSubscriptionCountOutputType
+   */
+
+  export type CustomerPushSubscriptionCountOutputType = {
+    orders: number
+  }
+
+  export type CustomerPushSubscriptionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    orders?: boolean | CustomerPushSubscriptionCountOutputTypeCountOrdersArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CustomerPushSubscriptionCountOutputType without action
+   */
+  export type CustomerPushSubscriptionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscriptionCountOutputType
+     */
+    select?: CustomerPushSubscriptionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CustomerPushSubscriptionCountOutputType without action
+   */
+  export type CustomerPushSubscriptionCountOutputTypeCountOrdersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerPushOrderWhereInput
   }
 
 
@@ -142908,6 +143111,1995 @@ export namespace Prisma {
 
 
   /**
+   * Model CustomerPushSubscription
+   */
+
+  export type AggregateCustomerPushSubscription = {
+    _count: CustomerPushSubscriptionCountAggregateOutputType | null
+    _min: CustomerPushSubscriptionMinAggregateOutputType | null
+    _max: CustomerPushSubscriptionMaxAggregateOutputType | null
+  }
+
+  export type CustomerPushSubscriptionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    endpoint: string | null
+    p256dh: string | null
+    auth: string | null
+    customerId: string | null
+    deviceRef: string | null
+    userAgent: string | null
+    isActive: boolean | null
+    revokedAt: Date | null
+    lastSentAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomerPushSubscriptionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    endpoint: string | null
+    p256dh: string | null
+    auth: string | null
+    customerId: string | null
+    deviceRef: string | null
+    userAgent: string | null
+    isActive: boolean | null
+    revokedAt: Date | null
+    lastSentAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomerPushSubscriptionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    endpoint: number
+    p256dh: number
+    auth: number
+    customerId: number
+    deviceRef: number
+    userAgent: number
+    isActive: number
+    revokedAt: number
+    lastSentAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CustomerPushSubscriptionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    endpoint?: true
+    p256dh?: true
+    auth?: true
+    customerId?: true
+    deviceRef?: true
+    userAgent?: true
+    isActive?: true
+    revokedAt?: true
+    lastSentAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomerPushSubscriptionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    endpoint?: true
+    p256dh?: true
+    auth?: true
+    customerId?: true
+    deviceRef?: true
+    userAgent?: true
+    isActive?: true
+    revokedAt?: true
+    lastSentAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomerPushSubscriptionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    endpoint?: true
+    p256dh?: true
+    auth?: true
+    customerId?: true
+    deviceRef?: true
+    userAgent?: true
+    isActive?: true
+    revokedAt?: true
+    lastSentAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CustomerPushSubscriptionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerPushSubscription to aggregate.
+     */
+    where?: CustomerPushSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushSubscriptions to fetch.
+     */
+    orderBy?: CustomerPushSubscriptionOrderByWithRelationInput | CustomerPushSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomerPushSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomerPushSubscriptions
+    **/
+    _count?: true | CustomerPushSubscriptionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomerPushSubscriptionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomerPushSubscriptionMaxAggregateInputType
+  }
+
+  export type GetCustomerPushSubscriptionAggregateType<T extends CustomerPushSubscriptionAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomerPushSubscription]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomerPushSubscription[P]>
+      : GetScalarType<T[P], AggregateCustomerPushSubscription[P]>
+  }
+
+
+
+
+  export type CustomerPushSubscriptionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerPushSubscriptionWhereInput
+    orderBy?: CustomerPushSubscriptionOrderByWithAggregationInput | CustomerPushSubscriptionOrderByWithAggregationInput[]
+    by: CustomerPushSubscriptionScalarFieldEnum[] | CustomerPushSubscriptionScalarFieldEnum
+    having?: CustomerPushSubscriptionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomerPushSubscriptionCountAggregateInputType | true
+    _min?: CustomerPushSubscriptionMinAggregateInputType
+    _max?: CustomerPushSubscriptionMaxAggregateInputType
+  }
+
+  export type CustomerPushSubscriptionGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string | null
+    brandId: string | null
+    endpoint: string
+    p256dh: string
+    auth: string
+    customerId: string | null
+    deviceRef: string | null
+    userAgent: string | null
+    isActive: boolean
+    revokedAt: Date | null
+    lastSentAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CustomerPushSubscriptionCountAggregateOutputType | null
+    _min: CustomerPushSubscriptionMinAggregateOutputType | null
+    _max: CustomerPushSubscriptionMaxAggregateOutputType | null
+  }
+
+  type GetCustomerPushSubscriptionGroupByPayload<T extends CustomerPushSubscriptionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomerPushSubscriptionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomerPushSubscriptionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomerPushSubscriptionGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomerPushSubscriptionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomerPushSubscriptionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    endpoint?: boolean
+    p256dh?: boolean
+    auth?: boolean
+    customerId?: boolean
+    deviceRef?: boolean
+    userAgent?: boolean
+    isActive?: boolean
+    revokedAt?: boolean
+    lastSentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    orders?: boolean | CustomerPushSubscription$ordersArgs<ExtArgs>
+    _count?: boolean | CustomerPushSubscriptionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerPushSubscription"]>
+
+  export type CustomerPushSubscriptionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    endpoint?: boolean
+    p256dh?: boolean
+    auth?: boolean
+    customerId?: boolean
+    deviceRef?: boolean
+    userAgent?: boolean
+    isActive?: boolean
+    revokedAt?: boolean
+    lastSentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["customerPushSubscription"]>
+
+  export type CustomerPushSubscriptionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    endpoint?: boolean
+    p256dh?: boolean
+    auth?: boolean
+    customerId?: boolean
+    deviceRef?: boolean
+    userAgent?: boolean
+    isActive?: boolean
+    revokedAt?: boolean
+    lastSentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CustomerPushSubscriptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    orders?: boolean | CustomerPushSubscription$ordersArgs<ExtArgs>
+    _count?: boolean | CustomerPushSubscriptionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CustomerPushSubscriptionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $CustomerPushSubscriptionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomerPushSubscription"
+    objects: {
+      orders: Prisma.$CustomerPushOrderPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string | null
+      brandId: string | null
+      endpoint: string
+      p256dh: string
+      auth: string
+      customerId: string | null
+      deviceRef: string | null
+      userAgent: string | null
+      isActive: boolean
+      revokedAt: Date | null
+      lastSentAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["customerPushSubscription"]>
+    composites: {}
+  }
+
+  type CustomerPushSubscriptionGetPayload<S extends boolean | null | undefined | CustomerPushSubscriptionDefaultArgs> = $Result.GetResult<Prisma.$CustomerPushSubscriptionPayload, S>
+
+  type CustomerPushSubscriptionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CustomerPushSubscriptionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CustomerPushSubscriptionCountAggregateInputType | true
+    }
+
+  export interface CustomerPushSubscriptionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomerPushSubscription'], meta: { name: 'CustomerPushSubscription' } }
+    /**
+     * Find zero or one CustomerPushSubscription that matches the filter.
+     * @param {CustomerPushSubscriptionFindUniqueArgs} args - Arguments to find a CustomerPushSubscription
+     * @example
+     * // Get one CustomerPushSubscription
+     * const customerPushSubscription = await prisma.customerPushSubscription.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomerPushSubscriptionFindUniqueArgs>(args: SelectSubset<T, CustomerPushSubscriptionFindUniqueArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one CustomerPushSubscription that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CustomerPushSubscriptionFindUniqueOrThrowArgs} args - Arguments to find a CustomerPushSubscription
+     * @example
+     * // Get one CustomerPushSubscription
+     * const customerPushSubscription = await prisma.customerPushSubscription.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomerPushSubscriptionFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomerPushSubscriptionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first CustomerPushSubscription that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushSubscriptionFindFirstArgs} args - Arguments to find a CustomerPushSubscription
+     * @example
+     * // Get one CustomerPushSubscription
+     * const customerPushSubscription = await prisma.customerPushSubscription.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomerPushSubscriptionFindFirstArgs>(args?: SelectSubset<T, CustomerPushSubscriptionFindFirstArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first CustomerPushSubscription that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushSubscriptionFindFirstOrThrowArgs} args - Arguments to find a CustomerPushSubscription
+     * @example
+     * // Get one CustomerPushSubscription
+     * const customerPushSubscription = await prisma.customerPushSubscription.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomerPushSubscriptionFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomerPushSubscriptionFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more CustomerPushSubscriptions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushSubscriptionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomerPushSubscriptions
+     * const customerPushSubscriptions = await prisma.customerPushSubscription.findMany()
+     * 
+     * // Get first 10 CustomerPushSubscriptions
+     * const customerPushSubscriptions = await prisma.customerPushSubscription.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customerPushSubscriptionWithIdOnly = await prisma.customerPushSubscription.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomerPushSubscriptionFindManyArgs>(args?: SelectSubset<T, CustomerPushSubscriptionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a CustomerPushSubscription.
+     * @param {CustomerPushSubscriptionCreateArgs} args - Arguments to create a CustomerPushSubscription.
+     * @example
+     * // Create one CustomerPushSubscription
+     * const CustomerPushSubscription = await prisma.customerPushSubscription.create({
+     *   data: {
+     *     // ... data to create a CustomerPushSubscription
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomerPushSubscriptionCreateArgs>(args: SelectSubset<T, CustomerPushSubscriptionCreateArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many CustomerPushSubscriptions.
+     * @param {CustomerPushSubscriptionCreateManyArgs} args - Arguments to create many CustomerPushSubscriptions.
+     * @example
+     * // Create many CustomerPushSubscriptions
+     * const customerPushSubscription = await prisma.customerPushSubscription.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomerPushSubscriptionCreateManyArgs>(args?: SelectSubset<T, CustomerPushSubscriptionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomerPushSubscriptions and returns the data saved in the database.
+     * @param {CustomerPushSubscriptionCreateManyAndReturnArgs} args - Arguments to create many CustomerPushSubscriptions.
+     * @example
+     * // Create many CustomerPushSubscriptions
+     * const customerPushSubscription = await prisma.customerPushSubscription.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomerPushSubscriptions and only return the `id`
+     * const customerPushSubscriptionWithIdOnly = await prisma.customerPushSubscription.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomerPushSubscriptionCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomerPushSubscriptionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a CustomerPushSubscription.
+     * @param {CustomerPushSubscriptionDeleteArgs} args - Arguments to delete one CustomerPushSubscription.
+     * @example
+     * // Delete one CustomerPushSubscription
+     * const CustomerPushSubscription = await prisma.customerPushSubscription.delete({
+     *   where: {
+     *     // ... filter to delete one CustomerPushSubscription
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomerPushSubscriptionDeleteArgs>(args: SelectSubset<T, CustomerPushSubscriptionDeleteArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one CustomerPushSubscription.
+     * @param {CustomerPushSubscriptionUpdateArgs} args - Arguments to update one CustomerPushSubscription.
+     * @example
+     * // Update one CustomerPushSubscription
+     * const customerPushSubscription = await prisma.customerPushSubscription.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomerPushSubscriptionUpdateArgs>(args: SelectSubset<T, CustomerPushSubscriptionUpdateArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more CustomerPushSubscriptions.
+     * @param {CustomerPushSubscriptionDeleteManyArgs} args - Arguments to filter CustomerPushSubscriptions to delete.
+     * @example
+     * // Delete a few CustomerPushSubscriptions
+     * const { count } = await prisma.customerPushSubscription.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomerPushSubscriptionDeleteManyArgs>(args?: SelectSubset<T, CustomerPushSubscriptionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerPushSubscriptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushSubscriptionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomerPushSubscriptions
+     * const customerPushSubscription = await prisma.customerPushSubscription.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomerPushSubscriptionUpdateManyArgs>(args: SelectSubset<T, CustomerPushSubscriptionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one CustomerPushSubscription.
+     * @param {CustomerPushSubscriptionUpsertArgs} args - Arguments to update or create a CustomerPushSubscription.
+     * @example
+     * // Update or create a CustomerPushSubscription
+     * const customerPushSubscription = await prisma.customerPushSubscription.upsert({
+     *   create: {
+     *     // ... data to create a CustomerPushSubscription
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomerPushSubscription we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomerPushSubscriptionUpsertArgs>(args: SelectSubset<T, CustomerPushSubscriptionUpsertArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of CustomerPushSubscriptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushSubscriptionCountArgs} args - Arguments to filter CustomerPushSubscriptions to count.
+     * @example
+     * // Count the number of CustomerPushSubscriptions
+     * const count = await prisma.customerPushSubscription.count({
+     *   where: {
+     *     // ... the filter for the CustomerPushSubscriptions we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomerPushSubscriptionCountArgs>(
+      args?: Subset<T, CustomerPushSubscriptionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomerPushSubscriptionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomerPushSubscription.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushSubscriptionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomerPushSubscriptionAggregateArgs>(args: Subset<T, CustomerPushSubscriptionAggregateArgs>): Prisma.PrismaPromise<GetCustomerPushSubscriptionAggregateType<T>>
+
+    /**
+     * Group by CustomerPushSubscription.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushSubscriptionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomerPushSubscriptionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomerPushSubscriptionGroupByArgs['orderBy'] }
+        : { orderBy?: CustomerPushSubscriptionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomerPushSubscriptionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomerPushSubscriptionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomerPushSubscription model
+   */
+  readonly fields: CustomerPushSubscriptionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomerPushSubscription.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomerPushSubscriptionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    orders<T extends CustomerPushSubscription$ordersArgs<ExtArgs> = {}>(args?: Subset<T, CustomerPushSubscription$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomerPushSubscription model
+   */ 
+  interface CustomerPushSubscriptionFieldRefs {
+    readonly id: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly tenantId: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly locationId: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly brandId: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly endpoint: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly p256dh: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly auth: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly customerId: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly deviceRef: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly userAgent: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly isActive: FieldRef<"CustomerPushSubscription", 'Boolean'>
+    readonly revokedAt: FieldRef<"CustomerPushSubscription", 'DateTime'>
+    readonly lastSentAt: FieldRef<"CustomerPushSubscription", 'DateTime'>
+    readonly createdAt: FieldRef<"CustomerPushSubscription", 'DateTime'>
+    readonly updatedAt: FieldRef<"CustomerPushSubscription", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomerPushSubscription findUnique
+   */
+  export type CustomerPushSubscriptionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushSubscription to fetch.
+     */
+    where: CustomerPushSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushSubscription findUniqueOrThrow
+   */
+  export type CustomerPushSubscriptionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushSubscription to fetch.
+     */
+    where: CustomerPushSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushSubscription findFirst
+   */
+  export type CustomerPushSubscriptionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushSubscription to fetch.
+     */
+    where?: CustomerPushSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushSubscriptions to fetch.
+     */
+    orderBy?: CustomerPushSubscriptionOrderByWithRelationInput | CustomerPushSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerPushSubscriptions.
+     */
+    cursor?: CustomerPushSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerPushSubscriptions.
+     */
+    distinct?: CustomerPushSubscriptionScalarFieldEnum | CustomerPushSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPushSubscription findFirstOrThrow
+   */
+  export type CustomerPushSubscriptionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushSubscription to fetch.
+     */
+    where?: CustomerPushSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushSubscriptions to fetch.
+     */
+    orderBy?: CustomerPushSubscriptionOrderByWithRelationInput | CustomerPushSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerPushSubscriptions.
+     */
+    cursor?: CustomerPushSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerPushSubscriptions.
+     */
+    distinct?: CustomerPushSubscriptionScalarFieldEnum | CustomerPushSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPushSubscription findMany
+   */
+  export type CustomerPushSubscriptionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushSubscriptions to fetch.
+     */
+    where?: CustomerPushSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushSubscriptions to fetch.
+     */
+    orderBy?: CustomerPushSubscriptionOrderByWithRelationInput | CustomerPushSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomerPushSubscriptions.
+     */
+    cursor?: CustomerPushSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushSubscriptions.
+     */
+    skip?: number
+    distinct?: CustomerPushSubscriptionScalarFieldEnum | CustomerPushSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPushSubscription create
+   */
+  export type CustomerPushSubscriptionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomerPushSubscription.
+     */
+    data: XOR<CustomerPushSubscriptionCreateInput, CustomerPushSubscriptionUncheckedCreateInput>
+  }
+
+  /**
+   * CustomerPushSubscription createMany
+   */
+  export type CustomerPushSubscriptionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomerPushSubscriptions.
+     */
+    data: CustomerPushSubscriptionCreateManyInput | CustomerPushSubscriptionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomerPushSubscription createManyAndReturn
+   */
+  export type CustomerPushSubscriptionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many CustomerPushSubscriptions.
+     */
+    data: CustomerPushSubscriptionCreateManyInput | CustomerPushSubscriptionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomerPushSubscription update
+   */
+  export type CustomerPushSubscriptionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomerPushSubscription.
+     */
+    data: XOR<CustomerPushSubscriptionUpdateInput, CustomerPushSubscriptionUncheckedUpdateInput>
+    /**
+     * Choose, which CustomerPushSubscription to update.
+     */
+    where: CustomerPushSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushSubscription updateMany
+   */
+  export type CustomerPushSubscriptionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomerPushSubscriptions.
+     */
+    data: XOR<CustomerPushSubscriptionUpdateManyMutationInput, CustomerPushSubscriptionUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerPushSubscriptions to update
+     */
+    where?: CustomerPushSubscriptionWhereInput
+  }
+
+  /**
+   * CustomerPushSubscription upsert
+   */
+  export type CustomerPushSubscriptionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomerPushSubscription to update in case it exists.
+     */
+    where: CustomerPushSubscriptionWhereUniqueInput
+    /**
+     * In case the CustomerPushSubscription found by the `where` argument doesn't exist, create a new CustomerPushSubscription with this data.
+     */
+    create: XOR<CustomerPushSubscriptionCreateInput, CustomerPushSubscriptionUncheckedCreateInput>
+    /**
+     * In case the CustomerPushSubscription was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomerPushSubscriptionUpdateInput, CustomerPushSubscriptionUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomerPushSubscription delete
+   */
+  export type CustomerPushSubscriptionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter which CustomerPushSubscription to delete.
+     */
+    where: CustomerPushSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushSubscription deleteMany
+   */
+  export type CustomerPushSubscriptionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerPushSubscriptions to delete
+     */
+    where?: CustomerPushSubscriptionWhereInput
+  }
+
+  /**
+   * CustomerPushSubscription.orders
+   */
+  export type CustomerPushSubscription$ordersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    where?: CustomerPushOrderWhereInput
+    orderBy?: CustomerPushOrderOrderByWithRelationInput | CustomerPushOrderOrderByWithRelationInput[]
+    cursor?: CustomerPushOrderWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomerPushOrderScalarFieldEnum | CustomerPushOrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPushSubscription without action
+   */
+  export type CustomerPushSubscriptionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushSubscription
+     */
+    select?: CustomerPushSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushSubscriptionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CustomerPushOrder
+   */
+
+  export type AggregateCustomerPushOrder = {
+    _count: CustomerPushOrderCountAggregateOutputType | null
+    _min: CustomerPushOrderMinAggregateOutputType | null
+    _max: CustomerPushOrderMaxAggregateOutputType | null
+  }
+
+  export type CustomerPushOrderMinAggregateOutputType = {
+    id: string | null
+    subscriptionId: string | null
+    orderId: string | null
+    createdAt: Date | null
+  }
+
+  export type CustomerPushOrderMaxAggregateOutputType = {
+    id: string | null
+    subscriptionId: string | null
+    orderId: string | null
+    createdAt: Date | null
+  }
+
+  export type CustomerPushOrderCountAggregateOutputType = {
+    id: number
+    subscriptionId: number
+    orderId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CustomerPushOrderMinAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    orderId?: true
+    createdAt?: true
+  }
+
+  export type CustomerPushOrderMaxAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    orderId?: true
+    createdAt?: true
+  }
+
+  export type CustomerPushOrderCountAggregateInputType = {
+    id?: true
+    subscriptionId?: true
+    orderId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CustomerPushOrderAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerPushOrder to aggregate.
+     */
+    where?: CustomerPushOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushOrders to fetch.
+     */
+    orderBy?: CustomerPushOrderOrderByWithRelationInput | CustomerPushOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomerPushOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomerPushOrders
+    **/
+    _count?: true | CustomerPushOrderCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomerPushOrderMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomerPushOrderMaxAggregateInputType
+  }
+
+  export type GetCustomerPushOrderAggregateType<T extends CustomerPushOrderAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomerPushOrder]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomerPushOrder[P]>
+      : GetScalarType<T[P], AggregateCustomerPushOrder[P]>
+  }
+
+
+
+
+  export type CustomerPushOrderGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerPushOrderWhereInput
+    orderBy?: CustomerPushOrderOrderByWithAggregationInput | CustomerPushOrderOrderByWithAggregationInput[]
+    by: CustomerPushOrderScalarFieldEnum[] | CustomerPushOrderScalarFieldEnum
+    having?: CustomerPushOrderScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomerPushOrderCountAggregateInputType | true
+    _min?: CustomerPushOrderMinAggregateInputType
+    _max?: CustomerPushOrderMaxAggregateInputType
+  }
+
+  export type CustomerPushOrderGroupByOutputType = {
+    id: string
+    subscriptionId: string
+    orderId: string
+    createdAt: Date
+    _count: CustomerPushOrderCountAggregateOutputType | null
+    _min: CustomerPushOrderMinAggregateOutputType | null
+    _max: CustomerPushOrderMaxAggregateOutputType | null
+  }
+
+  type GetCustomerPushOrderGroupByPayload<T extends CustomerPushOrderGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomerPushOrderGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomerPushOrderGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomerPushOrderGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomerPushOrderGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomerPushOrderSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    subscriptionId?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+    subscription?: boolean | CustomerPushSubscriptionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerPushOrder"]>
+
+  export type CustomerPushOrderSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    subscriptionId?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+    subscription?: boolean | CustomerPushSubscriptionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerPushOrder"]>
+
+  export type CustomerPushOrderSelectScalar = {
+    id?: boolean
+    subscriptionId?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }
+
+  export type CustomerPushOrderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscription?: boolean | CustomerPushSubscriptionDefaultArgs<ExtArgs>
+  }
+  export type CustomerPushOrderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscription?: boolean | CustomerPushSubscriptionDefaultArgs<ExtArgs>
+  }
+
+  export type $CustomerPushOrderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomerPushOrder"
+    objects: {
+      subscription: Prisma.$CustomerPushSubscriptionPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      subscriptionId: string
+      orderId: string
+      createdAt: Date
+    }, ExtArgs["result"]["customerPushOrder"]>
+    composites: {}
+  }
+
+  type CustomerPushOrderGetPayload<S extends boolean | null | undefined | CustomerPushOrderDefaultArgs> = $Result.GetResult<Prisma.$CustomerPushOrderPayload, S>
+
+  type CustomerPushOrderCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CustomerPushOrderFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CustomerPushOrderCountAggregateInputType | true
+    }
+
+  export interface CustomerPushOrderDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomerPushOrder'], meta: { name: 'CustomerPushOrder' } }
+    /**
+     * Find zero or one CustomerPushOrder that matches the filter.
+     * @param {CustomerPushOrderFindUniqueArgs} args - Arguments to find a CustomerPushOrder
+     * @example
+     * // Get one CustomerPushOrder
+     * const customerPushOrder = await prisma.customerPushOrder.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomerPushOrderFindUniqueArgs>(args: SelectSubset<T, CustomerPushOrderFindUniqueArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one CustomerPushOrder that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CustomerPushOrderFindUniqueOrThrowArgs} args - Arguments to find a CustomerPushOrder
+     * @example
+     * // Get one CustomerPushOrder
+     * const customerPushOrder = await prisma.customerPushOrder.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomerPushOrderFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomerPushOrderFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first CustomerPushOrder that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushOrderFindFirstArgs} args - Arguments to find a CustomerPushOrder
+     * @example
+     * // Get one CustomerPushOrder
+     * const customerPushOrder = await prisma.customerPushOrder.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomerPushOrderFindFirstArgs>(args?: SelectSubset<T, CustomerPushOrderFindFirstArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first CustomerPushOrder that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushOrderFindFirstOrThrowArgs} args - Arguments to find a CustomerPushOrder
+     * @example
+     * // Get one CustomerPushOrder
+     * const customerPushOrder = await prisma.customerPushOrder.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomerPushOrderFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomerPushOrderFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more CustomerPushOrders that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushOrderFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomerPushOrders
+     * const customerPushOrders = await prisma.customerPushOrder.findMany()
+     * 
+     * // Get first 10 CustomerPushOrders
+     * const customerPushOrders = await prisma.customerPushOrder.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customerPushOrderWithIdOnly = await prisma.customerPushOrder.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomerPushOrderFindManyArgs>(args?: SelectSubset<T, CustomerPushOrderFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a CustomerPushOrder.
+     * @param {CustomerPushOrderCreateArgs} args - Arguments to create a CustomerPushOrder.
+     * @example
+     * // Create one CustomerPushOrder
+     * const CustomerPushOrder = await prisma.customerPushOrder.create({
+     *   data: {
+     *     // ... data to create a CustomerPushOrder
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomerPushOrderCreateArgs>(args: SelectSubset<T, CustomerPushOrderCreateArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many CustomerPushOrders.
+     * @param {CustomerPushOrderCreateManyArgs} args - Arguments to create many CustomerPushOrders.
+     * @example
+     * // Create many CustomerPushOrders
+     * const customerPushOrder = await prisma.customerPushOrder.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomerPushOrderCreateManyArgs>(args?: SelectSubset<T, CustomerPushOrderCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomerPushOrders and returns the data saved in the database.
+     * @param {CustomerPushOrderCreateManyAndReturnArgs} args - Arguments to create many CustomerPushOrders.
+     * @example
+     * // Create many CustomerPushOrders
+     * const customerPushOrder = await prisma.customerPushOrder.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomerPushOrders and only return the `id`
+     * const customerPushOrderWithIdOnly = await prisma.customerPushOrder.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomerPushOrderCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomerPushOrderCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a CustomerPushOrder.
+     * @param {CustomerPushOrderDeleteArgs} args - Arguments to delete one CustomerPushOrder.
+     * @example
+     * // Delete one CustomerPushOrder
+     * const CustomerPushOrder = await prisma.customerPushOrder.delete({
+     *   where: {
+     *     // ... filter to delete one CustomerPushOrder
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomerPushOrderDeleteArgs>(args: SelectSubset<T, CustomerPushOrderDeleteArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one CustomerPushOrder.
+     * @param {CustomerPushOrderUpdateArgs} args - Arguments to update one CustomerPushOrder.
+     * @example
+     * // Update one CustomerPushOrder
+     * const customerPushOrder = await prisma.customerPushOrder.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomerPushOrderUpdateArgs>(args: SelectSubset<T, CustomerPushOrderUpdateArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more CustomerPushOrders.
+     * @param {CustomerPushOrderDeleteManyArgs} args - Arguments to filter CustomerPushOrders to delete.
+     * @example
+     * // Delete a few CustomerPushOrders
+     * const { count } = await prisma.customerPushOrder.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomerPushOrderDeleteManyArgs>(args?: SelectSubset<T, CustomerPushOrderDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerPushOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushOrderUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomerPushOrders
+     * const customerPushOrder = await prisma.customerPushOrder.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomerPushOrderUpdateManyArgs>(args: SelectSubset<T, CustomerPushOrderUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one CustomerPushOrder.
+     * @param {CustomerPushOrderUpsertArgs} args - Arguments to update or create a CustomerPushOrder.
+     * @example
+     * // Update or create a CustomerPushOrder
+     * const customerPushOrder = await prisma.customerPushOrder.upsert({
+     *   create: {
+     *     // ... data to create a CustomerPushOrder
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomerPushOrder we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomerPushOrderUpsertArgs>(args: SelectSubset<T, CustomerPushOrderUpsertArgs<ExtArgs>>): Prisma__CustomerPushOrderClient<$Result.GetResult<Prisma.$CustomerPushOrderPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of CustomerPushOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushOrderCountArgs} args - Arguments to filter CustomerPushOrders to count.
+     * @example
+     * // Count the number of CustomerPushOrders
+     * const count = await prisma.customerPushOrder.count({
+     *   where: {
+     *     // ... the filter for the CustomerPushOrders we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomerPushOrderCountArgs>(
+      args?: Subset<T, CustomerPushOrderCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomerPushOrderCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomerPushOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushOrderAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomerPushOrderAggregateArgs>(args: Subset<T, CustomerPushOrderAggregateArgs>): Prisma.PrismaPromise<GetCustomerPushOrderAggregateType<T>>
+
+    /**
+     * Group by CustomerPushOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPushOrderGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomerPushOrderGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomerPushOrderGroupByArgs['orderBy'] }
+        : { orderBy?: CustomerPushOrderGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomerPushOrderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomerPushOrderGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomerPushOrder model
+   */
+  readonly fields: CustomerPushOrderFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomerPushOrder.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomerPushOrderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    subscription<T extends CustomerPushSubscriptionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerPushSubscriptionDefaultArgs<ExtArgs>>): Prisma__CustomerPushSubscriptionClient<$Result.GetResult<Prisma.$CustomerPushSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomerPushOrder model
+   */ 
+  interface CustomerPushOrderFieldRefs {
+    readonly id: FieldRef<"CustomerPushOrder", 'String'>
+    readonly subscriptionId: FieldRef<"CustomerPushOrder", 'String'>
+    readonly orderId: FieldRef<"CustomerPushOrder", 'String'>
+    readonly createdAt: FieldRef<"CustomerPushOrder", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomerPushOrder findUnique
+   */
+  export type CustomerPushOrderFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushOrder to fetch.
+     */
+    where: CustomerPushOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushOrder findUniqueOrThrow
+   */
+  export type CustomerPushOrderFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushOrder to fetch.
+     */
+    where: CustomerPushOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushOrder findFirst
+   */
+  export type CustomerPushOrderFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushOrder to fetch.
+     */
+    where?: CustomerPushOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushOrders to fetch.
+     */
+    orderBy?: CustomerPushOrderOrderByWithRelationInput | CustomerPushOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerPushOrders.
+     */
+    cursor?: CustomerPushOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerPushOrders.
+     */
+    distinct?: CustomerPushOrderScalarFieldEnum | CustomerPushOrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPushOrder findFirstOrThrow
+   */
+  export type CustomerPushOrderFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushOrder to fetch.
+     */
+    where?: CustomerPushOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushOrders to fetch.
+     */
+    orderBy?: CustomerPushOrderOrderByWithRelationInput | CustomerPushOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerPushOrders.
+     */
+    cursor?: CustomerPushOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerPushOrders.
+     */
+    distinct?: CustomerPushOrderScalarFieldEnum | CustomerPushOrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPushOrder findMany
+   */
+  export type CustomerPushOrderFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPushOrders to fetch.
+     */
+    where?: CustomerPushOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPushOrders to fetch.
+     */
+    orderBy?: CustomerPushOrderOrderByWithRelationInput | CustomerPushOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomerPushOrders.
+     */
+    cursor?: CustomerPushOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPushOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPushOrders.
+     */
+    skip?: number
+    distinct?: CustomerPushOrderScalarFieldEnum | CustomerPushOrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPushOrder create
+   */
+  export type CustomerPushOrderCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomerPushOrder.
+     */
+    data: XOR<CustomerPushOrderCreateInput, CustomerPushOrderUncheckedCreateInput>
+  }
+
+  /**
+   * CustomerPushOrder createMany
+   */
+  export type CustomerPushOrderCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomerPushOrders.
+     */
+    data: CustomerPushOrderCreateManyInput | CustomerPushOrderCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomerPushOrder createManyAndReturn
+   */
+  export type CustomerPushOrderCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many CustomerPushOrders.
+     */
+    data: CustomerPushOrderCreateManyInput | CustomerPushOrderCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomerPushOrder update
+   */
+  export type CustomerPushOrderUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomerPushOrder.
+     */
+    data: XOR<CustomerPushOrderUpdateInput, CustomerPushOrderUncheckedUpdateInput>
+    /**
+     * Choose, which CustomerPushOrder to update.
+     */
+    where: CustomerPushOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushOrder updateMany
+   */
+  export type CustomerPushOrderUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomerPushOrders.
+     */
+    data: XOR<CustomerPushOrderUpdateManyMutationInput, CustomerPushOrderUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerPushOrders to update
+     */
+    where?: CustomerPushOrderWhereInput
+  }
+
+  /**
+   * CustomerPushOrder upsert
+   */
+  export type CustomerPushOrderUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomerPushOrder to update in case it exists.
+     */
+    where: CustomerPushOrderWhereUniqueInput
+    /**
+     * In case the CustomerPushOrder found by the `where` argument doesn't exist, create a new CustomerPushOrder with this data.
+     */
+    create: XOR<CustomerPushOrderCreateInput, CustomerPushOrderUncheckedCreateInput>
+    /**
+     * In case the CustomerPushOrder was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomerPushOrderUpdateInput, CustomerPushOrderUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomerPushOrder delete
+   */
+  export type CustomerPushOrderDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+    /**
+     * Filter which CustomerPushOrder to delete.
+     */
+    where: CustomerPushOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerPushOrder deleteMany
+   */
+  export type CustomerPushOrderDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerPushOrders to delete
+     */
+    where?: CustomerPushOrderWhereInput
+  }
+
+  /**
+   * CustomerPushOrder without action
+   */
+  export type CustomerPushOrderDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPushOrder
+     */
+    select?: CustomerPushOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPushOrderInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -145299,6 +147491,37 @@ export namespace Prisma {
   export type GroupOrderItemScalarFieldEnum = (typeof GroupOrderItemScalarFieldEnum)[keyof typeof GroupOrderItemScalarFieldEnum]
 
 
+  export const CustomerPushSubscriptionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    endpoint: 'endpoint',
+    p256dh: 'p256dh',
+    auth: 'auth',
+    customerId: 'customerId',
+    deviceRef: 'deviceRef',
+    userAgent: 'userAgent',
+    isActive: 'isActive',
+    revokedAt: 'revokedAt',
+    lastSentAt: 'lastSentAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CustomerPushSubscriptionScalarFieldEnum = (typeof CustomerPushSubscriptionScalarFieldEnum)[keyof typeof CustomerPushSubscriptionScalarFieldEnum]
+
+
+  export const CustomerPushOrderScalarFieldEnum: {
+    id: 'id',
+    subscriptionId: 'subscriptionId',
+    orderId: 'orderId',
+    createdAt: 'createdAt'
+  };
+
+  export type CustomerPushOrderScalarFieldEnum = (typeof CustomerPushOrderScalarFieldEnum)[keyof typeof CustomerPushOrderScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -146955,6 +149178,31 @@ export namespace Prisma {
   };
 
   export type GroupOrderItemOrderByRelevanceFieldEnum = (typeof GroupOrderItemOrderByRelevanceFieldEnum)[keyof typeof GroupOrderItemOrderByRelevanceFieldEnum]
+
+
+  export const CustomerPushSubscriptionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    endpoint: 'endpoint',
+    p256dh: 'p256dh',
+    auth: 'auth',
+    customerId: 'customerId',
+    deviceRef: 'deviceRef',
+    userAgent: 'userAgent'
+  };
+
+  export type CustomerPushSubscriptionOrderByRelevanceFieldEnum = (typeof CustomerPushSubscriptionOrderByRelevanceFieldEnum)[keyof typeof CustomerPushSubscriptionOrderByRelevanceFieldEnum]
+
+
+  export const CustomerPushOrderOrderByRelevanceFieldEnum: {
+    id: 'id',
+    subscriptionId: 'subscriptionId',
+    orderId: 'orderId'
+  };
+
+  export type CustomerPushOrderOrderByRelevanceFieldEnum = (typeof CustomerPushOrderOrderByRelevanceFieldEnum)[keyof typeof CustomerPushOrderOrderByRelevanceFieldEnum]
 
 
   /**
@@ -160368,6 +162616,164 @@ export namespace Prisma {
     paymentId?: StringNullableWithAggregatesFilter<"GroupOrderItem"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"GroupOrderItem"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"GroupOrderItem"> | Date | string
+  }
+
+  export type CustomerPushSubscriptionWhereInput = {
+    AND?: CustomerPushSubscriptionWhereInput | CustomerPushSubscriptionWhereInput[]
+    OR?: CustomerPushSubscriptionWhereInput[]
+    NOT?: CustomerPushSubscriptionWhereInput | CustomerPushSubscriptionWhereInput[]
+    id?: StringFilter<"CustomerPushSubscription"> | string
+    tenantId?: StringFilter<"CustomerPushSubscription"> | string
+    locationId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    brandId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    endpoint?: StringFilter<"CustomerPushSubscription"> | string
+    p256dh?: StringFilter<"CustomerPushSubscription"> | string
+    auth?: StringFilter<"CustomerPushSubscription"> | string
+    customerId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    deviceRef?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    userAgent?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    isActive?: BoolFilter<"CustomerPushSubscription"> | boolean
+    revokedAt?: DateTimeNullableFilter<"CustomerPushSubscription"> | Date | string | null
+    lastSentAt?: DateTimeNullableFilter<"CustomerPushSubscription"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerPushSubscription"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerPushSubscription"> | Date | string
+    orders?: CustomerPushOrderListRelationFilter
+  }
+
+  export type CustomerPushSubscriptionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    endpoint?: SortOrder
+    p256dh?: SortOrder
+    auth?: SortOrder
+    customerId?: SortOrderInput | SortOrder
+    deviceRef?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    lastSentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    orders?: CustomerPushOrderOrderByRelationAggregateInput
+    _relevance?: CustomerPushSubscriptionOrderByRelevanceInput
+  }
+
+  export type CustomerPushSubscriptionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    endpoint?: string
+    AND?: CustomerPushSubscriptionWhereInput | CustomerPushSubscriptionWhereInput[]
+    OR?: CustomerPushSubscriptionWhereInput[]
+    NOT?: CustomerPushSubscriptionWhereInput | CustomerPushSubscriptionWhereInput[]
+    tenantId?: StringFilter<"CustomerPushSubscription"> | string
+    locationId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    brandId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    p256dh?: StringFilter<"CustomerPushSubscription"> | string
+    auth?: StringFilter<"CustomerPushSubscription"> | string
+    customerId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    deviceRef?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    userAgent?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    isActive?: BoolFilter<"CustomerPushSubscription"> | boolean
+    revokedAt?: DateTimeNullableFilter<"CustomerPushSubscription"> | Date | string | null
+    lastSentAt?: DateTimeNullableFilter<"CustomerPushSubscription"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerPushSubscription"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerPushSubscription"> | Date | string
+    orders?: CustomerPushOrderListRelationFilter
+  }, "id" | "endpoint">
+
+  export type CustomerPushSubscriptionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    endpoint?: SortOrder
+    p256dh?: SortOrder
+    auth?: SortOrder
+    customerId?: SortOrderInput | SortOrder
+    deviceRef?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    lastSentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CustomerPushSubscriptionCountOrderByAggregateInput
+    _max?: CustomerPushSubscriptionMaxOrderByAggregateInput
+    _min?: CustomerPushSubscriptionMinOrderByAggregateInput
+  }
+
+  export type CustomerPushSubscriptionScalarWhereWithAggregatesInput = {
+    AND?: CustomerPushSubscriptionScalarWhereWithAggregatesInput | CustomerPushSubscriptionScalarWhereWithAggregatesInput[]
+    OR?: CustomerPushSubscriptionScalarWhereWithAggregatesInput[]
+    NOT?: CustomerPushSubscriptionScalarWhereWithAggregatesInput | CustomerPushSubscriptionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
+    tenantId?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
+    locationId?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    endpoint?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
+    p256dh?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
+    auth?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
+    customerId?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    deviceRef?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    isActive?: BoolWithAggregatesFilter<"CustomerPushSubscription"> | boolean
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"CustomerPushSubscription"> | Date | string | null
+    lastSentAt?: DateTimeNullableWithAggregatesFilter<"CustomerPushSubscription"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CustomerPushSubscription"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CustomerPushSubscription"> | Date | string
+  }
+
+  export type CustomerPushOrderWhereInput = {
+    AND?: CustomerPushOrderWhereInput | CustomerPushOrderWhereInput[]
+    OR?: CustomerPushOrderWhereInput[]
+    NOT?: CustomerPushOrderWhereInput | CustomerPushOrderWhereInput[]
+    id?: StringFilter<"CustomerPushOrder"> | string
+    subscriptionId?: StringFilter<"CustomerPushOrder"> | string
+    orderId?: StringFilter<"CustomerPushOrder"> | string
+    createdAt?: DateTimeFilter<"CustomerPushOrder"> | Date | string
+    subscription?: XOR<CustomerPushSubscriptionRelationFilter, CustomerPushSubscriptionWhereInput>
+  }
+
+  export type CustomerPushOrderOrderByWithRelationInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+    subscription?: CustomerPushSubscriptionOrderByWithRelationInput
+    _relevance?: CustomerPushOrderOrderByRelevanceInput
+  }
+
+  export type CustomerPushOrderWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    subscriptionId_orderId?: CustomerPushOrderSubscriptionIdOrderIdCompoundUniqueInput
+    AND?: CustomerPushOrderWhereInput | CustomerPushOrderWhereInput[]
+    OR?: CustomerPushOrderWhereInput[]
+    NOT?: CustomerPushOrderWhereInput | CustomerPushOrderWhereInput[]
+    subscriptionId?: StringFilter<"CustomerPushOrder"> | string
+    orderId?: StringFilter<"CustomerPushOrder"> | string
+    createdAt?: DateTimeFilter<"CustomerPushOrder"> | Date | string
+    subscription?: XOR<CustomerPushSubscriptionRelationFilter, CustomerPushSubscriptionWhereInput>
+  }, "id" | "subscriptionId_orderId">
+
+  export type CustomerPushOrderOrderByWithAggregationInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+    _count?: CustomerPushOrderCountOrderByAggregateInput
+    _max?: CustomerPushOrderMaxOrderByAggregateInput
+    _min?: CustomerPushOrderMinOrderByAggregateInput
+  }
+
+  export type CustomerPushOrderScalarWhereWithAggregatesInput = {
+    AND?: CustomerPushOrderScalarWhereWithAggregatesInput | CustomerPushOrderScalarWhereWithAggregatesInput[]
+    OR?: CustomerPushOrderScalarWhereWithAggregatesInput[]
+    NOT?: CustomerPushOrderScalarWhereWithAggregatesInput | CustomerPushOrderScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomerPushOrder"> | string
+    subscriptionId?: StringWithAggregatesFilter<"CustomerPushOrder"> | string
+    orderId?: StringWithAggregatesFilter<"CustomerPushOrder"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"CustomerPushOrder"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -174889,6 +177295,184 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CustomerPushSubscriptionCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    endpoint: string
+    p256dh: string
+    auth: string
+    customerId?: string | null
+    deviceRef?: string | null
+    userAgent?: string | null
+    isActive?: boolean
+    revokedAt?: Date | string | null
+    lastSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: CustomerPushOrderCreateNestedManyWithoutSubscriptionInput
+  }
+
+  export type CustomerPushSubscriptionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    endpoint: string
+    p256dh: string
+    auth: string
+    customerId?: string | null
+    deviceRef?: string | null
+    userAgent?: string | null
+    isActive?: boolean
+    revokedAt?: Date | string | null
+    lastSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: CustomerPushOrderUncheckedCreateNestedManyWithoutSubscriptionInput
+  }
+
+  export type CustomerPushSubscriptionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    endpoint?: StringFieldUpdateOperationsInput | string
+    p256dh?: StringFieldUpdateOperationsInput | string
+    auth?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: CustomerPushOrderUpdateManyWithoutSubscriptionNestedInput
+  }
+
+  export type CustomerPushSubscriptionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    endpoint?: StringFieldUpdateOperationsInput | string
+    p256dh?: StringFieldUpdateOperationsInput | string
+    auth?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: CustomerPushOrderUncheckedUpdateManyWithoutSubscriptionNestedInput
+  }
+
+  export type CustomerPushSubscriptionCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    endpoint: string
+    p256dh: string
+    auth: string
+    customerId?: string | null
+    deviceRef?: string | null
+    userAgent?: string | null
+    isActive?: boolean
+    revokedAt?: Date | string | null
+    lastSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomerPushSubscriptionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    endpoint?: StringFieldUpdateOperationsInput | string
+    p256dh?: StringFieldUpdateOperationsInput | string
+    auth?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPushSubscriptionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    endpoint?: StringFieldUpdateOperationsInput | string
+    p256dh?: StringFieldUpdateOperationsInput | string
+    auth?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPushOrderCreateInput = {
+    id?: string
+    orderId: string
+    createdAt?: Date | string
+    subscription: CustomerPushSubscriptionCreateNestedOneWithoutOrdersInput
+  }
+
+  export type CustomerPushOrderUncheckedCreateInput = {
+    id?: string
+    subscriptionId: string
+    orderId: string
+    createdAt?: Date | string
+  }
+
+  export type CustomerPushOrderUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription?: CustomerPushSubscriptionUpdateOneRequiredWithoutOrdersNestedInput
+  }
+
+  export type CustomerPushOrderUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    subscriptionId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPushOrderCreateManyInput = {
+    id?: string
+    subscriptionId: string
+    orderId: string
+    createdAt?: Date | string
+  }
+
+  export type CustomerPushOrderUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPushOrderUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    subscriptionId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -184729,6 +187313,113 @@ export namespace Prisma {
     lineTotal?: SortOrder
   }
 
+  export type CustomerPushOrderListRelationFilter = {
+    every?: CustomerPushOrderWhereInput
+    some?: CustomerPushOrderWhereInput
+    none?: CustomerPushOrderWhereInput
+  }
+
+  export type CustomerPushOrderOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomerPushSubscriptionOrderByRelevanceInput = {
+    fields: CustomerPushSubscriptionOrderByRelevanceFieldEnum | CustomerPushSubscriptionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type CustomerPushSubscriptionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    endpoint?: SortOrder
+    p256dh?: SortOrder
+    auth?: SortOrder
+    customerId?: SortOrder
+    deviceRef?: SortOrder
+    userAgent?: SortOrder
+    isActive?: SortOrder
+    revokedAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomerPushSubscriptionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    endpoint?: SortOrder
+    p256dh?: SortOrder
+    auth?: SortOrder
+    customerId?: SortOrder
+    deviceRef?: SortOrder
+    userAgent?: SortOrder
+    isActive?: SortOrder
+    revokedAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomerPushSubscriptionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    endpoint?: SortOrder
+    p256dh?: SortOrder
+    auth?: SortOrder
+    customerId?: SortOrder
+    deviceRef?: SortOrder
+    userAgent?: SortOrder
+    isActive?: SortOrder
+    revokedAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomerPushSubscriptionRelationFilter = {
+    is?: CustomerPushSubscriptionWhereInput
+    isNot?: CustomerPushSubscriptionWhereInput
+  }
+
+  export type CustomerPushOrderOrderByRelevanceInput = {
+    fields: CustomerPushOrderOrderByRelevanceFieldEnum | CustomerPushOrderOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type CustomerPushOrderSubscriptionIdOrderIdCompoundUniqueInput = {
+    subscriptionId: string
+    orderId: string
+  }
+
+  export type CustomerPushOrderCountOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CustomerPushOrderMaxOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CustomerPushOrderMinOrderByAggregateInput = {
+    id?: SortOrder
+    subscriptionId?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type BrandCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -192494,6 +195185,62 @@ export namespace Prisma {
     upsert?: LocationUpsertWithoutUberDirectConfigInput
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutUberDirectConfigInput, LocationUpdateWithoutUberDirectConfigInput>, LocationUncheckedUpdateWithoutUberDirectConfigInput>
+  }
+
+  export type CustomerPushOrderCreateNestedManyWithoutSubscriptionInput = {
+    create?: XOR<CustomerPushOrderCreateWithoutSubscriptionInput, CustomerPushOrderUncheckedCreateWithoutSubscriptionInput> | CustomerPushOrderCreateWithoutSubscriptionInput[] | CustomerPushOrderUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: CustomerPushOrderCreateOrConnectWithoutSubscriptionInput | CustomerPushOrderCreateOrConnectWithoutSubscriptionInput[]
+    createMany?: CustomerPushOrderCreateManySubscriptionInputEnvelope
+    connect?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+  }
+
+  export type CustomerPushOrderUncheckedCreateNestedManyWithoutSubscriptionInput = {
+    create?: XOR<CustomerPushOrderCreateWithoutSubscriptionInput, CustomerPushOrderUncheckedCreateWithoutSubscriptionInput> | CustomerPushOrderCreateWithoutSubscriptionInput[] | CustomerPushOrderUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: CustomerPushOrderCreateOrConnectWithoutSubscriptionInput | CustomerPushOrderCreateOrConnectWithoutSubscriptionInput[]
+    createMany?: CustomerPushOrderCreateManySubscriptionInputEnvelope
+    connect?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+  }
+
+  export type CustomerPushOrderUpdateManyWithoutSubscriptionNestedInput = {
+    create?: XOR<CustomerPushOrderCreateWithoutSubscriptionInput, CustomerPushOrderUncheckedCreateWithoutSubscriptionInput> | CustomerPushOrderCreateWithoutSubscriptionInput[] | CustomerPushOrderUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: CustomerPushOrderCreateOrConnectWithoutSubscriptionInput | CustomerPushOrderCreateOrConnectWithoutSubscriptionInput[]
+    upsert?: CustomerPushOrderUpsertWithWhereUniqueWithoutSubscriptionInput | CustomerPushOrderUpsertWithWhereUniqueWithoutSubscriptionInput[]
+    createMany?: CustomerPushOrderCreateManySubscriptionInputEnvelope
+    set?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    disconnect?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    delete?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    connect?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    update?: CustomerPushOrderUpdateWithWhereUniqueWithoutSubscriptionInput | CustomerPushOrderUpdateWithWhereUniqueWithoutSubscriptionInput[]
+    updateMany?: CustomerPushOrderUpdateManyWithWhereWithoutSubscriptionInput | CustomerPushOrderUpdateManyWithWhereWithoutSubscriptionInput[]
+    deleteMany?: CustomerPushOrderScalarWhereInput | CustomerPushOrderScalarWhereInput[]
+  }
+
+  export type CustomerPushOrderUncheckedUpdateManyWithoutSubscriptionNestedInput = {
+    create?: XOR<CustomerPushOrderCreateWithoutSubscriptionInput, CustomerPushOrderUncheckedCreateWithoutSubscriptionInput> | CustomerPushOrderCreateWithoutSubscriptionInput[] | CustomerPushOrderUncheckedCreateWithoutSubscriptionInput[]
+    connectOrCreate?: CustomerPushOrderCreateOrConnectWithoutSubscriptionInput | CustomerPushOrderCreateOrConnectWithoutSubscriptionInput[]
+    upsert?: CustomerPushOrderUpsertWithWhereUniqueWithoutSubscriptionInput | CustomerPushOrderUpsertWithWhereUniqueWithoutSubscriptionInput[]
+    createMany?: CustomerPushOrderCreateManySubscriptionInputEnvelope
+    set?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    disconnect?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    delete?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    connect?: CustomerPushOrderWhereUniqueInput | CustomerPushOrderWhereUniqueInput[]
+    update?: CustomerPushOrderUpdateWithWhereUniqueWithoutSubscriptionInput | CustomerPushOrderUpdateWithWhereUniqueWithoutSubscriptionInput[]
+    updateMany?: CustomerPushOrderUpdateManyWithWhereWithoutSubscriptionInput | CustomerPushOrderUpdateManyWithWhereWithoutSubscriptionInput[]
+    deleteMany?: CustomerPushOrderScalarWhereInput | CustomerPushOrderScalarWhereInput[]
+  }
+
+  export type CustomerPushSubscriptionCreateNestedOneWithoutOrdersInput = {
+    create?: XOR<CustomerPushSubscriptionCreateWithoutOrdersInput, CustomerPushSubscriptionUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: CustomerPushSubscriptionCreateOrConnectWithoutOrdersInput
+    connect?: CustomerPushSubscriptionWhereUniqueInput
+  }
+
+  export type CustomerPushSubscriptionUpdateOneRequiredWithoutOrdersNestedInput = {
+    create?: XOR<CustomerPushSubscriptionCreateWithoutOrdersInput, CustomerPushSubscriptionUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: CustomerPushSubscriptionCreateOrConnectWithoutOrdersInput
+    upsert?: CustomerPushSubscriptionUpsertWithoutOrdersInput
+    connect?: CustomerPushSubscriptionWhereUniqueInput
+    update?: XOR<XOR<CustomerPushSubscriptionUpdateToOneWithWhereWithoutOrdersInput, CustomerPushSubscriptionUpdateWithoutOrdersInput>, CustomerPushSubscriptionUncheckedUpdateWithoutOrdersInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -227961,6 +230708,142 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
+  export type CustomerPushOrderCreateWithoutSubscriptionInput = {
+    id?: string
+    orderId: string
+    createdAt?: Date | string
+  }
+
+  export type CustomerPushOrderUncheckedCreateWithoutSubscriptionInput = {
+    id?: string
+    orderId: string
+    createdAt?: Date | string
+  }
+
+  export type CustomerPushOrderCreateOrConnectWithoutSubscriptionInput = {
+    where: CustomerPushOrderWhereUniqueInput
+    create: XOR<CustomerPushOrderCreateWithoutSubscriptionInput, CustomerPushOrderUncheckedCreateWithoutSubscriptionInput>
+  }
+
+  export type CustomerPushOrderCreateManySubscriptionInputEnvelope = {
+    data: CustomerPushOrderCreateManySubscriptionInput | CustomerPushOrderCreateManySubscriptionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CustomerPushOrderUpsertWithWhereUniqueWithoutSubscriptionInput = {
+    where: CustomerPushOrderWhereUniqueInput
+    update: XOR<CustomerPushOrderUpdateWithoutSubscriptionInput, CustomerPushOrderUncheckedUpdateWithoutSubscriptionInput>
+    create: XOR<CustomerPushOrderCreateWithoutSubscriptionInput, CustomerPushOrderUncheckedCreateWithoutSubscriptionInput>
+  }
+
+  export type CustomerPushOrderUpdateWithWhereUniqueWithoutSubscriptionInput = {
+    where: CustomerPushOrderWhereUniqueInput
+    data: XOR<CustomerPushOrderUpdateWithoutSubscriptionInput, CustomerPushOrderUncheckedUpdateWithoutSubscriptionInput>
+  }
+
+  export type CustomerPushOrderUpdateManyWithWhereWithoutSubscriptionInput = {
+    where: CustomerPushOrderScalarWhereInput
+    data: XOR<CustomerPushOrderUpdateManyMutationInput, CustomerPushOrderUncheckedUpdateManyWithoutSubscriptionInput>
+  }
+
+  export type CustomerPushOrderScalarWhereInput = {
+    AND?: CustomerPushOrderScalarWhereInput | CustomerPushOrderScalarWhereInput[]
+    OR?: CustomerPushOrderScalarWhereInput[]
+    NOT?: CustomerPushOrderScalarWhereInput | CustomerPushOrderScalarWhereInput[]
+    id?: StringFilter<"CustomerPushOrder"> | string
+    subscriptionId?: StringFilter<"CustomerPushOrder"> | string
+    orderId?: StringFilter<"CustomerPushOrder"> | string
+    createdAt?: DateTimeFilter<"CustomerPushOrder"> | Date | string
+  }
+
+  export type CustomerPushSubscriptionCreateWithoutOrdersInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    endpoint: string
+    p256dh: string
+    auth: string
+    customerId?: string | null
+    deviceRef?: string | null
+    userAgent?: string | null
+    isActive?: boolean
+    revokedAt?: Date | string | null
+    lastSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomerPushSubscriptionUncheckedCreateWithoutOrdersInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    endpoint: string
+    p256dh: string
+    auth: string
+    customerId?: string | null
+    deviceRef?: string | null
+    userAgent?: string | null
+    isActive?: boolean
+    revokedAt?: Date | string | null
+    lastSentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomerPushSubscriptionCreateOrConnectWithoutOrdersInput = {
+    where: CustomerPushSubscriptionWhereUniqueInput
+    create: XOR<CustomerPushSubscriptionCreateWithoutOrdersInput, CustomerPushSubscriptionUncheckedCreateWithoutOrdersInput>
+  }
+
+  export type CustomerPushSubscriptionUpsertWithoutOrdersInput = {
+    update: XOR<CustomerPushSubscriptionUpdateWithoutOrdersInput, CustomerPushSubscriptionUncheckedUpdateWithoutOrdersInput>
+    create: XOR<CustomerPushSubscriptionCreateWithoutOrdersInput, CustomerPushSubscriptionUncheckedCreateWithoutOrdersInput>
+    where?: CustomerPushSubscriptionWhereInput
+  }
+
+  export type CustomerPushSubscriptionUpdateToOneWithWhereWithoutOrdersInput = {
+    where?: CustomerPushSubscriptionWhereInput
+    data: XOR<CustomerPushSubscriptionUpdateWithoutOrdersInput, CustomerPushSubscriptionUncheckedUpdateWithoutOrdersInput>
+  }
+
+  export type CustomerPushSubscriptionUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    endpoint?: StringFieldUpdateOperationsInput | string
+    p256dh?: StringFieldUpdateOperationsInput | string
+    auth?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPushSubscriptionUncheckedUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    endpoint?: StringFieldUpdateOperationsInput | string
+    p256dh?: StringFieldUpdateOperationsInput | string
+    auth?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BrandCreateManyTenantInput = {
     id?: string
     name: string
@@ -237605,6 +240488,30 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CustomerPushOrderCreateManySubscriptionInput = {
+    id?: string
+    orderId: string
+    createdAt?: Date | string
+  }
+
+  export type CustomerPushOrderUpdateWithoutSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPushOrderUncheckedUpdateWithoutSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPushOrderUncheckedUpdateManyWithoutSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -237738,6 +240645,10 @@ export namespace Prisma {
      * @deprecated Use WalletCountOutputTypeDefaultArgs instead
      */
     export type WalletCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WalletCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CustomerPushSubscriptionCountOutputTypeDefaultArgs instead
+     */
+    export type CustomerPushSubscriptionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerPushSubscriptionCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TenantDefaultArgs instead
      */
@@ -238218,6 +241129,14 @@ export namespace Prisma {
      * @deprecated Use GroupOrderItemDefaultArgs instead
      */
     export type GroupOrderItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = GroupOrderItemDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CustomerPushSubscriptionDefaultArgs instead
+     */
+    export type CustomerPushSubscriptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerPushSubscriptionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CustomerPushOrderDefaultArgs instead
+     */
+    export type CustomerPushOrderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerPushOrderDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

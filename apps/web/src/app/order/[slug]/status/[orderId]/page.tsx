@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
 import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
+import { OrderNotifications } from "@/components/order/order-notifications";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -97,6 +98,9 @@ export default function OrderStatusPage() {
     data?.status === "CANCELLED" ||
     data?.status === "REJECTED" ||
     data?.status === "FAILED";
+
+  // Nothing left to be notified about once the food has landed.
+  const isComplete = data?.status === "COMPLETED";
 
   const isDelivery = data?.fulfillmentType === "DELIVERY";
   const steps = useMemo(() => {
@@ -193,6 +197,17 @@ export default function OrderStatusPage() {
                 Order number {orderRef}
               </span>
             </div>
+
+            {/* Phase AX — the offer to stop watching this page. Placed here,
+                right under the order number, because this is the moment the
+                customer is deciding whether to keep the tab open; further down
+                and it's a setting nobody finds. Hidden once the order is
+                finished — there is nothing left to notify about. */}
+            {!isCancelled && !isComplete && (
+              <div className="mx-auto mt-6 max-w-sm">
+                <OrderNotifications orderId={params.orderId} />
+              </div>
+            )}
 
             {/* Live delivery tracking — shown front-and-centre the moment the
                 driver starts the job (status → out for delivery). */}

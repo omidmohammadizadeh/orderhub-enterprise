@@ -10,6 +10,7 @@ import { PrintersModule } from "../printers/printers.module";
 import { PromoCodesModule } from "../promo-codes/promo-codes.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
+import { CustomerPushModule } from "../customer-push/customer-push.module";
 
 @Module({
   imports: [
@@ -28,6 +29,9 @@ import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
     // WebhooksModule which currently has its own OrdersModule
     // dependency (for canonical ingestion).
     forwardRef(() => HubRiseModule),
+    // Phase AX — a status change tells the customer's browser. One-way
+    // (orders → push), so no forwardRef needed.
+    CustomerPushModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersAutoCompleteCron, VoidItemsService],

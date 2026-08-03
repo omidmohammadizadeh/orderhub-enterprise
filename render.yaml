@@ -92,6 +92,18 @@ services:
       # Ed25519 verification of the inbound webhook; unset means accept-all.
       # Point the profile's inbound webhook at
       # https://<api-host>/api/v1/marketing-sms/inbound
+      # Phase AX — Web Push for customer order updates (the storefront PWA).
+      # Generate the pair once with `npx web-push generate-vapid-keys` and set
+      # both in the Render dashboard; rotating them silently invalidates every
+      # existing subscription, so treat them as permanent.
+      # VAPID_SUBJECT must be a mailto: or https: URL — push services reject
+      # anything else and the send fails with no obvious reason.
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:support@orderhubpos.com
       - key: SMS_PROVIDER
         value: TWILIO
       - key: TELNYX_API_KEY

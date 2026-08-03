@@ -2140,6 +2140,31 @@ exports.Prisma.GroupOrderItemScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CustomerPushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  customerId: 'customerId',
+  deviceRef: 'deviceRef',
+  userAgent: 'userAgent',
+  isActive: 'isActive',
+  revokedAt: 'revokedAt',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomerPushOrderScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  orderId: 'orderId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3419,6 +3444,25 @@ exports.Prisma.GroupOrderItemOrderByRelevanceFieldEnum = {
   addedByRef: 'addedByRef',
   paymentId: 'paymentId'
 };
+
+exports.Prisma.CustomerPushSubscriptionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  customerId: 'customerId',
+  deviceRef: 'deviceRef',
+  userAgent: 'userAgent'
+};
+
+exports.Prisma.CustomerPushOrderOrderByRelevanceFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  orderId: 'orderId'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3989,7 +4033,9 @@ exports.Prisma.ModelName = {
   Review: 'Review',
   VoiceCall: 'VoiceCall',
   GroupOrder: 'GroupOrder',
-  GroupOrderItem: 'GroupOrderItem'
+  GroupOrderItem: 'GroupOrderItem',
+  CustomerPushSubscription: 'CustomerPushSubscription',
+  CustomerPushOrder: 'CustomerPushOrder'
 };
 
 /**

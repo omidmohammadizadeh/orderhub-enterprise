@@ -1,8 +1,12 @@
 "use client";
 
-// Registers the offline app-shell service worker (public/sw.js). The SW is
-// network-first, so it never changes online behaviour — it only serves its
-// cache when the device is offline, letting the POS boot with no connection.
+// Registers the shared service worker (public/sw.js), which does two jobs:
+// the offline app-shell for the POS (network-first, so online behaviour is
+// unchanged — the cache is only reached for when the device has no
+// connection), and Web Push for customer order updates on the storefront.
+//
+// Registration is skipped outside production, which also means push cannot be
+// exercised against a dev server — it needs a production build.
 
 import { useEffect } from "react";
 

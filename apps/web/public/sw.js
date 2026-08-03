@@ -8,7 +8,7 @@
  *
  * Bump VERSION to invalidate all caches on the next deploy.
  */
-const VERSION = "oh-sw-v1";
+const VERSION = "oh-sw-v2";
 const CACHE = `orderhub-${VERSION}`;
 
 self.addEventListener("install", () => {
@@ -34,6 +34,85 @@ self.addEventListener("activate", (event) => {
 // Allow the page to force-activate a new SW (used by the register helper).
 self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") self.skipWaiting();
+});
+
+/* ── Web Push (Phase AX) ───────────────────────────────────────────────────
+ *
+ * Customer order updates: "your food is being made", "on its way". This is
+ * what makes the storefront PWA worth installing, and it's the reason a
+ * restaurant can have push without an App Store listing.
+ *
+ * These listeners are additive — the POS offline caching above is untouched.
+ * One service worker serves both because both are the same Next app on the
+ * same origin; a customer's browser simply never receives a POS push.
+ */
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    // A push with a non-JSON body is not ours. Showing a generic notification
+    // is still better than silently dropping it: Chrome and Firefox both
+    // punish a push that resolves without showing anything, and can revoke
+    // the subscription for it.
+    payload = {};
+  }
+
+  const title = payload.title || "Order update";
+  const options = {
+    body: payload.body || "",
+    // The restaurant's own logo where we have one — the whole point of the
+    // white-label story is that the customer sees their takeaway, not us.
+    icon: payload.icon || "/orderhub-logo.png",
+    badge: "/orderhub-logo.png",
+    // Same tag per order, so three quick transitions replace one another
+    // instead of stacking three stale notifications in the shade.
+    tag: payload.tag || "order-update",
+    renotify: true,
+    data: payload.data || {},
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+
+  event.waitUntil(
+    (async () => {
+      const target = new URL(url, self.location.origin);
+      const all = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      // Prefer focusing a tab the customer already has open on this order —
+      // opening a second copy of the tracking page is disorienting when the
+      // first one is sitting right there.
+      for (const client of all) {
+        try {
+          if (new URL(client.url).pathname === target.pathname) {
+            await client.focus();
+            return;
+          }
+        } catch {
+          // A client with an unparseable URL isn't the one we want.
+        }
+      }
+
+      // Otherwise reuse any open tab of ours rather than spawning a new one.
+      for (const client of all) {
+        if ("navigate" in client) {
+          await client.focus();
+          await client.navigate(target.href);
+          return;
+        }
+      }
+
+      await self.clients.openWindow(target.href);
+    })(),
+  );
 });
 
 self.addEventListener("fetch", (event) => {

@@ -21,6 +21,7 @@ import { OutboxService } from "../outbox/outbox.service";
 import { PrintQueueService } from "../printers/print-queue.service";
 import { PrintJobsService } from "../printers/print-jobs.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
+import { CustomerPushService } from "../customer-push/customer-push.service";
 import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-delivery-sync.service";
 import { PaymentsService } from "../payments/payments.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -108,6 +109,8 @@ export class OrdersService {
     @Inject(forwardRef(() => HubRiseDeliverySyncService))
     private readonly hubriseDelivery: HubRiseDeliverySyncService,
     private readonly events: EventEmitter2,
+    // Phase AX — order updates to the customer's browser via Web Push.
+    private readonly customerPush: CustomerPushService,
   ) {}
 
   /**
@@ -1989,7 +1992,40 @@ export class OrdersService {
       });
     }
 
+    // Phase AX — tell the customer's browser. Fire-and-forget for the same
+    // reason as HubRise above: the bag leaves the kitchen whether or not
+    // Apple's push service is having a good day. notifyOrderStatus swallows
+    // its own errors, and the void here stops an unhandled rejection if it
+    // ever stops doing so.
+    void this.customerPush
+      .notifyOrderStatus({
+        orderId,
+        status: newStatus,
+        orderNumber: updated.orderNumber,
+        displayId: updated.displayId,
+        fulfillmentType: updated.fulfillmentType,
+        storefrontSlug: await this.storefrontSlugFor(order.locationId),
+      })
+      .catch(() => undefined);
+
     return updated;
+  }
+
+  /** The slug the customer-facing storefront lives under, so a notification
+   *  can deep-link to /order/<slug>/status/<id>. Mirrors the resolution order
+   *  in OrderingService.getStorefrontBySlug — onlineOrderingSlug is the
+   *  current field, `slug` the legacy one older locations still use. */
+  private async storefrontSlugFor(locationId?: string | null): Promise<string | null> {
+    if (!locationId) return null;
+    try {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: locationId },
+        select: { onlineOrderingSlug: true, slug: true },
+      });
+      return loc?.onlineOrderingSlug ?? loc?.slug ?? null;
+    } catch {
+      return null;
+    }
   }
 
   /**

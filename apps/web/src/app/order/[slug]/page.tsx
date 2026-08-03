@@ -58,6 +58,8 @@ import {
 import { GroupBasketPanel } from "@/components/storefront/group-basket-panel";
 import { StartGroupOrderModal } from "@/components/storefront/start-group-order-modal";
 import { AddressSearchField } from "@/components/storefront/address-search-field";
+import { PwaManifestLink } from "@/components/storefront/pwa-manifest-link";
+import { OrderNotifications } from "@/components/order/order-notifications";
 import {
   getGuestName,
   getGuestRef,
@@ -1293,6 +1295,14 @@ function OrderPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
+      {/* Phase AX — makes this storefront installable as the restaurant's own
+          app, and on iOS is what unlocks Web Push at all. Renders nothing. */}
+      <PwaManifestLink
+        slug={slug}
+        brandId={brandId}
+        name={headerTitle}
+        logoUrl={logoUrl}
+      />
       {/* Top nav */}
       <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
@@ -3434,6 +3444,14 @@ function AcceptedScreen({
             {orderRef}
           </span>
         </div>
+        {/* Phase AX — the best moment to ask. The order is placed, the
+            customer is invested, and they're about to wonder how long they
+            have to sit on this page. Gone once the order is finished. */}
+        {!completed && (
+          <div className="mb-8 text-left">
+            <OrderNotifications orderId={data.id} />
+          </div>
+        )}
         {data.estimatedReadyAt && !completed && (
           <p className="mb-8 text-xs text-zinc-500">
             Est. ready by{" "}

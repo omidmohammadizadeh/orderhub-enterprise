@@ -4517,3 +4517,72 @@ model GroupOrderItem {
   @@index([groupOrderId, addedByRef])
   @@map("group_order_items")
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE AX — CUSTOMER WEB PUSH (PWA order updates)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// A customer's browser, subscribed to hear about their order.
+//
+// Distinct from WebPushSubscription, which is keyed on userId and belongs to
+// staff. Customers have no account most of the time — they are a phone number
+// and a browser — so the credential here is the endpoint itself, which the
+// push service issues per browser install and which nobody else can guess.
+//
+// Deliberately NOT keyed on a login: making people sign in to hear that their
+// pizza is ready would lose most of the audience the feature exists for.
+model CustomerPushSubscription {
+  id         String  @id @default(cuid())
+  tenantId   String
+  locationId String?
+  brandId    String?
+
+  // Issued by the browser's push service. Unique because re-subscribing the
+  // same install must update the row, not accumulate duplicates that would
+  // each fire a separate buzz for one order.
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  // Set when the customer happens to be signed in — then every future order of
+  // theirs is covered without re-subscribing.
+  customerId String?
+  // Browser-scoped id, same shape as GroupOrderItem.addedByRef.
+  deviceRef String?
+  userAgent String?
+
+  isActive Boolean @default(true)
+  // Stamped when the push service reports the endpoint is gone (404/410).
+  // Kept rather than deleted so we can tell "unsubscribed" from "never asked".
+  revokedAt  DateTime?
+  lastSentAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders CustomerPushOrder[]
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("customer_push_subscriptions")
+}
+
+// Which orders a given browser wants to hear about.
+//
+// A link table rather than an orderId column on the subscription: one phone
+// legitimately tracks more than one order at a time (a household ordering
+// twice, a host watching a group order), and overwriting a single pointer
+// would silently stop notifying the earlier one.
+model CustomerPushOrder {
+  id             String @id @default(cuid())
+  subscriptionId String
+  orderId        String
+
+  createdAt DateTime @default(now())
+
+  subscription CustomerPushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, orderId])
+  @@index([orderId])
+  @@map("customer_push_orders")
+}
