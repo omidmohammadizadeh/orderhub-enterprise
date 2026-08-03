@@ -193,9 +193,30 @@ function listenOnPort(
       }
     };
 
+    let announcedData = false;
     const sub = port.onReceived((event: any) => {
       // Library delivers hex-encoded bytes.
       const bytes = hexToBytes(event.data ?? "");
+      // Announce the FIRST bytes of a session, terminator or not.
+      //
+      // Everything else here only speaks once a complete line arrives or 40
+      // bytes have been judged, which means a box dribbling a few bytes with
+      // no CR/LF looked identical to a box sending nothing at all. That is
+      // the difference between "this line carries no caller ID" and "this
+      // firmware uses a terminator we don't handle" — opposite problems with
+      // opposite fixes.
+      if (!announcedData && bytes.length) {
+        announcedData = true;
+        const hex = Array.from(bytes.slice(0, 24))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ");
+        const ascii = Array.from(bytes.slice(0, 24))
+          .map((b) => (b >= 0x20 && b < 0x7f ? String.fromCharCode(b) : "."))
+          .join("");
+        onLog(
+          `callerid: FIRST DATA @${baud} (${bytes.length}B) hex=[${hex}] ascii="${ascii}"`,
+        );
+      }
       for (const b of bytes) {
         total++;
         const ch = String.fromCharCode(b);
