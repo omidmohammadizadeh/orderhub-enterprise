@@ -289,10 +289,14 @@ export class CustomerPushService {
           .catch(() => undefined);
         return;
       }
+      // web-push puts the push service's actual complaint in `body` and the
+      // generic "Received unexpected response code" in `message`. Logging only
+      // the message tells you a send failed but never why, which is a bad
+      // trade on a path this hard to reproduce.
       this.logger.warn(
-        `push to ${String(sub.endpoint).slice(0, 40)}… failed${
+        `push to ${String(sub.endpoint).slice(0, 60)}… failed${
           status ? ` (${status})` : ""
-        }: ${e?.message ?? e}`,
+        }: ${e?.message ?? e}${e?.body ? ` — ${String(e.body).slice(0, 300)}` : ""}`,
       );
     }
   }

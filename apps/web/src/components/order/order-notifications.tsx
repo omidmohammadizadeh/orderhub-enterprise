@@ -69,6 +69,51 @@ async function readyWorker(ms = 4000): Promise<ServiceWorkerRegistration> {
   ]);
 }
 
+/**
+ * Subscribe this browser, reusing an existing subscription ONLY if it was
+ * created with the same VAPID key.
+ *
+ * The naive `getSubscription() ?? subscribe()` is a trap on any origin that
+ * has ever used push before — and ours has, for staff notifications. A
+ * subscription is bound to the applicationServerKey it was created with, so
+ * reusing one made under a different key produces an endpoint we cannot
+ * authenticate against: the browser keeps it happily, the server signs with
+ * the new key, and the push service rejects every send. Silently, forever,
+ * because nothing in that loop is an error until the send fails server-side.
+ *
+ * That is exactly what the first live test hit — a stale legacy
+ * fcm.googleapis.com/fcm/send/ endpoint, from before this feature existed.
+ */
+async function subscribeWithKey(
+  reg: ServiceWorkerRegistration,
+  vapidKey: string,
+): Promise<PushSubscription> {
+  const wanted = urlBase64ToUint8Array(vapidKey);
+  const existing = await reg.pushManager.getSubscription();
+
+  if (existing) {
+    const current = existing.options?.applicationServerKey;
+    if (current && sameKey(new Uint8Array(current), wanted)) return existing;
+    // Wrong key (or a subscription so old it doesn't record one). Drop it —
+    // keeping it would mean a customer who "turned notifications on" never
+    // receives anything.
+    await existing.unsubscribe().catch(() => undefined);
+  }
+
+  return reg.pushManager.subscribe({
+    // Required to be true by every browser — a push that shows nothing is
+    // treated as abuse and can cost you the subscription.
+    userVisibleOnly: true,
+    applicationServerKey: wanted,
+  });
+}
+
+function sameKey(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
 function isIos(): boolean {
   if (typeof navigator === "undefined") return false;
   return (
@@ -128,12 +173,36 @@ export function OrderNotifications({ orderId }: { orderId: string }) {
         return;
       }
 
-      // Already subscribed on this browser? Then this order was covered at
-      // subscribe time and there is nothing to ask for.
+      // No VAPID key configured on this install → the feature is off. Don't
+      // advertise a button that will fail. Fetched before the subscription
+      // check because that check has to compare against this key.
+      let vapidKey: string | null = null;
+      try {
+        const { data } = await axios.get<{ key: string | null }>(
+          `${API_BASE}/v1/customer-push/key`,
+        );
+        vapidKey = data?.key ?? null;
+      } catch {
+        /* treated as unconfigured below */
+      }
+      if (!vapidKey) {
+        if (!cancelled) setState("unsupported");
+        return;
+      }
+
+      // Already subscribed on this browser, under OUR key? Then this order was
+      // covered at subscribe time and there is nothing to ask for. A
+      // subscription under a different key is worse than none: it would report
+      // "notifications on" while every send is rejected, so it falls through
+      // to the offer and gets replaced when the customer opts in.
       try {
         const reg = await readyWorker();
         const existing = await reg.pushManager.getSubscription();
-        if (existing && Notification.permission === "granted") {
+        const key = existing?.options?.applicationServerKey;
+        const ours =
+          !!key && sameKey(new Uint8Array(key), urlBase64ToUint8Array(vapidKey));
+
+        if (existing && ours && Notification.permission === "granted") {
           // Re-register against THIS order — the subscription is per browser,
           // the interest is per order, and someone ordering a second time
           // must not silently get nothing.
@@ -152,16 +221,7 @@ export function OrderNotifications({ orderId }: { orderId: string }) {
         /* fall through to the offer */
       }
 
-      // No VAPID key configured on this install → the feature is off. Don't
-      // advertise a button that will fail.
-      try {
-        const { data } = await axios.get<{ key: string | null }>(
-          `${API_BASE}/v1/customer-push/key`,
-        );
-        if (!cancelled) setState(data?.key ? "offer" : "unsupported");
-      } catch {
-        if (!cancelled) setState("unsupported");
-      }
+      if (!cancelled) setState("offer");
     })();
 
     return () => {
@@ -187,14 +247,7 @@ export function OrderNotifications({ orderId }: { orderId: string }) {
       }
 
       const reg = await readyWorker();
-      const sub =
-        (await reg.pushManager.getSubscription()) ??
-        (await reg.pushManager.subscribe({
-          // Required to be true by every browser — a push that shows nothing
-          // is treated as abuse and can cost you the subscription.
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(data.key),
-        }));
+      const sub = await subscribeWithKey(reg, data.key);
 
       await axios.post(`${API_BASE}/v1/customer-push/subscribe`, {
         orderId,
