@@ -207,7 +207,7 @@ export class CustomerPushService {
       if (links.length === 0) return;
 
       const ref = args.displayId ?? (args.orderNumber ? `#${args.orderNumber}` : null);
-      const payload = JSON.stringify({
+      const payload = this.buildPayload({
         title: ref ? `${message.title} · ${ref}` : message.title,
         body: message.body,
         // The restaurant's logo on the lock screen, not ours. One extra read
@@ -234,10 +234,49 @@ export class CustomerPushService {
   }
 
   /**
+   * Serialise the notification, guaranteeing it fits.
+   *
+   * Push services cap the ENCRYPTED payload at 4096 bytes and FCM refuses the
+   * whole send with a 400 when you go over — no partial delivery, no warning,
+   * the customer just never hears anything. The text is ~250 bytes; the only
+   * thing that can blow the budget is the icon, because logoUrl is sometimes a
+   * base64 data URL (the Supabase uploader falls back to storing the data URL
+   * inline when it isn't configured, and a logo is easily several KB).
+   *
+   * So the icon is dropped rather than the notification. A generic mark beats
+   * silence.
+   */
+  private buildPayload(input: Record<string, unknown>): string {
+    const full = JSON.stringify(input);
+    // Encryption adds padding and a header on top of the plaintext, so aim
+    // well under 4096 rather than at it.
+    if (Buffer.byteLength(full, "utf8") <= 3000) return full;
+
+    const { icon: _dropped, ...lean } = input;
+    const trimmed = JSON.stringify(lean);
+    this.logger.warn(
+      `push payload ${Buffer.byteLength(full, "utf8")}B — dropped icon, now ${Buffer.byteLength(trimmed, "utf8")}B`,
+    );
+    return trimmed;
+  }
+
+  /**
    * The logo to show on the notification: the brand's if the order came
    * through a brand storefront, otherwise the location's. Null falls back to
    * the OrderHub mark in the service worker.
+   *
+   * Only http(s) URLs qualify. A data: URL would be inlined into every push
+   * and is the one field big enough to breach the 4KB ceiling — and the
+   * service worker can fetch a remote icon perfectly well, so there is nothing
+   * to gain by embedding one.
    */
+  private usableIcon(url?: string | null): string | null {
+    if (!url) return null;
+    if (!/^https?:\/\//i.test(url)) return null;
+    // A URL this long is a signed blob or a tracking monster, not a logo.
+    return url.length <= 500 ? url : null;
+  }
+
   private async logoFor(sub: any): Promise<string | null> {
     if (!sub) return null;
     try {
@@ -246,14 +285,17 @@ export class CustomerPushService {
           where: { id: sub.brandId },
           select: { logoUrl: true },
         });
-        if (brand?.logoUrl) return brand.logoUrl;
+        const usable = this.usableIcon(brand?.logoUrl);
+        // Fall through to the location logo when the brand's is a data URL —
+        // it may well have a usable one.
+        if (usable) return usable;
       }
       if (sub.locationId) {
         const loc = await this.db().location.findUnique({
           where: { id: sub.locationId },
           select: { logoUrl: true },
         });
-        return loc?.logoUrl ?? null;
+        return this.usableIcon(loc?.logoUrl);
       }
       return null;
     } catch {
