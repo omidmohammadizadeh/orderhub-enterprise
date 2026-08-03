@@ -30,84 +30,97 @@ export class GoogleSearchProvider implements SearchProvider {
     limit: number,
   ): Promise<AddressSuggestion[]> {
     const key = process.env.GOOGLE_MAPS_API_KEY!;
-    const url =
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json` +
-      `?input=${encodeURIComponent(query)}` +
-      `&key=${key}` +
-      `&components=country:${country}` +
-      `&types=address`;
-    const res = await fetch(url);
+    const res = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "X-Goog-Api-Key": key,
+      },
+      body: JSON.stringify({
+        input: query,
+        includedRegionCodes: [country.toLowerCase()],
+      }),
+    });
     if (!res.ok) {
-      throw new Error(`Google autocomplete ${res.status} ${res.statusText}`);
-    }
-    const data = (await res.json()) as {
-      status: string;
-      predictions?: Array<{
-        place_id: string;
-        description: string;
-        structured_formatting?: { main_text?: string; secondary_text?: string };
-      }>;
-      error_message?: string;
-    };
-    if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
+      const text = await res.text().catch(() => "");
       throw new Error(
-        `Google: ${data.status}${data.error_message ? ` — ${data.error_message}` : ""}`,
+        `Google autocomplete ${res.status} ${res.statusText}${
+          text ? ` — ${text.slice(0, 200)}` : ""
+        }`,
       );
     }
-    return (data.predictions ?? []).slice(0, limit).map((p) => ({
-      id: p.place_id,
-      label: p.description,
-      line1: p.structured_formatting?.main_text ?? p.description,
-      provider: "google" as const,
-    }));
+    const data = (await res.json()) as {
+      suggestions?: Array<{
+        placePrediction?: {
+          placeId?: string;
+          text?: { text?: string };
+          structuredFormat?: {
+            mainText?: { text?: string };
+            secondaryText?: { text?: string };
+          };
+        };
+      }>;
+    };
+    // No matches is an empty body here, not an error — the legacy API's
+    // ZERO_RESULTS status has no equivalent in Places (New).
+    return (data.suggestions ?? [])
+      .map((s) => s.placePrediction)
+      .filter((p): p is NonNullable<typeof p> => !!p?.placeId)
+      .slice(0, limit)
+      .map((p) => ({
+        id: p.placeId!,
+        label: p.text?.text ?? p.structuredFormat?.mainText?.text ?? "",
+        line1: p.structuredFormat?.mainText?.text ?? p.text?.text ?? "",
+        provider: "google" as const,
+      }));
   }
 
   async getDetails(placeId: string): Promise<AddressSuggestion | null> {
     const key = process.env.GOOGLE_MAPS_API_KEY;
     if (!key || !placeId) return null;
-    const url =
-      `https://maps.googleapis.com/maps/api/place/details/json` +
-      `?place_id=${encodeURIComponent(placeId)}` +
-      `&key=${key}` +
-      `&fields=address_component,formatted_address,geometry`;
-    const res = await fetch(url);
+    const res = await fetch(
+      `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`,
+      {
+        headers: {
+          "X-Goog-Api-Key": key,
+          // Places (New) bills by the fields you ask for, so ask for exactly
+          // the three we map and nothing else.
+          "X-Goog-FieldMask": "addressComponents,formattedAddress,location",
+        },
+      },
+    );
     if (!res.ok) {
       throw new Error(`Google details ${res.status} ${res.statusText}`);
     }
-    const data = (await res.json()) as {
-      status: string;
-      result?: {
-        formatted_address?: string;
-        address_components?: Array<{
-          long_name: string;
-          short_name: string;
-          types: string[];
-        }>;
-        geometry?: { location?: { lat: number; lng: number } };
-      };
-    };
-    if (data.status !== "OK" || !data.result) return null;
-    return mapGooglePlaceDetails(placeId, data.result);
+    const data = (await res.json()) as GooglePlaceNew;
+    if (!data) return null;
+    return mapGooglePlaceDetails(placeId, data);
   }
+}
+
+/** Places API (New) response shape. The field names differ from the legacy
+ *  API in ways that silently produce blank addresses if you assume the old
+ *  ones: longText/shortText rather than long_name/short_name, and a flat
+ *  `location` rather than geometry.location. */
+interface GooglePlaceNew {
+  formattedAddress?: string;
+  addressComponents?: Array<{
+    longText?: string;
+    shortText?: string;
+    types?: string[];
+  }>;
+  location?: { latitude?: number; longitude?: number };
 }
 
 function mapGooglePlaceDetails(
   placeId: string,
-  result: {
-    formatted_address?: string;
-    address_components?: Array<{
-      long_name: string;
-      short_name: string;
-      types: string[];
-    }>;
-    geometry?: { location?: { lat: number; lng: number } };
-  },
+  result: GooglePlaceNew,
 ): AddressSuggestion {
-  const components = result.address_components ?? [];
+  const components = result.addressComponents ?? [];
   const pick = (type: string): string | undefined =>
-    components.find((c) => c.types.includes(type))?.long_name;
+    components.find((c) => c.types?.includes(type))?.longText;
   const pickShort = (type: string): string | undefined =>
-    components.find((c) => c.types.includes(type))?.short_name;
+    components.find((c) => c.types?.includes(type))?.shortText;
 
   const streetNumber = pick("street_number");
   const route = pick("route");
@@ -118,14 +131,16 @@ function mapGooglePlaceDetails(
 
   return {
     id: placeId,
-    label: result.formatted_address ?? [line1, city, pick("postal_code")].filter(Boolean).join(", "),
-    line1: line1 || (result.formatted_address ?? ""),
+    label:
+      result.formattedAddress ??
+      [line1, city, pick("postal_code")].filter(Boolean).join(", "),
+    line1: line1 || (result.formattedAddress ?? ""),
     line2: subpremise ? `Flat ${subpremise}` : undefined,
     city,
     postcode: pick("postal_code"),
     country: pickShort("country"),
-    latitude: result.geometry?.location?.lat,
-    longitude: result.geometry?.location?.lng,
+    latitude: result.location?.latitude,
+    longitude: result.location?.longitude,
     provider: "google",
   };
 }
