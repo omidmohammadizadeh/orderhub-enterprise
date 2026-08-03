@@ -57,6 +57,7 @@ import {
 } from "lucide-react";
 import { GroupBasketPanel } from "@/components/storefront/group-basket-panel";
 import { StartGroupOrderModal } from "@/components/storefront/start-group-order-modal";
+import { AddressSearchField } from "@/components/storefront/address-search-field";
 import {
   getGuestName,
   getGuestRef,
@@ -2633,6 +2634,17 @@ function CartPanel(props: CartPanelProps) {
           {/* Address (delivery only) */}
           {fulfillmentType === "DELIVERY" && (
             <Section title="Delivery address">
+              {/* Search first, type second. Most customers finish here and
+                  never touch the fields below — but the fields stay, because
+                  new-builds and flats above shops are exactly the addresses
+                  Google is worst at. */}
+              <AddressSearchField
+                onPick={(a) => {
+                  if (a.line1) setAddrLine1(a.line1);
+                  if (a.city) setAddrCity(a.city);
+                  if (a.postcode) setAddrPostcode(a.postcode.toUpperCase());
+                }}
+              />
               {/* Phase AP fix #3 — house/flat number gets its own row */}
               <TextField
                 value={addrFlat}

@@ -30,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import type { GroupOrderView } from "@/lib/api/group-orders.client";
+import { AddressSearchField } from "@/components/storefront/address-search-field";
 
 export interface GroupBasketPanelProps {
   basket: GroupOrderView;
@@ -329,6 +330,17 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
 
               {isDelivery && (
                 <Section title="Delivery address">
+                  {/* Same search the ordinary cart has — the host is placing a
+                      real delivery order and shouldn't get a worse address
+                      form for having used the group flow. */}
+                  <AddressSearchField
+                    onPick={(a) => {
+                      if (a.line1) props.setAddrLine1(a.line1);
+                      if (a.city) props.setAddrCity(a.city);
+                      if (a.postcode)
+                        props.setAddrPostcode(a.postcode.toUpperCase());
+                    }}
+                  />
                   <Field
                     value={props.addrFlat}
                     onChange={props.setAddrFlat}
