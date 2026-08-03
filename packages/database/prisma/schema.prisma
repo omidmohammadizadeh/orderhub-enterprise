@@ -4578,6 +4578,16 @@ model CustomerPushOrder {
   subscriptionId String
   orderId        String
 
+  // Where to send the customer when they tap the notification.
+  //
+  // Supplied by the browser at subscribe time rather than derived on the
+  // server, because the page KNOWS its own URL and the server can only guess
+  // — and it guessed wrong: a location with no slug produced a path with no
+  // matching route, so every tap opened a 404. It also makes brand custom
+  // domains work, where the storefront is not under /order/<slug> at all.
+  // Validated as a relative path on the way in; never trusted as a full URL.
+  trackPath String?
+
   createdAt DateTime @default(now())
 
   subscription CustomerPushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)

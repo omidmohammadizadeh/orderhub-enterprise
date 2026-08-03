@@ -3449,7 +3449,7 @@ function AcceptedScreen({
             have to sit on this page. Gone once the order is finished. */}
         {!completed && (
           <div className="mb-8 text-left">
-            <OrderNotifications orderId={data.id} />
+            <OrderNotifications orderId={data.id} slug={storeSlug} />
           </div>
         )}
         {data.estimatedReadyAt && !completed && (

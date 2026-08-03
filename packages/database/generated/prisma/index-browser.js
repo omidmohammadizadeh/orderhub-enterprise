@@ -2162,6 +2162,7 @@ exports.Prisma.CustomerPushOrderScalarFieldEnum = {
   id: 'id',
   subscriptionId: 'subscriptionId',
   orderId: 'orderId',
+  trackPath: 'trackPath',
   createdAt: 'createdAt'
 };
 
@@ -3461,7 +3462,8 @@ exports.Prisma.CustomerPushSubscriptionOrderByRelevanceFieldEnum = {
 exports.Prisma.CustomerPushOrderOrderByRelevanceFieldEnum = {
   id: 'id',
   subscriptionId: 'subscriptionId',
-  orderId: 'orderId'
+  orderId: 'orderId',
+  trackPath: 'trackPath'
 };
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',

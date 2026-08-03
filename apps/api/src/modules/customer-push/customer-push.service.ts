@@ -51,6 +51,18 @@ const MESSAGES: Record<string, { title: string; body: string }> = {
   },
 };
 
+/**
+ * A tap target has to be a same-origin relative path. This value comes off a
+ * public endpoint, so anything else is discarded rather than sanitised —
+ * "//evil.com" is a protocol-relative URL, not a path, hence the second check.
+ * Returning null is safe: the service worker falls back to "/".
+ */
+function safePath(raw?: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw.length <= 300 ? raw : null;
+}
+
 /** READY means different things depending on how the food is leaving. */
 const DELIVERY_READY = {
   title: "Ready — waiting for a driver",
@@ -108,6 +120,9 @@ export class CustomerPushService {
     auth: string;
     deviceRef?: string | null;
     userAgent?: string | null;
+    /** Where tapping the notification should land, as the subscribing page
+     *  knows it. Relative path only — see safePath. */
+    trackPath?: string | null;
   }): Promise<{ ok: true }> {
     const order = await this.db().order.findUnique({
       where: { id: args.orderId },
@@ -151,12 +166,15 @@ export class CustomerPushService {
       },
     });
 
+    const trackPath = safePath(args.trackPath);
     await this.db().customerPushOrder.upsert({
       where: {
         subscriptionId_orderId: { subscriptionId: sub.id, orderId: order.id },
       },
-      create: { subscriptionId: sub.id, orderId: order.id },
-      update: {},
+      create: { subscriptionId: sub.id, orderId: order.id, trackPath },
+      // Don't overwrite a good path with a missing one — the storefront and
+      // the tracking page both re-subscribe, and only one of them may know it.
+      update: trackPath ? { trackPath } : {},
     });
 
     return { ok: true };
@@ -214,6 +232,14 @@ export class CustomerPushService {
         return;
       }
 
+      // Prefer a path a real page told us about; fall back to the derived one
+      // only if no subscriber recorded theirs.
+      const tapTarget =
+        safePath(links.find((l: any) => l.trackPath)?.trackPath) ??
+        (args.storefrontSlug
+          ? `/order/${args.storefrontSlug}/status/${args.orderId}`
+          : null);
+
       const ref = args.displayId ?? (args.orderNumber ? `#${args.orderNumber}` : null);
       const payload = this.buildPayload({
         title: ref ? `${message.title} · ${ref}` : message.title,
@@ -227,9 +253,13 @@ export class CustomerPushService {
         data: {
           orderId: args.orderId,
           status: args.status,
-          url: args.storefrontSlug
-            ? `/order/${args.storefrontSlug}/status/${args.orderId}`
-            : `/order/status/${args.orderId}`,
+          // The subscribing page's own path wins; the slug lookup is only a
+          // fallback for rows written before trackPath existed. When neither
+          // is available the url is omitted entirely and the service worker
+          // opens "/" — the previous code invented
+          // /order/status/<id>, a route that does not exist, so every tap on
+          // a slug-less location opened a 404.
+          ...(tapTarget ? { url: tapTarget } : {}),
         },
       });
 
@@ -238,7 +268,7 @@ export class CustomerPushService {
       );
       const sent = results.filter(Boolean).length;
       this.logger.log(
-        `customer push ${args.status} order=${args.orderId} delivered=${sent}/${links.length}`,
+        `customer push ${args.status} order=${args.orderId} delivered=${sent}/${links.length} tap=${tapTarget ?? "(none)"}`,
       );
     } catch (e: any) {
       this.logger.error(`customer push for ${args.orderId} failed: ${e?.message ?? e}`);

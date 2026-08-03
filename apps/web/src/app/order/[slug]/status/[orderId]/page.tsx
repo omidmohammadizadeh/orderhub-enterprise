@@ -205,7 +205,7 @@ export default function OrderStatusPage() {
                 finished — there is nothing left to notify about. */}
             {!isCancelled && !isComplete && (
               <div className="mx-auto mt-6 max-w-sm">
-                <OrderNotifications orderId={params.orderId} />
+                <OrderNotifications orderId={params.orderId} slug={params.slug} />
               </div>
             )}
 

@@ -144192,6 +144192,7 @@ export namespace Prisma {
     id: string | null
     subscriptionId: string | null
     orderId: string | null
+    trackPath: string | null
     createdAt: Date | null
   }
 
@@ -144199,6 +144200,7 @@ export namespace Prisma {
     id: string | null
     subscriptionId: string | null
     orderId: string | null
+    trackPath: string | null
     createdAt: Date | null
   }
 
@@ -144206,6 +144208,7 @@ export namespace Prisma {
     id: number
     subscriptionId: number
     orderId: number
+    trackPath: number
     createdAt: number
     _all: number
   }
@@ -144215,6 +144218,7 @@ export namespace Prisma {
     id?: true
     subscriptionId?: true
     orderId?: true
+    trackPath?: true
     createdAt?: true
   }
 
@@ -144222,6 +144226,7 @@ export namespace Prisma {
     id?: true
     subscriptionId?: true
     orderId?: true
+    trackPath?: true
     createdAt?: true
   }
 
@@ -144229,6 +144234,7 @@ export namespace Prisma {
     id?: true
     subscriptionId?: true
     orderId?: true
+    trackPath?: true
     createdAt?: true
     _all?: true
   }
@@ -144309,6 +144315,7 @@ export namespace Prisma {
     id: string
     subscriptionId: string
     orderId: string
+    trackPath: string | null
     createdAt: Date
     _count: CustomerPushOrderCountAggregateOutputType | null
     _min: CustomerPushOrderMinAggregateOutputType | null
@@ -144333,6 +144340,7 @@ export namespace Prisma {
     id?: boolean
     subscriptionId?: boolean
     orderId?: boolean
+    trackPath?: boolean
     createdAt?: boolean
     subscription?: boolean | CustomerPushSubscriptionDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerPushOrder"]>
@@ -144341,6 +144349,7 @@ export namespace Prisma {
     id?: boolean
     subscriptionId?: boolean
     orderId?: boolean
+    trackPath?: boolean
     createdAt?: boolean
     subscription?: boolean | CustomerPushSubscriptionDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerPushOrder"]>
@@ -144349,6 +144358,7 @@ export namespace Prisma {
     id?: boolean
     subscriptionId?: boolean
     orderId?: boolean
+    trackPath?: boolean
     createdAt?: boolean
   }
 
@@ -144368,6 +144378,7 @@ export namespace Prisma {
       id: string
       subscriptionId: string
       orderId: string
+      trackPath: string | null
       createdAt: Date
     }, ExtArgs["result"]["customerPushOrder"]>
     composites: {}
@@ -144766,6 +144777,7 @@ export namespace Prisma {
     readonly id: FieldRef<"CustomerPushOrder", 'String'>
     readonly subscriptionId: FieldRef<"CustomerPushOrder", 'String'>
     readonly orderId: FieldRef<"CustomerPushOrder", 'String'>
+    readonly trackPath: FieldRef<"CustomerPushOrder", 'String'>
     readonly createdAt: FieldRef<"CustomerPushOrder", 'DateTime'>
   }
     
@@ -147516,6 +147528,7 @@ export namespace Prisma {
     id: 'id',
     subscriptionId: 'subscriptionId',
     orderId: 'orderId',
+    trackPath: 'trackPath',
     createdAt: 'createdAt'
   };
 
@@ -149199,7 +149212,8 @@ export namespace Prisma {
   export const CustomerPushOrderOrderByRelevanceFieldEnum: {
     id: 'id',
     subscriptionId: 'subscriptionId',
-    orderId: 'orderId'
+    orderId: 'orderId',
+    trackPath: 'trackPath'
   };
 
   export type CustomerPushOrderOrderByRelevanceFieldEnum = (typeof CustomerPushOrderOrderByRelevanceFieldEnum)[keyof typeof CustomerPushOrderOrderByRelevanceFieldEnum]
@@ -162731,6 +162745,7 @@ export namespace Prisma {
     id?: StringFilter<"CustomerPushOrder"> | string
     subscriptionId?: StringFilter<"CustomerPushOrder"> | string
     orderId?: StringFilter<"CustomerPushOrder"> | string
+    trackPath?: StringNullableFilter<"CustomerPushOrder"> | string | null
     createdAt?: DateTimeFilter<"CustomerPushOrder"> | Date | string
     subscription?: XOR<CustomerPushSubscriptionRelationFilter, CustomerPushSubscriptionWhereInput>
   }
@@ -162739,6 +162754,7 @@ export namespace Prisma {
     id?: SortOrder
     subscriptionId?: SortOrder
     orderId?: SortOrder
+    trackPath?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     subscription?: CustomerPushSubscriptionOrderByWithRelationInput
     _relevance?: CustomerPushOrderOrderByRelevanceInput
@@ -162752,6 +162768,7 @@ export namespace Prisma {
     NOT?: CustomerPushOrderWhereInput | CustomerPushOrderWhereInput[]
     subscriptionId?: StringFilter<"CustomerPushOrder"> | string
     orderId?: StringFilter<"CustomerPushOrder"> | string
+    trackPath?: StringNullableFilter<"CustomerPushOrder"> | string | null
     createdAt?: DateTimeFilter<"CustomerPushOrder"> | Date | string
     subscription?: XOR<CustomerPushSubscriptionRelationFilter, CustomerPushSubscriptionWhereInput>
   }, "id" | "subscriptionId_orderId">
@@ -162760,6 +162777,7 @@ export namespace Prisma {
     id?: SortOrder
     subscriptionId?: SortOrder
     orderId?: SortOrder
+    trackPath?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: CustomerPushOrderCountOrderByAggregateInput
     _max?: CustomerPushOrderMaxOrderByAggregateInput
@@ -162773,6 +162791,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"CustomerPushOrder"> | string
     subscriptionId?: StringWithAggregatesFilter<"CustomerPushOrder"> | string
     orderId?: StringWithAggregatesFilter<"CustomerPushOrder"> | string
+    trackPath?: StringNullableWithAggregatesFilter<"CustomerPushOrder"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"CustomerPushOrder"> | Date | string
   }
 
@@ -177428,6 +177447,7 @@ export namespace Prisma {
   export type CustomerPushOrderCreateInput = {
     id?: string
     orderId: string
+    trackPath?: string | null
     createdAt?: Date | string
     subscription: CustomerPushSubscriptionCreateNestedOneWithoutOrdersInput
   }
@@ -177436,12 +177456,14 @@ export namespace Prisma {
     id?: string
     subscriptionId: string
     orderId: string
+    trackPath?: string | null
     createdAt?: Date | string
   }
 
   export type CustomerPushOrderUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
+    trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subscription?: CustomerPushSubscriptionUpdateOneRequiredWithoutOrdersNestedInput
   }
@@ -177450,6 +177472,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     subscriptionId?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
+    trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -177457,12 +177480,14 @@ export namespace Prisma {
     id?: string
     subscriptionId: string
     orderId: string
+    trackPath?: string | null
     createdAt?: Date | string
   }
 
   export type CustomerPushOrderUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
+    trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -177470,6 +177495,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     subscriptionId?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
+    trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -187403,6 +187429,7 @@ export namespace Prisma {
     id?: SortOrder
     subscriptionId?: SortOrder
     orderId?: SortOrder
+    trackPath?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -187410,6 +187437,7 @@ export namespace Prisma {
     id?: SortOrder
     subscriptionId?: SortOrder
     orderId?: SortOrder
+    trackPath?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -187417,6 +187445,7 @@ export namespace Prisma {
     id?: SortOrder
     subscriptionId?: SortOrder
     orderId?: SortOrder
+    trackPath?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -230711,12 +230740,14 @@ export namespace Prisma {
   export type CustomerPushOrderCreateWithoutSubscriptionInput = {
     id?: string
     orderId: string
+    trackPath?: string | null
     createdAt?: Date | string
   }
 
   export type CustomerPushOrderUncheckedCreateWithoutSubscriptionInput = {
     id?: string
     orderId: string
+    trackPath?: string | null
     createdAt?: Date | string
   }
 
@@ -230753,6 +230784,7 @@ export namespace Prisma {
     id?: StringFilter<"CustomerPushOrder"> | string
     subscriptionId?: StringFilter<"CustomerPushOrder"> | string
     orderId?: StringFilter<"CustomerPushOrder"> | string
+    trackPath?: StringNullableFilter<"CustomerPushOrder"> | string | null
     createdAt?: DateTimeFilter<"CustomerPushOrder"> | Date | string
   }
 
@@ -240491,24 +240523,28 @@ export namespace Prisma {
   export type CustomerPushOrderCreateManySubscriptionInput = {
     id?: string
     orderId: string
+    trackPath?: string | null
     createdAt?: Date | string
   }
 
   export type CustomerPushOrderUpdateWithoutSubscriptionInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
+    trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CustomerPushOrderUncheckedUpdateWithoutSubscriptionInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
+    trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CustomerPushOrderUncheckedUpdateManyWithoutSubscriptionInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
+    trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

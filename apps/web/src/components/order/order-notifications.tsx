@@ -142,7 +142,17 @@ type State =
   | "denied"
   | "failed";
 
-export function OrderNotifications({ orderId }: { orderId: string }) {
+export function OrderNotifications({
+  orderId,
+  slug,
+}: {
+  orderId: string;
+  /** The storefront slug this page belongs to. Used to tell the server where
+   *  tapping the notification should land — the page knows its own URL, and
+   *  the server was guessing it from the location record (and getting a 404
+   *  whenever that record had no slug). */
+  slug: string;
+}) {
   const [state, setState] = useState<State>("checking");
 
   useEffect(() => {
@@ -212,6 +222,7 @@ export function OrderNotifications({ orderId }: { orderId: string }) {
               endpoint: existing.endpoint,
               keys: existing.toJSON().keys,
               deviceRef: deviceRef(),
+              trackPath: `/order/${slug}/status/${orderId}`,
             })
             .catch(() => undefined);
           if (!cancelled) setState("on");
@@ -227,7 +238,7 @@ export function OrderNotifications({ orderId }: { orderId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [orderId]);
+  }, [orderId, slug]);
 
   const enable = useCallback(async () => {
     setState("working");
@@ -254,12 +265,13 @@ export function OrderNotifications({ orderId }: { orderId: string }) {
         endpoint: sub.endpoint,
         keys: sub.toJSON().keys,
         deviceRef: deviceRef(),
+        trackPath: `/order/${slug}/status/${orderId}`,
       });
       setState("on");
     } catch {
       setState("failed");
     }
-  }, [orderId]);
+  }, [orderId, slug]);
 
   if (state === "checking" || state === "unsupported") return null;
 

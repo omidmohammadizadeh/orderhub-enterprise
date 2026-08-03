@@ -37,6 +37,7 @@ export class CustomerPushController {
       endpoint: string;
       keys: { p256dh: string; auth: string };
       deviceRef?: string;
+      trackPath?: string;
     },
     @Headers("user-agent") userAgent?: string,
   ) {
@@ -47,6 +48,7 @@ export class CustomerPushController {
       auth: body.keys?.auth,
       deviceRef: body.deviceRef ?? null,
       userAgent: userAgent ?? null,
+      trackPath: body.trackPath ?? null,
     });
   }
 
