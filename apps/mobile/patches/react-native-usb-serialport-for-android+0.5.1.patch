@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java b/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java
-index 7e20282..9c93be5 100644
+index 7e20282..5a17aba 100644
 --- a/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java
 +++ b/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java
 @@ -18,6 +18,8 @@ import com.facebook.react.bridge.WritableArray;
@@ -48,3 +48,27 @@ index 7e20282..9c93be5 100644
          if (driver == null) {
              promise.reject(CODE_DRIVER_NOT_FOND, "no driver for device");
              return;
+@@ -153,6 +176,23 @@ public class UsbSerialportForAndroidModule extends ReactContextBaseJavaModule im
+         try {
+             port.open(connection);
+             port.setParameters(baudRate, dataBits, stopBits, parity);
++            // Assert DTR and RTS.
++            //
++            // usb-serial-for-android leaves both de-asserted after open, and
++            // this library never touched them. A caller-ID box is a
++            // modem-class device: with DTR low it reads "terminal not ready"
++            // and transmits nothing at all. The port opens cleanly, the baud
++            // is right, and not one byte ever arrives — which is exactly the
++            // symptom the CT Comet showed on a line whose caller ID was
++            // demonstrably working on other hardware.
++            //
++            // Best-effort: some drivers don't implement the control lines and
++            // throw UnsupportedOperationException. That must not fail an
++            // otherwise healthy open.
++            try {
++                port.setDTR(true);
++                port.setRTS(true);
++            } catch (Exception ignored) {}
+         } catch (IOException e) {
+             try {
+                  port.close();
