@@ -20,6 +20,7 @@ import {
   Package,
   Shield,
   Palette,
+  PhoneCall,
   Printer,
   Zap,
   ChefHat,
@@ -145,6 +146,9 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: [...MANAGER_TIER, "MANAGER"] },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
   { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: [...MANAGER_TIER, "MANAGER"] },
+  // Diagnostics for the Comet USB box. Lives next to Printers because it is
+  // the same job: "is the hardware on this counter actually working?"
+  { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: [...MANAGER_TIER, "MANAGER"] },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin, roles: MANAGER_TIER },
   // Phase LG — activity feed: menu publishes, order pushes, stock changes,
   // store status — the HubRise-style "what did the system do" timeline.

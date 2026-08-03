@@ -21,6 +21,7 @@ import {
 import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { apiClient } from "@/lib/api/client";
+import { attachHubLogBridge, hubRecord } from "@/lib/callerid/hub-log";
 
 /** Payload the POS cart panel consumes via the "pos:callerid-fill" event. */
 export interface CallerIdFill {
@@ -103,17 +104,25 @@ export function CallerIdPopup({
       // is VISIBLE. Previously we returned early and the box's number went
       // nowhere with no trace — indistinguishable from broken hardware.
       if (!nativeLocationId) {
-        console.warn(
-          `caller-id: ring from ${phone} ignored — pick a single location in the switcher so we know which shop's line rang.`,
-        );
+        const why = `ring from ${phone} dropped — no single location selected in the switcher, so we don't know whose line rang`;
+        console.warn(`caller-id: ${why}`);
+        hubRecord("dropped", why);
         return;
       }
       const now = Date.now();
-      if (now - (recent.get(phone) ?? 0) < 10_000) return;
+      if (now - (recent.get(phone) ?? 0) < 10_000) {
+        hubRecord("dropped", `ring from ${phone} ignored — duplicate within 10s`);
+        return;
+      }
       recent.set(phone, now);
       apiClient
         .post("/v1/customers/caller-id/ring", { locationId: nativeLocationId, phone })
+        .then(() => hubRecord("sent", `ring from ${phone} sent to the API`))
         .catch((err) => {
+          hubRecord(
+            "error",
+            `couldn't send the ring for ${phone}: ${err?.response?.status ?? err?.message ?? err}`,
+          );
           // Best-effort (the next ring retries), but say so — a silently
           // swallowed 401/403 here looks exactly like a dead Comet box.
           console.error(
@@ -122,6 +131,7 @@ export function CallerIdPopup({
           );
         });
     };
+    attachHubLogBridge();
     window.addEventListener("native:callerid", onNative);
     return () => window.removeEventListener("native:callerid", onNative);
   }, [nativeLocationId]);

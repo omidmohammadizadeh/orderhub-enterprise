@@ -95,15 +95,36 @@ export function PosWebView({ tokens, onSignOut }: Props) {
   // which POSTs /v1/customers/caller-id/ring with its own auth + selected
   // location — the API then broadcasts the popup to EVERY tablet.
   useEffect(() => {
+    const toWeb = (event: string, detail: unknown) => {
+      webRef.current?.injectJavaScript(
+        `window.dispatchEvent(new CustomEvent(${JSON.stringify(
+          event,
+        )}, { detail: ${JSON.stringify(detail)} })); true;`,
+      );
+    };
+
     startCometReader(
       (phone, rawLine) => {
-        webRef.current?.injectJavaScript(
-          `window.dispatchEvent(new CustomEvent('native:callerid', { detail: ${JSON.stringify(
-            { phone, rawLine },
-          )} })); true;`,
-        );
+        toWeb("native:callerid", { phone, rawLine });
+        toWeb("native:callerid:log", {
+          at: new Date().toISOString(),
+          level: "ring",
+          message: `number extracted: ${phone}`,
+          raw: rawLine,
+        });
       },
-      (msg) => console.log(msg),
+      // Every reader log also goes to the web app, which keeps a buffer the
+      // operator can read on screen. console.log alone meant the only way to
+      // find out why a Comet wasn't producing rings was a USB cable and adb —
+      // fine for us, impossible for a restaurant, and slow for everyone.
+      (msg) => {
+        console.log(msg);
+        toWeb("native:callerid:log", {
+          at: new Date().toISOString(),
+          level: /fail|denied|error/i.test(msg) ? "error" : "info",
+          message: msg,
+        });
+      },
     );
     return () => stopCometReader();
   }, []);
