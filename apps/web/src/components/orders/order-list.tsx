@@ -441,7 +441,20 @@ export function OrderList({ locationId }: Props) {
           No orders match this filter.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+        <>
+        {/* Phone: one card per order.
+            Ten columns cannot be made to work at 375px, and horizontal
+            scroll is the worst of both worlds — you end up unable to see
+            the order number and the Accept button at the same time, which
+            is the one pairing that matters when you're holding the phone.
+            So below md the same data is stacked instead. */}
+        <div className="flex flex-col gap-2 md:hidden">
+          {filteredOrders.map((o) => (
+            <OrderCard key={o.id} order={o} onOpen={() => setSelected(o)} />
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-lg border border-zinc-200 bg-white md:block">
           {/* Auto width (not w-full) so columns hug their content — on a
               small tablet this removes the big inter-column gaps that
               pushed the Status column off-screen. */}
@@ -471,6 +484,7 @@ export function OrderList({ locationId }: Props) {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <OrderDetailDrawer
@@ -531,6 +545,132 @@ function timeAgo(iso: string): string {
   if (diff < 60) return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   return `${Math.floor(diff / 3600)}h ago`;
+}
+
+/**
+ * The same order, for a phone.
+ *
+ * Not a shrunken table row — a different arrangement of the same facts,
+ * ordered by what someone standing up with a phone actually needs: which
+ * order, how long it's been waiting, what state it's in, then the buttons.
+ * Brand, channel and payment sit in the middle because they're the things
+ * you glance at rather than act on.
+ *
+ * Deliberately shares OrderActions / PrintOrderButton / DispatchModal with
+ * the table row. Two copies of "which buttons does this status get" is how
+ * the phone quietly ends up unable to do something the tablet can.
+ */
+function OrderCard({ order, onOpen }: { order: Order; onOpen: () => void }) {
+  const bucket =
+    BUCKETS.find((b) => b.match(order)) ?? BUCKETS[BUCKETS.length - 1]!;
+  const StatusIcon = bucket.icon;
+  const [showDispatch, setShowDispatch] = useState(false);
+
+  const brandName =
+    (order as any).brand?.name ?? (order as any).location?.brand?.name ?? null;
+
+  return (
+    <div
+      onClick={onOpen}
+      className="cursor-pointer rounded-lg border border-zinc-200 bg-white p-3 transition-colors active:bg-zinc-50"
+    >
+      {/* Order # + status — the two things worth seeing from arm's length. */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <span className="text-base font-semibold text-zinc-900">
+            #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
+          </span>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-500">
+            <span>
+              {new Date(order.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            <span>·</span>
+            <span>{timeAgo(order.createdAt)}</span>
+          </div>
+        </div>
+        <span
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${bucket.pill}`}
+        >
+          <StatusIcon className="h-3 w-3" />
+          {bucket.label}
+        </span>
+      </div>
+
+      {/* Channel / type / delivery mode. Wraps rather than truncating —
+          vertical space is the one thing a phone has plenty of. */}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <PlatformBadge
+          platform={
+            order.platform === "HUBRISE" &&
+            (order as any).orderSource &&
+            (order as any).orderSource !== "HUBRISE"
+              ? (order as any).orderSource
+              : order.platform
+          }
+        />
+        <FulfillmentBadge type={order.fulfillmentType} />
+        <DeliveryTypeBadge type={(order as any).deliveryType} />
+        <PaymentBadge
+          method={(order as any).paymentMethod}
+          status={(order as any).paymentStatus}
+        />
+      </div>
+
+      {/* Customer + where it's going. */}
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-600">
+        <span className="truncate font-medium text-zinc-800">
+          {order.customerInfo?.name ?? "—"}
+        </span>
+        {typeof order.customerVisitCount === "number" &&
+          order.customerVisitCount > 0 &&
+          (order.customerVisitCount <= 1 ? (
+            <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-800">
+              New
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-md bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-800">
+              Returning · #{order.customerVisitCount}
+            </span>
+          ))}
+        {brandName && (
+          <span className="truncate text-zinc-500">
+            · {brandName}
+            {(order as any).location?.name
+              ? ` · ${(order as any).location.name}`
+              : ""}
+          </span>
+        )}
+      </div>
+
+      {/* Actions. Scrolls sideways INSIDE the card when a status carries
+          three transitions — the card itself never grows past the viewport,
+          so the page body still can't scroll horizontally. */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="-mx-1 mt-3 flex items-center gap-1.5 overflow-x-auto px-1 pb-0.5"
+      >
+        <PrintOrderButton order={order} />
+        <OrderActions
+          orderId={order.id}
+          status={order.status}
+          fulfillmentType={order.fulfillmentType}
+          deliveryType={(order as any).deliveryType}
+          onDispatch={() => setShowDispatch(true)}
+        />
+        {showDispatch && (
+          <DispatchModal
+            orderId={order.id}
+            locationId={(order as any).locationId ?? null}
+            orderRef={`#${order.displayId ?? (order as any).orderNumber ?? ""}`}
+            onClose={() => setShowDispatch(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
 }
 
 function OrderRow({

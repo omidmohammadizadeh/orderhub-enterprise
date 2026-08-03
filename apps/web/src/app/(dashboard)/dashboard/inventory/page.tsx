@@ -248,7 +248,13 @@ export default function InventoryPage() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-          <table className="w-full text-sm">
+          {/* min-w-max is what makes the overflow-x-auto above do anything.
+              With w-full alone the eight columns (Product + 7 channels) are
+              squeezed into whatever the viewport is — about 47px each on a
+              phone — instead of keeping a readable width and scrolling. The
+              Product column is sticky, so it stays put while the channels
+              scroll under it. */}
+          <table className="w-full min-w-max text-sm">
             <thead className="bg-zinc-50 text-[10px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="sticky left-0 z-10 bg-zinc-50 px-3 py-2.5 text-left font-semibold">
@@ -273,7 +279,11 @@ export default function InventoryPage() {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id} className="border-t border-zinc-100">
-                  <td className="sticky left-0 z-10 bg-white px-3 py-2.5">
+                  {/* Bounded width: without it the sticky column takes as
+                      much as the longest product name and leaves no room for
+                      the channels it's meant to sit beside. The right border
+                      marks the split once the channels scroll beneath. */}
+                  <td className="sticky left-0 z-10 w-[190px] min-w-[190px] max-w-[190px] border-r border-zinc-100 bg-white px-3 py-2.5">
                     <div className="flex items-center gap-3">
                       {item.imageUrl ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
