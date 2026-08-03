@@ -1,0 +1,50 @@
+diff --git a/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java b/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java
+index 7e20282..9c93be5 100644
+--- a/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java
++++ b/node_modules/react-native-usb-serialport-for-android/android/src/main/java/com/bastengao/usbserialport/UsbSerialportForAndroidModule.java
+@@ -18,6 +18,8 @@ import com.facebook.react.bridge.WritableArray;
+ import com.facebook.react.bridge.WritableMap;
+ import com.facebook.react.module.annotations.ReactModule;
+ import com.facebook.react.modules.core.DeviceEventManagerModule;
++import com.hoho.android.usbserial.driver.FtdiSerialDriver;
++import com.hoho.android.usbserial.driver.ProbeTable;
+ import com.hoho.android.usbserial.driver.UsbSerialDriver;
+ import com.hoho.android.usbserial.driver.UsbSerialPort;
+ import com.hoho.android.usbserial.driver.UsbSerialProber;
+@@ -114,6 +116,27 @@ public class UsbSerialportForAndroidModule extends ReactContextBaseJavaModule im
+         return;
+     }
+ 
++    /**
++     * Default probe table PLUS the vendor-specific FTDI product IDs we ship
++     * hardware for.
++     *
++     * FTDI (vendor 0x0403) lets a manufacturer burn a custom product ID into
++     * the chip's EEPROM. The CT Comet caller-ID box does exactly that — it is
++     * an ordinary FTDI part reporting 0x8e08 — and usb-serial-for-android
++     * probes by a hard-coded PID list, so getDefaultProber() returns null for
++     * a chip it knows perfectly well how to drive. The device enumerates,
++     * Android names it, permission is granted, and every open fails with
++     * "no driver for device" at every baud rate.
++     */
++    private static final UsbSerialProber ORDERHUB_PROBER = buildProber();
++
++    private static UsbSerialProber buildProber() {
++        ProbeTable table = UsbSerialProber.getDefaultProbeTable();
++        // CT Comet USB caller-ID unit — FTDI silicon, custom PID.
++        table.addProduct(0x0403, 0x8e08, FtdiSerialDriver.class);
++        return new UsbSerialProber(table);
++    }
++
+     @ReactMethod
+     public void open(int deviceId, int baudRate, int dataBits, int stopBits, int parity, Promise promise) {
+         UsbSerialPortWrapper wrapper = usbSerialPorts.get(deviceId);
+@@ -129,7 +152,7 @@ public class UsbSerialportForAndroidModule extends ReactContextBaseJavaModule im
+             return;
+         }
+ 
+-        UsbSerialDriver driver = UsbSerialProber.getDefaultProber().probeDevice(device);
++        UsbSerialDriver driver = ORDERHUB_PROBER.probeDevice(device);
+         if (driver == null) {
+             promise.reject(CODE_DRIVER_NOT_FOND, "no driver for device");
+             return;

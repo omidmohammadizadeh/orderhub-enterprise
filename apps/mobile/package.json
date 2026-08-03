@@ -12,7 +12,8 @@
     "build:android": "eas build --platform android --profile production",
     "build:ios": "eas build --platform ios --profile production",
     "submit:android": "eas submit --platform android --latest",
-    "submit:ios": "eas submit --platform ios --latest"
+    "submit:ios": "eas submit --platform ios --latest",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@invertase/react-native-apple-authentication": "^2.4.0",
@@ -45,6 +46,7 @@
     "eslint": "^8.57.0",
     "eslint-config-expo": "~10.0.0",
     "expo-build-properties": "~1.0.10",
+    "patch-package": "^8.0.1",
     "typescript": "~5.9.2"
   }
 }
