@@ -54,9 +54,20 @@ export default function CallerIdPage() {
   const baudLine = nativeEntries.find((e) => /RAW @(\d+)/.test(e.message));
   const baud = baudLine?.message.match(/RAW @(\d+)/)?.[1] ?? null;
   const lastSent = entries.find((e) => e.level === "sent");
-  const permissionDenied = nativeEntries.some((e) =>
-    /permission denied/i.test(e.message),
+  // Only the LATEST permission-related line counts. Scanning all of history
+  // meant a denial at 21:39:00 kept the card red long after the operator had
+  // granted it at 21:39:15 — the page contradicting its own log.
+  const latestPermission = nativeEntries.find((e) =>
+    /permission denied|opening .* baud|open failed/i.test(e.message),
   );
+  const permissionDenied = /permission denied/i.test(
+    latestPermission?.message ?? "",
+  );
+  // The driver probe failing is a different failure from permission, and the
+  // one that actually blocks this hardware: Android enumerates the box, but
+  // the serial library has no driver for its chipset, so the port can never
+  // open at any baud.
+  const noDriver = nativeEntries.some((e) => /no driver for device/i.test(e.message));
   const noUsbModule = nativeEntries.some((e) =>
     /usb serial module not present/i.test(e.message),
   );
@@ -102,15 +113,17 @@ export default function CallerIdPage() {
         />
         <Check
           label="USB device"
-          ok={sawDevice && !noUsbModule && !permissionDenied}
+          ok={sawDevice && !noUsbModule && !permissionDenied && !noDriver}
           detail={
             noUsbModule
               ? "This app build has no USB support — needs a newer build"
-              : permissionDenied
-                ? "USB permission was denied — replug the box and allow it"
-                : sawDevice
-                  ? "Comet claimed"
-                  : "No device seen yet"
+              : noDriver
+                ? "Device found, but no serial driver matches its chipset — send me its vendor/product ID"
+                : permissionDenied
+                  ? "USB permission was denied — replug the box and allow it"
+                  : sawDevice
+                    ? "Comet claimed"
+                    : "No device seen yet"
           }
         />
         <Check

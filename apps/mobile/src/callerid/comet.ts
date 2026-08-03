@@ -61,6 +61,16 @@ export async function startCometReader(onNumber: OnNumber, onLog: OnLog = () => 
         continue;
       }
       const device = devices[0];
+      // Vendor/product ID identify the chipset, and the chipset decides
+      // whether a driver exists at all. Without these in the log, "no driver
+      // for device" is a dead end — with them it's a lookup.
+      const vid = device?.vendorId;
+      const pid = device?.productId;
+      const idHex = (n: unknown) =>
+        typeof n === "number" ? `0x${n.toString(16).padStart(4, "0")}` : "?";
+      onLog(
+        `callerid: device ${device.deviceId} vendorId=${idHex(vid)} (${vid}) productId=${idHex(pid)} (${pid})`,
+      );
       const granted = await UsbSerialManager.tryRequestPermission(device.deviceId);
       if (!granted) {
         onLog("callerid: USB permission denied — will retry");
@@ -81,7 +91,18 @@ export async function startCometReader(onNumber: OnNumber, onLog: OnLog = () => 
             stopBits: 1,
           });
         } catch (e: any) {
-          onLog(`callerid: open failed @ ${baud}: ${e?.message}`);
+          const msg = String(e?.message ?? e);
+          onLog(`callerid: open failed @ ${baud}: ${msg}`);
+          // "no driver for device" is not a baud problem — the library has no
+          // driver for this chipset, so every remaining candidate will fail
+          // the same way. Trying all four just fills the log and hides the
+          // one line that matters.
+          if (/no driver/i.test(msg)) {
+            onLog(
+              "callerid: this box's USB chipset has no serial driver in the app — baud hunt abandoned",
+            );
+            break;
+          }
           continue;
         }
 
