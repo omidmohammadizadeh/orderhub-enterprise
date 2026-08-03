@@ -21,6 +21,13 @@ export interface HubLogEntry {
   message: string;
   /** The untouched serial line, when this entry came from one. */
   raw?: string;
+  /**
+   * Who produced this line. The distinction is the whole point of the
+   * "Native app" check: a page that counts ALL entries goes green the moment
+   * the operator taps Mark, which is exactly the false all-clear this field
+   * exists to prevent.
+   */
+  source: "native" | "web";
 }
 
 /** In memory and capped: this is a live diagnostic, not an audit trail, and a
@@ -46,7 +53,13 @@ export function hubLog(entry: HubLogEntry) {
 /** Record something the WEB side decided, so a ring dropped in the browser is
  *  as visible as one the box never produced. */
 export function hubRecord(level: HubLogLevel, message: string, raw?: string) {
-  hubLog({ at: new Date().toISOString(), level, message, ...(raw ? { raw } : {}) });
+  hubLog({
+    at: new Date().toISOString(),
+    level,
+    message,
+    source: "web",
+    ...(raw ? { raw } : {}),
+  });
 }
 
 export function getHubLog(): HubLogEntry[] {
@@ -84,6 +97,7 @@ export function attachHubLogBridge() {
       at: typeof d.at === "string" ? d.at : new Date().toISOString(),
       level: (d.level as HubLogLevel) ?? "info",
       message: String(d.message),
+      source: "native",
       ...(d.raw ? { raw: String(d.raw) } : {}),
     });
   });

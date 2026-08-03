@@ -43,13 +43,23 @@ export default function CallerIdPage() {
   // Derived state, read off the log rather than tracked separately — one
   // source of truth means the summary can never disagree with the lines
   // underneath it.
-  const sawDevice = entries.some((e) => /usb caller-ID device|opening /i.test(e.message));
-  const sawRaw = entries.some((e) => e.raw || /RAW @/.test(e.message));
-  const baudLine = entries.find((e) => /RAW @(\d+)/.test(e.message));
+  // Only NATIVE lines prove the reader is alive. Counting every entry meant
+  // tapping Mark turned this green while the reader had said nothing at all —
+  // a false all-clear on the one check that has to be trustworthy.
+  const nativeEntries = entries.filter((e) => e.source === "native");
+  const sawDevice = nativeEntries.some((e) =>
+    /usb caller-ID device|opening /i.test(e.message),
+  );
+  const sawRaw = nativeEntries.some((e) => e.raw || /RAW @/.test(e.message));
+  const baudLine = nativeEntries.find((e) => /RAW @(\d+)/.test(e.message));
   const baud = baudLine?.message.match(/RAW @(\d+)/)?.[1] ?? null;
   const lastSent = entries.find((e) => e.level === "sent");
-  const permissionDenied = entries.some((e) => /permission denied/i.test(e.message));
-  const noUsbModule = entries.some((e) => /usb serial module not present/i.test(e.message));
+  const permissionDenied = nativeEntries.some((e) =>
+    /permission denied/i.test(e.message),
+  );
+  const noUsbModule = nativeEntries.some((e) =>
+    /usb serial module not present/i.test(e.message),
+  );
 
   return (
     <div className="flex flex-col gap-4 p-4 sm:p-6">
@@ -83,11 +93,11 @@ export default function CallerIdPage() {
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <Check
           label="Native app"
-          ok={entries.length > 0}
+          ok={nativeEntries.length > 0}
           detail={
-            entries.length > 0
+            nativeEntries.length > 0
               ? "Reader is reporting"
-              : "No reader logs — open this in the Order Hub app, not a browser tab"
+              : "No reader logs — either this is a browser tab, or the app build predates reader logging"
           }
         />
         <Check
