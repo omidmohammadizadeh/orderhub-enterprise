@@ -29,10 +29,7 @@
         "NSBluetoothAlwaysUsageDescription": "Order Hub connects to nearby Bluetooth card readers and receipt printers.",
         "NSBluetoothPeripheralUsageDescription": "Order Hub connects to nearby Bluetooth card readers and receipt printers.",
         "NSLocalNetworkUsageDescription": "Order Hub discovers and connects to receipt printers on your local Wi-Fi network.",
-        "NSLocationWhenInUseUsageDescription": "Location is required by the payments provider to accept card payments on the BBPOS WisePad 3 reader.",
-        "UISupportedExternalAccessoryProtocols": [
-          "com.bbpos.bt.wisepad"
-        ]
+        "NSLocationWhenInUseUsageDescription": "Location is required by the payments provider to accept card payments."
       }
     },
     "android": {
@@ -63,9 +60,9 @@
         "@stripe/stripe-terminal-react-native",
         {
           "bluetoothBackgroundMode": true,
-          "locationWhenInUsePermission": "Location is required by the payments provider to accept card payments on the reader.",
-          "bluetoothPeripheralPermission": "Bluetooth is required to connect to the BBPOS WisePad 3 card reader.",
-          "bluetoothAlwaysUsagePermission": "Bluetooth is required to connect to the BBPOS WisePad 3 card reader."
+          "locationWhenInUsePermission": "Location is required by the payments provider to accept card payments.",
+          "bluetoothPeripheralPermission": "Bluetooth is required to connect to card readers and receipt printers.",
+          "bluetoothAlwaysUsagePermission": "Bluetooth is required to connect to card readers and receipt printers."
         }
       ],
       [
