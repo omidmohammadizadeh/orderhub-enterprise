@@ -110,16 +110,29 @@ export class ActivityLogService {
     }
   }
 
-  /** Cursor-paginated feed for the dashboard Logs page. */
-  // Locations a user may see logs for: tenant-wide admins see all (null =
-  // no constraint); everyone else is limited to their UserLocation ∪ their
-  // brands' locations. Mirrors the app-wide scoping.
+  /**
+   * Locations a user may see logs for. null = no constraint (platform admin
+   * only); an array is the allowlist.
+   *
+   * TENANT_OWNER used to sit alongside PLATFORM_ADMIN here, which meant a
+   * tenant owner read every location's feed in the tenant — other operators'
+   * menu publishes, order failures and store pauses included. That is fine
+   * when a tenant is one business and a leak the moment it holds several,
+   * which is how this one is set up. Same fix, same reasoning as the
+   * subscriptions scope.
+   */
   private async accessibleLocationIds(user: {
     userId: string;
     tenantId: string;
     role: string;
   }): Promise<string[] | null> {
-    if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(user.role)) return null;
+    if (user?.role === "PLATFORM_ADMIN") return null;
+    // No identity, no logs. Failing closed shows an empty feed, which gets
+    // reported; failing open hands over the whole tenant, which doesn't.
+    if (!user?.userId || !user?.role) {
+      this.logger.warn("Log feed requested without a resolved user — denying");
+      return [];
+    }
     const [locRows, brandRows] = await Promise.all([
       (this.prisma as any).userLocation.findMany({
         where: { userId: user.userId },
