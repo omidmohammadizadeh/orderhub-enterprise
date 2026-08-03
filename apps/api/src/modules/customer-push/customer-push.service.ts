@@ -204,7 +204,15 @@ export class CustomerPushService {
         where: { orderId: args.orderId, subscription: { isActive: true } },
         include: { subscription: true },
       });
-      if (links.length === 0) return;
+      // Say so out loud. Silence on the happy path meant a clean log was
+      // indistinguishable from "nobody was subscribed", and the only way to
+      // tell them apart was to go and look at a phone.
+      if (links.length === 0) {
+        this.logger.log(
+          `customer push ${args.status} order=${args.orderId} — no subscribers`,
+        );
+        return;
+      }
 
       const ref = args.displayId ?? (args.orderNumber ? `#${args.orderNumber}` : null);
       const payload = this.buildPayload({
@@ -225,8 +233,12 @@ export class CustomerPushService {
         },
       });
 
-      await Promise.all(
+      const results = await Promise.all(
         links.map((link: any) => this.deliver(link.subscription, payload)),
+      );
+      const sent = results.filter(Boolean).length;
+      this.logger.log(
+        `customer push ${args.status} order=${args.orderId} delivered=${sent}/${links.length}`,
       );
     } catch (e: any) {
       this.logger.error(`customer push for ${args.orderId} failed: ${e?.message ?? e}`);
@@ -303,8 +315,9 @@ export class CustomerPushService {
     }
   }
 
-  /** One send, with the dead-endpoint cleanup that keeps the table honest. */
-  private async deliver(sub: any, payload: string): Promise<void> {
+  /** One send, with the dead-endpoint cleanup that keeps the table honest.
+   *  Returns whether the push service accepted it. */
+  private async deliver(sub: any, payload: string): Promise<boolean> {
     try {
       await webpush.sendNotification(
         {
@@ -317,6 +330,7 @@ export class CustomerPushService {
         where: { id: sub.id },
         data: { lastSentAt: new Date() },
       });
+      return true;
     } catch (e: any) {
       const status = e?.statusCode;
       // 404/410 are the push service telling us this browser is gone for good
@@ -329,7 +343,7 @@ export class CustomerPushService {
             data: { isActive: false, revokedAt: new Date() },
           })
           .catch(() => undefined);
-        return;
+        return false;
       }
       // web-push puts the push service's actual complaint in `body` and the
       // generic "Received unexpected response code" in `message`. Logging only
@@ -340,6 +354,7 @@ export class CustomerPushService {
           status ? ` (${status})` : ""
         }: ${e?.message ?? e}${e?.body ? ` — ${String(e.body).slice(0, 300)}` : ""}`,
       );
+      return false;
     }
   }
 }
