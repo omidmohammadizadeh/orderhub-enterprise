@@ -57,6 +57,7 @@
     },
     "plugins": [
       "./plugins/withIpadOnly",
+      "./plugins/withCometUsb",
       "expo-apple-authentication",
       "expo-secure-store",
       [
