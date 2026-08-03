@@ -64,6 +64,12 @@ describe("SubscriptionsService access scope", () => {
     expect(out.map((s: any) => s.locationId)).toEqual([LOCS.mine]);
   });
 
+  it("scopes FINANCIAL_AGENT too — billing access is not tenant-wide access", async () => {
+    const svc = makeService({ userLocations: [LOCS.mine] });
+    const out = await svc.listForTenant("t1", "u-fin", "FINANCIAL_AGENT");
+    expect(out.map((s: any) => s.locationId)).toEqual([LOCS.mine]);
+  });
+
   it("includes locations reached through a brand assignment", async () => {
     const svc = makeService({
       userBrands: ["b1"],

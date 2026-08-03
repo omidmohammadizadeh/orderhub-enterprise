@@ -13,10 +13,16 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
-// Billing is owner-and-admin only. FINANCIAL_AGENT was previously allowed
-// here; it was removed on request. Re-add it to this one list if a finance
-// user needs to manage cards and invoices — every route below shares it.
-const BILLING_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"] as const;
+// Who may reach billing at all. Membership here is NOT tenant-wide access —
+// every one of these except PLATFORM_ADMIN is still filtered to the locations
+// the user is assigned to, so a finance user sees their own client's cards and
+// invoices and nobody else's.
+const BILLING_ROLES = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "FINANCIAL_AGENT",
+] as const;
 
 @ApiTags("subscriptions")
 @ApiBearerAuth()

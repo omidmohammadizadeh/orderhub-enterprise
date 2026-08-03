@@ -56,7 +56,12 @@ const ADMIN_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
 // Who may open this page at all. The API enforces the same list — this is so a
 // pasted URL shows an honest message instead of an empty billing page that
 // looks broken. Hiding the nav link alone never stopped anyone typing the path.
-const BILLING_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"]);
+const BILLING_ROLES = new Set([
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "FINANCIAL_AGENT",
+]);
 
 export default function SubscriptionPage() {
   return (
@@ -107,8 +112,8 @@ function Inner() {
       <div className="max-w-5xl">
         <h1 className="text-2xl font-bold text-zinc-900">Subscription</h1>
         <p className="mt-2 text-sm text-zinc-600">
-          Billing is only available to owners and administrators. Ask an owner
-          at your business if you need access.
+          Billing is only available to owners, administrators and finance
+          users. Ask an owner at your business if you need access.
         </p>
       </div>
     );
