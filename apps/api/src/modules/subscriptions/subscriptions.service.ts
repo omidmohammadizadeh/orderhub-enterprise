@@ -60,19 +60,36 @@ export class SubscriptionsService {
     ).replace(/\/+$/, "");
   }
 
-  // PLATFORM_ADMIN + TENANT_OWNER see every location's subscription. OWNER and
-  // FINANCIAL_AGENT are scoped to the locations they're assigned to (direct
-  // UserLocation rows + their brands' locations).
-  private static readonly TENANT_WIDE = ["PLATFORM_ADMIN", "TENANT_OWNER"];
+  // ONLY platform admin — us — sees every location's billing.
+  //
+  // TENANT_OWNER used to be here too, which meant any tenant owner saw every
+  // subscription in the tenant: the monthly fee, the card status and the
+  // invoices of locations they have nothing to do with. That is fine when a
+  // tenant is one business, and a data leak the moment a tenant holds more
+  // than one operator's locations — which is exactly how this one is set up.
+  //
+  // Billing is the most sensitive page in the product, so it is scoped by
+  // assignment like everything else and does not get a role-shaped exemption.
+  private static readonly TENANT_WIDE = ["PLATFORM_ADMIN"];
 
-  /** null = all locations (tenant-wide role); array = the scoped allowlist. */
+  /** null = all locations (platform admin); array = the scoped allowlist. */
   private async accessibleLocationIds(
     tenantId: string,
     userId?: string,
     role?: string,
   ): Promise<string[] | null> {
-    if (!userId || !role || SubscriptionsService.TENANT_WIDE.includes(role)) {
-      return null;
+    if (role && SubscriptionsService.TENANT_WIDE.includes(role)) return null;
+
+    // No identity → no access. This used to fall through to `return null`,
+    // i.e. "see everything", so any caller that reached the service without a
+    // resolved user got the whole tenant's billing. Failing open is never the
+    // right default; failing closed shows an empty page, which is loud enough
+    // to get reported and harmless if it happens.
+    if (!userId || !role) {
+      this.logger.warn(
+        "Subscription access requested without a resolved user — denying",
+      );
+      return [];
     }
     const [locs, brands] = await Promise.all([
       (this.prisma as any).userLocation.findMany({
@@ -112,15 +129,26 @@ export class SubscriptionsService {
   }
 
   /**
-   * List every subscription in the tenant — used by the platform-
-   * admin overview page so the staff member can see who's paying,
-   * who's overdue, and who hasn't started a subscription yet.
+   * The subscriptions this caller is entitled to see.
+   *
+   * Platform admin gets the whole tenant (the overview of who's paying, who's
+   * overdue, who never started). Everyone else — including tenant owners —
+   * gets only the locations they are assigned to.
    */
   async listForTenant(tenantId: string, userId?: string, role?: string) {
     const allowed = await this.accessibleLocationIds(tenantId, userId, role);
     const where: any = { tenantId };
     if (allowed) {
-      if (allowed.length === 0) return []; // scoped user with no locations
+      if (allowed.length === 0) {
+        // An owner with no location assignments now sees nothing rather than
+        // everything. That's the safe end of the trade, but it looks like a
+        // broken page, so say why in the log instead of returning a silent
+        // empty list — the fix is to assign them their locations.
+        this.logger.warn(
+          `No accessible locations for user=${userId} role=${role} — subscription list empty`,
+        );
+        return [];
+      }
       where.locationId = { in: allowed };
     }
     const subs = await (this.prisma as any).merchantSubscription.findMany({

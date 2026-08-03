@@ -50,7 +50,13 @@ interface Location {
   name: string;
 }
 
+// Who may set or cancel a plan on someone's behalf.
 const ADMIN_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
+
+// Who may open this page at all. The API enforces the same list — this is so a
+// pasted URL shows an honest message instead of an empty billing page that
+// looks broken. Hiding the nav link alone never stopped anyone typing the path.
+const BILLING_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"]);
 
 export default function SubscriptionPage() {
   return (
@@ -65,15 +71,20 @@ function Inner() {
   const justFinishedCheckout = sp?.get("status") === "success";
   const user = useAuthStore((s) => s.user);
   const isAdmin = !!user && ADMIN_ROLES.has(user.role as string);
+  const mayView = !!user && BILLING_ROLES.has(user.role as string);
   const qc = useQueryClient();
 
   const subsQuery = useQuery<MerchantSubscription[]>({
     queryKey: ["merchant-subscriptions"],
+    // Don't even ask when the role can't have it — a 403 in the console reads
+    // like a bug to whoever is looking.
+    enabled: mayView,
     queryFn: () =>
       apiClient.get("/v1/subscriptions").then((r) => r.data ?? []),
   });
   const locationsQuery = useQuery<Location[]>({
     queryKey: ["locations-for-subs"],
+    enabled: mayView,
     queryFn: () =>
       apiClient
         .get("/v1/locations")
@@ -90,6 +101,18 @@ function Inner() {
   const unsubscribed = locations.filter(
     (l) => !subscribedLocationIds.has(l.id),
   );
+
+  if (user && !mayView) {
+    return (
+      <div className="max-w-5xl">
+        <h1 className="text-2xl font-bold text-zinc-900">Subscription</h1>
+        <p className="mt-2 text-sm text-zinc-600">
+          Billing is only available to owners and administrators. Ask an owner
+          at your business if you need access.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl">

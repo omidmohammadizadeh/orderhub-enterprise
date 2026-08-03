@@ -85,6 +85,11 @@ const DRIVER_TIER = [...STAFF_TIER, "DRIVER"];
 // or general staff. (DARK_KITCHEN_MANAGER excluded — it's an operations role.)
 const FINANCE_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT"];
 
+// Billing is narrower than the rest of finance: owner and admin only. Kept
+// separate from FINANCE_ROLES so widening SMS/Wallet access later doesn't
+// quietly hand someone the card and invoice screens too.
+const BILLING_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"];
+
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
@@ -169,7 +174,7 @@ const financeNav: NavItem[] = [
   // later add a finance-delegate role.
   { href: "/dashboard/payments", label: "Payments", icon: DollarSign, roles: FINANCE_ROLES },
   { href: "/dashboard/wallet", label: "Wallet", icon: Wallet, roles: FINANCE_ROLES },
-  { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard, roles: FINANCE_ROLES },
+  { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard, roles: BILLING_ROLES },
 ];
 
 const secondaryNav: NavItem[] = [

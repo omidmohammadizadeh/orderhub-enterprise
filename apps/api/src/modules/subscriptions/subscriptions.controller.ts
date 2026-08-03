@@ -13,6 +13,11 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
+// Billing is owner-and-admin only. FINANCIAL_AGENT was previously allowed
+// here; it was removed on request. Re-add it to this one list if a finance
+// user needs to manage cards and invoices — every route below shares it.
+const BILLING_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"] as const;
+
 @ApiTags("subscriptions")
 @ApiBearerAuth()
 @Controller({ path: "subscriptions", version: "1" })
@@ -20,7 +25,7 @@ export class SubscriptionsController {
   constructor(private readonly subs: SubscriptionsService) {}
 
   @Get()
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @Roles(...BILLING_ROLES)
   @ApiOperation({ summary: "List subscriptions for the current tenant" })
   list(@CurrentUser() user: AuthenticatedUser) {
     // Scoped to the caller's accessible locations (admins see all) so an OWNER
@@ -29,7 +34,7 @@ export class SubscriptionsController {
   }
 
   @Get("locations/:locationId")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @Roles(...BILLING_ROLES)
   @ApiOperation({ summary: "Get one location's subscription" })
   getOne(
     @CurrentUser() user: AuthenticatedUser,
@@ -39,7 +44,7 @@ export class SubscriptionsController {
   }
 
   @Post("locations/:locationId/plan")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @Roles(...BILLING_ROLES)
   @ApiOperation({
     summary:
       "Set or update the monthly amount. First call returns a Stripe Checkout URL.",
@@ -60,7 +65,7 @@ export class SubscriptionsController {
   }
 
   @Post("locations/:locationId/portal")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @Roles(...BILLING_ROLES)
   @ApiOperation({
     summary: "Open the Stripe Customer Portal (card, invoices, PDFs).",
   })
@@ -72,7 +77,7 @@ export class SubscriptionsController {
   }
 
   @Post("locations/:locationId/restart-checkout")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @Roles(...BILLING_ROLES)
   @ApiOperation({
     summary: "Re-open the Stripe Checkout to finish an incomplete subscription",
   })
@@ -84,7 +89,7 @@ export class SubscriptionsController {
   }
 
   @Delete("locations/:locationId")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @Roles(...BILLING_ROLES)
   @ApiOperation({
     summary: "Cancel — defaults to end-of-period; ?immediate=1 cancels now",
   })
@@ -103,7 +108,7 @@ export class SubscriptionsController {
   }
 
   @Get("locations/:locationId/invoices")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @Roles(...BILLING_ROLES)
   @ApiOperation({ summary: "List Stripe-side invoices for this subscription" })
   invoices(
     @CurrentUser() user: AuthenticatedUser,
