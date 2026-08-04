@@ -124,11 +124,11 @@ function resolveCommandSet(p: any): string {
 // Sunmi option existed, or re-saved through the edit form (which defaults the
 // brand back to Epson), carries brand="epson" while still being a Sunmi.
 // Same belt-and-braces the Star detection above uses.
-function resolveQrDialect(p: any): "ESCPOS" | "SUNMI" {
+function resolveQrDialect(p: any): "ESCPOS" | "RASTER" {
   const brand = String(p?.defaults?.brand ?? "").toLowerCase();
-  if (brand === "sunmi") return "SUNMI";
-  if (/sunmi/i.test(String(p?.model ?? ""))) return "SUNMI";
-  if (/sunmi/i.test(String(p?.name ?? ""))) return "SUNMI";
+  if (brand === "sunmi") return "RASTER";
+  if (/sunmi/i.test(String(p?.model ?? ""))) return "RASTER";
+  if (/sunmi/i.test(String(p?.name ?? ""))) return "RASTER";
   return "ESCPOS";
 }
 

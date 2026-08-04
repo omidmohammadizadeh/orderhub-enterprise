@@ -387,6 +387,46 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 // on every order print.
 const logoCache = new Map<string, number[] | null>();
 
+// Pack a canvas region into an ESC/POS raster bitmap (GS v 0): 1 bit per
+// dot, rows padded to whole bytes. Shared by the logo and the QR — a raster
+// is just pixels, so any printer that can print a logo can print it.
+function packRaster(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+): number[] {
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const bytesPerRow = w / 8;
+  const raster: number[] = [];
+  for (let y = 0; y < h; y++) {
+    for (let bx = 0; bx < bytesPerRow; bx++) {
+      let byte = 0;
+      for (let bit = 0; bit < 8; bit++) {
+        const x = bx * 8 + bit;
+        const i = (y * w + x) * 4;
+        const a = data[i + 3]!;
+        const lum =
+          a < 32
+            ? 255
+            : 0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!;
+        if (lum < 160) byte |= 0x80 >> bit; // dark pixel → black dot
+      }
+      raster.push(byte);
+    }
+  }
+  return [
+    GS,
+    0x76,
+    0x30,
+    0x00,
+    bytesPerRow & 0xff,
+    (bytesPerRow >> 8) & 0xff,
+    h & 0xff,
+    (h >> 8) & 0xff,
+    ...raster,
+  ];
+}
+
 // Convert an image URL to an ESC/POS raster bitmap (GS v 0). Returns the
 // command bytes, or null if the image can't be loaded / pixels can't be
 // read — callers then just print the text receipt, so a bad logo never
@@ -416,36 +456,7 @@ export async function imageToRaster(
           ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, w, h);
           ctx.drawImage(img, 0, 0, w, h);
-          const data = ctx.getImageData(0, 0, w, h).data;
-          const bytesPerRow = w / 8;
-          const raster: number[] = [];
-          for (let y = 0; y < h; y++) {
-            for (let bx = 0; bx < bytesPerRow; bx++) {
-              let byte = 0;
-              for (let bit = 0; bit < 8; bit++) {
-                const x = bx * 8 + bit;
-                const i = (y * w + x) * 4;
-                const a = data[i + 3]!;
-                const lum =
-                  a < 32
-                    ? 255
-                    : 0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!;
-                if (lum < 160) byte |= 0x80 >> bit; // dark pixel → black dot
-              }
-              raster.push(byte);
-            }
-          }
-          result = [
-            GS,
-            0x76,
-            0x30,
-            0x00,
-            bytesPerRow & 0xff,
-            (bytesPerRow >> 8) & 0xff,
-            h & 0xff,
-            (h >> 8) & 0xff,
-            ...raster,
-          ];
+          result = packRaster(ctx, w, h);
         }
       }
     }
@@ -456,43 +467,160 @@ export async function imageToRaster(
   return result;
 }
 
-/** Which QR command a printer actually understands. */
-export type QrDialect = "ESCPOS" | "SUNMI";
+/**
+ * How to get a QR onto the paper.
+ *
+ *   ESCPOS — GS ( k, the printer draws the code from the data. Compact and
+ *            fast, and what Epson and most thermal printers implement.
+ *   RASTER — we draw the code ourselves and send it as a bitmap.
+ *
+ * Sunmi needs RASTER. Its firmware implements neither GS ( k (which it drops
+ * silently, leaving a blank slip) nor Sunmi's own documented ESC Z (which it
+ * failed to recognise, printing the raw URL as text — worse than blank). A
+ * raster is just pixels: any printer that can print a logo can print it, and
+ * Sunmi prints logos fine.
+ */
+export type QrDialect = "ESCPOS" | "RASTER";
 
-// Sunmi's own QR command: ESC Z m n1 n2 <data>.
-//
-//   m  = version, 0 = auto-size from the data
-//   n1 = error-correction level, 0 = L
-//   n2 = module size in dots
-//
-// Sunmi's built-in printers document THIS, not GS ( k. Firmware that
-// doesn't implement GS ( k drops the whole block silently — the ticket
-// prints, the caption prints, and where the code should be there is
-// nothing. That is exactly the "little receipt with no QR on it" symptom,
-// and it is why the same job is fine on an Epson.
-export function qrSunmi(data: string, size = 6): number[] {
-  const bytes = strBytes(data);
-  const s = Math.max(1, Math.min(16, size));
-  return [
-    ESC,
-    0x5a,
-    0x00, // auto version
-    0x00, // EC level L — matches the ESC/POS path
-    s,
-    bytes.length & 0xff,
-    (bytes.length >> 8) & 0xff,
-    ...bytes,
-  ];
-}
+// Rendered QRs cached per (data|width) — the offer URL is the same on every
+// order, so this encodes once per session rather than once per ticket.
+const qrRasterCache = new Map<string, number[] | null>();
 
-/** Emit the QR in whichever dialect this printer speaks. */
-export function qrBytes(
+/**
+ * Draw a QR to an ESC/POS raster bitmap.
+ *
+ * Rendered through qrcode.react, which is already how the dashboard draws
+ * table-tent and payment-link codes — a proven encoder rather than a
+ * hand-rolled one, and no new dependency. It's a React component, so it goes
+ * into a detached container off-screen; both it and React are imported
+ * dynamically so a page that never prints doesn't carry them.
+ *
+ * Returns null if anything fails, and the caller falls back to the native
+ * command — a printer that ignores GS ( k is no worse off than before.
+ */
+export async function qrToRaster(
   data: string,
-  size: number,
-  dialect: QrDialect = "ESCPOS",
-): number[] {
-  return dialect === "SUNMI" ? qrSunmi(data, size) : qrEscPos(data, size);
+  maxWidthDots: number,
+): Promise<number[] | null> {
+  if (typeof document === "undefined") return null;
+  const key = `${data}|${maxWidthDots}`;
+  if (qrRasterCache.has(key)) return qrRasterCache.get(key) ?? null;
+
+  let result: number[] | null = null;
+  let host: HTMLDivElement | null = null;
+  let root: { render: (n: any) => void; unmount: () => void } | null = null;
+  try {
+    const [{ createRoot }, { QRCodeCanvas }, React] = await Promise.all([
+      import("react-dom/client"),
+      import("qrcode.react"),
+      import("react"),
+    ]);
+
+    host = document.createElement("div");
+    // Off-screen rather than display:none — a hidden subtree can skip layout,
+    // and we need the canvas to actually paint before reading it back.
+    host.style.cssText =
+      "position:fixed;left:-10000px;top:0;width:0;height:0;overflow:hidden";
+    document.body.appendChild(host);
+
+    root = createRoot(host);
+    root.render(
+      React.createElement(QRCodeCanvas, {
+        value: data,
+        size: maxWidthDots,
+        level: "L",
+        marginSize: 2, // quiet zone, or scanners struggle at the edges
+      }),
+    );
+
+    // React 18 commits asynchronously and qrcode.react paints in an effect,
+    // so wait for the canvas to exist and have been drawn.
+    const canvas = await waitForCanvas(host);
+    if (canvas && canvas.width > 0) {
+      // The backing store is devicePixelRatio-scaled; resample to whole dots.
+      let w = Math.min(maxWidthDots, canvas.width);
+      w = Math.floor(w / 8) * 8; // raster rows are whole bytes
+      if (w >= 8) {
+        const out = document.createElement("canvas");
+        out.width = w;
+        out.height = w; // QRs are square
+        const ctx = out.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, w, w);
+          // Nearest-neighbour: smoothing greys the module edges, and a grey
+          // edge either side of the threshold is a code that won't scan.
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(canvas, 0, 0, w, w);
+          result = packRaster(ctx, w, w);
+        }
+      }
+    }
+  } catch {
+    result = null;
+  } finally {
+    try {
+      root?.unmount();
+    } catch {
+      /* already gone */
+    }
+    if (host?.parentNode) host.parentNode.removeChild(host);
+  }
+
+  qrRasterCache.set(key, result);
+  return result;
 }
+
+/**
+ * Wait for the canvas qrcode.react paints into.
+ *
+ * Polled with a timer, deliberately NOT requestAnimationFrame: auto-print
+ * fires when an order lands, and by then the POS tab is often in the
+ * background, where rAF callbacks are throttled to a standstill. Waiting on
+ * one there would never resolve and the whole print would hang behind it.
+ * Resolves null once the deadline passes so the caller falls back instead.
+ */
+function waitForCanvas(
+  host: HTMLElement,
+  timeoutMs = 2000,
+): Promise<HTMLCanvasElement | null> {
+  return new Promise((resolve) => {
+    const deadline = Date.now() + timeoutMs;
+    const tick = () => {
+      const canvas = host.querySelector("canvas") as HTMLCanvasElement | null;
+      if (canvas && canvas.width > 0) {
+        resolve(canvas);
+        return;
+      }
+      if (Date.now() >= deadline) {
+        resolve(null);
+        return;
+      }
+      setTimeout(tick, 16);
+    };
+    setTimeout(tick, 0);
+  });
+}
+
+/**
+ * The QR command bytes for this printer: a bitmap where the firmware can't
+ * draw codes itself, the native command everywhere else.
+ */
+export async function qrCommandBytes(
+  data: string,
+  paperWidth: number,
+  dialect: QrDialect = "ESCPOS",
+): Promise<number[]> {
+  if (dialect === "RASTER") {
+    // ~48mm on 80mm paper, ~35mm on 58mm (203dpi heads are 8 dots/mm).
+    // Matches what the native command produces rather than filling the roll,
+    // and both are comfortably inside the printable width.
+    const raster = await qrToRaster(data, paperWidth === 58 ? 280 : 384);
+    if (raster) return raster;
+  }
+  return qrEscPos(data, qrModuleSize(data, paperWidth));
+}
+
 
 /**
  * Largest module size whose code still fits the paper.
@@ -560,7 +688,8 @@ export function buildOrderReceipt(
   opts?: {
     logoBytes?: number[] | null;
     qr?: string | null;
-    qrDialect?: QrDialect;
+    /** Pre-encoded QR (raster or native). Falls back to GS ( k when absent. */
+    qrCodeBytes?: number[] | null;
     fontScale?: FontScale;
     modifierScale?: FontScale;
     printFont?: PrintFont;
@@ -812,11 +941,8 @@ export function buildOrderReceipt(
       buf.push(...BOLD_OFF);
     }
     buf.push(
-      ...qrBytes(
-        String(opts.qr),
-        qrModuleSize(String(opts.qr), paperWidth),
-        opts.qrDialect ?? "ESCPOS",
-      ),
+      ...(opts.qrCodeBytes ??
+        qrEscPos(String(opts.qr), qrModuleSize(String(opts.qr), paperWidth))),
     );
     buf.push(LF);
     buf.push(...ALIGN_LEFT);
@@ -1100,8 +1226,7 @@ export function buildTestReceiptStar(paperWidth: number = 80): Uint8Array {
 function buildQrTicket(
   payload: any,
   paperWidth: number,
-  qr: string,
-  dialect: QrDialect = "ESCPOS",
+  codeBytes: number[],
 ): number[] {
   const cols = paperWidth === 58 ? 32 : 48;
   const buf: number[] = [];
@@ -1120,7 +1245,7 @@ function buildQrTicket(
     buf.push(...BOLD_OFF);
   }
   line(buf, "");
-  buf.push(...qrBytes(qr, qrModuleSize(qr, paperWidth), dialect));
+  buf.push(...codeBytes);
   buf.push(LF);
   buf.push(...ALIGN_LEFT);
   buf.push(LF, LF, LF, LF);
@@ -1137,7 +1262,7 @@ export async function renderReceiptBytes(
     printLogo?: boolean;
     qrCode?: boolean;
     commandSet?: string;
-    /** Sunmi's firmware needs its own QR command — see qrSunmi. */
+    /** Sunmi can't draw codes itself — see QrDialect. */
     qrDialect?: QrDialect;
     fontScale?: FontScale;
     modifierScale?: FontScale;
@@ -1171,7 +1296,11 @@ export async function renderReceiptBytes(
   // Then the offer as a second, separately-cut slip in the same write. One
   // job, two tickets — sending them as two writes would risk another
   // printer's job landing between them on a shared machine.
-  const qrTicket = buildQrTicket(payload, paperWidth, qr, opts?.qrDialect ?? "ESCPOS");
+  const qrTicket = buildQrTicket(
+    payload,
+    paperWidth,
+    await qrCommandBytes(qr, paperWidth, opts?.qrDialect ?? "ESCPOS"),
+  );
   const out = new Uint8Array(receipt.length + qrTicket.length);
   out.set(receipt, 0);
   out.set(qrTicket, receipt.length);
@@ -1215,7 +1344,11 @@ export async function renderReceiptParts(
     receipt,
     qrTicket: qr
       ? new Uint8Array(
-          buildQrTicket(payload, paperWidth, qr, opts?.qrDialect ?? "ESCPOS"),
+          buildQrTicket(
+            payload,
+            paperWidth,
+            await qrCommandBytes(qr, paperWidth, opts?.qrDialect ?? "ESCPOS"),
+          ),
         )
       : null,
   };
