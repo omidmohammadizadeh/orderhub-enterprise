@@ -104,7 +104,7 @@ export function applyReceiptOffer(payload: any, offer: ReceiptOffer | null) {
 // explicit commandSet saved on the printer, fall back to the brand, then
 // sniff the free-text model (so a printer already labelled "Star …" works
 // without re-adding it).
-function resolveCommandSet(p: any): string {
+export function resolveCommandSet(p: any): string {
   const explicit = String(p?.defaults?.commandSet ?? "").toUpperCase();
   if (explicit) return explicit;
   const brand = String(p?.defaults?.brand ?? "").toLowerCase();
@@ -124,12 +124,33 @@ function resolveCommandSet(p: any): string {
 // Sunmi option existed, or re-saved through the edit form (which defaults the
 // brand back to Epson), carries brand="epson" while still being a Sunmi.
 // Same belt-and-braces the Star detection above uses.
-function resolveQrDialect(p: any): "ESCPOS" | "RASTER" {
+export function resolveQrDialect(p: any): "ESCPOS" | "RASTER" {
   const brand = String(p?.defaults?.brand ?? "").toLowerCase();
   if (brand === "sunmi") return "RASTER";
   if (/sunmi/i.test(String(p?.model ?? ""))) return "RASTER";
   if (/sunmi/i.test(String(p?.name ?? ""))) return "RASTER";
   return "ESCPOS";
+}
+
+/**
+ * Every per-printer render setting, in one place.
+ *
+ * Auto-print and reprint both feed renderReceiptParts, and they drifted:
+ * auto-print carried its own copy of the commandSet rule and passed neither
+ * qrDialect nor printFont, so a Sunmi's first ticket got the QR command it
+ * cannot draw while a reprint of the same order got the raster and came out
+ * right. Anything added here reaches both callers by construction.
+ */
+export function printerRenderOptions(p: any) {
+  return {
+    printLogo: p?.defaults?.printLogo,
+    qrCode: p?.defaults?.qrCode,
+    commandSet: resolveCommandSet(p),
+    qrDialect: resolveQrDialect(p),
+    fontScale: resolveFontScale(p),
+    modifierScale: resolveModifierScale(p),
+    printFont: resolvePrintFont(p),
+  };
 }
 
 /**
@@ -229,15 +250,7 @@ export async function printOrderViaBridge(
       const { receipt, qrTicket } = await renderReceiptParts(
         payload,
         p.paperWidth ?? 80,
-        {
-          printLogo: (p as any).defaults?.printLogo,
-          qrCode: (p as any).defaults?.qrCode,
-          commandSet: resolveCommandSet(p),
-          qrDialect: resolveQrDialect(p),
-          fontScale: resolveFontScale(p),
-          modifierScale: resolveModifierScale(p),
-          printFont: resolvePrintFont(p),
-        },
+        printerRenderOptions(p),
       );
       await writeToPrinter(p, joinReceiptAndQr(receipt, qrTicket, copies));
       printed++;

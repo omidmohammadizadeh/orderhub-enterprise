@@ -24,11 +24,13 @@ import {
   joinReceiptAndQr,
   hasNativeBridge,
   repeatReceipt,
-  resolveFontScale,
-  resolveModifierScale,
 } from "../lib/printing/bridge";
 import { buildPrintPayload } from "../lib/printing/order-receipt";
-import { resolveReceiptOffer, applyReceiptOffer } from "../lib/printing/print-order";
+import {
+  resolveReceiptOffer,
+  applyReceiptOffer,
+  printerRenderOptions,
+} from "../lib/printing/print-order";
 
 const CANCELLED_STATUSES = new Set(["CANCELLED", "REJECTED", "CANCELED"]);
 
@@ -128,23 +130,17 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         );
         if (copies < 1) continue;
         try {
-          // Star printers need Star Line Mode; Epson/Sunmi use ESC/POS.
-          const commandSet =
-            String((p as any).defaults?.commandSet ?? "").toUpperCase() ||
-            (String((p as any).defaults?.brand ?? "").toLowerCase() === "star" ||
-            /star/i.test(String((p as any).model ?? ""))
-              ? "STAR"
-              : "ESCPOS");
+          // Resolve the printer's dialects through the SAME helpers reprint
+          // uses. This block used to inline its own copy of the commandSet
+          // rule and pass nothing else, so auto-print quietly diverged: a
+          // Sunmi got the GS ( k QR command it can't draw (blank or raw URL
+          // on the slip) while a reprint of the same order got the raster and
+          // came out right. printFont was missing too, so the per-printer
+          // typeface never applied to a first print either.
           const { receipt, qrTicket } = await renderReceiptParts(
             payload,
             p.paperWidth ?? 80,
-            {
-              printLogo: p.defaults?.printLogo,
-              qrCode: p.defaults?.qrCode,
-              commandSet,
-              fontScale: resolveFontScale(p),
-              modifierScale: resolveModifierScale(p),
-            },
+            printerRenderOptions(p),
           );
           await writeToPrinter(p, joinReceiptAndQr(receipt, qrTicket, copies));
           printedAny = true;
