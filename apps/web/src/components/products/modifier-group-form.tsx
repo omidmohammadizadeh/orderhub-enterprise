@@ -50,12 +50,17 @@ export function ModifierGroupForm({
     enabled: !!groupId,
   });
 
-  // All groups in the brand (with options) — used by the "Attach existing"
-  // picker to surface modifiers already created in OTHER groups.
+  // All groups (with options) — used by the "Attach existing" picker to
+  // surface modifiers already created in OTHER groups. Scoped to the
+  // location when we know it: the picker must never offer another site's
+  // modifiers, which on a multi-site tenant is most of the list.
   const { data: otherGroups = [] } = useQuery({
-    queryKey: ["catalog", "modifier-groups", brandId],
-    queryFn: () => modifierGroupsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: ["catalog", "modifier-groups", locationId ?? brandId],
+    queryFn: () =>
+      locationId
+        ? modifierGroupsClient.listForLocation(locationId)
+        : modifierGroupsClient.list(brandId),
+    enabled: !!brandId || !!locationId,
   });
 
   const [name, setName] = useState("");

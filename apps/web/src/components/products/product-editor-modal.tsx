@@ -23,6 +23,10 @@ interface Props {
    *  when the form is opened from the brand catalogue, where there is no
    *  menu to scope to. */
   menuId?: string;
+  /** The location the menu belongs to. Scopes the "Add Existing" modifier
+   *  group picker so it never lists another site's groups. Absent for
+   *  brand-level menus, where the brand-wide list is the correct scope. */
+  locationId?: string;
   /** Fires after the form's save mutation succeeds. */
   onSaved: () => void;
   onCancel: () => void;
@@ -33,6 +37,7 @@ export function ProductEditorModal({
   brandId,
   productId,
   menuId,
+  locationId,
   onSaved,
   onCancel,
 }: Props) {
@@ -57,6 +62,7 @@ export function ProductEditorModal({
           <ProductForm
             menuId={menuId}
             brandId={brandId}
+            locationId={locationId}
             productId={productId}
             onCancel={onCancel}
             onSaved={onSaved}

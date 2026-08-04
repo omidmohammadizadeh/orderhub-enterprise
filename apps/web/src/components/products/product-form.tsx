@@ -67,11 +67,29 @@ export function ProductForm({
     enabled: !!productId,
   });
 
+  // Which location's catalogue this form is working in.
+  //
+  // The Products tab hands us a locationId directly. The menu editor only
+  // has one when the menu itself is location-stamped — so for a brand-level
+  // menu we fall back to the location the product being edited lives at,
+  // which is the site whose modifier groups the operator actually wants.
+  const scopeLocationId =
+    locationId ?? ((existing as any)?.locationId as string | undefined);
+
   // ── Load modifier groups so we can attach ──────────────────────────
+  //
+  // Location-scoped whenever we know the location. A multi-site tenant
+  // builds one "Please select your extra toppings" group PER site, so the
+  // brand-wide list showed eight identical names distinguishable only by
+  // PLU and the operator had no way to pick their own. Mirrors how the
+  // Products and Modifier Groups tabs already load.
   const { data: allGroups = [] } = useQuery({
-    queryKey: ["catalog", "modifier-groups", brandId],
-    queryFn: () => modifierGroupsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: ["catalog", "modifier-groups", scopeLocationId ?? brandId],
+    queryFn: () =>
+      scopeLocationId
+        ? modifierGroupsClient.listForLocation(scopeLocationId)
+        : modifierGroupsClient.list(brandId),
+    enabled: !!brandId || !!scopeLocationId,
   });
 
   // ── Load brands for the per-product brand tagging (Phase AZ) ────────
@@ -610,6 +628,10 @@ export function ProductForm({
                   name: g.name,
                   subtitle: g.plu ?? "",
                   meta: `${g.options?.length ?? 0} modifier${g.options?.length === 1 ? "" : "s"}`,
+                  preview: (g.options ?? []).map((o: any) => ({
+                    name: o.name,
+                    price: o.priceAdjustment,
+                  })),
                 }))}
                 initiallyAttachedIds={attachedGroupIds}
                 onConfirm={(ids) => {
@@ -810,6 +832,7 @@ export function ProductForm({
             </div>
             <ModifierGroupForm
               brandId={brandId}
+              locationId={scopeLocationId}
               onCancel={() => setShowCreateGroupModal(false)}
               onSaved={(saved) => {
                 if (saved?.id) {
@@ -903,13 +926,14 @@ export function ProductForm({
             </div>
             <ModifierGroupForm
               brandId={brandId}
+              locationId={scopeLocationId}
               groupId={editingGroupId}
               onCancel={() => setEditingGroupId(null)}
               onSaved={() => {
                 // Refresh the brand-wide groups list so the updated
                 // name + options reflect in the attached-row display.
                 qc.invalidateQueries({
-                  queryKey: ["catalog", "modifier-groups", brandId],
+                  queryKey: ["catalog", "modifier-groups", scopeLocationId ?? brandId],
                 });
                 qc.invalidateQueries({
                   queryKey: ["catalog", "product", productId],
@@ -932,6 +956,10 @@ export function ProductForm({
             name: g.name,
             subtitle: g.plu ?? "",
             meta: `${g.options?.length ?? 0} modifier${g.options?.length === 1 ? "" : "s"}`,
+            preview: (g.options ?? []).map((o: any) => ({
+              name: o.name,
+              price: o.priceAdjustment,
+            })),
           }))}
           initiallyAttachedIds={skus[skuAttachTarget]?.modifierGroupIds ?? []}
           onConfirm={(ids) => {
@@ -970,6 +998,7 @@ export function ProductForm({
             </div>
             <ModifierGroupForm
               brandId={brandId}
+              locationId={scopeLocationId}
               onCancel={() => setSkuCreateTarget(null)}
               onSaved={(saved) => {
                 if (saved?.id) {
@@ -988,7 +1017,7 @@ export function ProductForm({
                   );
                 }
                 qc.invalidateQueries({
-                  queryKey: ["catalog", "modifier-groups", brandId],
+                  queryKey: ["catalog", "modifier-groups", scopeLocationId ?? brandId],
                 });
                 setSkuCreateTarget(null);
               }}

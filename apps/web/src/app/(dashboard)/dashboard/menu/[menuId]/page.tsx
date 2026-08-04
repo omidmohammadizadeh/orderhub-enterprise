@@ -672,6 +672,7 @@ export default function MenuEditorPage() {
         open={productEditorTarget !== null}
         brandId={brandId}
         menuId={menuId}
+        locationId={(menu as any)?.locationId ?? undefined}
         productId={
           productEditorTarget && productEditorTarget !== "new"
             ? productEditorTarget

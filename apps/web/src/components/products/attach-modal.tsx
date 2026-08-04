@@ -23,7 +23,23 @@ export interface AttachRow {
   subtitle?: string;
   /** Extra right-aligned hint like "0 modifiers". */
   meta?: string;
+  /** Contents to reveal on hover. For a modifier group this is its
+   *  modifiers and their prices — a multi-site menu ends up with several
+   *  groups called "Please select your extra toppings", and the name alone
+   *  gives the operator no way to tell which one to attach. */
+  preview?: Array<{ name: string; price?: number | null }>;
 }
+
+/** Where the hover card is pinned. Viewport coordinates, because the row
+ *  list scrolls — an absolutely-positioned card inside it gets clipped. */
+interface HoverState {
+  row: AttachRow;
+  top: number;
+  left: number;
+}
+
+const HOVER_WIDTH = 240;
+const HOVER_MAX_HEIGHT = 320;
 
 interface Props {
   open: boolean;
@@ -48,6 +64,25 @@ export function AttachModal({
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+  const [hover, setHover] = useState<HoverState | null>(null);
+
+  // Pin the card beside the row it belongs to, flipping to the left when
+  // there isn't room on the right, and clamping so a long list of
+  // modifiers never runs off the bottom of the screen.
+  const openHover = (row: AttachRow, el: HTMLElement) => {
+    if (!row.preview?.length) return;
+    const rect = el.getBoundingClientRect();
+    const spaceRight = window.innerWidth - rect.right;
+    const left =
+      spaceRight >= HOVER_WIDTH + 16
+        ? rect.right + 12
+        : Math.max(8, rect.left - HOVER_WIDTH - 12);
+    const top = Math.min(
+      Math.max(8, rect.top),
+      Math.max(8, window.innerHeight - HOVER_MAX_HEIGHT - 8),
+    );
+    setHover({ row, top, left });
+  };
 
   // Re-seed selection every time the modal opens so the user always
   // sees the current attached state, not the previous session's.
@@ -119,11 +154,21 @@ export function AttachModal({
               {filtered.map((r) => {
                 const isOn = selected.has(r.id);
                 return (
-                  <li key={r.id}>
+                  <li
+                    key={r.id}
+                    onMouseEnter={(e) => openHover(r, e.currentTarget)}
+                    onMouseLeave={() =>
+                      setHover((h) => (h?.row.id === r.id ? null : h))
+                    }
+                  >
                     <label
                       className={`flex items-center gap-3 px-3 py-3 cursor-pointer rounded-md transition-colors ${
                         isOn ? "bg-orange-50/50" : "hover:bg-zinc-50"
                       }`}
+                      onFocus={(e) => openHover(r, e.currentTarget)}
+                      onBlur={() =>
+                        setHover((h) => (h?.row.id === r.id ? null : h))
+                      }
                     >
                       <input
                         type="checkbox"
@@ -163,6 +208,41 @@ export function AttachModal({
           </Button>
         </div>
       </div>
+
+      {/* What's inside the row you're pointing at. Sibling of the modal
+          card and fixed-positioned so the scrolling list can't clip it;
+          pointer-events-none so it never steals the click. */}
+      {hover && (
+        <div
+          className="fixed z-[60] pointer-events-none rounded-lg border border-zinc-200 bg-white shadow-xl overflow-hidden"
+          style={{
+            top: hover.top,
+            left: hover.left,
+            width: HOVER_WIDTH,
+            maxHeight: HOVER_MAX_HEIGHT,
+          }}
+        >
+          <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 border-b border-zinc-100 truncate">
+            {hover.row.name}
+          </p>
+          <ul
+            className="divide-y divide-zinc-50 overflow-y-auto"
+            style={{ maxHeight: HOVER_MAX_HEIGHT - 34 }}
+          >
+            {hover.row.preview!.map((p, i) => (
+              <li
+                key={`${p.name}-${i}`}
+                className="flex items-baseline justify-between gap-2 px-3 py-1.5"
+              >
+                <span className="text-xs text-zinc-700 truncate">{p.name}</span>
+                <span className="text-xs font-medium text-zinc-500 tabular-nums shrink-0">
+                  {p.price ? `£${Number(p.price).toFixed(2)}` : "Free"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
