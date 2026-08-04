@@ -456,6 +456,71 @@ export async function imageToRaster(
   return result;
 }
 
+/** Which QR command a printer actually understands. */
+export type QrDialect = "ESCPOS" | "SUNMI";
+
+// Sunmi's own QR command: ESC Z m n1 n2 <data>.
+//
+//   m  = version, 0 = auto-size from the data
+//   n1 = error-correction level, 0 = L
+//   n2 = module size in dots
+//
+// Sunmi's built-in printers document THIS, not GS ( k. Firmware that
+// doesn't implement GS ( k drops the whole block silently — the ticket
+// prints, the caption prints, and where the code should be there is
+// nothing. That is exactly the "little receipt with no QR on it" symptom,
+// and it is why the same job is fine on an Epson.
+export function qrSunmi(data: string, size = 6): number[] {
+  const bytes = strBytes(data);
+  const s = Math.max(1, Math.min(16, size));
+  return [
+    ESC,
+    0x5a,
+    0x00, // auto version
+    0x00, // EC level L — matches the ESC/POS path
+    s,
+    bytes.length & 0xff,
+    (bytes.length >> 8) & 0xff,
+    ...bytes,
+  ];
+}
+
+/** Emit the QR in whichever dialect this printer speaks. */
+export function qrBytes(
+  data: string,
+  size: number,
+  dialect: QrDialect = "ESCPOS",
+): number[] {
+  return dialect === "SUNMI" ? qrSunmi(data, size) : qrEscPos(data, size);
+}
+
+/**
+ * Largest module size whose code still fits the paper.
+ *
+ * A QR wider than the print head is discarded whole by most firmware —
+ * another way to get a blank space where the code should be. Module count
+ * grows with the data, so a long reorder URL on 58mm paper is the case that
+ * overflows. Estimating the version from the byte count (EC level L) is
+ * enough: we only need an upper bound on the width.
+ */
+export function qrModuleSize(data: string, paperWidth: number): number {
+  // Printable dots, minus a margin so the quiet zone isn't clipped.
+  const dots = paperWidth === 58 ? 360 : 512;
+  const len = strBytes(data).length;
+  // Byte-mode capacity at EC level L, by version. Index = version - 1.
+  const CAPACITY_L = [
+    17, 32, 53, 78, 106, 134, 154, 192, 230, 271, 321, 367, 425, 458, 520, 586,
+    644, 718, 792, 858,
+  ];
+  let version = CAPACITY_L.findIndex((cap) => len <= cap) + 1;
+  if (version <= 0) version = CAPACITY_L.length; // absurdly long — clamp
+  const modules = 17 + 4 * version + 8; // code width + 4-module quiet zone each side
+  const fits = Math.floor(dots / modules);
+  // Never below 3: smaller than that and a phone camera struggles. If even
+  // 3 doesn't fit the code is unprintable at this width anyway.
+  return Math.max(3, Math.min(paperWidth === 58 ? 5 : 6, fits));
+}
+
 // Native ESC/POS QR code (GS ( k). Supported by Epson TM-m30, Star, and
 // most modern thermal printers. EC level L, configurable module size.
 export function qrEscPos(data: string, size = 6): number[] {
@@ -495,6 +560,7 @@ export function buildOrderReceipt(
   opts?: {
     logoBytes?: number[] | null;
     qr?: string | null;
+    qrDialect?: QrDialect;
     fontScale?: FontScale;
     modifierScale?: FontScale;
     printFont?: PrintFont;
@@ -745,7 +811,13 @@ export function buildOrderReceipt(
       for (const w of wrap(String(payload.qrCaption), cols)) line(buf, w);
       buf.push(...BOLD_OFF);
     }
-    buf.push(...qrEscPos(String(opts.qr), paperWidth === 58 ? 5 : 6));
+    buf.push(
+      ...qrBytes(
+        String(opts.qr),
+        qrModuleSize(String(opts.qr), paperWidth),
+        opts.qrDialect ?? "ESCPOS",
+      ),
+    );
     buf.push(LF);
     buf.push(...ALIGN_LEFT);
   }
@@ -1025,7 +1097,12 @@ export function buildTestReceiptStar(paperWidth: number = 80): Uint8Array {
  * Kept deliberately short: a caption, the code, and enough feed to clear the
  * tear bar. This is a sticker, not a second receipt.
  */
-function buildQrTicket(payload: any, paperWidth: number, qr: string): number[] {
+function buildQrTicket(
+  payload: any,
+  paperWidth: number,
+  qr: string,
+  dialect: QrDialect = "ESCPOS",
+): number[] {
   const cols = paperWidth === 58 ? 32 : 48;
   const buf: number[] = [];
   buf.push(...INIT);
@@ -1043,7 +1120,7 @@ function buildQrTicket(payload: any, paperWidth: number, qr: string): number[] {
     buf.push(...BOLD_OFF);
   }
   line(buf, "");
-  buf.push(...qrEscPos(qr, paperWidth === 58 ? 5 : 6));
+  buf.push(...qrBytes(qr, qrModuleSize(qr, paperWidth), dialect));
   buf.push(LF);
   buf.push(...ALIGN_LEFT);
   buf.push(LF, LF, LF, LF);
@@ -1060,6 +1137,8 @@ export async function renderReceiptBytes(
     printLogo?: boolean;
     qrCode?: boolean;
     commandSet?: string;
+    /** Sunmi's firmware needs its own QR command — see qrSunmi. */
+    qrDialect?: QrDialect;
     fontScale?: FontScale;
     modifierScale?: FontScale;
     printFont?: PrintFont;
@@ -1092,7 +1171,7 @@ export async function renderReceiptBytes(
   // Then the offer as a second, separately-cut slip in the same write. One
   // job, two tickets — sending them as two writes would risk another
   // printer's job landing between them on a shared machine.
-  const qrTicket = buildQrTicket(payload, paperWidth, qr);
+  const qrTicket = buildQrTicket(payload, paperWidth, qr, opts?.qrDialect ?? "ESCPOS");
   const out = new Uint8Array(receipt.length + qrTicket.length);
   out.set(receipt, 0);
   out.set(qrTicket, receipt.length);
@@ -1135,7 +1214,9 @@ export async function renderReceiptParts(
   return {
     receipt,
     qrTicket: qr
-      ? new Uint8Array(buildQrTicket(payload, paperWidth, qr))
+      ? new Uint8Array(
+          buildQrTicket(payload, paperWidth, qr, opts?.qrDialect ?? "ESCPOS"),
+        )
       : null,
   };
 }

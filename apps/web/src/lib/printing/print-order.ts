@@ -113,6 +113,25 @@ function resolveCommandSet(p: any): string {
   return "ESCPOS";
 }
 
+// Which QR command this printer understands.
+//
+// Sunmi is ESC/POS for everything else, which is why its receipts have always
+// been fine — but its firmware doesn't implement the GS ( k QR block and drops
+// it without complaint. The offer slip prints with a blank space where the
+// code should be. Sunmi documents ESC Z instead.
+//
+// Sniff the model text as well as the saved brand: a printer added before the
+// Sunmi option existed, or re-saved through the edit form (which defaults the
+// brand back to Epson), carries brand="epson" while still being a Sunmi.
+// Same belt-and-braces the Star detection above uses.
+function resolveQrDialect(p: any): "ESCPOS" | "SUNMI" {
+  const brand = String(p?.defaults?.brand ?? "").toLowerCase();
+  if (brand === "sunmi") return "SUNMI";
+  if (/sunmi/i.test(String(p?.model ?? ""))) return "SUNMI";
+  if (/sunmi/i.test(String(p?.name ?? ""))) return "SUNMI";
+  return "ESCPOS";
+}
+
 /**
  * Pop the cash drawer at a location.
  *
@@ -214,6 +233,7 @@ export async function printOrderViaBridge(
           printLogo: (p as any).defaults?.printLogo,
           qrCode: (p as any).defaults?.qrCode,
           commandSet: resolveCommandSet(p),
+          qrDialect: resolveQrDialect(p),
           fontScale: resolveFontScale(p),
           modifierScale: resolveModifierScale(p),
           printFont: resolvePrintFont(p),
