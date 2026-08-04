@@ -1496,18 +1496,34 @@ export class MenusService {
   // ── Modifier Groups ────────────────────────────────────────────────────────
 
   /**
-   * Phase AP — list modifier groups scoped strictly to a location.
+   * Phase AP — list modifier groups for a location.
    * Same rationale as findItemsByLocation.
+   *
+   * Brand-level groups (locationId null) are included alongside the
+   * location's own. They belong to every site by definition, so they are
+   * never "another location's group" — and excluding them made real groups
+   * vanish: until the location stamp was threaded through the product
+   * editor, every group created via its "Create New" button was saved with
+   * no location at all. Those rows are only reachable if null is admitted
+   * here.
    */
   async findModifierGroupsByLocation(locationId: string, user: AuthenticatedUser) {
-    await this.assertLocationAccess(locationId, user.tenantId);
+    // Doubles as the brand lookup below — a Location belongs to exactly one.
+    const location = await this.assertLocationAccess(locationId, user.tenantId);
     // Never trust the client's locationId — a non-admin only sees modifier
     // groups for locations they're assigned to (mirrors findItemsByLocation).
     const scope = await this.resolveCatalogScope(user);
     if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
       return [];
     const groups = await this.prisma.modifierGroup.findMany({
-      where: { locationId },
+      where: {
+        OR: [
+          { locationId },
+          // Brand-level rows, scoped to this location's own brand so a
+          // tenant running several brands doesn't see all of them.
+          { locationId: null, brandId: location.brandId },
+        ],
+      },
       include: {
         options: { orderBy: { sortOrder: "asc" } },
         _count: { select: { itemLinks: true } },
