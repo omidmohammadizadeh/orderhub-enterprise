@@ -206,6 +206,58 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         ),
       ) || Math.abs(parseMoney(order.total_discount ?? order.discount ?? 0));
 
+    // Delivery fee (previously hard-coded to 0, so a marketplace delivery
+    // charge vanished: the card showed subtotal £16.80 against total £19.80
+    // with nothing to account for the £3, and the receipt printed the same
+    // hole).
+    //
+    // HubRise carries fees in a `charges` array — the documented shape is
+    // { name, type, price }. Match on either type or name because the naming
+    // comes from whichever marketplace filled it in, and HubRise's docs have
+    // twice described fields differently from what actually arrives.
+    const chargeList: any[] = Array.isArray(order.charges)
+      ? order.charges
+      : Array.isArray(order.fees)
+        ? order.fees
+        : [];
+    const isDeliveryCharge = (c: any) =>
+      /deliver/i.test(String(c?.type ?? "")) || /deliver/i.test(String(c?.name ?? ""));
+    const chargedDelivery = chargeList
+      .filter(isDeliveryCharge)
+      .reduce((acc, c) => acc + parseMoney(c?.price ?? c?.amount ?? c?.value), 0);
+
+    // What the line items, discount and known charges don't account for.
+    // Positive means money in the total we can't name.
+    const knownCharges = chargeList.reduce(
+      (acc, c) => acc + parseMoney(c?.price ?? c?.amount ?? c?.value),
+      0,
+    );
+    const unexplained =
+      Math.round((parseMoney(order.total) - (subtotal - discount + knownCharges)) * 100) / 100;
+
+    let deliveryFee = chargedDelivery;
+    if (!deliveryFee && unexplained > 0 && fulfillmentType === "DELIVERY") {
+      // No charge line named it, but a delivery order whose total exceeds its
+      // items has a delivery charge in it — Uber and Deliveroo bill VAT
+      // inclusive, so this gap is a fee rather than tax. Inferring beats
+      // printing a ticket that doesn't add up. Collection orders get nothing:
+      // there, an unexplained gap is a service charge or a tip, not delivery.
+      deliveryFee = unexplained;
+    }
+    if (unexplained > 0 || chargeList.length) {
+      // Names the real shape in the log so the next order confirms or
+      // corrects the mapping above without needing a payload dump.
+      this.logger.log(
+        `HubRise charges order=${order.id ?? "?"} channel=${order.channel ?? "?"} ` +
+          `subtotal=${subtotal} discount=${discount} total=${parseMoney(order.total)} ` +
+          `charges=${JSON.stringify(
+            chargeList.map((c) => ({ name: c?.name, type: c?.type, price: c?.price })),
+          )} ` +
+          `→ deliveryFee=${deliveryFee}${!chargedDelivery && deliveryFee ? " (inferred)" : ""} ` +
+          `unexplained=${unexplained}`,
+      );
+    }
+
     // Payment hint — HubRise sends payment as either:
     //   { type: "online" | "cash_on_delivery", amount: "..." }      ← spec
     //   { name: "Paid online" | "Cash on delivery", amount: "..." } ← Uber/Deliveroo
@@ -308,7 +360,7 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       items,
       subtotal,
       taxAmount: 0,
-      deliveryFee: 0,
+      deliveryFee,
       discount,
       total: total || subtotal,
       specialInstructions: order.customer_notes ?? undefined,
@@ -347,6 +399,10 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         // Raw discounts kept for visibility / refinement if a marketplace
         // names the discount amount field differently.
         hubriseDiscounts: discountList,
+        // Raw charge lines + whatever the totals still don't account for,
+        // kept so a fee we mapped wrong is provable from the order itself.
+        hubriseCharges: chargeList,
+        hubriseUnexplainedTotal: unexplained,
       },
     };
   }
