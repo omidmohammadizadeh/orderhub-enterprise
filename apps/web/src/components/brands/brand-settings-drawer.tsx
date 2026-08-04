@@ -19,7 +19,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X, ExternalLink, Trash2, Plus } from "lucide-react";
-import { brandsClient, type Brand } from "@/lib/api/locations.client";
+import {
+  brandsClient,
+  type Brand,
+  type FeeApplyResult,
+} from "@/lib/api/locations.client";
 import {
   directOrderingClient,
   type DirectOrderingConfig,
@@ -82,6 +86,35 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
   const [appFeePct, setAppFeePct] = useState<string>(
     brand.applicationFeePercentage?.toString() ?? "",
   );
+  // "Apply this fee to all brands" — preview held here until confirmed.
+  const [feePreview, setFeePreview] = useState<FeeApplyResult | null>(null);
+  const [applyFeeError, setApplyFeeError] = useState<string | null>(null);
+  const [applyFeeDone, setApplyFeeDone] = useState<string | null>(null);
+  const applyFee = useMutation({
+    mutationFn: (confirm: boolean) =>
+      brandsClient.applyFeeToAll(brand.id, !confirm),
+    onMutate: () => {
+      setApplyFeeError(null);
+      setApplyFeeDone(null);
+    },
+    onSuccess: (res) => {
+      if (!res.applied) {
+        setFeePreview(res);
+        return;
+      }
+      setFeePreview(null);
+      setApplyFeeDone(
+        `Applied to ${res.changes.length} brand${res.changes.length === 1 ? "" : "s"}.`,
+      );
+      qc.invalidateQueries({ queryKey: ["brands"] });
+    },
+    onError: (e: any) => {
+      setFeePreview(null);
+      setApplyFeeError(
+        e?.response?.data?.message ?? e?.message ?? "Couldn't apply the fee.",
+      );
+    },
+  });
   // Phase AW-16 — brand-level opening hours + prep time. openingHours
   // is a map { monday: [{from, to}, ...], … } mirroring HubRise's
   // shape. Empty defaults so the operator can fill them in.
@@ -504,6 +537,100 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                   className="input"
                 />
               </Field>
+            </div>
+
+            {/* Roll this fee out to the rest of the estate.
+                There is no location-level fee form anywhere, so a brand
+                nobody configured charges nothing at all — which is how a
+                live site can take card orders for weeks with no platform
+                fee on any of them. Preview first, then apply. */}
+            <div className="mt-4 border-t border-zinc-100 pt-3">
+              {feePreview ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-[12px] text-amber-900">
+                  {feePreview.changes.length === 0 ? (
+                    <p>
+                      Every other brand already charges this fee. Nothing to
+                      change.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="font-semibold">
+                        Change the fee on {feePreview.changes.length} brand
+                        {feePreview.changes.length === 1 ? "" : "s"} to{" "}
+                        {describeFee(
+                          feePreview.source.mode,
+                          feePreview.source.fixed,
+                          feePreview.source.percentage,
+                        )}
+                        ?
+                      </p>
+                      <ul className="mt-2 max-h-40 space-y-0.5 overflow-y-auto">
+                        {feePreview.changes.map((c) => (
+                          <li key={c.id} className="flex justify-between gap-3">
+                            <span className="truncate">{c.name}</span>
+                            <span className="shrink-0 tabular-nums opacity-80">
+                              {describeFee(
+                                c.from.mode,
+                                c.from.fixed,
+                                c.from.percentage,
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      {feePreview.unchanged > 0 && (
+                        <p className="mt-2 opacity-80">
+                          {feePreview.unchanged} already match.
+                        </p>
+                      )}
+                      <p className="mt-2">
+                        This changes what every location earns per card order.
+                      </p>
+                    </>
+                  )}
+                  <div className="mt-3 flex gap-2">
+                    {feePreview.changes.length > 0 && (
+                      <button
+                        type="button"
+                        disabled={applyFee.isPending}
+                        onClick={() => applyFee.mutate(true)}
+                        className="rounded-md bg-amber-700 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-amber-800 disabled:opacity-60"
+                      >
+                        {applyFee.isPending ? "Applying…" : "Yes, apply to all"}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setFeePreview(null)}
+                      className="rounded-md border border-amber-300 px-3 py-1.5 text-[12px] font-semibold hover:bg-amber-100"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    disabled={!canEdit || appFeeMode === "none" || applyFee.isPending}
+                    onClick={() => applyFee.mutate(false)}
+                    className="rounded-md border border-zinc-300 px-3 py-1.5 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                  >
+                    {applyFee.isPending ? "Checking…" : "Apply this fee to all brands"}
+                  </button>
+                  <p className="mt-1.5 text-[11px] text-zinc-500">
+                    {appFeeMode === "none"
+                      ? "Set a fee above first — there's nothing to copy."
+                      : "Save your changes first, then copy this fee to every other brand. You'll see exactly what changes before anything is written."}
+                  </p>
+                  {applyFeeError && (
+                    <p className="mt-1.5 text-[11px] text-red-600">{applyFeeError}</p>
+                  )}
+                  {applyFeeDone && (
+                    <p className="mt-1.5 text-[11px] text-green-700">{applyFeeDone}</p>
+                  )}
+                </>
+              )}
             </div>
           </Section>
           )}
@@ -1035,4 +1162,16 @@ function ToggleRow({
       </button>
     </label>
   );
+}
+
+/** "5% + £0.50", "£0.50", "5%", or "No fee" — for the apply-to-all preview. */
+function describeFee(mode: string, fixed: number, percentage: number): string {
+  const parts: string[] = [];
+  if (mode === "percentage_only" || mode === "fixed_and_percentage") {
+    if (percentage) parts.push(`${percentage}%`);
+  }
+  if (mode === "fixed_only" || mode === "fixed_and_percentage") {
+    if (fixed) parts.push(`£${Number(fixed).toFixed(2)}`);
+  }
+  return parts.length ? parts.join(" + ") : "No fee";
 }

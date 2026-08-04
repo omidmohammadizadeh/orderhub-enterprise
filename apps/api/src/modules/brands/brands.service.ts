@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ConflictException,
   BadRequestException,
@@ -82,6 +83,8 @@ function slugify(name: string): string {
 
 @Injectable()
 export class BrandsService {
+  private readonly logger = new Logger(BrandsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     // Phase AW-16 — HubRise location PATCH for the Publish Hours flow.
@@ -688,6 +691,104 @@ export class BrandsService {
   // channels (Just Eat / Uber Eats / Deliveroo / WhatsApp) return a
   // soft success today so the UI can record the operator's intent;
   // each direct push gets wired in its own follow-up phase.
+  /**
+   * Copy one brand's online-ordering application fee onto every other brand
+   * in the tenant.
+   *
+   * The fee has no location-level form anywhere in the dashboard, so in
+   * practice it is only ever set on a brand — and a brand nobody configured
+   * charges nothing. That's how a live site can take card orders for weeks
+   * with no platform fee on any of them, which is exactly what happened here.
+   *
+   * Setting every brand covers every location, because fee resolution reads
+   * the ORDER's brand and each location's orders always carry one.
+   *
+   * `dryRun` returns the same shape without writing, so the operator sees
+   * precisely which brands change, and from what, before agreeing to it.
+   * This moves money — it should never be a single unconfirmed click.
+   */
+  async applyFeeToAllBrands(
+    sourceBrandId: string,
+    tenantId: string,
+    opts: { dryRun?: boolean } = {},
+  ) {
+    const source = await this.prisma.brand.findFirst({
+      where: { id: sourceBrandId, tenantId },
+      select: {
+        id: true,
+        name: true,
+        applicationFeeMode: true,
+        applicationFeeFixedAmount: true,
+        applicationFeePercentage: true,
+      } as any,
+    });
+    if (!source) throw new NotFoundException("Brand not found");
+
+    const src = source as any;
+    const mode = src.applicationFeeMode ?? "none";
+    if (mode === "none") {
+      throw new BadRequestException(
+        "This brand has no application fee set, so there's nothing to copy. Set its fee first.",
+      );
+    }
+
+    const others = (await this.prisma.brand.findMany({
+      where: { tenantId, id: { not: sourceBrandId }, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        applicationFeeMode: true,
+        applicationFeeFixedAmount: true,
+        applicationFeePercentage: true,
+      } as any,
+      orderBy: { name: "asc" },
+    })) as any[];
+
+    const same = (b: any) =>
+      (b.applicationFeeMode ?? "none") === mode &&
+      Number(b.applicationFeeFixedAmount ?? 0) === Number(src.applicationFeeFixedAmount ?? 0) &&
+      Number(b.applicationFeePercentage ?? 0) === Number(src.applicationFeePercentage ?? 0);
+
+    const changed = others.filter((b) => !same(b));
+    const result = {
+      source: {
+        id: src.id,
+        name: src.name,
+        mode,
+        fixed: Number(src.applicationFeeFixedAmount ?? 0),
+        percentage: Number(src.applicationFeePercentage ?? 0),
+      },
+      unchanged: others.length - changed.length,
+      // What each brand moves FROM, so a wrong apply can be undone by hand.
+      changes: changed.map((b) => ({
+        id: b.id,
+        name: b.name,
+        from: {
+          mode: b.applicationFeeMode ?? "none",
+          fixed: Number(b.applicationFeeFixedAmount ?? 0),
+          percentage: Number(b.applicationFeePercentage ?? 0),
+        },
+      })),
+      applied: false,
+    };
+    if (opts.dryRun || changed.length === 0) return result;
+
+    await this.prisma.brand.updateMany({
+      where: { id: { in: changed.map((b) => b.id) } },
+      data: {
+        applicationFeeMode: mode,
+        applicationFeeFixedAmount: src.applicationFeeFixedAmount,
+        applicationFeePercentage: src.applicationFeePercentage,
+      } as any,
+    });
+    this.logger.log(
+      `Application fee from "${src.name}" (${mode} fixed=${src.applicationFeeFixedAmount ?? 0} ` +
+        `pct=${src.applicationFeePercentage ?? 0}) applied to ${changed.length} brand(s): ` +
+        changed.map((b) => b.name).join(", "),
+    );
+    return { ...result, applied: true };
+  }
+
   async publishHours(brandId: string, tenantId: string, channel: string) {
     const brand = (await this.assertAccess(brandId, tenantId)) as any;
     if (!channel) throw new BadRequestException("channel required");

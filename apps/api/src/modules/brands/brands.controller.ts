@@ -104,6 +104,25 @@ export class BrandsController {
   // HUBRISE pushes to PATCH /v1/locations/:id { opening_hours,
   // preparation_time }. Just Eat / Uber Eats / Deliveroo / WhatsApp
   // are UI-only until each direct integration is wired.
+  // Copy this brand's online-ordering application fee onto every other brand
+  // in the tenant. Restricted to the roles that can set the fee in the first
+  // place — this changes what every location earns per card order.
+  @Post(":brandId/fee/apply-to-all")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Apply this brand's application fee to every brand in the tenant",
+  })
+  applyFeeToAllBrands(
+    @Param("brandId") brandId: string,
+    @Body() body: { dryRun?: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.applyFeeToAllBrands(brandId, user.tenantId, {
+      dryRun: body?.dryRun === true,
+    });
+  }
+
   @Post(":brandId/publish-hours")
   @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)

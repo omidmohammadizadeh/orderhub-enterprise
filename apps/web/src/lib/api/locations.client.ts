@@ -171,6 +171,17 @@ export interface Brand {
   _count?: { platformConnections?: number; locations?: number };
 }
 
+export interface FeeApplyResult {
+  source: { id: string; name: string; mode: string; fixed: number; percentage: number };
+  unchanged: number;
+  changes: Array<{
+    id: string;
+    name: string;
+    from: { mode: string; fixed: number; percentage: number };
+  }>;
+  applied: boolean;
+}
+
 export const brandsClient = {
   list: (locationId?: string) =>
     apiClient
@@ -178,6 +189,12 @@ export const brandsClient = {
       .then((r) => r.data),
   get: (id: string) =>
     apiClient.get<Brand>(`/v1/brands/${id}`).then((r) => r.data),
+  /** Copy this brand's application fee onto every other brand in the tenant.
+   *  Call with dryRun first — same shape back, nothing written. */
+  applyFeeToAll: (brandId: string, dryRun = false) =>
+    apiClient
+      .post<FeeApplyResult>(`/v1/brands/${brandId}/fee/apply-to-all`, { dryRun })
+      .then((r) => r.data),
   create: (body: {
     name: string;
     slug?: string;
