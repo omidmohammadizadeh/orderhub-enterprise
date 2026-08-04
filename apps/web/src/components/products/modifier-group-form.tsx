@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { AttachModal } from "./attach-modal";
 import { ModifierForm } from "./modifier-form";
+import { capitaliseFirst } from "@orderhub/shared";
 
 interface Props {
   brandId: string;
@@ -101,7 +102,7 @@ export function ModifierGroupForm({
   const saveMutation = useMutation({
     mutationFn: async (): Promise<CatalogModifierGroup> => {
       const payload = {
-        name: name.trim(),
+        name: capitaliseFirst(name),
         description: description.trim() || null,
         plu: plu.trim() || null,
         selectionType,
@@ -121,7 +122,7 @@ export function ModifierGroupForm({
       // Create any pending NEW modifiers under the saved group.
       for (const m of pendingModifiers) {
         await modifiersClient.create(saved.id, {
-          name: m.name,
+          name: capitaliseFirst(m.name),
           plu: m.plu,
           priceAdjustment: m.priceAdjustment,
         });

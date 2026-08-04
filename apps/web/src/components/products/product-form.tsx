@@ -17,6 +17,7 @@ import { ImageUploader } from "./image-uploader";
 import { AttachModal } from "./attach-modal";
 import { ApplyToItemsModal } from "./apply-to-items-modal";
 import { ModifierGroupForm } from "./modifier-group-form";
+import { capitaliseFirst } from "@orderhub/shared";
 
 interface Props {
   brandId: string;
@@ -183,7 +184,7 @@ export function ProductForm({
       const cleanedSkus = skus
         .filter((s) => s.name.trim())
         .map((s) => ({
-          name: s.name.trim(),
+          name: capitaliseFirst(s.name),
           plu: s.plu.trim(),
           price: Number(s.price) || 0,
           modifierGroups: s.modifierGroupIds,
@@ -191,7 +192,7 @@ export function ProductForm({
           ...(s.priceOverrides ? { priceOverrides: s.priceOverrides } : {}),
         }));
       const payload = {
-        name: name.trim(),
+        name: capitaliseFirst(name),
         description: description.trim() || null,
         plu: plu.trim() || null,
         imageUrl,

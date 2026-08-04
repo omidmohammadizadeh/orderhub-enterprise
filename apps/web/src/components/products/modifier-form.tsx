@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ImageUploader } from "./image-uploader";
+import { capitaliseFirst } from "@orderhub/shared";
 
 interface Props {
   brandId: string;
@@ -102,7 +103,7 @@ export function ModifierForm({
         if (r.plu) skuPlus[r.size] = r.plu;
       }
       const payload = {
-        name: name.trim(),
+        name: capitaliseFirst(name),
         plu: plu.trim() || null,
         imageUrl,
         priceAdjustment: Number(price) || 0,
