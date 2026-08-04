@@ -12,7 +12,8 @@ import {
   hasNativeBridge,
   bridgeSupportsPrinter,
   writeToPrinter,
-  renderReceiptBytes,
+  renderReceiptParts,
+  joinReceiptAndQr,
   repeatReceipt,
   resolveFontScale,
   resolveModifierScale,
@@ -204,15 +205,21 @@ export async function printOrderViaBridge(
         1,
         Number((p as any).defaults?.copiesReprint ?? 1) || 1,
       );
-      const single = await renderReceiptBytes(payload, p.paperWidth ?? 80, {
-        printLogo: (p as any).defaults?.printLogo,
-        qrCode: (p as any).defaults?.qrCode,
-        commandSet: resolveCommandSet(p),
-        fontScale: resolveFontScale(p),
-        modifierScale: resolveModifierScale(p),
-        printFont: resolvePrintFont(p),
-      });
-      await writeToPrinter(p, repeatReceipt(single, copies));
+      // Receipt and offer slip come back separately so extra copies repeat
+      // the RECEIPT only — the kitchen copy doesn't need its own sticker.
+      const { receipt, qrTicket } = await renderReceiptParts(
+        payload,
+        p.paperWidth ?? 80,
+        {
+          printLogo: (p as any).defaults?.printLogo,
+          qrCode: (p as any).defaults?.qrCode,
+          commandSet: resolveCommandSet(p),
+          fontScale: resolveFontScale(p),
+          modifierScale: resolveModifierScale(p),
+          printFont: resolvePrintFont(p),
+        },
+      );
+      await writeToPrinter(p, joinReceiptAndQr(receipt, qrTicket, copies));
       printed++;
     } catch (e: any) {
       const label = (p as any)?.name ?? p.ipAddress ?? "printer";

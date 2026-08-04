@@ -20,7 +20,8 @@ import { queryKeys } from "../lib/api/query-keys";
 import {
   writeToPrinter,
   bridgeSupportsPrinter,
-  renderReceiptBytes,
+  renderReceiptParts,
+  joinReceiptAndQr,
   hasNativeBridge,
   repeatReceipt,
   resolveFontScale,
@@ -134,14 +135,18 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
             /star/i.test(String((p as any).model ?? ""))
               ? "STAR"
               : "ESCPOS");
-          const single = await renderReceiptBytes(payload, p.paperWidth ?? 80, {
-            printLogo: p.defaults?.printLogo,
-            qrCode: p.defaults?.qrCode,
-            commandSet,
-            fontScale: resolveFontScale(p),
-            modifierScale: resolveModifierScale(p),
-          });
-          await writeToPrinter(p, repeatReceipt(single, copies));
+          const { receipt, qrTicket } = await renderReceiptParts(
+            payload,
+            p.paperWidth ?? 80,
+            {
+              printLogo: p.defaults?.printLogo,
+              qrCode: p.defaults?.qrCode,
+              commandSet,
+              fontScale: resolveFontScale(p),
+              modifierScale: resolveModifierScale(p),
+            },
+          );
+          await writeToPrinter(p, joinReceiptAndQr(receipt, qrTicket, copies));
           printedAny = true;
           const msg = `Printed ${copies}× ${banner ? "cancellation" : "order"} #${
             order.displayId ?? order.orderNumber ?? order.id?.slice(-4)
