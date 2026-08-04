@@ -274,7 +274,13 @@ function OrderPage() {
   // keeps the customer's cart. Hydrate once on mount; save on every change
   // after. Keyed by brand so a multi-brand kitchen doesn't mix baskets.
   const cartKey = `orderhub.cart.${slug}${brandId ? `:${brandId}` : ""}`;
-  const [cartHydrated, setCartHydrated] = useState(false);
+  // WHICH key we've hydrated, not merely whether we have. The key contains
+  // the brand, so it changes when ?brand= arrives or switches — and a plain
+  // boolean stayed true across that change, letting the save effect below
+  // fire against the NEW key while `cart` was still the old empty state. That
+  // deleted a perfectly good saved basket a beat before hydration could read
+  // it. Comparing keys means we only ever write to a key we've read first.
+  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -288,13 +294,15 @@ function OrderPage() {
     } catch {
       /* corrupt / unavailable storage — start empty */
     }
-    setCartHydrated(true);
+    setHydratedKey(cartKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartKey]);
   useEffect(() => {
-    // Skip the pre-hydration commit so we never overwrite a saved basket
-    // with the empty mount state before hydration applies.
-    if (typeof window === "undefined" || !cartHydrated) return;
+    // Only write to the key we have actually read. Skipping the
+    // pre-hydration commit isn't enough on its own: the key itself changes
+    // when the brand does, and writing an empty cart to a key we haven't
+    // hydrated yet is how a saved basket disappears.
+    if (typeof window === "undefined" || hydratedKey !== cartKey) return;
     try {
       if (cart.length > 0) {
         window.localStorage.setItem(cartKey, JSON.stringify(cart));
@@ -304,7 +312,7 @@ function OrderPage() {
     } catch {
       /* quota / private mode — non-fatal */
     }
-  }, [cart, cartKey, cartHydrated]);
+  }, [cart, cartKey, hydratedKey]);
 
   // Phase AP-5 — "Order again" hand-off from My Orders.
   //
@@ -1078,6 +1086,18 @@ function OrderPage() {
       if (order?.checkoutUrl && typeof window !== "undefined") {
         // Clear the cart NOW so a back-button after payment doesn't show
         // the unpaid cart again. The order is already created server-side.
+        //
+        // Delete from storage SYNCHRONOUSLY, not just via dispatch: the
+        // navigation on the next line leaves before React re-renders, so the
+        // effect that mirrors an empty cart into localStorage never runs. The
+        // basket therefore survived the whole payment and was still sitting
+        // there next time the customer opened the site — the "it remembers my
+        // last order" complaint.
+        try {
+          window.localStorage.removeItem(cartKey);
+        } catch {
+          /* private mode — the dispatch below still clears the UI */
+        }
         dispatch({ type: "CLEAR" });
         window.location.href = order.checkoutUrl;
         return;

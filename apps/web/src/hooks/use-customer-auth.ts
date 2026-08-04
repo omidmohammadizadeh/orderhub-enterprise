@@ -29,6 +29,24 @@ const API_BASE =
   "https://orderhub-api-0re6.onrender.com/api";
 const TOKEN_KEY = "orderhub.customerToken";
 
+// Same-tab fan-out.
+//
+// Every caller of useCustomerAuth() gets its OWN useState, and the `storage`
+// event that syncs other tabs deliberately does NOT fire in the tab that wrote
+// it. So when the login modal signed someone in, the storefront page and the
+// header — separate instances — never found out: the token was saved
+// correctly, the header still said "Sign in", and the pending "place order"
+// replay never fired. The customer concludes login is broken and signs in
+// again, which is the "why do I have to log in every time" complaint.
+//
+// A module-level subscriber list keeps every instance in step within the tab;
+// the storage listener still covers other tabs.
+type AuthSnapshot = { customer: Customer | null; token: string | null };
+const authSubscribers = new Set<(s: AuthSnapshot) => void>();
+function broadcastAuth(snapshot: AuthSnapshot) {
+  for (const fn of authSubscribers) fn(snapshot);
+}
+
 export interface Customer {
   id: string;
   email: string;
@@ -103,6 +121,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
           setToken(freshToken);
           persistToken(freshToken);
         }
+        broadcastAuth({ customer: customerData, token: freshToken ?? stored });
       })
       .catch((err: any) => {
         const status = err?.response?.status;
@@ -123,6 +142,19 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
         }
       })
       .finally(() => setIsLoading(false));
+  }, []);
+
+  // Same-tab sync — every other instance of this hook follows immediately.
+  useEffect(() => {
+    const onLocal = (snap: AuthSnapshot) => {
+      setCustomer(snap.customer);
+      setToken(snap.token);
+      setIsLoading(false);
+    };
+    authSubscribers.add(onLocal);
+    return () => {
+      authSubscribers.delete(onLocal);
+    };
   }, []);
 
   // Cross-tab sync — log out in one tab, others follow.
@@ -165,6 +197,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
     setToken(res.data.accessToken);
     setCustomer(res.data.customer);
     persistToken(res.data.accessToken);
+    broadcastAuth({ customer: res.data.customer, token: res.data.accessToken });
   }, []);
 
   const signup = useCallback(async (input: SignupInput) => {
@@ -179,6 +212,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
     setToken(null);
     setCustomer(null);
     persistToken(null);
+    broadcastAuth({ customer: null, token: null });
   }, []);
 
   const refresh = useCallback(async () => {
@@ -193,6 +227,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
         setToken(freshToken);
         persistToken(freshToken);
       }
+      broadcastAuth({ customer: customerData, token: freshToken ?? token });
     } catch {
       logout();
     }
