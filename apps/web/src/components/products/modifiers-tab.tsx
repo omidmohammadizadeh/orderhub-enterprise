@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Sliders, ImageIcon, Trash2 } from "lucide-react";
+import { Plus, Sliders, ImageIcon, Trash2, Copy } from "lucide-react";
 import {
   modifierGroupsClient,
   modifiersClient,
@@ -66,6 +66,17 @@ export function ModifiersTab({ brandId, locationId, search }: Props) {
       }),
   });
 
+  // Copy sits in the same group with a fresh PLU, then opens for renaming.
+  const duplicateMutation = useMutation({
+    mutationFn: (id: string) => modifiersClient.duplicate(id),
+    onSuccess: (created) => {
+      qc.invalidateQueries({
+        queryKey: ["catalog", "modifier-groups-with-options", scopeKey],
+      });
+      if (created?.id) setEditingId(created.id);
+    },
+  });
+
   if (isLoading)
     return (
       <div className="space-y-2">
@@ -127,7 +138,7 @@ export function ModifiersTab({ brandId, locationId, search }: Props) {
               <th className="text-left font-medium px-4 py-2.5">Group</th>
               <th className="text-left font-medium px-4 py-2.5">PLU</th>
               <th className="text-right font-medium px-4 py-2.5">Price</th>
-              <th className="w-24" />
+              <th className="w-32" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -166,6 +177,16 @@ export function ModifiersTab({ brandId, locationId, search }: Props) {
                       className="h-7 px-2 text-xs"
                     >
                       Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => duplicateMutation.mutate(m.id)}
+                      disabled={duplicateMutation.isPending}
+                      className="h-7 px-2 text-zinc-400 hover:text-zinc-900"
+                      title="Duplicate — creates a new modifier with a new PLU"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost"

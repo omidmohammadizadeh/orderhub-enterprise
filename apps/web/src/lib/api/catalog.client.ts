@@ -226,6 +226,11 @@ export const modifierGroupsClient = {
       .then((r) => r.data),
   remove: (id: string) =>
     apiClient.delete(`/v1/modifier-groups/${id}`).then((r) => r.data),
+  /** Deep copy — new group, new modifiers, all with fresh PLUs. */
+  duplicate: (id: string) =>
+    apiClient
+      .post<CatalogModifierGroup>(`/v1/modifier-groups/${id}/duplicate`)
+      .then((r) => r.data),
 };
 
 // ── Modifiers (ModifierOption) ─────────────────────────────────────────────
@@ -243,6 +248,11 @@ export const modifiersClient = {
     apiClient.patch<CatalogModifier>(`/v1/modifier-options/${id}`, data).then((r) => r.data),
   remove: (id: string) =>
     apiClient.delete(`/v1/modifier-options/${id}`).then((r) => r.data),
+  /** Copy into the same group with a fresh PLU. */
+  duplicate: (id: string) =>
+    apiClient
+      .post<CatalogModifier>(`/v1/modifier-options/${id}/duplicate`)
+      .then((r) => r.data),
 
   // Phase AL — attach/detach an existing modifier to/from a group.
   // Uses ModifierOption.modifierGroupIds[] under the hood; the

@@ -1656,6 +1656,140 @@ export class MenusService {
     return this.mergeArrayAttachedOptions(groups, user.tenantId);
   }
 
+  /**
+   * Deep-copy a modifier group: a new group plus brand-new modifiers of its
+   * own, every one with a fresh PLU.
+   *
+   * Nothing is shared with the original. Renaming or repricing the copy must
+   * never touch the group it came from, which rules out reusing the source's
+   * ModifierOption rows or array-attaching them — that is what "Add Existing"
+   * is for, and it is the opposite of what duplicating means.
+   *
+   * The copy takes everything the operator can SEE on the original, so
+   * array-attached modifiers are copied too: a group listing 28 modifiers
+   * duplicates into 28, not just the FK-owned handful.
+   */
+  async duplicateModifierGroup(groupId: string, tenantId: string) {
+    const group = await this.prisma.modifierGroup.findUnique({
+      where: { id: groupId },
+      include: { options: { orderBy: { sortOrder: "asc" } } },
+    });
+    if (!group)
+      throw new NotFoundException(`Modifier group ${groupId} not found`);
+    await this.assertBrandAccess(group.brandId, tenantId);
+
+    const merged = await this.mergeArrayAttachedOptions([group], tenantId);
+    const sourceOptions = (merged[0]?.options ?? group.options) as typeof group.options;
+
+    // Generate every PLU up front. Inside a create() the new rows aren't
+    // visible to the generator's collision check yet, so track what this
+    // batch has already issued as well.
+    const plu = await this.plu.generateUnique("modifierGroup", tenantId);
+    const issued = new Set<string>();
+    const optionPlus: string[] = [];
+    for (let i = 0; i < sourceOptions.length; i++) {
+      let candidate = await this.plu.generateUnique("modifier", tenantId);
+      while (issued.has(candidate)) {
+        candidate = await this.plu.generateUnique("modifier", tenantId);
+      }
+      issued.add(candidate);
+      optionPlus.push(candidate);
+    }
+
+    return this.prisma.modifierGroup.create({
+      data: {
+        brandId: group.brandId,
+        // Same location, so the copy lands in the catalogue the operator is
+        // looking at rather than turning into a brand-wide group.
+        locationId: group.locationId,
+        name: `${group.name} (copy)`,
+        description: group.description,
+        plu,
+        minSelections: group.minSelections,
+        maxSelections: group.maxSelections,
+        isRequired: group.isRequired,
+        selectionType: group.selectionType,
+        allowDuplicateSelections: group.allowDuplicateSelections,
+        visibleToCustomers: group.visibleToCustomers,
+        sortOrder: group.sortOrder,
+        // Not attached to any menu or product yet — the operator duplicates a
+        // group to use it somewhere else, and deciding where is their call.
+        menuIds: [],
+        options: {
+          create: sourceOptions.map((o, i) => ({
+            name: o.name,
+            description: o.description,
+            plu: optionPlus[i],
+            priceAdjustment: o.priceAdjustment,
+            pricesBySize: o.pricesBySize as any,
+            // Per-size PLUs would collide with the original's, and they point
+            // at the source product's sizes anyway. Start clean.
+            skuPlus: {} as any,
+            platformPricingOverrides: o.platformPricingOverrides as any,
+            imageUrl: o.imageUrl,
+            allergens: o.allergens,
+            isDefault: o.isDefault,
+            isAvailable: o.isAvailable,
+            visibleToCustomers: o.visibleToCustomers,
+            deliveryTax: o.deliveryTax,
+            takeawayTax: o.takeawayTax,
+            eatInTax: o.eatInTax,
+            nestedGroupId: o.nestedGroupId,
+            sortOrder: i,
+            menuIds: [],
+            // modifierGroupIds deliberately left empty: the copy's modifiers
+            // belong to the copy alone.
+          })),
+        },
+      },
+      include: { options: { orderBy: { sortOrder: "asc" } } },
+    });
+  }
+
+  /**
+   * Copy a single modifier into the same group, with a fresh PLU.
+   * Lands at the end of the list so the original keeps its position.
+   */
+  async duplicateModifierOption(optionId: string, tenantId: string) {
+    const option = await this.prisma.modifierOption.findUnique({
+      where: { id: optionId },
+    });
+    if (!option)
+      throw new NotFoundException(`Modifier ${optionId} not found`);
+    await this.assertModifierGroupAccess(option.groupId, tenantId);
+
+    const plu = await this.plu.generateUnique("modifier", tenantId);
+    const maxOrder = await this.prisma.modifierOption.aggregate({
+      where: { groupId: option.groupId },
+      _max: { sortOrder: true },
+    });
+
+    return this.prisma.modifierOption.create({
+      data: {
+        groupId: option.groupId,
+        name: `${option.name} (copy)`,
+        description: option.description,
+        plu,
+        priceAdjustment: option.priceAdjustment,
+        pricesBySize: option.pricesBySize as any,
+        skuPlus: {} as any,
+        platformPricingOverrides: option.platformPricingOverrides as any,
+        imageUrl: option.imageUrl,
+        allergens: option.allergens,
+        isDefault: false, // two defaults in a pick-one group is a broken menu
+        isAvailable: option.isAvailable,
+        visibleToCustomers: option.visibleToCustomers,
+        deliveryTax: option.deliveryTax,
+        takeawayTax: option.takeawayTax,
+        eatInTax: option.eatInTax,
+        nestedGroupId: option.nestedGroupId,
+        sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
+        menuIds: [],
+        // Attached only to its own group, not the source's extra groups.
+      },
+    });
+  }
+
   async createModifierGroup(
     brandId: string,
     tenantId: string,

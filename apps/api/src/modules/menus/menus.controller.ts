@@ -880,6 +880,28 @@ export class MenusController {
     return this.menus.removeModifierGroup(groupId, user.tenantId);
   }
 
+  @Post("modifier-groups/:groupId/duplicate")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Deep-copy a modifier group and all of its modifiers",
+  })
+  duplicateModifierGroup(
+    @Param("groupId") groupId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.duplicateModifierGroup(groupId, user.tenantId);
+  }
+
+  @Post("modifier-options/:optionId/duplicate")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Copy a modifier within its group" })
+  duplicateModifierOption(
+    @Param("optionId") optionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.duplicateModifierOption(optionId, user.tenantId);
+  }
+
   @Post("modifier-groups/:groupId/options")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Add an option to a modifier group" })

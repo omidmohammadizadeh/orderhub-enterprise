@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, ListTree, Trash2 } from "lucide-react";
+import { Plus, ListTree, Trash2, Copy } from "lucide-react";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
 import { Button } from "@/components/ui/button";
 import { CatalogEmptyState } from "./empty-state";
@@ -41,6 +41,20 @@ export function ModifierGroupsTab({ brandId, locationId, search }: Props) {
       });
       // Products that referenced this group lose the link — bust their cache too.
       qc.invalidateQueries({ queryKey: ["catalog", "products"] });
+    },
+  });
+
+  // Deep copy. The server builds the new group and its modifiers with fresh
+  // PLUs; we just refresh the list and drop the operator into the copy so
+  // they can rename it, which is the whole point of duplicating.
+  const duplicateMutation = useMutation({
+    mutationFn: (id: string) => modifierGroupsClient.duplicate(id),
+    onSuccess: (created) => {
+      qc.invalidateQueries({ queryKey: listQueryKey });
+      qc.invalidateQueries({
+        queryKey: ["catalog", "modifier-groups-with-options", brandId],
+      });
+      if (created?.id) setEditingId(created.id);
     },
   });
 
@@ -117,7 +131,7 @@ export function ModifierGroupsTab({ brandId, locationId, search }: Props) {
               <th className="text-left font-medium px-4 py-2.5">Type</th>
               <th className="text-center font-medium px-4 py-2.5">Modifiers</th>
               <th className="text-center font-medium px-4 py-2.5">Used by</th>
-              <th className="w-24" />
+              <th className="w-32" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -148,6 +162,16 @@ export function ModifierGroupsTab({ brandId, locationId, search }: Props) {
                       className="h-7 px-2 text-xs"
                     >
                       Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => duplicateMutation.mutate(g.id)}
+                      disabled={duplicateMutation.isPending}
+                      className="h-7 px-2 text-zinc-400 hover:text-zinc-900"
+                      title={`Duplicate — creates a new group and ${g.options?.length ?? 0} new modifiers, all with new PLUs`}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost"
