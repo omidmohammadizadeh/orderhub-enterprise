@@ -437,11 +437,27 @@ export function ModifierGroupForm({
                               <button
                                 type="button"
                                 onClick={async () => {
-                                  // Phase AW-18.5 — trash = delete the
-                                  // modifier outright (was: detach).
-                                  // Confirm before destroying.
+                                  // SHARED modifier — detach from this group
+                                  // only. It stays in the catalogue and stays
+                                  // attached to every other group using it.
+                                  // Local; the save diff issues the detach.
+                                  if (!owned) {
+                                    setAttachedModifierIds((prev) =>
+                                      prev.filter((id) => id !== m.id),
+                                    );
+                                    toast.success(
+                                      `Removed "${m.name}" from this group — save to apply`,
+                                    );
+                                    return;
+                                  }
+                                  // OWNED modifier — its primary FK lives in
+                                  // this group, so there is nothing to detach
+                                  // from; the API rejects a detach on an
+                                  // owned row. Removing it here means
+                                  // deleting it, so say exactly that rather
+                                  // than pretending otherwise.
                                   const ok = window.confirm(
-                                    `Delete "${m.name}"?\n\nThis removes the modifier from the catalog and unattaches it from every group that uses it. This cannot be undone.`,
+                                    `Delete "${m.name}"?\n\nThis modifier belongs to this group, so it can't just be unattached — removing it deletes it from the catalogue. This cannot be undone.`,
                                   );
                                   if (!ok) return;
                                   try {
@@ -470,7 +486,11 @@ export function ModifierGroupForm({
                                     );
                                   }
                                 }}
-                                title="Delete this modifier"
+                                title={
+                                  owned
+                                    ? "This modifier belongs to this group — removing it deletes it"
+                                    : "Remove from this group (the modifier stays in the catalogue)"
+                                }
                                 className="text-zinc-300 hover:text-red-600"
                               >
                                 <Trash2 className="h-4 w-4" />

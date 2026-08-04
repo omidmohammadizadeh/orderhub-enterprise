@@ -569,36 +569,31 @@ export function ProductForm({
                       </button>
                       <button
                         type="button"
-                        onClick={async () => {
-                          // Phase AW-18.5 — trash = delete the group
-                          // outright. Confirm first; on success drop
-                          // it from the local attached set and
-                          // invalidate the brand-wide list so other
-                          // products' editors refresh too.
-                          const ok = window.confirm(
-                            `Delete "${g.name}"?\n\nThis removes the modifier group from the catalog and unattaches it from every product that uses it. This cannot be undone.`,
+                        onClick={() => {
+                          // DETACH from this product — never delete the
+                          // group itself.
+                          //
+                          // This used to call modifierGroupsClient.remove(),
+                          // which destroys the group catalogue-wide and rips
+                          // it off every other product using it. Removing
+                          // "Crusts" from one pizza would silently strip it
+                          // from the whole menu, and there was no way back.
+                          // Deleting a group belongs in the Products tab,
+                          // where that is plainly what you are doing.
+                          //
+                          // Local only: the save mutation diffs
+                          // attachedGroupIds against the server's set and
+                          // issues the detach, exactly as "Add Existing"
+                          // issues the attach.
+                          setAttachedGroupIds((prev) =>
+                            prev.filter((id) => id !== g.id),
                           );
-                          if (!ok) return;
-                          try {
-                            await modifierGroupsClient.remove(g.id);
-                            setAttachedGroupIds((prev) =>
-                              prev.filter((id) => id !== g.id),
-                            );
-                            qc.invalidateQueries({
-                              queryKey: ["catalog", "modifier-groups", brandId],
-                            });
-                            qc.invalidateQueries({
-                              queryKey: ["catalog", "product", productId],
-                            });
-                            toast.success(`Deleted "${g.name}"`);
-                          } catch (err: any) {
-                            toast.error(
-                              `Failed to delete: ${err?.response?.data?.message ?? err?.message ?? "unknown error"}`,
-                            );
-                          }
+                          toast.success(
+                            `Removed "${g.name}" from this item — save to apply`,
+                          );
                         }}
+                        title="Remove this modifier group from this item (the group itself stays in the catalogue)"
                         className="text-zinc-300 hover:text-red-600 transition-colors ml-2"
-                        title="Delete this modifier group"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
