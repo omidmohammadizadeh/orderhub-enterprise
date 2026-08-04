@@ -671,6 +671,7 @@ export default function MenuEditorPage() {
       <ProductEditorModal
         open={productEditorTarget !== null}
         brandId={brandId}
+        menuId={menuId}
         productId={
           productEditorTarget && productEditorTarget !== "new"
             ? productEditorTarget

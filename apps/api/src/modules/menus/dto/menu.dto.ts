@@ -265,3 +265,26 @@ export class ReorderDto {
   @Type(() => ReorderItemDto)
   items!: ReorderItemDto[];
 }
+
+// ── Apply one item's configuration to others ─────────────────────────────────
+// Modifier groups are LINKED (shared brand-level rows), sizes are COPIED with
+// fresh per-item PLUs. See MenusService.applyItemConfigToItems.
+export class ApplyItemConfigDto {
+  @ApiProperty({ type: [String], description: "Items to apply to" })
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(500)
+  targetItemIds!: string[];
+
+  @ApiPropertyOptional({ type: [String], description: "Modifier groups to attach" })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(50)
+  modifierGroupIds?: string[];
+
+  @ApiPropertyOptional({ description: "Also copy this item's size/SKU set" })
+  @IsOptional()
+  @IsBoolean()
+  includeSkus?: boolean;
+}

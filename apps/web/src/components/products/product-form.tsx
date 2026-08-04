@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save, Trash2, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, X, Layers } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   productsClient,
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ImageUploader } from "./image-uploader";
 import { AttachModal } from "./attach-modal";
+import { ApplyToItemsModal } from "./apply-to-items-modal";
 import { ModifierGroupForm } from "./modifier-group-form";
 
 interface Props {
@@ -23,6 +24,10 @@ interface Props {
    *  up in the location-scoped Products tab. */
   locationId?: string;
   productId?: string;
+  /** The menu being edited, when opened from the menu editor. Enables the
+   *  "Apply to other items" actions — they list items from THIS menu only,
+   *  so they're meaningless without it. */
+  menuId?: string;
   onCancel: () => void;
   onSaved: () => void;
 }
@@ -43,6 +48,7 @@ export function ProductForm({
   brandId,
   locationId,
   productId,
+  menuId,
   onCancel,
   onSaved,
 }: Props) {
@@ -107,6 +113,11 @@ export function ProductForm({
   // Per-SKU modifier modals: which SKU index the Add-Existing / Create-New
   // dialog is currently targeting (multi-SKU products attach groups per size).
   const [skuAttachTarget, setSkuAttachTarget] = useState<number | null>(null);
+  // "Apply to other items". Null = closed; otherwise what we're spreading.
+  // Groups are linked, sizes are copied — see ApplyToItemsModal.
+  const [applyMode, setApplyMode] = useState<"groups" | "skus" | null>(null);
+  const [applying, setApplying] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
   const [skuCreateTarget, setSkuCreateTarget] = useState<number | null>(null);
   const [hasMultipleSkus, setHasMultipleSkus] = useState(false);
   const [skus, setSkus] = useState<
@@ -435,6 +446,22 @@ export function ProductForm({
                   <Plus className="h-3.5 w-3.5 mr-1" />
                   Add SKU
                 </Button>
+                {menuId && productId && skus.length > 0 && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setApplyError(null);
+                      setApplyMode("skus");
+                    }}
+                    className="h-8 text-xs ml-2"
+                    title="Copy these sizes (and their modifier groups) to other items in this menu"
+                  >
+                    <Layers className="h-3.5 w-3.5 mr-1" />
+                    Apply to other items
+                  </Button>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -488,6 +515,27 @@ export function ProductForm({
                     <Plus className="h-3.5 w-3.5 mr-1" />
                     Create New
                   </Button>
+                  {/* Only when we know which menu we're in — the picker lists
+                      that menu's items, and there's nothing to scope to when
+                      the form is opened from the brand catalogue. Needs a
+                      saved product too: you can't link groups to an item that
+                      doesn't exist yet. */}
+                  {menuId && productId && attachedGroupIds.length > 0 && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setApplyError(null);
+                        setApplyMode("groups");
+                      }}
+                      className="h-8 text-xs"
+                      title="Attach these modifier groups to other items in this menu"
+                    >
+                      <Layers className="h-3.5 w-3.5 mr-1" />
+                      Apply to other items
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -779,6 +827,59 @@ export function ProductForm({
             />
           </div>
         </div>
+      )}
+
+      {/* Spread this item's setup across the rest of the menu. */}
+      {applyMode && menuId && productId && (
+        <ApplyToItemsModal
+          menuId={menuId}
+          sourceItemId={productId}
+          sourceItemName={name}
+          groupNames={
+            applyMode === "groups" ? attachedGroups.map((g) => g.name) : []
+          }
+          skuCount={applyMode === "skus" ? skus.length : 0}
+          applying={applying}
+          error={applyError}
+          onClose={() => {
+            if (applying) return;
+            setApplyMode(null);
+            setApplyError(null);
+          }}
+          onApply={async (targetItemIds) => {
+            setApplying(true);
+            setApplyError(null);
+            try {
+              const res = await productsClient.applyToItems(productId, {
+                targetItemIds,
+                ...(applyMode === "groups"
+                  ? { modifierGroupIds: attachedGroupIds }
+                  : { includeSkus: true }),
+              });
+              // The menu editor's cards and every other product's form read
+              // this data, so bust both — otherwise the operator opens the
+              // next pizza and sees the pre-apply state. Same trap as the
+              // save mutation's cache note above.
+              qc.invalidateQueries({ queryKey: ["menu"] });
+              qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] });
+              qc.invalidateQueries({ queryKey: ["catalog", "product"] });
+              toast.success(
+                applyMode === "groups"
+                  ? `Attached to ${res.itemsUpdated} item${res.itemsUpdated === 1 ? "" : "s"}`
+                  : `Copied ${skus.length} size${skus.length === 1 ? "" : "s"} to ${res.itemsUpdated} item${res.itemsUpdated === 1 ? "" : "s"}`,
+              );
+              setApplyMode(null);
+            } catch (err: any) {
+              setApplyError(
+                err?.response?.data?.message ??
+                  err?.message ??
+                  "Couldn't apply to those items",
+              );
+            } finally {
+              setApplying(false);
+            }
+          }}
+        />
       )}
 
       {/* Phase AW-18.2 — Edit existing modifier group + its modifiers.

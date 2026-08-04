@@ -18,6 +18,11 @@ interface Props {
   brandId: string;
   /** Provide a productId to open in edit mode; omit for create mode. */
   productId?: string;
+  /** The menu being edited, when opened from the menu editor. Enables the
+   *  "Apply to other items" actions, which are scoped to this menu. Absent
+   *  when the form is opened from the brand catalogue, where there is no
+   *  menu to scope to. */
+  menuId?: string;
   /** Fires after the form's save mutation succeeds. */
   onSaved: () => void;
   onCancel: () => void;
@@ -27,6 +32,7 @@ export function ProductEditorModal({
   open,
   brandId,
   productId,
+  menuId,
   onSaved,
   onCancel,
 }: Props) {
@@ -49,6 +55,7 @@ export function ProductEditorModal({
 
         <div className="p-6">
           <ProductForm
+            menuId={menuId}
             brandId={brandId}
             productId={productId}
             onCancel={onCancel}

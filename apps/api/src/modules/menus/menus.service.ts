@@ -35,6 +35,19 @@ import type {
   ReorderDto,
 } from "./dto/menu.dto";
 
+/**
+ * A size's PLU, derived from its parent item's.
+ *
+ * Mirrors genSkuPlu in the product form (Base44 convention: PARENT-1,
+ * PARENT-2 …). It matters when copying a size set onto other items: reusing
+ * the source's PLUs would give every pizza the same codes, and HubRise, Uber
+ * Eats and Deliveroo all key their catalogues on them.
+ */
+function skuPluFor(parentPlu: string | null | undefined, index: number): string {
+  const base = (parentPlu ?? "").trim() || randomPlu("product");
+  return `${base}-${index + 1}`;
+}
+
 const MENU_INCLUDE = {
   categories: {
     orderBy: { sortOrder: "asc" as const },
@@ -1272,6 +1285,110 @@ export class MenusService {
   }
 
   // ── Bulk Operations ────────────────────────────────────────────────────────
+
+  /**
+   * Copy one item's modifier groups and/or its SKU set onto other items.
+   *
+   * Building a "Crusts" group and then re-attaching it by hand to nineteen
+   * pizzas is the single most tedious thing in the menu editor, and it's where
+   * menus drift out of step with each other.
+   *
+   * Modifier groups are brand-level rows joined through ModifierGroupOnItem,
+   * so applying one is a LINK, not a copy — every item ends up pointing at the
+   * same group, and editing its options later updates all of them at once.
+   * That is the behaviour an operator expects from "use the same group".
+   *
+   * SKUs are the opposite: they live in MenuItem.productSkus as JSON, so they
+   * genuinely are copied. PLUs are regenerated from each target's own PLU —
+   * copying "PIZZA-10" onto nineteen items would give nineteen products the
+   * same code, and marketplace catalogues key on it.
+   */
+  async applyItemConfigToItems(
+    sourceItemId: string,
+    tenantId: string,
+    dto: {
+      targetItemIds: string[];
+      modifierGroupIds?: string[];
+      includeSkus?: boolean;
+    },
+  ) {
+    const source = await this.assertItemAccess(sourceItemId, tenantId);
+
+    const targetIds = [...new Set(dto.targetItemIds ?? [])].filter(
+      (id) => id && id !== sourceItemId,
+    );
+    if (targetIds.length === 0) {
+      throw new BadRequestException("Select at least one other item");
+    }
+
+    // Same tenant check as the other bulk operations: MenuItem carries brandId
+    // but has no Prisma relation to Brand, so verify through the brand list.
+    const brands = await this.prisma.brand.findMany({
+      where: { tenantId },
+      select: { id: true },
+    });
+    const brandIds = brands.map((b) => b.id);
+    const targets = await this.prisma.menuItem.findMany({
+      where: { id: { in: targetIds }, brandId: { in: brandIds } },
+      select: { id: true, plu: true },
+    });
+    if (targets.length !== targetIds.length) {
+      throw new BadRequestException("Some items not found or not accessible");
+    }
+
+    const groupIds = [...new Set(dto.modifierGroupIds ?? [])];
+    // Every group must belong to this tenant. Without this a caller could
+    // staple another operator's modifier group onto their own menu.
+    for (const groupId of groupIds) {
+      await this.assertModifierGroupAccess(groupId, tenantId);
+    }
+
+    let linksCreated = 0;
+    if (groupIds.length) {
+      // skipDuplicates rather than create-and-catch: inside a transaction a
+      // Postgres unique violation aborts the WHOLE transaction (25P02), so
+      // re-applying a group an item already has would take the rest down
+      // with it.
+      const res = await this.prisma.modifierGroupOnItem.createMany({
+        data: targets.flatMap((t) =>
+          groupIds.map((groupId) => ({ itemId: t.id, groupId })),
+        ),
+        skipDuplicates: true,
+      });
+      linksCreated = res.count;
+    }
+
+    let skusApplied = 0;
+    if (dto.includeSkus) {
+      const sourceSkus = Array.isArray(source.productSkus)
+        ? (source.productSkus as any[])
+        : [];
+      if (sourceSkus.length === 0) {
+        throw new BadRequestException(
+          "This item has no sizes to apply — add at least one first",
+        );
+      }
+      // One update per target: each gets its own PLUs, so a single updateMany
+      // can't do it.
+      for (const target of targets) {
+        const skus = sourceSkus.map((sku, i) => ({
+          ...sku,
+          plu: skuPluFor(target.plu, i),
+        }));
+        await this.prisma.menuItem.update({
+          where: { id: target.id },
+          data: { hasMultipleSkus: true, productSkus: skus as any },
+        });
+        skusApplied++;
+      }
+    }
+
+    return {
+      itemsUpdated: targets.length,
+      modifierGroupLinksCreated: linksCreated,
+      skusApplied,
+    };
+  }
 
   async bulkToggleAvailability(itemIds: string[], tenantId: string, isAvailable: boolean) {
     // Validate all items belong to tenant — MenuItem has brandId but no Prisma Brand relation

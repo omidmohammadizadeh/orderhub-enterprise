@@ -168,6 +168,30 @@ export const productsClient = {
     apiClient
       .delete(`/v1/items/${itemId}/modifier-groups/${groupId}`)
       .then((r) => r.data),
+
+  /**
+   * Copy this item's modifier groups and/or size set onto other items.
+   *
+   * One request rather than a loop of attach calls: applying a group to
+   * thirty items would otherwise be thirty round-trips, and a failure
+   * halfway through would leave the menu half-applied with no way to tell
+   * which half.
+   */
+  applyToItems: (
+    itemId: string,
+    body: {
+      targetItemIds: string[];
+      modifierGroupIds?: string[];
+      includeSkus?: boolean;
+    },
+  ) =>
+    apiClient
+      .post<{
+        itemsUpdated: number;
+        modifierGroupLinksCreated: number;
+        skusApplied: number;
+      }>(`/v1/items/${itemId}/apply-to`, body)
+      .then((r) => r.data),
 };
 
 // ── Modifier Groups ────────────────────────────────────────────────────────

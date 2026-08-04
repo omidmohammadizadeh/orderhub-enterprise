@@ -37,6 +37,7 @@ import {
   UpdateMenuItemDto,
   AddItemToCategoryDto,
   ReorderDto,
+  ApplyItemConfigDto,
 } from "./dto/menu.dto";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -640,6 +641,20 @@ export class MenusController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.updateItem(itemId, user.tenantId, dto);
+  }
+
+  @Post("items/:itemId/apply-to")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Apply this item's modifier groups and/or size set to other items",
+  })
+  applyItemConfig(
+    @Param("itemId") itemId: string,
+    @Body() dto: ApplyItemConfigDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.applyItemConfigToItems(itemId, user.tenantId, dto);
   }
 
   @Post("items/:itemId/toggle-availability")
