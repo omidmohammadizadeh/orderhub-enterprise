@@ -30,9 +30,7 @@
         "NSBluetoothPeripheralUsageDescription": "Order Hub connects to nearby Bluetooth card readers and receipt printers.",
         "NSLocalNetworkUsageDescription": "Order Hub discovers and connects to receipt printers on your local Wi-Fi network.",
         "NSLocationWhenInUseUsageDescription": "Location is required by the payments provider to accept card payments.",
-        "UISupportedExternalAccessoryProtocols": [
-          "com.bbpos.bt.wisepad"
-        ]
+        "UISupportedExternalAccessoryProtocols": []
       }
     },
     "android": {
