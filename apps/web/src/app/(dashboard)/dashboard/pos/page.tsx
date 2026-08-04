@@ -63,6 +63,7 @@ import {
   openCashDrawerViaBridge,
 } from "@/lib/printing/print-order";
 import { hasNativeBridge } from "@/lib/printing/bridge";
+import { formatDisplayPrice } from "@/lib/menu/display-price";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -1370,7 +1371,7 @@ function ProductCard({
         )}
       </div>
       <span className="mt-0.5 text-xs text-zinc-500">
-        £{Number(product.basePrice).toFixed(2)}
+        {formatDisplayPrice(product as any)}
       </span>
     </button>
   );

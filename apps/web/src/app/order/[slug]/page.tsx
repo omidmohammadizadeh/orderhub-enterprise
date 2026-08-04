@@ -79,6 +79,7 @@ import type {
   MenuCategory,
 } from "@/lib/api/menus.client";
 import { round2 } from "@orderhub/shared";
+import { displayPrice } from "@/lib/menu/display-price";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -2257,7 +2258,9 @@ function ProductCard({
   showImage?: boolean;
   onClick: () => void;
 }) {
-  const basePrice = Number(item.basePrice);
+  // A sized product prices its sizes, not itself — show the cheapest rather
+  // than the placeholder 0 sitting on basePrice.
+  const { amount: basePrice, from: fromSize } = displayPrice(item as any);
   const hasPromo = !!promo && promo.percentageOff > 0;
   const discounted = hasPromo
     ? Math.round(basePrice * (1 - promo!.percentageOff / 100) * 100) / 100
@@ -2341,11 +2344,19 @@ function ProductCard({
                 £{basePrice.toFixed(2)}
               </span>
               <span className="text-base font-bold text-red-600">
+                {fromSize && (
+                  <span className="mr-1 text-[11px] font-medium">From</span>
+                )}
                 £{discounted.toFixed(2)}
               </span>
             </div>
           ) : (
             <span className="text-base font-bold text-orange-600">
+              {fromSize && (
+                <span className="mr-1 text-[11px] font-medium text-zinc-500">
+                  From
+                </span>
+              )}
               £{basePrice.toFixed(2)}
             </span>
           )}

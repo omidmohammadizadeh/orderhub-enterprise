@@ -55,6 +55,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 import { AttachModal } from "@/components/products/attach-modal";
 import { ProductEditorModal } from "@/components/products/product-editor-modal";
+import { formatDisplayPrice } from "@/lib/menu/display-price";
 
 export default function MenuEditorPage() {
   const { menuId } = useParams<{ menuId: string }>();
@@ -640,7 +641,7 @@ export default function MenuEditorPage() {
                           )}
                           <div className="mt-3 flex items-end justify-between gap-2">
                             <span className="text-lg font-bold text-orange-500">
-                              £{Number(p.basePrice).toFixed(2)}
+                              {formatDisplayPrice(p as any)}
                             </span>
                             {modCount > 0 && (
                               <span className="text-xs text-zinc-500">
@@ -717,7 +718,7 @@ export default function MenuEditorPage() {
           id: p.id,
           name: p.name,
           subtitle: (p.plu ?? p.sku ?? "") as string,
-          meta: `£${Number(p.basePrice).toFixed(2)}`,
+          meta: formatDisplayPrice(p as any),
         }))}
         initiallyAttachedIds={(activeCat?.items ?? []).map(
           (l: any) => l.itemId,

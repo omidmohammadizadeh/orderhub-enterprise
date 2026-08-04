@@ -32,6 +32,7 @@ import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
 import { apiClient } from "@/lib/api/client";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
+import { formatDisplayPrice } from "@/lib/menu/display-price";
 
 interface Line {
   key: string;
@@ -396,7 +397,7 @@ export default function KioskPage() {
                   </p>
                 )}
                 <div className="mt-3 text-2xl font-bold text-zinc-900">
-                  {sold ? "Sold out" : money(Number(item.basePrice ?? 0))}
+                  {sold ? "Sold out" : formatDisplayPrice(item as any)}
                 </div>
                 </div>
               </button>
