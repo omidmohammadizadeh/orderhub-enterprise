@@ -50,6 +50,38 @@
             }
           ]
         },
+        "c0_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c0_label": {
+          "type": "string",
+          "__example__": "Extras 1"
+        },
+        "c0_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c0_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
         "g1_visible": {
           "type": "boolean",
           "__example__": false
@@ -63,6 +95,38 @@
           "__example__": false
         },
         "g1_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "c1_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c1_label": {
+          "type": "string",
+          "__example__": "Extras 2"
+        },
+        "c1_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c1_options": {
           "type": "array",
           "items": {
             "type": "object",
@@ -114,6 +178,38 @@
             }
           ]
         },
+        "c2_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c2_label": {
+          "type": "string",
+          "__example__": "Extras 3"
+        },
+        "c2_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c2_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
         "g3_visible": {
           "type": "boolean",
           "__example__": false
@@ -127,6 +223,38 @@
           "__example__": false
         },
         "g3_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "c3_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c3_label": {
+          "type": "string",
+          "__example__": "Extras 4"
+        },
+        "c3_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c3_options": {
           "type": "array",
           "items": {
             "type": "object",
@@ -178,6 +306,38 @@
             }
           ]
         },
+        "c4_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c4_label": {
+          "type": "string",
+          "__example__": "Extras 5"
+        },
+        "c4_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c4_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
         "g5_visible": {
           "type": "boolean",
           "__example__": false
@@ -191,6 +351,38 @@
           "__example__": false
         },
         "g5_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "c5_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c5_label": {
+          "type": "string",
+          "__example__": "Extras 6"
+        },
+        "c5_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c5_options": {
           "type": "array",
           "items": {
             "type": "object",
@@ -242,6 +434,38 @@
             }
           ]
         },
+        "c6_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c6_label": {
+          "type": "string",
+          "__example__": "Extras 7"
+        },
+        "c6_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c6_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
         "g7_visible": {
           "type": "boolean",
           "__example__": false
@@ -255,6 +479,38 @@
           "__example__": false
         },
         "g7_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "c7_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c7_label": {
+          "type": "string",
+          "__example__": "Extras 8"
+        },
+        "c7_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c7_options": {
           "type": "array",
           "items": {
             "type": "object",
@@ -306,6 +562,38 @@
             }
           ]
         },
+        "c8_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c8_label": {
+          "type": "string",
+          "__example__": "Extras 9"
+        },
+        "c8_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c8_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
         "g9_visible": {
           "type": "boolean",
           "__example__": false
@@ -319,6 +607,38 @@
           "__example__": false
         },
         "g9_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "c9_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c9_label": {
+          "type": "string",
+          "__example__": "Extras 10"
+        },
+        "c9_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c9_options": {
           "type": "array",
           "items": {
             "type": "object",
@@ -370,6 +690,38 @@
             }
           ]
         },
+        "c10_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c10_label": {
+          "type": "string",
+          "__example__": "Extras 11"
+        },
+        "c10_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c10_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
         "g11_visible": {
           "type": "boolean",
           "__example__": false
@@ -383,6 +735,38 @@
           "__example__": false
         },
         "g11_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "opt_a",
+              "title": "Option A"
+            }
+          ]
+        },
+        "c11_visible": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c11_label": {
+          "type": "string",
+          "__example__": "Extras 12"
+        },
+        "c11_required": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "c11_options": {
           "type": "array",
           "items": {
             "type": "object",
@@ -423,12 +807,28 @@
                 "visible": "${data.g0_visible}"
               },
               {
+                "type": "CheckboxGroup",
+                "name": "c0",
+                "label": "${data.c0_label}",
+                "data-source": "${data.c0_options}",
+                "required": "${data.c0_required}",
+                "visible": "${data.c0_visible}"
+              },
+              {
                 "type": "RadioButtonsGroup",
                 "name": "g1",
                 "label": "${data.g1_label}",
                 "data-source": "${data.g1_options}",
                 "required": "${data.g1_required}",
                 "visible": "${data.g1_visible}"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "c1",
+                "label": "${data.c1_label}",
+                "data-source": "${data.c1_options}",
+                "required": "${data.c1_required}",
+                "visible": "${data.c1_visible}"
               },
               {
                 "type": "RadioButtonsGroup",
@@ -439,12 +839,28 @@
                 "visible": "${data.g2_visible}"
               },
               {
+                "type": "CheckboxGroup",
+                "name": "c2",
+                "label": "${data.c2_label}",
+                "data-source": "${data.c2_options}",
+                "required": "${data.c2_required}",
+                "visible": "${data.c2_visible}"
+              },
+              {
                 "type": "RadioButtonsGroup",
                 "name": "g3",
                 "label": "${data.g3_label}",
                 "data-source": "${data.g3_options}",
                 "required": "${data.g3_required}",
                 "visible": "${data.g3_visible}"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "c3",
+                "label": "${data.c3_label}",
+                "data-source": "${data.c3_options}",
+                "required": "${data.c3_required}",
+                "visible": "${data.c3_visible}"
               },
               {
                 "type": "RadioButtonsGroup",
@@ -455,12 +871,28 @@
                 "visible": "${data.g4_visible}"
               },
               {
+                "type": "CheckboxGroup",
+                "name": "c4",
+                "label": "${data.c4_label}",
+                "data-source": "${data.c4_options}",
+                "required": "${data.c4_required}",
+                "visible": "${data.c4_visible}"
+              },
+              {
                 "type": "RadioButtonsGroup",
                 "name": "g5",
                 "label": "${data.g5_label}",
                 "data-source": "${data.g5_options}",
                 "required": "${data.g5_required}",
                 "visible": "${data.g5_visible}"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "c5",
+                "label": "${data.c5_label}",
+                "data-source": "${data.c5_options}",
+                "required": "${data.c5_required}",
+                "visible": "${data.c5_visible}"
               },
               {
                 "type": "RadioButtonsGroup",
@@ -471,12 +903,28 @@
                 "visible": "${data.g6_visible}"
               },
               {
+                "type": "CheckboxGroup",
+                "name": "c6",
+                "label": "${data.c6_label}",
+                "data-source": "${data.c6_options}",
+                "required": "${data.c6_required}",
+                "visible": "${data.c6_visible}"
+              },
+              {
                 "type": "RadioButtonsGroup",
                 "name": "g7",
                 "label": "${data.g7_label}",
                 "data-source": "${data.g7_options}",
                 "required": "${data.g7_required}",
                 "visible": "${data.g7_visible}"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "c7",
+                "label": "${data.c7_label}",
+                "data-source": "${data.c7_options}",
+                "required": "${data.c7_required}",
+                "visible": "${data.c7_visible}"
               },
               {
                 "type": "RadioButtonsGroup",
@@ -487,12 +935,28 @@
                 "visible": "${data.g8_visible}"
               },
               {
+                "type": "CheckboxGroup",
+                "name": "c8",
+                "label": "${data.c8_label}",
+                "data-source": "${data.c8_options}",
+                "required": "${data.c8_required}",
+                "visible": "${data.c8_visible}"
+              },
+              {
                 "type": "RadioButtonsGroup",
                 "name": "g9",
                 "label": "${data.g9_label}",
                 "data-source": "${data.g9_options}",
                 "required": "${data.g9_required}",
                 "visible": "${data.g9_visible}"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "c9",
+                "label": "${data.c9_label}",
+                "data-source": "${data.c9_options}",
+                "required": "${data.c9_required}",
+                "visible": "${data.c9_visible}"
               },
               {
                 "type": "RadioButtonsGroup",
@@ -503,12 +967,28 @@
                 "visible": "${data.g10_visible}"
               },
               {
+                "type": "CheckboxGroup",
+                "name": "c10",
+                "label": "${data.c10_label}",
+                "data-source": "${data.c10_options}",
+                "required": "${data.c10_required}",
+                "visible": "${data.c10_visible}"
+              },
+              {
                 "type": "RadioButtonsGroup",
                 "name": "g11",
                 "label": "${data.g11_label}",
                 "data-source": "${data.g11_options}",
                 "required": "${data.g11_required}",
                 "visible": "${data.g11_visible}"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "c11",
+                "label": "${data.c11_label}",
+                "data-source": "${data.c11_options}",
+                "required": "${data.c11_required}",
+                "visible": "${data.c11_visible}"
               },
               {
                 "type": "TextInput",
@@ -526,17 +1006,29 @@
                     "item_id": "${data.item_id}",
                     "notes": "${form.notes}",
                     "g0": "${form.g0}",
+                    "c0": "${form.c0}",
                     "g1": "${form.g1}",
+                    "c1": "${form.c1}",
                     "g2": "${form.g2}",
+                    "c2": "${form.c2}",
                     "g3": "${form.g3}",
+                    "c3": "${form.c3}",
                     "g4": "${form.g4}",
+                    "c4": "${form.c4}",
                     "g5": "${form.g5}",
+                    "c5": "${form.c5}",
                     "g6": "${form.g6}",
+                    "c6": "${form.c6}",
                     "g7": "${form.g7}",
+                    "c7": "${form.c7}",
                     "g8": "${form.g8}",
+                    "c8": "${form.c8}",
                     "g9": "${form.g9}",
+                    "c9": "${form.c9}",
                     "g10": "${form.g10}",
-                    "g11": "${form.g11}"
+                    "c10": "${form.c10}",
+                    "g11": "${form.g11}",
+                    "c11": "${form.c11}"
                   }
                 }
               }

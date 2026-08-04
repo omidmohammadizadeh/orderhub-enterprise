@@ -124,6 +124,20 @@ const GREETING_CMDS = new Set([
   "good evening",
 ]);
 
+/**
+ * Parse a JSON array that arrived as a string, e.g. a checkbox group whose
+ * value came back serialised. Returns [] rather than throwing — a malformed
+ * value must not lose the customer's whole order.
+ */
+function safeJsonArray(raw: string): unknown[] {
+  try {
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v : [v];
+  } catch {
+    return [];
+  }
+}
+
 @Injectable()
 export class WhatsAppAiService {
   private readonly logger = new Logger(WhatsAppAiService.name);
@@ -712,11 +726,7 @@ export class WhatsAppAiService {
       await this.send.sendText(phoneNumberId, from, "Sorry, that item isn't available anymore.");
       return;
     }
-    const optionIds: string[] = [];
-    for (let i = 0; i < this.flowGroupSlots; i++) {
-      const v = parsed[`g${i}`];
-      if (v && v !== "none" && v !== "_") optionIds.push(String(v));
-    }
+    const optionIds = this.parseFlowOptionIds(parsed);
     const notes = parsed.notes ? String(parsed.notes) : undefined;
 
     const before = cart.items.length;
@@ -795,11 +805,51 @@ export class WhatsAppAiService {
     }
   }
 
-  /** Can this item's options be fully captured by the radio-only Flow form? */
+  /**
+   * Flatten a completed form into the option ids to add to the cart.
+   *
+   * A radio slot returns one id; its checkbox twin returns an array. Both
+   * arrive for every slot — the hidden one empty — and the shapes are not
+   * dependable: an untouched checkbox has been seen to come back as "", as
+   * null, and as a JSON array serialised into a string, depending on client.
+   * Normalise all of it rather than trusting one shape, because the failure
+   * mode is a customer's toppings silently vanishing from their order.
+   */
+  private parseFlowOptionIds(parsed: Record<string, unknown>): string[] {
+    const ids: string[] = [];
+    const collect = (v: unknown) => {
+      const many = Array.isArray(v)
+        ? v
+        : typeof v === "string" && v.trim().startsWith("[")
+          ? safeJsonArray(v)
+          : [v];
+      for (const one of many) {
+        if (one === null || one === undefined) continue;
+        const id = String(one).trim();
+        // "none" is the No-X row on an optional radio; "_" is the placeholder
+        // an empty slot carries. Neither is a real option.
+        if (!id || id === "none" || id === "_") continue;
+        if (!ids.includes(id)) ids.push(id);
+      }
+    };
+    for (let i = 0; i < this.flowGroupSlots; i++) {
+      collect(parsed[`g${i}`]);
+      collect(parsed[`c${i}`]);
+    }
+    return ids;
+  }
+
+  /**
+   * Can this item's options be captured by the Flow form?
+   *
+   * Only the group COUNT limits it now. The form used to be radio-only, so a
+   * single "choose as many toppings as you like" group sent the whole item to
+   * the chat wizard; every slot now carries a checkbox twin, so pick-many
+   * groups render natively too.
+   */
   private flowEligible(item: WaMenuContext["items"][number]): boolean {
     const groups = item.modifierGroups;
-    if (groups.length === 0 || groups.length > this.flowGroupSlots) return false;
-    return groups.every((g) => g.selectionType === "VARIANT" || g.max === 1);
+    return groups.length > 0 && groups.length <= this.flowGroupSlots;
   }
 
   // ── Deterministic modifier wizard (no AI; never loops) ───────────────────
@@ -1024,23 +1074,42 @@ export class WhatsAppAiService {
       notes_visible: true,
     };
     const groups = item.modifierGroups.slice(0, this.flowGroupSlots);
+    // Every slot ships both a radio and a checkbox; show whichever matches the
+    // group, hide the twin. A hidden component still needs its data keys — a
+    // dangling ${data.x} reference fails the whole send.
+    const blank = (prefix: string, i: number) => {
+      data[`${prefix}${i}_visible`] = false;
+      data[`${prefix}${i}_label`] = "-";
+      data[`${prefix}${i}_required`] = false;
+      data[`${prefix}${i}_options`] = [{ id: "_", title: "-" }];
+    };
     for (let i = 0; i < this.flowGroupSlots; i++) {
       const g = groups[i];
-      if (g) {
-        const opts = g.options.map((o) => ({
-          id: o.id,
-          title: `${o.name}${o.price ? ` (+£${o.price.toFixed(2)})` : ""}`.slice(0, 30),
-        }));
+      if (!g) {
+        blank("g", i);
+        blank("c", i);
+        continue;
+      }
+      const opts = g.options.map((o) => ({
+        id: o.id,
+        title: `${o.name}${o.price ? ` (+£${o.price.toFixed(2)})` : ""}`.slice(0, 30),
+      }));
+      const multi = this.isMultiSelect(g);
+      if (multi) {
+        // No "No X" row on a checkbox — ticking nothing already says that,
+        // and an explicit none would come back as a selected option id.
+        blank("g", i);
+        data[`c${i}_visible`] = true;
+        data[`c${i}_label`] = g.name.slice(0, 30);
+        data[`c${i}_required`] = g.required;
+        data[`c${i}_options`] = opts.length ? opts : [{ id: "_", title: "-" }];
+      } else {
         if (!g.required) opts.unshift({ id: "none", title: `No ${g.name}`.slice(0, 30) });
         data[`g${i}_visible`] = true;
         data[`g${i}_label`] = g.name.slice(0, 30);
         data[`g${i}_required`] = g.required;
         data[`g${i}_options`] = opts.length ? opts : [{ id: "_", title: "-" }];
-      } else {
-        data[`g${i}_visible`] = false;
-        data[`g${i}_label`] = "-";
-        data[`g${i}_required`] = false;
-        data[`g${i}_options`] = [{ id: "_", title: "-" }];
+        blank("c", i);
       }
     }
     return data;
