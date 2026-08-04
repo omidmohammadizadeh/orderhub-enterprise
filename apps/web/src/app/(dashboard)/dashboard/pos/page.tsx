@@ -306,9 +306,22 @@ export default function PosPage() {
     enabled: !!brandId,
     staleTime: 60_000,
   });
-  const allGroups = (allGroupsQuery.data ??
+  const brandGroups = (allGroupsQuery.data ??
     cachedMenu?.modifierGroups ??
     []) as NonNullable<typeof allGroupsQuery.data>;
+  // Fold in the groups the menu's sizes actually reference. The brand
+  // catalogue above misses any group belonging to a different brand, which
+  // left multi-SKU sizes with no modifiers at all in the till while online
+  // ordering showed them. Rides along on the menu payload, so it survives
+  // the offline cache too.
+  const allGroups = useMemo(() => {
+    const skuGroups = ((menuData as any)?.skuModifierGroups ?? []) as typeof brandGroups;
+    if (skuGroups.length === 0) return brandGroups;
+    const byId = new Map<string, (typeof brandGroups)[number]>();
+    for (const g of brandGroups) byId.set(g.id, g);
+    for (const g of skuGroups) if (!byId.has(g.id)) byId.set(g.id, g);
+    return Array.from(byId.values());
+  }, [brandGroups, menuData]);
 
   // Mirror the live menu + modifier catalog to IndexedDB whenever they load.
   useEffect(() => {

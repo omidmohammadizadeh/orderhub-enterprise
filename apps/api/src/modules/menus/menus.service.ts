@@ -2069,7 +2069,55 @@ export class MenusService {
       }
     }
 
+    // Every modifier group referenced by a multi-SKU product's sizes.
+    //
+    // A size's groups live in productSkus[].modifierGroups as bare id
+    // strings with no FK, so nothing in the include tree above pulls them.
+    // POS was resolving those ids against the brand catalogue alone, which
+    // silently drops any group whose brandId differs from the menu's — the
+    // ordinary case on a multi-brand tenant. The size then opened with no
+    // modifiers at all, while online ordering showed them correctly,
+    // because OrderingService.getStorefrontBySlug already does this.
+    if (full) {
+      (full as any).skuModifierGroups = await this.resolveSkuModifierGroups(
+        full,
+        tenantId,
+      );
+    }
+
     return full;
+  }
+
+  /**
+   * Resolve productSkus[].modifierGroups ids across a menu into full group
+   * rows. Tenant-guarded, and by id rather than by brand so a group attached
+   * to a size from another brand's catalogue still comes back.
+   */
+  private async resolveSkuModifierGroups(menu: any, tenantId: string) {
+    const ids = new Set<string>();
+    for (const cat of menu?.categories ?? []) {
+      for (const link of cat?.items ?? []) {
+        const skus = link?.item?.productSkus;
+        if (!Array.isArray(skus)) continue;
+        for (const sku of skus) {
+          for (const gid of sku?.modifierGroups ?? []) {
+            if (typeof gid === "string" && gid) ids.add(gid);
+          }
+        }
+      }
+    }
+    if (ids.size === 0) return [];
+    const groups = await this.prisma.modifierGroup.findMany({
+      where: { id: { in: Array.from(ids) }, brand: { tenantId } },
+      include: {
+        options: { orderBy: { sortOrder: "asc" } },
+        _count: { select: { itemLinks: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+    // Same array-attach fold the brand-wide list does, or a group whose
+    // modifiers were all added via "Add Existing" comes back with none.
+    return this.mergeArrayAttachedOptions(groups, tenantId);
   }
 
   // ── Public menu (for online ordering) ────────────────────────────────────

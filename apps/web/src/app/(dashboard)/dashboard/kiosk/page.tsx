@@ -69,7 +69,18 @@ export default function KioskPage() {
     queryFn: () => modifierGroupsClient.list(brandId!),
     enabled: !!brandId,
   });
-  const allGroups = (groupsQuery.data ?? []) as any[];
+  // Brand catalogue plus the groups this menu's sizes actually reference —
+  // the latter can belong to another brand, which the brand query misses.
+  // Same fix as POS; both feed the identical ModifierSelectionModal.
+  const allGroups = useMemo(() => {
+    const brandGroups = (groupsQuery.data ?? []) as any[];
+    const skuGroups = (menu?.skuModifierGroups ?? []) as any[];
+    if (skuGroups.length === 0) return brandGroups;
+    const byId = new Map<string, any>();
+    for (const g of brandGroups) byId.set(g.id, g);
+    for (const g of skuGroups) if (!byId.has(g.id)) byId.set(g.id, g);
+    return Array.from(byId.values());
+  }, [groupsQuery.data, menu]);
 
   const categories: any[] = menu?.categories ?? [];
   const [activeCat, setActiveCat] = useState<string | null>(null);
