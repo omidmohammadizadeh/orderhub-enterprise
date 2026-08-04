@@ -471,6 +471,30 @@ export class OrderingService {
       brandModifierGroups.push(...extra);
     }
 
+    // Fold in modifiers attached via ModifierOption.modifierGroupIds[].
+    //
+    // The `options` relation above is the FK-primary set only, so every
+    // modifier added through the catalogue's "Add Existing" button was
+    // invisible online — a group would show four toppings when it holds a
+    // dozen. Same rule as MenusService.mergeArrayAttachedOptions, kept local
+    // because the storefront additionally has to hide 86'd modifiers.
+    //
+    // The item-level groups get the same treatment: a flat (non-sized)
+    // product renders straight off item.modifierGroupLinks[].group.options,
+    // which has the identical FK-only blind spot.
+    const linkedGroups: any[] = [];
+    for (const cat of (menu as any)?.categories ?? []) {
+      for (const link of cat.items ?? []) {
+        for (const gl of link?.item?.modifierGroupLinks ?? []) {
+          if (gl?.group?.options) linkedGroups.push(gl.group);
+        }
+      }
+    }
+    await this.foldArrayAttachedOptions(
+      [...brandModifierGroups, ...linkedGroups],
+      menuBrandId,
+    );
+
     // Phase AW-30 — brand-level opening hours win when configured.
     // Brand.openingHours default is `{}` which we treat as "not set"
     // (legacy single-brand kitchens keep using their location hours).
@@ -738,6 +762,58 @@ export class OrderingService {
             }
           : null,
     };
+  }
+
+  /**
+   * Add each group's array-attached modifiers to its `options`, in place.
+   *
+   * A ModifierOption belongs to one group by FK but can be attached to any
+   * number more through `modifierGroupIds[]` — that array is what the
+   * catalogue's "Add Existing" button writes. Reading `options` alone returns
+   * the FK-primary set, so those attachments simply never reached the
+   * customer.
+   *
+   * Scoped by TENANT rather than brand: "Add Existing" is allowed to pull a
+   * modifier owned by another brand of the same tenant, and brand-scoping
+   * silently drops exactly those. 86'd modifiers stay hidden.
+   */
+  private async foldArrayAttachedOptions(
+    groups: Array<{ id: string; options: any[] }>,
+    brandId: string,
+  ) {
+    if (groups.length === 0) return;
+    const brand = await this.prisma.brand.findUnique({
+      where: { id: brandId },
+      select: { tenantId: true },
+    });
+    if (!brand) return;
+    const groupIds = new Set(groups.map((g) => g.id));
+    const attached = await this.prisma.modifierOption.findMany({
+      where: {
+        isAvailable: true,
+        group: { brand: { tenantId: brand.tenantId } },
+        modifierGroupIds: { hasSome: Array.from(groupIds) },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+    if (attached.length === 0) return;
+
+    // One modifier can be attached to several groups, so bucket per group.
+    const byGroup = new Map<string, typeof attached>();
+    for (const opt of attached) {
+      for (const gid of opt.modifierGroupIds ?? []) {
+        if (!groupIds.has(gid)) continue;
+        if (!byGroup.has(gid)) byGroup.set(gid, []);
+        byGroup.get(gid)!.push(opt);
+      }
+    }
+    for (const g of groups) {
+      const extra = byGroup.get(g.id);
+      if (!extra?.length) continue;
+      // A modifier can be both FK-primary and array-listed on the same group.
+      const seen = new Set(g.options.map((o: any) => o.id));
+      g.options = [...g.options, ...extra.filter((o) => !seen.has(o.id))];
+    }
   }
 
   async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string) {

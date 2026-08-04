@@ -1644,45 +1644,16 @@ export class MenusService {
       orderBy: { name: "asc" },
     });
 
-    // Phase AL: also surface modifiers that are attached to a group via
-    // the modifierGroupIds[] many-to-many array (not their FK primary
-    // group). A modifier attached to group G via the array shows up in
-    // G.options here alongside FK-matched ones, ordered by sortOrder.
-    if (groups.length === 0) return groups;
-    const groupIds = groups.map((g) => g.id);
-    const arrayMatched = await this.prisma.modifierOption.findMany({
-      where: {
-        group: { brandId },
-        modifierGroupIds: { hasSome: groupIds },
-      },
-      orderBy: { sortOrder: "asc" },
-    });
-
-    if (arrayMatched.length === 0) return groups;
-
-    // Bucket by every groupId in modifierGroupIds[] so a modifier
-    // attached to two groups shows under both.
-    const extras = new Map<string, typeof arrayMatched>();
-    for (const opt of arrayMatched) {
-      for (const gId of opt.modifierGroupIds ?? []) {
-        if (!groupIds.includes(gId)) continue;
-        if (!extras.has(gId)) extras.set(gId, []);
-        extras.get(gId)!.push(opt);
-      }
-    }
-
-    return groups.map((g) => {
-      const extra = extras.get(g.id) ?? [];
-      if (extra.length === 0) return g;
-      // De-dupe in case a modifier is both FK-primary AND array-listed
-      // under the same group.
-      const seen = new Set(g.options.map((o) => o.id));
-      const merged = [
-        ...g.options,
-        ...extra.filter((o) => !seen.has(o.id)),
-      ];
-      return { ...g, options: merged };
-    });
+    // Phase AL: also surface modifiers attached via the modifierGroupIds[]
+    // many-to-many array, not just the FK-primary ones.
+    //
+    // This used to be a private copy of mergeArrayAttachedOptions that scoped
+    // the lookup to `group: { brandId }` — the modifier's OWN group had to
+    // belong to this brand. "Add Existing" lets you attach a modifier owned by
+    // another brand of the same tenant, and those were dropped, so a group
+    // listed here showed fewer modifiers than the very same group opened in
+    // the editor (findModifierGroupById is tenant-scoped and always was).
+    return this.mergeArrayAttachedOptions(groups, user.tenantId);
   }
 
   async createModifierGroup(
@@ -2083,9 +2054,35 @@ export class MenusService {
         full,
         tenantId,
       );
+      // A flat (non-sized) product renders straight off
+      // item.modifierGroupLinks[].group.options, which is the FK-primary set
+      // only — anything added through "Add Existing" was missing from the
+      // till, so a group holding a dozen toppings offered four.
+      await this.foldItemLinkedGroupOptions(full, tenantId);
     }
 
     return full;
+  }
+
+  /**
+   * Fold array-attached modifiers into the groups hanging off a menu's items,
+   * in place. mergeArrayAttachedOptions returns copies, so write the merged
+   * options back onto the original nodes in the menu tree.
+   */
+  private async foldItemLinkedGroupOptions(menu: any, tenantId: string) {
+    const groups: any[] = [];
+    for (const cat of menu?.categories ?? []) {
+      for (const link of cat?.items ?? []) {
+        for (const gl of link?.item?.modifierGroupLinks ?? []) {
+          if (gl?.group?.options) groups.push(gl.group);
+        }
+      }
+    }
+    if (groups.length === 0) return;
+    const merged = await this.mergeArrayAttachedOptions(groups, tenantId);
+    merged.forEach((m: any, i: number) => {
+      groups[i].options = m.options;
+    });
   }
 
   /**
