@@ -479,6 +479,11 @@ export class OrdersService {
             taxAmount: canonical.taxAmount,
             deliveryFee: canonical.deliveryFee,
             serviceCharge: (canonical as any).serviceCharge ?? 0,
+            // Every online order lands here, not in create() — the storefront
+            // ingests rather than creates. The tip was reaching the total and
+            // stopping, so the shop was charged-for-and-paid a gratuity it
+            // could not see on the card or the ticket.
+            tipAmount: (canonical as any).tipAmount ?? 0,
             discount: canonical.discount,
             total: canonical.total,
             specialInstructions: canonical.specialInstructions,
