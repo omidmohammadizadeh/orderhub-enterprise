@@ -102,8 +102,8 @@ const CHANNELS: Channel[] = [
   {
     key: "WHATSAPP",
     label: "WhatsApp",
-    match: () => false,
-    enabled: false,
+    match: (p) => p === "WHATSAPP",
+    enabled: true,
   },
   {
     key: "CAREEM",

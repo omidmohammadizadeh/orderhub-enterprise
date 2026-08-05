@@ -9,7 +9,7 @@
 // vs-prev delta and the revenue chart can overlay last week's line
 // on top of this week's.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -19,7 +19,9 @@ import {
   ArrowUpRight,
   Building2,
   Calendar,
+  Check,
   Download,
+  Filter as FilterIcon,
   Loader2,
   MapPin,
   PoundSterling,
@@ -51,7 +53,20 @@ import {
 } from "@/lib/api/analytics.client";
 import { brandsClient, locationsClient } from "@/lib/api/locations.client";
 
-const CHANNELS = ["POS", "DIRECT", "ONLINE", "JUST_EAT", "UBER_EATS", "DELIVEROO", "HUBRISE"];
+// Channel catalog for the Filter popover. Same list and same popover the
+// Orders board uses, so "which channels am I looking at" is answered the
+// same way in both places. Selecting none means ALL — the request simply
+// omits the channel filter — which is why the page opens unfiltered.
+const CHANNELS: Array<{ key: string; label: string }> = [
+  { key: "POS", label: "POS" },
+  { key: "DIRECT", label: "Direct online ordering" },
+  { key: "ONLINE", label: "Online" },
+  { key: "WHATSAPP", label: "WhatsApp" },
+  { key: "JUST_EAT", label: "Just Eat" },
+  { key: "UBER_EATS", label: "Uber Eats" },
+  { key: "DELIVEROO", label: "Deliveroo" },
+  { key: "HUBRISE", label: "HubRise" },
+];
 const CHART_COLORS = [
   "#f97316", // orange
   "#8b5cf6", // violet
@@ -138,7 +153,23 @@ export default function AnalyticsPage() {
   const [customTo, setCustomTo] = useState<string>("");
   const [locationId, setLocationId] = useState<string>("");
   const [brandId, setBrandId] = useState<string>("");
+  // Empty = every channel. The request omits `channels` entirely in that
+  // case, so the page opens showing everything rather than a subset.
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
+  const [channelFilterOpen, setChannelFilterOpen] = useState(false);
+  const channelFilterRef = useRef<HTMLDivElement | null>(null);
+
+  // Click-away close, same as the Orders board's popover.
+  useEffect(() => {
+    if (!channelFilterOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!channelFilterRef.current?.contains(e.target as Node)) {
+        setChannelFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [channelFilterOpen]);
   const [tab, setTab] = useState<"revenue" | "orders" | "aov" | "breakdown">(
     "revenue",
   );
@@ -295,30 +326,78 @@ export default function AnalyticsPage() {
               </option>
             ))}
           </select>
-          <div className="flex flex-wrap gap-1">
-            {CHANNELS.map((c) => {
-              const on = selectedChannels.includes(c);
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() =>
-                    setSelectedChannels((prev) =>
-                      prev.includes(c)
-                        ? prev.filter((x) => x !== c)
-                        : [...prev, c],
-                    )
-                  }
-                  className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                    on
-                      ? "border-orange-500 bg-orange-50 text-orange-900"
-                      : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
-                  }`}
-                >
-                  {c.replace(/_/g, " ")}
-                </button>
-              );
-            })}
+          {/* Channel filter — same Filter popover as the Orders board. */}
+          <div className="relative" ref={channelFilterRef}>
+            <button
+              type="button"
+              onClick={() => setChannelFilterOpen((o) => !o)}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                selectedChannels.length > 0
+                  ? "border-zinc-900 bg-zinc-900 text-white"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
+              }`}
+            >
+              <FilterIcon className="h-3.5 w-3.5" />
+              {selectedChannels.length > 0 ? "Filter" : "All channels"}
+              {selectedChannels.length > 0 && (
+                <span className="rounded-full bg-white/15 px-1.5 py-0 text-[10px] tabular-nums">
+                  {selectedChannels.length}
+                </span>
+              )}
+            </button>
+
+            {channelFilterOpen && (
+              <div className="absolute left-0 top-full z-40 mt-1 w-64 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                    Channels
+                  </span>
+                  {selectedChannels.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedChannels([])}
+                      className="text-[11px] font-semibold text-violet-600 hover:text-violet-700"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto py-1">
+                  {CHANNELS.map((c) => {
+                    const checked = selectedChannels.includes(c.key);
+                    return (
+                      <button
+                        key={c.key}
+                        type="button"
+                        onClick={() =>
+                          setSelectedChannels((prev) =>
+                            prev.includes(c.key)
+                              ? prev.filter((x) => x !== c.key)
+                              : [...prev, c.key],
+                          )
+                        }
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-zinc-800 transition-colors hover:bg-zinc-50"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`grid h-4 w-4 place-items-center rounded border ${
+                              checked
+                                ? "border-zinc-900 bg-zinc-900"
+                                : "border-zinc-300 bg-white"
+                            }`}
+                          >
+                            {checked && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </span>
+                          {c.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
