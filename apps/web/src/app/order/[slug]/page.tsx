@@ -2490,12 +2490,18 @@ function StoreItemRow({
     ? Math.round(base * (1 - promo!.percentageOff / 100) * 100) / 100
     : base;
 
-  const showStepper = !!stepper && stepper.qty > 0 && !item.outOfStock;
+  // A dead image URL is as common as a missing one; fall back to the drawing.
+  const [imgFailed, setImgFailed] = useState(false);
 
-  // Buttons can't nest. While the stepper is on screen the row is a plain
-  // div with a tappable title area, so the −/+ controls stay real buttons.
-  const RowTag: any = showStepper ? "div" : "button";
-  const rowProps = showStepper
+  const showStepper = !!stepper && stepper.qty > 0 && !item.outOfStock;
+  // Buttons can't nest, and a simple item always has one in its control slot
+  // — even at qty 0. So the row is a div whenever a stepper is possible, not
+  // only once something is added; otherwise the markup flips between div and
+  // button as the count changes and React rebuilds the whole row.
+  const hasControls = !!stepper && !item.outOfStock;
+
+  const RowTag: any = hasControls ? "div" : "button";
+  const rowProps = hasControls
     ? {}
     : { type: "button" as const, onClick, disabled: item.outOfStock };
 
@@ -2506,9 +2512,9 @@ function StoreItemRow({
     >
       <div
         className="min-w-0 flex-1"
-        onClick={showStepper ? onClick : undefined}
-        role={showStepper ? "button" : undefined}
-        tabIndex={showStepper ? 0 : undefined}
+        onClick={hasControls ? onClick : undefined}
+        role={hasControls ? "button" : undefined}
+        tabIndex={hasControls ? 0 : undefined}
       >
         <div className="flex items-start gap-2">
           <h3 className="min-w-0 flex-1 text-[15px] font-semibold leading-snug text-zinc-900">
@@ -2547,55 +2553,81 @@ function StoreItemRow({
         </div>
       </div>
 
-      {showImage !== false && (
-        <div className="relative h-[88px] w-[88px] flex-shrink-0 overflow-hidden rounded-xl bg-zinc-100">
-          {item.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <FoodPlaceholder
-              name={item.name}
-              hint={categoryName}
-              className="h-full w-full"
-            />
-          )}
-          {!item.outOfStock && !showStepper && (
-            <span className="absolute bottom-1 right-1 grid h-7 w-7 place-items-center rounded-full bg-white text-zinc-900 shadow-md">
-              <Plus className="h-4 w-4" />
-            </span>
-          )}
-        </div>
-      )}
+      {/* One fixed-size column: picture on top, control beneath it.
+          The control used to overlay the image and the stepper was a sibling
+          of it, so adding an item grew the row and shoved the picture
+          sideways — the whole list jumped as you tapped. Reserving the same
+          box for both states means nothing moves, and the + is under the
+          image rather than sitting on top of the food. */}
+      <div className="flex w-[88px] flex-shrink-0 flex-col items-center gap-1.5">
+        {showImage !== false && (
+          <div className="h-[88px] w-[88px] overflow-hidden rounded-xl bg-zinc-100">
+            {item.imageUrl && !imgFailed ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.imageUrl}
+                alt=""
+                loading="lazy"
+                onError={() => setImgFailed(true)}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              // Covers "no photo" AND "photo link is dead" — a broken-image
+              // glyph on every row of a menu looks like the site is broken,
+              // and a stale URL is at least as common as a missing one.
+              <FoodPlaceholder
+                name={item.name}
+                hint={categoryName}
+                className="h-full w-full"
+              />
+            )}
+          </div>
+        )}
 
-      {/* How many are in the basket, and how to change it, without opening
-          the cart or a sheet. Only ever shown once something is added. */}
-      {showStepper && (
-        <div className="flex flex-shrink-0 items-center gap-1 self-center rounded-full border border-zinc-200 bg-white px-1 py-1">
-          <button
-            type="button"
-            aria-label={`Remove one ${item.name}`}
-            onClick={stepper!.onDec}
-            className="grid h-7 w-7 place-items-center rounded-full text-zinc-700 active:bg-zinc-100"
-          >
-            <Minus className="h-4 w-4" />
-          </button>
-          <span className="min-w-[1.25rem] text-center text-sm font-semibold tabular-nums text-zinc-900">
-            {stepper!.qty}
-          </span>
-          <button
-            type="button"
-            aria-label={`Add another ${item.name}`}
-            onClick={stepper!.onInc}
-            className="grid h-7 w-7 place-items-center rounded-full bg-zinc-900 text-white active:opacity-80"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+        {/* Fixed-height slot so + and the stepper occupy identical space. */}
+        {!item.outOfStock && (
+          <div className="flex h-9 items-center justify-center">
+            {showStepper ? (
+              <div className="flex items-center gap-0.5 rounded-full border border-zinc-200 bg-white px-1 py-1">
+                <button
+                  type="button"
+                  aria-label={`Remove one ${item.name}`}
+                  onClick={stepper!.onDec}
+                  className="grid h-6 w-6 place-items-center rounded-full text-zinc-700 active:bg-zinc-100"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="min-w-[1rem] text-center text-[13px] font-semibold tabular-nums text-zinc-900">
+                  {stepper!.qty}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Add another ${item.name}`}
+                  onClick={stepper!.onInc}
+                  className="grid h-6 w-6 place-items-center rounded-full bg-zinc-900 text-white active:opacity-80"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : stepper ? (
+              // Simple item, nothing added yet — a real button, since the row
+              // is a div whenever a stepper is possible.
+              <button
+                type="button"
+                aria-label={`Add ${item.name}`}
+                onClick={stepper.onInc}
+                className="grid h-8 w-8 place-items-center rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm active:bg-zinc-100"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            ) : (
+              <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm">
+                <Plus className="h-4 w-4" />
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </RowTag>
   );
 }
