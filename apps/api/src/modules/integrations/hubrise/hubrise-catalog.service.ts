@@ -705,7 +705,7 @@ export class HubRiseCatalogService {
       let newId = cache.get(src);
       if (newId === undefined) {
         try {
-          const bytes = await this.resolveImageBytes(src);
+          const bytes = await this.resolveImageBytes(src, accessToken);
           // Stable ref so HubRise dedupes if the same image is re-uploaded.
           const privateRef = createHash("md5").update(src).digest("hex").slice(0, 24);
           newId = bytes
@@ -757,12 +757,33 @@ export class HubRiseCatalogService {
     }
   }
 
-  /** Fetch the raw bytes of an image referenced by a HubRise-proxy or http(s) URL. */
+  /**
+   * Fetch the raw bytes of an image referenced by a HubRise-proxy or http(s) URL.
+   *
+   * `accessToken` is the token of the location we're publishing FOR. Try it
+   * first, because fetchHubRiseImage resolves credentials by looking for a
+   * Location whose hubriseCatalogId equals the catalog in the URL — and that
+   * column holds only the CURRENT catalog. An item imported from an older
+   * catalog (a Deliveroo import, or a menu published before the catalog was
+   * recreated) points at an id no location claims any more, so the lookup
+   * threw "HubRise catalog not found" and the image was dropped. The catalog
+   * is still readable with this account's token; nothing was wrong but where
+   * we looked for the key.
+   */
   private async resolveImageBytes(
     src: string,
+    accessToken?: string,
   ): Promise<{ buffer: Buffer; contentType: string } | null> {
     const m = src.match(/hubrise-image\/([^/]+)\/([^/?#]+)/);
     if (m && m[1] && m[2]) {
+      if (accessToken) {
+        const direct = await this.fetchCatalogImageWithToken(
+          m[1],
+          m[2],
+          accessToken,
+        ).catch(() => null);
+        if (direct) return direct;
+      }
       return this.fetchHubRiseImage(m[1], m[2]);
     }
     if (/^https?:\/\//i.test(src)) {
@@ -775,6 +796,31 @@ export class HubRiseCatalogService {
     }
     // A relative, non-HubRise URL we can't resolve to bytes — skip.
     return null;
+  }
+
+  /**
+   * Read one catalog image with an explicit token, skipping the
+   * hubriseCatalogId → Location lookup entirely. Catalogs are readable by
+   * any token on the same HubRise account, so the publishing location's own
+   * token opens the older catalogs its menus were imported from.
+   */
+  private async fetchCatalogImageWithToken(
+    catalogId: string,
+    imageId: string,
+    accessToken: string,
+  ): Promise<{ buffer: Buffer; contentType: string } | null> {
+    const baseUrl =
+      this.config.get<string>("app.platforms.hubrise.baseUrl") ??
+      "https://api.hubrise.com/v1";
+    const res = await fetch(
+      `${baseUrl}/catalogs/${catalogId}/images/${imageId}/data`,
+      { headers: { "X-Access-Token": accessToken } },
+    );
+    if (!res.ok) return null;
+    return {
+      buffer: Buffer.from(await res.arrayBuffer()),
+      contentType: res.headers.get("content-type") ?? "image/jpeg",
+    };
   }
 
   /** Sniff an image's real mime type from its magic bytes (S3 often mislabels). */
@@ -819,7 +865,39 @@ export class HubRiseCatalogService {
       headers: { "X-Access-Token": accessToken, "Content-Type": mime },
       body: new Uint8Array(buffer),
     });
-    const text = await res.text();
+    let text = await res.text();
+    // HubRise does NOT dedupe on private_ref — it REJECTS the upload with
+    // 422 "is already used". The ref only ever helps the first time; every
+    // republish of an image already in this catalog came back 422, the
+    // caller logged it, and the product silently lost its picture. Retry
+    // once without the ref so the product keeps an image. It costs a
+    // duplicate blob in the catalog, which is far cheaper than a menu of
+    // items with no photos.
+    if (
+      !res.ok &&
+      res.status === 422 &&
+      privateRef &&
+      /private_ref/i.test(text) &&
+      /already/i.test(text)
+    ) {
+      const retry = await fetch(`${baseUrl}/catalogs/${catalogId}/images`, {
+        method: "POST",
+        headers: { "X-Access-Token": accessToken, "Content-Type": mime },
+        body: new Uint8Array(buffer),
+      });
+      text = await retry.text();
+      if (!retry.ok) {
+        throw new Error(
+          `HubRise POST /catalogs/${catalogId}/images (retry, no private_ref) → ${retry.status}: ${text.slice(0, 300)}`,
+        );
+      }
+      try {
+        const j = JSON.parse(text);
+        return j?.id ?? j?.image_id ?? null;
+      } catch {
+        return null;
+      }
+    }
     if (!res.ok) {
       throw new Error(`HubRise POST /catalogs/${catalogId}/images → ${res.status}: ${text.slice(0, 300)}`);
     }
