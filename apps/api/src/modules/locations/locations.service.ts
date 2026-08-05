@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
+import { SupabaseStorageService } from "../uploads/supabase-storage.service";
+import { rehostImageIfInline } from "../uploads/rehost-image";
 
 // Phase AN — Locations service: full general-tab CRUD + opening-hours +
 // busy-mode + Stripe-fee setters + slug generator. Brand and platform-
@@ -226,6 +228,7 @@ export class LocationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly credentialEncryption: CredentialEncryptionService,
+    private readonly storage: SupabaseStorageService,
   ) {}
 
   async findAll(
@@ -423,6 +426,13 @@ export class LocationsService {
 
   async update(locationId: string, tenantId: string, dto: UpdateLocationDto) {
     const current = await this.assertAccess(locationId, tenantId);
+    // Inline logo → hosted file, before it can land in a column and be
+    // re-sent inside every storefront response.
+    const rehostedLogoUrl = await rehostImageIfInline(
+      this.storage,
+      dto.logoUrl,
+      "logos",
+    );
 
     // Phase AN follow-up: keep the legacy `address` JSON in sync with the
     // structured columns whenever any address field changes. Older
@@ -478,7 +488,7 @@ export class LocationsService {
         ...(mergedAddress && { address: mergedAddress as any }),
         ...(dto.phone !== undefined && { phone: dto.phone }),
         ...(dto.about !== undefined && { about: dto.about }),
-        ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
+        ...(dto.logoUrl !== undefined && { logoUrl: rehostedLogoUrl }),
         ...(dto.googleReviewUrl !== undefined && { googleReviewUrl: dto.googleReviewUrl }),
         ...(dto.customDomain !== undefined && { customDomain: dto.customDomain }),
         ...(dto.customDomainStatus !== undefined && { customDomainStatus: dto.customDomainStatus }),

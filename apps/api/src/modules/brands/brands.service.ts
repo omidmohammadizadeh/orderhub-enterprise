@@ -16,6 +16,8 @@ import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
 import { hoursConfigured } from "../../common/opening-hours.util";
 import { normalizePricingVariants } from "@orderhub/shared";
+import { SupabaseStorageService } from "../uploads/supabase-storage.service";
+import { rehostImageIfInline } from "../uploads/rehost-image";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -101,6 +103,7 @@ export class BrandsService {
     // service_availability, so the push republishes the store's menu.
     private readonly uberEats: UberEatsConnectionService,
     private readonly uberEatsMenu: UberEatsMenuPublishService,
+    private readonly storage: SupabaseStorageService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -311,13 +314,16 @@ export class BrandsService {
 
   async update(brandId: string, tenantId: string, dto: UpdateBrandDto) {
     await this.assertAccess(brandId, tenantId);
+    // A logo pasted in as base64 becomes a hosted file here, before it can
+    // reach a column and start riding along on every storefront response.
+    const logoUrl = await rehostImageIfInline(this.storage, dto.logoUrl, "logos");
     return this.prisma.brand.update({
       where: { id: brandId },
       data: {
         ...(dto.name && { name: dto.name }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.cuisine !== undefined && { cuisine: dto.cuisine }),
-        ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
+        ...(dto.logoUrl !== undefined && { logoUrl }),
         ...(dto.isSuspended !== undefined && { isSuspended: dto.isSuspended }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
         ...(dto.primaryLocationId !== undefined && {

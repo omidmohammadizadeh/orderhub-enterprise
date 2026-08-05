@@ -6,6 +6,7 @@ import { RenderDomainsService } from './render-domains.service';
 import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
+import { UploadsModule } from "../uploads/uploads.module";
 
 @Module({
   // Phase AW-16 — HubRiseModule provides HubRiseLocationPauseService
@@ -13,7 +14,13 @@ import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
   // HubRise side ever wants brands back.
   // Phase BA-2 — DeliverooModule provides DeliverooConnectionService for the
   // direct Deliveroo hours push (one-way import, no cycle).
-  imports: [forwardRef(() => HubRiseModule), DeliverooModule, UberEatsModule],
+  imports: [
+    forwardRef(() => HubRiseModule),
+    DeliverooModule,
+    UberEatsModule,
+    // Rehost inline logos on write instead of storing them in a column.
+    UploadsModule,
+  ],
   controllers: [BrandsController],
   providers: [BrandsService, CloudflareService, RenderDomainsService],
   exports: [BrandsService],
