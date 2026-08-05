@@ -346,21 +346,38 @@ export class PaymentsService {
       paymentStatus: "PAID",
     } as any);
 
-    // POS "Payment link" orders were held out of the New column + print until
-    // now. Payment just landed → light up the staff board (moves it from
-    // "Waiting for payment" to New) and fire payment.authorized so an
-    // auto-accept location captures + prints the ticket, exactly like a fresh
-    // order. Gated to still-PENDING payment-link orders so this never re-fires
-    // for online card orders (which reach confirmPayment already accepted).
+    // Orders we held out of the New column + print until the money landed.
+    // Payment just landed → light up the staff board (moves it from "Waiting
+    // for payment" to New) and fire payment.authorized so an auto-accept
+    // location captures + prints the ticket, exactly like a fresh order.
+    //
+    // CARD belongs here as well as the payment-link methods. The old comment
+    // reasoned that online card orders "reach confirmPayment already
+    // accepted" — true only while they were authorise-then-capture, where
+    // markAuthorized did the broadcast and staff had already accepted by the
+    // time capture happened. Embedded storefront payments capture outright,
+    // so confirmPayment is the FIRST and only webhook they see: without this
+    // the customer is charged, the order sits PAID and PENDING, and nobody in
+    // the shop ever finds out. The status === "PENDING" guard is what stops a
+    // double broadcast on the authorise-first path, not the method list.
     const paidOrder = await this.prisma.order.findUnique({
       where: { id: payment.orderId },
       include: { items: { select: { quantity: true } } },
     });
+    const paidMethod = (paidOrder as any)?.paymentMethod;
+    const weCollectedIt =
+      paidMethod === "PAYMENT_LINK" ||
+      paidMethod === "QR_CODE" ||
+      // Scoped to the sources where WE take the payment. A marketplace
+      // order arrives already settled and must not be re-announced.
+      (paidMethod === "CARD" &&
+        ["DIRECT", "ONLINE", "WHATSAPP"].includes(
+          String(paidOrder?.orderSource),
+        ));
     if (
       paidOrder &&
       paidOrder.locationId &&
-      ((paidOrder as any).paymentMethod === "PAYMENT_LINK" ||
-        (paidOrder as any).paymentMethod === "QR_CODE") &&
+      weCollectedIt &&
       paidOrder.status === "PENDING"
     ) {
       this.socket.emitNewOrder(paidOrder.locationId, {
