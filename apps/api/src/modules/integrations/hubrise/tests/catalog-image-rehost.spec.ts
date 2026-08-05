@@ -74,6 +74,67 @@ describe("HubRise image upload — private_ref collision", () => {
   });
 });
 
+describe("HubRise 1 MB image cap", () => {
+  // Real bytes through the real encoder — a mocked sharp would prove nothing
+  // about whether a 2 MB marketplace PNG actually fits afterwards.
+  const bigPng = async (): Promise<Buffer> => {
+    const sharp = require("sharp");
+    // Genuinely incompressible bytes. An arithmetic "noise" pattern is not:
+    // the first version of this used one and PNG crushed it to 29KB, so the
+    // test proved nothing about oversized images.
+    const px = 1000;
+    const raw = require("crypto").randomBytes(px * px * 3);
+    return sharp(raw, { raw: { width: px, height: px, channels: 3 } })
+      .png()
+      .toBuffer();
+  };
+
+  it("shrinks an oversized photo under the cap instead of dropping it", async () => {
+    const source = await bigPng();
+    expect(source.length).toBeGreaterThan(1_000_000);
+
+    const svc = makeService();
+    const out = await svc.compressForHubRise(source);
+
+    expect(out).not.toBeNull();
+    expect(out.mime).toBe("image/jpeg");
+    expect(out.buffer.length).toBeLessThanOrEqual(1_000_000);
+  }, 30_000);
+
+  it("uploads the compressed bytes rather than failing the product", async () => {
+    const source = await bigPng();
+    const svc = makeService();
+    let sentBytes = 0;
+    global.fetch = (async (_url: string, init: any) => {
+      sentBytes = init.body.length;
+      return okJson({ id: "img_small" });
+    }) as any;
+
+    const id = await svc.uploadImageToCatalog(
+      "999rj",
+      "tok",
+      source,
+      "image/png",
+    );
+
+    expect(id).toBe("img_small");
+    expect(sentBytes).toBeLessThanOrEqual(1_000_000);
+  }, 30_000);
+
+  it("still refuses when the image can't be compressed", async () => {
+    const svc = makeService();
+    svc.compressForHubRise = async () => null;
+    await expect(
+      svc.uploadImageToCatalog(
+        "999rj",
+        "tok",
+        Buffer.alloc(2_000_000, 1),
+        "image/png",
+      ),
+    ).rejects.toThrow(/HubRise max is 1MB/);
+  });
+});
+
 describe("HubRise image source — stale catalog", () => {
   it("reads an older catalog with the publishing token", async () => {
     // Items imported from a previous catalog (a Deliveroo import) point at an

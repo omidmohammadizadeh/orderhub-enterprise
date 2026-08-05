@@ -925,6 +925,52 @@ export class HubRiseCatalogService {
   private static readonly HUBRISE_MAX_IMAGE_BYTES = 1_000_000;
 
   /**
+   * Bring an oversized photo under HubRise's 1 MB cap by resizing and
+   * re-encoding as JPEG, stepping down until it fits. A menu tile is a few
+   * hundred pixels; the 2 MB marketplace original buys nothing.
+   *
+   * sharp is required lazily and every failure returns null: it is a native
+   * module, and if a deploy ever ships without a working binary the publish
+   * must degrade to "this one image was skipped" — the behaviour before this
+   * existed — rather than take the whole catalog down with it.
+   */
+  private async compressForHubRise(
+    buffer: Buffer,
+  ): Promise<{ buffer: Buffer; mime: string } | null> {
+    let sharp: any;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      sharp = require("sharp");
+    } catch {
+      return null;
+    }
+    const steps = [
+      { width: 1600, quality: 80 },
+      { width: 1200, quality: 72 },
+      { width: 900, quality: 62 },
+      { width: 700, quality: 50 },
+    ];
+    for (const step of steps) {
+      try {
+        const out: Buffer = await sharp(buffer)
+          // Honour EXIF orientation before dropping the metadata with it.
+          .rotate()
+          .resize({ width: step.width, withoutEnlargement: true })
+          // Flatten onto white: a transparent PNG becomes black in JPEG.
+          .flatten({ background: "#ffffff" })
+          .jpeg({ quality: step.quality, mozjpeg: true })
+          .toBuffer();
+        if (out.length <= HubRiseCatalogService.HUBRISE_MAX_IMAGE_BYTES) {
+          return { buffer: out, mime: "image/jpeg" };
+        }
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Upload image bytes to a HubRise catalog; returns the new image id. Per the
    * HubRise Catalog API, the image binary is the RAW request body and the mime
    * type goes in the Content-Type header (NOT JSON, NOT multipart). Accepted:
@@ -946,7 +992,21 @@ export class HubRiseCatalogService {
       mime = this.sniffImageMime(buffer) ?? "image/jpeg";
     }
     if (buffer.length > HubRiseCatalogService.HUBRISE_MAX_IMAGE_BYTES) {
-      throw new Error(`image is ${Math.round(buffer.length / 1024)}KB — HubRise max is 1MB`);
+      // Source photos come off the marketplace CDNs at 1.5–2 MB, over
+      // HubRise's 1 MB cap, and used to be thrown away — an operator whose
+      // menu came from Deliveroo simply got no pictures. Shrink instead:
+      // nobody needs a 2 MB PNG on a menu tile.
+      const shrunk = await this.compressForHubRise(buffer);
+      if (!shrunk) {
+        throw new Error(
+          `image is ${Math.round(buffer.length / 1024)}KB — HubRise max is 1MB (could not compress)`,
+        );
+      }
+      this.logger.log(
+        `HubRise image compressed ${Math.round(buffer.length / 1024)}KB → ${Math.round(shrunk.buffer.length / 1024)}KB`,
+      );
+      buffer = shrunk.buffer;
+      mime = shrunk.mime;
     }
     const qs = privateRef ? `?private_ref=${encodeURIComponent(privateRef)}` : "";
     const res = await fetch(`${baseUrl}/catalogs/${catalogId}/images${qs}`, {
