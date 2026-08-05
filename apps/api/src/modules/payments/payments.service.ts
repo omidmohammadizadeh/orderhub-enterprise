@@ -896,6 +896,102 @@ export class PaymentsService {
    * Checkout Session ID + the future PaymentIntent ID via metadata so the
    * webhook can find it.
    */
+  /**
+   * A PaymentIntent for a storefront order, for paying WITHOUT leaving the
+   * site — the Payment Element and the Apple/Google Pay express buttons.
+   *
+   * Deliberately additive: createCheckoutSession below is untouched and stays
+   * the live path until the storefront is switched over. Nothing calls this
+   * yet, so it can't affect a real order.
+   *
+   * The money is resolved exactly as the hosted session does — same
+   * brand-first Connect cascade, same fee breakdown — because two different
+   * answers to "which account and how much fee" is precisely how a storefront
+   * and a payout start disagreeing.
+   *
+   * captureMethod is manual to match the online flow: authorise now, capture
+   * when staff Accept, so a shop that never accepts never takes the money.
+   */
+  async createStorefrontPaymentIntent(params: {
+    tenantId: string;
+    orderId: string;
+  }): Promise<{ clientSecret: string; amountPence: number }> {
+    if (!this.stripe) {
+      throw new BadRequestException("Card payments aren't configured.");
+    }
+    const order = await this.prisma.order.findFirst({
+      where: { id: params.orderId, tenantId: params.tenantId },
+      include: {
+        location: true,
+        brand: {
+          select: {
+            id: true,
+            stripeConnectedAccountId: true,
+            applicationFeeMode: true,
+            applicationFeeFixedAmount: true,
+            applicationFeePercentage: true,
+          } as any,
+        } as any,
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (!order.locationId) throw new BadRequestException("Order has no location");
+
+    const connect = await this.resolveConnectAccount(
+      params.tenantId,
+      order.locationId,
+      (order as any).brandId ?? null,
+    );
+    if (!connect) {
+      throw new BadRequestException(
+        "This brand has no active Stripe Connect account — operator must finish Stripe onboarding before accepting card payments.",
+      );
+    }
+
+    const totalGbp = Number(order.total);
+    // Brand fee wins when set; falls back to the location. Same rule as the
+    // hosted session — see createCheckoutSession.
+    const brand = (order as any).brand as any;
+    const feeSource =
+      brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
+        ? brand
+        : order.location;
+    const { applicationFeePence, customerSurchargePence } =
+      this.computeFeeBreakdownPence(feeSource, totalGbp);
+
+    // The fixed portion is a visible surcharge the customer pays on top, so
+    // it has to be in the amount charged as well as in the platform's cut.
+    const amountPence = Math.round(totalGbp * 100) + customerSurchargePence;
+
+    const intent = await this.stripe.paymentIntents.create({
+      amount: amountPence,
+      currency: "gbp",
+      capture_method: "manual",
+      // Lets the Payment Element offer whatever the account supports —
+      // cards, Apple Pay, Google Pay, Link — without listing them here.
+      automatic_payment_methods: { enabled: true },
+      transfer_data: { destination: connect.stripeAccountId },
+      ...(applicationFeePence > 0 && {
+        application_fee_amount: applicationFeePence,
+      }),
+      metadata: {
+        orderId: order.id,
+        tenantId: params.tenantId,
+        locationId: order.locationId,
+        ...(brand?.id ? { brandId: brand.id } : {}),
+      },
+    });
+
+    if (!intent.client_secret) {
+      throw new BadRequestException("Stripe didn't return a client secret.");
+    }
+    this.logger.log(
+      `PaymentIntent ${intent.id} for order ${order.id}: ${amountPence}p ` +
+        `fee=${applicationFeePence}p acct=${connect.stripeAccountId}`,
+    );
+    return { clientSecret: intent.client_secret, amountPence };
+  }
+
   async createCheckoutSession(params: {
     tenantId: string;
     orderId: string;
