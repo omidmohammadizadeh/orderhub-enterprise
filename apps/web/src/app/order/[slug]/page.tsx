@@ -23,11 +23,20 @@
 //   • directConfig toggles hide/disable the order types + payment
 //     methods the operator turned off
 
-import { Suspense, useEffect, useMemo, useRef, useState, useReducer } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useReducer,
+} from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
+import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
 import {
   RatingPill,
   StorefrontReviews,
@@ -792,6 +801,31 @@ function OrderPage() {
     }
     return out;
   }, [allCategories, itemPromos]);
+
+  // Inline quantity control on the menu row.
+  //
+  // Only for items with nothing to choose — no modifier groups and no sizes.
+  // For those, opening a modal to press one button is friction, and the
+  // customer can't otherwise see how many they've already added without
+  // opening the cart. Anything configurable still opens the sheet, because a
+  // second "Large, no onions" is not the same line as the first.
+  const isSimpleItem = useCallback(
+    (item: MenuItem) =>
+      !(item.modifierGroupLinks?.length ?? 0) && !(item as any).hasMultipleSkus,
+    [],
+  );
+  // The plain line for an item: same item, no modifiers, no note. A line
+  // customised in the sheet must never be stepped by the row.
+  const plainLineFor = useCallback(
+    (itemId: string) =>
+      cart.find(
+        (l) =>
+          l.menuItemId === itemId &&
+          (l.modifiers?.length ?? 0) === 0 &&
+          !l.notes,
+      ) ?? null,
+    [cart],
+  );
 
   const visibleItems = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -1920,6 +1954,19 @@ function OrderPage() {
                           promo={itemPromos[item.id] ?? null}
                           showImage={cfg?.showItemImages ?? true}
                           onClick={() => handleProductClick(item)}
+                          categoryName={cat.name}
+                          stepper={
+                            isSimpleItem(item)
+                              ? {
+                                  qty: plainLineFor(item.id)?.quantity ?? 0,
+                                  onInc: () => handleProductClick(item),
+                                  onDec: () => {
+                                    const line = plainLineFor(item.id);
+                                    if (line) dispatch({ type: "DECREMENT", id: line.id });
+                                  },
+                                }
+                              : null
+                          }
                         />
                       ))}
                     </div>
@@ -2377,9 +2424,7 @@ function ItemRail({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="grid h-full w-full place-items-center text-zinc-300">
-                    <ShoppingBag className="h-7 w-7" />
-                  </div>
+                  <FoodPlaceholder name={item.name} className="h-full w-full" />
                 )}
                 {!item.outOfStock && (
                   <span className="absolute bottom-1.5 right-1.5 grid h-8 w-8 place-items-center rounded-full bg-white text-zinc-900 shadow-md">
@@ -2423,11 +2468,21 @@ function StoreItemRow({
   promo,
   showImage,
   onClick,
+  categoryName,
+  stepper,
 }: {
   item: MenuItem;
   promo: { percentageOff: number; campaignName: string } | null;
   showImage?: boolean;
   onClick: () => void;
+  /** Category name — picks the placeholder graphic when the dish name is silent. */
+  categoryName?: string;
+  /** Set for items with nothing to choose — shows −/qty/+ instead of a plain +. */
+  stepper?: {
+    qty: number;
+    onInc: () => void;
+    onDec: () => void;
+  } | null;
 }) {
   const { amount: base, from: fromSize } = displayPrice(item as any);
   const hasPromo = !!promo && promo.percentageOff > 0;
@@ -2435,14 +2490,26 @@ function StoreItemRow({
     ? Math.round(base * (1 - promo!.percentageOff / 100) * 100) / 100
     : base;
 
+  const showStepper = !!stepper && stepper.qty > 0 && !item.outOfStock;
+
+  // Buttons can't nest. While the stepper is on screen the row is a plain
+  // div with a tappable title area, so the −/+ controls stay real buttons.
+  const RowTag: any = showStepper ? "div" : "button";
+  const rowProps = showStepper
+    ? {}
+    : { type: "button" as const, onClick, disabled: item.outOfStock };
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={item.outOfStock}
+    <RowTag
+      {...rowProps}
       className="flex w-full items-start gap-3 py-3 text-left disabled:opacity-50"
     >
-      <div className="min-w-0 flex-1">
+      <div
+        className="min-w-0 flex-1"
+        onClick={showStepper ? onClick : undefined}
+        role={showStepper ? "button" : undefined}
+        tabIndex={showStepper ? 0 : undefined}
+      >
         <div className="flex items-start gap-2">
           <h3 className="min-w-0 flex-1 text-[15px] font-semibold leading-snug text-zinc-900">
             {item.name}
@@ -2490,18 +2557,46 @@ function StoreItemRow({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="grid h-full w-full place-items-center text-zinc-300">
-              <ShoppingBag className="h-6 w-6" />
-            </div>
+            <FoodPlaceholder
+              name={item.name}
+              hint={categoryName}
+              className="h-full w-full"
+            />
           )}
-          {!item.outOfStock && (
+          {!item.outOfStock && !showStepper && (
             <span className="absolute bottom-1 right-1 grid h-7 w-7 place-items-center rounded-full bg-white text-zinc-900 shadow-md">
               <Plus className="h-4 w-4" />
             </span>
           )}
         </div>
       )}
-    </button>
+
+      {/* How many are in the basket, and how to change it, without opening
+          the cart or a sheet. Only ever shown once something is added. */}
+      {showStepper && (
+        <div className="flex flex-shrink-0 items-center gap-1 self-center rounded-full border border-zinc-200 bg-white px-1 py-1">
+          <button
+            type="button"
+            aria-label={`Remove one ${item.name}`}
+            onClick={stepper!.onDec}
+            className="grid h-7 w-7 place-items-center rounded-full text-zinc-700 active:bg-zinc-100"
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+          <span className="min-w-[1.25rem] text-center text-sm font-semibold tabular-nums text-zinc-900">
+            {stepper!.qty}
+          </span>
+          <button
+            type="button"
+            aria-label={`Add another ${item.name}`}
+            onClick={stepper!.onInc}
+            className="grid h-7 w-7 place-items-center rounded-full bg-zinc-900 text-white active:opacity-80"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+    </RowTag>
   );
 }
 

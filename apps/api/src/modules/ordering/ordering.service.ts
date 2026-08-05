@@ -768,7 +768,7 @@ export class OrderingService {
       freeDelivery,
       freeItem,
       whatsapp,
-      location: locationView,
+      location: dedupeLogo(locationView, brandView),
       brand: brandView,
       menu,
       isOpen: this.isCurrentlyOpen(effectiveHours as any, location.timezone),
@@ -1520,4 +1520,25 @@ export class OrderingService {
 
     return true;
   }
+}
+
+
+/**
+ * Don't ship the same logo twice.
+ *
+ * Operators upload logos that land in Postgres as base64 data URIs, and the
+ * storefront carries one on the location AND an identical copy on the brand —
+ * 304KB each on a real shop, 31% of a 2MB payload, for an image the page uses
+ * once. It reads brand.logoUrl and only falls back to the location's, so when
+ * the two are byte-identical the location copy is dead weight on every
+ * customer's first load.
+ *
+ * This treats the symptom. The cause is storing image bytes in a JSON column
+ * instead of object storage behind a URL; fixing that removes ~600KB rather
+ * than 300KB and is the change actually worth making.
+ */
+function dedupeLogo(locationView: any, brandView: any) {
+  if (!locationView?.logoUrl || !brandView?.logoUrl) return locationView;
+  if (locationView.logoUrl !== brandView.logoUrl) return locationView;
+  return { ...locationView, logoUrl: null };
 }
