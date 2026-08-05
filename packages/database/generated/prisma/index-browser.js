@@ -891,6 +891,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   subtotal: 'subtotal',
   taxAmount: 'taxAmount',
   serviceCharge: 'serviceCharge',
+  tipAmount: 'tipAmount',
   deliveryFee: 'deliveryFee',
   discount: 'discount',
   total: 'total',

@@ -1808,6 +1808,11 @@ model Order {
   // itemise it, refunds can reason about it, and dine-in reporting totals it
   // apart from food revenue.
   serviceCharge Decimal @default(0) @db.Decimal(10, 2)
+  // Customer gratuity, kept by the RESTAURANT (not a courier). Sits beside
+  // the other money columns so the order card, the ticket and reporting can
+  // all show what was tipped rather than only a total that silently includes
+  // it.
+  tipAmount     Decimal @default(0) @db.Decimal(10, 2)
   deliveryFee   Decimal @default(0) @db.Decimal(10, 2)
   discount      Decimal @default(0) @db.Decimal(10, 2)
   total         Decimal @db.Decimal(10, 2)
@@ -2461,7 +2466,7 @@ enum AlertTrigger {
   FAILED_PRINT
 }
 
-// ���─ AgentPairCode ────────────────────────────────────────────────────
+// ── AgentPairCode ────────────────────────────────────────────────────
 // Phase AS-3. Short-lived pairing token. Operator generates one from
 // the dashboard; the agent binary scans the QR (or the operator types
 // the code) and POSTs it back to /v1/print-agents/pair to receive a
@@ -3100,7 +3105,7 @@ model NotificationLog {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════��══════════
 
 model TenantBranding {
   id              String  @id @default(cuid())
@@ -3512,7 +3517,7 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════���═════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════

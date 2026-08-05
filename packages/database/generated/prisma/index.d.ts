@@ -58156,6 +58156,7 @@ export namespace Prisma {
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
+    tipAmount: Decimal | null
     deliveryFee: Decimal | null
     discount: Decimal | null
     total: Decimal | null
@@ -58171,6 +58172,7 @@ export namespace Prisma {
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
+    tipAmount: Decimal | null
     deliveryFee: Decimal | null
     discount: Decimal | null
     total: Decimal | null
@@ -58216,6 +58218,7 @@ export namespace Prisma {
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
+    tipAmount: Decimal | null
     deliveryFee: Decimal | null
     discount: Decimal | null
     total: Decimal | null
@@ -58289,6 +58292,7 @@ export namespace Prisma {
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
+    tipAmount: Decimal | null
     deliveryFee: Decimal | null
     discount: Decimal | null
     total: Decimal | null
@@ -58364,6 +58368,7 @@ export namespace Prisma {
     subtotal: number
     taxAmount: number
     serviceCharge: number
+    tipAmount: number
     deliveryFee: number
     discount: number
     total: number
@@ -58411,6 +58416,7 @@ export namespace Prisma {
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
+    tipAmount?: true
     deliveryFee?: true
     discount?: true
     total?: true
@@ -58426,6 +58432,7 @@ export namespace Prisma {
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
+    tipAmount?: true
     deliveryFee?: true
     discount?: true
     total?: true
@@ -58471,6 +58478,7 @@ export namespace Prisma {
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
+    tipAmount?: true
     deliveryFee?: true
     discount?: true
     total?: true
@@ -58544,6 +58552,7 @@ export namespace Prisma {
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
+    tipAmount?: true
     deliveryFee?: true
     discount?: true
     total?: true
@@ -58619,6 +58628,7 @@ export namespace Prisma {
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
+    tipAmount?: true
     deliveryFee?: true
     discount?: true
     total?: true
@@ -58783,6 +58793,7 @@ export namespace Prisma {
     subtotal: Decimal
     taxAmount: Decimal
     serviceCharge: Decimal
+    tipAmount: Decimal
     deliveryFee: Decimal
     discount: Decimal
     total: Decimal
@@ -58879,6 +58890,7 @@ export namespace Prisma {
     subtotal?: boolean
     taxAmount?: boolean
     serviceCharge?: boolean
+    tipAmount?: boolean
     deliveryFee?: boolean
     discount?: boolean
     total?: boolean
@@ -58969,6 +58981,7 @@ export namespace Prisma {
     subtotal?: boolean
     taxAmount?: boolean
     serviceCharge?: boolean
+    tipAmount?: boolean
     deliveryFee?: boolean
     discount?: boolean
     total?: boolean
@@ -59051,6 +59064,7 @@ export namespace Prisma {
     subtotal?: boolean
     taxAmount?: boolean
     serviceCharge?: boolean
+    tipAmount?: boolean
     deliveryFee?: boolean
     discount?: boolean
     total?: boolean
@@ -59167,6 +59181,7 @@ export namespace Prisma {
       subtotal: Prisma.Decimal
       taxAmount: Prisma.Decimal
       serviceCharge: Prisma.Decimal
+      tipAmount: Prisma.Decimal
       deliveryFee: Prisma.Decimal
       discount: Prisma.Decimal
       total: Prisma.Decimal
@@ -59646,6 +59661,7 @@ export namespace Prisma {
     readonly subtotal: FieldRef<"Order", 'Decimal'>
     readonly taxAmount: FieldRef<"Order", 'Decimal'>
     readonly serviceCharge: FieldRef<"Order", 'Decimal'>
+    readonly tipAmount: FieldRef<"Order", 'Decimal'>
     readonly deliveryFee: FieldRef<"Order", 'Decimal'>
     readonly discount: FieldRef<"Order", 'Decimal'>
     readonly total: FieldRef<"Order", 'Decimal'>
@@ -146019,6 +146035,7 @@ export namespace Prisma {
     subtotal: 'subtotal',
     taxAmount: 'taxAmount',
     serviceCharge: 'serviceCharge',
+    tipAmount: 'tipAmount',
     deliveryFee: 'deliveryFee',
     discount: 'discount',
     total: 'total',
@@ -154708,6 +154725,7 @@ export namespace Prisma {
     subtotal?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     discount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     total?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -154797,6 +154815,7 @@ export namespace Prisma {
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
+    tipAmount?: SortOrder
     deliveryFee?: SortOrder
     discount?: SortOrder
     total?: SortOrder
@@ -154892,6 +154911,7 @@ export namespace Prisma {
     subtotal?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     discount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     total?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -154980,6 +155000,7 @@ export namespace Prisma {
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
+    tipAmount?: SortOrder
     deliveryFee?: SortOrder
     discount?: SortOrder
     total?: SortOrder
@@ -155065,6 +155086,7 @@ export namespace Prisma {
     subtotal?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     discount?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     total?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -168238,6 +168260,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -168327,6 +168350,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -168406,6 +168430,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -168495,6 +168520,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -168579,6 +168605,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -168651,6 +168678,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -168728,6 +168756,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -181624,6 +181653,7 @@ export namespace Prisma {
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
+    tipAmount?: SortOrder
     deliveryFee?: SortOrder
     discount?: SortOrder
     total?: SortOrder
@@ -181669,6 +181699,7 @@ export namespace Prisma {
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
+    tipAmount?: SortOrder
     deliveryFee?: SortOrder
     discount?: SortOrder
     total?: SortOrder
@@ -181714,6 +181745,7 @@ export namespace Prisma {
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
+    tipAmount?: SortOrder
     deliveryFee?: SortOrder
     discount?: SortOrder
     total?: SortOrder
@@ -181787,6 +181819,7 @@ export namespace Prisma {
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
+    tipAmount?: SortOrder
     deliveryFee?: SortOrder
     discount?: SortOrder
     total?: SortOrder
@@ -181830,6 +181863,7 @@ export namespace Prisma {
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
+    tipAmount?: SortOrder
     deliveryFee?: SortOrder
     discount?: SortOrder
     total?: SortOrder
@@ -196766,6 +196800,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -196853,6 +196888,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -197822,6 +197858,7 @@ export namespace Prisma {
     subtotal?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     discount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     total?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -200445,6 +200482,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -200532,6 +200570,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -201575,6 +201614,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -201662,6 +201702,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -202885,6 +202926,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -202972,6 +203014,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -211221,6 +211264,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -211308,6 +211352,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -213017,6 +213062,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -213105,6 +213151,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -213266,6 +213313,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -213354,6 +213402,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -215694,6 +215743,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -215782,6 +215832,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -215876,6 +215927,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -215964,6 +216016,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -216042,6 +216095,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -216130,6 +216184,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -216224,6 +216279,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -216312,6 +216368,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -218599,6 +218656,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -218687,6 +218745,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -218816,6 +218875,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -218904,6 +218964,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -220102,6 +220163,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -220190,6 +220252,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -220534,6 +220597,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -220622,6 +220686,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -224245,6 +224310,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -224333,6 +224399,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -224504,6 +224571,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -224592,6 +224660,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -225091,6 +225160,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -225179,6 +225249,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -225388,6 +225459,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -225476,6 +225548,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -231070,6 +231143,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -231616,6 +231690,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -231703,6 +231778,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -231786,6 +231862,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -233042,6 +233119,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -233114,6 +233192,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -233201,6 +233280,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -233284,6 +233364,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -233482,6 +233563,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -234106,6 +234188,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -234193,6 +234276,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -234276,6 +234360,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -234749,6 +234834,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -235116,6 +235202,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -235203,6 +235290,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -235286,6 +235374,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -236873,6 +236962,7 @@ export namespace Prisma {
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
     deliveryFee?: Decimal | DecimalJsLike | number | string
     discount?: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
@@ -236996,6 +237086,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -237083,6 +237174,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -237166,6 +237258,7 @@ export namespace Prisma {
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
