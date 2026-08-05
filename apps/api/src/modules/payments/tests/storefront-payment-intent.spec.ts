@@ -15,6 +15,8 @@ function makeService(opts: {
   connect?: { id: string | null; stripeAccountId: string } | null;
 } = {}) {
   const created: any[] = [];
+  const callOpts: any[] = [];
+  const payments: any[] = [];
   const order = opts.order ?? {
     id: "o1",
     tenantId: TENANT,
@@ -31,14 +33,21 @@ function makeService(opts: {
   };
   const prisma: any = {
     order: { findFirst: async () => order },
+    payment: {
+      create: async (p: any) => {
+        payments.push(p);
+        return { id: "pay1" };
+      },
+    },
   };
   const svc = Object.create(PaymentsService.prototype) as any;
   svc.prisma = prisma;
   svc.logger = { log() {}, warn() {}, error() {} };
   svc.stripe = {
     paymentIntents: {
-      create: async (p: any) => {
+      create: async (p: any, o?: any) => {
         created.push(p);
+        callOpts.push(o);
         return { id: "pi_1", client_secret: "cs_test_1" };
       },
     },
@@ -47,28 +56,58 @@ function makeService(opts: {
     opts.connect === undefined
       ? { id: "c1", stripeAccountId: "acct_brand" }
       : opts.connect;
-  return { svc, created };
+  return { svc, created, callOpts, payments };
 }
 
-const intentFor = async (o?: any) => {
-  const { svc, created } = makeService(o ? { order: o } : {});
+const intentCallFor = async (o?: any) => {
+  const { svc, created, callOpts } = makeService(o ? { order: o } : {});
   await svc.createStorefrontPaymentIntent({ tenantId: TENANT, orderId: "o1" });
-  return created[0];
+  return { created: created[0], opts: callOpts[0] };
 };
+
+const intentFor = async (o?: any) => (await intentCallFor(o)).created;
 
 describe("createStorefrontPaymentIntent", () => {
   it("charges the order total in pence", async () => {
     expect((await intentFor()).amount).toBe(2400);
   });
 
-  it("authorises without capturing, so an unaccepted order isn't taken", async () => {
-    expect((await intentFor()).capture_method).toBe("manual");
+  it("captures immediately — a wallet payment settles then and there", async () => {
+    expect((await intentFor()).capture_method).toBe("automatic");
   });
 
-  it("sends the money to the resolved Connect account", async () => {
-    expect((await intentFor()).transfer_data).toEqual({
-      destination: "acct_brand",
+  it("charges DIRECTLY on the restaurant's account, not the platform's", async () => {
+    // The hosted session moved to direct charges because destination
+    // charges need the `transfers` capability, which broke on first
+    // deploy. A destination charge here would reintroduce exactly that
+    // failure on the same accounts — so the request option is pinned,
+    // and transfer_data must stay absent.
+    const { created, opts } = await intentCallFor();
+    expect(opts).toEqual({ stripeAccount: "acct_brand" });
+    expect("transfer_data" in created).toBe(false);
+  });
+
+  it("returns the account the browser must construct Stripe.js with", async () => {
+    // A direct-charge secret cannot be confirmed from the platform, so
+    // omitting this silently breaks confirmation in the browser.
+    const { svc } = makeService();
+    const res = await svc.createStorefrontPaymentIntent({
+      tenantId: TENANT,
+      orderId: "o1",
     });
+    expect(res.stripeAccountId).toBe("acct_brand");
+  });
+
+  it("writes the Payment row the webhook needs to find the order", async () => {
+    // markPaid looks the order up THROUGH a Payment row and returns early
+    // when there isn't one. No row means a customer is charged and the
+    // order never reaches the staff board.
+    const { svc, payments } = makeService();
+    await svc.createStorefrontPaymentIntent({ tenantId: TENANT, orderId: "o1" });
+    expect(payments).toHaveLength(1);
+    expect(payments[0].data.stripePaymentIntentId).toBe("pi_1");
+    expect(payments[0].data.orderId).toBe("o1");
+    expect(payments[0].data.status).toBe("PENDING");
   });
 
   it("takes the platform's percentage as the application fee", async () => {

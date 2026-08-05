@@ -909,13 +909,26 @@ export class PaymentsService {
    * answers to "which account and how much fee" is precisely how a storefront
    * and a payout start disagreeing.
    *
-   * captureMethod is manual to match the online flow: authorise now, capture
-   * when staff Accept, so a shop that never accepts never takes the money.
+   * Capture is AUTOMATIC: the customer's money is taken the moment they pay,
+   * and the order flips straight to PAID. A wallet payment that showed as
+   * "authorised" for twenty minutes while the shop decided reads as broken to
+   * an Apple Pay customer. The trade is that rejecting an order now needs a
+   * real refund rather than just letting a hold lapse.
+   *
+   * Like the hosted session, this is a DIRECT charge on the connected account
+   * ({ stripeAccount }), not a destination charge. That is deliberate — see
+   * the long note in createCheckoutSession. It means the browser must create
+   * Stripe.js with the same `stripeAccount`, so we return it alongside the
+   * secret; a clientSecret on its own can't be confirmed from the platform.
    */
   async createStorefrontPaymentIntent(params: {
     tenantId: string;
     orderId: string;
-  }): Promise<{ clientSecret: string; amountPence: number }> {
+  }): Promise<{
+    clientSecret: string;
+    amountPence: number;
+    stripeAccountId: string;
+  }> {
     if (!this.stripe) {
       throw new BadRequestException("Card payments aren't configured.");
     }
@@ -963,33 +976,84 @@ export class PaymentsService {
     // it has to be in the amount charged as well as in the platform's cut.
     const amountPence = Math.round(totalGbp * 100) + customerSurchargePence;
 
-    const intent = await this.stripe.paymentIntents.create({
-      amount: amountPence,
-      currency: "gbp",
-      capture_method: "manual",
-      // Lets the Payment Element offer whatever the account supports —
-      // cards, Apple Pay, Google Pay, Link — without listing them here.
-      automatic_payment_methods: { enabled: true },
-      transfer_data: { destination: connect.stripeAccountId },
-      ...(applicationFeePence > 0 && {
-        application_fee_amount: applicationFeePence,
-      }),
-      metadata: {
-        orderId: order.id,
-        tenantId: params.tenantId,
-        locationId: order.locationId,
-        ...(brand?.id ? { brandId: brand.id } : {}),
-      },
-    });
+    let intent;
+    try {
+      intent = await this.stripe.paymentIntents.create(
+        {
+          amount: amountPence,
+          currency: "gbp",
+          capture_method: "automatic",
+          // Lets the Payment Element offer whatever the account supports —
+          // cards, Apple Pay, Google Pay, Link — without listing them here.
+          // The hosted session can't do this because it pins manual capture,
+          // which BNPL methods don't support and which hangs Checkout on
+          // "Processing…". Capture is automatic here, so that trap is gone.
+          automatic_payment_methods: { enabled: true },
+          ...(applicationFeePence > 0 && {
+            application_fee_amount: applicationFeePence,
+          }),
+          metadata: {
+            orderId: order.id,
+            tenantId: params.tenantId,
+            locationId: order.locationId,
+            ...(brand?.id ? { brandId: brand.id } : {}),
+          },
+        },
+        // The single line that makes this a direct charge on the restaurant's
+        // account rather than a platform charge — same as the hosted session.
+        { stripeAccount: connect.stripeAccountId },
+      );
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      this.logger.error(
+        `Storefront PaymentIntent create failed on ${connect.stripeAccountId}: ${msg}`,
+      );
+      throw new BadRequestException(`Couldn't start card payment: ${msg}`);
+    }
 
     if (!intent.client_secret) {
       throw new BadRequestException("Stripe didn't return a client secret.");
     }
+
+    // The webhook finds the order through a Payment row — markPaid bails out
+    // when there isn't one, which would leave a paid order sitting off the
+    // staff board forever. Written in PENDING here, same as the hosted
+    // session does, so the row exists before the customer can possibly pay.
+    const totalDecimal = new Decimal(totalGbp.toFixed(2));
+    const platformFeeDecimal = new Decimal(applicationFeePence).div(100);
+    const processingFeeDecimal = totalDecimal
+      .mul(PROCESSING_FEE_RATE)
+      .add(PROCESSING_FEE_FLAT)
+      .toDecimalPlaces(2);
+    await (this.prisma as any).payment.create({
+      data: {
+        tenantId: params.tenantId,
+        orderId: order.id,
+        stripeConnectAccountId: connect.id ?? null,
+        stripePaymentIntentId: intent.id,
+        amount: totalDecimal,
+        currency: "gbp",
+        status: PaymentRecordStatus.PENDING,
+        method: "CARD",
+        tipAmount: new Decimal(0),
+        platformFee: platformFeeDecimal,
+        processingFee: processingFeeDecimal,
+        netAmount: totalDecimal
+          .sub(platformFeeDecimal)
+          .sub(processingFeeDecimal)
+          .toDecimalPlaces(2),
+      },
+    });
+
     this.logger.log(
       `PaymentIntent ${intent.id} for order ${order.id}: ${amountPence}p ` +
         `fee=${applicationFeePence}p acct=${connect.stripeAccountId}`,
     );
-    return { clientSecret: intent.client_secret, amountPence };
+    return {
+      clientSecret: intent.client_secret,
+      amountPence,
+      stripeAccountId: connect.stripeAccountId,
+    };
   }
 
   async createCheckoutSession(params: {
@@ -1766,10 +1830,41 @@ export class PaymentsService {
     if (payment.status !== PaymentRecordStatus.PENDING) return;
 
     const sessionId = (payment.metadata as any)?.stripeCheckoutSessionId;
-    if (!sessionId) return;
 
     const stripeAccount = await this.stripeAccountForPayment(payment);
     if (!stripeAccount) return;
+
+    // Embedded storefront payments have no Checkout Session — the Payment
+    // Element confirms a PaymentIntent directly — so retrieve that instead.
+    // Bailing on the missing session id would switch this safety net off
+    // for precisely the orders that need it most: money already taken, and
+    // the connected-account webhook (which is why we poll at all) missing.
+    if (!sessionId) {
+      if (!payment.stripePaymentIntentId) return;
+      let pi: any;
+      try {
+        pi = await this.stripe.paymentIntents.retrieve(
+          payment.stripePaymentIntentId,
+          {},
+          { stripeAccount },
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `reconcileOrderPayment: PI retrieve failed for ${orderId}: ${err.message}`,
+        );
+        return;
+      }
+      // Captured outright, so this is PAID, not merely authorised — the
+      // same route the succeeded webhook takes for automatic capture.
+      if (pi.status === "succeeded") {
+        await this.confirmPayment(payment.tenantId, pi.id);
+      } else if (pi.status === "requires_capture") {
+        await this.markAuthorized(pi);
+      } else if (pi.status === "canceled") {
+        await this.markCancelled(pi);
+      }
+      return;
+    }
 
     let session: any;
     try {

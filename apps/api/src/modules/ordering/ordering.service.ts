@@ -1125,17 +1125,22 @@ export class OrderingService {
     if (dto.paymentMethod === "CARD") {
       // Embedded — the customer pays on our page (Payment Element /
       // Apple Pay / Google Pay), so there's nowhere to redirect to and
-      // the client needs a PaymentIntent secret instead of a URL. Same
-      // manual capture as the hosted session: authorise now, capture on
-      // staff Accept, so the order still only joins the board once the
-      // webhook reports the authorisation.
+      // the client needs a PaymentIntent secret instead of a URL.
+      //
+      // Unlike the hosted path this captures immediately, so the order
+      // reaches the board via payment_intent.succeeded as PAID rather
+      // than waiting on an authorisation staff have to Accept. Rejecting
+      // one is therefore a refund, not a lapsed hold.
       if (dto.embedded) {
-        const { clientSecret, amountPence } =
+        const { clientSecret, amountPence, stripeAccountId } =
           await this.payments.createStorefrontPaymentIntent({
             tenantId: location.brand.tenantId,
             orderId: order.id,
           });
-        return { ...order, clientSecret, amountPence } as any;
+        // stripeAccountId is not decoration: this is a direct charge on the
+        // restaurant's account, so the browser has to construct Stripe.js
+        // with it or the secret won't confirm.
+        return { ...order, clientSecret, amountPence, stripeAccountId } as any;
       }
 
       const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
