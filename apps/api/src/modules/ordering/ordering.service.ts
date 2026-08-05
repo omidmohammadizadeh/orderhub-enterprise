@@ -53,6 +53,21 @@ export interface CheckoutDto {
   // Session URL the storefront should redirect the browser to. Defaults
   // to "CASH" if absent so existing callers keep working.
   paymentMethod?: "CASH" | "CARD";
+  /**
+   * CARD orders only: pay on the page instead of on Stripe's hosted
+   * checkout. checkout() returns a PaymentIntent clientSecret rather than
+   * a checkoutUrl, which is what the Payment Element and the Apple/Google
+   * Pay express buttons need.
+   *
+   * The secret is minted here, in the same call that creates the order,
+   * on purpose: the caller proves it owns the order by being the one that
+   * just placed it. A public route keyed on orderId would let anyone who
+   * can guess an id mint a PaymentIntent against someone else's order.
+   *
+   * Absent/false keeps the redirect flow, so existing storefronts are
+   * unaffected.
+   */
+  embedded?: boolean;
   // Phase AP-5 — when the storefront customer is signed in, the
   // CustomerAccount id is threaded through here so the Order can be
   // attributed to them for the "My Orders" page. Null/undefined
@@ -928,9 +943,15 @@ export class OrderingService {
     // customer's browser. The actual Checkout Session is built later
     // (after the Order exists so the success_url can reference it).
     if (dto.paymentMethod === "CARD") {
+      // Resolved WITH the pinned brand, matching what the payment call
+      // below does. Without it a brand using the brand-level acct_
+      // escape hatch fails this gate and is told the shop takes no
+      // cards, even though the charge it's guarding would have gone
+      // through. Passing the brand can only widen what's accepted here.
       const connect = await this.payments.resolveConnectAccount(
         location.brand.tenantId,
         location.id,
+        pinnedBrandId ?? null,
       );
       if (!connect) {
         throw new BadRequestException(
@@ -1102,6 +1123,21 @@ export class OrderingService {
     // joins the staff board only once the Stripe webhook reports
     // authorization (payment_intent.amount_capturable_updated).
     if (dto.paymentMethod === "CARD") {
+      // Embedded — the customer pays on our page (Payment Element /
+      // Apple Pay / Google Pay), so there's nowhere to redirect to and
+      // the client needs a PaymentIntent secret instead of a URL. Same
+      // manual capture as the hosted session: authorise now, capture on
+      // staff Accept, so the order still only joins the board once the
+      // webhook reports the authorisation.
+      if (dto.embedded) {
+        const { clientSecret, amountPence } =
+          await this.payments.createStorefrontPaymentIntent({
+            tenantId: location.brand.tenantId,
+            orderId: order.id,
+          });
+        return { ...order, clientSecret, amountPence } as any;
+      }
+
       const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
       // Phase AW — keep the brand pin on the Stripe-return URLs so the
       // post-payment storefront still renders the brand identity. The
