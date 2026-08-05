@@ -636,6 +636,9 @@ export class PrintRoutingService {
       taxAmount: Number(order.taxAmount ?? 0),
       deliveryFee: Number(order.deliveryFee ?? 0),
       serviceCharge: Number((order as any).serviceCharge ?? 0),
+      // The gratuity. It is inside `total` already, so leaving it out doesn't
+      // change what anyone pays — it changes whether the shop can see it.
+      tipAmount: Number((order as any).tipAmount ?? 0),
       discount: Number(order.discount ?? 0),
       total: Number(order.total ?? 0),
       paymentMethod: order.paymentMethod,

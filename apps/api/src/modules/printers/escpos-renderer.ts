@@ -178,6 +178,11 @@ export function renderToEscPos(
       write(pad("Service charge", width - 10) + padRight(svc.toFixed(2), 10));
       newline();
     }
+    if (Number(payload.tipAmount ?? 0) > 0) {
+      const tip = Number(payload.tipAmount);
+      write(pad("Tip", width - 10) + padRight(tip.toFixed(2), 10));
+      newline();
+    }
     if (Number(payload.discount ?? 0) > 0) {
       write(pad("Discount", width - 10) + padRight((-Number(payload.discount)).toFixed(2), 10));
       newline();
