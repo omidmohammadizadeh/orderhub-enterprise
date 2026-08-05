@@ -995,6 +995,13 @@ export class PaymentsService {
     };
     addLine("Delivery", Number(order.deliveryFee ?? 0));
     addLine("Service / tax", Number(order.taxAmount ?? 0));
+    // The customer's gratuity. It belongs to the RESTAURANT, so it goes in
+    // as an ordinary line on the destination charge and lands in the brand's
+    // Connect account with the rest of the basket — no separate transfer and
+    // nothing for the platform to take a cut of. Without this line the tip
+    // would sit on the Order and never actually be charged, which is the
+    // worst of both: the shop sees a tip it was never paid.
+    addLine("Tip", Number((order as any).tipAmount ?? 0));
     // Phase AP-8 — visible fixed-fee surcharge on the customer side.
     // The customer pays this on top of the basket; the platform keeps
     // it as part of application_fee_amount. Only added when the

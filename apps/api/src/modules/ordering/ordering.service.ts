@@ -43,6 +43,12 @@ export interface CheckoutDto {
   promoCode?: string;
   /** Storefront "Send me offers by SMS" checkbox → SMS-marketing consent. */
   marketingConsent?: boolean;
+  /**
+   * Optional gratuity, in pounds. Goes to the RESTAURANT, not a courier —
+   * it rides the order total into the brand's own Connect account like the
+   * rest of the basket, so the shop keeps it whatever the delivery method.
+   */
+  tipAmount?: number;
   // Phase AP-8 — when set to "CARD", checkout() returns a Stripe Checkout
   // Session URL the storefront should redirect the browser to. Defaults
   // to "CASH" if absent so existing callers keep working.
@@ -1014,11 +1020,21 @@ export class OrderingService {
     }
     const round2 = (n: number) => Math.round(n * 100) / 100;
     const serverDiscount = round2(Math.max(dto.discount ?? 0, campaignDiscount));
+    // Tip is customer-set, so it's an untrusted number that raises the
+    // charge. Floor at zero, and cap it against the basket rather than
+    // accepting anything: a fat-fingered or tampered value should fail
+    // safe at a generous ceiling, not bill someone hundreds.
+    const goods = round2(dto.subtotal - serverDiscount + serverDeliveryFee);
+    const tipCeiling = round2(Math.max(goods * 2, 50));
+    const serverTip = round2(
+      Math.min(Math.max(Number(dto.tipAmount ?? 0) || 0, 0), tipCeiling),
+    );
     const serverTotal = round2(
       dto.subtotal -
         serverDiscount +
         (dto.taxAmount ?? 0) +
-        serverDeliveryFee,
+        serverDeliveryFee +
+        serverTip,
     );
 
     const order = await this.ordersService.create(
@@ -1038,6 +1054,7 @@ export class OrderingService {
         deliveryFee: serverDeliveryFee,
         discount: serverDiscount,
         total: serverTotal,
+        tipAmount: serverTip,
         specialInstructions: dto.specialInstructions,
         // Phase — thread the customer's chosen schedule through so the
         // order is actually saved as scheduled (was dropped here, which
