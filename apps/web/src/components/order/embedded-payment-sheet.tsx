@@ -172,7 +172,21 @@ function PaymentForm({
       <div className="space-y-4">
         <div className={hasWallet ? "" : "hidden"}>
           <ExpressCheckoutElement
-            options={{ buttonHeight: 48 }}
+            options={{
+              buttonHeight: 48,
+              // "always" = show the wallet even when Stripe can't confirm the
+              // device has it set up. Stripe's default is to hide it, so a
+              // phone with an empty Wallet sees no Apple Pay button at all —
+              // and that is most people who have never used it. Tapping it
+              // opens Apple's "Add a Payment Card" sheet, which is how the
+              // big aggregators do it and how anyone ever starts using Apple
+              // Pay in the first place.
+              //
+              // It also unlocks Apple Pay in Chrome on macOS, which Stripe
+              // suppresses entirely on non-Safari desktop without this.
+              paymentMethods: { applePay: "always" },
+              buttonType: { applePay: "buy", googlePay: "buy" },
+            }}
             onReady={({ availablePaymentMethods }) => {
               const record = (methods: unknown) => {
                 setHasWallet(Boolean(methods));
