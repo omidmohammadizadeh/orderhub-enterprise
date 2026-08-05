@@ -27,6 +27,8 @@ export function PlacingOrderSheet({
     addressLine?: string | null;
     when?: string | null;
     lines: Array<{ quantity: number; name: string }>;
+    /** Shown as its own line so the customer can see what they chose to add. */
+    tip?: number;
     total: number;
   };
   /** Fired once the hold expires, or when they tap to skip the wait. */
@@ -95,6 +97,12 @@ export function PlacingOrderSheet({
               </dd>
             )}
           </div>
+          {!!summary.tip && summary.tip > 0 && (
+            <div className="flex justify-between text-zinc-600">
+              <dt>Tip</dt>
+              <dd className="tabular-nums">£{summary.tip.toFixed(2)}</dd>
+            </div>
+          )}
           <div className="flex justify-between font-semibold text-zinc-900">
             <dt>Total</dt>
             <dd className="tabular-nums">£{summary.total.toFixed(2)}</dd>

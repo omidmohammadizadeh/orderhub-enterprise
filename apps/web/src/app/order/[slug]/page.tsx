@@ -2304,6 +2304,7 @@ function OrderPage() {
               quantity: l.quantity,
               name: l.displayName,
             })),
+            tip: tipAmount,
             total: round2(total + tipAmount),
           }}
           onCommit={() => {
