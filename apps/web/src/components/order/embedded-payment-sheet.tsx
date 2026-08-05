@@ -174,11 +174,31 @@ function PaymentForm({
           <ExpressCheckoutElement
             options={{ buttonHeight: 48 }}
             onReady={({ availablePaymentMethods }) => {
-              setHasWallet(Boolean(availablePaymentMethods));
-              setWalletDebug(
-                availablePaymentMethods
-                  ? JSON.stringify(availablePaymentMethods)
-                  : "none — Stripe offered no wallet at all",
+              const record = (methods: unknown) => {
+                setHasWallet(Boolean(methods));
+                setWalletDebug(
+                  methods
+                    ? JSON.stringify(methods)
+                    : "none — Stripe offered no wallet at all",
+                );
+              };
+              record(availablePaymentMethods);
+
+              // onReady alone is not enough. It fires once, early, and Apple
+              // Pay resolves after it — Safari has to ask the device whether
+              // Wallet holds a usable card. Gating the row on ready meant
+              // Apple Pay could turn up a moment later with nothing listening,
+              // so the row stayed hidden for good. Google Pay resolves fast
+              // enough to land inside ready, which is exactly why that one
+              // worked and Apple Pay never did.
+              //
+              // availablepaymentmethodschange is Stripe's documented signal
+              // for this. The installed react-stripe-js (3.10) has no prop
+              // for it, so subscribe on the element itself.
+              const el = elements?.getElement("expressCheckout") as any;
+              el?.on?.(
+                "availablepaymentmethodschange",
+                (ev: any) => record(ev?.availablePaymentMethods),
               );
             }}
             onConfirm={confirm}
