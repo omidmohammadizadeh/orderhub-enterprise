@@ -239,12 +239,22 @@ export class PaymentsService {
       } catch {
         platformHost = null;
       }
+      // Stripe registers an EXACT host, not a site: "example.com" does not
+      // cover "www.example.com". A shop whose custom domain is stored apex
+      // but served on www would get card-only with nothing to explain it, so
+      // register both spellings of each.
+      const hosts = new Set<string>();
       for (const domain of [platformHost, customDomain?.trim() || null]) {
-        if (!domain) continue;
-        const key = `${stripeAccount}:${domain}`;
+        const host = domain?.trim().toLowerCase().replace(/^https?:\/\//, "");
+        if (!host) continue;
+        hosts.add(host);
+        hosts.add(host.startsWith("www.") ? host.slice(4) : `www.${host}`);
+      }
+      for (const host of hosts) {
+        const key = `${stripeAccount}:${host}`;
         if (seen.has(key)) continue;
         seen.add(key);
-        void this.registerApplePayDomain(domain, stripeAccount);
+        void this.registerApplePayDomain(host, stripeAccount);
       }
     } catch (err: any) {
       this.logger.warn(

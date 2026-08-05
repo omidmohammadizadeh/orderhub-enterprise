@@ -205,6 +205,31 @@ describe("createStorefrontPaymentIntent", () => {
     expect(calls.every((c) => c.opts?.stripeAccount === "acct_brand")).toBe(true);
   });
 
+  it("registers both the apex and www spellings of a domain", async () => {
+    // Stripe registers an exact host, not a site. A shop stored apex but
+    // served on www gets card-only, with nothing anywhere to say why.
+    const { svc } = makeService({
+      order: {
+        id: "o1",
+        tenantId: TENANT,
+        locationId: "loc1",
+        total: 24,
+        location: { applicationFeeMode: "none" },
+        brand: { id: "b1", applicationFeeMode: "none", customDomain: "shop.co.uk" },
+      },
+    });
+    const domains: string[] = [];
+    svc.stripe.paymentMethodDomains = {
+      create: async (body: any) => {
+        domains.push(body.domain_name);
+        return { apple_pay: { status: "active" } };
+      },
+    };
+    await svc.createStorefrontPaymentIntent({ tenantId: TENANT, orderId: "o1" });
+    expect(domains).toContain("shop.co.uk");
+    expect(domains).toContain("www.shop.co.uk");
+  });
+
   it("refuses when the brand has no Connect account", async () => {
     const { svc } = makeService({ connect: null });
     await expect(
