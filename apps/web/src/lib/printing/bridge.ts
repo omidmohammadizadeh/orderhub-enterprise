@@ -885,6 +885,8 @@ export function buildOrderReceipt(
   showRow("Subtotal", payload?.subtotal);
   if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0)
     showRow("Delivery", payload.deliveryFee);
+  if (typeof payload?.tipAmount === "number" && payload.tipAmount > 0)
+    showRow("Tip", payload.tipAmount);
   // Service charge is its own line so a customer querying the bill can see
   // exactly what the extra was.
   if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0)
@@ -1138,6 +1140,8 @@ export function buildOrderReceiptStar(
   showRow("Subtotal", payload?.subtotal);
   if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0)
     showRow("Delivery", payload.deliveryFee);
+  if (typeof payload?.tipAmount === "number" && payload.tipAmount > 0)
+    showRow("Tip", payload.tipAmount);
   // Star renderer needs the same service-charge line as ESC/POS, or a Star
   // shop's bill silently wouldn't add up.
   if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0)

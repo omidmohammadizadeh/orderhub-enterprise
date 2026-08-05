@@ -194,6 +194,9 @@ export function buildPrintPayload(
     })),
     subtotal: Number((order as any).subtotal ?? 0),
     deliveryFee: Number((order as any).deliveryFee ?? 0),
+    // The customer's gratuity. Without this the ticket totals don't add up
+    // and staff can't see they were tipped.
+    tipAmount: Number((order as any).tipAmount ?? 0),
     // Service charge prints as its own line — a customer querying the bill
     // must be able to see what the extra was for.
     serviceCharge: Number((order as any).serviceCharge ?? 0),
