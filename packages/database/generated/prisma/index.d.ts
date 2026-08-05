@@ -25719,6 +25719,7 @@ export namespace Prisma {
     cuisine: number
     isSuspended: number
     primaryLocationId: number
+    topSellerItemIds: number
     onlineOrderingSlug: number
     directOrderingEnabled: number
     about: number
@@ -25840,6 +25841,7 @@ export namespace Prisma {
     cuisine?: true
     isSuspended?: true
     primaryLocationId?: true
+    topSellerItemIds?: true
     onlineOrderingSlug?: true
     directOrderingEnabled?: true
     about?: true
@@ -25964,6 +25966,7 @@ export namespace Prisma {
     cuisine: string | null
     isSuspended: boolean
     primaryLocationId: string | null
+    topSellerItemIds: string[]
     onlineOrderingSlug: string | null
     directOrderingEnabled: boolean
     about: string | null
@@ -26020,6 +26023,7 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    topSellerItemIds?: boolean
     onlineOrderingSlug?: boolean
     directOrderingEnabled?: boolean
     about?: boolean
@@ -26073,6 +26077,7 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    topSellerItemIds?: boolean
     onlineOrderingSlug?: boolean
     directOrderingEnabled?: boolean
     about?: boolean
@@ -26112,6 +26117,7 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    topSellerItemIds?: boolean
     onlineOrderingSlug?: boolean
     directOrderingEnabled?: boolean
     about?: boolean
@@ -26191,6 +26197,7 @@ export namespace Prisma {
       cuisine: string | null
       isSuspended: boolean
       primaryLocationId: string | null
+      topSellerItemIds: string[]
       onlineOrderingSlug: string | null
       directOrderingEnabled: boolean
       about: string | null
@@ -26633,6 +26640,7 @@ export namespace Prisma {
     readonly cuisine: FieldRef<"Brand", 'String'>
     readonly isSuspended: FieldRef<"Brand", 'Boolean'>
     readonly primaryLocationId: FieldRef<"Brand", 'String'>
+    readonly topSellerItemIds: FieldRef<"Brand", 'String[]'>
     readonly onlineOrderingSlug: FieldRef<"Brand", 'String'>
     readonly directOrderingEnabled: FieldRef<"Brand", 'Boolean'>
     readonly about: FieldRef<"Brand", 'String'>
@@ -145324,6 +145332,7 @@ export namespace Prisma {
     cuisine: 'cuisine',
     isSuspended: 'isSuspended',
     primaryLocationId: 'primaryLocationId',
+    topSellerItemIds: 'topSellerItemIds',
     onlineOrderingSlug: 'onlineOrderingSlug',
     directOrderingEnabled: 'directOrderingEnabled',
     about: 'about',
@@ -147731,6 +147740,7 @@ export namespace Prisma {
     description: 'description',
     cuisine: 'cuisine',
     primaryLocationId: 'primaryLocationId',
+    topSellerItemIds: 'topSellerItemIds',
     onlineOrderingSlug: 'onlineOrderingSlug',
     about: 'about',
     phone: 'phone',
@@ -151074,6 +151084,7 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    topSellerItemIds?: StringNullableListFilter<"Brand">
     onlineOrderingSlug?: StringNullableFilter<"Brand"> | string | null
     directOrderingEnabled?: BoolFilter<"Brand"> | boolean
     about?: StringNullableFilter<"Brand"> | string | null
@@ -151126,6 +151137,7 @@ export namespace Prisma {
     cuisine?: SortOrderInput | SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrderInput | SortOrder
+    topSellerItemIds?: SortOrder
     onlineOrderingSlug?: SortOrderInput | SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrderInput | SortOrder
@@ -151184,6 +151196,7 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    topSellerItemIds?: StringNullableListFilter<"Brand">
     directOrderingEnabled?: BoolFilter<"Brand"> | boolean
     about?: StringNullableFilter<"Brand"> | string | null
     phone?: StringNullableFilter<"Brand"> | string | null
@@ -151235,6 +151248,7 @@ export namespace Prisma {
     cuisine?: SortOrderInput | SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrderInput | SortOrder
+    topSellerItemIds?: SortOrder
     onlineOrderingSlug?: SortOrderInput | SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrderInput | SortOrder
@@ -151280,6 +151294,7 @@ export namespace Prisma {
     cuisine?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     isSuspended?: BoolWithAggregatesFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    topSellerItemIds?: StringNullableListFilter<"Brand">
     onlineOrderingSlug?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     directOrderingEnabled?: BoolWithAggregatesFilter<"Brand"> | boolean
     about?: StringNullableWithAggregatesFilter<"Brand"> | string | null
@@ -163980,6 +163995,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -164031,6 +164047,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -164080,6 +164097,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -164131,6 +164149,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -164181,6 +164200,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -164217,6 +164237,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -164253,6 +164274,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -178795,6 +178817,7 @@ export namespace Prisma {
     cuisine?: SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrder
+    topSellerItemIds?: SortOrder
     onlineOrderingSlug?: SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrder
@@ -188933,6 +188956,10 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAuditLogsInput, UserUpdateWithoutAuditLogsInput>, UserUncheckedUpdateWithoutAuditLogsInput>
   }
 
+  export type BrandCreatetopSellerItemIdsInput = {
+    set: string[]
+  }
+
   export type TenantCreateNestedOneWithoutBrandsInput = {
     create?: XOR<TenantCreateWithoutBrandsInput, TenantUncheckedCreateWithoutBrandsInput>
     connectOrCreate?: TenantCreateOrConnectWithoutBrandsInput
@@ -189123,6 +189150,11 @@ export namespace Prisma {
     connectOrCreate?: SignageDisplayCreateOrConnectWithoutBrandInput | SignageDisplayCreateOrConnectWithoutBrandInput[]
     createMany?: SignageDisplayCreateManyBrandInputEnvelope
     connect?: SignageDisplayWhereUniqueInput | SignageDisplayWhereUniqueInput[]
+  }
+
+  export type BrandUpdatetopSellerItemIdsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type NullableDecimalFieldUpdateOperationsInput = {
@@ -196504,6 +196536,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -196553,6 +196586,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -197636,6 +197670,7 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    topSellerItemIds?: StringNullableListFilter<"Brand">
     onlineOrderingSlug?: StringNullableFilter<"Brand"> | string | null
     directOrderingEnabled?: BoolFilter<"Brand"> | boolean
     about?: StringNullableFilter<"Brand"> | string | null
@@ -199733,6 +199768,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -199783,6 +199819,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -199910,6 +199947,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -199960,6 +199998,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -202675,6 +202714,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -202725,6 +202765,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -204061,6 +204102,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -204111,6 +204153,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -205058,6 +205101,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -205108,6 +205152,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -205341,6 +205386,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -205391,6 +205437,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -205958,6 +206005,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -206008,6 +206056,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -206216,6 +206265,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -206266,6 +206316,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -206935,6 +206986,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -206985,6 +207037,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -207134,6 +207187,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -207184,6 +207238,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -209098,6 +209153,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -209148,6 +209204,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -209406,6 +209463,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -209456,6 +209514,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -210431,6 +210490,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -210481,6 +210541,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -210545,6 +210606,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -210595,6 +210657,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -210643,6 +210706,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -210693,6 +210757,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -210757,6 +210822,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -210807,6 +210873,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -211727,6 +211794,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -211777,6 +211845,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -212016,6 +212085,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -212066,6 +212136,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -212507,6 +212578,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -212557,6 +212629,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -212728,6 +212801,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -212778,6 +212852,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -213504,6 +213579,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -213554,6 +213630,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -213793,6 +213870,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -213843,6 +213921,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -214553,6 +214632,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -214603,6 +214683,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -215290,6 +215371,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215340,6 +215422,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216842,6 +216925,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -216892,6 +216976,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -217131,6 +217216,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217181,6 +217267,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -221076,6 +221163,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -221126,6 +221214,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -230889,6 +230978,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -231260,6 +231350,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -231309,6 +231400,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -231358,6 +231450,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238466,6 +238559,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
@@ -238643,6 +238737,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238693,6 +238788,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238742,6 +238838,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null

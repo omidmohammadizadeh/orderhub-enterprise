@@ -377,6 +377,13 @@ model Brand {
   isSuspended       Boolean @default(false)
   primaryLocationId String?
 
+  // Items the operator has pinned as "Top sellers" on the storefront —
+  // shown above every category, Glovo-style. Bare MenuItem ids rather than a
+  // relation: the list is a merchandising choice, not a catalogue fact, and
+  // an item that later leaves the menu should just stop appearing rather
+  // than block its own deletion. Order is the display order.
+  topSellerItemIds String[] @default([])
+
   // Phase AS-6 — brand-level public storefront. Mirrors the per-location
   // pattern (Location.onlineOrderingSlug / directOrderingConfig) so a
   // virtual brand running out of a shared kitchen can have its own

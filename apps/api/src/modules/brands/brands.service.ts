@@ -62,6 +62,8 @@ export interface UpdateBrandDto {
   applicationFeeFixedAmount?: number | null;
   applicationFeePercentage?: number | null;
   applicationFeeMode?: string;
+  // Storefront "Top sellers" rail — MenuItem ids in display order.
+  topSellerItemIds?: string[];
   // Phase AW-16 — brand-level opening hours + prep time. Published
   // through to HubRise (+ future channels) via /v1/brands/:id/publish-hours.
   openingHours?: any;
@@ -322,6 +324,13 @@ export class BrandsService {
           primaryLocationId: dto.primaryLocationId,
         }),
         ...(dto.metadata && { metadata: dto.metadata as any }),
+        // Top sellers rail. Filtered to real, still-live ids at write time so
+        // a stale pick can't survive in the column and show a ghost row.
+        ...(dto.topSellerItemIds !== undefined && {
+          topSellerItemIds: Array.from(
+            new Set(dto.topSellerItemIds.filter((id) => typeof id === "string" && id)),
+          ),
+        }),
         // Phase AS-6 — brand-level storefront fields. Stored on the
         // Brand row so the public /brand/<slug> route can resolve the
         // brand without joining DirectOrderingConfig (that table is

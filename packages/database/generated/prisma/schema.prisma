@@ -377,6 +377,13 @@ model Brand {
   isSuspended       Boolean @default(false)
   primaryLocationId String?
 
+  // Items the operator has pinned as "Top sellers" on the storefront —
+  // shown above every category, Glovo-style. Bare MenuItem ids rather than a
+  // relation: the list is a merchandising choice, not a catalogue fact, and
+  // an item that later leaves the menu should just stop appearing rather
+  // than block its own deletion. Order is the display order.
+  topSellerItemIds String[] @default([])
+
   // Phase AS-6 — brand-level public storefront. Mirrors the per-location
   // pattern (Location.onlineOrderingSlug / directOrderingConfig) so a
   // virtual brand running out of a shared kitchen can have its own
@@ -722,7 +729,7 @@ model Menu {
   productModifierGroupLinks  Json             @default("[]")
   modifierGroupModifierLinks Json             @default("[]")
 
-  // ── External platform refs ──────────���──────────────────────────────────
+  // ── External platform refs ─────────────────────────────────────────────
   // Source / dedup keys used by import. platformSource = uber / deliveroo /
   // hubrise. externalId is the platform's own menu id; externalParentId is
   // the platform's parent (e.g. brand id for Deliveroo).
@@ -1681,7 +1688,7 @@ model DeliveryZone {
   @@map("delivery_zones")
 }
 
-// ── LocationPaymentConfig (Phase AM) ───��─────────────────────────────────────
+// ── LocationPaymentConfig (Phase AM) ─────────────────────────────────────────
 // One row per location holding the merchant's payment provider preference.
 // Secrets/credentials stay in the existing `integrations` row — this only
 // tracks selection + which methods (cash/card terminal/online) are enabled.
@@ -2454,7 +2461,7 @@ enum AlertTrigger {
   FAILED_PRINT
 }
 
-// ── AgentPairCode ────────────────────────────────────────────────────
+// ���─ AgentPairCode ────────────────────────────────────────────────────
 // Phase AS-3. Short-lived pairing token. Operator generates one from
 // the dashboard; the agent binary scans the QR (or the operator types
 // the code) and POSTs it back to /v1/print-agents/pair to receive a
@@ -3321,7 +3328,7 @@ model StripeWebhookEvent {
   @@map("stripe_webhook_events")
 }
 
-// ══════════════════��═══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — ENTERPRISE SECURITY
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -4518,7 +4525,7 @@ model GroupOrderItem {
   @@map("group_order_items")
 }
 
-// ════════════════════════════════════════════════════��═════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE AX — CUSTOMER WEB PUSH (PWA order updates)
 // ══════════════════════════════════════════════════════════════════════════════
 

@@ -137,6 +137,7 @@ export class OrderingService {
             openingHours: true,
             prepTime: true,
             busyExtraPrepTime: true,
+            topSellerItemIds: true,
           },
         },
       },
@@ -177,6 +178,7 @@ export class OrderingService {
             openingHours: true,
             prepTime: true,
             busyExtraPrepTime: true,
+            topSellerItemIds: true,
           },
         })
       : null;
@@ -300,6 +302,30 @@ export class OrderingService {
         channel: "ONLINE",
       });
       if (variantMap) this.applyVariantPriceOverrides(menu, variantMap);
+    }
+
+    // "Top sellers" — the items the operator pinned above the menu.
+    //
+    // Resolved from the live menu rather than fetched separately, so a pick
+    // that has since been removed from the menu, 86'd or hidden simply stops
+    // appearing instead of rendering a row the customer can't order. Kept in
+    // the operator's chosen order, which is the whole point of the feature.
+    const topSellerSource: any = overrideBrand ?? (location as any).brand;
+    const topSellerIds: string[] = Array.isArray(topSellerSource?.topSellerItemIds)
+      ? (topSellerSource.topSellerItemIds as string[])
+      : [];
+    const topSellers: any[] = [];
+    if (topSellerIds.length && menu) {
+      const onMenu = new Map<string, any>();
+      for (const cat of (menu as any).categories ?? []) {
+        for (const link of cat.items ?? []) {
+          if (link?.item?.id) onMenu.set(link.item.id, link.item);
+        }
+      }
+      for (const id of topSellerIds) {
+        const item = onMenu.get(id);
+        if (item) topSellers.push(item);
+      }
     }
 
     // Phase AP — surface the direct-ordering config + delivery zones so
@@ -735,6 +761,7 @@ export class OrderingService {
       directConfig,
       deliveryZones,
       brandModifierGroups,
+      topSellers,
       campaign,
       itemPromos: itemPromosAnchored,
       bogo,
