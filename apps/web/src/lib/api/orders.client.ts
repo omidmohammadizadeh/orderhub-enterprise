@@ -53,6 +53,8 @@ export interface Order {
   subtotal: number;
   taxAmount: number;
   deliveryFee: number;
+  /** Customer gratuity, kept by the restaurant. */
+  tipAmount?: number;
   discount: number;
   total: number;
   specialInstructions?: string | null;
@@ -105,6 +107,11 @@ function normaliseOrder(o: Order): Order {
     subtotal: n(o.subtotal),
     taxAmount: n(o.taxAmount),
     deliveryFee: n(o.deliveryFee),
+    // Coerced like every other money field: Prisma serialises Decimal as a
+    // string, and a spread alone would leave "1.10" where a number is
+    // expected. Declared explicitly so it can't be dropped by a future
+    // field-by-field rebuild the way it was here.
+    tipAmount: n((o as any).tipAmount),
     discount: n(o.discount),
     total: n(o.total),
     items: o.items?.map((i) => ({
