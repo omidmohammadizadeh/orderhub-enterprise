@@ -99,6 +99,7 @@ function PaymentForm({
   orderId,
   slug,
   brandId,
+  stripeAccountId,
   onPaid,
   onCancel,
 }: EmbeddedPaymentSheetProps) {
@@ -111,6 +112,15 @@ function PaymentForm({
   // the element renders nothing, so the "or pay by card" divider would be
   // captioning empty space.
   const [hasWallet, setHasWallet] = useState(false);
+  // What Stripe actually decided was available, surfaced on ?walletDebug=1.
+  // Apple Pay failing is invisible by design — the button just isn't there —
+  // and the causes (domain not registered for THIS shop's account, no card in
+  // Wallet, wrong browser) are indistinguishable from the outside. Reading it
+  // off the phone beats another round of guessing.
+  const [walletDebug, setWalletDebug] = useState<string | null>(null);
+  const debugOn =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("walletDebug");
 
   // 3-D Secure can force a full redirect even from an embedded flow. Send
   // those customers to the same confirmation route the hosted flow used —
@@ -163,9 +173,14 @@ function PaymentForm({
         <div className={hasWallet ? "" : "hidden"}>
           <ExpressCheckoutElement
             options={{ buttonHeight: 48 }}
-            onReady={({ availablePaymentMethods }) =>
-              setHasWallet(Boolean(availablePaymentMethods))
-            }
+            onReady={({ availablePaymentMethods }) => {
+              setHasWallet(Boolean(availablePaymentMethods));
+              setWalletDebug(
+                availablePaymentMethods
+                  ? JSON.stringify(availablePaymentMethods)
+                  : "none — Stripe offered no wallet at all",
+              );
+            }}
             onConfirm={confirm}
             onCancel={() => setBusy(false)}
           />
@@ -179,6 +194,14 @@ function PaymentForm({
         </div>
 
         <PaymentElement options={{ layout: "tabs" }} />
+
+        {debugOn && (
+          <pre className="overflow-x-auto whitespace-pre-wrap rounded-md bg-zinc-100 p-2 text-[10px] text-zinc-700">
+            {`wallets: ${walletDebug ?? "onReady never fired"}
+account: ${stripeAccountId}
+host:    ${typeof window !== "undefined" ? window.location.host : "?"}`}
+          </pre>
+        )}
 
         {error && <p className="text-[12px] text-red-600">{error}</p>}
 
