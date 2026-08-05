@@ -162,6 +162,8 @@ export interface Brand {
   applicationFeeFixedAmount?: number | string | null;
   applicationFeePercentage?: number | string | null;
   applicationFeeMode?: string;
+  /** Storefront "Top sellers" rail — MenuItem ids, in display order. */
+  topSellerItemIds?: string[];
   // Phase AW-16 — brand-level hours + prep time. openingHours is an
   // object keyed by lowercase weekday name with arrays of
   // {from, to} time strings, mirroring HubRise's expected shape.

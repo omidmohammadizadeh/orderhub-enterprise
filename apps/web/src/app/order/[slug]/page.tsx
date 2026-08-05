@@ -767,6 +767,32 @@ function OrderPage() {
     [storefront?.menu?.categories],
   );
 
+  // The two rails above the menu.
+  //
+  // Top sellers come already resolved and ordered from the API — it filters
+  // the operator's picks against the live menu, so anything pulled or 86'd is
+  // gone before it reaches us. Promotions are derived here instead, from the
+  // campaign map the page already computes, so the rail and the per-item
+  // badges can never disagree about what's discounted.
+  const topSellers: MenuItem[] = useMemo(
+    () => ((storefront as any)?.topSellers ?? []) as MenuItem[],
+    [storefront],
+  );
+  const promoItems: MenuItem[] = useMemo(() => {
+    const seen = new Set<string>();
+    const out: MenuItem[] = [];
+    for (const cat of allCategories) {
+      for (const link of (cat as any).items ?? []) {
+        const item = link?.item as MenuItem | undefined;
+        if (!item?.id || seen.has(item.id)) continue;
+        if (!itemPromos[item.id]) continue;
+        seen.add(item.id);
+        out.push(item);
+      }
+    }
+    return out;
+  }, [allCategories, itemPromos]);
+
   const visibleItems = useMemo(() => {
     const q = search.trim().toLowerCase();
     const lists: Array<{ cat: MenuCategory; items: MenuItem[] }> = [];
@@ -1828,6 +1854,41 @@ function OrderPage() {
 
         {/* Product grid */}
         <div className="space-y-8 pb-24 pt-4">
+          {/* Promotions and Top sellers lead the menu, above every category —
+              the two things a browsing customer responds to first. Both are
+              hidden while a specific category or a search is active, so they
+              never sit between the customer and what they asked for. */}
+          {activeCategory === "all" && !search.trim() && (
+            <>
+              {promoItems.length > 0 && (
+                <section id="category-promotions">
+                  <h2 className="mb-3 text-lg font-bold text-zinc-900">
+                    Promotions
+                  </h2>
+                  <ItemRail
+                    items={promoItems}
+                    itemPromos={itemPromos}
+                    showImage={cfg?.showItemImages ?? true}
+                    onPick={handleProductClick}
+                  />
+                </section>
+              )}
+              {topSellers.length > 0 && (
+                <section id="category-top-sellers">
+                  <h2 className="mb-3 text-lg font-bold text-zinc-900">
+                    Top sellers
+                  </h2>
+                  <ItemRail
+                    items={topSellers}
+                    itemPromos={itemPromos}
+                    showImage={cfg?.showItemImages ?? true}
+                    onPick={handleProductClick}
+                  />
+                </section>
+              )}
+            </>
+          )}
+
           {visibleItems.length === 0 ? (
             <p className="py-16 text-center text-sm text-zinc-400">
               No items match your search.
@@ -1845,18 +1906,36 @@ function OrderPage() {
                     Nothing in {cat.name} yet — check back soon.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {items.map((item) => (
-                      <ProductCard
-                        key={item.id}
-                        item={item}
-                        promo={itemPromos[item.id] ?? null}
-                        bogoTrigger={bogoTriggerSet.has(item.id)}
-                        showImage={cfg?.showItemImages ?? true}
-                        onClick={() => handleProductClick(item)}
-                      />
-                    ))}
-                  </div>
+                  <>
+                    {/* Phones get a list, not a grid. A card per row wastes
+                        most of a 375px screen on padding and image, so the
+                        customer scrolls past three items where a row layout
+                        shows six — the same shape the table-ordering page
+                        already uses. Desktop keeps the card grid. */}
+                    <div className="divide-y divide-zinc-100 sm:hidden">
+                      {items.map((item) => (
+                        <StoreItemRow
+                          key={item.id}
+                          item={item}
+                          promo={itemPromos[item.id] ?? null}
+                          showImage={cfg?.showItemImages ?? true}
+                          onClick={() => handleProductClick(item)}
+                        />
+                      ))}
+                    </div>
+                    <div className="hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+                      {items.map((item) => (
+                        <ProductCard
+                          key={item.id}
+                          item={item}
+                          promo={itemPromos[item.id] ?? null}
+                          bogoTrigger={bogoTriggerSet.has(item.id)}
+                          showImage={cfg?.showItemImages ?? true}
+                          onClick={() => handleProductClick(item)}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </section>
             ))
@@ -2241,6 +2320,187 @@ function CategoryChip({
       )}
     >
       {children}
+    </button>
+  );
+}
+
+/**
+ * A menu item as a list row — the phone layout.
+ *
+ * Text leads and the image sits right, which is what a customer scanning a
+ * menu on a phone actually reads: name, price, then the picture to confirm.
+ * The add button overlays the image corner so the whole row stays tappable
+ * without a separate control stealing width.
+ */
+/**
+ * A horizontally-scrolling strip of items — Promotions and Top sellers.
+ *
+ * A rail rather than a grid on purpose: these sections sit above the menu, and
+ * a grid of six would push the actual categories off the first screen. Scroll
+ * snapping keeps the cards aligned as the customer flicks through.
+ */
+function ItemRail({
+  items,
+  itemPromos,
+  showImage,
+  onPick,
+}: {
+  items: MenuItem[];
+  itemPromos: Record<string, { percentageOff: number; campaignName: string }>;
+  showImage?: boolean;
+  onPick: (item: MenuItem) => void;
+}) {
+  return (
+    <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+      {items.map((item) => {
+        const promo = itemPromos[item.id] ?? null;
+        const { amount: base, from: fromSize } = displayPrice(item as any);
+        const hasPromo = !!promo && promo.percentageOff > 0;
+        const discounted = hasPromo
+          ? Math.round(base * (1 - promo.percentageOff / 100) * 100) / 100
+          : base;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onPick(item)}
+            disabled={item.outOfStock}
+            className="w-[150px] flex-shrink-0 snap-start text-left disabled:opacity-50 sm:w-[170px]"
+          >
+            {showImage !== false && (
+              <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100">
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="grid h-full w-full place-items-center text-zinc-300">
+                    <ShoppingBag className="h-7 w-7" />
+                  </div>
+                )}
+                {!item.outOfStock && (
+                  <span className="absolute bottom-1.5 right-1.5 grid h-8 w-8 place-items-center rounded-full bg-white text-zinc-900 shadow-md">
+                    <Plus className="h-4 w-4" />
+                  </span>
+                )}
+              </div>
+            )}
+            <p className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug text-zinc-900">
+              {item.name}
+            </p>
+            <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
+              {fromSize && (
+                <span className="text-[10px] font-medium text-zinc-500">From</span>
+              )}
+              <span
+                className={`text-[13px] font-bold ${hasPromo ? "text-red-600" : "text-zinc-900"}`}
+              >
+                £{discounted.toFixed(2)}
+              </span>
+              {hasPromo && (
+                <span className="text-[12px] text-zinc-400 line-through">
+                  £{base.toFixed(2)}
+                </span>
+              )}
+            </div>
+            {hasPromo && (
+              <span className="mt-1 inline-block rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                -{promo.percentageOff}%
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function StoreItemRow({
+  item,
+  promo,
+  showImage,
+  onClick,
+}: {
+  item: MenuItem;
+  promo: { percentageOff: number; campaignName: string } | null;
+  showImage?: boolean;
+  onClick: () => void;
+}) {
+  const { amount: base, from: fromSize } = displayPrice(item as any);
+  const hasPromo = !!promo && promo.percentageOff > 0;
+  const discounted = hasPromo
+    ? Math.round(base * (1 - promo!.percentageOff / 100) * 100) / 100
+    : base;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={item.outOfStock}
+      className="flex w-full items-start gap-3 py-3 text-left disabled:opacity-50"
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-2">
+          <h3 className="min-w-0 flex-1 text-[15px] font-semibold leading-snug text-zinc-900">
+            {item.name}
+          </h3>
+          {item.outOfStock && (
+            <span className="mt-0.5 flex-shrink-0 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+              Sold out
+            </span>
+          )}
+        </div>
+        {item.description && (
+          <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-zinc-500">
+            {item.description}
+          </p>
+        )}
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          {fromSize && (
+            <span className="text-[11px] font-medium text-zinc-500">From</span>
+          )}
+          <span
+            className={`text-[15px] font-bold ${hasPromo ? "text-red-600" : "text-zinc-900"}`}
+          >
+            £{discounted.toFixed(2)}
+          </span>
+          {hasPromo && (
+            <>
+              <span className="text-[13px] text-zinc-400 line-through">
+                £{base.toFixed(2)}
+              </span>
+              <span className="rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                -{promo!.percentageOff}%
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {showImage !== false && (
+        <div className="relative h-[88px] w-[88px] flex-shrink-0 overflow-hidden rounded-xl bg-zinc-100">
+          {item.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.imageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="grid h-full w-full place-items-center text-zinc-300">
+              <ShoppingBag className="h-6 w-6" />
+            </div>
+          )}
+          {!item.outOfStock && (
+            <span className="absolute bottom-1 right-1 grid h-7 w-7 place-items-center rounded-full bg-white text-zinc-900 shadow-md">
+              <Plus className="h-4 w-4" />
+            </span>
+          )}
+        </div>
+      )}
     </button>
   );
 }

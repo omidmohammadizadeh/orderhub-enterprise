@@ -36,6 +36,7 @@ import {
   type CampaignMetricsMap,
 } from "@/lib/api/marketing.client";
 import { EditCampaignModal } from "@/components/marketing/edit-campaign-modal";
+import { TopSellersPanel } from "@/components/marketing/top-sellers-panel";
 import { PercentageOffCampaignForm } from "@/components/marketing/percentage-off-form";
 import { AmountOffCampaignForm } from "@/components/marketing/amount-off-form";
 import { PercentOffItemsCampaignForm } from "@/components/marketing/percent-off-items-form";
@@ -195,6 +196,12 @@ export default function MarketingPage() {
         >
           <Plus className="h-4 w-4" /> New campaign
         </button>
+      </div>
+
+      {/* Top sellers sits above campaigns: it's merchandising the operator
+          changes far more often than they launch an offer. */}
+      <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4">
+        <TopSellersPanel />
       </div>
 
       {isLoading ? (
