@@ -100,6 +100,44 @@ describe("HubRise image source — stale catalog", () => {
     expect(bytes?.contentType).toBe("image/jpeg");
   });
 
+  it("reads a sibling brand's catalog when the publishing token can't", async () => {
+    // The real Castle Grill case: the master menu's Greek Gyros and Monster
+    // Burgerz items were imported under those brands' OWN HubRise accounts,
+    // so the publishing location's token gets 404 on their catalog and no
+    // Location row points at it any more either.
+    const svc = makeService();
+    svc.fetchHubRiseImage = async () => {
+      throw new Error("HubRise catalog not found");
+    };
+    svc.credentialEncryption = {
+      decrypt: (c: any) => ({ accessToken: c.t }),
+    };
+    svc.prisma = {
+      location: {
+        findMany: async () => [
+          { id: "loc-other", hubriseCredentials: { t: "sibling-tok" } },
+        ],
+      },
+    };
+    global.fetch = (async (url: string, init: any) => {
+      const token = init?.headers?.["X-Access-Token"];
+      // Only the sibling brand's token can read catalog 1273j.
+      if (token !== "sibling-tok") return { ok: false, status: 404 };
+      return {
+        ok: true,
+        arrayBuffer: async () => new Uint8Array([0xff, 0xd8, 0xff]).buffer,
+        headers: { get: () => "image/jpeg" },
+      };
+    }) as any;
+
+    const bytes = await svc.resolveImageBytes(
+      "/api/v1/menus/hubrise-image/1273j/bnb3em3",
+      "publishing-tok",
+      "tenant-1",
+    );
+    expect(bytes?.contentType).toBe("image/jpeg");
+  });
+
   it("falls back to the catalog-id lookup when there's no token", async () => {
     // The public image proxy has no publishing context, so the original
     // resolution path has to stay intact.

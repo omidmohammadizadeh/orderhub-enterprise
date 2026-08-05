@@ -697,6 +697,7 @@ export class HubRiseCatalogService {
     jobs: Array<{ product: HubRiseProduct; src: string; itemId?: string }>,
     catalogId: string,
     accessToken: string,
+    tenantId?: string,
   ): Promise<number> {
     const cache = new Map<string, string | null>(); // source URL → new image id
     let uploaded = 0;
@@ -705,7 +706,7 @@ export class HubRiseCatalogService {
       let newId = cache.get(src);
       if (newId === undefined) {
         try {
-          const bytes = await this.resolveImageBytes(src, accessToken);
+          const bytes = await this.resolveImageBytes(src, accessToken, tenantId);
           // Stable ref so HubRise dedupes if the same image is re-uploaded.
           const privateRef = createHash("md5").update(src).digest("hex").slice(0, 24);
           newId = bytes
@@ -746,8 +747,9 @@ export class HubRiseCatalogService {
     jobs: Array<{ product: HubRiseProduct; src: string; itemId?: string }>,
     menuName: string,
     data: HubRiseCatalogData,
+    tenantId?: string,
   ): Promise<void> {
-    const uploaded = await this.attachProductImages(jobs, catalogId, accessToken);
+    const uploaded = await this.attachProductImages(jobs, catalogId, accessToken, tenantId);
     if (uploaded > 0) {
       await this.callHubRise("PUT", `/catalogs/${catalogId}`, credentials, {
         name: menuName,
@@ -773,6 +775,7 @@ export class HubRiseCatalogService {
   private async resolveImageBytes(
     src: string,
     accessToken?: string,
+    tenantId?: string,
   ): Promise<{ buffer: Buffer; contentType: string } | null> {
     const m = src.match(/hubrise-image\/([^/]+)\/([^/?#]+)/);
     if (m && m[1] && m[2]) {
@@ -783,6 +786,18 @@ export class HubRiseCatalogService {
           accessToken,
         ).catch(() => null);
         if (direct) return direct;
+      }
+      // The publishing token couldn't read it, so the catalog belongs to a
+      // different HubRise account — which is the normal case for a master
+      // menu assembled from brands that each connected HubRise separately.
+      // Try this tenant's other HubRise connections before giving up.
+      if (tenantId) {
+        const viaSibling = await this.fetchCatalogImageAcrossTenant(
+          m[1],
+          m[2],
+          tenantId,
+        );
+        if (viaSibling) return viaSibling;
       }
       return this.fetchHubRiseImage(m[1], m[2]);
     }
@@ -821,6 +836,80 @@ export class HubRiseCatalogService {
       buffer: Buffer.from(await res.arrayBuffer()),
       contentType: res.headers.get("content-type") ?? "image/jpeg",
     };
+  }
+
+  /**
+   * Last resort: try every HubRise connection this TENANT has until one can
+   * read the catalog.
+   *
+   * A master menu is assembled from menus that were imported for different
+   * brands, and each brand connected HubRise on its own account. The catalog
+   * an image was imported from therefore usually belongs to a sibling
+   * location, not the one being published — and Location.hubriseCatalogId
+   * only ever holds that location's CURRENT catalog, so once it republishes,
+   * nothing in the database points at the old catalog at all.
+   *
+   * Scoped to the tenant on purpose: this walks stored credentials, so it
+   * must never reach another operator's account. The winning token is cached
+   * per catalog so a 60-image menu costs one search, not sixty.
+   */
+  // Lazily created, not a field initialiser: this class is also constructed
+  // via Object.create in tests, and an undefined Map here would throw inside
+  // the image loop — which is caught and logged, so it would show up as
+  // "image dropped" rather than as the bug it is.
+  private catalogTokenCache?: Map<string, string>;
+
+  private async fetchCatalogImageAcrossTenant(
+    catalogId: string,
+    imageId: string,
+    tenantId: string,
+  ): Promise<{ buffer: Buffer; contentType: string } | null> {
+    const tokenCache = (this.catalogTokenCache ??= new Map<string, string>());
+    const cached = tokenCache.get(catalogId);
+    if (cached) {
+      const hit = await this.fetchCatalogImageWithToken(
+        catalogId,
+        imageId,
+        cached,
+      ).catch(() => null);
+      if (hit) return hit;
+    }
+
+    const locations = await (this.prisma as any).location.findMany({
+      where: {
+        brand: { tenantId },
+        hubriseCredentials: { not: null } as any,
+        deletedAt: null,
+      },
+      select: { id: true, hubriseCredentials: true },
+      take: 50,
+    });
+
+    for (const loc of locations) {
+      let token: string | undefined;
+      try {
+        const decrypted = this.credentialEncryption.decrypt(
+          (loc.hubriseCredentials ?? {}) as Record<string, unknown>,
+        ) as Record<string, string>;
+        token = decrypted.accessToken;
+      } catch {
+        continue;
+      }
+      if (!token || token === cached) continue;
+      const hit = await this.fetchCatalogImageWithToken(
+        catalogId,
+        imageId,
+        token,
+      ).catch(() => null);
+      if (hit) {
+        tokenCache.set(catalogId, token);
+        this.logger.log(
+          `HubRise catalog ${catalogId} resolved via sibling location ${loc.id}`,
+        );
+        return hit;
+      }
+    }
+    return null;
   }
 
   /** Sniff an image's real mime type from its magic bytes (S3 often mislabels). */
@@ -1098,7 +1187,7 @@ export class HubRiseCatalogService {
         const catId = location.hubriseCatalogId;
         const creds = location.hubriseCredentials;
         setImmediate(() =>
-          this.uploadImagesThenRepublish(catId, hubriseToken, creds, imageJobs, menu.name, data).catch(
+          this.uploadImagesThenRepublish(catId, hubriseToken, creds, imageJobs, menu.name, data, args.tenantId).catch(
             (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
           ),
         );
@@ -1135,7 +1224,7 @@ export class HubRiseCatalogService {
     if (hubriseToken && imageJobs.length) {
       const creds = location.hubriseCredentials;
       setImmediate(() =>
-        this.uploadImagesThenRepublish(created.id, hubriseToken, creds, imageJobs, menu.name, data).catch(
+        this.uploadImagesThenRepublish(created.id, hubriseToken, creds, imageJobs, menu.name, data, args.tenantId).catch(
           (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
         ),
       );
