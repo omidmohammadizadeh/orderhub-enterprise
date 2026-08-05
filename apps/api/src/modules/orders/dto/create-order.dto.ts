@@ -104,6 +104,8 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) taxAmount?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) deliveryFee?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
+  /** Customer gratuity, kept by the restaurant. */
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) tipAmount?: number;
   @ApiProperty() @IsNumber() @Min(0) total!: number;
 
   // ── Phase AM — POS operational fields ─────────────────────

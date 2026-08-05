@@ -921,6 +921,10 @@ export class OrdersService {
       subtotal: dto.subtotal,
       taxAmount: dto.taxAmount ?? 0,
       deliveryFee: dto.deliveryFee ?? 0,
+      // The gratuity. It is already inside `total`, so failing to store it
+      // here doesn't lose money — it loses the ability to SEE the money,
+      // which is how a tip reaches a shop that never learns it was tipped.
+      tipAmount: dto.tipAmount ?? 0,
       serviceCharge: svc.amount,
       discount: dto.discount ?? 0,
       // The charge is added on top of whatever the till totalled.
@@ -1173,6 +1177,7 @@ export class OrdersService {
       subtotal: number;
       taxAmount?: number;
       deliveryFee?: number;
+      tipAmount?: number;
       discount?: number;
       total: number;
       customerInfo?: { name: string; phone?: string; email?: string };
