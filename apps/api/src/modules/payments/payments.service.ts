@@ -1104,12 +1104,16 @@ export class PaymentsService {
           amount: amountPence,
           currency: "gbp",
           capture_method: "automatic",
-          // Lets the Payment Element offer whatever the account supports —
-          // cards, Apple Pay, Google Pay, Link — without listing them here.
-          // The hosted session can't do this because it pins manual capture,
-          // which BNPL methods don't support and which hangs Checkout on
-          // "Processing…". Capture is automatic here, so that trap is gone.
-          automatic_payment_methods: { enabled: true },
+          // Card only — which still means Apple Pay and Google Pay, because
+          // Stripe presents wallet tokens as card payments. The hosted
+          // session pins the same list.
+          //
+          // automatic_payment_methods would be the obvious choice and is
+          // wrong here: it offers everything the account has enabled, which
+          // put Klarna in front of someone buying a £12 gyros. Buy-now-pay-
+          // later on a takeaway is not a payment option, it's a support
+          // ticket — and it pushed the wallet buttons down the list too.
+          payment_method_types: ["card"],
           ...(applicationFeePence > 0 && {
             application_fee_amount: applicationFeePence,
           }),

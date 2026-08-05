@@ -167,6 +167,16 @@ describe("createStorefrontPaymentIntent", () => {
     expect(intent.application_fee_amount).toBe(1000);
   });
 
+  it("offers cards and wallets only — no buy-now-pay-later", async () => {
+    // automatic_payment_methods offers everything the account has enabled,
+    // which put Klarna in front of a £12 takeaway and pushed the wallet
+    // buttons down. "card" still covers Apple Pay and Google Pay: Stripe
+    // presents wallet tokens as card payments.
+    const intent = await intentFor();
+    expect(intent.payment_method_types).toEqual(["card"]);
+    expect("automatic_payment_methods" in intent).toBe(false);
+  });
+
   it("carries the order id so the webhook can find it again", async () => {
     expect((await intentFor()).metadata.orderId).toBe("o1");
   });
