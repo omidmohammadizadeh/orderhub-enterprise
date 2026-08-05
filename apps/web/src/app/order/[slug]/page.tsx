@@ -37,6 +37,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
+import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import {
   RatingPill,
   StorefrontReviews,
@@ -438,6 +439,8 @@ function OrderPage() {
   // `checkout` exist, which they need to reference).
   const [loginOpen, setLoginOpen] = useState(false);
   const [pendingPlaceOrder, setPendingPlaceOrder] = useState(false);
+  // Between "Place order" and the order actually being created.
+  const [holding, setHolding] = useState(false);
 
   // Cart panel form state
   const [customerName, setCustomerName] = useState("");
@@ -1208,7 +1211,10 @@ function OrderPage() {
       setLoginOpen(true);
       return;
     }
-    checkout.mutate();
+    // Hold before committing. The order is deliberately NOT created yet —
+    // see PlacingOrderSheet. Creating then cancelling would print a ticket
+    // the kitchen has already started, which is worse than no cancel at all.
+    setHolding(true);
   };
 
   // ── Promo + postcode helpers (Phase AP fix #1 + #2) ─────────────────────
@@ -2256,6 +2262,37 @@ function OrderPage() {
             setScheduledFor(null);
             setScheduleOpen(false);
           }}
+        />
+      )}
+
+      {holding && (
+        <PlacingOrderSheet
+          summary={{
+            brandName: storefront.brand?.name ?? storefront.location.name,
+            fulfilment:
+              fulfillmentType === "DELIVERY" ? "Delivery" : "Collection",
+            addressLine:
+              fulfillmentType === "DELIVERY"
+                ? [addrLine1, addrPostcode].filter(Boolean).join(", ") || null
+                : null,
+            when: scheduledFor
+              ? `Scheduled for ${new Date(scheduledFor).toLocaleString("en-GB", {
+                  weekday: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}`
+              : null,
+            lines: cart.map((l) => ({
+              quantity: l.quantity,
+              name: l.displayName,
+            })),
+            total,
+          }}
+          onCommit={() => {
+            setHolding(false);
+            checkout.mutate();
+          }}
+          onCancel={() => setHolding(false)}
         />
       )}
 
