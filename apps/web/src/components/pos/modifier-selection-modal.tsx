@@ -60,15 +60,30 @@ interface Props {
     selectedSku?: ProductSku | null;
     notes?: string;
   }) => void;
+  /**
+   * How this is dressed.
+   *   "modal" — the till dialog: compact header, Cancel + Add to cart.
+   *   "sheet" — the storefront on a phone: full-bleed photo, description and
+   *             options beneath it, one sticky Add button priced live.
+   * Only the chrome differs; sizes, modifiers, pricing and validation are the
+   * same code either way, which is the point — a second copy of the pricing
+   * maths is how a storefront and a till start disagreeing about a total.
+   */
+  presentation?: "modal" | "sheet";
+  /** Drawn fallback for an item with no usable photo (storefront only). */
+  heroFallback?: React.ReactNode;
 }
 
 export function ModifierSelectionModal({
   item,
   allModifierGroups = [],
+  presentation = "modal",
+  heroFallback,
   open,
   onClose,
   onAdd,
 }: Props) {
+  const isSheet = presentation === "sheet";
   const isMultiSku = !!item.hasMultipleSkus && (item.productSkus?.length ?? 0) > 0;
 
   const [selectedSku, setSelectedSku] = useState<ProductSku | null>(
@@ -201,23 +216,79 @@ export function ModifierSelectionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
-          <div>
-            <h2 className="text-base font-semibold text-zinc-900">{item.name}</h2>
-            {item.description && (
-              <p className="mt-0.5 text-xs text-zinc-500">{item.description}</p>
+    <div
+      className={
+        isSheet
+          ? "fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"
+          : "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      }
+    >
+      <div
+        className={
+          isSheet
+            ? "flex h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl"
+            : "flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        }
+      >
+        {isSheet ? (
+          /* The photo IS the header — the customer decides with their eyes
+             first. Close floats over it so nothing steals vertical space. */
+          <div className="relative aspect-[4/3] w-full flex-shrink-0 overflow-hidden bg-zinc-100">
+            {item.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.imageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              heroFallback ?? <div className="h-full w-full bg-zinc-100" />
             )}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-zinc-900 shadow-md backdrop-blur"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button onClick={onClose} className="rounded-md p-1.5 hover:bg-zinc-100">
-            <X className="h-4 w-4 text-zinc-500" />
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
+            <div>
+              <h2 className="text-base font-semibold text-zinc-900">{item.name}</h2>
+              {item.description && (
+                <p className="mt-0.5 text-xs text-zinc-500">{item.description}</p>
+              )}
+            </div>
+            <button onClick={onClose} className="rounded-md p-1.5 hover:bg-zinc-100">
+              <X className="h-4 w-4 text-zinc-500" />
+            </button>
+          </div>
+        )}
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        <div
+          className={
+            isSheet
+              ? "flex-1 space-y-6 overflow-y-auto px-5 pb-5 pt-4"
+              : "flex-1 overflow-y-auto px-5 py-4 space-y-5"
+          }
+        >
+          {isSheet && (
+            <div>
+              <h2 className="text-xl font-bold leading-tight text-zinc-900">
+                {item.name}
+              </h2>
+              <p className="mt-1 text-lg font-bold text-zinc-900">
+                £{Number(basePrice).toFixed(2)}
+              </p>
+              {item.description && (
+                <p className="mt-2 text-[14px] leading-relaxed text-zinc-500">
+                  {item.description}
+                </p>
+              )}
+            </div>
+          )}
           {isMultiSku && (
             <Section title="Size">
               <div className="grid grid-cols-1 gap-2">
@@ -342,27 +413,44 @@ export function ModifierSelectionModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-zinc-200 px-5 py-4 bg-zinc-50">
-          <div className="text-sm">
-            <span className="text-zinc-500">Total</span>
-            <span className="ml-2 text-base font-semibold text-zinc-900">
-              £{breakdown.lineTotal.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300"
-            >
-              Cancel
-            </button>
+          {isSheet ? (
+            /* One button, priced live. The customer never has to work out what
+               tapping Add will cost — the number on the button is the number
+               that lands in the basket. */
             <button
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+              className="w-full rounded-xl bg-zinc-900 px-4 py-3.5 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40"
             >
-              Add to cart
+              {canSubmit
+                ? `Add ${quantity} for £${breakdown.lineTotal.toFixed(2)}`
+                : "Choose the required options"}
             </button>
-          </div>
+          ) : (
+            <>
+              <div className="text-sm">
+                <span className="text-zinc-500">Total</span>
+                <span className="ml-2 text-base font-semibold text-zinc-900">
+                  £{breakdown.lineTotal.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={onClose}
+                  className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit}
+                  className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  Add to cart
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

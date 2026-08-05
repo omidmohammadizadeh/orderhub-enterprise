@@ -2192,6 +2192,12 @@ function OrderPage() {
         <ModifierSelectionModal
           item={modalItem}
           allModifierGroups={storefront.brandModifierGroups ?? []}
+          // Customer-facing: photo-led sheet, one priced Add button. The
+          // till keeps the compact dialog — same logic, different chrome.
+          presentation="sheet"
+          heroFallback={
+            <FoodPlaceholder name={modalItem.name} className="h-full w-full" />
+          }
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => {
