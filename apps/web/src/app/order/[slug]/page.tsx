@@ -38,6 +38,7 @@ import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
+import { TipStep } from "@/components/storefront/tip-step";
 import {
   RatingPill,
   StorefrontReviews,
@@ -441,6 +442,10 @@ function OrderPage() {
   const [pendingPlaceOrder, setPendingPlaceOrder] = useState(false);
   // Between "Place order" and the order actually being created.
   const [holding, setHolding] = useState(false);
+  // Tip step sits between the basket and the hold. Amount in pounds; goes
+  // to the restaurant, so it shows on collection orders too.
+  const [tipOpen, setTipOpen] = useState(false);
+  const [tipAmount, setTipAmount] = useState(0);
 
   // Cart panel form state
   const [customerName, setCustomerName] = useState("");
@@ -1110,7 +1115,8 @@ function OrderPage() {
         items,
         subtotal,
         deliveryFee,
-        total,
+        tipAmount,
+        total: round2(total + tipAmount),
         specialInstructions: notes || undefined,
         scheduledFor: scheduledFor ?? undefined,
         // Phase AP — payment method is metadata for now; AP-8 will wire
@@ -1211,10 +1217,9 @@ function OrderPage() {
       setLoginOpen(true);
       return;
     }
-    // Hold before committing. The order is deliberately NOT created yet —
-    // see PlacingOrderSheet. Creating then cancelling would print a ticket
-    // the kitchen has already started, which is worse than no cancel at all.
-    setHolding(true);
+    // Ask about a tip, then hold. The order is deliberately NOT created
+    // until the hold expires — see PlacingOrderSheet.
+    setTipOpen(true);
   };
 
   // ── Promo + postcode helpers (Phase AP fix #1 + #2) ─────────────────────
@@ -2265,6 +2270,19 @@ function OrderPage() {
         />
       )}
 
+      {tipOpen && (
+        <TipStep
+          tipBase={subtotal}
+          brandName={storefront.brand?.name ?? storefront.location.name}
+          onBack={() => setTipOpen(false)}
+          onContinue={(tip) => {
+            setTipAmount(tip);
+            setTipOpen(false);
+            setHolding(true);
+          }}
+        />
+      )}
+
       {holding && (
         <PlacingOrderSheet
           summary={{
@@ -2286,7 +2304,7 @@ function OrderPage() {
               quantity: l.quantity,
               name: l.displayName,
             })),
-            total,
+            total: round2(total + tipAmount),
           }}
           onCommit={() => {
             setHolding(false);
