@@ -7,6 +7,7 @@ import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
 import { UploadsModule } from "../uploads/uploads.module";
+import { PaymentsModule } from "../payments/payments.module";
 
 @Module({
   // Phase AW-16 — HubRiseModule provides HubRiseLocationPauseService
@@ -20,6 +21,8 @@ import { UploadsModule } from "../uploads/uploads.module";
     UberEatsModule,
     // Rehost inline logos on write instead of storing them in a column.
     UploadsModule,
+    // Register each brand's custom domain with Stripe for Apple Pay.
+    PaymentsModule,
   ],
   controllers: [BrandsController],
   providers: [BrandsService, CloudflareService, RenderDomainsService],

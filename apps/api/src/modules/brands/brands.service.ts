@@ -18,6 +18,7 @@ import { hoursConfigured } from "../../common/opening-hours.util";
 import { normalizePricingVariants } from "@orderhub/shared";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
+import { PaymentsService } from "../payments/payments.service";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -104,6 +105,9 @@ export class BrandsService {
     private readonly uberEats: UberEatsConnectionService,
     private readonly uberEatsMenu: UberEatsMenuPublishService,
     private readonly storage: SupabaseStorageService,
+    // Apple Pay has to be told about each brand's custom domain, or its
+    // button silently never renders there.
+    private readonly payments: PaymentsService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -602,6 +606,12 @@ export class BrandsService {
       where: { id: brandId },
       data: { customDomain: domain, customDomainStatus: status },
     });
+    // Apple Pay only renders on domains registered with Stripe, and each
+    // brand's own domain counts separately from ours. Doing it here means an
+    // operator never has to know it was a step. Deliberately not awaited into
+    // the response path's success: a Stripe hiccup must not fail a domain
+    // connect that has already happened.
+    void this.payments.registerApplePayDomain(domain);
     return this.domainPayload(domain, status);
   }
 

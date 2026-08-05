@@ -135,6 +135,42 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Register a domain with Stripe so Apple Pay can be offered on it.
+   *
+   * Apple requires every domain that shows an Apple Pay button to be
+   * registered and verified first — including each brand's own custom
+   * domain, not just ours. Miss it and the button silently doesn't render:
+   * no error, no console warning, the customer just sees one fewer way to
+   * pay and nobody finds out until someone asks why Apple Pay "doesn't work
+   * on that shop".
+   *
+   * Idempotent by nature — re-registering an existing domain is a no-op on
+   * Stripe's side — so it is safe to call on every domain connect and
+   * re-verify.
+   *
+   * Never throws. A domain that can't be registered should leave the shop
+   * taking cards as normal, not fail the connect flow the operator is in
+   * the middle of.
+   */
+  async registerApplePayDomain(domain: string): Promise<boolean> {
+    if (!this.stripe || !domain) return false;
+    try {
+      await (this.stripe as any).applePayDomains.create({ domain_name: domain });
+      this.logger.log(`Apple Pay registered for ${domain}`);
+      return true;
+    } catch (err: any) {
+      // Already registered is a success, not a failure.
+      const msg = String(err?.message ?? err);
+      if (/already/i.test(msg)) {
+        this.logger.log(`Apple Pay already registered for ${domain}`);
+        return true;
+      }
+      this.logger.warn(`Apple Pay registration failed for ${domain}: ${msg}`);
+      return false;
+    }
+  }
+
   // ── Payment Intent ─────────────────────────────────────────────────────────
 
   async createPaymentIntent(
