@@ -596,17 +596,30 @@ export class OrderingService {
       status: location.status,
       busyMode: location.busyMode,
       currentPrepTime: location.currentPrepTime,
-      // Phase AP-8 / AW — application-fee config. Brand-level wins
-      // when set (brand has its own Stripe Connect account); falls
-      // through to location otherwise. The storefront cart's
-      // "Service charge" line reads from here.
-      applicationFeeMode: b?.applicationFeeMode ?? location.applicationFeeMode,
-      applicationFeeFixedAmount:
-        b?.applicationFeeFixedAmount != null
-          ? Number(b.applicationFeeFixedAmount)
-          : location.applicationFeeFixedAmount
-            ? Number(location.applicationFeeFixedAmount)
-            : null,
+      // Phase AP-8 / AW — application-fee config. The storefront cart's
+      // "Service charge" line reads from here, so this MUST answer
+      // "which fee config applies" identically to computeFeeBreakdownPence
+      // on the payment side. It didn't: `??` only falls through on null,
+      // so a brand explicitly set to "none" over a location that charges a
+      // fixed fee showed the customer no service charge and then took it
+      // anyway — cart said £1.80, card was debited £2.30.
+      //
+      // The payment side's rule is "brand wins unless it's none". Same rule
+      // here, and both fields come from the SAME record, so a brand mode
+      // can never be paired with a location amount.
+      ...(() => {
+        const source =
+          b?.applicationFeeMode && b.applicationFeeMode !== "none"
+            ? b
+            : location;
+        return {
+          applicationFeeMode: source.applicationFeeMode,
+          applicationFeeFixedAmount:
+            (source as any).applicationFeeFixedAmount != null
+              ? Number((source as any).applicationFeeFixedAmount)
+              : null,
+        };
+      })(),
     };
 
     // Phase AW-15 — resolve current pause/busy state for this brand on
