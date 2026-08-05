@@ -145,29 +145,111 @@ export class PaymentsService {
    * pay and nobody finds out until someone asks why Apple Pay "doesn't work
    * on that shop".
    *
+   * `stripeAccount` is not optional decoration. We take DIRECT charges, so
+   * the PaymentIntent lives on the restaurant's connected account and Stripe
+   * looks for the registration THERE. A domain registered only on the
+   * platform leaves Apple Pay dark on every shop — which is exactly what
+   * happened: card rendered, Apple Pay never did. Destination-charge and
+   * platform flows still register with no account.
+   *
    * Idempotent by nature — re-registering an existing domain is a no-op on
    * Stripe's side — so it is safe to call on every domain connect and
    * re-verify.
    *
    * Never throws. A domain that can't be registered should leave the shop
-   * taking cards as normal, not fail the connect flow the operator is in
-   * the middle of.
+   * taking cards as normal, not fail whatever flow the operator is in the
+   * middle of.
    */
-  async registerApplePayDomain(domain: string): Promise<boolean> {
+  async registerApplePayDomain(
+    domain: string,
+    stripeAccount?: string | null,
+  ): Promise<boolean> {
     if (!this.stripe || !domain) return false;
+    const scope = stripeAccount ? ` on ${stripeAccount}` : "";
+    const opts = stripeAccount ? { stripeAccount } : undefined;
     try {
-      await (this.stripe as any).applePayDomains.create({ domain_name: domain });
-      this.logger.log(`Apple Pay registered for ${domain}`);
+      // paymentMethodDomains, NOT the legacy applePayDomains: the legacy API
+      // only governs the old Payment Request Button. Wallets in the Payment
+      // Element and Express Checkout Element are gated on this one.
+      const pmd = await (this.stripe as any).paymentMethodDomains.create(
+        { domain_name: domain },
+        opts,
+      );
+      // Registration succeeding is not the same as Apple Pay working — the
+      // domain still has to pass Stripe's verification. Surface the reason
+      // now rather than leaving someone to wonder why the button is missing.
+      const apple = pmd?.apple_pay;
+      if (apple?.status === "active") {
+        this.logger.log(`Apple Pay active for ${domain}${scope}`);
+      } else {
+        this.logger.warn(
+          `Apple Pay INACTIVE for ${domain}${scope}: ${
+            apple?.status_details?.error_message ?? "no reason given"
+          }`,
+        );
+      }
       return true;
     } catch (err: any) {
       // Already registered is a success, not a failure.
       const msg = String(err?.message ?? err);
       if (/already/i.test(msg)) {
-        this.logger.log(`Apple Pay already registered for ${domain}`);
+        this.logger.log(`Apple Pay domain already registered: ${domain}${scope}`);
         return true;
       }
-      this.logger.warn(`Apple Pay registration failed for ${domain}: ${msg}`);
+      this.logger.warn(
+        `Apple Pay registration failed for ${domain}${scope}: ${msg}`,
+      );
       return false;
+    }
+  }
+
+  /**
+   * Domains we've already registered for a given connected account, so the
+   * lazy registration below costs one Stripe call per pair per process
+   * rather than one per order. Created on demand rather than as a field
+   * initialiser so this can never be the undefined that takes a payment
+   * down with it.
+   */
+  private registeredPmDomains?: Set<string>;
+
+  /**
+   * Make sure the domains this storefront is served on are registered on the
+   * connected account taking the charge, so the Apple Pay button renders.
+   *
+   * Domains come from what WE know we serve — the platform origin and the
+   * brand's own custom domain — never from a request header. Registering an
+   * attacker-supplied Origin would let a phishing page show Apple Pay against
+   * a real restaurant's Stripe account.
+   *
+   * Fire-and-forget, and swallows everything: a failure here costs the wallet
+   * button, not the order. Nothing about registering a domain is worth
+   * refusing to take someone's money over.
+   */
+  private ensureWalletDomains(
+    stripeAccount: string,
+    customDomain?: string | null,
+  ): void {
+    try {
+      const seen = (this.registeredPmDomains ??= new Set<string>());
+      let platformHost: string | null = null;
+      try {
+        platformHost = new URL(
+          process.env.WEB_URL ?? "https://www.orderhubsolutions.com",
+        ).hostname;
+      } catch {
+        platformHost = null;
+      }
+      for (const domain of [platformHost, customDomain?.trim() || null]) {
+        if (!domain) continue;
+        const key = `${stripeAccount}:${domain}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        void this.registerApplePayDomain(domain, stripeAccount);
+      }
+    } catch (err: any) {
+      this.logger.warn(
+        `Wallet domain registration skipped: ${err?.message ?? err}`,
+      );
     }
   }
 
@@ -960,6 +1042,9 @@ export class PaymentsService {
             applicationFeeMode: true,
             applicationFeeFixedAmount: true,
             applicationFeePercentage: true,
+            // Needed to register the brand's own domain for Apple Pay on
+            // whichever connected account ends up taking the charge.
+            customDomain: true,
           } as any,
         } as any,
       },
@@ -977,6 +1062,15 @@ export class PaymentsService {
         "This brand has no active Stripe Connect account — operator must finish Stripe onboarding before accepting card payments.",
       );
     }
+
+    // Apple Pay is gated on the domain being registered against the account
+    // the charge runs on. Kicked off before the intent so the very first
+    // order on a new account starts the clock; it won't help THAT order, but
+    // the button appears from the next one rather than never.
+    this.ensureWalletDomains(
+      connect.stripeAccountId,
+      (order as any).brand?.customDomain,
+    );
 
     const totalGbp = Number(order.total);
     // Brand fee wins when set; falls back to the location. Same rule as the

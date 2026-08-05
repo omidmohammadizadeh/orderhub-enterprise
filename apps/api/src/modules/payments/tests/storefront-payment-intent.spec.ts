@@ -44,6 +44,9 @@ function makeService(opts: {
   svc.prisma = prisma;
   svc.logger = { log() {}, warn() {}, error() {} };
   svc.stripe = {
+    paymentMethodDomains: {
+      create: async () => ({ apple_pay: { status: "active" } }),
+    },
     paymentIntents: {
       create: async (p: any, o?: any) => {
         created.push(p);
@@ -166,6 +169,40 @@ describe("createStorefrontPaymentIntent", () => {
 
   it("carries the order id so the webhook can find it again", async () => {
     expect((await intentFor()).metadata.orderId).toBe("o1");
+  });
+
+  it("still takes the payment when wallet-domain registration blows up", async () => {
+    // Registering the Apple Pay domain is best-effort decoration around the
+    // charge. An outage there must cost the wallet button and nothing else —
+    // the first cut of this threw synchronously and killed the PaymentIntent.
+    const { svc } = makeService();
+    svc.stripe.paymentMethodDomains = {
+      create: async () => {
+        throw new Error("Stripe is down");
+      },
+    };
+    const res = await svc.createStorefrontPaymentIntent({
+      tenantId: TENANT,
+      orderId: "o1",
+    });
+    expect(res.clientSecret).toBe("cs_test_1");
+  });
+
+  it("registers the domain against the CONNECTED account, not the platform", async () => {
+    // Direct charges mean Stripe looks for the registration on the account
+    // running the charge. Registering platform-side leaves Apple Pay dark on
+    // every shop, with no error anywhere — the original bug.
+    const { svc } = makeService();
+    const calls: any[] = [];
+    svc.stripe.paymentMethodDomains = {
+      create: async (body: any, opts: any) => {
+        calls.push({ body, opts });
+        return { apple_pay: { status: "active" } };
+      },
+    };
+    await svc.createStorefrontPaymentIntent({ tenantId: TENANT, orderId: "o1" });
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.every((c) => c.opts?.stripeAccount === "acct_brand")).toBe(true);
   });
 
   it("refuses when the brand has no Connect account", async () => {
