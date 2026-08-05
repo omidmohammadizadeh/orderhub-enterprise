@@ -84,6 +84,9 @@ export function ModifierSelectionModal({
   onAdd,
 }: Props) {
   const isSheet = presentation === "sheet";
+  // Sheet only: has the hero scrolled out of the way? Drives the compact
+  // header, the way a native app hands the title over as the photo leaves.
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const isMultiSku = !!item.hasMultipleSkus && (item.productSkus?.length ?? 0) > 0;
 
   const [selectedSku, setSelectedSku] = useState<ProductSku | null>(
@@ -226,33 +229,35 @@ export function ModifierSelectionModal({
       <div
         className={
           isSheet
-            ? "flex h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl"
+            ? "relative flex h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl"
             : "flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
         }
       >
-        {isSheet ? (
-          /* The photo IS the header — the customer decides with their eyes
-             first. Close floats over it so nothing steals vertical space. */
-          <div className="relative aspect-[4/3] w-full flex-shrink-0 overflow-hidden bg-zinc-100">
-            {item.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.imageUrl}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              heroFallback ?? <div className="h-full w-full bg-zinc-100" />
-            )}
+        {isSheet && (
+          /* Appears only once the photo has scrolled away, so the customer
+             always has the dish name and a way out without it covering the
+             food while they're still looking at it. */
+          <div
+            className={`pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center gap-3 border-b px-4 py-3 transition-opacity duration-200 ${
+              scrolledPastHero
+                ? "border-zinc-200 bg-white/95 opacity-100 backdrop-blur"
+                : "border-transparent opacity-0"
+            }`}
+          >
             <button
               onClick={onClose}
               aria-label="Close"
-              className="absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-zinc-900 shadow-md backdrop-blur"
+              className="pointer-events-auto grid h-8 w-8 flex-shrink-0 place-items-center rounded-full text-zinc-900"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
+            <span className="truncate text-[15px] font-semibold text-zinc-900">
+              {item.name}
+            </span>
           </div>
-        ) : (
+        )}
+
+        {!isSheet && (
           <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
             <div>
               <h2 className="text-base font-semibold text-zinc-900">{item.name}</h2>
@@ -266,29 +271,68 @@ export function ModifierSelectionModal({
           </div>
         )}
 
-        {/* Body */}
+        {/* Body. On the sheet the photo lives INSIDE this scroller rather
+            than above it, so it travels up with the options the way a native
+            app does — a pinned image with content sliding under it is the
+            tell that something is a website. */}
         <div
+          onScroll={
+            isSheet
+              ? (e) =>
+                  setScrolledPastHero(
+                    (e.target as HTMLDivElement).scrollTop > 140,
+                  )
+              : undefined
+          }
           className={
             isSheet
-              ? "flex-1 space-y-6 overflow-y-auto px-5 pb-5 pt-4"
+              ? "flex-1 overflow-y-auto"
               : "flex-1 overflow-y-auto px-5 py-4 space-y-5"
           }
         >
           {isSheet && (
-            <div>
-              <h2 className="text-xl font-bold leading-tight text-zinc-900">
-                {item.name}
-              </h2>
-              <p className="mt-1 text-lg font-bold text-zinc-900">
-                £{Number(basePrice).toFixed(2)}
-              </p>
-              {item.description && (
-                <p className="mt-2 text-[14px] leading-relaxed text-zinc-500">
-                  {item.description}
+            <>
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100">
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  heroFallback ?? <div className="h-full w-full bg-zinc-100" />
+                )}
+                {/* Floats on the photo and scrolls away with it; the sticky
+                    bar above takes over from there. */}
+                <button
+                  onClick={onClose}
+                  aria-label="Close"
+                  className={`absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-zinc-900 shadow-md backdrop-blur transition-opacity ${
+                    scrolledPastHero ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="px-5 pt-4">
+                <h2 className="text-xl font-bold leading-tight text-zinc-900">
+                  {item.name}
+                </h2>
+                <p className="mt-1 text-lg font-bold text-zinc-900">
+                  £{Number(basePrice).toFixed(2)}
                 </p>
-              )}
-            </div>
+                {item.description && (
+                  <p className="mt-2 text-[14px] leading-relaxed text-zinc-500">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            </>
           )}
+
+          <div className={isSheet ? "space-y-6 px-5 pb-6 pt-6" : ""}>
+
           {isMultiSku && (
             <Section title="Size">
               <div className="grid grid-cols-1 gap-2">
@@ -409,6 +453,7 @@ export function ModifierSelectionModal({
               </button>
             </div>
           </Section>
+          </div>
         </div>
 
         {/* Footer */}
