@@ -71,6 +71,7 @@ import { StartGroupOrderModal } from "@/components/storefront/start-group-order-
 import { AddressSearchField } from "@/components/storefront/address-search-field";
 import { PwaManifestLink } from "@/components/storefront/pwa-manifest-link";
 import { OrderNotifications } from "@/components/order/order-notifications";
+import { EmbeddedPaymentSheet } from "@/components/order/embedded-payment-sheet";
 import {
   getGuestName,
   getGuestRef,
@@ -400,6 +401,14 @@ function OrderPage() {
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+  // Set once an embedded CARD order has been created and is waiting to be
+  // paid on-page. Non-null means the payment sheet is up.
+  const [pendingPayment, setPendingPayment] = useState<{
+    clientSecret: string;
+    stripeAccountId: string;
+    amountPence: number;
+    orderId: string;
+  } | null>(null);
 
   // Phase AP-8 — Stripe Checkout success URL bounces the customer back to
   // /order/[slug]/confirmation which redirects here with ?confirmedOrderId
@@ -1119,9 +1128,11 @@ function OrderPage() {
         total: round2(total + tipAmount),
         specialInstructions: notes || undefined,
         scheduledFor: scheduledFor ?? undefined,
-        // Phase AP — payment method is metadata for now; AP-8 will wire
-        // the real Stripe manual-capture flow.
         paymentMethod,
+        // Card is paid on this page (Apple Pay / Google Pay / card form)
+        // rather than on Stripe's hosted page, so ask for a PaymentIntent
+        // secret instead of a redirect URL. Ignored for cash.
+        embedded: paymentMethod === "CARD",
         // Phase AP fix #1 — applied promo discount lands on the order
         // so it shows in operator + accounting reports.
         discount: effectiveDiscount,
@@ -1145,6 +1156,20 @@ function OrderPage() {
         .then((r) => r.data);
     },
     onSuccess: (order) => {
+      // Embedded card — the order exists but isn't paid yet, so open the
+      // payment sheet over the page. The cart is deliberately NOT cleared
+      // here: if the customer backs out or their card is declined, they
+      // land back on a basket they can retry from. It clears on success.
+      if (order?.clientSecret && order?.stripeAccountId) {
+        setPendingPayment({
+          clientSecret: order.clientSecret,
+          stripeAccountId: order.stripeAccountId,
+          amountPence: order.amountPence ?? Math.round(order.total * 100),
+          orderId: order.id,
+        });
+        setCartOpen(false);
+        return;
+      }
       // Phase AP-8 — CARD orders come back with checkoutUrl pointing at
       // the Stripe-hosted payment page. Redirect the whole window so the
       // customer enters their card on Stripe's domain (no PCI scope for
@@ -2315,6 +2340,38 @@ function OrderPage() {
         />
       )}
 
+      {pendingPayment && (
+        <EmbeddedPaymentSheet
+          clientSecret={pendingPayment.clientSecret}
+          stripeAccountId={pendingPayment.stripeAccountId}
+          amountPence={pendingPayment.amountPence}
+          orderId={pendingPayment.orderId}
+          slug={String(slug)}
+          brandId={brandId}
+          onPaid={() => {
+            // Paid. Clear the basket from storage synchronously as well as
+            // through the reducer — same reason the hosted path does: a
+            // customer who reopens the site shouldn't find the order they
+            // already paid for still sitting in their cart.
+            try {
+              window.localStorage.removeItem(cartKey);
+            } catch {
+              /* private mode — the dispatch below still clears the UI */
+            }
+            dispatch({ type: "CLEAR" });
+            setPendingPayment(null);
+            setConfirmedOrderId(pendingPayment.orderId);
+          }}
+          onCancel={() => {
+            // Backed out before paying. The order exists server-side but
+            // unpaid, so it never reaches the staff board — same outcome as
+            // abandoning the hosted Stripe page. Their basket is intact.
+            setPendingPayment(null);
+            setCartOpen(true);
+          }}
+        />
+      )}
+
       {/* Phase AP-AUTH — login / signup modal. Opens on Place Order click
           when the customer isn't authenticated; the pendingPlaceOrder
           flag (set in handlePlaceOrder above) is consumed by the auth
@@ -3295,8 +3352,9 @@ function CartPanel(props: CartPanelProps) {
             </div>
             {paymentMethod === "CARD" && (
               <p className="text-[11px] text-zinc-500">
-                Card payments are authorised now and only captured after the
-                restaurant accepts your order.
+                Pay with Apple Pay, Google Pay or card on the next step. You&apos;ll
+                be charged when you pay, and refunded in full if the restaurant
+                can&apos;t take your order.
               </p>
             )}
           </Section>
