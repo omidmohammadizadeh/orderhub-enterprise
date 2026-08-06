@@ -73,6 +73,7 @@ export class ContractsPublicController {
     @Body()
     body: {
       signerName: string;
+      fieldValues?: Record<string, string>;
       signerEmail?: string;
       signatureImageUrl?: string;
     },

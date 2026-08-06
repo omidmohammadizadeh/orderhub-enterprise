@@ -21,12 +21,14 @@ import {
   Loader2,
   MessageCircle,
   Mail,
+  PenLine,
   Plus,
   Send,
   Trash2,
   X,
   XCircle,
 } from "lucide-react";
+import { FieldEditorModal } from "@/components/contracts/field-editor-modal";
 import {
   contractsClient,
   type Contract,
@@ -62,6 +64,11 @@ export default function ContractsPage() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [detail, setDetail] = useState<Contract | null>(null);
   const [share, setShare] = useState<Contract | null>(null);
+  // Set when an uploaded-PDF contract needs its boxes placed before sending.
+  const [placing, setPlacing] = useState<{
+    contract: Contract;
+    thenShare: boolean;
+  } | null>(null);
 
   const isAdmin = user?.role === "PLATFORM_ADMIN";
 
@@ -233,6 +240,16 @@ export default function ContractsPage() {
                           <LinkIcon className="h-4 w-4" />
                         </IconBtn>
                       )}
+                      {c.fileUrl && c.status !== "SIGNED" && c.status !== "VOIDED" && (
+                        <IconBtn
+                          title="Place fields on the document"
+                          onClick={() =>
+                            setPlacing({ contract: c, thenShare: false })
+                          }
+                        >
+                          <PenLine className="h-4 w-4" />
+                        </IconBtn>
+                      )}
                       {c.status !== "SIGNED" && c.status !== "VOIDED" && (
                         <>
                           <IconBtn
@@ -286,9 +303,13 @@ export default function ContractsPage() {
           onCreated={(contract, shareLink) => {
             setComposeOpen(false);
             qc.invalidateQueries({ queryKey: ["contracts"] });
-            // Straight into the share sheet, so "give me a link" actually
-            // ends with a link in your clipboard rather than a row you then
-            // have to go and find.
+            // An uploaded PDF gets the placement step first. Sending one with
+            // no signature box produces a document the client cannot sign,
+            // and they discover that, not you.
+            if (contract.fileUrl) {
+              setPlacing({ contract, thenShare: shareLink });
+              return;
+            }
             if (shareLink) setShare(contract);
           }}
         />
@@ -302,6 +323,19 @@ export default function ContractsPage() {
           }}
         />
       )}
+      {placing && (
+        <FieldEditorModal
+          contract={placing.contract}
+          onClose={() => setPlacing(null)}
+          onSaved={(contract) => {
+            const next = placing.thenShare;
+            setPlacing(null);
+            qc.invalidateQueries({ queryKey: ["contracts"] });
+            if (next) setShare(contract);
+          }}
+        />
+      )}
+
       {share && (
         <ShareModal
           contract={share}

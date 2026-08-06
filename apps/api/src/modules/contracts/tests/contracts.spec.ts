@@ -9,7 +9,7 @@ import { ContractsService } from "../contracts.service";
 
 const TENANT = "t1";
 
-function makeService(opts: { contract?: any; template?: any } = {}) {
+function makeService(opts: { contract?: any; template?: any; fields?: any[] } = {}) {
   const contracts: any[] = [];
   const events: any[] = [];
   const setPlanCalls: any[] = [];
@@ -31,6 +31,18 @@ function makeService(opts: { contract?: any; template?: any } = {}) {
     },
     location: {
       findFirst: async () => ({ id: "loc1", name: "Pizza Uno" }),
+    },
+    // Placed fields. Most tests use none — a written contract has no boxes —
+    // but sign() always asks, so the stub has to exist.
+    contractField: {
+      findMany: async () => opts.fields ?? [],
+      update: async ({ where, data }: any) => {
+        const f = (opts.fields ?? []).find((x: any) => x.id === where.id);
+        if (f) Object.assign(f, data);
+        return f;
+      },
+      deleteMany: async () => ({ count: 0 }),
+      createMany: async () => ({ count: 0 }),
     },
     contract: {
       create: async ({ data }: any) => {
@@ -290,5 +302,90 @@ describe("voiding", () => {
   it("refuses to void a signed contract", async () => {
     const { svc } = makeService({ contract: signedContract() });
     await expect(svc.void(TENANT, "c1")).rejects.toThrow(/already been agreed/i);
+  });
+});
+
+
+describe("placed fields on an uploaded PDF", () => {
+  const field = (over: Record<string, any> = {}) => ({
+    id: "f1",
+    type: "TEXT",
+    assignee: "RECIPIENT",
+    required: true,
+    value: null,
+    label: "Company number",
+    ...over,
+  });
+
+  it("lets the signer fill their own boxes", async () => {
+    const fields = [field()];
+    const { svc } = makeService({
+      contract: signedContract({ status: "SENT" }),
+      fields,
+    });
+    await svc.sign("tok", {
+      signerName: "Sam Patel",
+      fieldValues: { f1: "12345678" },
+    });
+    expect(fields[0].value).toBe("12345678");
+  });
+
+  it("refuses to sign while a required box is empty", async () => {
+    const { svc } = makeService({
+      contract: signedContract({ status: "SENT" }),
+      fields: [field()],
+    });
+    await expect(
+      svc.sign("tok", { signerName: "Sam Patel", fieldValues: {} }),
+    ).rejects.toThrow(/Company number/);
+  });
+
+  it("ignores an optional box left blank", async () => {
+    const { svc } = makeService({
+      contract: signedContract({ status: "SENT" }),
+      fields: [field({ required: false })],
+    });
+    await expect(
+      svc.sign("tok", { signerName: "Sam Patel" }),
+    ).resolves.toMatchObject({ status: "SIGNED" });
+  });
+
+  it("will NOT let the signer overwrite a sender field", async () => {
+    // The money case: a price box we filled must not be editable by posting
+    // its id back. A disabled input in the browser is not a control.
+    const fields = [
+      field({ id: "price", assignee: "SENDER", value: "£100.00" }),
+    ];
+    const { svc } = makeService({
+      contract: signedContract({ status: "SENT" }),
+      fields,
+    });
+    await svc.sign("tok", {
+      signerName: "Sam Patel",
+      fieldValues: { price: "£1.00" },
+    });
+    expect(fields[0].value).toBe("£100.00");
+  });
+
+  it("fills a signature box with the name that was typed", async () => {
+    const fields = [field({ id: "sig", type: "SIGNATURE" })];
+    const { svc } = makeService({
+      contract: signedContract({ status: "SENT" }),
+      fields,
+    });
+    await svc.sign("tok", { signerName: "Sam Patel" });
+    expect(fields[0].value).toBe("Sam Patel");
+  });
+
+  it("does not treat an unfilled signature box as missing", async () => {
+    // It is satisfied by the act of signing, so demanding it first would be
+    // an unsatisfiable loop.
+    const { svc } = makeService({
+      contract: signedContract({ status: "SENT" }),
+      fields: [field({ id: "sig", type: "SIGNATURE", required: true })],
+    });
+    await expect(
+      svc.sign("tok", { signerName: "Sam Patel" }),
+    ).resolves.toMatchObject({ status: "SIGNED" });
   });
 });

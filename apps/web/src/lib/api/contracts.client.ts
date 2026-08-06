@@ -52,6 +52,21 @@ export interface ContractEvent {
   createdAt: string;
 }
 
+export interface PlacedFieldDto {
+  id: string;
+  page: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  type: "TEXT" | "DATE" | "SIGNATURE" | "CHECKBOX";
+  assignee: "SENDER" | "RECIPIENT";
+  label?: string | null;
+  required: boolean;
+  fontSize: number;
+  value?: string | null;
+}
+
 export const contractsClient = {
   // ── Templates ──────────────────────────────────────────────────────────
   issuerDefaults: () =>
@@ -135,6 +150,17 @@ export const contractsClient = {
       email?: string;
     } | null;
   }) => apiClient.post<Contract>("/v1/contracts", body).then((r) => r.data),
+
+  // ── Placed fields (uploaded PDFs) ──────────────────────────────────────
+  listFields: (id: string) =>
+    apiClient
+      .get<PlacedFieldDto[]>(`/v1/contracts/${id}/fields`)
+      .then((r) => r.data),
+
+  setFields: (id: string, fields: PlacedFieldDto[]) =>
+    apiClient
+      .put<PlacedFieldDto[]>(`/v1/contracts/${id}/fields`, { fields })
+      .then((r) => r.data),
 
   send: (id: string, body: { emailIt?: boolean; message?: string } = {}) =>
     apiClient

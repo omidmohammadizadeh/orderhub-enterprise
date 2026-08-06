@@ -4687,6 +4687,8 @@ model Contract {
   // operator can issue on behalf of another entity without reconfiguring.
   issuer Json?
 
+  fields ContractField[]
+
   // DRAFT → SENT → OPENED → SIGNED, or VOIDED from anywhere before SIGNED.
   status String @default("DRAFT")
 
@@ -4718,6 +4720,53 @@ model Contract {
   @@index([tenantId, status])
   @@index([locationId])
   @@map("contracts")
+}
+
+/// A box placed on an uploaded PDF — DocuSign-style field placement.
+///
+/// Geometry is stored as FRACTIONS of the page (0..1), never pixels. The
+/// editor renders at whatever width the operator's screen allows and the
+/// signer's phone renders at another entirely; anything absolute would land
+/// the signature in the wrong place on one of them. pdf-lib then multiplies
+/// back up by the real page box when burning values in.
+model ContractField {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  /// 0-based page index in the uploaded PDF.
+  page Int
+
+  /// Fractions of page width/height, origin TOP-LEFT (browser convention).
+  /// pdf-lib's origin is bottom-left; the flip happens at render time in one
+  /// place rather than being baked into stored data.
+  x Float
+  y Float
+  w Float
+  h Float
+
+  /// TEXT | DATE | SIGNATURE | CHECKBOX
+  type String
+
+  /// SENDER fills before sending; RECIPIENT taps and fills on the signing
+  /// page. Enforced server-side — a recipient cannot write a SENDER field.
+  assignee String @default("RECIPIENT")
+
+  label    String?
+  required Boolean @default(true)
+  fontSize Int     @default(11)
+
+  /// Filled value. For SIGNATURE this is the typed name; the drawn image, if
+  /// any, lives on the contract row alongside the rest of the signature
+  /// evidence.
+  value String?
+
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contractId])
+  @@map("contract_fields")
 }
 
 model ContractEvent {

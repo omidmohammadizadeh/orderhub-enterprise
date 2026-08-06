@@ -63,6 +63,8 @@ export class ContractPdfService {
 
     if (!contract.fileUrl) {
       this.renderBody(pdf, contract, regular, bold, logo);
+    } else {
+      this.burnFields(pdf, contract.fields ?? [], regular, italic);
     }
     this.renderCertificate(pdf, contract, events, regular, bold, italic, logo);
 
@@ -185,6 +187,74 @@ export class ContractPdfService {
         y -= lineHeight;
       }
       y -= block.gapAfter;
+    }
+  }
+
+  /**
+   * Stamp placed fields onto the uploaded original.
+   *
+   * Geometry arrives as fractions with a TOP-LEFT origin (how a browser lays
+   * out a div). pdf-lib measures from the BOTTOM-LEFT, so the flip happens
+   * here — in one place — rather than being stored pre-flipped, which would
+   * make the editor's numbers unreadable and impossible to debug.
+   *
+   * A field pointing at a page that does not exist is skipped rather than
+   * throwing: a truncated re-upload should cost that box, not the download of
+   * a signed agreement.
+   */
+  private burnFields(
+    pdf: PDFDocument,
+    fields: any[],
+    regular: PDFFont,
+    italic: PDFFont,
+  ) {
+    const pages = pdf.getPages();
+    for (const f of fields) {
+      const value = (f.value ?? "").toString();
+      if (!value) continue;
+      const page = pages[f.page ?? 0];
+      if (!page) {
+        this.logger.warn(
+          `Contract field ${f.id} targets page ${f.page}, document has ${pages.length}`,
+        );
+        continue;
+      }
+      const { width, height } = page.getSize();
+      const x = f.x * width;
+      const boxH = f.h * height;
+      // Top-left fraction → bottom-left point, then nudge up off the baseline
+      // so text sits inside the box rather than hanging under it.
+      const yTop = height - f.y * height;
+      const size = Math.min(f.fontSize ?? 11, Math.max(6, boxH * 0.7));
+      const y = yTop - boxH + (boxH - size) / 2 + size * 0.18;
+
+      if (f.type === "CHECKBOX") {
+        const on = value !== "false" && value !== "0" && value !== "";
+        if (on) {
+          page.drawText("X", { x, y, size, font: regular, color: INK });
+        }
+        continue;
+      }
+
+      // A signature renders in italic to read as a signature rather than as
+      // another typed field — the same treatment the certificate uses.
+      const font = f.type === "SIGNATURE" ? italic : regular;
+      const maxW = f.w * width;
+      let text = value;
+      // Truncate rather than overflow into whatever the box sits next to.
+      while (text.length > 1 && font.widthOfTextAtSize(text, size) > maxW) {
+        text = text.slice(0, -1);
+      }
+      page.drawText(text, { x, y, size, font, color: INK });
+
+      if (f.type === "SIGNATURE") {
+        page.drawLine({
+          start: { x, y: y - 3 },
+          end: { x: x + maxW, y: y - 3 },
+          thickness: 0.5,
+          color: RULE,
+        });
+      }
     }
   }
 

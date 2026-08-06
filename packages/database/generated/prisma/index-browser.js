@@ -2217,6 +2217,25 @@ exports.Prisma.ContractScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ContractFieldScalarFieldEnum = {
+  id: 'id',
+  contractId: 'contractId',
+  page: 'page',
+  x: 'x',
+  y: 'y',
+  w: 'w',
+  h: 'h',
+  type: 'type',
+  assignee: 'assignee',
+  label: 'label',
+  required: 'required',
+  fontSize: 'fontSize',
+  value: 'value',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ContractEventScalarFieldEnum = {
   id: 'id',
   contractId: 'contractId',
@@ -3563,6 +3582,15 @@ exports.Prisma.ContractOrderByRelevanceFieldEnum = {
   createdByUserId: 'createdByUserId'
 };
 
+exports.Prisma.ContractFieldOrderByRelevanceFieldEnum = {
+  id: 'id',
+  contractId: 'contractId',
+  type: 'type',
+  assignee: 'assignee',
+  label: 'label',
+  value: 'value'
+};
+
 exports.Prisma.ContractEventOrderByRelevanceFieldEnum = {
   id: 'id',
   contractId: 'contractId',
@@ -4145,6 +4173,7 @@ exports.Prisma.ModelName = {
   CustomerPushOrder: 'CustomerPushOrder',
   ContractTemplate: 'ContractTemplate',
   Contract: 'Contract',
+  ContractField: 'ContractField',
   ContractEvent: 'ContractEvent'
 };
 
