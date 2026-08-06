@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { PdfPages } from "@/components/contracts/pdf-pages";
+import { SignaturePad } from "@/components/contracts/signature-pad";
 import {
   CheckCircle2,
   Download,
@@ -66,6 +67,8 @@ export default function SignContractPage() {
 
   const [signerName, setSignerName] = useState("");
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  // Which signature box the pad is open for, if any.
+  const [signingField, setSigningField] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState<string | null>(null);
@@ -284,6 +287,7 @@ export default function SignContractPage() {
                           onChange={(v) =>
                             setFieldValues((s) => ({ ...s, [f.id]: v }))
                           }
+                          onSign={() => setSigningField(f.id)}
                         />
                       ))}
                   </div>
@@ -480,11 +484,13 @@ function FieldInput({
   value,
   disabled,
   onChange,
+  onSign,
 }: {
   field: SignField;
   value: string;
   disabled: boolean;
   onChange: (v: string) => void;
+  onSign: () => void;
 }) {
   const style: React.CSSProperties = {
     left: `${field.x * 100}%`,
@@ -523,14 +529,37 @@ function FieldInput({
     );
   }
 
+  // Signing opens the pad — typing a name into a 30px box on a phone is not
+  // signing, and a drawn signature has nowhere to go in a text input.
+  if (field.type === "SIGNATURE") {
+    return (
+      <button
+        type="button"
+        style={style}
+        onClick={onSign}
+        className={`${shared} flex items-center justify-start truncate italic`}
+      >
+        {value || "Tap to sign"}
+      </button>
+    );
+  }
+
   return (
     <input
       style={style}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      // A date field opens the native picker, which on a phone is the OS
+      // calendar. Defaulting to today on focus saves the commonest case.
+      onFocus={(e) => {
+        if (field.type === "DATE" && !value) {
+          onChange(new Date().toISOString().slice(0, 10));
+        }
+        e.currentTarget.select?.();
+      }}
       placeholder={field.label ?? ""}
       type={field.type === "DATE" ? "date" : "text"}
-      className={`${shared} ${field.type === "SIGNATURE" ? "italic" : ""}`}
+      className={shared}
     />
   );
 }
