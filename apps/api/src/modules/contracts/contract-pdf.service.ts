@@ -1,0 +1,477 @@
+import { Injectable, Logger } from "@nestjs/common";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFFont,
+  type PDFPage,
+} from "pdf-lib";
+
+/**
+ * The countersigned copy — the artefact a client actually keeps.
+ *
+ * pdf-lib rather than a headless browser on purpose. Puppeteer renders HTML
+ * beautifully and would drag a whole Chromium download into a Render build
+ * that already has five documented ways to fail; pdf-lib is pure JS with no
+ * native binary. The trade is that we lay text out ourselves, which is fine
+ * because the only HTML we render is our own template output — a known, small
+ * subset of tags, not arbitrary web pages.
+ *
+ * Two shapes come out of here:
+ *   • written contract → a typeset document, then the certificate page
+ *   • uploaded PDF     → the operator's original, UNTOUCHED, with the
+ *     certificate appended. Never re-rendered: the signed artefact must be
+ *     the document they actually read, byte for byte.
+ */
+
+const A4: [number, number] = [595.28, 841.89];
+const MARGIN = 56;
+const INK = rgb(0.09, 0.09, 0.11);
+const MUTED = rgb(0.45, 0.45, 0.5);
+const RULE = rgb(0.85, 0.85, 0.88);
+
+interface Block {
+  text: string;
+  size: number;
+  bold: boolean;
+  gapAfter: number;
+  bullet?: boolean;
+}
+
+@Injectable()
+export class ContractPdfService {
+  private readonly logger = new Logger(ContractPdfService.name);
+
+  async build(contract: any, events: any[] = []): Promise<Buffer> {
+    const pdf = contract.fileUrl
+      ? await this.loadOriginal(contract.fileUrl)
+      : await PDFDocument.create();
+
+    const regular = await pdf.embedFont(StandardFonts.Helvetica);
+    const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+    const italic = await pdf.embedFont(StandardFonts.HelveticaOblique);
+
+    if (!contract.fileUrl) {
+      this.renderBody(pdf, contract, regular, bold);
+    }
+    this.renderCertificate(pdf, contract, events, regular, bold, italic);
+
+    const bytes = await pdf.save();
+    return Buffer.from(bytes);
+  }
+
+  /**
+   * Fetch the uploaded original. If it can't be read we still produce a
+   * certificate rather than failing the download — a signature record with a
+   * note explaining the original is missing beats no document at all, and it
+   * makes the problem visible instead of silent.
+   */
+  private async loadOriginal(url: string): Promise<PDFDocument> {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const bytes = await res.arrayBuffer();
+      return await PDFDocument.load(bytes);
+    } catch (err: any) {
+      this.logger.warn(
+        `Contract original not embeddable (${url}): ${err?.message ?? err}`,
+      );
+      return PDFDocument.create();
+    }
+  }
+
+  // ── Written contracts ────────────────────────────────────────────────────
+
+  /** Our own template HTML → blocks. Not a general HTML parser. */
+  private htmlToBlocks(html: string): Block[] {
+    const blocks: Block[] = [];
+    // <br> becomes a paragraph break before tags are stripped, or the text
+    // either side of it would run together into one line.
+    const normalised = html.replace(/<br\s*\/?>/gi, "</p><p>");
+    const tagRe =
+      /<(h1|h2|h3|p|li)[^>]*>([\s\S]*?)<\/\1>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = tagRe.exec(normalised))) {
+      const tag = m[1]!.toLowerCase();
+      const text = decodeEntities(stripTags(m[2] ?? "")).trim();
+      if (!text) continue;
+      if (tag === "h1") blocks.push({ text, size: 17, bold: true, gapAfter: 10 });
+      else if (tag === "h2")
+        blocks.push({ text, size: 14, bold: true, gapAfter: 8 });
+      else if (tag === "h3")
+        blocks.push({ text, size: 12, bold: true, gapAfter: 6 });
+      else if (tag === "li")
+        blocks.push({ text, size: 10.5, bold: false, gapAfter: 4, bullet: true });
+      else blocks.push({ text, size: 10.5, bold: false, gapAfter: 8 });
+    }
+    // A template with no recognised tags would silently produce a blank
+    // document, so fall back to the whole thing as plain paragraphs.
+    if (blocks.length === 0) {
+      const plain = decodeEntities(stripTags(normalised)).trim();
+      if (plain) {
+        for (const para of plain.split(/\n{2,}/)) {
+          if (para.trim())
+            blocks.push({
+              text: para.trim(),
+              size: 10.5,
+              bold: false,
+              gapAfter: 8,
+            });
+        }
+      }
+    }
+    return blocks;
+  }
+
+  private renderBody(
+    pdf: PDFDocument,
+    contract: any,
+    regular: PDFFont,
+    bold: PDFFont,
+  ) {
+    let page = pdf.addPage(A4);
+    let y = A4[1] - MARGIN;
+    const width = A4[0] - MARGIN * 2;
+
+    page.drawText(contract.title ?? "Agreement", {
+      x: MARGIN,
+      y,
+      size: 20,
+      font: bold,
+      color: INK,
+    });
+    y -= 30;
+
+    for (const block of this.htmlToBlocks(contract.bodyHtml ?? "")) {
+      const font = block.bold ? bold : regular;
+      const indent = block.bullet ? 14 : 0;
+      const lines = wrap(block.text, font, block.size, width - indent);
+      const lineHeight = block.size * 1.45;
+
+      for (let i = 0; i < lines.length; i++) {
+        if (y < MARGIN + lineHeight) {
+          page = pdf.addPage(A4);
+          y = A4[1] - MARGIN;
+        }
+        if (block.bullet && i === 0) {
+          page.drawText("•", {
+            x: MARGIN,
+            y,
+            size: block.size,
+            font: regular,
+            color: INK,
+          });
+        }
+        page.drawText(lines[i]!, {
+          x: MARGIN + indent,
+          y,
+          size: block.size,
+          font,
+          color: INK,
+        });
+        y -= lineHeight;
+      }
+      y -= block.gapAfter;
+    }
+  }
+
+  // ── The certificate ──────────────────────────────────────────────────────
+
+  /**
+   * The page that carries the evidence. This is the part that matters in a
+   * dispute: who, when, from where, and against which immutable record.
+   */
+  private renderCertificate(
+    pdf: PDFDocument,
+    contract: any,
+    events: any[],
+    regular: PDFFont,
+    bold: PDFFont,
+    italic: PDFFont,
+  ) {
+    const page = pdf.addPage(A4);
+    let y = A4[1] - MARGIN;
+    const width = A4[0] - MARGIN * 2;
+
+    page.drawText("Certificate of Electronic Signature", {
+      x: MARGIN,
+      y,
+      size: 17,
+      font: bold,
+      color: INK,
+    });
+    y -= 22;
+    page.drawText(contract.title ?? "", {
+      x: MARGIN,
+      y,
+      size: 11,
+      font: regular,
+      color: MUTED,
+    });
+    y -= 20;
+    line(page, y, width);
+    y -= 24;
+
+    const signed = contract.signedAt ? new Date(contract.signedAt) : null;
+    const rows: Array<[string, string]> = [
+      ["Signed by", contract.signerName ?? "—"],
+      ["Email", contract.signerEmail ?? contract.recipientEmail ?? "—"],
+      ["Company", contract.recipientCompany ?? "—"],
+      [
+        "Signed at",
+        signed ? `${signed.toUTCString()} (${signed.toISOString()})` : "—",
+      ],
+      ["IP address", contract.signerIp ?? "—"],
+      ["Device", contract.signerUserAgent ?? "—"],
+      ["Document reference", contract.id ?? "—"],
+    ];
+
+    for (const [label, value] of rows) {
+      page.drawText(label, {
+        x: MARGIN,
+        y,
+        size: 9,
+        font: bold,
+        color: MUTED,
+      });
+      const lines = wrap(String(value), regular, 10, width - 130);
+      for (let i = 0; i < lines.length; i++) {
+        page.drawText(lines[i]!, {
+          x: MARGIN + 130,
+          y: y - i * 13,
+          size: 10,
+          font: regular,
+          color: INK,
+        });
+      }
+      y -= Math.max(1, lines.length) * 13 + 8;
+    }
+
+    y -= 10;
+    line(page, y, width);
+    y -= 30;
+
+    // The signature itself. An oblique face reads as a signature without
+    // pretending to be handwriting we never captured.
+    page.drawText("Signature", {
+      x: MARGIN,
+      y,
+      size: 9,
+      font: bold,
+      color: MUTED,
+    });
+    y -= 26;
+    page.drawText(contract.signerName ?? "", {
+      x: MARGIN,
+      y,
+      size: 22,
+      font: italic,
+      color: INK,
+    });
+    y -= 12;
+    line(page, y, 220);
+    y -= 16;
+    page.drawText(
+      "Typed by the signer, who confirmed intent to sign electronically.",
+      { x: MARGIN, y, size: 8.5, font: regular, color: MUTED },
+    );
+
+    // Oldest first — the order things actually happened, which is how anyone
+    // reading this reconstructs the story. Sorted explicitly rather than
+    // reversing the caller's array: that quietly depended on the DB's
+    // orderBy, so any caller passing ascending events printed it backwards.
+    const trail = [...events]
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      )
+      .slice(0, 14);
+    if (trail.length) {
+      y -= 30;
+      page.drawText("Audit trail", {
+        x: MARGIN,
+        y,
+        size: 9,
+        font: bold,
+        color: MUTED,
+      });
+      y -= 16;
+      for (const e of trail) {
+        if (y < MARGIN) break;
+        const when = new Date(e.createdAt).toISOString();
+        const text = `${when}  ${e.type}${e.ip ? `  from ${e.ip}` : ""}`;
+        page.drawText(text, {
+          x: MARGIN,
+          y,
+          size: 8.5,
+          font: regular,
+          color: INK,
+        });
+        y -= 12;
+      }
+    }
+
+    page.drawText(
+      "Generated by Order Hub. This certificate records evidence of an electronic signature",
+      { x: MARGIN, y: MARGIN - 18, size: 7.5, font: regular, color: MUTED },
+    );
+    page.drawText(
+      "under the Electronic Communications Act 2000.",
+      { x: MARGIN, y: MARGIN - 28, size: 7.5, font: regular, color: MUTED },
+    );
+  }
+}
+
+// ── Text helpers ───────────────────────────────────────────────────────────
+
+function line(page: PDFPage, y: number, width: number) {
+  page.drawLine({
+    start: { x: MARGIN, y },
+    end: { x: MARGIN + width, y },
+    thickness: 0.75,
+    color: RULE,
+  });
+}
+
+function stripTags(s: string): string {
+  return s.replace(/<[^>]+>/g, "");
+}
+
+/** The named entities an operator plausibly types into the template editor. */
+const NAMED_ENTITIES: Record<string, string> = {
+  nbsp: " ",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  pound: "£",
+  euro: "€",
+  cent: "¢",
+  yen: "¥",
+  copy: "©",
+  reg: "®",
+  trade: "™",
+  deg: "°",
+  plusmn: "±",
+  frac12: "½",
+  frac14: "¼",
+  times: "×",
+  divide: "÷",
+  percnt: "%",
+  frac34: "¾",
+  laquo: "«",
+  raquo: "»",
+  micro: "µ",
+  sup2: "²",
+  sup3: "³",
+  hellip: "…",
+  mdash: "—",
+  ndash: "–",
+  lsquo: "'",
+  rsquo: "'",
+  ldquo: '"',
+  rdquo: '"',
+  bull: "•",
+  middot: "·",
+  sect: "§",
+  para: "¶",
+  dagger: "†",
+};
+
+/**
+ * HTML entities → characters.
+ *
+ * `&amp;` is decoded LAST, deliberately. Doing it first turns `&amp;pound;`
+ * into `&pound;` and then into `£` — the operator wrote a literal ampersand
+ * and got a currency symbol. Decoding it last makes that impossible.
+ *
+ * This is not cosmetic: the first render of a real template printed
+ * "&pound;49.00" in the fee clause, because only five entities were handled.
+ */
+export function decodeEntities(s: string): string {
+  return s
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex: string) =>
+      safeFromCodePoint(parseInt(hex, 16)),
+    )
+    .replace(/&#(\d+);/g, (_, dec: string) =>
+      safeFromCodePoint(parseInt(dec, 10)),
+    )
+    .replace(/&([a-zA-Z][a-zA-Z0-9]*);/g, (whole, name: string) => {
+      const lower = name.toLowerCase();
+      if (lower === "amp") return whole; // handled below, on purpose
+      return NAMED_ENTITIES[lower] ?? whole;
+    })
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ");
+}
+
+/** A malformed entity like `&#999999999;` must not throw mid-render. */
+function safeFromCodePoint(code: number): string {
+  if (!Number.isFinite(code) || code < 0 || code > 0x10ffff) return "";
+  try {
+    return String.fromCodePoint(code);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Greedy word wrap against real glyph widths.
+ *
+ * A single word longer than the line (a URL, a long reference) is split
+ * character-wise rather than left to overflow off the page edge — silently
+ * losing the end of a clause is worse than an ugly break.
+ *
+ * WinAnsi is all the standard fonts can encode, so anything outside it is
+ * replaced before measuring. pdf-lib throws on un-encodable characters, and a
+ * smart quote pasted from Word would otherwise fail the whole download.
+ */
+export function wrap(
+  text: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+): string[] {
+  const safe = toWinAnsi(text);
+  const words = safe.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+      current = candidate;
+      continue;
+    }
+    if (current) lines.push(current);
+    if (font.widthOfTextAtSize(word, size) <= maxWidth) {
+      current = word;
+      continue;
+    }
+    let chunk = "";
+    for (const ch of word) {
+      if (font.widthOfTextAtSize(chunk + ch, size) > maxWidth) {
+        lines.push(chunk);
+        chunk = ch;
+      } else {
+        chunk += ch;
+      }
+    }
+    current = chunk;
+  }
+  if (current) lines.push(current);
+  return lines.length ? lines : [""];
+}
+
+export function toWinAnsi(s: string): string {
+  return String(s ?? "")
+    .replace(/[‘’‚′]/g, "'")
+    .replace(/[“”„″]/g, '"')
+    .replace(/[–—]/g, "-")
+    .replace(/…/g, "...")
+    .replace(/ /g, " ")
+    // Anything still outside Latin-1 can't be encoded by a standard font.
+    // The `u` flag matters: without it an emoji is two UTF-16 surrogates and
+    // comes out as "??" instead of a single placeholder.
+    .replace(/[^\x09\x0A\x0D\x20-\xFF]/gu, "?");
+}

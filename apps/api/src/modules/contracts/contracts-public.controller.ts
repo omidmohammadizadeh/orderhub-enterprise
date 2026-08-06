@@ -1,7 +1,15 @@
-import { Body, Controller, Get, Param, Post, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+} from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
-import type { Request } from "express";
+import type { Request, Response } from "express";
 import { ContractsService } from "./contracts.service";
 import { Public } from "../../common/decorators/public.decorator";
 
@@ -71,6 +79,17 @@ export class ContractsPublicController {
     @Req() req: Request,
   ) {
     return this.contracts.sign(token, body, this.ctxOf(req));
+  }
+
+  @Get(":token/pdf")
+  @Public()
+  @Throttle({ medium: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: "Download your signed copy" })
+  async pdf(@Param("token") token: string, @Res() res: Response) {
+    const { buffer, filename } = await this.contracts.pdfForToken(token);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 
   @Post(":token/subscribe")

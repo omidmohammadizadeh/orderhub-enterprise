@@ -111,4 +111,21 @@ export const contractsClient = {
     apiClient
       .post<Contract>(`/v1/contracts/${id}/void`, { reason })
       .then((r) => r.data),
+
+  /**
+   * Fetched as a blob through apiClient rather than opening the URL in a new
+   * tab, because the route needs the Authorization header — a bare link would
+   * arrive unauthenticated and 401.
+   */
+  downloadPdf: async (id: string, filename: string) => {
+    const res = await apiClient.get(`/v1/contracts/${id}/pdf`, {
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

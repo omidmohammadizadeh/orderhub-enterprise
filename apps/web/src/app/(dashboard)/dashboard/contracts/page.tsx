@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Clock,
   Copy,
+  Download,
   Eye,
   FileSignature,
   FileText,
@@ -791,6 +792,21 @@ function DetailDrawer({
             value={fmt(c.subscriptionStartedAt)}
           />
         </dl>
+
+        {c.status === "SIGNED" && (
+          <button
+            onClick={() =>
+              contractsClient.downloadPdf(
+                c.id,
+                `${c.title.replace(/[^a-zA-Z0-9 _-]/g, "").trim().replace(/\s+/g, "-") || "contract"}-signed.pdf`,
+              )
+            }
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800"
+          >
+            <Download className="h-4 w-4" />
+            Download signed PDF
+          </button>
+        )}
 
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">

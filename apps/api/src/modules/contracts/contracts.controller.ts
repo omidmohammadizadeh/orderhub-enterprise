@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import type { Response } from "express";
 import { ContractsService } from "./contracts.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -107,6 +109,25 @@ export class ContractsController {
     },
   ) {
     return this.contracts.create(user.tenantId, body, user.userId);
+  }
+
+  @Get(":id/pdf")
+  @ApiOperation({ summary: "Download the countersigned PDF" })
+  async pdf(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("id") id: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename } = await this.contracts.pdfForAdmin(
+      user.tenantId,
+      id,
+    );
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${filename}"`,
+    );
+    res.send(buffer);
   }
 
   @Post(":id/send")

@@ -9,6 +9,7 @@ import { randomBytes } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { EmailService } from "../../infrastructure/email/email.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
+import { ContractPdfService } from "./contract-pdf.service";
 
 /**
  * E-signature contracts.
@@ -41,6 +42,7 @@ export class ContractsService {
     private readonly config: ConfigService,
     private readonly email: EmailService,
     private readonly subscriptions: SubscriptionsService,
+    private readonly pdf: ContractPdfService,
   ) {}
 
   private webBase(): string {
@@ -597,6 +599,62 @@ export class ContractsService {
     );
 
     return { checkoutUrl: (result as any).checkoutUrl ?? null };
+  }
+
+  // ── Signed copy ──────────────────────────────────────────────────────────
+
+  /**
+   * The countersigned PDF. Built on demand rather than stored: the inputs are
+   * immutable once signed, so a cached file could only ever drift from the
+   * record, and re-rendering costs milliseconds.
+   */
+  async pdfForAdmin(tenantId: string, contractId: string) {
+    const contract = await (this.prisma as any).contract.findFirst({
+      where: { id: contractId, tenantId },
+      include: {
+        events: { orderBy: { createdAt: "desc" }, take: 50 },
+        location: { select: { name: true } },
+      },
+    });
+    if (!contract) throw new NotFoundException("Contract not found");
+    return {
+      buffer: await this.pdf.build(contract, contract.events ?? []),
+      filename: this.pdfFilename(contract),
+    };
+  }
+
+  /**
+   * The signer's own copy. Only once SIGNED — before that there is no
+   * countersigned document to hand out, and offering one would imply the
+   * agreement is settled when it isn't.
+   */
+  async pdfForToken(token: string) {
+    const contract = await (this.prisma as any).contract.findUnique({
+      where: { token },
+      include: {
+        events: { orderBy: { createdAt: "desc" }, take: 50 },
+        location: { select: { name: true } },
+      },
+    });
+    if (!contract) throw new NotFoundException("Contract not found");
+    if (contract.status !== "SIGNED") {
+      throw new BadRequestException(
+        "A signed copy is available once the agreement has been signed",
+      );
+    }
+    return {
+      buffer: await this.pdf.build(contract, contract.events ?? []),
+      filename: this.pdfFilename(contract),
+    };
+  }
+
+  private pdfFilename(contract: any): string {
+    const safe = String(contract.title ?? "contract")
+      .replace(/[^a-zA-Z0-9 _-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .slice(0, 60);
+    return `${safe || "contract"}-signed.pdf`;
   }
 
   // ── Internals ────────────────────────────────────────────────────────────

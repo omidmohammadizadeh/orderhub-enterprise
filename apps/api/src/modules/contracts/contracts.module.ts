@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ContractsService } from "./contracts.service";
+import { ContractPdfService } from "./contract-pdf.service";
 import { ContractsController } from "./contracts.controller";
 import { ContractsPublicController } from "./contracts-public.controller";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -13,7 +14,7 @@ import { SubscriptionsModule } from "../subscriptions/subscriptions.module";
 @Module({
   imports: [ConfigModule, SubscriptionsModule],
   controllers: [ContractsController, ContractsPublicController],
-  providers: [ContractsService, PrismaService],
+  providers: [ContractsService, ContractPdfService, PrismaService],
   exports: [ContractsService],
 })
 export class ContractsModule {}

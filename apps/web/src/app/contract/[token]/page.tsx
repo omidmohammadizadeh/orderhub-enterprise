@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   CheckCircle2,
+  Download,
   FileText,
   Loader2,
   Lock,
@@ -171,12 +172,23 @@ export default function SignContractPage() {
           {contract.locationName ? ` · ${contract.locationName}` : ""}
         </p>
         {isSigned && (
-          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Signed by {contract.signerName} on{" "}
-            {contract.signedAt
-              ? new Date(contract.signedAt).toLocaleString("en-GB")
-              : ""}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Signed by {contract.signerName} on{" "}
+              {contract.signedAt
+                ? new Date(contract.signedAt).toLocaleString("en-GB")
+                : ""}
+            </span>
+            {/* A plain link, not a fetch+blob: this route is public, so the
+                browser can download it directly with no header to attach. */}
+            <a
+              href={`${API_BASE}/api/v1/sign/${token}/pdf`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700 hover:border-zinc-400"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download signed copy
+            </a>
           </div>
         )}
       </header>
