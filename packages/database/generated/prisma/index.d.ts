@@ -146744,6 +146744,7 @@ export namespace Prisma {
     recipientEmail: number
     recipientCompany: number
     subscriptionAmountPence: number
+    issuer: number
     status: number
     token: number
     sentAt: number
@@ -146850,6 +146851,7 @@ export namespace Prisma {
     recipientEmail?: true
     recipientCompany?: true
     subscriptionAmountPence?: true
+    issuer?: true
     status?: true
     token?: true
     sentAt?: true
@@ -146969,6 +146971,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany: string | null
     subscriptionAmountPence: number | null
+    issuer: JsonValue | null
     status: string
     token: string
     sentAt: Date | null
@@ -147020,6 +147023,7 @@ export namespace Prisma {
     recipientEmail?: boolean
     recipientCompany?: boolean
     subscriptionAmountPence?: boolean
+    issuer?: boolean
     status?: boolean
     token?: boolean
     sentAt?: boolean
@@ -147057,6 +147061,7 @@ export namespace Prisma {
     recipientEmail?: boolean
     recipientCompany?: boolean
     subscriptionAmountPence?: boolean
+    issuer?: boolean
     status?: boolean
     token?: boolean
     sentAt?: boolean
@@ -147092,6 +147097,7 @@ export namespace Prisma {
     recipientEmail?: boolean
     recipientCompany?: boolean
     subscriptionAmountPence?: boolean
+    issuer?: boolean
     status?: boolean
     token?: boolean
     sentAt?: boolean
@@ -147151,6 +147157,7 @@ export namespace Prisma {
        * Set = the signed contract offers a subscription at this monthly price.
        */
       subscriptionAmountPence: number | null
+      issuer: Prisma.JsonValue | null
       status: string
       /**
        * The link IS the credential — long, random, unguessable.
@@ -147583,6 +147590,7 @@ export namespace Prisma {
     readonly recipientEmail: FieldRef<"Contract", 'String'>
     readonly recipientCompany: FieldRef<"Contract", 'String'>
     readonly subscriptionAmountPence: FieldRef<"Contract", 'Int'>
+    readonly issuer: FieldRef<"Contract", 'Json'>
     readonly status: FieldRef<"Contract", 'String'>
     readonly token: FieldRef<"Contract", 'String'>
     readonly sentAt: FieldRef<"Contract", 'DateTime'>
@@ -151396,6 +151404,7 @@ export namespace Prisma {
     recipientEmail: 'recipientEmail',
     recipientCompany: 'recipientCompany',
     subscriptionAmountPence: 'subscriptionAmountPence',
+    issuer: 'issuer',
     status: 'status',
     token: 'token',
     sentAt: 'sentAt',
@@ -166880,6 +166889,7 @@ export namespace Prisma {
     recipientEmail?: StringFilter<"Contract"> | string
     recipientCompany?: StringNullableFilter<"Contract"> | string | null
     subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
+    issuer?: JsonNullableFilter<"Contract">
     status?: StringFilter<"Contract"> | string
     token?: StringFilter<"Contract"> | string
     sentAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
@@ -166916,6 +166926,7 @@ export namespace Prisma {
     recipientEmail?: SortOrder
     recipientCompany?: SortOrderInput | SortOrder
     subscriptionAmountPence?: SortOrderInput | SortOrder
+    issuer?: SortOrderInput | SortOrder
     status?: SortOrder
     token?: SortOrder
     sentAt?: SortOrderInput | SortOrder
@@ -166957,6 +166968,7 @@ export namespace Prisma {
     recipientEmail?: StringFilter<"Contract"> | string
     recipientCompany?: StringNullableFilter<"Contract"> | string | null
     subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
+    issuer?: JsonNullableFilter<"Contract">
     status?: StringFilter<"Contract"> | string
     sentAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
     firstOpenedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
@@ -166992,6 +167004,7 @@ export namespace Prisma {
     recipientEmail?: SortOrder
     recipientCompany?: SortOrderInput | SortOrder
     subscriptionAmountPence?: SortOrderInput | SortOrder
+    issuer?: SortOrderInput | SortOrder
     status?: SortOrder
     token?: SortOrder
     sentAt?: SortOrderInput | SortOrder
@@ -167032,6 +167045,7 @@ export namespace Prisma {
     recipientEmail?: StringWithAggregatesFilter<"Contract"> | string
     recipientCompany?: StringNullableWithAggregatesFilter<"Contract"> | string | null
     subscriptionAmountPence?: IntNullableWithAggregatesFilter<"Contract"> | number | null
+    issuer?: JsonNullableWithAggregatesFilter<"Contract">
     status?: StringWithAggregatesFilter<"Contract"> | string
     token?: StringWithAggregatesFilter<"Contract"> | string
     sentAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
@@ -181972,6 +181986,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -182008,6 +182023,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -182038,6 +182054,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -182074,6 +182091,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -182107,6 +182125,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -182136,6 +182155,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -182168,6 +182188,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -192328,6 +192349,7 @@ export namespace Prisma {
     recipientEmail?: SortOrder
     recipientCompany?: SortOrder
     subscriptionAmountPence?: SortOrder
+    issuer?: SortOrder
     status?: SortOrder
     token?: SortOrder
     sentAt?: SortOrder
@@ -202961,6 +202983,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -202995,6 +203018,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -203915,6 +203939,7 @@ export namespace Prisma {
     recipientEmail?: StringFilter<"Contract"> | string
     recipientCompany?: StringNullableFilter<"Contract"> | string | null
     subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
+    issuer?: JsonNullableFilter<"Contract">
     status?: StringFilter<"Contract"> | string
     token?: StringFilter<"Contract"> | string
     sentAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
@@ -209228,6 +209253,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -209262,6 +209288,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -236893,6 +236920,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -236927,6 +236955,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -237687,6 +237716,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -237722,6 +237752,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -237767,6 +237798,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -237802,6 +237834,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -238221,6 +238254,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -239518,6 +239552,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -239552,6 +239587,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -239584,6 +239620,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -242059,6 +242096,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -243060,6 +243098,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -243094,6 +243133,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -243126,6 +243166,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -247855,6 +247896,7 @@ export namespace Prisma {
     recipientEmail: string
     recipientCompany?: string | null
     subscriptionAmountPence?: number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: string
     token: string
     sentAt?: Date | string | null
@@ -247884,6 +247926,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -247918,6 +247961,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -247950,6 +247994,7 @@ export namespace Prisma {
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    issuer?: NullableJsonNullValueInput | InputJsonValue
     status?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

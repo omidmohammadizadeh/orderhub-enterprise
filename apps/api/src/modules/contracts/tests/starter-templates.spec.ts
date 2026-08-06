@@ -84,3 +84,54 @@ describe("starter templates", () => {
     });
   }
 });
+
+describe("issuer on the certificate", () => {
+  const { defaultIssuer, resolveIssuer } = require("../issuer");
+
+  it("defaults to Order Hub Solutions with its company number", () => {
+    const d = defaultIssuer(() => undefined);
+    expect(d.name).toBe("Order Hub Solutions Ltd");
+    expect(d.companyNumber).toBe("16608545");
+    expect(d.address).toContain("NE37 2LL");
+  });
+
+  it("lets a deployment override the entity entirely", () => {
+    const d = defaultIssuer((k: string) =>
+      k === "CONTRACT_ISSUER_NAME" ? "Other Co Ltd" : undefined,
+    );
+    expect(d.name).toBe("Other Co Ltd");
+  });
+
+  it("overrides field by field, keeping the rest", () => {
+    const base = defaultIssuer(() => undefined);
+    const r = resolveIssuer(base, { name: "Trading Name Ltd" });
+    expect(r.name).toBe("Trading Name Ltd");
+    // Not blanked just because the override omitted it.
+    expect(r.companyNumber).toBe("16608545");
+  });
+
+  it("ignores blank overrides rather than emptying the field", () => {
+    const base = defaultIssuer(() => undefined);
+    const r = resolveIssuer(base, { name: "   ", address: "" });
+    expect(r.name).toBe("Order Hub Solutions Ltd");
+    expect(r.address).toContain("Sunningdale");
+  });
+
+  it("prints Issued by on the certificate", async () => {
+    const { ContractPdfService } = require("../contract-pdf.service");
+    const svc = Object.create(ContractPdfService.prototype) as any;
+    svc.logger = { log() {}, warn() {}, error() {} };
+    const bytes = await svc.build({
+      title: "Agreement",
+      bodyHtml: "<p>Terms</p>",
+      recipientName: "Sam",
+      status: "SIGNED",
+      signerName: "Sam",
+      signedAt: new Date("2026-01-01T00:00:00Z"),
+      id: "c1",
+      issuer: defaultIssuer(() => undefined),
+      events: [],
+    });
+    expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+  }, 30_000);
+});

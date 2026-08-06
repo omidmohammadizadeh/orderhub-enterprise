@@ -4682,6 +4682,11 @@ model Contract {
   /// Set = the signed contract offers a subscription at this monthly price.
   subscriptionAmountPence Int?
 
+  // Who the agreement is FROM, shown on the signature certificate. Null =
+  // platform defaults; a partial object overrides field by field, so an
+  // operator can issue on behalf of another entity without reconfiguring.
+  issuer Json?
+
   // DRAFT → SENT → OPENED → SIGNED, or VOIDED from anywhere before SIGNED.
   status String @default("DRAFT")
 

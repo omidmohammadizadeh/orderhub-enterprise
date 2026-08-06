@@ -54,6 +54,16 @@ export interface ContractEvent {
 
 export const contractsClient = {
   // ── Templates ──────────────────────────────────────────────────────────
+  issuerDefaults: () =>
+    apiClient
+      .get<{
+        name: string;
+        companyNumber: string | null;
+        address: string | null;
+        email: string | null;
+      }>("/v1/contracts/issuer-defaults")
+      .then((r) => r.data),
+
   listStarters: () =>
     apiClient
       .get<
@@ -117,6 +127,13 @@ export const contractsClient = {
     recipientCompany?: string;
     locationId?: string;
     subscriptionAmountPence?: number;
+    /** Overrides the platform's own details on the signature certificate. */
+    issuer?: {
+      name?: string;
+      companyNumber?: string;
+      address?: string;
+      email?: string;
+    } | null;
   }) => apiClient.post<Contract>("/v1/contracts", body).then((r) => r.data),
 
   send: (id: string, body: { emailIt?: boolean; message?: string } = {}) =>

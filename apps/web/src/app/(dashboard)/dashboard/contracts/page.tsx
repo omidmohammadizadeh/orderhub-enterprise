@@ -606,13 +606,44 @@ function ComposeModal({
   const [amount, setAmount] = useState("");
   const [sendNow, setSendNow] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [senderOpen, setSenderOpen] = useState(false);
+  const [sender, setSender] = useState({
+    name: "",
+    companyNumber: "",
+    address: "",
+  });
 
   const locations = useQuery({
     queryKey: ["locations", "for-contracts"],
     queryFn: () => locationsClient.list(),
   });
 
+  // Prefilled so the operator edits real values rather than guessing what the
+  // certificate will say.
+  const issuerDefaults = useQuery({
+    queryKey: ["contract-issuer-defaults"],
+    queryFn: () => contractsClient.issuerDefaults(),
+  });
+  useEffect(() => {
+    const d = issuerDefaults.data;
+    if (!d || sender.name) return;
+    setSender({
+      name: d.name ?? "",
+      companyNumber: d.companyNumber ?? "",
+      address: d.address ?? "",
+    });
+  }, [issuerDefaults.data, sender.name]);
+
   const chosen = templates.find((t) => t.id === templateId);
+  // An uploaded file is a fixed document: fillPlaceholders only runs on
+  // written HTML, so nothing in a PDF can be personalised per client.
+  const isFileTemplate = !!chosen?.fileUrl;
+
+  const senderChanged =
+    !!issuerDefaults.data &&
+    (sender.name !== (issuerDefaults.data.name ?? "") ||
+      sender.companyNumber !== (issuerDefaults.data.companyNumber ?? "") ||
+      sender.address !== (issuerDefaults.data.address ?? ""));
 
   const create = useMutation({
     mutationFn: async () => {
@@ -627,6 +658,9 @@ function ComposeModal({
         recipientCompany: recipientCompany.trim() || undefined,
         locationId: locationId || undefined,
         subscriptionAmountPence: pence,
+        // Sent only when edited, so a later change to the registered address
+        // updates every contract that never needed an override.
+        issuer: senderChanged ? sender : null,
       });
       if (sendNow) await contractsClient.send(contract.id, { emailIt: true });
       // Link mode deliberately leaves it a DRAFT: ShareModal issues it as it
@@ -720,6 +754,15 @@ function ComposeModal({
           </select>
         </Field>
 
+        {isFileTemplate && (
+          <div className="rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-900">
+            <strong>This template is an uploaded file.</strong> The client&apos;s
+            name, company, location and price are printed into the PDF as it
+            stands and cannot be filled in per client — everyone receives the
+            same document. Use a written template if you need those to change.
+          </div>
+        )}
+
         <Field label="Monthly subscription (optional)">
           <div className="flex items-center gap-2">
             <span className="text-sm text-zinc-500">£</span>
@@ -742,6 +785,48 @@ function ComposeModal({
             </p>
           )}
         </Field>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setSenderOpen((o) => !o)}
+            className="text-xs font-semibold text-zinc-600 underline"
+          >
+            {senderOpen ? "Hide" : "Edit"} sender details on the certificate
+          </button>
+          {senderOpen && (
+            <div className="mt-2 space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+              <p className="text-[11px] leading-snug text-zinc-500">
+                Shown as &ldquo;Issued by&rdquo; on the signature certificate,
+                alongside the signer&apos;s details.
+              </p>
+              <input
+                value={sender.name}
+                onChange={(e) =>
+                  setSender((v) => ({ ...v, name: e.target.value }))
+                }
+                placeholder="Company name"
+                className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+              />
+              <input
+                value={sender.companyNumber}
+                onChange={(e) =>
+                  setSender((v) => ({ ...v, companyNumber: e.target.value }))
+                }
+                placeholder="Company number"
+                className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+              />
+              <input
+                value={sender.address}
+                onChange={(e) =>
+                  setSender((v) => ({ ...v, address: e.target.value }))
+                }
+                placeholder="Registered address"
+                className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+              />
+            </div>
+          )}
+        </div>
 
         <Field label="How do you want to send it?">
           <div className="grid gap-2 sm:grid-cols-2">

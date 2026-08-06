@@ -11,6 +11,7 @@ import { EmailService } from "../../infrastructure/email/email.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { ContractPdfService } from "./contract-pdf.service";
 import { STARTER_TEMPLATES } from "./starter-templates";
+import { defaultIssuer, resolveIssuer, type Issuer } from "./issuer";
 
 /**
  * E-signature contracts.
@@ -65,6 +66,17 @@ export class ContractsService {
 
   private signingUrl(token: string): string {
     return `${this.webBase()}/contract/${token}`;
+  }
+
+  /**
+   * Who the contract is FROM, for the certificate. Platform details by
+   * default; per-contract overrides stored on the row win field by field so an
+   * operator can issue on behalf of a different entity without reconfiguring
+   * the deployment.
+   */
+  private issuerFor(contract: any): Issuer {
+    const base = defaultIssuer((k) => this.config.get<string>(k));
+    return resolveIssuer(base, (contract?.issuer as Partial<Issuer>) ?? null);
   }
 
   // ── Templates ────────────────────────────────────────────────────────────
@@ -191,6 +203,11 @@ export class ContractsService {
     return { ok: true };
   }
 
+  /** Platform issuer details, so the compose form can prefill them. */
+  issuerDefaults(): Issuer {
+    return defaultIssuer((k) => this.config.get<string>(k));
+  }
+
   // ── Contracts ────────────────────────────────────────────────────────────
 
   async list(tenantId: string, status?: string) {
@@ -243,6 +260,7 @@ export class ContractsService {
       recipientCompany?: string;
       locationId?: string;
       subscriptionAmountPence?: number;
+      issuer?: Partial<Issuer> | null;
     },
     userId?: string,
   ) {
@@ -313,6 +331,10 @@ export class ContractsService {
         recipientEmail: dto.recipientEmail.trim().toLowerCase(),
         recipientCompany: dto.recipientCompany?.trim() || null,
         subscriptionAmountPence: amount,
+        // Only stored when it differs from the platform defaults, so changing
+        // the registered address later updates every contract that never
+        // needed an override.
+        issuer: dto.issuer ?? null,
         status: "DRAFT",
         token: this.mintToken(),
         createdByUserId: userId ?? null,
@@ -659,7 +681,10 @@ export class ContractsService {
     });
     if (!contract) throw new NotFoundException("Contract not found");
     return {
-      buffer: await this.pdf.build(contract, contract.events ?? []),
+      buffer: await this.pdf.build(
+        { ...contract, issuer: this.issuerFor(contract) },
+        contract.events ?? [],
+      ),
       filename: this.pdfFilename(contract),
     };
   }
@@ -684,7 +709,10 @@ export class ContractsService {
       );
     }
     return {
-      buffer: await this.pdf.build(contract, contract.events ?? []),
+      buffer: await this.pdf.build(
+        { ...contract, issuer: this.issuerFor(contract) },
+        contract.events ?? [],
+      ),
       filename: this.pdfFilename(contract),
     };
   }

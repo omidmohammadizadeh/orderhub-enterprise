@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 import {
   CheckCircle2,
   Download,
+  ExternalLink,
   FileText,
   Loader2,
   Lock,
@@ -165,6 +166,14 @@ export default function SignContractPage() {
   return (
     <Shell>
       <header className="mb-5 border-b border-zinc-200 pb-4">
+        {/* Letterhead. A stranger opening a link off WhatsApp should be able
+            to tell at a glance who sent it before reading a word. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/orderhub-logo.png"
+          alt="Order Hub"
+          className="mb-3 h-10 w-auto"
+        />
         <h1 className="text-xl font-bold text-zinc-900">{contract.title}</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Prepared for {contract.recipientName}
@@ -196,18 +205,42 @@ export default function SignContractPage() {
       {/* The document */}
       {contract.fileUrl ? (
         <div className="mb-6">
+          {/* Phones do not embed PDFs. Neither iOS Safari nor Android Chrome
+              renders <object type="application/pdf"> — Android draws an empty
+              grey box the height of the element, which is what "your browser
+              can't show the document inline" sitting above a blank rectangle
+              actually was.
+
+              Split by CSS rather than sniffing the user agent: no JS, no
+              hydration mismatch, and a small desktop window degrades to the
+              same honest button instead of a broken frame. */}
+          <a
+            href={contract.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm active:bg-zinc-50 sm:hidden"
+          >
+            <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-lg bg-orange-50">
+              <FileText className="h-5 w-5 text-orange-600" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-zinc-900">
+                Read the agreement
+              </span>
+              <span className="block truncate text-xs text-zinc-500">
+                {contract.fileName ?? "Opens the document"}
+              </span>
+            </span>
+            <ExternalLink className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+          </a>
+
           <object
             data={contract.fileUrl}
             type="application/pdf"
-            className="h-[70vh] w-full rounded-lg border border-zinc-200"
+            className="hidden h-[70vh] w-full rounded-lg border border-zinc-200 sm:block"
           >
-            {/* iOS Safari won't render an inline PDF object, so give it a link
-                rather than an empty grey box. */}
             <div className="rounded-lg border border-zinc-200 p-6 text-center">
               <FileText className="mx-auto h-7 w-7 text-zinc-300" />
-              <p className="mt-2 text-sm text-zinc-600">
-                Your browser can&apos;t show the document inline.
-              </p>
               <a
                 href={contract.fileUrl}
                 target="_blank"

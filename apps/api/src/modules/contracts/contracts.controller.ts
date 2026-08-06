@@ -35,6 +35,12 @@ export class ContractsController {
     return this.contracts.listTemplates(user.tenantId);
   }
 
+  @Get("issuer-defaults")
+  @ApiOperation({ summary: "Default sender details shown on the certificate" })
+  issuerDefaults() {
+    return this.contracts.issuerDefaults();
+  }
+
   @Get("templates/starters")
   @ApiOperation({ summary: "Ready-made agreements available to install" })
   listStarters(@CurrentUser() user: AuthenticatedUser) {
@@ -121,6 +127,12 @@ export class ContractsController {
       recipientCompany?: string;
       locationId?: string;
       subscriptionAmountPence?: number;
+      issuer?: {
+        name?: string;
+        companyNumber?: string;
+        address?: string;
+        email?: string;
+      } | null;
     },
   ) {
     return this.contracts.create(user.tenantId, body, user.userId);

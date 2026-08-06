@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { LOGO_PNG_BASE64 } from "./logo";
 import {
   PDFDocument,
   StandardFonts,
@@ -51,10 +52,19 @@ export class ContractPdfService {
     const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
     const italic = await pdf.embedFont(StandardFonts.HelveticaOblique);
 
-    if (!contract.fileUrl) {
-      this.renderBody(pdf, contract, regular, bold);
+    // Never fatal: a missing letterhead is a cosmetic problem, a download that
+    // 500s on a signed agreement is not.
+    let logo: any = null;
+    try {
+      logo = await pdf.embedPng(Buffer.from(LOGO_PNG_BASE64, "base64"));
+    } catch (err: any) {
+      this.logger.warn(`Contract logo embed failed: ${err?.message ?? err}`);
     }
-    this.renderCertificate(pdf, contract, events, regular, bold, italic);
+
+    if (!contract.fileUrl) {
+      this.renderBody(pdf, contract, regular, bold, logo);
+    }
+    this.renderCertificate(pdf, contract, events, regular, bold, italic, logo);
 
     const bytes = await pdf.save();
     return Buffer.from(bytes);
@@ -128,10 +138,13 @@ export class ContractPdfService {
     contract: any,
     regular: PDFFont,
     bold: PDFFont,
+    logo?: any,
   ) {
     let page = pdf.addPage(A4);
     let y = A4[1] - MARGIN;
     const width = A4[0] - MARGIN * 2;
+
+    y = drawLogo(page, logo, y);
 
     page.drawText(contract.title ?? "Agreement", {
       x: MARGIN,
@@ -188,10 +201,13 @@ export class ContractPdfService {
     regular: PDFFont,
     bold: PDFFont,
     italic: PDFFont,
+    logo?: any,
   ) {
     const page = pdf.addPage(A4);
     let y = A4[1] - MARGIN;
     const width = A4[0] - MARGIN * 2;
+
+    y = drawLogo(page, logo, y);
 
     page.drawText("Certificate of Electronic Signature", {
       x: MARGIN,
@@ -213,7 +229,17 @@ export class ContractPdfService {
     y -= 24;
 
     const signed = contract.signedAt ? new Date(contract.signedAt) : null;
+    // Both parties. A certificate naming only the signer says who signed but
+    // not who they agreed with — half an evidence record.
+    const issuer = contract.issuer ?? null;
+    const issuedBy = issuer
+      ? [issuer.name, issuer.companyNumber ? `Company no. ${issuer.companyNumber}` : null, issuer.address]
+          .filter(Boolean)
+          .join(" · ")
+      : null;
+
     const rows: Array<[string, string]> = [
+      ...(issuedBy ? ([["Issued by", issuedBy]] as Array<[string, string]>) : []),
       ["Signed by", contract.signerName ?? "—"],
       ["Email", contract.signerEmail ?? contract.recipientEmail ?? "—"],
       ["Company", contract.recipientCompany ?? "—"],
@@ -323,6 +349,19 @@ export class ContractPdfService {
 }
 
 // ── Text helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Letterhead. Returns the new baseline so callers keep laying out downward
+ * without knowing the logo's height — and returns `y` untouched when
+ * there is no logo, so a failed embed silently costs nothing.
+ */
+function drawLogo(page: PDFPage, logo: any, y: number): number {
+  if (!logo) return y;
+  const h = 34;
+  const w = (logo.width / logo.height) * h;
+  page.drawImage(logo, { x: MARGIN, y: y - h + 8, width: w, height: h });
+  return y - h - 6;
+}
 
 function line(page: PDFPage, y: number, width: number) {
   page.drawLine({
