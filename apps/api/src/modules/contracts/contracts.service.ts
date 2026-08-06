@@ -35,9 +35,6 @@ export type ContractStatus =
 /** Statuses a contract can still be signed from. */
 const SIGNABLE: ContractStatus[] = ["SENT", "OPENED"];
 
-const FIELD_TYPES = ["TEXT", "DATE", "SIGNATURE", "CHECKBOX"];
-const FIELD_ASSIGNEES = ["SENDER", "RECIPIENT"];
-
 @Injectable()
 export class ContractsService {
   private readonly logger = new Logger(ContractsService.name);
@@ -204,88 +201,6 @@ export class ContractsService {
       data: { deletedAt: new Date() },
     });
     return { ok: true };
-  }
-
-  // ── Placed fields (uploaded PDFs) ────────────────────────────────────────
-
-  /**
-   * Replace a contract's field layout.
-   *
-   * Whole-set replace rather than per-box CRUD: the editor holds the layout in
-   * memory and saves it, so a partial update would let a dropped request leave
-   * boxes the operator thought they had deleted.
-   *
-   * Refused once signed — the placement is part of what was agreed, and moving
-   * a signature box after the fact would silently rewrite the signed artefact.
-   */
-  async setFields(
-    tenantId: string,
-    contractId: string,
-    fields: Array<Record<string, any>>,
-  ) {
-    const contract = await (this.prisma as any).contract.findFirst({
-      where: { id: contractId, tenantId },
-    });
-    if (!contract) throw new NotFoundException("Contract not found");
-    if (contract.status === "SIGNED") {
-      throw new BadRequestException(
-        "This contract has been signed — its fields can no longer be moved",
-      );
-    }
-    if (!contract.fileUrl) {
-      throw new BadRequestException(
-        "Fields can only be placed on an uploaded PDF",
-      );
-    }
-
-    const clean = (fields ?? []).map((f, i) => {
-      const type = String(f.type ?? "TEXT").toUpperCase();
-      if (!FIELD_TYPES.includes(type)) {
-        throw new BadRequestException(`Unknown field type "${f.type}"`);
-      }
-      const assignee = String(f.assignee ?? "RECIPIENT").toUpperCase();
-      if (!FIELD_ASSIGNEES.includes(assignee)) {
-        throw new BadRequestException(`Unknown assignee "${f.assignee}"`);
-      }
-      // Clamped rather than rejected: a box nudged a pixel off the page edge
-      // in the editor is a slip, not an error worth losing the layout over.
-      const frac = (n: any) => Math.min(1, Math.max(0, Number(n) || 0));
-      return {
-        contractId,
-        page: Math.max(0, Math.floor(Number(f.page) || 0)),
-        x: frac(f.x),
-        y: frac(f.y),
-        w: Math.min(1, Math.max(0.01, Number(f.w) || 0.2)),
-        h: Math.min(1, Math.max(0.005, Number(f.h) || 0.04)),
-        type,
-        assignee,
-        label: f.label?.toString().slice(0, 120) || null,
-        required: f.required !== false,
-        fontSize: Math.min(48, Math.max(6, Math.floor(Number(f.fontSize) || 11))),
-        value: f.value?.toString().slice(0, 2000) ?? null,
-        sortOrder: i,
-      };
-    });
-
-    await this.prisma.$transaction([
-      (this.prisma as any).contractField.deleteMany({ where: { contractId } }),
-      ...(clean.length
-        ? [(this.prisma as any).contractField.createMany({ data: clean })]
-        : []),
-    ]);
-    return this.listFields(tenantId, contractId);
-  }
-
-  async listFields(tenantId: string, contractId: string) {
-    const contract = await (this.prisma as any).contract.findFirst({
-      where: { id: contractId, tenantId },
-      select: { id: true },
-    });
-    if (!contract) throw new NotFoundException("Contract not found");
-    return (this.prisma as any).contractField.findMany({
-      where: { contractId },
-      orderBy: { sortOrder: "asc" },
-    });
   }
 
   /** Platform issuer details, so the compose form can prefill them. */
@@ -574,10 +489,7 @@ export class ContractsService {
   ) {
     const contract = await (this.prisma as any).contract.findUnique({
       where: { token },
-      include: {
-        location: { select: { id: true, name: true } },
-        fields: { orderBy: { sortOrder: "asc" } },
-      },
+      include: { location: { select: { id: true, name: true } } },
     });
     if (!contract) throw new NotFoundException("Contract not found");
 
@@ -610,23 +522,6 @@ export class ContractsService {
       signedAt: contract.signedAt,
       signerName: contract.signerName,
       subscriptionStartedAt: contract.subscriptionStartedAt,
-      // Boxes the signer has to fill, with SENDER values already in place so
-      // they can read what we filled in. `assignee` tells the page which are
-      // editable; the server enforces the same rule again at sign time.
-      fields: (contract.fields ?? []).map((f: any) => ({
-        id: f.id,
-        page: f.page,
-        x: f.x,
-        y: f.y,
-        w: f.w,
-        h: f.h,
-        type: f.type,
-        assignee: f.assignee,
-        label: f.label,
-        required: f.required,
-        fontSize: f.fontSize,
-        value: f.value,
-      })),
       canSubscribe:
         contract.status === "SIGNED" &&
         !!contract.subscriptionAmountPence &&
@@ -636,13 +531,7 @@ export class ContractsService {
 
   async sign(
     token: string,
-    dto: {
-      signerName: string;
-      signerEmail?: string;
-      signatureImageUrl?: string;
-      /** fieldId → value, for boxes assigned to the recipient. */
-      fieldValues?: Record<string, string>;
-    },
+    dto: { signerName: string; signerEmail?: string; signatureImageUrl?: string },
     ctx: { ip?: string; userAgent?: string } = {},
   ) {
     const contract = await (this.prisma as any).contract.findUnique({
@@ -661,46 +550,6 @@ export class ContractsService {
     }
     if (!dto.signerName?.trim()) {
       throw new BadRequestException("Please type your full name to sign");
-    }
-
-    // ── Placed fields ──────────────────────────────────────────────────────
-    // Only RECIPIENT boxes are writable here. A signer posting the id of a
-    // SENDER field — the price, say — must not be able to change it, so the
-    // filter is server-side rather than a disabled input in the browser.
-    const fields = await (this.prisma as any).contractField.findMany({
-      where: { contractId: contract.id },
-    });
-    const submitted = dto.fieldValues ?? {};
-    const writable = fields.filter((f: any) => f.assignee === "RECIPIENT");
-
-    const missing = writable.filter((f: any) => {
-      if (!f.required) return false;
-      const v = (submitted[f.id] ?? f.value ?? "").toString().trim();
-      // A signature box is satisfied by the act of signing itself — the
-      // signer's name fills it — so it is never "missing" at this point.
-      if (f.type === "SIGNATURE") return false;
-      return !v;
-    });
-    if (missing.length) {
-      const names = missing
-        .map((f: any) => f.label || f.type.toLowerCase())
-        .join(", ");
-      throw new BadRequestException(
-        `Please complete every required field before signing: ${names}`,
-      );
-    }
-
-    const signedName = dto.signerName.trim();
-    for (const f of writable) {
-      const raw =
-        f.type === "SIGNATURE"
-          ? signedName
-          : (submitted[f.id] ?? f.value ?? "").toString();
-      if (raw === (f.value ?? "")) continue;
-      await (this.prisma as any).contractField.update({
-        where: { id: f.id },
-        data: { value: raw.slice(0, 2000) },
-      });
     }
 
     const updated = await (this.prisma as any).contract.update({
@@ -828,7 +677,6 @@ export class ContractsService {
       include: {
         events: { orderBy: { createdAt: "desc" }, take: 50 },
         location: { select: { name: true } },
-        fields: { orderBy: { sortOrder: "asc" } },
       },
     });
     if (!contract) throw new NotFoundException("Contract not found");
@@ -852,7 +700,6 @@ export class ContractsService {
       include: {
         events: { orderBy: { createdAt: "desc" }, take: 50 },
         location: { select: { name: true } },
-        fields: { orderBy: { sortOrder: "asc" } },
       },
     });
     if (!contract) throw new NotFoundException("Contract not found");

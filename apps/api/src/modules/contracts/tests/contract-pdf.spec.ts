@@ -7,6 +7,7 @@
 
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import {
+  certificateParties,
   ContractPdfService,
   wrap,
   toWinAnsi,
@@ -218,5 +219,62 @@ describe("WinAnsi fallback", () => {
 
   it("leaves ordinary Latin-1 alone, including £ and accents", () => {
     expect(toWinAnsi("£49.00 café")).toBe("£49.00 café");
+  });
+});
+
+
+describe("certificate names both parties", () => {
+  const base = {
+    id: "c1",
+    signerName: "Sam Patel",
+    signerEmail: "sam@patelfoods.co.uk",
+    recipientCompany: "Patel Foods Ltd",
+    signedAt: new Date("2026-08-06T11:20:00Z"),
+    sentAt: new Date("2026-08-05T09:00:00Z"),
+  };
+
+  it("names OUR side as a company, never as a person", async () => {
+    // Order Hub is party as a legal entity. Naming whichever staff member
+    // pressed send would imply they signed personally and bound themselves.
+    const parties = certificateParties({
+      ...base,
+      issuer: {
+        name: "Order Hub Solutions Ltd",
+        companyNumber: "16608545",
+        address: "5 Sunningdale Drive, Washington, NE37 2LL",
+      },
+    });
+    const provider = parties[0]!;
+    expect(provider.heading).toContain("PROVIDER");
+    expect(provider.rows).toContainEqual(["Company", "Order Hub Solutions Ltd"]);
+    expect(provider.rows).toContainEqual(["Company number", "16608545"]);
+    // No signer name anywhere on our side.
+    expect(JSON.stringify(provider.rows)).not.toContain("Sam Patel");
+  });
+
+  it("names the client with the full signing evidence", async () => {
+    const client = certificateParties({
+      ...base,
+      signerIp: "203.0.113.9",
+      signerUserAgent: "Safari/605",
+    })[1]!;
+    expect(client.heading).toContain("CLIENT");
+    expect(client.rows).toContainEqual(["Signed by", "Sam Patel"]);
+    expect(client.rows).toContainEqual(["IP address", "203.0.113.9"]);
+    expect(client.rows).toContainEqual(["Device", "Safari/605"]);
+  });
+
+  it("still shows both parties when no issuer was stored", () => {
+    // Contracts created before issuer details existed must not lose our whole
+    // side of the certificate.
+    const parties = certificateParties({ ...base, issuer: null });
+    expect(parties[0]!.rows[0]).toEqual(["Company", "Order Hub Solutions Ltd"]);
+    expect(parties[1]!.rows[0]).toEqual(["Signed by", "Sam Patel"]);
+  });
+
+  it("falls back to a dash rather than printing 'undefined'", () => {
+    const parties = certificateParties({ id: "c1" });
+    expect(parties[1]!.rows).toContainEqual(["Signed by", "—"]);
+    expect(parties[0]!.rows).toContainEqual(["Agreement issued", "—"]);
   });
 });

@@ -21,14 +21,12 @@ import {
   Loader2,
   MessageCircle,
   Mail,
-  PenLine,
   Plus,
   Send,
   Trash2,
   X,
   XCircle,
 } from "lucide-react";
-import { FieldEditorModal } from "@/components/contracts/field-editor-modal";
 import {
   contractsClient,
   type Contract,
@@ -64,11 +62,6 @@ export default function ContractsPage() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [detail, setDetail] = useState<Contract | null>(null);
   const [share, setShare] = useState<Contract | null>(null);
-  // Set when an uploaded-PDF contract needs its boxes placed before sending.
-  const [placing, setPlacing] = useState<{
-    contract: Contract;
-    thenShare: boolean;
-  } | null>(null);
 
   const isAdmin = user?.role === "PLATFORM_ADMIN";
 
@@ -240,16 +233,6 @@ export default function ContractsPage() {
                           <LinkIcon className="h-4 w-4" />
                         </IconBtn>
                       )}
-                      {c.fileUrl && c.status !== "SIGNED" && c.status !== "VOIDED" && (
-                        <IconBtn
-                          title="Place fields on the document"
-                          onClick={() =>
-                            setPlacing({ contract: c, thenShare: false })
-                          }
-                        >
-                          <PenLine className="h-4 w-4" />
-                        </IconBtn>
-                      )}
                       {c.status !== "SIGNED" && c.status !== "VOIDED" && (
                         <>
                           <IconBtn
@@ -303,13 +286,9 @@ export default function ContractsPage() {
           onCreated={(contract, shareLink) => {
             setComposeOpen(false);
             qc.invalidateQueries({ queryKey: ["contracts"] });
-            // An uploaded PDF gets the placement step first. Sending one with
-            // no signature box produces a document the client cannot sign,
-            // and they discover that, not you.
-            if (contract.fileUrl) {
-              setPlacing({ contract, thenShare: shareLink });
-              return;
-            }
+            // Straight into the share sheet, so "give me a link" actually
+            // ends with a link in your clipboard rather than a row you then
+            // have to go and find.
             if (shareLink) setShare(contract);
           }}
         />
@@ -323,19 +302,6 @@ export default function ContractsPage() {
           }}
         />
       )}
-      {placing && (
-        <FieldEditorModal
-          contract={placing.contract}
-          onClose={() => setPlacing(null)}
-          onSaved={(contract) => {
-            const next = placing.thenShare;
-            setPlacing(null);
-            qc.invalidateQueries({ queryKey: ["contracts"] });
-            if (next) setShare(contract);
-          }}
-        />
-      )}
-
       {share && (
         <ShareModal
           contract={share}
@@ -392,23 +358,7 @@ function TemplatesTab({
           className="rounded-xl border border-zinc-200 bg-white p-4"
         >
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="truncate text-sm font-semibold text-zinc-900">
-                {t.name}
-              </h3>
-              {/* Which kind it is decides what it can do: a written template
-                  personalises per client, an uploaded PDF cannot. Worth
-                  seeing at a glance rather than after sending one. */}
-              <span
-                className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                  t.fileUrl
-                    ? "bg-amber-50 text-amber-700"
-                    : "bg-emerald-50 text-emerald-700"
-                }`}
-              >
-                {t.fileUrl ? "Uploaded PDF" : "Written — auto-fills"}
-              </span>
-            </div>
+            <h3 className="text-sm font-semibold text-zinc-900">{t.name}</h3>
             <button
               title="Delete template"
               onClick={() => {

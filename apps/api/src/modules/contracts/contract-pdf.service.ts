@@ -30,6 +30,9 @@ const MARGIN = 56;
 const INK = rgb(0.09, 0.09, 0.11);
 const MUTED = rgb(0.45, 0.45, 0.5);
 const RULE = rgb(0.85, 0.85, 0.88);
+// Brand orange — used only for the party headings, so the two sides of the
+// agreement are findable at a glance on a page that is otherwise grey.
+const ACCENT = rgb(0.98, 0.45, 0.09);
 
 interface Block {
   text: string;
@@ -37,6 +40,59 @@ interface Block {
   bold: boolean;
   gapAfter: number;
   bullet?: boolean;
+}
+
+/**
+ * What the certificate says about each party.
+ *
+ * Pure and exported so the rule can be tested directly: a rendered PDF has
+ * Flate-compressed content streams, so asserting on the bytes proves nothing
+ * about whether our side was named as a company or as a person.
+ */
+export function certificateParties(contract: any): Array<{
+  heading: string;
+  rows: Array<[string, string]>;
+}> {
+  const signed = contract.signedAt ? new Date(contract.signedAt) : null;
+  const issued = contract.sentAt ? new Date(contract.sentAt) : null;
+  const stamp = (d: Date | null) =>
+    d ? `${d.toUTCString()} (${d.toISOString()})` : "—";
+  const issuer = contract.issuer ?? null;
+
+  return [
+    {
+      heading: "PARTY 1 — THE PROVIDER",
+      rows: [
+        // A COMPANY, never a person. Order Hub is party to the agreement as a
+        // legal entity; whichever member of staff pressed send is an
+        // administrative detail, and naming them would imply they signed
+        // personally and bound themselves.
+        ["Company", issuer?.name ?? "Order Hub Solutions Ltd"],
+        ...(issuer?.companyNumber
+          ? ([["Company number", issuer.companyNumber]] as Array<[string, string]>)
+          : []),
+        ...(issuer?.address
+          ? ([["Registered address", issuer.address]] as Array<[string, string]>)
+          : []),
+        ["Agreement issued", stamp(issued)],
+      ],
+    },
+    {
+      heading: "PARTY 2 — THE CLIENT",
+      rows: [
+        ["Signed by", contract.signerName ?? "—"],
+        ["Email", contract.signerEmail ?? contract.recipientEmail ?? "—"],
+        ["Company", contract.recipientCompany ?? "—"],
+        ["Signed at", stamp(signed)],
+        ["IP address", contract.signerIp ?? "—"],
+        ["Device", contract.signerUserAgent ?? "—"],
+      ],
+    },
+    {
+      heading: "DOCUMENT",
+      rows: [["Reference", contract.id ?? "—"]],
+    },
+  ];
 }
 
 @Injectable()
@@ -63,8 +119,6 @@ export class ContractPdfService {
 
     if (!contract.fileUrl) {
       this.renderBody(pdf, contract, regular, bold, logo);
-    } else {
-      this.burnFields(pdf, contract.fields ?? [], regular, italic);
     }
     this.renderCertificate(pdf, contract, events, regular, bold, italic, logo);
 
@@ -190,74 +244,6 @@ export class ContractPdfService {
     }
   }
 
-  /**
-   * Stamp placed fields onto the uploaded original.
-   *
-   * Geometry arrives as fractions with a TOP-LEFT origin (how a browser lays
-   * out a div). pdf-lib measures from the BOTTOM-LEFT, so the flip happens
-   * here — in one place — rather than being stored pre-flipped, which would
-   * make the editor's numbers unreadable and impossible to debug.
-   *
-   * A field pointing at a page that does not exist is skipped rather than
-   * throwing: a truncated re-upload should cost that box, not the download of
-   * a signed agreement.
-   */
-  private burnFields(
-    pdf: PDFDocument,
-    fields: any[],
-    regular: PDFFont,
-    italic: PDFFont,
-  ) {
-    const pages = pdf.getPages();
-    for (const f of fields) {
-      const value = (f.value ?? "").toString();
-      if (!value) continue;
-      const page = pages[f.page ?? 0];
-      if (!page) {
-        this.logger.warn(
-          `Contract field ${f.id} targets page ${f.page}, document has ${pages.length}`,
-        );
-        continue;
-      }
-      const { width, height } = page.getSize();
-      const x = f.x * width;
-      const boxH = f.h * height;
-      // Top-left fraction → bottom-left point, then nudge up off the baseline
-      // so text sits inside the box rather than hanging under it.
-      const yTop = height - f.y * height;
-      const size = Math.min(f.fontSize ?? 11, Math.max(6, boxH * 0.7));
-      const y = yTop - boxH + (boxH - size) / 2 + size * 0.18;
-
-      if (f.type === "CHECKBOX") {
-        const on = value !== "false" && value !== "0" && value !== "";
-        if (on) {
-          page.drawText("X", { x, y, size, font: regular, color: INK });
-        }
-        continue;
-      }
-
-      // A signature renders in italic to read as a signature rather than as
-      // another typed field — the same treatment the certificate uses.
-      const font = f.type === "SIGNATURE" ? italic : regular;
-      const maxW = f.w * width;
-      let text = value;
-      // Truncate rather than overflow into whatever the box sits next to.
-      while (text.length > 1 && font.widthOfTextAtSize(text, size) > maxW) {
-        text = text.slice(0, -1);
-      }
-      page.drawText(text, { x, y, size, font, color: INK });
-
-      if (f.type === "SIGNATURE") {
-        page.drawLine({
-          start: { x, y: y - 3 },
-          end: { x: x + maxW, y: y - 3 },
-          thickness: 0.5,
-          color: RULE,
-        });
-      }
-    }
-  }
-
   // ── The certificate ──────────────────────────────────────────────────────
 
   /**
@@ -298,49 +284,40 @@ export class ContractPdfService {
     line(page, y, width);
     y -= 24;
 
-    const signed = contract.signedAt ? new Date(contract.signedAt) : null;
-    // Both parties. A certificate naming only the signer says who signed but
-    // not who they agreed with — half an evidence record.
-    const issuer = contract.issuer ?? null;
-    const issuedBy = issuer
-      ? [issuer.name, issuer.companyNumber ? `Company no. ${issuer.companyNumber}` : null, issuer.address]
-          .filter(Boolean)
-          .join(" · ")
-      : null;
-
-    const rows: Array<[string, string]> = [
-      ...(issuedBy ? ([["Issued by", issuedBy]] as Array<[string, string]>) : []),
-      ["Signed by", contract.signerName ?? "—"],
-      ["Email", contract.signerEmail ?? contract.recipientEmail ?? "—"],
-      ["Company", contract.recipientCompany ?? "—"],
-      [
-        "Signed at",
-        signed ? `${signed.toUTCString()} (${signed.toISOString()})` : "—",
-      ],
-      ["IP address", contract.signerIp ?? "—"],
-      ["Device", contract.signerUserAgent ?? "—"],
-      ["Document reference", contract.id ?? "—"],
-    ];
-
-    for (const [label, value] of rows) {
-      page.drawText(label, {
+    const block = (heading: string, rows: Array<[string, string]>) => {
+      page.drawText(heading, {
         x: MARGIN,
         y,
         size: 9,
         font: bold,
-        color: MUTED,
+        color: ACCENT,
       });
-      const lines = wrap(String(value), regular, 10, width - 130);
-      for (let i = 0; i < lines.length; i++) {
-        page.drawText(lines[i]!, {
-          x: MARGIN + 130,
-          y: y - i * 13,
-          size: 10,
-          font: regular,
-          color: INK,
+      y -= 16;
+      for (const [label, value] of rows) {
+        page.drawText(label, {
+          x: MARGIN,
+          y,
+          size: 9,
+          font: bold,
+          color: MUTED,
         });
+        const lines = wrap(String(value), regular, 10, width - 130);
+        for (let i = 0; i < lines.length; i++) {
+          page.drawText(lines[i]!, {
+            x: MARGIN + 130,
+            y: y - i * 13,
+            size: 10,
+            font: regular,
+            color: INK,
+          });
+        }
+        y -= Math.max(1, lines.length) * 13 + 7;
       }
-      y -= Math.max(1, lines.length) * 13 + 8;
+      y -= 10;
+    };
+
+    for (const party of certificateParties(contract)) {
+      block(party.heading, party.rows);
     }
 
     y -= 10;

@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Query,
   Res,
 } from "@nestjs/common";
@@ -156,22 +155,6 @@ export class ContractsController {
       `attachment; filename="${filename}"`,
     );
     res.send(buffer);
-  }
-
-  @Get(":id/fields")
-  @ApiOperation({ summary: "Placed fields on an uploaded PDF" })
-  listFields(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
-    return this.contracts.listFields(user.tenantId, id);
-  }
-
-  @Put(":id/fields")
-  @ApiOperation({ summary: "Replace the placed-field layout" })
-  setFields(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param("id") id: string,
-    @Body() body: { fields: Array<Record<string, any>> },
-  ) {
-    return this.contracts.setFields(user.tenantId, id, body?.fields ?? []);
   }
 
   @Post(":id/send")

@@ -8,8 +8,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { PdfPages } from "@/components/contracts/pdf-pages";
-import { SignaturePad } from "@/components/contracts/signature-pad";
 import {
   CheckCircle2,
   Download,
@@ -39,22 +37,6 @@ interface ContractView {
   signerName: string | null;
   subscriptionStartedAt: string | null;
   canSubscribe: boolean;
-  fields?: SignField[];
-}
-
-interface SignField {
-  id: string;
-  page: number;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  type: "TEXT" | "DATE" | "SIGNATURE" | "CHECKBOX";
-  assignee: "SENDER" | "RECIPIENT";
-  label: string | null;
-  required: boolean;
-  fontSize: number;
-  value: string | null;
 }
 
 export default function SignContractPage() {
@@ -66,9 +48,6 @@ export default function SignContractPage() {
   const [loading, setLoading] = useState(true);
 
   const [signerName, setSignerName] = useState("");
-  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
-  // Which signature box the pad is open for, if any.
-  const [signingField, setSigningField] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState<string | null>(null);
@@ -109,10 +88,7 @@ export default function SignContractPage() {
       const res = await fetch(`${API_BASE}/api/v1/sign/${token}/sign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          signerName: signerName.trim(),
-          fieldValues,
-        }),
+        body: JSON.stringify({ signerName: signerName.trim() }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -242,9 +218,7 @@ export default function SignContractPage() {
             href={contract.fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={`items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm active:bg-zinc-50 sm:hidden ${
-              (contract.fields?.length ?? 0) > 0 ? "hidden" : "flex"
-            }`}
+            className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm active:bg-zinc-50 sm:hidden"
           >
             <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-lg bg-orange-50">
               <FileText className="h-5 w-5 text-orange-600" />
@@ -260,41 +234,6 @@ export default function SignContractPage() {
             <ExternalLink className="h-4 w-4 flex-shrink-0 text-zinc-400" />
           </a>
 
-          {/* With placed fields the document is rendered by pdf.js and the
-              boxes overlaid as real inputs, on every screen size — a phone
-              has to be able to fill them, which the native PDF viewer cannot
-              do. Without fields it stays a plain embed. */}
-          {(contract.fields?.length ?? 0) > 0 ? (
-            <div className="-mx-2">
-              <PdfPages
-                fileUrl={contract.fileUrl}
-                renderOverlay={(box) => (
-                  <div className="absolute inset-0">
-                    {(contract.fields ?? [])
-                      .filter((f) => f.page === box.page)
-                      .map((f) => (
-                        <FieldInput
-                          key={f.id}
-                          field={f}
-                          disabled={isSigned}
-                          value={
-                            fieldValues[f.id] ??
-                            f.value ??
-                            (f.type === "SIGNATURE" && isSigned
-                              ? contract.signerName ?? ""
-                              : "")
-                          }
-                          onChange={(v) =>
-                            setFieldValues((s) => ({ ...s, [f.id]: v }))
-                          }
-                          onSign={() => setSigningField(f.id)}
-                        />
-                      ))}
-                  </div>
-                )}
-              />
-            </div>
-          ) : (
           <object
             data={contract.fileUrl}
             type="application/pdf"
@@ -312,7 +251,6 @@ export default function SignContractPage() {
               </a>
             </div>
           </object>
-          )}
         </div>
       ) : (
         <article
@@ -468,98 +406,5 @@ function Shell({ children }: { children: React.ReactNode }) {
         }
       `}</style>
     </div>
-  );
-}
-
-
-/**
- * One placed box, rendered over the page as something you can actually tap.
- *
- * Sender-filled boxes render as flat text: they are part of the document, not
- * a question. The server enforces the same rule at sign time, so this is
- * presentation rather than protection.
- */
-function FieldInput({
-  field,
-  value,
-  disabled,
-  onChange,
-  onSign,
-}: {
-  field: SignField;
-  value: string;
-  disabled: boolean;
-  onChange: (v: string) => void;
-  onSign: () => void;
-}) {
-  const style: React.CSSProperties = {
-    left: `${field.x * 100}%`,
-    top: `${field.y * 100}%`,
-    width: `${field.w * 100}%`,
-    height: `${field.h * 100}%`,
-  };
-
-  if (field.assignee === "SENDER" || disabled) {
-    return (
-      <span
-        style={style}
-        className="absolute flex items-center overflow-hidden px-1 text-[11px] text-zinc-900"
-      >
-        <span className={field.type === "SIGNATURE" ? "italic" : ""}>
-          {value}
-        </span>
-      </span>
-    );
-  }
-
-  const shared =
-    "absolute rounded border-2 border-blue-400 bg-blue-50/70 px-1 text-[11px] text-zinc-900 outline-none focus:border-orange-500 focus:bg-orange-50";
-
-  if (field.type === "CHECKBOX") {
-    return (
-      <button
-        type="button"
-        style={style}
-        onClick={() => onChange(value === "true" ? "" : "true")}
-        className={`${shared} grid place-items-center`}
-        aria-label={field.label ?? "Tick box"}
-      >
-        {value === "true" ? "✓" : ""}
-      </button>
-    );
-  }
-
-  // Signing opens the pad — typing a name into a 30px box on a phone is not
-  // signing, and a drawn signature has nowhere to go in a text input.
-  if (field.type === "SIGNATURE") {
-    return (
-      <button
-        type="button"
-        style={style}
-        onClick={onSign}
-        className={`${shared} flex items-center justify-start truncate italic`}
-      >
-        {value || "Tap to sign"}
-      </button>
-    );
-  }
-
-  return (
-    <input
-      style={style}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      // A date field opens the native picker, which on a phone is the OS
-      // calendar. Defaulting to today on focus saves the commonest case.
-      onFocus={(e) => {
-        if (field.type === "DATE" && !value) {
-          onChange(new Date().toISOString().slice(0, 10));
-        }
-        e.currentTarget.select?.();
-      }}
-      placeholder={field.label ?? ""}
-      type={field.type === "DATE" ? "date" : "text"}
-      className={shared}
-    />
   );
 }
