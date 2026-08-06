@@ -1989,7 +1989,7 @@ function OrderPage() {
                           item={item}
                           promo={itemPromos[item.id] ?? null}
                           showImage={cfg?.showItemImages ?? true}
-                          onClick={() => handleProductClick(item)}
+                          onClick={() => openItemSheet(item)}
                           categoryName={cat.name}
                           stepper={
                             isSimpleItem(item)
@@ -2395,6 +2395,20 @@ function OrderPage() {
       />
     </div>
   );
+
+  /**
+   * Open the item sheet — photo, full description, quantity, priced Add.
+   *
+   * Separate from handleProductClick because on mobile the two gestures mean
+   * different things: + adds one immediately, tapping the card asks to SEE the
+   * item first. A simple item used to skip the sheet entirely and drop
+   * straight into the basket, so its photo and description were unreachable
+   * on a phone even though both exist.
+   */
+  function openItemSheet(item: MenuItem) {
+    if (storefront?.closed) return;
+    setModalItem(item);
+  }
 
   function handleProductClick(item: MenuItem) {
     // Phase AW-15 — when the storefront is paused, taps on product
