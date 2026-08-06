@@ -185,6 +185,14 @@ export class ContractsController {
     return this.contracts.update(user.tenantId, id, body ?? {});
   }
 
+  @Delete(":id")
+  @ApiOperation({
+    summary: "Remove a contract (soft — the signed record and audit survive)",
+  })
+  remove(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return this.contracts.remove(user.tenantId, id);
+  }
+
   @Post(":id/send")
   @ApiOperation({ summary: "Send (or resend) the signing link by email" })
   send(

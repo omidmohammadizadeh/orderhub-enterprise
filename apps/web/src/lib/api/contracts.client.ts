@@ -189,6 +189,13 @@ export const contractsClient = {
       })
       .then((r) => r.data.signingUrl),
 
+  /**
+   * Remove a contract from the list. Soft server-side — the signed record and
+   * its audit trail survive; the signing link stops working.
+   */
+  remove: (id: string) =>
+    apiClient.delete(`/v1/contracts/${id}`).then((r) => r.data),
+
   void: (id: string, reason?: string) =>
     apiClient
       .post<Contract>(`/v1/contracts/${id}/void`, { reason })

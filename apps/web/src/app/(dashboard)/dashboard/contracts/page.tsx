@@ -61,6 +61,7 @@ export default function ContractsPage() {
   const [filter, setFilter] = useState("ALL");
   const [composeOpen, setComposeOpen] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const [detail, setDetail] = useState<Contract | null>(null);
   const [share, setShare] = useState<Contract | null>(null);
   const [editing, setEditing] = useState<Contract | null>(null);
@@ -85,6 +86,10 @@ export default function ContractsPage() {
   });
   const voidIt = useMutation({
     mutationFn: (id: string) => contractsClient.void(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["contracts"] }),
+  });
+  const removeIt = useMutation({
+    mutationFn: (id: string) => contractsClient.remove(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["contracts"] }),
   });
 
@@ -125,6 +130,18 @@ export default function ContractsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setManageOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:border-zinc-300"
+          >
+            <FileText className="h-4 w-4" />
+            Templates
+            {(templatesQuery.data?.length ?? 0) > 0 && (
+              <span className="rounded-full bg-zinc-100 px-1.5 py-0 text-[10px] tabular-nums text-zinc-600">
+                {templatesQuery.data!.length}
+              </span>
+            )}
+          </button>
           <button
             onClick={() => setTemplateOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:border-zinc-300"
@@ -223,6 +240,20 @@ export default function ContractsPage() {
                     </span>
 
                     <div className="flex flex-shrink-0 items-center gap-1">
+                      <IconBtn
+                        title="Delete this contract"
+                        onClick={() => {
+                          const extra =
+                            c.status === "SIGNED"
+                              ? "\n\nThis one is SIGNED. It disappears from your list, but the signed record and its audit trail are kept."
+                              : "\n\nThe signing link stops working immediately.";
+                          if (confirm(`Delete "${c.title}"?${extra}`)) {
+                            removeIt.mutate(c.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </IconBtn>
                       {c.status !== "VOIDED" && (
                         <IconBtn
                           title={
@@ -310,6 +341,17 @@ export default function ContractsPage() {
           }}
         />
       )}
+      {manageOpen && (
+        <ManageTemplatesModal
+          templates={templatesQuery.data ?? []}
+          loading={templatesQuery.isLoading}
+          onClose={() => setManageOpen(false)}
+          onChanged={() =>
+            qc.invalidateQueries({ queryKey: ["contract-templates"] })
+          }
+        />
+      )}
+
       {editing && (
         <EditModal
           contract={editing}
@@ -477,6 +519,99 @@ function StarterTemplates({ onInstalled }: { onInstalled: () => void }) {
         liability, commission and termination clauses.
       </p>
     </section>
+  );
+}
+
+// ── Manage templates ───────────────────────────────────────────────────────
+
+/**
+ * The templates you already have, and a way to delete them.
+ *
+ * Reachable from a button beside "New template" rather than only from the
+ * Templates tab: an old three-clause draft sitting in the list is something
+ * you go looking for when you notice it, not something you find by changing
+ * tabs first.
+ */
+function ManageTemplatesModal({
+  templates,
+  loading,
+  onClose,
+  onChanged,
+}: {
+  templates: ContractTemplate[];
+  loading: boolean;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const del = useMutation({
+    mutationFn: (id: string) => contractsClient.deleteTemplate(id),
+    onSuccess: onChanged,
+  });
+
+  return (
+    <Modal title="Your templates" onClose={onClose}>
+      {loading ? (
+        <p className="py-8 text-center text-sm text-zinc-400">Loading…</p>
+      ) : templates.length === 0 ? (
+        <p className="py-8 text-center text-sm text-zinc-500">
+          No templates yet. &ldquo;New template&rdquo; starts you off with the
+          full agreement.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {templates.map((t) => (
+            <div
+              key={t.id}
+              className="flex items-start gap-3 rounded-lg border border-zinc-200 p-3"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-zinc-900">
+                  {t.name}
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  {/* Which kind decides what it can do — a written template
+                      personalises per client, an uploaded PDF cannot. */}
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                      t.fileUrl
+                        ? "bg-amber-50 text-amber-700"
+                        : "bg-emerald-50 text-emerald-700"
+                    }`}
+                  >
+                    {t.fileUrl ? "Uploaded PDF" : "Written — auto-fills"}
+                  </span>
+                  {!t.fileUrl && (
+                    <span className="text-[10px] text-zinc-400">
+                      {(t.bodyHtml ?? "").length.toLocaleString()} characters
+                    </span>
+                  )}
+                </div>
+                {t.description && (
+                  <p className="mt-1 line-clamp-2 text-[11px] text-zinc-500">
+                    {t.description}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Delete template "${t.name}"?\n\nContracts already sent from it are unaffected — their wording was copied at the time.`,
+                    )
+                  ) {
+                    del.mutate(t.id);
+                  }
+                }}
+                className="flex-shrink-0 rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-red-600"
+                title="Delete template"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </Modal>
   );
 }
 

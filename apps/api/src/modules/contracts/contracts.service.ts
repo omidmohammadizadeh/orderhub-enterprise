@@ -240,7 +240,7 @@ export class ContractsService {
     },
   ) {
     const contract = await (this.prisma as any).contract.findFirst({
-      where: { id: contractId, tenantId },
+      where: { id: contractId, tenantId, deletedAt: null },
       include: { location: { select: { id: true, name: true } } },
     });
     if (!contract) throw new NotFoundException("Contract not found");
@@ -360,6 +360,39 @@ export class ContractsService {
     return this.serialise(updated);
   }
 
+  /**
+   * Remove a contract from the operator's list.
+   *
+   * Soft, always. A signed contract is the record of an agreement somebody is
+   * bound by and its event trail is the evidence behind it; a hard delete
+   * would destroy both to tidy a list. The row and its events survive, the
+   * contract leaves every listing, and the signing link stops working — which
+   * matters most for an unsigned one somebody still has the link to.
+   */
+  async remove(tenantId: string, contractId: string) {
+    const contract = await (this.prisma as any).contract.findFirst({
+      where: { id: contractId, tenantId, deletedAt: null },
+      select: { id: true, status: true, title: true },
+    });
+    if (!contract) throw new NotFoundException("Contract not found");
+
+    await (this.prisma as any).contract.update({
+      where: { id: contract.id },
+      data: { deletedAt: new Date() },
+    });
+    await this.recordEvent(contract.id, "DELETED", {
+      statusWhenDeleted: contract.status,
+    });
+
+    // Worth a line in the log: deleting a signed agreement is a deliberate
+    // act with consequences, and "where did that contract go" is a question
+    // somebody asks eventually.
+    this.logger.log(
+      `Contract ${contract.id} ("${contract.title}") deleted while ${contract.status}`,
+    );
+    return { deleted: true };
+  }
+
   /** Platform issuer details, so the compose form can prefill them. */
   issuerDefaults(): Issuer {
     return defaultIssuer((k) => this.config.get<string>(k));
@@ -371,6 +404,7 @@ export class ContractsService {
     const rows = await (this.prisma as any).contract.findMany({
       where: {
         tenantId,
+        deletedAt: null,
         ...(status && status !== "ALL" ? { status } : {}),
       },
       orderBy: { createdAt: "desc" },
@@ -385,7 +419,7 @@ export class ContractsService {
 
   async get(tenantId: string, contractId: string) {
     const row = await (this.prisma as any).contract.findFirst({
-      where: { id: contractId, tenantId },
+      where: { id: contractId, tenantId, deletedAt: null },
       include: {
         location: { select: { id: true, name: true } },
         template: { select: { id: true, name: true } },
@@ -601,7 +635,7 @@ export class ContractsService {
     opts: { emailIt?: boolean; message?: string } = {},
   ) {
     const contract = await (this.prisma as any).contract.findFirst({
-      where: { id: contractId, tenantId },
+      where: { id: contractId, tenantId, deletedAt: null },
     });
     if (!contract) throw new NotFoundException("Contract not found");
     if (contract.status === "SIGNED") {
@@ -692,7 +726,7 @@ export class ContractsService {
 
   async void(tenantId: string, contractId: string, reason?: string) {
     const contract = await (this.prisma as any).contract.findFirst({
-      where: { id: contractId, tenantId },
+      where: { id: contractId, tenantId, deletedAt: null },
     });
     if (!contract) throw new NotFoundException("Contract not found");
     if (contract.status === "SIGNED") {
@@ -721,7 +755,7 @@ export class ContractsService {
     ctx: { ip?: string; userAgent?: string } = {},
   ) {
     const contract = await (this.prisma as any).contract.findUnique({
-      where: { token },
+      where: { token, deletedAt: null },
       include: { location: { select: { id: true, name: true } } },
     });
     if (!contract) throw new NotFoundException("Contract not found");
@@ -768,7 +802,7 @@ export class ContractsService {
     ctx: { ip?: string; userAgent?: string } = {},
   ) {
     const contract = await (this.prisma as any).contract.findUnique({
-      where: { token },
+      where: { token, deletedAt: null },
     });
     if (!contract) throw new NotFoundException("Contract not found");
     if (contract.status === "SIGNED") {
@@ -857,7 +891,7 @@ export class ContractsService {
     ctx: { ip?: string; userAgent?: string } = {},
   ) {
     const contract = await (this.prisma as any).contract.findUnique({
-      where: { token },
+      where: { token, deletedAt: null },
     });
     if (!contract) throw new NotFoundException("Contract not found");
     if (contract.status !== "SIGNED") {
@@ -906,7 +940,7 @@ export class ContractsService {
    */
   async pdfForAdmin(tenantId: string, contractId: string) {
     const contract = await (this.prisma as any).contract.findFirst({
-      where: { id: contractId, tenantId },
+      where: { id: contractId, tenantId, deletedAt: null },
       include: {
         events: { orderBy: { createdAt: "desc" }, take: 50 },
         location: { select: { name: true } },
@@ -929,7 +963,7 @@ export class ContractsService {
    */
   async pdfForToken(token: string) {
     const contract = await (this.prisma as any).contract.findUnique({
-      where: { token },
+      where: { token, deletedAt: null },
       include: {
         events: { orderBy: { createdAt: "desc" }, take: 50 },
         location: { select: { name: true } },

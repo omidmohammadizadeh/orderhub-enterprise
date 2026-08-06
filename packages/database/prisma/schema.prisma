@@ -4743,6 +4743,12 @@ model Contract {
   subscriptionStartedAt DateTime?
 
   createdByUserId String?
+  /// Soft delete. A signed contract is the record of an agreement somebody is
+  /// bound by, and its audit trail is the evidence behind it — a hard DELETE
+  /// would destroy both to tidy a list. Removing it hides it from the
+  /// operator and stops the signing link working; the row survives.
+  deletedAt DateTime?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

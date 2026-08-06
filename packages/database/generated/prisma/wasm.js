@@ -2220,6 +2220,7 @@ exports.Prisma.ContractScalarFieldEnum = {
   signerUserAgent: 'signerUserAgent',
   subscriptionStartedAt: 'subscriptionStartedAt',
   createdByUserId: 'createdByUserId',
+  deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

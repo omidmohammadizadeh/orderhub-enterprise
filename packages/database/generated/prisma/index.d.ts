@@ -146707,6 +146707,7 @@ export namespace Prisma {
     signerUserAgent: string | null
     subscriptionStartedAt: Date | null
     createdByUserId: string | null
+    deletedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -146746,6 +146747,7 @@ export namespace Prisma {
     signerUserAgent: string | null
     subscriptionStartedAt: Date | null
     createdByUserId: string | null
+    deletedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -146786,6 +146788,7 @@ export namespace Prisma {
     signerUserAgent: number
     subscriptionStartedAt: number
     createdByUserId: number
+    deletedAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -146841,6 +146844,7 @@ export namespace Prisma {
     signerUserAgent?: true
     subscriptionStartedAt?: true
     createdByUserId?: true
+    deletedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -146880,6 +146884,7 @@ export namespace Prisma {
     signerUserAgent?: true
     subscriptionStartedAt?: true
     createdByUserId?: true
+    deletedAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -146920,6 +146925,7 @@ export namespace Prisma {
     signerUserAgent?: true
     subscriptionStartedAt?: true
     createdByUserId?: true
+    deletedAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -147047,6 +147053,7 @@ export namespace Prisma {
     signerUserAgent: string | null
     subscriptionStartedAt: Date | null
     createdByUserId: string | null
+    deletedAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: ContractCountAggregateOutputType | null
@@ -147106,6 +147113,7 @@ export namespace Prisma {
     signerUserAgent?: boolean
     subscriptionStartedAt?: boolean
     createdByUserId?: boolean
+    deletedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -147151,6 +147159,7 @@ export namespace Prisma {
     signerUserAgent?: boolean
     subscriptionStartedAt?: boolean
     createdByUserId?: boolean
+    deletedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -147194,6 +147203,7 @@ export namespace Prisma {
     signerUserAgent?: boolean
     subscriptionStartedAt?: boolean
     createdByUserId?: boolean
+    deletedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -147298,6 +147308,13 @@ export namespace Prisma {
        */
       subscriptionStartedAt: Date | null
       createdByUserId: string | null
+      /**
+       * Soft delete. A signed contract is the record of an agreement somebody is
+       * bound by, and its audit trail is the evidence behind it — a hard DELETE
+       * would destroy both to tidy a list. Removing it hides it from the
+       * operator and stops the signing link working; the row survives.
+       */
+      deletedAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["contract"]>
@@ -147732,6 +147749,7 @@ export namespace Prisma {
     readonly signerUserAgent: FieldRef<"Contract", 'String'>
     readonly subscriptionStartedAt: FieldRef<"Contract", 'DateTime'>
     readonly createdByUserId: FieldRef<"Contract", 'String'>
+    readonly deletedAt: FieldRef<"Contract", 'DateTime'>
     readonly createdAt: FieldRef<"Contract", 'DateTime'>
     readonly updatedAt: FieldRef<"Contract", 'DateTime'>
   }
@@ -151553,6 +151571,7 @@ export namespace Prisma {
     signerUserAgent: 'signerUserAgent',
     subscriptionStartedAt: 'subscriptionStartedAt',
     createdByUserId: 'createdByUserId',
+    deletedAt: 'deletedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -167049,6 +167068,7 @@ export namespace Prisma {
     signerUserAgent?: StringNullableFilter<"Contract"> | string | null
     subscriptionStartedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
     createdByUserId?: StringNullableFilter<"Contract"> | string | null
+    deletedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
     createdAt?: DateTimeFilter<"Contract"> | Date | string
     updatedAt?: DateTimeFilter<"Contract"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -167093,6 +167113,7 @@ export namespace Prisma {
     signerUserAgent?: SortOrderInput | SortOrder
     subscriptionStartedAt?: SortOrderInput | SortOrder
     createdByUserId?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
@@ -167141,6 +167162,7 @@ export namespace Prisma {
     signerUserAgent?: StringNullableFilter<"Contract"> | string | null
     subscriptionStartedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
     createdByUserId?: StringNullableFilter<"Contract"> | string | null
+    deletedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
     createdAt?: DateTimeFilter<"Contract"> | Date | string
     updatedAt?: DateTimeFilter<"Contract"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -167185,6 +167207,7 @@ export namespace Prisma {
     signerUserAgent?: SortOrderInput | SortOrder
     subscriptionStartedAt?: SortOrderInput | SortOrder
     createdByUserId?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ContractCountOrderByAggregateInput
@@ -167233,6 +167256,7 @@ export namespace Prisma {
     signerUserAgent?: StringNullableWithAggregatesFilter<"Contract"> | string | null
     subscriptionStartedAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
     createdByUserId?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Contract"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Contract"> | Date | string
   }
@@ -182181,6 +182205,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutContractsInput
@@ -182225,6 +182250,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
@@ -182263,6 +182289,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
@@ -182307,6 +182334,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
@@ -182348,6 +182376,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -182385,6 +182414,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -182425,6 +182455,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -192593,6 +192624,7 @@ export namespace Prisma {
     signerUserAgent?: SortOrder
     subscriptionStartedAt?: SortOrder
     createdByUserId?: SortOrder
+    deletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -192639,6 +192671,7 @@ export namespace Prisma {
     signerUserAgent?: SortOrder
     subscriptionStartedAt?: SortOrder
     createdByUserId?: SortOrder
+    deletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -192678,6 +192711,7 @@ export namespace Prisma {
     signerUserAgent?: SortOrder
     subscriptionStartedAt?: SortOrder
     createdByUserId?: SortOrder
+    deletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -203254,6 +203288,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     template?: ContractTemplateCreateNestedOneWithoutContractsInput
@@ -203296,6 +203331,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
@@ -204224,6 +204260,7 @@ export namespace Prisma {
     signerUserAgent?: StringNullableFilter<"Contract"> | string | null
     subscriptionStartedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
     createdByUserId?: StringNullableFilter<"Contract"> | string | null
+    deletedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
     createdAt?: DateTimeFilter<"Contract"> | Date | string
     updatedAt?: DateTimeFilter<"Contract"> | Date | string
   }
@@ -209545,6 +209582,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutContractsInput
@@ -209587,6 +209625,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
@@ -237226,6 +237265,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutContractsInput
@@ -237268,6 +237308,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
@@ -238036,6 +238077,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutContractsInput
@@ -238079,6 +238121,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -238132,6 +238175,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
@@ -238175,6 +238219,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -238602,6 +238647,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -239907,6 +239953,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     template?: ContractTemplateUpdateOneWithoutContractsNestedInput
@@ -239949,6 +239996,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
@@ -239989,6 +240037,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -242472,6 +242521,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -243481,6 +243531,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
@@ -243523,6 +243574,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
@@ -243563,6 +243615,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -248300,6 +248353,7 @@ export namespace Prisma {
     signerUserAgent?: string | null
     subscriptionStartedAt?: Date | string | null
     createdByUserId?: string | null
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -248337,6 +248391,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
@@ -248379,6 +248434,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
@@ -248419,6 +248475,7 @@ export namespace Prisma {
     signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
     subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

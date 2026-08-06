@@ -630,3 +630,43 @@ describe("the SHIPPED agreement renders end to end", () => {
     expect(body).toMatch(/one month's written notice/i);
   });
 });
+
+
+describe("deleting a contract", () => {
+  const row = (over: Record<string, any> = {}) => ({
+    ...signedContract(over),
+    deletedAt: null,
+  });
+
+  it("is soft — the record and its audit trail survive", async () => {
+    // A signed contract records an agreement somebody is bound by, and its
+    // events are the evidence behind it. Tidying a list must not destroy
+    // either.
+    const { svc, latest } = makeService({ contract: row({ status: "SIGNED" }) });
+    await svc.remove(TENANT, "c1");
+    expect(latest().deletedAt).toBeInstanceOf(Date);
+  });
+
+  it("records WHAT it was when deleted", async () => {
+    const { svc, events } = makeService({ contract: row({ status: "SENT" }) });
+    await svc.remove(TENANT, "c1");
+    const ev = events.find((e) => e.type === "DELETED");
+    expect(ev.meta.statusWhenDeleted).toBe("SENT");
+  });
+
+  it("can delete a draft, a sent one and a signed one", async () => {
+    for (const status of ["DRAFT", "SENT", "OPENED", "SIGNED", "VOIDED"]) {
+      const { svc } = makeService({ contract: row({ status }) });
+      await expect(svc.remove(TENANT, "c1")).resolves.toEqual({
+        deleted: true,
+      });
+    }
+  });
+
+  it("refuses one that is already deleted", async () => {
+    // findFirst filters deletedAt: null, so a second delete finds nothing
+    // rather than silently re-stamping the timestamp.
+    const { svc } = makeService({ contract: null });
+    await expect(svc.remove(TENANT, "c1")).rejects.toThrow(/not found/i);
+  });
+});
