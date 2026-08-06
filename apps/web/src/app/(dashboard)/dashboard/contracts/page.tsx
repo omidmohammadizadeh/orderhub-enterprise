@@ -568,6 +568,14 @@ function ManageTemplatesModal({
                 <p className="truncate text-sm font-semibold text-zinc-900">
                   {t.name}
                 </p>
+                {t.isFinishedDocument && (
+                  <p className="mt-1 rounded bg-red-50 px-2 py-1.5 text-[11px] leading-snug text-red-700">
+                    <strong>Delete this one.</strong> It&apos;s a completed
+                    Order Hub document, not a blank agreement — it has someone
+                    else&apos;s signature certificate inside it, which prints
+                    their name and details on every contract sent from it.
+                  </p>
+                )}
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                   {/* Which kind decides what it can do — a written template
                       personalises per client, an uploaded PDF cannot. */}

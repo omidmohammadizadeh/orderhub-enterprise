@@ -670,3 +670,54 @@ describe("deleting a contract", () => {
     await expect(svc.remove(TENANT, "c1")).rejects.toThrow(/not found/i);
   });
 });
+
+
+describe("spotting a finished document saved as a template", () => {
+  const makeWithTemplates = (templates: any[], ours: Set<string>) => {
+    const svc = Object.create(ContractsService.prototype) as any;
+    svc.logger = { log() {}, warn() {}, error() {} };
+    svc.prisma = {
+      contractTemplate: { findMany: async () => templates },
+    };
+    svc.pdf = {
+      isOrderHubOutput: async (url: string) => ours.has(url),
+    };
+    return svc;
+  };
+
+  it("flags the template whose file is one of our signed outputs", async () => {
+    // The one that prints a stranger's name on every contract sent from it.
+    // Invisible until somebody reads a signed PDF closely, so the list has to
+    // say which rather than leaving a client to find it.
+    const svc = makeWithTemplates(
+      [
+        { id: "a", name: "Sample", fileUrl: "https://x/sample.pdf" },
+        { id: "b", name: "Solicitor draft", fileUrl: "https://x/real.pdf" },
+      ],
+      new Set(["https://x/sample.pdf"]),
+    );
+    const out = await svc.listTemplates(TENANT);
+    expect(out.find((t: any) => t.id === "a").isFinishedDocument).toBe(true);
+    expect(out.find((t: any) => t.id === "b").isFinishedDocument).toBe(false);
+  });
+
+  it("does not flag written templates, and does not go near the network", async () => {
+    let calls = 0;
+    const svc = Object.create(ContractsService.prototype) as any;
+    svc.logger = { log() {}, warn() {}, error() {} };
+    svc.prisma = {
+      contractTemplate: {
+        findMany: async () => [{ id: "w", name: "Written", fileUrl: null }],
+      },
+    };
+    svc.pdf = {
+      isOrderHubOutput: async () => {
+        calls++;
+        return true;
+      },
+    };
+    const out = await svc.listTemplates(TENANT);
+    expect(out[0].isFinishedDocument).toBe(false);
+    expect(calls).toBe(0);
+  });
+});

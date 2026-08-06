@@ -82,10 +82,32 @@ export class ContractsService {
   // ── Templates ────────────────────────────────────────────────────────────
 
   async listTemplates(tenantId: string) {
-    return (this.prisma as any).contractTemplate.findMany({
+    const rows = await (this.prisma as any).contractTemplate.findMany({
       where: { tenantId, deletedAt: null },
       orderBy: { createdAt: "desc" },
     });
+
+    // Flag any file template that is actually a finished Order Hub document.
+    //
+    // One of these silently prints a stranger's name, signing date and IP on
+    // every contract sent from it, because its own certificate page is inside
+    // the file. Uploading one is now refused, but the ones already saved are
+    // invisible until somebody reads a signed PDF closely — so the list says
+    // which, rather than leaving it to be discovered by a client.
+    const withFiles = rows.filter((r: any) => r.fileUrl);
+    if (withFiles.length === 0) {
+      return rows.map((r: any) => ({ ...r, isFinishedDocument: false }));
+    }
+    const flags = new Map<string, boolean>();
+    await Promise.all(
+      withFiles.map(async (r: any) => {
+        flags.set(r.id, await this.pdf.isOrderHubOutput(r.fileUrl));
+      }),
+    );
+    return rows.map((r: any) => ({
+      ...r,
+      isFinishedDocument: flags.get(r.id) ?? false,
+    }));
   }
 
   /** The ready-made agreements on offer, and whether each is already added. */

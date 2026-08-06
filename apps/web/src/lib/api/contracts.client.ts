@@ -11,6 +11,9 @@ export interface ContractTemplate {
   fileName: string | null;
   fileType: string | null;
   subscriptionAmountPence: number | null;
+  /** True when the uploaded file is a finished Order Hub document — it
+   *  carries someone else's signature certificate inside it. */
+  isFinishedDocument?: boolean;
   createdAt: string;
 }
 
