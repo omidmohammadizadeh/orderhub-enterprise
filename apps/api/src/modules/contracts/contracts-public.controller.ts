@@ -19,13 +19,28 @@ export class ContractsPublicController {
   constructor(private readonly contracts: ContractsService) {}
 
   /**
-   * Behind Express `trust proxy`, req.ip is already the real client rather
-   * than Render's load balancer — the same setting the rate limiter depends
-   * on. Falling back to the socket address keeps this honest in local dev.
+   * The REAL client IP, resolved exactly as UserThrottlerGuard does.
+   *
+   * `trust proxy` is 1, which trusts a single hop — but in production there
+   * are two (Cloudflare, then Render), so req.ip can be Cloudflare's edge
+   * rather than the signer. That is merely annoying for a rate-limit bucket
+   * and actively wrong here: this IP is the evidence that a specific person
+   * signed, and recording Cloudflare's address for every signature would make
+   * the whole audit trail worthless in a dispute.
+   *
+   * cf-connecting-ip is set by Cloudflare itself and cannot be spoofed by a
+   * client behind it; the x-forwarded-for and req.ip fallbacks cover local
+   * dev and any path that doesn't go through the edge.
    */
   private ctxOf(req: Request) {
+    const headers = req.headers as Record<string, string | string[] | undefined>;
+    const cf = headers["cf-connecting-ip"];
+    const cfIp = typeof cf === "string" ? cf : undefined;
+    const xffRaw = headers["x-forwarded-for"];
+    const xff =
+      typeof xffRaw === "string" ? xffRaw.split(",")[0]?.trim() : undefined;
     return {
-      ip: req.ip ?? req.socket?.remoteAddress ?? undefined,
+      ip: cfIp ?? xff ?? req.ip ?? req.socket?.remoteAddress ?? undefined,
       userAgent: req.get("user-agent") ?? undefined,
     };
   }
