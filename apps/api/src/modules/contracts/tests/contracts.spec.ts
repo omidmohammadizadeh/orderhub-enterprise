@@ -157,6 +157,53 @@ describe("signing", () => {
   });
 });
 
+describe("sharing by link rather than email", () => {
+  it("issues a DRAFT so the copied link can actually be signed", async () => {
+    // The bug this pins: the dashboard used to copy signingUrl straight off
+    // the row. It looked like it worked and didn't — a DRAFT is not signable,
+    // so the client opened the page, typed their name and was told the
+    // contract wasn't ready. Handing over a link must issue it.
+    const { svc, latest } = makeService({
+      contract: signedContract({ status: "DRAFT", sentAt: null }),
+    });
+    const res = await svc.send(TENANT, "c1", { emailIt: false });
+    expect(latest().status).toBe("SENT");
+    expect(res.signingUrl).toContain("/contract/tok");
+  });
+
+  it("issued-by-link contracts are then signable", async () => {
+    const { svc, latest } = makeService({
+      contract: signedContract({ status: "DRAFT", sentAt: null }),
+    });
+    await svc.send(TENANT, "c1", { emailIt: false });
+    await expect(
+      svc.sign("tok", { signerName: "Sam Patel" }),
+    ).resolves.toMatchObject({ status: "SIGNED" });
+    expect(latest().signerName).toBe("Sam Patel");
+  });
+
+  it("does not email when the operator asked for a link", async () => {
+    const { svc } = makeService({
+      contract: signedContract({ status: "DRAFT", sentAt: null }),
+    });
+    const sent: any[] = [];
+    svc.email = { send: async (o: any) => (sent.push(o), { id: "e" }) };
+    await svc.send(TENANT, "c1", { emailIt: false });
+    expect(sent).toHaveLength(0);
+  });
+
+  it("still emails when the operator asked for email", async () => {
+    const { svc } = makeService({
+      contract: signedContract({ status: "DRAFT", sentAt: null }),
+    });
+    const sent: any[] = [];
+    svc.email = { send: async (o: any) => (sent.push(o), { id: "e" }) };
+    await svc.send(TENANT, "c1", { emailIt: true });
+    expect(sent).toHaveLength(1);
+    expect(sent[0].to).toBe("client@example.com");
+  });
+});
+
 describe("re-sending keeps the evidence", () => {
   it("does not reset OPENED back to SENT", async () => {
     // Rolling the status back would erase the record that they had already

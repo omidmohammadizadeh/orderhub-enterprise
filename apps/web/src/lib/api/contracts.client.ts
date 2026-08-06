@@ -107,6 +107,21 @@ export const contractsClient = {
       .post<Contract & { signingUrl: string }>(`/v1/contracts/${id}/send`, body)
       .then((r) => r.data),
 
+  /**
+   * Issue the contract WITHOUT emailing it, and hand back the link.
+   *
+   * This is not the same as reading `signingUrl` off the list row. A DRAFT
+   * cannot be signed — the link would open, the client would type their name,
+   * and signing would fail. Issuing it here moves DRAFT → SENT so the link
+   * actually works when it lands in someone's WhatsApp.
+   */
+  generateLink: (id: string) =>
+    apiClient
+      .post<Contract & { signingUrl: string }>(`/v1/contracts/${id}/send`, {
+        emailIt: false,
+      })
+      .then((r) => r.data.signingUrl),
+
   void: (id: string, reason?: string) =>
     apiClient
       .post<Contract>(`/v1/contracts/${id}/void`, { reason })

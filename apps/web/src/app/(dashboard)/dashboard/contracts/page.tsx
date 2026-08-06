@@ -7,7 +7,7 @@
 // refusal for anyone else, and the API rejects the call regardless. The page
 // check exists because a direct URL bypasses the sidebar entirely.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
@@ -17,7 +17,9 @@ import {
   Eye,
   FileSignature,
   FileText,
+  Link2 as LinkIcon,
   Loader2,
+  MessageCircle,
   Mail,
   Plus,
   Send,
@@ -59,7 +61,7 @@ export default function ContractsPage() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [detail, setDetail] = useState<Contract | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
+  const [share, setShare] = useState<Contract | null>(null);
 
   const isAdmin = user?.role === "PLATFORM_ADMIN";
 
@@ -84,11 +86,6 @@ export default function ContractsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["contracts"] }),
   });
 
-  const copyLink = (c: Contract) => {
-    navigator.clipboard?.writeText(c.signingUrl);
-    setCopied(c.id);
-    setTimeout(() => setCopied((v) => (v === c.id ? null : v)), 2000);
-  };
 
   if (!isAdmin) {
     return (
@@ -224,23 +221,25 @@ export default function ContractsPage() {
                     </span>
 
                     <div className="flex flex-shrink-0 items-center gap-1">
-                      <IconBtn
-                        title="Copy signing link"
-                        onClick={() => copyLink(c)}
-                      >
-                        {copied === c.id ? (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </IconBtn>
+                      {c.status !== "VOIDED" && (
+                        <IconBtn
+                          title={
+                            c.status === "DRAFT"
+                              ? "Generate a signing link to share"
+                              : "Share the signing link"
+                          }
+                          onClick={() => setShare(c)}
+                        >
+                          <LinkIcon className="h-4 w-4" />
+                        </IconBtn>
+                      )}
                       {c.status !== "SIGNED" && c.status !== "VOIDED" && (
                         <>
                           <IconBtn
                             title={
                               c.status === "DRAFT"
                                 ? "Send by email"
-                                : "Send a reminder"
+                                : "Send a reminder by email"
                             }
                             onClick={() =>
                               send.mutate({ id: c.id, emailIt: true })
@@ -284,9 +283,13 @@ export default function ContractsPage() {
         <ComposeModal
           templates={templatesQuery.data ?? []}
           onClose={() => setComposeOpen(false)}
-          onCreated={() => {
+          onCreated={(contract, shareLink) => {
             setComposeOpen(false);
             qc.invalidateQueries({ queryKey: ["contracts"] });
+            // Straight into the share sheet, so "give me a link" actually
+            // ends with a link in your clipboard rather than a row you then
+            // have to go and find.
+            if (shareLink) setShare(contract);
           }}
         />
       )}
@@ -299,8 +302,22 @@ export default function ContractsPage() {
           }}
         />
       )}
+      {share && (
+        <ShareModal
+          contract={share}
+          onClose={() => setShare(null)}
+          onIssued={() => qc.invalidateQueries({ queryKey: ["contracts"] })}
+        />
+      )}
       {detail && (
-        <DetailDrawer contract={detail} onClose={() => setDetail(null)} />
+        <DetailDrawer
+          contract={detail}
+          onClose={() => setDetail(null)}
+          onShare={(c) => {
+            setDetail(null);
+            setShare(c);
+          }}
+        />
       )}
     </div>
   );
@@ -367,6 +384,131 @@ function TemplatesTab({
   );
 }
 
+// ── Share by link ──────────────────────────────────────────────────────────
+
+/**
+ * The link half of "send by email OR send a link".
+ *
+ * Opening this on a DRAFT ISSUES the contract first. Copying the URL straight
+ * off the row looked like it worked and didn't: a draft can't be signed, so
+ * the client would open the page, type their name, and be told the contract
+ * isn't ready. Issuing here moves it to SENT so the link works wherever it
+ * ends up — WhatsApp, SMS, read down the phone.
+ */
+function ShareModal({
+  contract,
+  onClose,
+  onIssued,
+}: {
+  contract: Contract;
+  onClose: () => void;
+  onIssued: () => void;
+}) {
+  const [url, setUrl] = useState<string | null>(
+    contract.status === "DRAFT" ? null : contract.signingUrl,
+  );
+  const [issuing, setIssuing] = useState(contract.status === "DRAFT");
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (contract.status !== "DRAFT") return;
+    let cancelled = false;
+    contractsClient
+      .generateLink(contract.id)
+      .then((link) => {
+        if (cancelled) return;
+        setUrl(link);
+        onIssued();
+      })
+      .catch((e: any) =>
+        setError(e?.response?.data?.message ?? "Couldn't generate the link"),
+      )
+      .finally(() => !cancelled && setIssuing(false));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contract.id]);
+
+  const copy = () => {
+    if (!url) return;
+    navigator.clipboard?.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const message = `Hi ${contract.recipientName}, please review and sign "${contract.title}": ${url ?? ""}`;
+
+  return (
+    <Modal title="Share signing link" onClose={onClose}>
+      {issuing ? (
+        <div className="flex items-center gap-2 py-8 text-sm text-zinc-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Generating the link…
+        </div>
+      ) : error ? (
+        <p className="py-6 text-sm text-red-600">{error}</p>
+      ) : (
+        <div className="space-y-4">
+          <p className="text-sm text-zinc-600">
+            Anyone with this link can open and sign the agreement — send it only
+            to {contract.recipientName}.
+          </p>
+
+          <div className="flex items-center gap-2">
+            <input
+              readOnly
+              value={url ?? ""}
+              onFocus={(e) => e.currentTarget.select()}
+              className="min-w-0 flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-2 text-xs"
+            />
+            <button
+              onClick={copy}
+              className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold text-white"
+            >
+              {copied ? (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-xs font-semibold text-zinc-700">
+              Or share it directly
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(message)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-semibold text-zinc-800 hover:border-zinc-300"
+              >
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp
+              </a>
+              <a
+                href={`mailto:${encodeURIComponent(contract.recipientEmail)}?subject=${encodeURIComponent(`Please sign: ${contract.title}`)}&body=${encodeURIComponent(message)}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-semibold text-zinc-800 hover:border-zinc-300"
+              >
+                <Mail className="h-4 w-4" />
+                Your mail app
+              </a>
+            </div>
+            <p className="mt-2 text-[11px] text-zinc-500">
+              These open your own WhatsApp or mail client. To send it from Order
+              Hub instead, use the envelope button on the contract row.
+            </p>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 // ── Compose ────────────────────────────────────────────────────────────────
 
 function ComposeModal({
@@ -376,7 +518,7 @@ function ComposeModal({
 }: {
   templates: ContractTemplate[];
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (contract: Contract, shareLink: boolean) => void;
 }) {
   const [templateId, setTemplateId] = useState("");
   const [title, setTitle] = useState("");
@@ -410,9 +552,12 @@ function ComposeModal({
         subscriptionAmountPence: pence,
       });
       if (sendNow) await contractsClient.send(contract.id, { emailIt: true });
+      // Link mode deliberately leaves it a DRAFT: ShareModal issues it as it
+      // hands the link over, so there is exactly one place that does that and
+      // no way to end up with an issued contract nobody has the link to.
       return contract;
     },
-    onSuccess: onCreated,
+    onSuccess: (contract) => onCreated(contract, !sendNow),
     onError: (e: any) =>
       setError(e?.response?.data?.message ?? "Couldn't create that contract"),
   });
@@ -521,14 +666,45 @@ function ComposeModal({
           )}
         </Field>
 
-        <label className="flex items-center gap-2 text-sm text-zinc-700">
-          <input
-            type="checkbox"
-            checked={sendNow}
-            onChange={(e) => setSendNow(e.target.checked)}
-          />
-          Email it to the client straight away
-        </label>
+        <Field label="How do you want to send it?">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(
+              [
+                {
+                  key: "email",
+                  Icon: Mail,
+                  title: "Email it now",
+                  body: `We email ${recipientEmail.trim() || "the client"} the signing link.`,
+                },
+                {
+                  key: "link",
+                  Icon: LinkIcon,
+                  title: "Give me a link",
+                  body: "Copy it and send however you like — WhatsApp, SMS, in person.",
+                },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setSendNow(opt.key === "email")}
+                className={`rounded-lg border p-3 text-left transition ${
+                  (opt.key === "email") === sendNow
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-zinc-200 hover:border-zinc-300"
+                }`}
+              >
+                <span className="flex items-center gap-1.5 text-sm font-semibold text-zinc-900">
+                  <opt.Icon className="h-4 w-4" />
+                  {opt.title}
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-zinc-500">
+                  {opt.body}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Field>
 
         {error && <p className="text-xs text-red-600">{error}</p>}
 
@@ -548,7 +724,7 @@ function ComposeModal({
             className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             {create.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {sendNow ? "Create & send" : "Create draft"}
+            {sendNow ? "Create & email" : "Create & get link"}
           </button>
         </div>
       </div>
@@ -756,9 +932,11 @@ function TemplateModal({
 function DetailDrawer({
   contract,
   onClose,
+  onShare,
 }: {
   contract: Contract;
   onClose: () => void;
+  onShare: (c: Contract) => void;
 }) {
   const full = useQuery({
     queryKey: ["contract", contract.id],
@@ -808,24 +986,17 @@ function DetailDrawer({
           </button>
         )}
 
-        <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            Signing link
-          </p>
-          <div className="flex items-center gap-2">
-            <input
-              readOnly
-              value={c.signingUrl}
-              className="min-w-0 flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs"
-            />
-            <button
-              onClick={() => navigator.clipboard?.writeText(c.signingUrl)}
-              className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs font-semibold"
-            >
-              Copy
-            </button>
-          </div>
-        </div>
+        {c.status !== "VOIDED" && (
+          <button
+            onClick={() => onShare(c)}
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2.5 text-sm font-semibold text-zinc-800 hover:border-zinc-300"
+          >
+            <LinkIcon className="h-4 w-4" />
+            {c.status === "DRAFT"
+              ? "Generate signing link"
+              : "Share signing link"}
+          </button>
+        )}
 
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
