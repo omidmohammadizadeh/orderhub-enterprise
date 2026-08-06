@@ -154,6 +154,23 @@ export class ContractsService {
         "A template needs either written content or an uploaded file",
       );
     }
+
+    // Refuse a finished document as a template.
+    //
+    // A signed PDF we produced carries its own certificate page — someone
+    // else's name, their signing date, a stale reference — and using it as a
+    // template prints all of that on every contract sent from it, looking for
+    // all the world like the new signer's details. It reads as a bug in the
+    // system rather than the wrong file, and it has been reported twice.
+    if (dto.fileUrl?.trim()) {
+      const ours = await this.pdf.isOrderHubOutput(dto.fileUrl.trim());
+      if (ours) {
+        throw new BadRequestException(
+          "That file is a completed Order Hub document, not a blank agreement — it already has a signature certificate inside it, which would appear on every contract you send. Upload the unsigned original, or start from a written template instead.",
+        );
+      }
+    }
+
     return (this.prisma as any).contractTemplate.create({
       data: {
         tenantId,

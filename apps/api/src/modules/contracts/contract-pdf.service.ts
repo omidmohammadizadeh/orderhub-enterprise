@@ -30,6 +30,12 @@ const MARGIN = 56;
 const INK = rgb(0.09, 0.09, 0.11);
 const MUTED = rgb(0.45, 0.45, 0.5);
 const RULE = rgb(0.85, 0.85, 0.88);
+
+/**
+ * Written into the Producer field of every PDF we generate, so a finished
+ * document can be told apart from a blank agreement later.
+ */
+export const ORDERHUB_PDF_MARKER = "Order Hub Contracts";
 // Brand orange — used only for the party headings, so the two sides of the
 // agreement are findable at a glance on a page that is otherwise grey.
 const ACCENT = rgb(0.98, 0.45, 0.09);
@@ -122,8 +128,43 @@ export class ContractPdfService {
     }
     this.renderCertificate(pdf, contract, events, regular, bold, italic, logo);
 
+    // Stamp the output so we can recognise our own work later. An operator
+    // who uploads a finished, signed document as a TEMPLATE gets its baked-in
+    // certificate on every contract they then send — someone else's name and
+    // a stale reference, printed as if it were the new signer. That has
+    // happened twice; a marker is the only way to spot it, since a PDF's text
+    // is compressed and cannot simply be searched.
+    // Keywords, not Producer: pdf-lib overwrites Producer with its own name
+    // inside save(), so a marker put there silently disappears.
+    pdf.setKeywords([ORDERHUB_PDF_MARKER]);
+    pdf.setCreator("Order Hub");
+
     const bytes = await pdf.save();
     return Buffer.from(bytes);
+  }
+
+  /**
+   * Is this PDF one WE generated — i.e. a finished document rather than a
+   * blank agreement to be filled in?
+   *
+   * Used to stop a signed output being saved as a template. Never throws: a
+   * file we cannot read is not evidence of anything, and refusing an upload
+   * because of a network blip would be worse than the problem.
+   */
+  async isOrderHubOutput(url: string): Promise<boolean> {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return false;
+      const pdf = await PDFDocument.load(await res.arrayBuffer(), {
+        ignoreEncryption: true,
+      });
+      return (pdf.getKeywords() ?? "").includes(ORDERHUB_PDF_MARKER);
+    } catch (err: any) {
+      this.logger.warn(
+        `Could not inspect uploaded PDF ${url}: ${err?.message ?? err}`,
+      );
+      return false;
+    }
   }
 
   /**

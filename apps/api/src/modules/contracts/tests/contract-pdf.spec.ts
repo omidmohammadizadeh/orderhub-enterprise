@@ -7,6 +7,7 @@
 
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import {
+  ORDERHUB_PDF_MARKER,
   certificateParties,
   ContractPdfService,
   wrap,
@@ -276,5 +277,53 @@ describe("certificate names both parties", () => {
     const parties = certificateParties({ id: "c1" });
     expect(parties[1]!.rows).toContainEqual(["Signed by", "—"]);
     expect(parties[0]!.rows).toContainEqual(["Agreement issued", "—"]);
+  });
+});
+
+
+describe("telling our own output apart from a blank agreement", () => {
+  it("stamps every PDF it generates", async () => {
+    // The marker is how a finished document is recognised later. A PDF's text
+    // is compressed, so searching the bytes for "Certificate" cannot work.
+    const buf = await svc().build(signed(), []);
+    const doc = await PDFDocument.load(buf);
+    expect(doc.getKeywords()).toContain(ORDERHUB_PDF_MARKER);
+  }, 30_000);
+
+  it("recognises a stamped PDF as ours", async () => {
+    const buf = await svc().build(signed(), []);
+    const realFetch = global.fetch;
+    global.fetch = (async () => ({
+      ok: true,
+      arrayBuffer: async () => buf,
+    })) as any;
+    await expect(svc().isOrderHubOutput("https://x/y.pdf")).resolves.toBe(true);
+    global.fetch = realFetch;
+  }, 30_000);
+
+  it("does NOT flag an ordinary PDF a client drafted", async () => {
+    // The common case: a solicitor's agreement. Refusing that would be worse
+    // than the problem being solved.
+    const plain = await PDFDocument.create();
+    plain.addPage([595, 842]);
+    const bytes = await plain.save();
+    const realFetch = global.fetch;
+    global.fetch = (async () => ({
+      ok: true,
+      arrayBuffer: async () => bytes,
+    })) as any;
+    await expect(svc().isOrderHubOutput("https://x/y.pdf")).resolves.toBe(false);
+    global.fetch = realFetch;
+  }, 30_000);
+
+  it("says 'not ours' when the file cannot be read at all", async () => {
+    // A network blip must not block an upload — failing open is right here,
+    // since the check is a safeguard rather than a security control.
+    const realFetch = global.fetch;
+    global.fetch = (async () => {
+      throw new Error("network down");
+    }) as any;
+    await expect(svc().isOrderHubOutput("https://x/y.pdf")).resolves.toBe(false);
+    global.fetch = realFetch;
   });
 });
