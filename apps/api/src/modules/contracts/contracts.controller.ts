@@ -35,6 +35,21 @@ export class ContractsController {
     return this.contracts.listTemplates(user.tenantId);
   }
 
+  @Get("templates/starters")
+  @ApiOperation({ summary: "Ready-made agreements available to install" })
+  listStarters(@CurrentUser() user: AuthenticatedUser) {
+    return this.contracts.listStarterTemplates(user.tenantId);
+  }
+
+  @Post("templates/starters/:key")
+  @ApiOperation({ summary: "Copy a ready-made agreement into your templates" })
+  installStarter(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("key") key: string,
+  ) {
+    return this.contracts.installStarterTemplate(user.tenantId, key, user.userId);
+  }
+
   @Post("templates")
   @ApiOperation({ summary: "Create a contract template" })
   createTemplate(

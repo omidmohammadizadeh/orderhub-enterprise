@@ -54,6 +54,23 @@ export interface ContractEvent {
 
 export const contractsClient = {
   // ── Templates ──────────────────────────────────────────────────────────
+  listStarters: () =>
+    apiClient
+      .get<
+        Array<{
+          key: string;
+          name: string;
+          description: string;
+          installed: boolean;
+        }>
+      >("/v1/contracts/templates/starters")
+      .then((r) => r.data),
+
+  installStarter: (key: string) =>
+    apiClient
+      .post<ContractTemplate>(`/v1/contracts/templates/starters/${key}`)
+      .then((r) => r.data),
+
   listTemplates: () =>
     apiClient
       .get<ContractTemplate[]>("/v1/contracts/templates")

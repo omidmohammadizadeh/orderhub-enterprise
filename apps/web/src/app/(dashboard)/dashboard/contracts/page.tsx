@@ -340,16 +340,18 @@ function TemplatesTab({
   });
 
   if (loading) return <Loading />;
-  if (templates.length === 0)
-    return (
-      <Empty
-        title="No templates yet"
-        body="A template is the reusable body of an agreement — write it once, send it to any number of clients."
-      />
-    );
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-6">
+      <StarterTemplates onInstalled={onDeleted} />
+
+      {templates.length === 0 ? (
+        <Empty
+          title="No templates of your own yet"
+          body="Add one of the ready-made agreements above, or write your own — a template is the reusable body of an agreement you send to any number of clients."
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {templates.map((t) => (
         <div
           key={t.id}
@@ -378,9 +380,84 @@ function TemplatesTab({
               <Tag>£{(t.subscriptionAmountPence / 100).toFixed(2)}/mo</Tag>
             ) : null}
           </div>
+          </div>
+        ))}
         </div>
-      ))}
+      )}
     </div>
+  );
+}
+
+/**
+ * The agreements we ship, ready to add in one click.
+ *
+ * Installing COPIES the wording into a template the operator owns, so editing
+ * theirs is safe and a later change to ours never rewrites an agreement that
+ * has already been signed.
+ */
+function StarterTemplates({ onInstalled }: { onInstalled: () => void }) {
+  const qc = useQueryClient();
+  const starters = useQuery({
+    queryKey: ["contract-starters"],
+    queryFn: () => contractsClient.listStarters(),
+  });
+
+  const install = useMutation({
+    mutationFn: (key: string) => contractsClient.installStarter(key),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contract-starters"] });
+      onInstalled();
+    },
+  });
+
+  const rows = starters.data ?? [];
+  if (!rows.length) return null;
+
+  return (
+    <section>
+      <h2 className="mb-1 text-sm font-semibold text-zinc-900">
+        Ready-made agreements
+      </h2>
+      <p className="mb-3 text-xs text-zinc-500">
+        Written for Order Hub Solutions Ltd. Adding one copies it into your own
+        templates, where you can edit the wording freely.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {rows.map((s) => (
+          <div
+            key={s.key}
+            className="flex flex-col rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-4"
+          >
+            <h3 className="text-sm font-semibold text-zinc-900">{s.name}</h3>
+            <p className="mt-1 flex-1 text-xs leading-snug text-zinc-500">
+              {s.description}
+            </p>
+            <button
+              disabled={s.installed || install.isPending}
+              onClick={() => install.mutate(s.key)}
+              className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 hover:border-zinc-400 disabled:opacity-50"
+            >
+              {s.installed ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                  Added
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3.5 w-3.5" />
+                  Add to my templates
+                </>
+              )}
+            </button>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-900">
+        These are a solid starting point, not legal advice. Have a solicitor
+        review the wording before you send it to a client — particularly the
+        liability, commission and termination clauses.
+      </p>
+    </section>
   );
 }
 

@@ -10,6 +10,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { EmailService } from "../../infrastructure/email/email.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { ContractPdfService } from "./contract-pdf.service";
+import { STARTER_TEMPLATES } from "./starter-templates";
 
 /**
  * E-signature contracts.
@@ -73,6 +74,46 @@ export class ContractsService {
       where: { tenantId, deletedAt: null },
       orderBy: { createdAt: "desc" },
     });
+  }
+
+  /** The ready-made agreements on offer, and whether each is already added. */
+  async listStarterTemplates(tenantId: string) {
+    const existing = await (this.prisma as any).contractTemplate.findMany({
+      where: { tenantId, deletedAt: null },
+      select: { name: true },
+    });
+    const names = new Set(existing.map((t: any) => t.name));
+    return STARTER_TEMPLATES.map((s) => ({
+      key: s.key,
+      name: s.name,
+      description: s.description,
+      installed: names.has(s.name),
+    }));
+  }
+
+  /**
+   * Copy a starter into the tenant's own templates.
+   *
+   * A copy, not a reference: the operator edits their version freely and a
+   * later change to the shipped wording never rewrites an agreement that has
+   * already gone out.
+   */
+  async installStarterTemplate(
+    tenantId: string,
+    key: string,
+    userId?: string,
+  ) {
+    const starter = STARTER_TEMPLATES.find((s) => s.key === key);
+    if (!starter) throw new NotFoundException("Unknown starter template");
+    return this.createTemplate(
+      tenantId,
+      {
+        name: starter.name,
+        description: starter.description,
+        bodyHtml: starter.bodyHtml,
+      },
+      userId,
+    );
   }
 
   async createTemplate(
