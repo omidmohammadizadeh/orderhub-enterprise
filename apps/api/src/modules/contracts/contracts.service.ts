@@ -203,6 +203,158 @@ export class ContractsService {
     return { ok: true };
   }
 
+  /**
+   * Amend a contract that has been sent but not signed.
+   *
+   * A SIGNED contract is never editable. That is the whole value of the
+   * thing: the signed artefact has to be exactly what was agreed, and an
+   * "edit" afterwards would silently rewrite history that someone is bound
+   * by. Withdraw it and send a fresh one instead.
+   *
+   * Amending one the client has ALREADY OPENED is allowed but recorded. They
+   * may have read different terms to the ones they end up signing, and the
+   * audit trail is the only place that fact can live. The status rolls back
+   * to SENT so the board stops claiming they have read the current version.
+   *
+   * The signing token is deliberately unchanged, so a link already sitting in
+   * someone's inbox keeps working — reissuing it would strand every copy of
+   * the link already handed out.
+   */
+  async update(
+    tenantId: string,
+    contractId: string,
+    dto: {
+      title?: string;
+      recipientName?: string;
+      recipientEmail?: string;
+      recipientCompany?: string | null;
+      locationId?: string | null;
+      subscriptionAmountPence?: number | null;
+      commissionPercent?: number | null;
+      customerServiceChargePence?: number | null;
+    },
+  ) {
+    const contract = await (this.prisma as any).contract.findFirst({
+      where: { id: contractId, tenantId },
+      include: { location: { select: { id: true, name: true } } },
+    });
+    if (!contract) throw new NotFoundException("Contract not found");
+    if (contract.status === "SIGNED") {
+      throw new BadRequestException(
+        "This contract has been signed and can no longer be changed. Withdraw it and send a new one.",
+      );
+    }
+    if (contract.status === "VOIDED") {
+      throw new BadRequestException(
+        "This contract was withdrawn. Send a new one instead.",
+      );
+    }
+
+    const pick = <T>(next: T | undefined, current: T): T =>
+      next === undefined ? current : next;
+
+    const recipientName = pick(dto.recipientName?.trim(), contract.recipientName);
+    const recipientEmail = pick(
+      dto.recipientEmail?.trim().toLowerCase(),
+      contract.recipientEmail,
+    );
+    if (!recipientName || !recipientEmail) {
+      throw new BadRequestException("A name and email are required");
+    }
+
+    const amount = pick(dto.subscriptionAmountPence, contract.subscriptionAmountPence);
+
+    const commissionPercent =
+      dto.commissionPercent === undefined
+        ? contract.commissionPercent
+        : dto.commissionPercent != null && Number(dto.commissionPercent) > 0
+          ? Math.round(Number(dto.commissionPercent) * 100) / 100
+          : null;
+    if (commissionPercent != null && commissionPercent > 100) {
+      throw new BadRequestException("Commission can't be more than 100%");
+    }
+
+    const serviceChargePence =
+      dto.customerServiceChargePence === undefined
+        ? contract.customerServiceChargePence
+        : dto.customerServiceChargePence != null &&
+            Number(dto.customerServiceChargePence) > 0
+          ? Math.round(Number(dto.customerServiceChargePence))
+          : null;
+
+    let locationId = pick(dto.locationId, contract.locationId);
+    let location = contract.location;
+    if (locationId && locationId !== contract.locationId) {
+      location = await this.prisma.location.findFirst({
+        where: { id: locationId, brand: { tenantId } },
+        select: { id: true, name: true },
+      });
+      if (!location) throw new NotFoundException("Location not found");
+    } else if (!locationId) {
+      location = null;
+    }
+
+    // Re-render from the ORIGINAL wording, not from the template as it stands
+    // today — an amendment changes the figures that were agreed, not clauses
+    // somebody edited in the template last week.
+    const bodyHtml = contract.sourceHtml
+      ? this.fillPlaceholders(contract.sourceHtml, {
+          recipientName,
+          recipientEmail,
+          recipientCompany: dto.recipientCompany?.trim() ?? contract.recipientCompany ?? "",
+          location: location?.name ?? "",
+          date: new Date(contract.createdAt).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }),
+          amount: amount ? `£${(amount / 100).toFixed(2)}` : "",
+          commission: commissionPercent != null ? `${commissionPercent}%` : "",
+          serviceCharge:
+            serviceChargePence != null
+              ? `£${(serviceChargePence / 100).toFixed(2)}`
+              : "",
+        })
+      : contract.bodyHtml;
+
+    const wasOpened = contract.status === "OPENED" || !!contract.firstOpenedAt;
+
+    const updated = await (this.prisma as any).contract.update({
+      where: { id: contract.id },
+      data: {
+        title: pick(dto.title?.trim(), contract.title),
+        recipientName,
+        recipientEmail,
+        recipientCompany:
+          dto.recipientCompany === undefined
+            ? contract.recipientCompany
+            : dto.recipientCompany?.trim() || null,
+        locationId: locationId || null,
+        subscriptionAmountPence: amount,
+        commissionPercent,
+        customerServiceChargePence: serviceChargePence,
+        bodyHtml,
+        // Back to SENT: the board should not go on saying they have read this
+        // when what they read is not what is there now.
+        status: contract.status === "OPENED" ? "SENT" : contract.status,
+      },
+      include: { location: { select: { id: true, name: true } } },
+    });
+
+    await this.recordEvent(contract.id, "AMENDED", {
+      wasOpened,
+      bodyRerendered: !!contract.sourceHtml,
+    });
+
+    if (!contract.sourceHtml) {
+      this.logger.warn(
+        `Contract ${contract.id} amended but has no sourceHtml — figures updated, body left as-is`,
+      );
+    }
+
+    return this.serialise(updated);
+  }
+
   /** Platform issuer details, so the compose form can prefill them. */
   issuerDefaults(): Issuer {
     return defaultIssuer((k) => this.config.get<string>(k));
@@ -323,6 +475,9 @@ export class ContractsService {
         ? Math.round(Number(dto.customerServiceChargePence))
         : null;
 
+    // Kept before substitution so an amendment can re-render with new figures.
+    const sourceHtml = bodyHtml ?? null;
+
     if (bodyHtml) {
       bodyHtml = this.fillPlaceholders(bodyHtml, {
         recipientName: dto.recipientName.trim(),
@@ -355,6 +510,7 @@ export class ContractsService {
         locationId: location?.id ?? null,
         title,
         bodyHtml,
+        sourceHtml,
         fileUrl,
         fileName: dto.fileName ?? template?.fileName ?? null,
         fileType: dto.fileType ?? template?.fileType ?? null,
@@ -815,6 +971,8 @@ export class ContractsService {
       templateId: row.templateId,
       templateName: row.template?.name ?? null,
       subscriptionAmountPence: row.subscriptionAmountPence,
+      commissionPercent: row.commissionPercent ?? null,
+      customerServiceChargePence: row.customerServiceChargePence ?? null,
       hasFile: !!row.fileUrl,
       fileUrl: row.fileUrl,
       fileName: row.fileName,

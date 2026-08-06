@@ -21,6 +21,7 @@ import {
   Loader2,
   MessageCircle,
   Mail,
+  Pencil,
   Plus,
   Send,
   Trash2,
@@ -62,6 +63,7 @@ export default function ContractsPage() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [detail, setDetail] = useState<Contract | null>(null);
   const [share, setShare] = useState<Contract | null>(null);
+  const [editing, setEditing] = useState<Contract | null>(null);
 
   const isAdmin = user?.role === "PLATFORM_ADMIN";
 
@@ -236,6 +238,12 @@ export default function ContractsPage() {
                       {c.status !== "SIGNED" && c.status !== "VOIDED" && (
                         <>
                           <IconBtn
+                            title="Amend this contract"
+                            onClick={() => setEditing(c)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </IconBtn>
+                          <IconBtn
                             title={
                               c.status === "DRAFT"
                                 ? "Send by email"
@@ -302,6 +310,17 @@ export default function ContractsPage() {
           }}
         />
       )}
+      {editing && (
+        <EditModal
+          contract={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            qc.invalidateQueries({ queryKey: ["contracts"] });
+          }}
+        />
+      )}
+
       {share && (
         <ShareModal
           contract={share}
@@ -458,6 +477,158 @@ function StarterTemplates({ onInstalled }: { onInstalled: () => void }) {
         liability, commission and termination clauses.
       </p>
     </section>
+  );
+}
+
+// ── Amend ──────────────────────────────────────────────────────────────────
+
+/**
+ * Correct a contract that has already gone out.
+ *
+ * Only reachable while unsigned — the API refuses a signed one, and the row
+ * action is hidden for them. The signing link is unchanged, so a copy already
+ * sitting in someone's inbox keeps working.
+ */
+function EditModal({
+  contract,
+  onClose,
+  onSaved,
+}: {
+  contract: Contract;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [title, setTitle] = useState(contract.title);
+  const [recipientName, setRecipientName] = useState(contract.recipientName);
+  const [recipientEmail, setRecipientEmail] = useState(contract.recipientEmail);
+  const [recipientCompany, setRecipientCompany] = useState(
+    contract.recipientCompany ?? "",
+  );
+  const [amount, setAmount] = useState(
+    contract.subscriptionAmountPence != null
+      ? (contract.subscriptionAmountPence / 100).toFixed(2)
+      : "",
+  );
+  const [commission, setCommission] = useState(
+    contract.commissionPercent != null ? String(contract.commissionPercent) : "",
+  );
+  const [serviceCharge, setServiceCharge] = useState(
+    contract.customerServiceChargePence != null
+      ? (contract.customerServiceChargePence / 100).toFixed(2)
+      : "",
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  const save = useMutation({
+    mutationFn: () =>
+      contractsClient.update(contract.id, {
+        title: title.trim(),
+        recipientName: recipientName.trim(),
+        recipientEmail: recipientEmail.trim(),
+        recipientCompany: recipientCompany.trim() || null,
+        // null rather than undefined: an emptied box must REMOVE the term,
+        // and undefined would mean "leave it as it was".
+        subscriptionAmountPence: amount.trim()
+          ? Math.round(parseFloat(amount) * 100)
+          : null,
+        commissionPercent: commission.trim() ? parseFloat(commission) : null,
+        customerServiceChargePence: serviceCharge.trim()
+          ? Math.round(parseFloat(serviceCharge) * 100)
+          : null,
+      }),
+    onSuccess: onSaved,
+    onError: (e: any) =>
+      setError(e?.response?.data?.message ?? "Couldn't save those changes"),
+  });
+
+  return (
+    <Modal title="Amend contract" onClose={onClose}>
+      <div className="space-y-3">
+        {contract.firstOpenedAt && (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-900">
+            {contract.recipientName} has already opened this. Saving changes
+            marks it unread again and records the amendment on the audit trail
+            — they may have read different terms to the ones they sign.
+          </p>
+        )}
+
+        <Field label="Title">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+          />
+        </Field>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Client name">
+            <input
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+              className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Client email">
+            <input
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+          </Field>
+        </div>
+
+        <Field label="Company">
+          <input
+            value={recipientCompany}
+            onChange={(e) => setRecipientCompany(e.target.value)}
+            className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+          />
+        </Field>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field label="Subscription (£/mo)">
+            <input
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              inputMode="decimal"
+              className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Commission (%)">
+            <input
+              value={commission}
+              onChange={(e) => setCommission(e.target.value)}
+              inputMode="decimal"
+              className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Service charge (£)">
+            <input
+              value={serviceCharge}
+              onChange={(e) => setServiceCharge(e.target.value)}
+              inputMode="decimal"
+              className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+          </Field>
+        </div>
+        <p className="text-[11px] text-zinc-500">
+          Emptying a fee box removes that clause from the agreement. The
+          wording is re-rendered from the original template, so clauses edited
+          in the template since aren&apos;t pulled in.
+        </p>
+
+        {error && <p className="text-[12px] text-red-600">{error}</p>}
+
+        <button
+          onClick={() => save.mutate()}
+          disabled={save.isPending}
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
+        >
+          {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          Save changes
+        </button>
+      </div>
+    </Modal>
   );
 }
 

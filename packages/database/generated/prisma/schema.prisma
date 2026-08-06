@@ -4671,9 +4671,19 @@ model Contract {
   // Frozen at send time. Editing the template afterwards must never change
   // what a counterparty already put their name to.
   bodyHtml String?
-  fileUrl  String?
-  fileName String?
-  fileType String?
+
+  /// The template wording BEFORE placeholders were substituted, kept so an
+  /// amendment can re-render the body with new figures.
+  ///
+  /// Without it, changing an agreed fee after sending is impossible: the
+  /// rendered body has "£49.00" where the placeholder used to be, and there
+  /// is nothing left to substitute into. Re-fetching the template instead
+  /// would be worse — it would silently pull in every unrelated edit made to
+  /// that template since, changing clauses nobody meant to touch.
+  sourceHtml String?
+  fileUrl    String?
+  fileName   String?
+  fileType   String?
 
   recipientName    String
   recipientEmail   String

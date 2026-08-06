@@ -378,3 +378,102 @@ describe("optional commercial terms", () => {
     ).rejects.toThrow(/more than 100/i);
   });
 });
+
+
+describe("amending a contract after it was sent", () => {
+  const sent = (over: Record<string, any> = {}) => ({
+    ...signedContract({ status: "SENT", signerName: null }),
+    recipientName: "Sam Patel",
+    recipientCompany: "Patel Foods Ltd",
+    createdAt: new Date("2026-08-01T10:00:00Z"),
+    sourceHtml:
+      "<p>Sub {{amount}}</p>{{#commission}}<p>Commission {{commission}}</p>{{/commission}}",
+    bodyHtml: "<p>Sub £49.00</p>",
+    commissionPercent: null,
+    customerServiceChargePence: null,
+    ...over,
+  });
+
+  it("REFUSES to change a signed contract", async () => {
+    // The whole value of the thing. An edit here would rewrite terms someone
+    // is already bound by.
+    const { svc } = makeService({ contract: sent({ status: "SIGNED" }) });
+    await expect(
+      svc.update(TENANT, "c1", { subscriptionAmountPence: 100 }),
+    ).rejects.toThrow(/signed and can no longer be changed/i);
+  });
+
+  it("refuses to change a withdrawn contract", async () => {
+    const { svc } = makeService({ contract: sent({ status: "VOIDED" }) });
+    await expect(
+      svc.update(TENANT, "c1", { subscriptionAmountPence: 100 }),
+    ).rejects.toThrow(/withdrawn/i);
+  });
+
+  it("re-renders the body from the ORIGINAL wording, not the live template", async () => {
+    // Re-fetching the template would drag in every unrelated edit made to it
+    // since — changing clauses nobody meant to touch.
+    const { svc, latest } = makeService({ contract: sent() });
+    await svc.update(TENANT, "c1", { subscriptionAmountPence: 9900 });
+    expect(latest().bodyHtml).toBe("<p>Sub £99.00</p>");
+  });
+
+  it("can add a clause that was left out originally", async () => {
+    const { svc, latest } = makeService({ contract: sent() });
+    await svc.update(TENANT, "c1", { commissionPercent: 3 });
+    expect(latest().bodyHtml).toContain("Commission 3%");
+  });
+
+  it("can remove a clause by blanking it", async () => {
+    const { svc, latest } = makeService({
+      contract: sent({ commissionPercent: 5 }),
+    });
+    await svc.update(TENANT, "c1", { commissionPercent: null });
+    expect(latest().bodyHtml).not.toContain("Commission");
+  });
+
+  it("rolls OPENED back to SENT and records that they had already read it", async () => {
+    // They may have read different terms to the ones they end up signing.
+    // The board must stop claiming they have seen the current version, and
+    // the audit trail is the only place that fact can live.
+    const { svc, latest, events } = makeService({
+      contract: sent({ status: "OPENED", firstOpenedAt: new Date() }),
+    });
+    await svc.update(TENANT, "c1", { subscriptionAmountPence: 5900 });
+    expect(latest().status).toBe("SENT");
+    const amended = events.find((e) => e.type === "AMENDED");
+    expect(amended.meta.wasOpened).toBe(true);
+  });
+
+  it("keeps the signing token, so links already sent still work", async () => {
+    const { svc, latest } = makeService({ contract: sent() });
+    await svc.update(TENANT, "c1", { recipientName: "Samantha Patel" });
+    expect(latest().token).toBe("tok");
+  });
+
+  it("leaves untouched fields alone", async () => {
+    const { svc, latest } = makeService({ contract: sent() });
+    await svc.update(TENANT, "c1", { recipientName: "Samantha Patel" });
+    expect(latest().recipientName).toBe("Samantha Patel");
+    expect(latest().recipientCompany).toBe("Patel Foods Ltd");
+    expect(latest().subscriptionAmountPence).toBe(4900);
+  });
+
+  it("updates the figures even when there is no stored wording", async () => {
+    // Contracts created before sourceHtml existed. The record must still be
+    // correctable; only the body can't be re-rendered.
+    const { svc, latest } = makeService({
+      contract: sent({ sourceHtml: null, bodyHtml: "<p>Old body</p>" }),
+    });
+    await svc.update(TENANT, "c1", { subscriptionAmountPence: 7900 });
+    expect(latest().subscriptionAmountPence).toBe(7900);
+    expect(latest().bodyHtml).toBe("<p>Old body</p>");
+  });
+
+  it("refuses to blank the recipient", async () => {
+    const { svc } = makeService({ contract: sent() });
+    await expect(
+      svc.update(TENANT, "c1", { recipientName: "   " }),
+    ).rejects.toThrow(/name and email are required/i);
+  });
+});

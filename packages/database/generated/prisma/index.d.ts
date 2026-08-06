@@ -146677,6 +146677,7 @@ export namespace Prisma {
     locationId: string | null
     title: string | null
     bodyHtml: string | null
+    sourceHtml: string | null
     fileUrl: string | null
     fileName: string | null
     fileType: string | null
@@ -146711,6 +146712,7 @@ export namespace Prisma {
     locationId: string | null
     title: string | null
     bodyHtml: string | null
+    sourceHtml: string | null
     fileUrl: string | null
     fileName: string | null
     fileType: string | null
@@ -146745,6 +146747,7 @@ export namespace Prisma {
     locationId: number
     title: number
     bodyHtml: number
+    sourceHtml: number
     fileUrl: number
     fileName: number
     fileType: number
@@ -146794,6 +146797,7 @@ export namespace Prisma {
     locationId?: true
     title?: true
     bodyHtml?: true
+    sourceHtml?: true
     fileUrl?: true
     fileName?: true
     fileType?: true
@@ -146828,6 +146832,7 @@ export namespace Prisma {
     locationId?: true
     title?: true
     bodyHtml?: true
+    sourceHtml?: true
     fileUrl?: true
     fileName?: true
     fileType?: true
@@ -146862,6 +146867,7 @@ export namespace Prisma {
     locationId?: true
     title?: true
     bodyHtml?: true
+    sourceHtml?: true
     fileUrl?: true
     fileName?: true
     fileType?: true
@@ -146984,6 +146990,7 @@ export namespace Prisma {
     locationId: string | null
     title: string
     bodyHtml: string | null
+    sourceHtml: string | null
     fileUrl: string | null
     fileName: string | null
     fileType: string | null
@@ -147038,6 +147045,7 @@ export namespace Prisma {
     locationId?: boolean
     title?: boolean
     bodyHtml?: boolean
+    sourceHtml?: boolean
     fileUrl?: boolean
     fileName?: boolean
     fileType?: boolean
@@ -147078,6 +147086,7 @@ export namespace Prisma {
     locationId?: boolean
     title?: boolean
     bodyHtml?: boolean
+    sourceHtml?: boolean
     fileUrl?: boolean
     fileName?: boolean
     fileType?: boolean
@@ -147116,6 +147125,7 @@ export namespace Prisma {
     locationId?: boolean
     title?: boolean
     bodyHtml?: boolean
+    sourceHtml?: boolean
     fileUrl?: boolean
     fileName?: boolean
     fileType?: boolean
@@ -147175,6 +147185,17 @@ export namespace Prisma {
       locationId: string | null
       title: string
       bodyHtml: string | null
+      /**
+       * The template wording BEFORE placeholders were substituted, kept so an
+       * amendment can re-render the body with new figures.
+       * 
+       * Without it, changing an agreed fee after sending is impossible: the
+       * rendered body has "£49.00" where the placeholder used to be, and there
+       * is nothing left to substitute into. Re-fetching the template instead
+       * would be worse — it would silently pull in every unrelated edit made to
+       * that template since, changing clauses nobody meant to touch.
+       */
+      sourceHtml: string | null
       fileUrl: string | null
       fileName: string | null
       fileType: string | null
@@ -147623,6 +147644,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"Contract", 'String'>
     readonly title: FieldRef<"Contract", 'String'>
     readonly bodyHtml: FieldRef<"Contract", 'String'>
+    readonly sourceHtml: FieldRef<"Contract", 'String'>
     readonly fileUrl: FieldRef<"Contract", 'String'>
     readonly fileName: FieldRef<"Contract", 'String'>
     readonly fileType: FieldRef<"Contract", 'String'>
@@ -151439,6 +151461,7 @@ export namespace Prisma {
     locationId: 'locationId',
     title: 'title',
     bodyHtml: 'bodyHtml',
+    sourceHtml: 'sourceHtml',
     fileUrl: 'fileUrl',
     fileName: 'fileName',
     fileType: 'fileType',
@@ -153190,6 +153213,7 @@ export namespace Prisma {
     locationId: 'locationId',
     title: 'title',
     bodyHtml: 'bodyHtml',
+    sourceHtml: 'sourceHtml',
     fileUrl: 'fileUrl',
     fileName: 'fileName',
     fileType: 'fileType',
@@ -166926,6 +166950,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"Contract"> | string | null
     title?: StringFilter<"Contract"> | string
     bodyHtml?: StringNullableFilter<"Contract"> | string | null
+    sourceHtml?: StringNullableFilter<"Contract"> | string | null
     fileUrl?: StringNullableFilter<"Contract"> | string | null
     fileName?: StringNullableFilter<"Contract"> | string | null
     fileType?: StringNullableFilter<"Contract"> | string | null
@@ -166965,6 +166990,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     title?: SortOrder
     bodyHtml?: SortOrderInput | SortOrder
+    sourceHtml?: SortOrderInput | SortOrder
     fileUrl?: SortOrderInput | SortOrder
     fileName?: SortOrderInput | SortOrder
     fileType?: SortOrderInput | SortOrder
@@ -167009,6 +167035,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"Contract"> | string | null
     title?: StringFilter<"Contract"> | string
     bodyHtml?: StringNullableFilter<"Contract"> | string | null
+    sourceHtml?: StringNullableFilter<"Contract"> | string | null
     fileUrl?: StringNullableFilter<"Contract"> | string | null
     fileName?: StringNullableFilter<"Contract"> | string | null
     fileType?: StringNullableFilter<"Contract"> | string | null
@@ -167047,6 +167074,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     title?: SortOrder
     bodyHtml?: SortOrderInput | SortOrder
+    sourceHtml?: SortOrderInput | SortOrder
     fileUrl?: SortOrderInput | SortOrder
     fileName?: SortOrderInput | SortOrder
     fileType?: SortOrderInput | SortOrder
@@ -167090,6 +167118,7 @@ export namespace Prisma {
     locationId?: StringNullableWithAggregatesFilter<"Contract"> | string | null
     title?: StringWithAggregatesFilter<"Contract"> | string
     bodyHtml?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    sourceHtml?: StringNullableWithAggregatesFilter<"Contract"> | string | null
     fileUrl?: StringNullableWithAggregatesFilter<"Contract"> | string | null
     fileName?: StringNullableWithAggregatesFilter<"Contract"> | string | null
     fileType?: StringNullableWithAggregatesFilter<"Contract"> | string | null
@@ -182033,6 +182062,7 @@ export namespace Prisma {
     id?: string
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -182072,6 +182102,7 @@ export namespace Prisma {
     locationId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -182105,6 +182136,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -182144,6 +182176,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -182180,6 +182213,7 @@ export namespace Prisma {
     locationId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -182212,6 +182246,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -182247,6 +182282,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -192410,6 +192446,7 @@ export namespace Prisma {
     locationId?: SortOrder
     title?: SortOrder
     bodyHtml?: SortOrder
+    sourceHtml?: SortOrder
     fileUrl?: SortOrder
     fileName?: SortOrder
     fileType?: SortOrder
@@ -192451,6 +192488,7 @@ export namespace Prisma {
     locationId?: SortOrder
     title?: SortOrder
     bodyHtml?: SortOrder
+    sourceHtml?: SortOrder
     fileUrl?: SortOrder
     fileName?: SortOrder
     fileType?: SortOrder
@@ -192485,6 +192523,7 @@ export namespace Prisma {
     locationId?: SortOrder
     title?: SortOrder
     bodyHtml?: SortOrder
+    sourceHtml?: SortOrder
     fileUrl?: SortOrder
     fileName?: SortOrder
     fileType?: SortOrder
@@ -203054,6 +203093,7 @@ export namespace Prisma {
     id?: string
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -203091,6 +203131,7 @@ export namespace Prisma {
     locationId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -204014,6 +204055,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"Contract"> | string | null
     title?: StringFilter<"Contract"> | string
     bodyHtml?: StringNullableFilter<"Contract"> | string | null
+    sourceHtml?: StringNullableFilter<"Contract"> | string | null
     fileUrl?: StringNullableFilter<"Contract"> | string | null
     fileName?: StringNullableFilter<"Contract"> | string | null
     fileType?: StringNullableFilter<"Contract"> | string | null
@@ -209330,6 +209372,7 @@ export namespace Prisma {
     id?: string
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -209367,6 +209410,7 @@ export namespace Prisma {
     templateId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -237001,6 +237045,7 @@ export namespace Prisma {
     id?: string
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -237038,6 +237083,7 @@ export namespace Prisma {
     locationId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -237801,6 +237847,7 @@ export namespace Prisma {
     id?: string
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -237839,6 +237886,7 @@ export namespace Prisma {
     locationId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -237887,6 +237935,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -237925,6 +237974,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238347,6 +238397,7 @@ export namespace Prisma {
     locationId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -239647,6 +239698,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239684,6 +239736,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239719,6 +239772,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -242197,6 +242251,7 @@ export namespace Prisma {
     templateId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -243201,6 +243256,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -243238,6 +243294,7 @@ export namespace Prisma {
     templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -243273,6 +243330,7 @@ export namespace Prisma {
     templateId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248005,6 +248063,7 @@ export namespace Prisma {
     locationId?: string | null
     title: string
     bodyHtml?: string | null
+    sourceHtml?: string | null
     fileUrl?: string | null
     fileName?: string | null
     fileType?: string | null
@@ -248037,6 +248096,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248074,6 +248134,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248109,6 +248170,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     title?: StringFieldUpdateOperationsInput | string
     bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    sourceHtml?: NullableStringFieldUpdateOperationsInput | string | null
     fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     fileType?: NullableStringFieldUpdateOperationsInput | string | null

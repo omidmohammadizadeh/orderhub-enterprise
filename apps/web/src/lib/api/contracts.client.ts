@@ -26,6 +26,8 @@ export interface Contract {
   templateId: string | null;
   templateName: string | null;
   subscriptionAmountPence: number | null;
+  commissionPercent: number | null;
+  customerServiceChargePence: number | null;
   hasFile: boolean;
   fileUrl: string | null;
   fileName: string | null;
@@ -139,6 +141,24 @@ export const contractsClient = {
       email?: string;
     } | null;
   }) => apiClient.post<Contract>("/v1/contracts", body).then((r) => r.data),
+
+  /**
+   * Amend a sent-but-unsigned contract. Signed ones are refused server-side —
+   * the signed artefact has to stay exactly what was agreed.
+   */
+  update: (
+    id: string,
+    body: {
+      title?: string;
+      recipientName?: string;
+      recipientEmail?: string;
+      recipientCompany?: string | null;
+      locationId?: string | null;
+      subscriptionAmountPence?: number | null;
+      commissionPercent?: number | null;
+      customerServiceChargePence?: number | null;
+    },
+  ) => apiClient.patch<Contract>(`/v1/contracts/${id}`, body).then((r) => r.data),
 
   send: (id: string, body: { emailIt?: boolean; message?: string } = {}) =>
     apiClient

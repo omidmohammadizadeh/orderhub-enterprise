@@ -159,6 +159,28 @@ export class ContractsController {
     res.send(buffer);
   }
 
+  @Patch(":id")
+  @ApiOperation({
+    summary: "Amend a sent-but-unsigned contract (signed ones are immutable)",
+  })
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("id") id: string,
+    @Body()
+    body: {
+      title?: string;
+      recipientName?: string;
+      recipientEmail?: string;
+      recipientCompany?: string | null;
+      locationId?: string | null;
+      subscriptionAmountPence?: number | null;
+      commissionPercent?: number | null;
+      customerServiceChargePence?: number | null;
+    },
+  ) {
+    return this.contracts.update(user.tenantId, id, body ?? {});
+  }
+
   @Post(":id/send")
   @ApiOperation({ summary: "Send (or resend) the signing link by email" })
   send(
