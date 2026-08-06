@@ -7,7 +7,7 @@
 // refusal for anyone else, and the API rejects the call regardless. The page
 // check exists because a direct URL bypasses the sidebar entirely.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
@@ -1161,20 +1161,12 @@ function ComposeModal({
 
 // ── Template builder ───────────────────────────────────────────────────────
 
-const STARTER_BODY = `<h2>Service Agreement</h2>
-<p>This agreement is made between OrderHub Solutions and {{recipientCompany}}
-("the Client") on {{date}}.</p>
-
-<h3>1. Services</h3>
-<p>OrderHub will provide its restaurant ordering and management platform for
-{{location}}.</p>
-
-<h3>2. Fees</h3>
-<p>The Client agrees to pay {{amount}} per month.</p>
-
-<h3>3. Term</h3>
-<p>This agreement runs month to month and may be cancelled by either party
-with 30 days' written notice.</p>`;
+// The body box starts from the SHIPPED agreement, fetched from the API.
+//
+// It used to start from a three-clause sample hardcoded here. That sample
+// looked enough like a contract to be saved and sent as one — which is exactly
+// what happened — while the full agreement sat unused behind a button on the
+// Templates tab. There is now one piece of wording and it is the real one.
 
 function TemplateModal({
   onClose,
@@ -1186,12 +1178,31 @@ function TemplateModal({
   const [kind, setKind] = useState<"write" | "upload">("write");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [bodyHtml, setBodyHtml] = useState(STARTER_BODY);
+  const [bodyHtml, setBodyHtml] = useState("");
+  const [starterKey, setStarterKey] = useState("saas-agreement");
   const [amount, setAmount] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [fileName, setFileName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const starters = useQuery({
+    queryKey: ["contract-starters"],
+    queryFn: () => contractsClient.listStarters(),
+  });
+
+  // Prefill once the wording arrives, and again whenever the operator picks a
+  // different starting point — but never over their own edits.
+  const touched = useRef(false);
+  useEffect(() => {
+    if (touched.current) return;
+    const pick = (starters.data ?? []).find((x) => x.key === starterKey);
+    if (pick?.bodyHtml) {
+      setBodyHtml(pick.bodyHtml);
+      if (!name.trim()) setName(pick.name);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [starters.data, starterKey]);
 
   const create = useMutation({
     mutationFn: () =>
@@ -1276,11 +1287,52 @@ function TemplateModal({
           />
         </Field>
 
+        {kind === "write" && (starters.data?.length ?? 0) > 0 && (
+          <Field label="Start from">
+            <div className="flex flex-wrap gap-2">
+              {(starters.data ?? []).map((st) => (
+                <button
+                  key={st.key}
+                  type="button"
+                  onClick={() => {
+                    // Explicit switch: honour it even if they have typed, but
+                    // say so rather than silently discarding their work.
+                    if (
+                      touched.current &&
+                      !confirm("Replace what you've written with this agreement?")
+                    ) {
+                      return;
+                    }
+                    touched.current = false;
+                    setStarterKey(st.key);
+                    setBodyHtml(st.bodyHtml);
+                    setName((n) => (n.trim() ? n : st.name));
+                  }}
+                  className={`rounded-md border px-2.5 py-1.5 text-xs font-semibold transition ${
+                    starterKey === st.key
+                      ? "border-orange-500 bg-orange-50 text-orange-900"
+                      : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
+                  }`}
+                >
+                  {st.name}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[11px] text-zinc-500">
+              These are the full ready-made agreements. Edit freely — your copy
+              is yours, and a later change to ours never rewrites it.
+            </p>
+          </Field>
+        )}
+
         {kind === "write" ? (
           <Field label="Body">
             <textarea
               value={bodyHtml}
-              onChange={(e) => setBodyHtml(e.target.value)}
+              onChange={(e) => {
+                touched.current = true;
+                setBodyHtml(e.target.value);
+              }}
               rows={14}
               className="w-full rounded-md border border-zinc-200 px-2 py-2 font-mono text-xs leading-relaxed"
             />

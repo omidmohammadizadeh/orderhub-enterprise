@@ -100,6 +100,11 @@ export class ContractsService {
       name: s.name,
       description: s.description,
       installed: names.has(s.name),
+      // The wording itself, so "New template" can start from the real
+      // agreement instead of a stub. The dashboard used to prefill its own
+      // hardcoded three-clause sample, which looked enough like a contract
+      // that it got saved and sent as one.
+      bodyHtml: s.bodyHtml,
     }));
   }
 

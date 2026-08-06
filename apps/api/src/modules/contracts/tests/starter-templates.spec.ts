@@ -233,3 +233,26 @@ describe("the shipped agreement covers what a client will ask about", () => {
     expect(saas.bodyHtml).toContain("{{recipientCompany}}");
   });
 });
+
+
+describe("the dashboard starts from the real agreement", () => {
+  it("every starter carries substantial wording, not a stub", () => {
+    // "New template" prefills its body from these. It used to prefill from a
+    // three-clause sample hardcoded in the dashboard, which looked enough
+    // like a contract to be saved and sent as one while the real agreement
+    // sat unused behind a button. If a starter is ever thin enough to pass
+    // for a stub again, this fails.
+    for (const t of STARTER_TEMPLATES) {
+      expect(t.bodyHtml.length).toBeGreaterThan(2000);
+      // A real agreement has more than a handful of clauses.
+      const headings = t.bodyHtml.match(/<h2>/g) ?? [];
+      expect(headings.length).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it("the SaaS agreement is the substantial one", () => {
+    const saas = STARTER_TEMPLATES.find((t) => t.key === "saas-agreement")!;
+    const headings = saas.bodyHtml.match(/<h2>/g) ?? [];
+    expect(headings.length).toBeGreaterThanOrEqual(10);
+  });
+});

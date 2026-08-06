@@ -78,6 +78,7 @@ export const contractsClient = {
           name: string;
           description: string;
           installed: boolean;
+          bodyHtml: string;
         }>
       >("/v1/contracts/templates/starters")
       .then((r) => r.data),
