@@ -2,8 +2,10 @@
 
 // Mounts the incoming-call popup ONCE for the whole dashboard (in the layout),
 // so it shows on every screen — the Orders tab, POS, anywhere — not just POS.
-// It listens on ALL of the user's accessible locations, so any shop's call
-// pops even on the all-locations Orders board.
+//
+// It listens on the SELECTED location only. A caller-ID box belongs to one
+// shop and the person who answers it is stood in that shop, so a ring from
+// another site is noise nobody can act on.
 
 import { useQuery } from "@tanstack/react-query";
 import { locationsClient } from "@/lib/api/locations.client";
@@ -25,11 +27,26 @@ export function GlobalCallerIdPopup() {
   });
 
   const allIds = (locations ?? []).map((l) => l.id);
-  // Scope popups to the location the operator has selected in the switcher, so
-  // an admin working one shop doesn't get caller-ID popups for every other shop.
-  // "All locations" (selectedLocationId === null) listens on every accessible
-  // location — useful on the all-locations Orders board.
-  const ids = selectedLocationId ? [selectedLocationId] : allIds;
+
+  // A ring is only actionable at the shop whose phone rang. The caller-ID box
+  // is physically plugged in at ONE location, and whoever answers it is stood
+  // in that shop — so the popup follows the location switcher.
+  //
+  // "All locations" used to subscribe to EVERY accessible room, which meant an
+  // admin (who can see every site) got a popup for every landline on the
+  // estate, for calls they were never going to answer. At this tenant's size
+  // that is constant interruption; at 150 sites it would be unusable.
+  //
+  // The single-site case is the one to protect: most caller-ID users have one
+  // shop and never touch the switcher, so "All locations" is their normal
+  // state. With exactly one accessible location that location still rings.
+  // With several and no choice made, nothing rings — pick a shop to answer its
+  // phone.
+  const ids = selectedLocationId
+    ? [selectedLocationId]
+    : allIds.length === 1
+      ? allIds
+      : [];
   if (ids.length === 0) return null;
 
   const names: Record<string, string> = {};
