@@ -33,6 +33,7 @@ import {
   Megaphone,
   Activity,
  MonitorCheck,
+  FileSignature,
   ScrollText,
   Wallet,
   MessageSquare,
@@ -168,6 +169,14 @@ const primaryNav: NavItem[] = [
     label: "Leads",
     icon: Inbox,
     roles: ["PLATFORM_ADMIN", "ONBOARDING_AGENT"],
+  },
+  // E-signature contracts. Platform-admin only — these are OUR agreements
+  // with clients, so a client owner must never see the list.
+  {
+    href: "/dashboard/contracts",
+    label: "Contracts",
+    icon: FileSignature,
+    roles: ["PLATFORM_ADMIN"],
   },
 ];
 

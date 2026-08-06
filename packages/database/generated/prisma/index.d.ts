@@ -623,6 +623,21 @@ export type CustomerPushSubscription = $Result.DefaultSelection<Prisma.$Customer
  * 
  */
 export type CustomerPushOrder = $Result.DefaultSelection<Prisma.$CustomerPushOrderPayload>
+/**
+ * Model ContractTemplate
+ * 
+ */
+export type ContractTemplate = $Result.DefaultSelection<Prisma.$ContractTemplatePayload>
+/**
+ * Model Contract
+ * 
+ */
+export type Contract = $Result.DefaultSelection<Prisma.$ContractPayload>
+/**
+ * Model ContractEvent
+ * 
+ */
+export type ContractEvent = $Result.DefaultSelection<Prisma.$ContractEventPayload>
 
 /**
  * Enums
@@ -2789,6 +2804,36 @@ export class PrismaClient<
     * ```
     */
   get customerPushOrder(): Prisma.CustomerPushOrderDelegate<ExtArgs>;
+
+  /**
+   * `prisma.contractTemplate`: Exposes CRUD operations for the **ContractTemplate** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ContractTemplates
+    * const contractTemplates = await prisma.contractTemplate.findMany()
+    * ```
+    */
+  get contractTemplate(): Prisma.ContractTemplateDelegate<ExtArgs>;
+
+  /**
+   * `prisma.contract`: Exposes CRUD operations for the **Contract** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Contracts
+    * const contracts = await prisma.contract.findMany()
+    * ```
+    */
+  get contract(): Prisma.ContractDelegate<ExtArgs>;
+
+  /**
+   * `prisma.contractEvent`: Exposes CRUD operations for the **ContractEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ContractEvents
+    * const contractEvents = await prisma.contractEvent.findMany()
+    * ```
+    */
+  get contractEvent(): Prisma.ContractEventDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3351,7 +3396,10 @@ export namespace Prisma {
     GroupOrder: 'GroupOrder',
     GroupOrderItem: 'GroupOrderItem',
     CustomerPushSubscription: 'CustomerPushSubscription',
-    CustomerPushOrder: 'CustomerPushOrder'
+    CustomerPushOrder: 'CustomerPushOrder',
+    ContractTemplate: 'ContractTemplate',
+    Contract: 'Contract',
+    ContractEvent: 'ContractEvent'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3367,7 +3415,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -11911,6 +11959,216 @@ export namespace Prisma {
           }
         }
       }
+      ContractTemplate: {
+        payload: Prisma.$ContractTemplatePayload<ExtArgs>
+        fields: Prisma.ContractTemplateFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ContractTemplateFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ContractTemplateFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>
+          }
+          findFirst: {
+            args: Prisma.ContractTemplateFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ContractTemplateFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>
+          }
+          findMany: {
+            args: Prisma.ContractTemplateFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>[]
+          }
+          create: {
+            args: Prisma.ContractTemplateCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>
+          }
+          createMany: {
+            args: Prisma.ContractTemplateCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ContractTemplateCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>[]
+          }
+          delete: {
+            args: Prisma.ContractTemplateDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>
+          }
+          update: {
+            args: Prisma.ContractTemplateUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>
+          }
+          deleteMany: {
+            args: Prisma.ContractTemplateDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ContractTemplateUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ContractTemplateUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractTemplatePayload>
+          }
+          aggregate: {
+            args: Prisma.ContractTemplateAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateContractTemplate>
+          }
+          groupBy: {
+            args: Prisma.ContractTemplateGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ContractTemplateGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ContractTemplateCountArgs<ExtArgs>
+            result: $Utils.Optional<ContractTemplateCountAggregateOutputType> | number
+          }
+        }
+      }
+      Contract: {
+        payload: Prisma.$ContractPayload<ExtArgs>
+        fields: Prisma.ContractFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ContractFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ContractFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>
+          }
+          findFirst: {
+            args: Prisma.ContractFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ContractFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>
+          }
+          findMany: {
+            args: Prisma.ContractFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>[]
+          }
+          create: {
+            args: Prisma.ContractCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>
+          }
+          createMany: {
+            args: Prisma.ContractCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ContractCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>[]
+          }
+          delete: {
+            args: Prisma.ContractDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>
+          }
+          update: {
+            args: Prisma.ContractUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>
+          }
+          deleteMany: {
+            args: Prisma.ContractDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ContractUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ContractUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractPayload>
+          }
+          aggregate: {
+            args: Prisma.ContractAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateContract>
+          }
+          groupBy: {
+            args: Prisma.ContractGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ContractGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ContractCountArgs<ExtArgs>
+            result: $Utils.Optional<ContractCountAggregateOutputType> | number
+          }
+        }
+      }
+      ContractEvent: {
+        payload: Prisma.$ContractEventPayload<ExtArgs>
+        fields: Prisma.ContractEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ContractEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ContractEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>
+          }
+          findFirst: {
+            args: Prisma.ContractEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ContractEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>
+          }
+          findMany: {
+            args: Prisma.ContractEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>[]
+          }
+          create: {
+            args: Prisma.ContractEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>
+          }
+          createMany: {
+            args: Prisma.ContractEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ContractEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>[]
+          }
+          delete: {
+            args: Prisma.ContractEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>
+          }
+          update: {
+            args: Prisma.ContractEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.ContractEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ContractEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ContractEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ContractEventPayload>
+          }
+          aggregate: {
+            args: Prisma.ContractEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateContractEvent>
+          }
+          groupBy: {
+            args: Prisma.ContractEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ContractEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ContractEventCountArgs<ExtArgs>
+            result: $Utils.Optional<ContractEventCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -12089,6 +12347,8 @@ export namespace Prisma {
     printerStations: number
     printAgents: number
     wallets: number
+    contractTemplates: number
+    contracts: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12109,6 +12369,8 @@ export namespace Prisma {
     printerStations?: boolean | TenantCountOutputTypeCountPrinterStationsArgs
     printAgents?: boolean | TenantCountOutputTypeCountPrintAgentsArgs
     wallets?: boolean | TenantCountOutputTypeCountWalletsArgs
+    contractTemplates?: boolean | TenantCountOutputTypeCountContractTemplatesArgs
+    contracts?: boolean | TenantCountOutputTypeCountContractsArgs
   }
 
   // Custom InputTypes
@@ -12239,6 +12501,20 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountWalletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WalletWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountContractTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractTemplateWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountContractsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractWhereInput
   }
 
 
@@ -12525,6 +12801,7 @@ export namespace Prisma {
     userLocations: number
     platformConnections: number
     channelPauses: number
+    contracts: number
     menuAssignments: number
     itemChannelSnoozes: number
     homeDrivers: number
@@ -12545,6 +12822,7 @@ export namespace Prisma {
     userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
     platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
     channelPauses?: boolean | LocationCountOutputTypeCountChannelPausesArgs
+    contracts?: boolean | LocationCountOutputTypeCountContractsArgs
     menuAssignments?: boolean | LocationCountOutputTypeCountMenuAssignmentsArgs
     itemChannelSnoozes?: boolean | LocationCountOutputTypeCountItemChannelSnoozesArgs
     homeDrivers?: boolean | LocationCountOutputTypeCountHomeDriversArgs
@@ -12657,6 +12935,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountChannelPausesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ChannelPauseWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountContractsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractWhereInput
   }
 
   /**
@@ -13865,6 +14150,68 @@ export namespace Prisma {
 
 
   /**
+   * Count Type ContractTemplateCountOutputType
+   */
+
+  export type ContractTemplateCountOutputType = {
+    contracts: number
+  }
+
+  export type ContractTemplateCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    contracts?: boolean | ContractTemplateCountOutputTypeCountContractsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ContractTemplateCountOutputType without action
+   */
+  export type ContractTemplateCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplateCountOutputType
+     */
+    select?: ContractTemplateCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ContractTemplateCountOutputType without action
+   */
+  export type ContractTemplateCountOutputTypeCountContractsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractWhereInput
+  }
+
+
+  /**
+   * Count Type ContractCountOutputType
+   */
+
+  export type ContractCountOutputType = {
+    events: number
+  }
+
+  export type ContractCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    events?: boolean | ContractCountOutputTypeCountEventsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ContractCountOutputType without action
+   */
+  export type ContractCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractCountOutputType
+     */
+    select?: ContractCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ContractCountOutputType without action
+   */
+  export type ContractCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractEventWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -14075,6 +14422,8 @@ export namespace Prisma {
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
     wallets?: boolean | Tenant$walletsArgs<ExtArgs>
+    contractTemplates?: boolean | Tenant$contractTemplatesArgs<ExtArgs>
+    contracts?: boolean | Tenant$contractsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -14122,6 +14471,8 @@ export namespace Prisma {
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
     wallets?: boolean | Tenant$walletsArgs<ExtArgs>
+    contractTemplates?: boolean | Tenant$contractTemplatesArgs<ExtArgs>
+    contracts?: boolean | Tenant$contractsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -14148,6 +14499,8 @@ export namespace Prisma {
       printerStations: Prisma.$PrinterStationPayload<ExtArgs>[]
       printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
       wallets: Prisma.$WalletPayload<ExtArgs>[]
+      contractTemplates: Prisma.$ContractTemplatePayload<ExtArgs>[]
+      contracts: Prisma.$ContractPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -14542,6 +14895,8 @@ export namespace Prisma {
     printerStations<T extends Tenant$printerStationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printerStationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
     printAgents<T extends Tenant$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
     wallets<T extends Tenant$walletsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$walletsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany"> | Null>
+    contractTemplates<T extends Tenant$contractTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$contractTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "findMany"> | Null>
+    contracts<T extends Tenant$contractsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$contractsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -15261,6 +15616,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.contractTemplates
+   */
+  export type Tenant$contractTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    where?: ContractTemplateWhereInput
+    orderBy?: ContractTemplateOrderByWithRelationInput | ContractTemplateOrderByWithRelationInput[]
+    cursor?: ContractTemplateWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ContractTemplateScalarFieldEnum | ContractTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.contracts
+   */
+  export type Tenant$contractsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    where?: ContractWhereInput
+    orderBy?: ContractOrderByWithRelationInput | ContractOrderByWithRelationInput[]
+    cursor?: ContractWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ContractScalarFieldEnum | ContractScalarFieldEnum[]
   }
 
   /**
@@ -27908,6 +28303,7 @@ export namespace Prisma {
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
     merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
+    contracts?: boolean | Location$contractsArgs<ExtArgs>
     menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
@@ -28064,6 +28460,7 @@ export namespace Prisma {
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
     merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
+    contracts?: boolean | Location$contractsArgs<ExtArgs>
     menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
@@ -28102,6 +28499,7 @@ export namespace Prisma {
       directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
       channelPauses: Prisma.$ChannelPausePayload<ExtArgs>[]
       merchantSubscription: Prisma.$MerchantSubscriptionPayload<ExtArgs> | null
+      contracts: Prisma.$ContractPayload<ExtArgs>[]
       menuAssignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
       itemChannelSnoozes: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
       homeDrivers: Prisma.$DriverPayload<ExtArgs>[]
@@ -28552,6 +28950,7 @@ export namespace Prisma {
     directOrderingConfig<T extends Location$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     channelPauses<T extends Location$channelPausesArgs<ExtArgs> = {}>(args?: Subset<T, Location$channelPausesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findMany"> | Null>
     merchantSubscription<T extends Location$merchantSubscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Location$merchantSubscriptionArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    contracts<T extends Location$contractsArgs<ExtArgs> = {}>(args?: Subset<T, Location$contractsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findMany"> | Null>
     menuAssignments<T extends Location$menuAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$menuAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
     itemChannelSnoozes<T extends Location$itemChannelSnoozesArgs<ExtArgs> = {}>(args?: Subset<T, Location$itemChannelSnoozesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
     homeDrivers<T extends Location$homeDriversArgs<ExtArgs> = {}>(args?: Subset<T, Location$homeDriversArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findMany"> | Null>
@@ -29287,6 +29686,26 @@ export namespace Prisma {
      */
     include?: MerchantSubscriptionInclude<ExtArgs> | null
     where?: MerchantSubscriptionWhereInput
+  }
+
+  /**
+   * Location.contracts
+   */
+  export type Location$contractsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    where?: ContractWhereInput
+    orderBy?: ContractOrderByWithRelationInput | ContractOrderByWithRelationInput[]
+    cursor?: ContractWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ContractScalarFieldEnum | ContractScalarFieldEnum[]
   }
 
   /**
@@ -145136,6 +145555,3389 @@ export namespace Prisma {
 
 
   /**
+   * Model ContractTemplate
+   */
+
+  export type AggregateContractTemplate = {
+    _count: ContractTemplateCountAggregateOutputType | null
+    _avg: ContractTemplateAvgAggregateOutputType | null
+    _sum: ContractTemplateSumAggregateOutputType | null
+    _min: ContractTemplateMinAggregateOutputType | null
+    _max: ContractTemplateMaxAggregateOutputType | null
+  }
+
+  export type ContractTemplateAvgAggregateOutputType = {
+    subscriptionAmountPence: number | null
+  }
+
+  export type ContractTemplateSumAggregateOutputType = {
+    subscriptionAmountPence: number | null
+  }
+
+  export type ContractTemplateMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    description: string | null
+    bodyHtml: string | null
+    fileUrl: string | null
+    fileName: string | null
+    fileType: string | null
+    subscriptionAmountPence: number | null
+    createdByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type ContractTemplateMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    description: string | null
+    bodyHtml: string | null
+    fileUrl: string | null
+    fileName: string | null
+    fileType: string | null
+    subscriptionAmountPence: number | null
+    createdByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type ContractTemplateCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    name: number
+    description: number
+    bodyHtml: number
+    fileUrl: number
+    fileName: number
+    fileType: number
+    subscriptionAmountPence: number
+    createdByUserId: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type ContractTemplateAvgAggregateInputType = {
+    subscriptionAmountPence?: true
+  }
+
+  export type ContractTemplateSumAggregateInputType = {
+    subscriptionAmountPence?: true
+  }
+
+  export type ContractTemplateMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    description?: true
+    bodyHtml?: true
+    fileUrl?: true
+    fileName?: true
+    fileType?: true
+    subscriptionAmountPence?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type ContractTemplateMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    description?: true
+    bodyHtml?: true
+    fileUrl?: true
+    fileName?: true
+    fileType?: true
+    subscriptionAmountPence?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type ContractTemplateCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    description?: true
+    bodyHtml?: true
+    fileUrl?: true
+    fileName?: true
+    fileType?: true
+    subscriptionAmountPence?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type ContractTemplateAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ContractTemplate to aggregate.
+     */
+    where?: ContractTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractTemplates to fetch.
+     */
+    orderBy?: ContractTemplateOrderByWithRelationInput | ContractTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ContractTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ContractTemplates
+    **/
+    _count?: true | ContractTemplateCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ContractTemplateAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ContractTemplateSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ContractTemplateMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ContractTemplateMaxAggregateInputType
+  }
+
+  export type GetContractTemplateAggregateType<T extends ContractTemplateAggregateArgs> = {
+        [P in keyof T & keyof AggregateContractTemplate]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateContractTemplate[P]>
+      : GetScalarType<T[P], AggregateContractTemplate[P]>
+  }
+
+
+
+
+  export type ContractTemplateGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractTemplateWhereInput
+    orderBy?: ContractTemplateOrderByWithAggregationInput | ContractTemplateOrderByWithAggregationInput[]
+    by: ContractTemplateScalarFieldEnum[] | ContractTemplateScalarFieldEnum
+    having?: ContractTemplateScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ContractTemplateCountAggregateInputType | true
+    _avg?: ContractTemplateAvgAggregateInputType
+    _sum?: ContractTemplateSumAggregateInputType
+    _min?: ContractTemplateMinAggregateInputType
+    _max?: ContractTemplateMaxAggregateInputType
+  }
+
+  export type ContractTemplateGroupByOutputType = {
+    id: string
+    tenantId: string
+    name: string
+    description: string | null
+    bodyHtml: string | null
+    fileUrl: string | null
+    fileName: string | null
+    fileType: string | null
+    subscriptionAmountPence: number | null
+    createdByUserId: string | null
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: ContractTemplateCountAggregateOutputType | null
+    _avg: ContractTemplateAvgAggregateOutputType | null
+    _sum: ContractTemplateSumAggregateOutputType | null
+    _min: ContractTemplateMinAggregateOutputType | null
+    _max: ContractTemplateMaxAggregateOutputType | null
+  }
+
+  type GetContractTemplateGroupByPayload<T extends ContractTemplateGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ContractTemplateGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ContractTemplateGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ContractTemplateGroupByOutputType[P]>
+            : GetScalarType<T[P], ContractTemplateGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ContractTemplateSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    description?: boolean
+    bodyHtml?: boolean
+    fileUrl?: boolean
+    fileName?: boolean
+    fileType?: boolean
+    subscriptionAmountPence?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    contracts?: boolean | ContractTemplate$contractsArgs<ExtArgs>
+    _count?: boolean | ContractTemplateCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contractTemplate"]>
+
+  export type ContractTemplateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    description?: boolean
+    bodyHtml?: boolean
+    fileUrl?: boolean
+    fileName?: boolean
+    fileType?: boolean
+    subscriptionAmountPence?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contractTemplate"]>
+
+  export type ContractTemplateSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    description?: boolean
+    bodyHtml?: boolean
+    fileUrl?: boolean
+    fileName?: boolean
+    fileType?: boolean
+    subscriptionAmountPence?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type ContractTemplateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    contracts?: boolean | ContractTemplate$contractsArgs<ExtArgs>
+    _count?: boolean | ContractTemplateCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ContractTemplateIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $ContractTemplatePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ContractTemplate"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      contracts: Prisma.$ContractPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      name: string
+      description: string | null
+      bodyHtml: string | null
+      fileUrl: string | null
+      fileName: string | null
+      fileType: string | null
+      /**
+       * Pre-fills the contract's subscription offer when one is built from this.
+       */
+      subscriptionAmountPence: number | null
+      createdByUserId: string | null
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["contractTemplate"]>
+    composites: {}
+  }
+
+  type ContractTemplateGetPayload<S extends boolean | null | undefined | ContractTemplateDefaultArgs> = $Result.GetResult<Prisma.$ContractTemplatePayload, S>
+
+  type ContractTemplateCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ContractTemplateFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ContractTemplateCountAggregateInputType | true
+    }
+
+  export interface ContractTemplateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ContractTemplate'], meta: { name: 'ContractTemplate' } }
+    /**
+     * Find zero or one ContractTemplate that matches the filter.
+     * @param {ContractTemplateFindUniqueArgs} args - Arguments to find a ContractTemplate
+     * @example
+     * // Get one ContractTemplate
+     * const contractTemplate = await prisma.contractTemplate.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ContractTemplateFindUniqueArgs>(args: SelectSubset<T, ContractTemplateFindUniqueArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ContractTemplate that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ContractTemplateFindUniqueOrThrowArgs} args - Arguments to find a ContractTemplate
+     * @example
+     * // Get one ContractTemplate
+     * const contractTemplate = await prisma.contractTemplate.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ContractTemplateFindUniqueOrThrowArgs>(args: SelectSubset<T, ContractTemplateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ContractTemplate that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractTemplateFindFirstArgs} args - Arguments to find a ContractTemplate
+     * @example
+     * // Get one ContractTemplate
+     * const contractTemplate = await prisma.contractTemplate.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ContractTemplateFindFirstArgs>(args?: SelectSubset<T, ContractTemplateFindFirstArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ContractTemplate that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractTemplateFindFirstOrThrowArgs} args - Arguments to find a ContractTemplate
+     * @example
+     * // Get one ContractTemplate
+     * const contractTemplate = await prisma.contractTemplate.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ContractTemplateFindFirstOrThrowArgs>(args?: SelectSubset<T, ContractTemplateFindFirstOrThrowArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ContractTemplates that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractTemplateFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ContractTemplates
+     * const contractTemplates = await prisma.contractTemplate.findMany()
+     * 
+     * // Get first 10 ContractTemplates
+     * const contractTemplates = await prisma.contractTemplate.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const contractTemplateWithIdOnly = await prisma.contractTemplate.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ContractTemplateFindManyArgs>(args?: SelectSubset<T, ContractTemplateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ContractTemplate.
+     * @param {ContractTemplateCreateArgs} args - Arguments to create a ContractTemplate.
+     * @example
+     * // Create one ContractTemplate
+     * const ContractTemplate = await prisma.contractTemplate.create({
+     *   data: {
+     *     // ... data to create a ContractTemplate
+     *   }
+     * })
+     * 
+     */
+    create<T extends ContractTemplateCreateArgs>(args: SelectSubset<T, ContractTemplateCreateArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ContractTemplates.
+     * @param {ContractTemplateCreateManyArgs} args - Arguments to create many ContractTemplates.
+     * @example
+     * // Create many ContractTemplates
+     * const contractTemplate = await prisma.contractTemplate.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ContractTemplateCreateManyArgs>(args?: SelectSubset<T, ContractTemplateCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ContractTemplates and returns the data saved in the database.
+     * @param {ContractTemplateCreateManyAndReturnArgs} args - Arguments to create many ContractTemplates.
+     * @example
+     * // Create many ContractTemplates
+     * const contractTemplate = await prisma.contractTemplate.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ContractTemplates and only return the `id`
+     * const contractTemplateWithIdOnly = await prisma.contractTemplate.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ContractTemplateCreateManyAndReturnArgs>(args?: SelectSubset<T, ContractTemplateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ContractTemplate.
+     * @param {ContractTemplateDeleteArgs} args - Arguments to delete one ContractTemplate.
+     * @example
+     * // Delete one ContractTemplate
+     * const ContractTemplate = await prisma.contractTemplate.delete({
+     *   where: {
+     *     // ... filter to delete one ContractTemplate
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ContractTemplateDeleteArgs>(args: SelectSubset<T, ContractTemplateDeleteArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ContractTemplate.
+     * @param {ContractTemplateUpdateArgs} args - Arguments to update one ContractTemplate.
+     * @example
+     * // Update one ContractTemplate
+     * const contractTemplate = await prisma.contractTemplate.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ContractTemplateUpdateArgs>(args: SelectSubset<T, ContractTemplateUpdateArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ContractTemplates.
+     * @param {ContractTemplateDeleteManyArgs} args - Arguments to filter ContractTemplates to delete.
+     * @example
+     * // Delete a few ContractTemplates
+     * const { count } = await prisma.contractTemplate.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ContractTemplateDeleteManyArgs>(args?: SelectSubset<T, ContractTemplateDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ContractTemplates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractTemplateUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ContractTemplates
+     * const contractTemplate = await prisma.contractTemplate.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ContractTemplateUpdateManyArgs>(args: SelectSubset<T, ContractTemplateUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ContractTemplate.
+     * @param {ContractTemplateUpsertArgs} args - Arguments to update or create a ContractTemplate.
+     * @example
+     * // Update or create a ContractTemplate
+     * const contractTemplate = await prisma.contractTemplate.upsert({
+     *   create: {
+     *     // ... data to create a ContractTemplate
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ContractTemplate we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ContractTemplateUpsertArgs>(args: SelectSubset<T, ContractTemplateUpsertArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ContractTemplates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractTemplateCountArgs} args - Arguments to filter ContractTemplates to count.
+     * @example
+     * // Count the number of ContractTemplates
+     * const count = await prisma.contractTemplate.count({
+     *   where: {
+     *     // ... the filter for the ContractTemplates we want to count
+     *   }
+     * })
+    **/
+    count<T extends ContractTemplateCountArgs>(
+      args?: Subset<T, ContractTemplateCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ContractTemplateCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ContractTemplate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractTemplateAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ContractTemplateAggregateArgs>(args: Subset<T, ContractTemplateAggregateArgs>): Prisma.PrismaPromise<GetContractTemplateAggregateType<T>>
+
+    /**
+     * Group by ContractTemplate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractTemplateGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ContractTemplateGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ContractTemplateGroupByArgs['orderBy'] }
+        : { orderBy?: ContractTemplateGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ContractTemplateGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetContractTemplateGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ContractTemplate model
+   */
+  readonly fields: ContractTemplateFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ContractTemplate.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ContractTemplateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    contracts<T extends ContractTemplate$contractsArgs<ExtArgs> = {}>(args?: Subset<T, ContractTemplate$contractsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ContractTemplate model
+   */ 
+  interface ContractTemplateFieldRefs {
+    readonly id: FieldRef<"ContractTemplate", 'String'>
+    readonly tenantId: FieldRef<"ContractTemplate", 'String'>
+    readonly name: FieldRef<"ContractTemplate", 'String'>
+    readonly description: FieldRef<"ContractTemplate", 'String'>
+    readonly bodyHtml: FieldRef<"ContractTemplate", 'String'>
+    readonly fileUrl: FieldRef<"ContractTemplate", 'String'>
+    readonly fileName: FieldRef<"ContractTemplate", 'String'>
+    readonly fileType: FieldRef<"ContractTemplate", 'String'>
+    readonly subscriptionAmountPence: FieldRef<"ContractTemplate", 'Int'>
+    readonly createdByUserId: FieldRef<"ContractTemplate", 'String'>
+    readonly createdAt: FieldRef<"ContractTemplate", 'DateTime'>
+    readonly updatedAt: FieldRef<"ContractTemplate", 'DateTime'>
+    readonly deletedAt: FieldRef<"ContractTemplate", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ContractTemplate findUnique
+   */
+  export type ContractTemplateFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractTemplate to fetch.
+     */
+    where: ContractTemplateWhereUniqueInput
+  }
+
+  /**
+   * ContractTemplate findUniqueOrThrow
+   */
+  export type ContractTemplateFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractTemplate to fetch.
+     */
+    where: ContractTemplateWhereUniqueInput
+  }
+
+  /**
+   * ContractTemplate findFirst
+   */
+  export type ContractTemplateFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractTemplate to fetch.
+     */
+    where?: ContractTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractTemplates to fetch.
+     */
+    orderBy?: ContractTemplateOrderByWithRelationInput | ContractTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ContractTemplates.
+     */
+    cursor?: ContractTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ContractTemplates.
+     */
+    distinct?: ContractTemplateScalarFieldEnum | ContractTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * ContractTemplate findFirstOrThrow
+   */
+  export type ContractTemplateFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractTemplate to fetch.
+     */
+    where?: ContractTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractTemplates to fetch.
+     */
+    orderBy?: ContractTemplateOrderByWithRelationInput | ContractTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ContractTemplates.
+     */
+    cursor?: ContractTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ContractTemplates.
+     */
+    distinct?: ContractTemplateScalarFieldEnum | ContractTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * ContractTemplate findMany
+   */
+  export type ContractTemplateFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractTemplates to fetch.
+     */
+    where?: ContractTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractTemplates to fetch.
+     */
+    orderBy?: ContractTemplateOrderByWithRelationInput | ContractTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ContractTemplates.
+     */
+    cursor?: ContractTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractTemplates.
+     */
+    skip?: number
+    distinct?: ContractTemplateScalarFieldEnum | ContractTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * ContractTemplate create
+   */
+  export type ContractTemplateCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ContractTemplate.
+     */
+    data: XOR<ContractTemplateCreateInput, ContractTemplateUncheckedCreateInput>
+  }
+
+  /**
+   * ContractTemplate createMany
+   */
+  export type ContractTemplateCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ContractTemplates.
+     */
+    data: ContractTemplateCreateManyInput | ContractTemplateCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ContractTemplate createManyAndReturn
+   */
+  export type ContractTemplateCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ContractTemplates.
+     */
+    data: ContractTemplateCreateManyInput | ContractTemplateCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ContractTemplate update
+   */
+  export type ContractTemplateUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ContractTemplate.
+     */
+    data: XOR<ContractTemplateUpdateInput, ContractTemplateUncheckedUpdateInput>
+    /**
+     * Choose, which ContractTemplate to update.
+     */
+    where: ContractTemplateWhereUniqueInput
+  }
+
+  /**
+   * ContractTemplate updateMany
+   */
+  export type ContractTemplateUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ContractTemplates.
+     */
+    data: XOR<ContractTemplateUpdateManyMutationInput, ContractTemplateUncheckedUpdateManyInput>
+    /**
+     * Filter which ContractTemplates to update
+     */
+    where?: ContractTemplateWhereInput
+  }
+
+  /**
+   * ContractTemplate upsert
+   */
+  export type ContractTemplateUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ContractTemplate to update in case it exists.
+     */
+    where: ContractTemplateWhereUniqueInput
+    /**
+     * In case the ContractTemplate found by the `where` argument doesn't exist, create a new ContractTemplate with this data.
+     */
+    create: XOR<ContractTemplateCreateInput, ContractTemplateUncheckedCreateInput>
+    /**
+     * In case the ContractTemplate was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ContractTemplateUpdateInput, ContractTemplateUncheckedUpdateInput>
+  }
+
+  /**
+   * ContractTemplate delete
+   */
+  export type ContractTemplateDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    /**
+     * Filter which ContractTemplate to delete.
+     */
+    where: ContractTemplateWhereUniqueInput
+  }
+
+  /**
+   * ContractTemplate deleteMany
+   */
+  export type ContractTemplateDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ContractTemplates to delete
+     */
+    where?: ContractTemplateWhereInput
+  }
+
+  /**
+   * ContractTemplate.contracts
+   */
+  export type ContractTemplate$contractsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    where?: ContractWhereInput
+    orderBy?: ContractOrderByWithRelationInput | ContractOrderByWithRelationInput[]
+    cursor?: ContractWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ContractScalarFieldEnum | ContractScalarFieldEnum[]
+  }
+
+  /**
+   * ContractTemplate without action
+   */
+  export type ContractTemplateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Contract
+   */
+
+  export type AggregateContract = {
+    _count: ContractCountAggregateOutputType | null
+    _avg: ContractAvgAggregateOutputType | null
+    _sum: ContractSumAggregateOutputType | null
+    _min: ContractMinAggregateOutputType | null
+    _max: ContractMaxAggregateOutputType | null
+  }
+
+  export type ContractAvgAggregateOutputType = {
+    subscriptionAmountPence: number | null
+  }
+
+  export type ContractSumAggregateOutputType = {
+    subscriptionAmountPence: number | null
+  }
+
+  export type ContractMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    templateId: string | null
+    locationId: string | null
+    title: string | null
+    bodyHtml: string | null
+    fileUrl: string | null
+    fileName: string | null
+    fileType: string | null
+    recipientName: string | null
+    recipientEmail: string | null
+    recipientCompany: string | null
+    subscriptionAmountPence: number | null
+    status: string | null
+    token: string | null
+    sentAt: Date | null
+    firstOpenedAt: Date | null
+    signedAt: Date | null
+    voidedAt: Date | null
+    lastRemindedAt: Date | null
+    signerName: string | null
+    signerEmail: string | null
+    signatureImageUrl: string | null
+    signerIp: string | null
+    signerUserAgent: string | null
+    subscriptionStartedAt: Date | null
+    createdByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ContractMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    templateId: string | null
+    locationId: string | null
+    title: string | null
+    bodyHtml: string | null
+    fileUrl: string | null
+    fileName: string | null
+    fileType: string | null
+    recipientName: string | null
+    recipientEmail: string | null
+    recipientCompany: string | null
+    subscriptionAmountPence: number | null
+    status: string | null
+    token: string | null
+    sentAt: Date | null
+    firstOpenedAt: Date | null
+    signedAt: Date | null
+    voidedAt: Date | null
+    lastRemindedAt: Date | null
+    signerName: string | null
+    signerEmail: string | null
+    signatureImageUrl: string | null
+    signerIp: string | null
+    signerUserAgent: string | null
+    subscriptionStartedAt: Date | null
+    createdByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ContractCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    templateId: number
+    locationId: number
+    title: number
+    bodyHtml: number
+    fileUrl: number
+    fileName: number
+    fileType: number
+    recipientName: number
+    recipientEmail: number
+    recipientCompany: number
+    subscriptionAmountPence: number
+    status: number
+    token: number
+    sentAt: number
+    firstOpenedAt: number
+    signedAt: number
+    voidedAt: number
+    lastRemindedAt: number
+    signerName: number
+    signerEmail: number
+    signatureImageUrl: number
+    signerIp: number
+    signerUserAgent: number
+    subscriptionStartedAt: number
+    createdByUserId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ContractAvgAggregateInputType = {
+    subscriptionAmountPence?: true
+  }
+
+  export type ContractSumAggregateInputType = {
+    subscriptionAmountPence?: true
+  }
+
+  export type ContractMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    templateId?: true
+    locationId?: true
+    title?: true
+    bodyHtml?: true
+    fileUrl?: true
+    fileName?: true
+    fileType?: true
+    recipientName?: true
+    recipientEmail?: true
+    recipientCompany?: true
+    subscriptionAmountPence?: true
+    status?: true
+    token?: true
+    sentAt?: true
+    firstOpenedAt?: true
+    signedAt?: true
+    voidedAt?: true
+    lastRemindedAt?: true
+    signerName?: true
+    signerEmail?: true
+    signatureImageUrl?: true
+    signerIp?: true
+    signerUserAgent?: true
+    subscriptionStartedAt?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ContractMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    templateId?: true
+    locationId?: true
+    title?: true
+    bodyHtml?: true
+    fileUrl?: true
+    fileName?: true
+    fileType?: true
+    recipientName?: true
+    recipientEmail?: true
+    recipientCompany?: true
+    subscriptionAmountPence?: true
+    status?: true
+    token?: true
+    sentAt?: true
+    firstOpenedAt?: true
+    signedAt?: true
+    voidedAt?: true
+    lastRemindedAt?: true
+    signerName?: true
+    signerEmail?: true
+    signatureImageUrl?: true
+    signerIp?: true
+    signerUserAgent?: true
+    subscriptionStartedAt?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ContractCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    templateId?: true
+    locationId?: true
+    title?: true
+    bodyHtml?: true
+    fileUrl?: true
+    fileName?: true
+    fileType?: true
+    recipientName?: true
+    recipientEmail?: true
+    recipientCompany?: true
+    subscriptionAmountPence?: true
+    status?: true
+    token?: true
+    sentAt?: true
+    firstOpenedAt?: true
+    signedAt?: true
+    voidedAt?: true
+    lastRemindedAt?: true
+    signerName?: true
+    signerEmail?: true
+    signatureImageUrl?: true
+    signerIp?: true
+    signerUserAgent?: true
+    subscriptionStartedAt?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ContractAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Contract to aggregate.
+     */
+    where?: ContractWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Contracts to fetch.
+     */
+    orderBy?: ContractOrderByWithRelationInput | ContractOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ContractWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Contracts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Contracts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Contracts
+    **/
+    _count?: true | ContractCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ContractAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ContractSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ContractMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ContractMaxAggregateInputType
+  }
+
+  export type GetContractAggregateType<T extends ContractAggregateArgs> = {
+        [P in keyof T & keyof AggregateContract]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateContract[P]>
+      : GetScalarType<T[P], AggregateContract[P]>
+  }
+
+
+
+
+  export type ContractGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractWhereInput
+    orderBy?: ContractOrderByWithAggregationInput | ContractOrderByWithAggregationInput[]
+    by: ContractScalarFieldEnum[] | ContractScalarFieldEnum
+    having?: ContractScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ContractCountAggregateInputType | true
+    _avg?: ContractAvgAggregateInputType
+    _sum?: ContractSumAggregateInputType
+    _min?: ContractMinAggregateInputType
+    _max?: ContractMaxAggregateInputType
+  }
+
+  export type ContractGroupByOutputType = {
+    id: string
+    tenantId: string
+    templateId: string | null
+    locationId: string | null
+    title: string
+    bodyHtml: string | null
+    fileUrl: string | null
+    fileName: string | null
+    fileType: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany: string | null
+    subscriptionAmountPence: number | null
+    status: string
+    token: string
+    sentAt: Date | null
+    firstOpenedAt: Date | null
+    signedAt: Date | null
+    voidedAt: Date | null
+    lastRemindedAt: Date | null
+    signerName: string | null
+    signerEmail: string | null
+    signatureImageUrl: string | null
+    signerIp: string | null
+    signerUserAgent: string | null
+    subscriptionStartedAt: Date | null
+    createdByUserId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ContractCountAggregateOutputType | null
+    _avg: ContractAvgAggregateOutputType | null
+    _sum: ContractSumAggregateOutputType | null
+    _min: ContractMinAggregateOutputType | null
+    _max: ContractMaxAggregateOutputType | null
+  }
+
+  type GetContractGroupByPayload<T extends ContractGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ContractGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ContractGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ContractGroupByOutputType[P]>
+            : GetScalarType<T[P], ContractGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ContractSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    templateId?: boolean
+    locationId?: boolean
+    title?: boolean
+    bodyHtml?: boolean
+    fileUrl?: boolean
+    fileName?: boolean
+    fileType?: boolean
+    recipientName?: boolean
+    recipientEmail?: boolean
+    recipientCompany?: boolean
+    subscriptionAmountPence?: boolean
+    status?: boolean
+    token?: boolean
+    sentAt?: boolean
+    firstOpenedAt?: boolean
+    signedAt?: boolean
+    voidedAt?: boolean
+    lastRemindedAt?: boolean
+    signerName?: boolean
+    signerEmail?: boolean
+    signatureImageUrl?: boolean
+    signerIp?: boolean
+    signerUserAgent?: boolean
+    subscriptionStartedAt?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    template?: boolean | Contract$templateArgs<ExtArgs>
+    location?: boolean | Contract$locationArgs<ExtArgs>
+    events?: boolean | Contract$eventsArgs<ExtArgs>
+    _count?: boolean | ContractCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contract"]>
+
+  export type ContractSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    templateId?: boolean
+    locationId?: boolean
+    title?: boolean
+    bodyHtml?: boolean
+    fileUrl?: boolean
+    fileName?: boolean
+    fileType?: boolean
+    recipientName?: boolean
+    recipientEmail?: boolean
+    recipientCompany?: boolean
+    subscriptionAmountPence?: boolean
+    status?: boolean
+    token?: boolean
+    sentAt?: boolean
+    firstOpenedAt?: boolean
+    signedAt?: boolean
+    voidedAt?: boolean
+    lastRemindedAt?: boolean
+    signerName?: boolean
+    signerEmail?: boolean
+    signatureImageUrl?: boolean
+    signerIp?: boolean
+    signerUserAgent?: boolean
+    subscriptionStartedAt?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    template?: boolean | Contract$templateArgs<ExtArgs>
+    location?: boolean | Contract$locationArgs<ExtArgs>
+  }, ExtArgs["result"]["contract"]>
+
+  export type ContractSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    templateId?: boolean
+    locationId?: boolean
+    title?: boolean
+    bodyHtml?: boolean
+    fileUrl?: boolean
+    fileName?: boolean
+    fileType?: boolean
+    recipientName?: boolean
+    recipientEmail?: boolean
+    recipientCompany?: boolean
+    subscriptionAmountPence?: boolean
+    status?: boolean
+    token?: boolean
+    sentAt?: boolean
+    firstOpenedAt?: boolean
+    signedAt?: boolean
+    voidedAt?: boolean
+    lastRemindedAt?: boolean
+    signerName?: boolean
+    signerEmail?: boolean
+    signatureImageUrl?: boolean
+    signerIp?: boolean
+    signerUserAgent?: boolean
+    subscriptionStartedAt?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ContractInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    template?: boolean | Contract$templateArgs<ExtArgs>
+    location?: boolean | Contract$locationArgs<ExtArgs>
+    events?: boolean | Contract$eventsArgs<ExtArgs>
+    _count?: boolean | ContractCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ContractIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    template?: boolean | Contract$templateArgs<ExtArgs>
+    location?: boolean | Contract$locationArgs<ExtArgs>
+  }
+
+  export type $ContractPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Contract"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      template: Prisma.$ContractTemplatePayload<ExtArgs> | null
+      location: Prisma.$LocationPayload<ExtArgs> | null
+      events: Prisma.$ContractEventPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      templateId: string | null
+      /**
+       * Which location this agreement covers — drives the Subscribe button.
+       */
+      locationId: string | null
+      title: string
+      bodyHtml: string | null
+      fileUrl: string | null
+      fileName: string | null
+      fileType: string | null
+      recipientName: string
+      recipientEmail: string
+      recipientCompany: string | null
+      /**
+       * Set = the signed contract offers a subscription at this monthly price.
+       */
+      subscriptionAmountPence: number | null
+      status: string
+      /**
+       * The link IS the credential — long, random, unguessable.
+       */
+      token: string
+      sentAt: Date | null
+      firstOpenedAt: Date | null
+      signedAt: Date | null
+      voidedAt: Date | null
+      lastRemindedAt: Date | null
+      signerName: string | null
+      signerEmail: string | null
+      signatureImageUrl: string | null
+      signerIp: string | null
+      signerUserAgent: string | null
+      /**
+       * Stamped when the signer starts checkout from the contract.
+       */
+      subscriptionStartedAt: Date | null
+      createdByUserId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["contract"]>
+    composites: {}
+  }
+
+  type ContractGetPayload<S extends boolean | null | undefined | ContractDefaultArgs> = $Result.GetResult<Prisma.$ContractPayload, S>
+
+  type ContractCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ContractFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ContractCountAggregateInputType | true
+    }
+
+  export interface ContractDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Contract'], meta: { name: 'Contract' } }
+    /**
+     * Find zero or one Contract that matches the filter.
+     * @param {ContractFindUniqueArgs} args - Arguments to find a Contract
+     * @example
+     * // Get one Contract
+     * const contract = await prisma.contract.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ContractFindUniqueArgs>(args: SelectSubset<T, ContractFindUniqueArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Contract that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ContractFindUniqueOrThrowArgs} args - Arguments to find a Contract
+     * @example
+     * // Get one Contract
+     * const contract = await prisma.contract.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ContractFindUniqueOrThrowArgs>(args: SelectSubset<T, ContractFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Contract that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractFindFirstArgs} args - Arguments to find a Contract
+     * @example
+     * // Get one Contract
+     * const contract = await prisma.contract.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ContractFindFirstArgs>(args?: SelectSubset<T, ContractFindFirstArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Contract that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractFindFirstOrThrowArgs} args - Arguments to find a Contract
+     * @example
+     * // Get one Contract
+     * const contract = await prisma.contract.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ContractFindFirstOrThrowArgs>(args?: SelectSubset<T, ContractFindFirstOrThrowArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Contracts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Contracts
+     * const contracts = await prisma.contract.findMany()
+     * 
+     * // Get first 10 Contracts
+     * const contracts = await prisma.contract.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const contractWithIdOnly = await prisma.contract.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ContractFindManyArgs>(args?: SelectSubset<T, ContractFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Contract.
+     * @param {ContractCreateArgs} args - Arguments to create a Contract.
+     * @example
+     * // Create one Contract
+     * const Contract = await prisma.contract.create({
+     *   data: {
+     *     // ... data to create a Contract
+     *   }
+     * })
+     * 
+     */
+    create<T extends ContractCreateArgs>(args: SelectSubset<T, ContractCreateArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Contracts.
+     * @param {ContractCreateManyArgs} args - Arguments to create many Contracts.
+     * @example
+     * // Create many Contracts
+     * const contract = await prisma.contract.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ContractCreateManyArgs>(args?: SelectSubset<T, ContractCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Contracts and returns the data saved in the database.
+     * @param {ContractCreateManyAndReturnArgs} args - Arguments to create many Contracts.
+     * @example
+     * // Create many Contracts
+     * const contract = await prisma.contract.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Contracts and only return the `id`
+     * const contractWithIdOnly = await prisma.contract.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ContractCreateManyAndReturnArgs>(args?: SelectSubset<T, ContractCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Contract.
+     * @param {ContractDeleteArgs} args - Arguments to delete one Contract.
+     * @example
+     * // Delete one Contract
+     * const Contract = await prisma.contract.delete({
+     *   where: {
+     *     // ... filter to delete one Contract
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ContractDeleteArgs>(args: SelectSubset<T, ContractDeleteArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Contract.
+     * @param {ContractUpdateArgs} args - Arguments to update one Contract.
+     * @example
+     * // Update one Contract
+     * const contract = await prisma.contract.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ContractUpdateArgs>(args: SelectSubset<T, ContractUpdateArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Contracts.
+     * @param {ContractDeleteManyArgs} args - Arguments to filter Contracts to delete.
+     * @example
+     * // Delete a few Contracts
+     * const { count } = await prisma.contract.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ContractDeleteManyArgs>(args?: SelectSubset<T, ContractDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Contracts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Contracts
+     * const contract = await prisma.contract.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ContractUpdateManyArgs>(args: SelectSubset<T, ContractUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Contract.
+     * @param {ContractUpsertArgs} args - Arguments to update or create a Contract.
+     * @example
+     * // Update or create a Contract
+     * const contract = await prisma.contract.upsert({
+     *   create: {
+     *     // ... data to create a Contract
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Contract we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ContractUpsertArgs>(args: SelectSubset<T, ContractUpsertArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Contracts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractCountArgs} args - Arguments to filter Contracts to count.
+     * @example
+     * // Count the number of Contracts
+     * const count = await prisma.contract.count({
+     *   where: {
+     *     // ... the filter for the Contracts we want to count
+     *   }
+     * })
+    **/
+    count<T extends ContractCountArgs>(
+      args?: Subset<T, ContractCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ContractCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Contract.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ContractAggregateArgs>(args: Subset<T, ContractAggregateArgs>): Prisma.PrismaPromise<GetContractAggregateType<T>>
+
+    /**
+     * Group by Contract.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ContractGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ContractGroupByArgs['orderBy'] }
+        : { orderBy?: ContractGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ContractGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetContractGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Contract model
+   */
+  readonly fields: ContractFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Contract.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ContractClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    template<T extends Contract$templateArgs<ExtArgs> = {}>(args?: Subset<T, Contract$templateArgs<ExtArgs>>): Prisma__ContractTemplateClient<$Result.GetResult<Prisma.$ContractTemplatePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    location<T extends Contract$locationArgs<ExtArgs> = {}>(args?: Subset<T, Contract$locationArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    events<T extends Contract$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Contract$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Contract model
+   */ 
+  interface ContractFieldRefs {
+    readonly id: FieldRef<"Contract", 'String'>
+    readonly tenantId: FieldRef<"Contract", 'String'>
+    readonly templateId: FieldRef<"Contract", 'String'>
+    readonly locationId: FieldRef<"Contract", 'String'>
+    readonly title: FieldRef<"Contract", 'String'>
+    readonly bodyHtml: FieldRef<"Contract", 'String'>
+    readonly fileUrl: FieldRef<"Contract", 'String'>
+    readonly fileName: FieldRef<"Contract", 'String'>
+    readonly fileType: FieldRef<"Contract", 'String'>
+    readonly recipientName: FieldRef<"Contract", 'String'>
+    readonly recipientEmail: FieldRef<"Contract", 'String'>
+    readonly recipientCompany: FieldRef<"Contract", 'String'>
+    readonly subscriptionAmountPence: FieldRef<"Contract", 'Int'>
+    readonly status: FieldRef<"Contract", 'String'>
+    readonly token: FieldRef<"Contract", 'String'>
+    readonly sentAt: FieldRef<"Contract", 'DateTime'>
+    readonly firstOpenedAt: FieldRef<"Contract", 'DateTime'>
+    readonly signedAt: FieldRef<"Contract", 'DateTime'>
+    readonly voidedAt: FieldRef<"Contract", 'DateTime'>
+    readonly lastRemindedAt: FieldRef<"Contract", 'DateTime'>
+    readonly signerName: FieldRef<"Contract", 'String'>
+    readonly signerEmail: FieldRef<"Contract", 'String'>
+    readonly signatureImageUrl: FieldRef<"Contract", 'String'>
+    readonly signerIp: FieldRef<"Contract", 'String'>
+    readonly signerUserAgent: FieldRef<"Contract", 'String'>
+    readonly subscriptionStartedAt: FieldRef<"Contract", 'DateTime'>
+    readonly createdByUserId: FieldRef<"Contract", 'String'>
+    readonly createdAt: FieldRef<"Contract", 'DateTime'>
+    readonly updatedAt: FieldRef<"Contract", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Contract findUnique
+   */
+  export type ContractFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * Filter, which Contract to fetch.
+     */
+    where: ContractWhereUniqueInput
+  }
+
+  /**
+   * Contract findUniqueOrThrow
+   */
+  export type ContractFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * Filter, which Contract to fetch.
+     */
+    where: ContractWhereUniqueInput
+  }
+
+  /**
+   * Contract findFirst
+   */
+  export type ContractFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * Filter, which Contract to fetch.
+     */
+    where?: ContractWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Contracts to fetch.
+     */
+    orderBy?: ContractOrderByWithRelationInput | ContractOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Contracts.
+     */
+    cursor?: ContractWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Contracts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Contracts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Contracts.
+     */
+    distinct?: ContractScalarFieldEnum | ContractScalarFieldEnum[]
+  }
+
+  /**
+   * Contract findFirstOrThrow
+   */
+  export type ContractFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * Filter, which Contract to fetch.
+     */
+    where?: ContractWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Contracts to fetch.
+     */
+    orderBy?: ContractOrderByWithRelationInput | ContractOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Contracts.
+     */
+    cursor?: ContractWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Contracts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Contracts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Contracts.
+     */
+    distinct?: ContractScalarFieldEnum | ContractScalarFieldEnum[]
+  }
+
+  /**
+   * Contract findMany
+   */
+  export type ContractFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * Filter, which Contracts to fetch.
+     */
+    where?: ContractWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Contracts to fetch.
+     */
+    orderBy?: ContractOrderByWithRelationInput | ContractOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Contracts.
+     */
+    cursor?: ContractWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Contracts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Contracts.
+     */
+    skip?: number
+    distinct?: ContractScalarFieldEnum | ContractScalarFieldEnum[]
+  }
+
+  /**
+   * Contract create
+   */
+  export type ContractCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Contract.
+     */
+    data: XOR<ContractCreateInput, ContractUncheckedCreateInput>
+  }
+
+  /**
+   * Contract createMany
+   */
+  export type ContractCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Contracts.
+     */
+    data: ContractCreateManyInput | ContractCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Contract createManyAndReturn
+   */
+  export type ContractCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Contracts.
+     */
+    data: ContractCreateManyInput | ContractCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Contract update
+   */
+  export type ContractUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Contract.
+     */
+    data: XOR<ContractUpdateInput, ContractUncheckedUpdateInput>
+    /**
+     * Choose, which Contract to update.
+     */
+    where: ContractWhereUniqueInput
+  }
+
+  /**
+   * Contract updateMany
+   */
+  export type ContractUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Contracts.
+     */
+    data: XOR<ContractUpdateManyMutationInput, ContractUncheckedUpdateManyInput>
+    /**
+     * Filter which Contracts to update
+     */
+    where?: ContractWhereInput
+  }
+
+  /**
+   * Contract upsert
+   */
+  export type ContractUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Contract to update in case it exists.
+     */
+    where: ContractWhereUniqueInput
+    /**
+     * In case the Contract found by the `where` argument doesn't exist, create a new Contract with this data.
+     */
+    create: XOR<ContractCreateInput, ContractUncheckedCreateInput>
+    /**
+     * In case the Contract was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ContractUpdateInput, ContractUncheckedUpdateInput>
+  }
+
+  /**
+   * Contract delete
+   */
+  export type ContractDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+    /**
+     * Filter which Contract to delete.
+     */
+    where: ContractWhereUniqueInput
+  }
+
+  /**
+   * Contract deleteMany
+   */
+  export type ContractDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Contracts to delete
+     */
+    where?: ContractWhereInput
+  }
+
+  /**
+   * Contract.template
+   */
+  export type Contract$templateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractTemplate
+     */
+    select?: ContractTemplateSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractTemplateInclude<ExtArgs> | null
+    where?: ContractTemplateWhereInput
+  }
+
+  /**
+   * Contract.location
+   */
+  export type Contract$locationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
+  }
+
+  /**
+   * Contract.events
+   */
+  export type Contract$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    where?: ContractEventWhereInput
+    orderBy?: ContractEventOrderByWithRelationInput | ContractEventOrderByWithRelationInput[]
+    cursor?: ContractEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ContractEventScalarFieldEnum | ContractEventScalarFieldEnum[]
+  }
+
+  /**
+   * Contract without action
+   */
+  export type ContractDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Contract
+     */
+    select?: ContractSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ContractEvent
+   */
+
+  export type AggregateContractEvent = {
+    _count: ContractEventCountAggregateOutputType | null
+    _min: ContractEventMinAggregateOutputType | null
+    _max: ContractEventMaxAggregateOutputType | null
+  }
+
+  export type ContractEventMinAggregateOutputType = {
+    id: string | null
+    contractId: string | null
+    type: string | null
+    ip: string | null
+    userAgent: string | null
+    createdAt: Date | null
+  }
+
+  export type ContractEventMaxAggregateOutputType = {
+    id: string | null
+    contractId: string | null
+    type: string | null
+    ip: string | null
+    userAgent: string | null
+    createdAt: Date | null
+  }
+
+  export type ContractEventCountAggregateOutputType = {
+    id: number
+    contractId: number
+    type: number
+    ip: number
+    userAgent: number
+    meta: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ContractEventMinAggregateInputType = {
+    id?: true
+    contractId?: true
+    type?: true
+    ip?: true
+    userAgent?: true
+    createdAt?: true
+  }
+
+  export type ContractEventMaxAggregateInputType = {
+    id?: true
+    contractId?: true
+    type?: true
+    ip?: true
+    userAgent?: true
+    createdAt?: true
+  }
+
+  export type ContractEventCountAggregateInputType = {
+    id?: true
+    contractId?: true
+    type?: true
+    ip?: true
+    userAgent?: true
+    meta?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ContractEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ContractEvent to aggregate.
+     */
+    where?: ContractEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractEvents to fetch.
+     */
+    orderBy?: ContractEventOrderByWithRelationInput | ContractEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ContractEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ContractEvents
+    **/
+    _count?: true | ContractEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ContractEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ContractEventMaxAggregateInputType
+  }
+
+  export type GetContractEventAggregateType<T extends ContractEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateContractEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateContractEvent[P]>
+      : GetScalarType<T[P], AggregateContractEvent[P]>
+  }
+
+
+
+
+  export type ContractEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ContractEventWhereInput
+    orderBy?: ContractEventOrderByWithAggregationInput | ContractEventOrderByWithAggregationInput[]
+    by: ContractEventScalarFieldEnum[] | ContractEventScalarFieldEnum
+    having?: ContractEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ContractEventCountAggregateInputType | true
+    _min?: ContractEventMinAggregateInputType
+    _max?: ContractEventMaxAggregateInputType
+  }
+
+  export type ContractEventGroupByOutputType = {
+    id: string
+    contractId: string
+    type: string
+    ip: string | null
+    userAgent: string | null
+    meta: JsonValue | null
+    createdAt: Date
+    _count: ContractEventCountAggregateOutputType | null
+    _min: ContractEventMinAggregateOutputType | null
+    _max: ContractEventMaxAggregateOutputType | null
+  }
+
+  type GetContractEventGroupByPayload<T extends ContractEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ContractEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ContractEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ContractEventGroupByOutputType[P]>
+            : GetScalarType<T[P], ContractEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ContractEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    contractId?: boolean
+    type?: boolean
+    ip?: boolean
+    userAgent?: boolean
+    meta?: boolean
+    createdAt?: boolean
+    contract?: boolean | ContractDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contractEvent"]>
+
+  export type ContractEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    contractId?: boolean
+    type?: boolean
+    ip?: boolean
+    userAgent?: boolean
+    meta?: boolean
+    createdAt?: boolean
+    contract?: boolean | ContractDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["contractEvent"]>
+
+  export type ContractEventSelectScalar = {
+    id?: boolean
+    contractId?: boolean
+    type?: boolean
+    ip?: boolean
+    userAgent?: boolean
+    meta?: boolean
+    createdAt?: boolean
+  }
+
+  export type ContractEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    contract?: boolean | ContractDefaultArgs<ExtArgs>
+  }
+  export type ContractEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    contract?: boolean | ContractDefaultArgs<ExtArgs>
+  }
+
+  export type $ContractEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ContractEvent"
+    objects: {
+      contract: Prisma.$ContractPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      contractId: string
+      /**
+       * CREATED | SENT | OPENED | SIGNED | VOIDED | REMINDED | SUBSCRIBE_STARTED
+       */
+      type: string
+      ip: string | null
+      userAgent: string | null
+      meta: Prisma.JsonValue | null
+      createdAt: Date
+    }, ExtArgs["result"]["contractEvent"]>
+    composites: {}
+  }
+
+  type ContractEventGetPayload<S extends boolean | null | undefined | ContractEventDefaultArgs> = $Result.GetResult<Prisma.$ContractEventPayload, S>
+
+  type ContractEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ContractEventFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ContractEventCountAggregateInputType | true
+    }
+
+  export interface ContractEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ContractEvent'], meta: { name: 'ContractEvent' } }
+    /**
+     * Find zero or one ContractEvent that matches the filter.
+     * @param {ContractEventFindUniqueArgs} args - Arguments to find a ContractEvent
+     * @example
+     * // Get one ContractEvent
+     * const contractEvent = await prisma.contractEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ContractEventFindUniqueArgs>(args: SelectSubset<T, ContractEventFindUniqueArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ContractEvent that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ContractEventFindUniqueOrThrowArgs} args - Arguments to find a ContractEvent
+     * @example
+     * // Get one ContractEvent
+     * const contractEvent = await prisma.contractEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ContractEventFindUniqueOrThrowArgs>(args: SelectSubset<T, ContractEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ContractEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractEventFindFirstArgs} args - Arguments to find a ContractEvent
+     * @example
+     * // Get one ContractEvent
+     * const contractEvent = await prisma.contractEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ContractEventFindFirstArgs>(args?: SelectSubset<T, ContractEventFindFirstArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ContractEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractEventFindFirstOrThrowArgs} args - Arguments to find a ContractEvent
+     * @example
+     * // Get one ContractEvent
+     * const contractEvent = await prisma.contractEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ContractEventFindFirstOrThrowArgs>(args?: SelectSubset<T, ContractEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ContractEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ContractEvents
+     * const contractEvents = await prisma.contractEvent.findMany()
+     * 
+     * // Get first 10 ContractEvents
+     * const contractEvents = await prisma.contractEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const contractEventWithIdOnly = await prisma.contractEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ContractEventFindManyArgs>(args?: SelectSubset<T, ContractEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ContractEvent.
+     * @param {ContractEventCreateArgs} args - Arguments to create a ContractEvent.
+     * @example
+     * // Create one ContractEvent
+     * const ContractEvent = await prisma.contractEvent.create({
+     *   data: {
+     *     // ... data to create a ContractEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends ContractEventCreateArgs>(args: SelectSubset<T, ContractEventCreateArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ContractEvents.
+     * @param {ContractEventCreateManyArgs} args - Arguments to create many ContractEvents.
+     * @example
+     * // Create many ContractEvents
+     * const contractEvent = await prisma.contractEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ContractEventCreateManyArgs>(args?: SelectSubset<T, ContractEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ContractEvents and returns the data saved in the database.
+     * @param {ContractEventCreateManyAndReturnArgs} args - Arguments to create many ContractEvents.
+     * @example
+     * // Create many ContractEvents
+     * const contractEvent = await prisma.contractEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ContractEvents and only return the `id`
+     * const contractEventWithIdOnly = await prisma.contractEvent.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ContractEventCreateManyAndReturnArgs>(args?: SelectSubset<T, ContractEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ContractEvent.
+     * @param {ContractEventDeleteArgs} args - Arguments to delete one ContractEvent.
+     * @example
+     * // Delete one ContractEvent
+     * const ContractEvent = await prisma.contractEvent.delete({
+     *   where: {
+     *     // ... filter to delete one ContractEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ContractEventDeleteArgs>(args: SelectSubset<T, ContractEventDeleteArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ContractEvent.
+     * @param {ContractEventUpdateArgs} args - Arguments to update one ContractEvent.
+     * @example
+     * // Update one ContractEvent
+     * const contractEvent = await prisma.contractEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ContractEventUpdateArgs>(args: SelectSubset<T, ContractEventUpdateArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ContractEvents.
+     * @param {ContractEventDeleteManyArgs} args - Arguments to filter ContractEvents to delete.
+     * @example
+     * // Delete a few ContractEvents
+     * const { count } = await prisma.contractEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ContractEventDeleteManyArgs>(args?: SelectSubset<T, ContractEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ContractEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ContractEvents
+     * const contractEvent = await prisma.contractEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ContractEventUpdateManyArgs>(args: SelectSubset<T, ContractEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ContractEvent.
+     * @param {ContractEventUpsertArgs} args - Arguments to update or create a ContractEvent.
+     * @example
+     * // Update or create a ContractEvent
+     * const contractEvent = await prisma.contractEvent.upsert({
+     *   create: {
+     *     // ... data to create a ContractEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ContractEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ContractEventUpsertArgs>(args: SelectSubset<T, ContractEventUpsertArgs<ExtArgs>>): Prisma__ContractEventClient<$Result.GetResult<Prisma.$ContractEventPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ContractEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractEventCountArgs} args - Arguments to filter ContractEvents to count.
+     * @example
+     * // Count the number of ContractEvents
+     * const count = await prisma.contractEvent.count({
+     *   where: {
+     *     // ... the filter for the ContractEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends ContractEventCountArgs>(
+      args?: Subset<T, ContractEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ContractEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ContractEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ContractEventAggregateArgs>(args: Subset<T, ContractEventAggregateArgs>): Prisma.PrismaPromise<GetContractEventAggregateType<T>>
+
+    /**
+     * Group by ContractEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ContractEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ContractEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ContractEventGroupByArgs['orderBy'] }
+        : { orderBy?: ContractEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ContractEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetContractEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ContractEvent model
+   */
+  readonly fields: ContractEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ContractEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ContractEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    contract<T extends ContractDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ContractDefaultArgs<ExtArgs>>): Prisma__ContractClient<$Result.GetResult<Prisma.$ContractPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ContractEvent model
+   */ 
+  interface ContractEventFieldRefs {
+    readonly id: FieldRef<"ContractEvent", 'String'>
+    readonly contractId: FieldRef<"ContractEvent", 'String'>
+    readonly type: FieldRef<"ContractEvent", 'String'>
+    readonly ip: FieldRef<"ContractEvent", 'String'>
+    readonly userAgent: FieldRef<"ContractEvent", 'String'>
+    readonly meta: FieldRef<"ContractEvent", 'Json'>
+    readonly createdAt: FieldRef<"ContractEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ContractEvent findUnique
+   */
+  export type ContractEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractEvent to fetch.
+     */
+    where: ContractEventWhereUniqueInput
+  }
+
+  /**
+   * ContractEvent findUniqueOrThrow
+   */
+  export type ContractEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractEvent to fetch.
+     */
+    where: ContractEventWhereUniqueInput
+  }
+
+  /**
+   * ContractEvent findFirst
+   */
+  export type ContractEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractEvent to fetch.
+     */
+    where?: ContractEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractEvents to fetch.
+     */
+    orderBy?: ContractEventOrderByWithRelationInput | ContractEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ContractEvents.
+     */
+    cursor?: ContractEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ContractEvents.
+     */
+    distinct?: ContractEventScalarFieldEnum | ContractEventScalarFieldEnum[]
+  }
+
+  /**
+   * ContractEvent findFirstOrThrow
+   */
+  export type ContractEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractEvent to fetch.
+     */
+    where?: ContractEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractEvents to fetch.
+     */
+    orderBy?: ContractEventOrderByWithRelationInput | ContractEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ContractEvents.
+     */
+    cursor?: ContractEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ContractEvents.
+     */
+    distinct?: ContractEventScalarFieldEnum | ContractEventScalarFieldEnum[]
+  }
+
+  /**
+   * ContractEvent findMany
+   */
+  export type ContractEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * Filter, which ContractEvents to fetch.
+     */
+    where?: ContractEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ContractEvents to fetch.
+     */
+    orderBy?: ContractEventOrderByWithRelationInput | ContractEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ContractEvents.
+     */
+    cursor?: ContractEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ContractEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ContractEvents.
+     */
+    skip?: number
+    distinct?: ContractEventScalarFieldEnum | ContractEventScalarFieldEnum[]
+  }
+
+  /**
+   * ContractEvent create
+   */
+  export type ContractEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ContractEvent.
+     */
+    data: XOR<ContractEventCreateInput, ContractEventUncheckedCreateInput>
+  }
+
+  /**
+   * ContractEvent createMany
+   */
+  export type ContractEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ContractEvents.
+     */
+    data: ContractEventCreateManyInput | ContractEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ContractEvent createManyAndReturn
+   */
+  export type ContractEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ContractEvents.
+     */
+    data: ContractEventCreateManyInput | ContractEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ContractEvent update
+   */
+  export type ContractEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ContractEvent.
+     */
+    data: XOR<ContractEventUpdateInput, ContractEventUncheckedUpdateInput>
+    /**
+     * Choose, which ContractEvent to update.
+     */
+    where: ContractEventWhereUniqueInput
+  }
+
+  /**
+   * ContractEvent updateMany
+   */
+  export type ContractEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ContractEvents.
+     */
+    data: XOR<ContractEventUpdateManyMutationInput, ContractEventUncheckedUpdateManyInput>
+    /**
+     * Filter which ContractEvents to update
+     */
+    where?: ContractEventWhereInput
+  }
+
+  /**
+   * ContractEvent upsert
+   */
+  export type ContractEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ContractEvent to update in case it exists.
+     */
+    where: ContractEventWhereUniqueInput
+    /**
+     * In case the ContractEvent found by the `where` argument doesn't exist, create a new ContractEvent with this data.
+     */
+    create: XOR<ContractEventCreateInput, ContractEventUncheckedCreateInput>
+    /**
+     * In case the ContractEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ContractEventUpdateInput, ContractEventUncheckedUpdateInput>
+  }
+
+  /**
+   * ContractEvent delete
+   */
+  export type ContractEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+    /**
+     * Filter which ContractEvent to delete.
+     */
+    where: ContractEventWhereUniqueInput
+  }
+
+  /**
+   * ContractEvent deleteMany
+   */
+  export type ContractEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ContractEvents to delete
+     */
+    where?: ContractEventWhereInput
+  }
+
+  /**
+   * ContractEvent without action
+   */
+  export type ContractEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ContractEvent
+     */
+    select?: ContractEventSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ContractEventInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -147561,6 +151363,73 @@ export namespace Prisma {
   export type CustomerPushOrderScalarFieldEnum = (typeof CustomerPushOrderScalarFieldEnum)[keyof typeof CustomerPushOrderScalarFieldEnum]
 
 
+  export const ContractTemplateScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    name: 'name',
+    description: 'description',
+    bodyHtml: 'bodyHtml',
+    fileUrl: 'fileUrl',
+    fileName: 'fileName',
+    fileType: 'fileType',
+    subscriptionAmountPence: 'subscriptionAmountPence',
+    createdByUserId: 'createdByUserId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type ContractTemplateScalarFieldEnum = (typeof ContractTemplateScalarFieldEnum)[keyof typeof ContractTemplateScalarFieldEnum]
+
+
+  export const ContractScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    templateId: 'templateId',
+    locationId: 'locationId',
+    title: 'title',
+    bodyHtml: 'bodyHtml',
+    fileUrl: 'fileUrl',
+    fileName: 'fileName',
+    fileType: 'fileType',
+    recipientName: 'recipientName',
+    recipientEmail: 'recipientEmail',
+    recipientCompany: 'recipientCompany',
+    subscriptionAmountPence: 'subscriptionAmountPence',
+    status: 'status',
+    token: 'token',
+    sentAt: 'sentAt',
+    firstOpenedAt: 'firstOpenedAt',
+    signedAt: 'signedAt',
+    voidedAt: 'voidedAt',
+    lastRemindedAt: 'lastRemindedAt',
+    signerName: 'signerName',
+    signerEmail: 'signerEmail',
+    signatureImageUrl: 'signatureImageUrl',
+    signerIp: 'signerIp',
+    signerUserAgent: 'signerUserAgent',
+    subscriptionStartedAt: 'subscriptionStartedAt',
+    createdByUserId: 'createdByUserId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ContractScalarFieldEnum = (typeof ContractScalarFieldEnum)[keyof typeof ContractScalarFieldEnum]
+
+
+  export const ContractEventScalarFieldEnum: {
+    id: 'id',
+    contractId: 'contractId',
+    type: 'type',
+    ip: 'ip',
+    userAgent: 'userAgent',
+    meta: 'meta',
+    createdAt: 'createdAt'
+  };
+
+  export type ContractEventScalarFieldEnum = (typeof ContractEventScalarFieldEnum)[keyof typeof ContractEventScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -149246,6 +153115,58 @@ export namespace Prisma {
   export type CustomerPushOrderOrderByRelevanceFieldEnum = (typeof CustomerPushOrderOrderByRelevanceFieldEnum)[keyof typeof CustomerPushOrderOrderByRelevanceFieldEnum]
 
 
+  export const ContractTemplateOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    name: 'name',
+    description: 'description',
+    bodyHtml: 'bodyHtml',
+    fileUrl: 'fileUrl',
+    fileName: 'fileName',
+    fileType: 'fileType',
+    createdByUserId: 'createdByUserId'
+  };
+
+  export type ContractTemplateOrderByRelevanceFieldEnum = (typeof ContractTemplateOrderByRelevanceFieldEnum)[keyof typeof ContractTemplateOrderByRelevanceFieldEnum]
+
+
+  export const ContractOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    templateId: 'templateId',
+    locationId: 'locationId',
+    title: 'title',
+    bodyHtml: 'bodyHtml',
+    fileUrl: 'fileUrl',
+    fileName: 'fileName',
+    fileType: 'fileType',
+    recipientName: 'recipientName',
+    recipientEmail: 'recipientEmail',
+    recipientCompany: 'recipientCompany',
+    status: 'status',
+    token: 'token',
+    signerName: 'signerName',
+    signerEmail: 'signerEmail',
+    signatureImageUrl: 'signatureImageUrl',
+    signerIp: 'signerIp',
+    signerUserAgent: 'signerUserAgent',
+    createdByUserId: 'createdByUserId'
+  };
+
+  export type ContractOrderByRelevanceFieldEnum = (typeof ContractOrderByRelevanceFieldEnum)[keyof typeof ContractOrderByRelevanceFieldEnum]
+
+
+  export const ContractEventOrderByRelevanceFieldEnum: {
+    id: 'id',
+    contractId: 'contractId',
+    type: 'type',
+    ip: 'ip',
+    userAgent: 'userAgent'
+  };
+
+  export type ContractEventOrderByRelevanceFieldEnum = (typeof ContractEventOrderByRelevanceFieldEnum)[keyof typeof ContractEventOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references 
    */
@@ -150084,6 +154005,8 @@ export namespace Prisma {
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
     wallets?: WalletListRelationFilter
+    contractTemplates?: ContractTemplateListRelationFilter
+    contracts?: ContractListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -150115,6 +154038,8 @@ export namespace Prisma {
     printerStations?: PrinterStationOrderByRelationAggregateInput
     printAgents?: PrintAgentOrderByRelationAggregateInput
     wallets?: WalletOrderByRelationAggregateInput
+    contractTemplates?: ContractTemplateOrderByRelationAggregateInput
+    contracts?: ContractOrderByRelationAggregateInput
     _relevance?: TenantOrderByRelevanceInput
   }
 
@@ -150150,6 +154075,8 @@ export namespace Prisma {
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
     wallets?: WalletListRelationFilter
+    contractTemplates?: ContractTemplateListRelationFilter
+    contracts?: ContractListRelationFilter
   }, "id" | "slug">
 
   export type TenantOrderByWithAggregationInput = {
@@ -151415,6 +155342,7 @@ export namespace Prisma {
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     channelPauses?: ChannelPauseListRelationFilter
     merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
+    contracts?: ContractListRelationFilter
     menuAssignments?: MenuChannelAssignmentListRelationFilter
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     homeDrivers?: DriverListRelationFilter
@@ -151502,6 +155430,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
     channelPauses?: ChannelPauseOrderByRelationAggregateInput
     merchantSubscription?: MerchantSubscriptionOrderByWithRelationInput
+    contracts?: ContractOrderByRelationAggregateInput
     menuAssignments?: MenuChannelAssignmentOrderByRelationAggregateInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
     homeDrivers?: DriverOrderByRelationAggregateInput
@@ -151593,6 +155522,7 @@ export namespace Prisma {
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     channelPauses?: ChannelPauseListRelationFilter
     merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
+    contracts?: ContractListRelationFilter
     menuAssignments?: MenuChannelAssignmentListRelationFilter
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     homeDrivers?: DriverListRelationFilter
@@ -162832,6 +166762,360 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"CustomerPushOrder"> | Date | string
   }
 
+  export type ContractTemplateWhereInput = {
+    AND?: ContractTemplateWhereInput | ContractTemplateWhereInput[]
+    OR?: ContractTemplateWhereInput[]
+    NOT?: ContractTemplateWhereInput | ContractTemplateWhereInput[]
+    id?: StringFilter<"ContractTemplate"> | string
+    tenantId?: StringFilter<"ContractTemplate"> | string
+    name?: StringFilter<"ContractTemplate"> | string
+    description?: StringNullableFilter<"ContractTemplate"> | string | null
+    bodyHtml?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileUrl?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileName?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileType?: StringNullableFilter<"ContractTemplate"> | string | null
+    subscriptionAmountPence?: IntNullableFilter<"ContractTemplate"> | number | null
+    createdByUserId?: StringNullableFilter<"ContractTemplate"> | string | null
+    createdAt?: DateTimeFilter<"ContractTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"ContractTemplate"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"ContractTemplate"> | Date | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    contracts?: ContractListRelationFilter
+  }
+
+  export type ContractTemplateOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    bodyHtml?: SortOrderInput | SortOrder
+    fileUrl?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    fileType?: SortOrderInput | SortOrder
+    subscriptionAmountPence?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    contracts?: ContractOrderByRelationAggregateInput
+    _relevance?: ContractTemplateOrderByRelevanceInput
+  }
+
+  export type ContractTemplateWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ContractTemplateWhereInput | ContractTemplateWhereInput[]
+    OR?: ContractTemplateWhereInput[]
+    NOT?: ContractTemplateWhereInput | ContractTemplateWhereInput[]
+    tenantId?: StringFilter<"ContractTemplate"> | string
+    name?: StringFilter<"ContractTemplate"> | string
+    description?: StringNullableFilter<"ContractTemplate"> | string | null
+    bodyHtml?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileUrl?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileName?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileType?: StringNullableFilter<"ContractTemplate"> | string | null
+    subscriptionAmountPence?: IntNullableFilter<"ContractTemplate"> | number | null
+    createdByUserId?: StringNullableFilter<"ContractTemplate"> | string | null
+    createdAt?: DateTimeFilter<"ContractTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"ContractTemplate"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"ContractTemplate"> | Date | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    contracts?: ContractListRelationFilter
+  }, "id">
+
+  export type ContractTemplateOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    bodyHtml?: SortOrderInput | SortOrder
+    fileUrl?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    fileType?: SortOrderInput | SortOrder
+    subscriptionAmountPence?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: ContractTemplateCountOrderByAggregateInput
+    _avg?: ContractTemplateAvgOrderByAggregateInput
+    _max?: ContractTemplateMaxOrderByAggregateInput
+    _min?: ContractTemplateMinOrderByAggregateInput
+    _sum?: ContractTemplateSumOrderByAggregateInput
+  }
+
+  export type ContractTemplateScalarWhereWithAggregatesInput = {
+    AND?: ContractTemplateScalarWhereWithAggregatesInput | ContractTemplateScalarWhereWithAggregatesInput[]
+    OR?: ContractTemplateScalarWhereWithAggregatesInput[]
+    NOT?: ContractTemplateScalarWhereWithAggregatesInput | ContractTemplateScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ContractTemplate"> | string
+    tenantId?: StringWithAggregatesFilter<"ContractTemplate"> | string
+    name?: StringWithAggregatesFilter<"ContractTemplate"> | string
+    description?: StringNullableWithAggregatesFilter<"ContractTemplate"> | string | null
+    bodyHtml?: StringNullableWithAggregatesFilter<"ContractTemplate"> | string | null
+    fileUrl?: StringNullableWithAggregatesFilter<"ContractTemplate"> | string | null
+    fileName?: StringNullableWithAggregatesFilter<"ContractTemplate"> | string | null
+    fileType?: StringNullableWithAggregatesFilter<"ContractTemplate"> | string | null
+    subscriptionAmountPence?: IntNullableWithAggregatesFilter<"ContractTemplate"> | number | null
+    createdByUserId?: StringNullableWithAggregatesFilter<"ContractTemplate"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ContractTemplate"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ContractTemplate"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"ContractTemplate"> | Date | string | null
+  }
+
+  export type ContractWhereInput = {
+    AND?: ContractWhereInput | ContractWhereInput[]
+    OR?: ContractWhereInput[]
+    NOT?: ContractWhereInput | ContractWhereInput[]
+    id?: StringFilter<"Contract"> | string
+    tenantId?: StringFilter<"Contract"> | string
+    templateId?: StringNullableFilter<"Contract"> | string | null
+    locationId?: StringNullableFilter<"Contract"> | string | null
+    title?: StringFilter<"Contract"> | string
+    bodyHtml?: StringNullableFilter<"Contract"> | string | null
+    fileUrl?: StringNullableFilter<"Contract"> | string | null
+    fileName?: StringNullableFilter<"Contract"> | string | null
+    fileType?: StringNullableFilter<"Contract"> | string | null
+    recipientName?: StringFilter<"Contract"> | string
+    recipientEmail?: StringFilter<"Contract"> | string
+    recipientCompany?: StringNullableFilter<"Contract"> | string | null
+    subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
+    status?: StringFilter<"Contract"> | string
+    token?: StringFilter<"Contract"> | string
+    sentAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    firstOpenedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    signedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    voidedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    lastRemindedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    signerName?: StringNullableFilter<"Contract"> | string | null
+    signerEmail?: StringNullableFilter<"Contract"> | string | null
+    signatureImageUrl?: StringNullableFilter<"Contract"> | string | null
+    signerIp?: StringNullableFilter<"Contract"> | string | null
+    signerUserAgent?: StringNullableFilter<"Contract"> | string | null
+    subscriptionStartedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    createdByUserId?: StringNullableFilter<"Contract"> | string | null
+    createdAt?: DateTimeFilter<"Contract"> | Date | string
+    updatedAt?: DateTimeFilter<"Contract"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    template?: XOR<ContractTemplateNullableRelationFilter, ContractTemplateWhereInput> | null
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
+    events?: ContractEventListRelationFilter
+  }
+
+  export type ContractOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    templateId?: SortOrderInput | SortOrder
+    locationId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    bodyHtml?: SortOrderInput | SortOrder
+    fileUrl?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    fileType?: SortOrderInput | SortOrder
+    recipientName?: SortOrder
+    recipientEmail?: SortOrder
+    recipientCompany?: SortOrderInput | SortOrder
+    subscriptionAmountPence?: SortOrderInput | SortOrder
+    status?: SortOrder
+    token?: SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    firstOpenedAt?: SortOrderInput | SortOrder
+    signedAt?: SortOrderInput | SortOrder
+    voidedAt?: SortOrderInput | SortOrder
+    lastRemindedAt?: SortOrderInput | SortOrder
+    signerName?: SortOrderInput | SortOrder
+    signerEmail?: SortOrderInput | SortOrder
+    signatureImageUrl?: SortOrderInput | SortOrder
+    signerIp?: SortOrderInput | SortOrder
+    signerUserAgent?: SortOrderInput | SortOrder
+    subscriptionStartedAt?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    template?: ContractTemplateOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    events?: ContractEventOrderByRelationAggregateInput
+    _relevance?: ContractOrderByRelevanceInput
+  }
+
+  export type ContractWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token?: string
+    AND?: ContractWhereInput | ContractWhereInput[]
+    OR?: ContractWhereInput[]
+    NOT?: ContractWhereInput | ContractWhereInput[]
+    tenantId?: StringFilter<"Contract"> | string
+    templateId?: StringNullableFilter<"Contract"> | string | null
+    locationId?: StringNullableFilter<"Contract"> | string | null
+    title?: StringFilter<"Contract"> | string
+    bodyHtml?: StringNullableFilter<"Contract"> | string | null
+    fileUrl?: StringNullableFilter<"Contract"> | string | null
+    fileName?: StringNullableFilter<"Contract"> | string | null
+    fileType?: StringNullableFilter<"Contract"> | string | null
+    recipientName?: StringFilter<"Contract"> | string
+    recipientEmail?: StringFilter<"Contract"> | string
+    recipientCompany?: StringNullableFilter<"Contract"> | string | null
+    subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
+    status?: StringFilter<"Contract"> | string
+    sentAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    firstOpenedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    signedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    voidedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    lastRemindedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    signerName?: StringNullableFilter<"Contract"> | string | null
+    signerEmail?: StringNullableFilter<"Contract"> | string | null
+    signatureImageUrl?: StringNullableFilter<"Contract"> | string | null
+    signerIp?: StringNullableFilter<"Contract"> | string | null
+    signerUserAgent?: StringNullableFilter<"Contract"> | string | null
+    subscriptionStartedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    createdByUserId?: StringNullableFilter<"Contract"> | string | null
+    createdAt?: DateTimeFilter<"Contract"> | Date | string
+    updatedAt?: DateTimeFilter<"Contract"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    template?: XOR<ContractTemplateNullableRelationFilter, ContractTemplateWhereInput> | null
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
+    events?: ContractEventListRelationFilter
+  }, "id" | "token">
+
+  export type ContractOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    templateId?: SortOrderInput | SortOrder
+    locationId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    bodyHtml?: SortOrderInput | SortOrder
+    fileUrl?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    fileType?: SortOrderInput | SortOrder
+    recipientName?: SortOrder
+    recipientEmail?: SortOrder
+    recipientCompany?: SortOrderInput | SortOrder
+    subscriptionAmountPence?: SortOrderInput | SortOrder
+    status?: SortOrder
+    token?: SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    firstOpenedAt?: SortOrderInput | SortOrder
+    signedAt?: SortOrderInput | SortOrder
+    voidedAt?: SortOrderInput | SortOrder
+    lastRemindedAt?: SortOrderInput | SortOrder
+    signerName?: SortOrderInput | SortOrder
+    signerEmail?: SortOrderInput | SortOrder
+    signatureImageUrl?: SortOrderInput | SortOrder
+    signerIp?: SortOrderInput | SortOrder
+    signerUserAgent?: SortOrderInput | SortOrder
+    subscriptionStartedAt?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ContractCountOrderByAggregateInput
+    _avg?: ContractAvgOrderByAggregateInput
+    _max?: ContractMaxOrderByAggregateInput
+    _min?: ContractMinOrderByAggregateInput
+    _sum?: ContractSumOrderByAggregateInput
+  }
+
+  export type ContractScalarWhereWithAggregatesInput = {
+    AND?: ContractScalarWhereWithAggregatesInput | ContractScalarWhereWithAggregatesInput[]
+    OR?: ContractScalarWhereWithAggregatesInput[]
+    NOT?: ContractScalarWhereWithAggregatesInput | ContractScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Contract"> | string
+    tenantId?: StringWithAggregatesFilter<"Contract"> | string
+    templateId?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    locationId?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    title?: StringWithAggregatesFilter<"Contract"> | string
+    bodyHtml?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    fileUrl?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    fileName?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    fileType?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    recipientName?: StringWithAggregatesFilter<"Contract"> | string
+    recipientEmail?: StringWithAggregatesFilter<"Contract"> | string
+    recipientCompany?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    subscriptionAmountPence?: IntNullableWithAggregatesFilter<"Contract"> | number | null
+    status?: StringWithAggregatesFilter<"Contract"> | string
+    token?: StringWithAggregatesFilter<"Contract"> | string
+    sentAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
+    firstOpenedAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
+    signedAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
+    voidedAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
+    lastRemindedAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
+    signerName?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    signerEmail?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    signatureImageUrl?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    signerIp?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    signerUserAgent?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    subscriptionStartedAt?: DateTimeNullableWithAggregatesFilter<"Contract"> | Date | string | null
+    createdByUserId?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Contract"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Contract"> | Date | string
+  }
+
+  export type ContractEventWhereInput = {
+    AND?: ContractEventWhereInput | ContractEventWhereInput[]
+    OR?: ContractEventWhereInput[]
+    NOT?: ContractEventWhereInput | ContractEventWhereInput[]
+    id?: StringFilter<"ContractEvent"> | string
+    contractId?: StringFilter<"ContractEvent"> | string
+    type?: StringFilter<"ContractEvent"> | string
+    ip?: StringNullableFilter<"ContractEvent"> | string | null
+    userAgent?: StringNullableFilter<"ContractEvent"> | string | null
+    meta?: JsonNullableFilter<"ContractEvent">
+    createdAt?: DateTimeFilter<"ContractEvent"> | Date | string
+    contract?: XOR<ContractRelationFilter, ContractWhereInput>
+  }
+
+  export type ContractEventOrderByWithRelationInput = {
+    id?: SortOrder
+    contractId?: SortOrder
+    type?: SortOrder
+    ip?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    meta?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    contract?: ContractOrderByWithRelationInput
+    _relevance?: ContractEventOrderByRelevanceInput
+  }
+
+  export type ContractEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ContractEventWhereInput | ContractEventWhereInput[]
+    OR?: ContractEventWhereInput[]
+    NOT?: ContractEventWhereInput | ContractEventWhereInput[]
+    contractId?: StringFilter<"ContractEvent"> | string
+    type?: StringFilter<"ContractEvent"> | string
+    ip?: StringNullableFilter<"ContractEvent"> | string | null
+    userAgent?: StringNullableFilter<"ContractEvent"> | string | null
+    meta?: JsonNullableFilter<"ContractEvent">
+    createdAt?: DateTimeFilter<"ContractEvent"> | Date | string
+    contract?: XOR<ContractRelationFilter, ContractWhereInput>
+  }, "id">
+
+  export type ContractEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    contractId?: SortOrder
+    type?: SortOrder
+    ip?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    meta?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ContractEventCountOrderByAggregateInput
+    _max?: ContractEventMaxOrderByAggregateInput
+    _min?: ContractEventMinOrderByAggregateInput
+  }
+
+  export type ContractEventScalarWhereWithAggregatesInput = {
+    AND?: ContractEventScalarWhereWithAggregatesInput | ContractEventScalarWhereWithAggregatesInput[]
+    OR?: ContractEventScalarWhereWithAggregatesInput[]
+    NOT?: ContractEventScalarWhereWithAggregatesInput | ContractEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ContractEvent"> | string
+    contractId?: StringWithAggregatesFilter<"ContractEvent"> | string
+    type?: StringWithAggregatesFilter<"ContractEvent"> | string
+    ip?: StringNullableWithAggregatesFilter<"ContractEvent"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"ContractEvent"> | string | null
+    meta?: JsonNullableWithAggregatesFilter<"ContractEvent">
+    createdAt?: DateTimeWithAggregatesFilter<"ContractEvent"> | Date | string
+  }
+
   export type TenantCreateInput = {
     id?: string
     name: string
@@ -162861,6 +167145,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -162892,6 +167178,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -162923,6 +167211,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -162954,6 +167244,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -164393,6 +168685,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -164479,6 +168772,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -164559,6 +168853,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -164645,6 +168940,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -177550,6 +181846,415 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ContractTemplateCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutContractTemplatesInput
+    contracts?: ContractCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ContractTemplateUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    contracts?: ContractUncheckedCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ContractTemplateUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutContractTemplatesNestedInput
+    contracts?: ContractUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ContractTemplateUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    contracts?: ContractUncheckedUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ContractTemplateCreateManyInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type ContractTemplateUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ContractTemplateUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ContractCreateInput = {
+    id?: string
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutContractsInput
+    template?: ContractTemplateCreateNestedOneWithoutContractsInput
+    location?: LocationCreateNestedOneWithoutContractsInput
+    events?: ContractEventCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    templateId?: string | null
+    locationId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
+    template?: ContractTemplateUpdateOneWithoutContractsNestedInput
+    location?: LocationUpdateOneWithoutContractsNestedInput
+    events?: ContractEventUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractCreateManyInput = {
+    id?: string
+    tenantId: string
+    templateId?: string | null
+    locationId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ContractUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractEventCreateInput = {
+    id?: string
+    type: string
+    ip?: string | null
+    userAgent?: string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    contract: ContractCreateNestedOneWithoutEventsInput
+  }
+
+  export type ContractEventUncheckedCreateInput = {
+    id?: string
+    contractId: string
+    type: string
+    ip?: string | null
+    userAgent?: string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ContractEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    contract?: ContractUpdateOneRequiredWithoutEventsNestedInput
+  }
+
+  export type ContractEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    contractId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractEventCreateManyInput = {
+    id?: string
+    contractId: string
+    type: string
+    ip?: string | null
+    userAgent?: string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ContractEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    contractId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -177725,6 +182430,18 @@ export namespace Prisma {
     none?: WalletWhereInput
   }
 
+  export type ContractTemplateListRelationFilter = {
+    every?: ContractTemplateWhereInput
+    some?: ContractTemplateWhereInput
+    none?: ContractTemplateWhereInput
+  }
+
+  export type ContractListRelationFilter = {
+    every?: ContractWhereInput
+    some?: ContractWhereInput
+    none?: ContractWhereInput
+  }
+
   export type BrandOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -177790,6 +182507,14 @@ export namespace Prisma {
   }
 
   export type WalletOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ContractTemplateOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ContractOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -187506,6 +192231,232 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type ContractTemplateOrderByRelevanceInput = {
+    fields: ContractTemplateOrderByRelevanceFieldEnum | ContractTemplateOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ContractTemplateCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    bodyHtml?: SortOrder
+    fileUrl?: SortOrder
+    fileName?: SortOrder
+    fileType?: SortOrder
+    subscriptionAmountPence?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type ContractTemplateAvgOrderByAggregateInput = {
+    subscriptionAmountPence?: SortOrder
+  }
+
+  export type ContractTemplateMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    bodyHtml?: SortOrder
+    fileUrl?: SortOrder
+    fileName?: SortOrder
+    fileType?: SortOrder
+    subscriptionAmountPence?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type ContractTemplateMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    bodyHtml?: SortOrder
+    fileUrl?: SortOrder
+    fileName?: SortOrder
+    fileType?: SortOrder
+    subscriptionAmountPence?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type ContractTemplateSumOrderByAggregateInput = {
+    subscriptionAmountPence?: SortOrder
+  }
+
+  export type ContractTemplateNullableRelationFilter = {
+    is?: ContractTemplateWhereInput | null
+    isNot?: ContractTemplateWhereInput | null
+  }
+
+  export type ContractEventListRelationFilter = {
+    every?: ContractEventWhereInput
+    some?: ContractEventWhereInput
+    none?: ContractEventWhereInput
+  }
+
+  export type ContractEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ContractOrderByRelevanceInput = {
+    fields: ContractOrderByRelevanceFieldEnum | ContractOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ContractCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    templateId?: SortOrder
+    locationId?: SortOrder
+    title?: SortOrder
+    bodyHtml?: SortOrder
+    fileUrl?: SortOrder
+    fileName?: SortOrder
+    fileType?: SortOrder
+    recipientName?: SortOrder
+    recipientEmail?: SortOrder
+    recipientCompany?: SortOrder
+    subscriptionAmountPence?: SortOrder
+    status?: SortOrder
+    token?: SortOrder
+    sentAt?: SortOrder
+    firstOpenedAt?: SortOrder
+    signedAt?: SortOrder
+    voidedAt?: SortOrder
+    lastRemindedAt?: SortOrder
+    signerName?: SortOrder
+    signerEmail?: SortOrder
+    signatureImageUrl?: SortOrder
+    signerIp?: SortOrder
+    signerUserAgent?: SortOrder
+    subscriptionStartedAt?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ContractAvgOrderByAggregateInput = {
+    subscriptionAmountPence?: SortOrder
+  }
+
+  export type ContractMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    templateId?: SortOrder
+    locationId?: SortOrder
+    title?: SortOrder
+    bodyHtml?: SortOrder
+    fileUrl?: SortOrder
+    fileName?: SortOrder
+    fileType?: SortOrder
+    recipientName?: SortOrder
+    recipientEmail?: SortOrder
+    recipientCompany?: SortOrder
+    subscriptionAmountPence?: SortOrder
+    status?: SortOrder
+    token?: SortOrder
+    sentAt?: SortOrder
+    firstOpenedAt?: SortOrder
+    signedAt?: SortOrder
+    voidedAt?: SortOrder
+    lastRemindedAt?: SortOrder
+    signerName?: SortOrder
+    signerEmail?: SortOrder
+    signatureImageUrl?: SortOrder
+    signerIp?: SortOrder
+    signerUserAgent?: SortOrder
+    subscriptionStartedAt?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ContractMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    templateId?: SortOrder
+    locationId?: SortOrder
+    title?: SortOrder
+    bodyHtml?: SortOrder
+    fileUrl?: SortOrder
+    fileName?: SortOrder
+    fileType?: SortOrder
+    recipientName?: SortOrder
+    recipientEmail?: SortOrder
+    recipientCompany?: SortOrder
+    subscriptionAmountPence?: SortOrder
+    status?: SortOrder
+    token?: SortOrder
+    sentAt?: SortOrder
+    firstOpenedAt?: SortOrder
+    signedAt?: SortOrder
+    voidedAt?: SortOrder
+    lastRemindedAt?: SortOrder
+    signerName?: SortOrder
+    signerEmail?: SortOrder
+    signatureImageUrl?: SortOrder
+    signerIp?: SortOrder
+    signerUserAgent?: SortOrder
+    subscriptionStartedAt?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ContractSumOrderByAggregateInput = {
+    subscriptionAmountPence?: SortOrder
+  }
+
+  export type ContractRelationFilter = {
+    is?: ContractWhereInput
+    isNot?: ContractWhereInput
+  }
+
+  export type ContractEventOrderByRelevanceInput = {
+    fields: ContractEventOrderByRelevanceFieldEnum | ContractEventOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ContractEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    contractId?: SortOrder
+    type?: SortOrder
+    ip?: SortOrder
+    userAgent?: SortOrder
+    meta?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ContractEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    contractId?: SortOrder
+    type?: SortOrder
+    ip?: SortOrder
+    userAgent?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ContractEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    contractId?: SortOrder
+    type?: SortOrder
+    ip?: SortOrder
+    userAgent?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type BrandCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -187637,6 +192588,20 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
+  export type ContractTemplateCreateNestedManyWithoutTenantInput = {
+    create?: XOR<ContractTemplateCreateWithoutTenantInput, ContractTemplateUncheckedCreateWithoutTenantInput> | ContractTemplateCreateWithoutTenantInput[] | ContractTemplateUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractTemplateCreateOrConnectWithoutTenantInput | ContractTemplateCreateOrConnectWithoutTenantInput[]
+    createMany?: ContractTemplateCreateManyTenantInputEnvelope
+    connect?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+  }
+
+  export type ContractCreateNestedManyWithoutTenantInput = {
+    create?: XOR<ContractCreateWithoutTenantInput, ContractUncheckedCreateWithoutTenantInput> | ContractCreateWithoutTenantInput[] | ContractUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTenantInput | ContractCreateOrConnectWithoutTenantInput[]
+    createMany?: ContractCreateManyTenantInputEnvelope
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+  }
+
   export type BrandUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -187766,6 +192731,20 @@ export namespace Prisma {
     connectOrCreate?: WalletCreateOrConnectWithoutTenantInput | WalletCreateOrConnectWithoutTenantInput[]
     createMany?: WalletCreateManyTenantInputEnvelope
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+  }
+
+  export type ContractTemplateUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<ContractTemplateCreateWithoutTenantInput, ContractTemplateUncheckedCreateWithoutTenantInput> | ContractTemplateCreateWithoutTenantInput[] | ContractTemplateUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractTemplateCreateOrConnectWithoutTenantInput | ContractTemplateCreateOrConnectWithoutTenantInput[]
+    createMany?: ContractTemplateCreateManyTenantInputEnvelope
+    connect?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+  }
+
+  export type ContractUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<ContractCreateWithoutTenantInput, ContractUncheckedCreateWithoutTenantInput> | ContractCreateWithoutTenantInput[] | ContractUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTenantInput | ContractCreateOrConnectWithoutTenantInput[]
+    createMany?: ContractCreateManyTenantInputEnvelope
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -188042,6 +193021,34 @@ export namespace Prisma {
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
   }
 
+  export type ContractTemplateUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<ContractTemplateCreateWithoutTenantInput, ContractTemplateUncheckedCreateWithoutTenantInput> | ContractTemplateCreateWithoutTenantInput[] | ContractTemplateUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractTemplateCreateOrConnectWithoutTenantInput | ContractTemplateCreateOrConnectWithoutTenantInput[]
+    upsert?: ContractTemplateUpsertWithWhereUniqueWithoutTenantInput | ContractTemplateUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: ContractTemplateCreateManyTenantInputEnvelope
+    set?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    disconnect?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    delete?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    connect?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    update?: ContractTemplateUpdateWithWhereUniqueWithoutTenantInput | ContractTemplateUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: ContractTemplateUpdateManyWithWhereWithoutTenantInput | ContractTemplateUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: ContractTemplateScalarWhereInput | ContractTemplateScalarWhereInput[]
+  }
+
+  export type ContractUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<ContractCreateWithoutTenantInput, ContractUncheckedCreateWithoutTenantInput> | ContractCreateWithoutTenantInput[] | ContractUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTenantInput | ContractCreateOrConnectWithoutTenantInput[]
+    upsert?: ContractUpsertWithWhereUniqueWithoutTenantInput | ContractUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: ContractCreateManyTenantInputEnvelope
+    set?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    disconnect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    delete?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    update?: ContractUpdateWithWhereUniqueWithoutTenantInput | ContractUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: ContractUpdateManyWithWhereWithoutTenantInput | ContractUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: ContractScalarWhereInput | ContractScalarWhereInput[]
+  }
+
   export type BrandUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -188298,6 +193305,34 @@ export namespace Prisma {
     update?: WalletUpdateWithWhereUniqueWithoutTenantInput | WalletUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: WalletUpdateManyWithWhereWithoutTenantInput | WalletUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
+  }
+
+  export type ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<ContractTemplateCreateWithoutTenantInput, ContractTemplateUncheckedCreateWithoutTenantInput> | ContractTemplateCreateWithoutTenantInput[] | ContractTemplateUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractTemplateCreateOrConnectWithoutTenantInput | ContractTemplateCreateOrConnectWithoutTenantInput[]
+    upsert?: ContractTemplateUpsertWithWhereUniqueWithoutTenantInput | ContractTemplateUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: ContractTemplateCreateManyTenantInputEnvelope
+    set?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    disconnect?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    delete?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    connect?: ContractTemplateWhereUniqueInput | ContractTemplateWhereUniqueInput[]
+    update?: ContractTemplateUpdateWithWhereUniqueWithoutTenantInput | ContractTemplateUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: ContractTemplateUpdateManyWithWhereWithoutTenantInput | ContractTemplateUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: ContractTemplateScalarWhereInput | ContractTemplateScalarWhereInput[]
+  }
+
+  export type ContractUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<ContractCreateWithoutTenantInput, ContractUncheckedCreateWithoutTenantInput> | ContractCreateWithoutTenantInput[] | ContractUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTenantInput | ContractCreateOrConnectWithoutTenantInput[]
+    upsert?: ContractUpsertWithWhereUniqueWithoutTenantInput | ContractUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: ContractCreateManyTenantInputEnvelope
+    set?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    disconnect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    delete?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    update?: ContractUpdateWithWhereUniqueWithoutTenantInput | ContractUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: ContractUpdateManyWithWhereWithoutTenantInput | ContractUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: ContractScalarWhereInput | ContractScalarWhereInput[]
   }
 
   export type UserCreatepermissionsInput = {
@@ -189703,6 +194738,13 @@ export namespace Prisma {
     connect?: MerchantSubscriptionWhereUniqueInput
   }
 
+  export type ContractCreateNestedManyWithoutLocationInput = {
+    create?: XOR<ContractCreateWithoutLocationInput, ContractUncheckedCreateWithoutLocationInput> | ContractCreateWithoutLocationInput[] | ContractUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutLocationInput | ContractCreateOrConnectWithoutLocationInput[]
+    createMany?: ContractCreateManyLocationInputEnvelope
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+  }
+
   export type MenuChannelAssignmentCreateNestedManyWithoutLocationInput = {
     create?: XOR<MenuChannelAssignmentCreateWithoutLocationInput, MenuChannelAssignmentUncheckedCreateWithoutLocationInput> | MenuChannelAssignmentCreateWithoutLocationInput[] | MenuChannelAssignmentUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutLocationInput | MenuChannelAssignmentCreateOrConnectWithoutLocationInput[]
@@ -189868,6 +194910,13 @@ export namespace Prisma {
     create?: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
     connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutLocationInput
     connect?: MerchantSubscriptionWhereUniqueInput
+  }
+
+  export type ContractUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<ContractCreateWithoutLocationInput, ContractUncheckedCreateWithoutLocationInput> | ContractCreateWithoutLocationInput[] | ContractUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutLocationInput | ContractCreateOrConnectWithoutLocationInput[]
+    createMany?: ContractCreateManyLocationInputEnvelope
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
   }
 
   export type MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput = {
@@ -190147,6 +195196,20 @@ export namespace Prisma {
     delete?: MerchantSubscriptionWhereInput | boolean
     connect?: MerchantSubscriptionWhereUniqueInput
     update?: XOR<XOR<MerchantSubscriptionUpdateToOneWithWhereWithoutLocationInput, MerchantSubscriptionUpdateWithoutLocationInput>, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ContractUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<ContractCreateWithoutLocationInput, ContractUncheckedCreateWithoutLocationInput> | ContractCreateWithoutLocationInput[] | ContractUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutLocationInput | ContractCreateOrConnectWithoutLocationInput[]
+    upsert?: ContractUpsertWithWhereUniqueWithoutLocationInput | ContractUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: ContractCreateManyLocationInputEnvelope
+    set?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    disconnect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    delete?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    update?: ContractUpdateWithWhereUniqueWithoutLocationInput | ContractUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: ContractUpdateManyWithWhereWithoutLocationInput | ContractUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: ContractScalarWhereInput | ContractScalarWhereInput[]
   }
 
   export type MenuChannelAssignmentUpdateManyWithoutLocationNestedInput = {
@@ -190465,6 +195528,20 @@ export namespace Prisma {
     delete?: MerchantSubscriptionWhereInput | boolean
     connect?: MerchantSubscriptionWhereUniqueInput
     update?: XOR<XOR<MerchantSubscriptionUpdateToOneWithWhereWithoutLocationInput, MerchantSubscriptionUpdateWithoutLocationInput>, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ContractUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<ContractCreateWithoutLocationInput, ContractUncheckedCreateWithoutLocationInput> | ContractCreateWithoutLocationInput[] | ContractUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutLocationInput | ContractCreateOrConnectWithoutLocationInput[]
+    upsert?: ContractUpsertWithWhereUniqueWithoutLocationInput | ContractUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: ContractCreateManyLocationInputEnvelope
+    set?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    disconnect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    delete?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    update?: ContractUpdateWithWhereUniqueWithoutLocationInput | ContractUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: ContractUpdateManyWithWhereWithoutLocationInput | ContractUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: ContractScalarWhereInput | ContractScalarWhereInput[]
   }
 
   export type MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput = {
@@ -195338,6 +200415,164 @@ export namespace Prisma {
     update?: XOR<XOR<CustomerPushSubscriptionUpdateToOneWithWhereWithoutOrdersInput, CustomerPushSubscriptionUpdateWithoutOrdersInput>, CustomerPushSubscriptionUncheckedUpdateWithoutOrdersInput>
   }
 
+  export type TenantCreateNestedOneWithoutContractTemplatesInput = {
+    create?: XOR<TenantCreateWithoutContractTemplatesInput, TenantUncheckedCreateWithoutContractTemplatesInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutContractTemplatesInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type ContractCreateNestedManyWithoutTemplateInput = {
+    create?: XOR<ContractCreateWithoutTemplateInput, ContractUncheckedCreateWithoutTemplateInput> | ContractCreateWithoutTemplateInput[] | ContractUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTemplateInput | ContractCreateOrConnectWithoutTemplateInput[]
+    createMany?: ContractCreateManyTemplateInputEnvelope
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+  }
+
+  export type ContractUncheckedCreateNestedManyWithoutTemplateInput = {
+    create?: XOR<ContractCreateWithoutTemplateInput, ContractUncheckedCreateWithoutTemplateInput> | ContractCreateWithoutTemplateInput[] | ContractUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTemplateInput | ContractCreateOrConnectWithoutTemplateInput[]
+    createMany?: ContractCreateManyTemplateInputEnvelope
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutContractTemplatesNestedInput = {
+    create?: XOR<TenantCreateWithoutContractTemplatesInput, TenantUncheckedCreateWithoutContractTemplatesInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutContractTemplatesInput
+    upsert?: TenantUpsertWithoutContractTemplatesInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutContractTemplatesInput, TenantUpdateWithoutContractTemplatesInput>, TenantUncheckedUpdateWithoutContractTemplatesInput>
+  }
+
+  export type ContractUpdateManyWithoutTemplateNestedInput = {
+    create?: XOR<ContractCreateWithoutTemplateInput, ContractUncheckedCreateWithoutTemplateInput> | ContractCreateWithoutTemplateInput[] | ContractUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTemplateInput | ContractCreateOrConnectWithoutTemplateInput[]
+    upsert?: ContractUpsertWithWhereUniqueWithoutTemplateInput | ContractUpsertWithWhereUniqueWithoutTemplateInput[]
+    createMany?: ContractCreateManyTemplateInputEnvelope
+    set?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    disconnect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    delete?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    update?: ContractUpdateWithWhereUniqueWithoutTemplateInput | ContractUpdateWithWhereUniqueWithoutTemplateInput[]
+    updateMany?: ContractUpdateManyWithWhereWithoutTemplateInput | ContractUpdateManyWithWhereWithoutTemplateInput[]
+    deleteMany?: ContractScalarWhereInput | ContractScalarWhereInput[]
+  }
+
+  export type ContractUncheckedUpdateManyWithoutTemplateNestedInput = {
+    create?: XOR<ContractCreateWithoutTemplateInput, ContractUncheckedCreateWithoutTemplateInput> | ContractCreateWithoutTemplateInput[] | ContractUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: ContractCreateOrConnectWithoutTemplateInput | ContractCreateOrConnectWithoutTemplateInput[]
+    upsert?: ContractUpsertWithWhereUniqueWithoutTemplateInput | ContractUpsertWithWhereUniqueWithoutTemplateInput[]
+    createMany?: ContractCreateManyTemplateInputEnvelope
+    set?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    disconnect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    delete?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    connect?: ContractWhereUniqueInput | ContractWhereUniqueInput[]
+    update?: ContractUpdateWithWhereUniqueWithoutTemplateInput | ContractUpdateWithWhereUniqueWithoutTemplateInput[]
+    updateMany?: ContractUpdateManyWithWhereWithoutTemplateInput | ContractUpdateManyWithWhereWithoutTemplateInput[]
+    deleteMany?: ContractScalarWhereInput | ContractScalarWhereInput[]
+  }
+
+  export type TenantCreateNestedOneWithoutContractsInput = {
+    create?: XOR<TenantCreateWithoutContractsInput, TenantUncheckedCreateWithoutContractsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutContractsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type ContractTemplateCreateNestedOneWithoutContractsInput = {
+    create?: XOR<ContractTemplateCreateWithoutContractsInput, ContractTemplateUncheckedCreateWithoutContractsInput>
+    connectOrCreate?: ContractTemplateCreateOrConnectWithoutContractsInput
+    connect?: ContractTemplateWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutContractsInput = {
+    create?: XOR<LocationCreateWithoutContractsInput, LocationUncheckedCreateWithoutContractsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutContractsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type ContractEventCreateNestedManyWithoutContractInput = {
+    create?: XOR<ContractEventCreateWithoutContractInput, ContractEventUncheckedCreateWithoutContractInput> | ContractEventCreateWithoutContractInput[] | ContractEventUncheckedCreateWithoutContractInput[]
+    connectOrCreate?: ContractEventCreateOrConnectWithoutContractInput | ContractEventCreateOrConnectWithoutContractInput[]
+    createMany?: ContractEventCreateManyContractInputEnvelope
+    connect?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+  }
+
+  export type ContractEventUncheckedCreateNestedManyWithoutContractInput = {
+    create?: XOR<ContractEventCreateWithoutContractInput, ContractEventUncheckedCreateWithoutContractInput> | ContractEventCreateWithoutContractInput[] | ContractEventUncheckedCreateWithoutContractInput[]
+    connectOrCreate?: ContractEventCreateOrConnectWithoutContractInput | ContractEventCreateOrConnectWithoutContractInput[]
+    createMany?: ContractEventCreateManyContractInputEnvelope
+    connect?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutContractsNestedInput = {
+    create?: XOR<TenantCreateWithoutContractsInput, TenantUncheckedCreateWithoutContractsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutContractsInput
+    upsert?: TenantUpsertWithoutContractsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutContractsInput, TenantUpdateWithoutContractsInput>, TenantUncheckedUpdateWithoutContractsInput>
+  }
+
+  export type ContractTemplateUpdateOneWithoutContractsNestedInput = {
+    create?: XOR<ContractTemplateCreateWithoutContractsInput, ContractTemplateUncheckedCreateWithoutContractsInput>
+    connectOrCreate?: ContractTemplateCreateOrConnectWithoutContractsInput
+    upsert?: ContractTemplateUpsertWithoutContractsInput
+    disconnect?: ContractTemplateWhereInput | boolean
+    delete?: ContractTemplateWhereInput | boolean
+    connect?: ContractTemplateWhereUniqueInput
+    update?: XOR<XOR<ContractTemplateUpdateToOneWithWhereWithoutContractsInput, ContractTemplateUpdateWithoutContractsInput>, ContractTemplateUncheckedUpdateWithoutContractsInput>
+  }
+
+  export type LocationUpdateOneWithoutContractsNestedInput = {
+    create?: XOR<LocationCreateWithoutContractsInput, LocationUncheckedCreateWithoutContractsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutContractsInput
+    upsert?: LocationUpsertWithoutContractsInput
+    disconnect?: LocationWhereInput | boolean
+    delete?: LocationWhereInput | boolean
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutContractsInput, LocationUpdateWithoutContractsInput>, LocationUncheckedUpdateWithoutContractsInput>
+  }
+
+  export type ContractEventUpdateManyWithoutContractNestedInput = {
+    create?: XOR<ContractEventCreateWithoutContractInput, ContractEventUncheckedCreateWithoutContractInput> | ContractEventCreateWithoutContractInput[] | ContractEventUncheckedCreateWithoutContractInput[]
+    connectOrCreate?: ContractEventCreateOrConnectWithoutContractInput | ContractEventCreateOrConnectWithoutContractInput[]
+    upsert?: ContractEventUpsertWithWhereUniqueWithoutContractInput | ContractEventUpsertWithWhereUniqueWithoutContractInput[]
+    createMany?: ContractEventCreateManyContractInputEnvelope
+    set?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    disconnect?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    delete?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    connect?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    update?: ContractEventUpdateWithWhereUniqueWithoutContractInput | ContractEventUpdateWithWhereUniqueWithoutContractInput[]
+    updateMany?: ContractEventUpdateManyWithWhereWithoutContractInput | ContractEventUpdateManyWithWhereWithoutContractInput[]
+    deleteMany?: ContractEventScalarWhereInput | ContractEventScalarWhereInput[]
+  }
+
+  export type ContractEventUncheckedUpdateManyWithoutContractNestedInput = {
+    create?: XOR<ContractEventCreateWithoutContractInput, ContractEventUncheckedCreateWithoutContractInput> | ContractEventCreateWithoutContractInput[] | ContractEventUncheckedCreateWithoutContractInput[]
+    connectOrCreate?: ContractEventCreateOrConnectWithoutContractInput | ContractEventCreateOrConnectWithoutContractInput[]
+    upsert?: ContractEventUpsertWithWhereUniqueWithoutContractInput | ContractEventUpsertWithWhereUniqueWithoutContractInput[]
+    createMany?: ContractEventCreateManyContractInputEnvelope
+    set?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    disconnect?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    delete?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    connect?: ContractEventWhereUniqueInput | ContractEventWhereUniqueInput[]
+    update?: ContractEventUpdateWithWhereUniqueWithoutContractInput | ContractEventUpdateWithWhereUniqueWithoutContractInput[]
+    updateMany?: ContractEventUpdateManyWithWhereWithoutContractInput | ContractEventUpdateManyWithWhereWithoutContractInput[]
+    deleteMany?: ContractEventScalarWhereInput | ContractEventScalarWhereInput[]
+  }
+
+  export type ContractCreateNestedOneWithoutEventsInput = {
+    create?: XOR<ContractCreateWithoutEventsInput, ContractUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: ContractCreateOrConnectWithoutEventsInput
+    connect?: ContractWhereUniqueInput
+  }
+
+  export type ContractUpdateOneRequiredWithoutEventsNestedInput = {
+    create?: XOR<ContractCreateWithoutEventsInput, ContractUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: ContractCreateOrConnectWithoutEventsInput
+    upsert?: ContractUpsertWithoutEventsInput
+    connect?: ContractWhereUniqueInput
+    update?: XOR<XOR<ContractUpdateToOneWithWhereWithoutEventsInput, ContractUpdateWithoutEventsInput>, ContractUncheckedUpdateWithoutEventsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -197673,6 +202908,122 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ContractTemplateCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    contracts?: ContractCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ContractTemplateUncheckedCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    contracts?: ContractUncheckedCreateNestedManyWithoutTemplateInput
+  }
+
+  export type ContractTemplateCreateOrConnectWithoutTenantInput = {
+    where: ContractTemplateWhereUniqueInput
+    create: XOR<ContractTemplateCreateWithoutTenantInput, ContractTemplateUncheckedCreateWithoutTenantInput>
+  }
+
+  export type ContractTemplateCreateManyTenantInputEnvelope = {
+    data: ContractTemplateCreateManyTenantInput | ContractTemplateCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ContractCreateWithoutTenantInput = {
+    id?: string
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    template?: ContractTemplateCreateNestedOneWithoutContractsInput
+    location?: LocationCreateNestedOneWithoutContractsInput
+    events?: ContractEventCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractUncheckedCreateWithoutTenantInput = {
+    id?: string
+    templateId?: string | null
+    locationId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractCreateOrConnectWithoutTenantInput = {
+    where: ContractWhereUniqueInput
+    create: XOR<ContractCreateWithoutTenantInput, ContractUncheckedCreateWithoutTenantInput>
+  }
+
+  export type ContractCreateManyTenantInputEnvelope = {
+    data: ContractCreateManyTenantInput | ContractCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandUpsertWithWhereUniqueWithoutTenantInput = {
     where: BrandWhereUniqueInput
     update: XOR<BrandUpdateWithoutTenantInput, BrandUncheckedUpdateWithoutTenantInput>
@@ -198496,6 +203847,92 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
 
+  export type ContractTemplateUpsertWithWhereUniqueWithoutTenantInput = {
+    where: ContractTemplateWhereUniqueInput
+    update: XOR<ContractTemplateUpdateWithoutTenantInput, ContractTemplateUncheckedUpdateWithoutTenantInput>
+    create: XOR<ContractTemplateCreateWithoutTenantInput, ContractTemplateUncheckedCreateWithoutTenantInput>
+  }
+
+  export type ContractTemplateUpdateWithWhereUniqueWithoutTenantInput = {
+    where: ContractTemplateWhereUniqueInput
+    data: XOR<ContractTemplateUpdateWithoutTenantInput, ContractTemplateUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type ContractTemplateUpdateManyWithWhereWithoutTenantInput = {
+    where: ContractTemplateScalarWhereInput
+    data: XOR<ContractTemplateUpdateManyMutationInput, ContractTemplateUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type ContractTemplateScalarWhereInput = {
+    AND?: ContractTemplateScalarWhereInput | ContractTemplateScalarWhereInput[]
+    OR?: ContractTemplateScalarWhereInput[]
+    NOT?: ContractTemplateScalarWhereInput | ContractTemplateScalarWhereInput[]
+    id?: StringFilter<"ContractTemplate"> | string
+    tenantId?: StringFilter<"ContractTemplate"> | string
+    name?: StringFilter<"ContractTemplate"> | string
+    description?: StringNullableFilter<"ContractTemplate"> | string | null
+    bodyHtml?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileUrl?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileName?: StringNullableFilter<"ContractTemplate"> | string | null
+    fileType?: StringNullableFilter<"ContractTemplate"> | string | null
+    subscriptionAmountPence?: IntNullableFilter<"ContractTemplate"> | number | null
+    createdByUserId?: StringNullableFilter<"ContractTemplate"> | string | null
+    createdAt?: DateTimeFilter<"ContractTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"ContractTemplate"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"ContractTemplate"> | Date | string | null
+  }
+
+  export type ContractUpsertWithWhereUniqueWithoutTenantInput = {
+    where: ContractWhereUniqueInput
+    update: XOR<ContractUpdateWithoutTenantInput, ContractUncheckedUpdateWithoutTenantInput>
+    create: XOR<ContractCreateWithoutTenantInput, ContractUncheckedCreateWithoutTenantInput>
+  }
+
+  export type ContractUpdateWithWhereUniqueWithoutTenantInput = {
+    where: ContractWhereUniqueInput
+    data: XOR<ContractUpdateWithoutTenantInput, ContractUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type ContractUpdateManyWithWhereWithoutTenantInput = {
+    where: ContractScalarWhereInput
+    data: XOR<ContractUpdateManyMutationInput, ContractUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type ContractScalarWhereInput = {
+    AND?: ContractScalarWhereInput | ContractScalarWhereInput[]
+    OR?: ContractScalarWhereInput[]
+    NOT?: ContractScalarWhereInput | ContractScalarWhereInput[]
+    id?: StringFilter<"Contract"> | string
+    tenantId?: StringFilter<"Contract"> | string
+    templateId?: StringNullableFilter<"Contract"> | string | null
+    locationId?: StringNullableFilter<"Contract"> | string | null
+    title?: StringFilter<"Contract"> | string
+    bodyHtml?: StringNullableFilter<"Contract"> | string | null
+    fileUrl?: StringNullableFilter<"Contract"> | string | null
+    fileName?: StringNullableFilter<"Contract"> | string | null
+    fileType?: StringNullableFilter<"Contract"> | string | null
+    recipientName?: StringFilter<"Contract"> | string
+    recipientEmail?: StringFilter<"Contract"> | string
+    recipientCompany?: StringNullableFilter<"Contract"> | string | null
+    subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
+    status?: StringFilter<"Contract"> | string
+    token?: StringFilter<"Contract"> | string
+    sentAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    firstOpenedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    signedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    voidedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    lastRemindedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    signerName?: StringNullableFilter<"Contract"> | string | null
+    signerEmail?: StringNullableFilter<"Contract"> | string | null
+    signatureImageUrl?: StringNullableFilter<"Contract"> | string | null
+    signerIp?: StringNullableFilter<"Contract"> | string | null
+    signerUserAgent?: StringNullableFilter<"Contract"> | string | null
+    subscriptionStartedAt?: DateTimeNullableFilter<"Contract"> | Date | string | null
+    createdByUserId?: StringNullableFilter<"Contract"> | string | null
+    createdAt?: DateTimeFilter<"Contract"> | Date | string
+    updatedAt?: DateTimeFilter<"Contract"> | Date | string
+  }
+
   export type TenantCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -198524,6 +203961,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutUsersInput = {
@@ -198554,6 +203993,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutUsersInput = {
@@ -198937,6 +204378,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutUsersInput = {
@@ -198967,6 +204410,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type RefreshTokenUpsertWithWhereUniqueWithoutUserInput = {
@@ -199400,6 +204845,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -199485,6 +204931,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -199643,6 +205090,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -199728,6 +205176,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -200099,6 +205548,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutInvitationsInput = {
@@ -200129,6 +205580,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutInvitationsInput = {
@@ -200232,6 +205685,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutInvitationsInput = {
@@ -200262,6 +205717,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutInvitationsSentInput = {
@@ -200909,6 +206366,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutApiKeysInput = {
@@ -200939,6 +206398,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutApiKeysInput = {
@@ -200985,6 +206446,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutApiKeysInput = {
@@ -201015,6 +206478,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutAuditLogsInput = {
@@ -201165,6 +206630,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandsInput = {
@@ -201195,6 +206662,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandsInput = {
@@ -201317,6 +206786,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -201402,6 +206872,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -202171,6 +207642,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandsInput = {
@@ -202201,6 +207674,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DirectOrderingConfigUpsertWithoutBrandInput = {
@@ -203742,6 +209217,80 @@ export namespace Prisma {
     create: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
   }
 
+  export type ContractCreateWithoutLocationInput = {
+    id?: string
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutContractsInput
+    template?: ContractTemplateCreateNestedOneWithoutContractsInput
+    events?: ContractEventCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    templateId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractCreateOrConnectWithoutLocationInput = {
+    where: ContractWhereUniqueInput
+    create: XOR<ContractCreateWithoutLocationInput, ContractUncheckedCreateWithoutLocationInput>
+  }
+
+  export type ContractCreateManyLocationInputEnvelope = {
+    data: ContractCreateManyLocationInput | ContractCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MenuChannelAssignmentCreateWithoutLocationInput = {
     id?: string
     tenantId?: string | null
@@ -204761,6 +210310,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ContractUpsertWithWhereUniqueWithoutLocationInput = {
+    where: ContractWhereUniqueInput
+    update: XOR<ContractUpdateWithoutLocationInput, ContractUncheckedUpdateWithoutLocationInput>
+    create: XOR<ContractCreateWithoutLocationInput, ContractUncheckedCreateWithoutLocationInput>
+  }
+
+  export type ContractUpdateWithWhereUniqueWithoutLocationInput = {
+    where: ContractWhereUniqueInput
+    data: XOR<ContractUpdateWithoutLocationInput, ContractUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ContractUpdateManyWithWhereWithoutLocationInput = {
+    where: ContractScalarWhereInput
+    data: XOR<ContractUpdateManyMutationInput, ContractUncheckedUpdateManyWithoutLocationInput>
+  }
+
   export type MenuChannelAssignmentUpsertWithWhereUniqueWithoutLocationInput = {
     where: MenuChannelAssignmentWhereUniqueInput
     update: XOR<MenuChannelAssignmentUpdateWithoutLocationInput, MenuChannelAssignmentUncheckedUpdateWithoutLocationInput>
@@ -205308,6 +210873,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -205393,6 +210959,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -205599,6 +211166,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -205684,6 +211252,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -205763,6 +211332,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -205848,6 +211418,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -205943,6 +211514,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -206028,6 +211600,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -206654,6 +212227,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
@@ -206739,6 +212313,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -206925,6 +212500,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
@@ -207010,6 +212586,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -208055,6 +213632,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -208140,6 +213718,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -208235,6 +213814,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -208320,6 +213900,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -208499,6 +214080,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
@@ -208584,6 +214166,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -208784,6 +214367,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
@@ -208869,6 +214453,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -211156,6 +216741,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCustomersInput = {
@@ -211186,6 +216773,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCustomersInput = {
@@ -211509,6 +217098,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCustomersInput = {
@@ -211539,6 +217130,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomerAddressUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -211729,6 +217322,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -211814,6 +217408,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -212014,6 +217609,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -212099,6 +217695,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -212437,6 +218034,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPromoCodesInput = {
@@ -212467,6 +218066,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPromoCodesInput = {
@@ -212513,6 +218114,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPromoCodesInput = {
@@ -212543,6 +218146,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutMarketingCampaignsInput = {
@@ -212573,6 +218178,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMarketingCampaignsInput = {
@@ -212603,6 +218210,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMarketingCampaignsInput = {
@@ -212790,6 +218399,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMarketingCampaignsInput = {
@@ -212820,6 +218431,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type BrandUpsertWithoutMarketingCampaignsInput = {
@@ -213518,6 +219131,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -213603,6 +219217,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -213803,6 +219418,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -213888,6 +219504,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -214078,6 +219695,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -214163,6 +219781,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -214258,6 +219877,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -214343,6 +219963,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -214378,6 +219999,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutOrdersInput = {
@@ -214408,6 +220031,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutOrdersInput = {
@@ -214487,6 +220112,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -214572,6 +220198,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -215093,6 +220720,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutOrdersInput = {
@@ -215123,6 +220752,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutOrdersInput = {
@@ -215208,6 +220839,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -215293,6 +220925,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -216484,6 +222117,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -216569,6 +222203,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -216692,6 +222327,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -216777,6 +222413,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -216872,6 +222509,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -216957,6 +222595,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -217157,6 +222796,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -217242,6 +222882,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -217432,6 +223073,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -217517,6 +223159,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -217664,6 +223307,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -217749,6 +223393,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -217844,6 +223489,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -217929,6 +223575,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -218024,6 +223671,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -218109,6 +223757,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -218188,6 +223837,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -218273,6 +223923,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -218431,6 +224082,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -218516,6 +224168,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -219080,6 +224733,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -219165,6 +224819,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -219411,6 +225066,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -219495,6 +225151,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -219585,6 +225242,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -219669,6 +225327,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -219769,6 +225428,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -219854,6 +225514,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -220008,6 +225669,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintJobsInput = {
@@ -220038,6 +225701,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintJobsInput = {
@@ -220430,6 +226095,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintJobsInput = {
@@ -220460,6 +226127,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PrinterUpsertWithoutPrintJobsInput = {
@@ -220860,6 +226529,8 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrinterStationsInput = {
@@ -220890,6 +226561,8 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrinterStationsInput = {
@@ -220969,6 +226642,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -221054,6 +226728,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -221398,6 +227073,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -221482,6 +227158,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -221604,6 +227281,8 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrinterStationsInput = {
@@ -221634,6 +227313,8 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutPrinterStationsInput = {
@@ -221719,6 +227400,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -221804,6 +227486,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -222024,6 +227707,8 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintAgentsInput = {
@@ -222054,6 +227739,8 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintAgentsInput = {
@@ -222133,6 +227820,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -222218,6 +227906,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -222423,6 +228112,8 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintAgentsInput = {
@@ -222453,6 +228144,8 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutPrintAgentsInput = {
@@ -222538,6 +228231,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -222623,6 +228317,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -223398,6 +229093,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutDriversInput = {
@@ -223428,6 +229125,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutDriversInput = {
@@ -223508,6 +229207,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
@@ -223593,6 +229293,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -223762,6 +229463,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutDriversInput = {
@@ -223792,6 +229495,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutHomeDriversInput = {
@@ -223878,6 +229583,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
@@ -223963,6 +229669,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -224882,6 +230589,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutConnectAccountInput = {
@@ -224912,6 +230621,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutConnectAccountInput = {
@@ -225044,6 +230755,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutConnectAccountInput = {
@@ -225074,6 +230787,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PaymentUpsertWithWhereUniqueWithoutConnectAccountInput = {
@@ -226233,6 +231948,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSuppliersInput = {
@@ -226263,6 +231980,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSuppliersInput = {
@@ -226395,6 +232114,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSuppliersInput = {
@@ -226425,6 +232146,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type IngredientUpsertWithWhereUniqueWithoutSupplierInput = {
@@ -227781,6 +233504,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandingInput = {
@@ -227811,6 +233536,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandingInput = {
@@ -227891,6 +233618,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandingInput = {
@@ -227921,6 +233650,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomDomainUpsertWithWhereUniqueWithoutBrandingInput = {
@@ -228181,6 +233912,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSubscriptionInput = {
@@ -228211,6 +233944,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSubscriptionInput = {
@@ -228374,6 +234109,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSubscriptionInput = {
@@ -228404,6 +234141,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SubscriptionPlanUpsertWithoutSubscriptionsInput = {
@@ -228545,6 +234284,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMerchantSubscriptionsInput = {
@@ -228575,6 +234316,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMerchantSubscriptionsInput = {
@@ -228654,6 +234397,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -228739,6 +234483,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -228790,6 +234535,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMerchantSubscriptionsInput = {
@@ -228820,6 +234567,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutMerchantSubscriptionInput = {
@@ -228905,6 +234654,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -228990,6 +234740,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -229487,6 +235238,8 @@ export namespace Prisma {
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
     wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutIpAllowlistsInput = {
@@ -229517,6 +235270,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
     wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutIpAllowlistsInput = {
@@ -229563,6 +235318,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
     wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutIpAllowlistsInput = {
@@ -229593,6 +235350,8 @@ export namespace Prisma {
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutDeviceSessionsInput = {
@@ -229913,6 +235672,8 @@ export namespace Prisma {
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutWalletsInput = {
@@ -229943,6 +235704,8 @@ export namespace Prisma {
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutWalletsInput = {
@@ -230039,6 +235802,8 @@ export namespace Prisma {
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutWalletsInput = {
@@ -230069,6 +235834,8 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type WalletTransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -230284,6 +236051,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -230369,6 +236137,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -230464,6 +236233,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -230549,6 +236319,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -230628,6 +236399,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
@@ -230713,6 +236485,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
@@ -230808,6 +236581,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -230893,6 +236667,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -231034,6 +236809,1013 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TenantCreateWithoutContractTemplatesInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
+    contracts?: ContractCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutContractTemplatesInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutContractTemplatesInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutContractTemplatesInput, TenantUncheckedCreateWithoutContractTemplatesInput>
+  }
+
+  export type ContractCreateWithoutTemplateInput = {
+    id?: string
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutContractsInput
+    location?: LocationCreateNestedOneWithoutContractsInput
+    events?: ContractEventCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractUncheckedCreateWithoutTemplateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: ContractEventUncheckedCreateNestedManyWithoutContractInput
+  }
+
+  export type ContractCreateOrConnectWithoutTemplateInput = {
+    where: ContractWhereUniqueInput
+    create: XOR<ContractCreateWithoutTemplateInput, ContractUncheckedCreateWithoutTemplateInput>
+  }
+
+  export type ContractCreateManyTemplateInputEnvelope = {
+    data: ContractCreateManyTemplateInput | ContractCreateManyTemplateInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TenantUpsertWithoutContractTemplatesInput = {
+    update: XOR<TenantUpdateWithoutContractTemplatesInput, TenantUncheckedUpdateWithoutContractTemplatesInput>
+    create: XOR<TenantCreateWithoutContractTemplatesInput, TenantUncheckedCreateWithoutContractTemplatesInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutContractTemplatesInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutContractTemplatesInput, TenantUncheckedUpdateWithoutContractTemplatesInput>
+  }
+
+  export type TenantUpdateWithoutContractTemplatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutContractTemplatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type ContractUpsertWithWhereUniqueWithoutTemplateInput = {
+    where: ContractWhereUniqueInput
+    update: XOR<ContractUpdateWithoutTemplateInput, ContractUncheckedUpdateWithoutTemplateInput>
+    create: XOR<ContractCreateWithoutTemplateInput, ContractUncheckedCreateWithoutTemplateInput>
+  }
+
+  export type ContractUpdateWithWhereUniqueWithoutTemplateInput = {
+    where: ContractWhereUniqueInput
+    data: XOR<ContractUpdateWithoutTemplateInput, ContractUncheckedUpdateWithoutTemplateInput>
+  }
+
+  export type ContractUpdateManyWithWhereWithoutTemplateInput = {
+    where: ContractScalarWhereInput
+    data: XOR<ContractUpdateManyMutationInput, ContractUncheckedUpdateManyWithoutTemplateInput>
+  }
+
+  export type TenantCreateWithoutContractsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+    wallets?: WalletCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutContractsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutTenantInput
+    contractTemplates?: ContractTemplateUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutContractsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutContractsInput, TenantUncheckedCreateWithoutContractsInput>
+  }
+
+  export type ContractTemplateCreateWithoutContractsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutContractTemplatesInput
+  }
+
+  export type ContractTemplateUncheckedCreateWithoutContractsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type ContractTemplateCreateOrConnectWithoutContractsInput = {
+    where: ContractTemplateWhereUniqueInput
+    create: XOR<ContractTemplateCreateWithoutContractsInput, ContractTemplateUncheckedCreateWithoutContractsInput>
+  }
+
+  export type LocationCreateWithoutContractsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutContractsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutContractsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutContractsInput, LocationUncheckedCreateWithoutContractsInput>
+  }
+
+  export type ContractEventCreateWithoutContractInput = {
+    id?: string
+    type: string
+    ip?: string | null
+    userAgent?: string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ContractEventUncheckedCreateWithoutContractInput = {
+    id?: string
+    type: string
+    ip?: string | null
+    userAgent?: string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ContractEventCreateOrConnectWithoutContractInput = {
+    where: ContractEventWhereUniqueInput
+    create: XOR<ContractEventCreateWithoutContractInput, ContractEventUncheckedCreateWithoutContractInput>
+  }
+
+  export type ContractEventCreateManyContractInputEnvelope = {
+    data: ContractEventCreateManyContractInput | ContractEventCreateManyContractInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TenantUpsertWithoutContractsInput = {
+    update: XOR<TenantUpdateWithoutContractsInput, TenantUncheckedUpdateWithoutContractsInput>
+    create: XOR<TenantCreateWithoutContractsInput, TenantUncheckedCreateWithoutContractsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutContractsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutContractsInput, TenantUncheckedUpdateWithoutContractsInput>
+  }
+
+  export type TenantUpdateWithoutContractsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+    wallets?: WalletUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutContractsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutTenantNestedInput
+    contractTemplates?: ContractTemplateUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type ContractTemplateUpsertWithoutContractsInput = {
+    update: XOR<ContractTemplateUpdateWithoutContractsInput, ContractTemplateUncheckedUpdateWithoutContractsInput>
+    create: XOR<ContractTemplateCreateWithoutContractsInput, ContractTemplateUncheckedCreateWithoutContractsInput>
+    where?: ContractTemplateWhereInput
+  }
+
+  export type ContractTemplateUpdateToOneWithWhereWithoutContractsInput = {
+    where?: ContractTemplateWhereInput
+    data: XOR<ContractTemplateUpdateWithoutContractsInput, ContractTemplateUncheckedUpdateWithoutContractsInput>
+  }
+
+  export type ContractTemplateUpdateWithoutContractsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutContractTemplatesNestedInput
+  }
+
+  export type ContractTemplateUncheckedUpdateWithoutContractsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LocationUpsertWithoutContractsInput = {
+    update: XOR<LocationUpdateWithoutContractsInput, LocationUncheckedUpdateWithoutContractsInput>
+    create: XOR<LocationCreateWithoutContractsInput, LocationUncheckedCreateWithoutContractsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutContractsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutContractsInput, LocationUncheckedUpdateWithoutContractsInput>
+  }
+
+  export type LocationUpdateWithoutContractsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutContractsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type ContractEventUpsertWithWhereUniqueWithoutContractInput = {
+    where: ContractEventWhereUniqueInput
+    update: XOR<ContractEventUpdateWithoutContractInput, ContractEventUncheckedUpdateWithoutContractInput>
+    create: XOR<ContractEventCreateWithoutContractInput, ContractEventUncheckedCreateWithoutContractInput>
+  }
+
+  export type ContractEventUpdateWithWhereUniqueWithoutContractInput = {
+    where: ContractEventWhereUniqueInput
+    data: XOR<ContractEventUpdateWithoutContractInput, ContractEventUncheckedUpdateWithoutContractInput>
+  }
+
+  export type ContractEventUpdateManyWithWhereWithoutContractInput = {
+    where: ContractEventScalarWhereInput
+    data: XOR<ContractEventUpdateManyMutationInput, ContractEventUncheckedUpdateManyWithoutContractInput>
+  }
+
+  export type ContractEventScalarWhereInput = {
+    AND?: ContractEventScalarWhereInput | ContractEventScalarWhereInput[]
+    OR?: ContractEventScalarWhereInput[]
+    NOT?: ContractEventScalarWhereInput | ContractEventScalarWhereInput[]
+    id?: StringFilter<"ContractEvent"> | string
+    contractId?: StringFilter<"ContractEvent"> | string
+    type?: StringFilter<"ContractEvent"> | string
+    ip?: StringNullableFilter<"ContractEvent"> | string | null
+    userAgent?: StringNullableFilter<"ContractEvent"> | string | null
+    meta?: JsonNullableFilter<"ContractEvent">
+    createdAt?: DateTimeFilter<"ContractEvent"> | Date | string
+  }
+
+  export type ContractCreateWithoutEventsInput = {
+    id?: string
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutContractsInput
+    template?: ContractTemplateCreateNestedOneWithoutContractsInput
+    location?: LocationCreateNestedOneWithoutContractsInput
+  }
+
+  export type ContractUncheckedCreateWithoutEventsInput = {
+    id?: string
+    tenantId: string
+    templateId?: string | null
+    locationId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ContractCreateOrConnectWithoutEventsInput = {
+    where: ContractWhereUniqueInput
+    create: XOR<ContractCreateWithoutEventsInput, ContractUncheckedCreateWithoutEventsInput>
+  }
+
+  export type ContractUpsertWithoutEventsInput = {
+    update: XOR<ContractUpdateWithoutEventsInput, ContractUncheckedUpdateWithoutEventsInput>
+    create: XOR<ContractCreateWithoutEventsInput, ContractUncheckedCreateWithoutEventsInput>
+    where?: ContractWhereInput
+  }
+
+  export type ContractUpdateToOneWithWhereWithoutEventsInput = {
+    where?: ContractWhereInput
+    data: XOR<ContractUpdateWithoutEventsInput, ContractUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type ContractUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
+    template?: ContractTemplateUpdateOneWithoutContractsNestedInput
+    location?: LocationUpdateOneWithoutContractsNestedInput
+  }
+
+  export type ContractUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -231407,6 +238189,52 @@ export namespace Prisma {
     autoTopupLastAt?: Date | string | null
     autoTopupFailedAt?: Date | string | null
     autoTopupFailureReason?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ContractTemplateCreateManyTenantInput = {
+    id?: string
+    name: string
+    description?: string | null
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    subscriptionAmountPence?: number | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type ContractCreateManyTenantInput = {
+    id?: string
+    templateId?: string | null
+    locationId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -232632,6 +239460,148 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ContractTemplateUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    contracts?: ContractUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ContractTemplateUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    contracts?: ContractUncheckedUpdateManyWithoutTemplateNestedInput
+  }
+
+  export type ContractTemplateUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ContractUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    template?: ContractTemplateUpdateOneWithoutContractsNestedInput
+    location?: LocationUpdateOneWithoutContractsNestedInput
+    events?: ContractEventUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type RefreshTokenCreateManyUserInput = {
     id?: string
     tokenHash: string
@@ -233799,6 +240769,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -233884,6 +240855,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -235074,6 +242046,37 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ContractCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    templateId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MenuChannelAssignmentCreateManyLocationInput = {
     id?: string
     tenantId?: string | null
@@ -236042,6 +243045,101 @@ export namespace Prisma {
     extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
+    template?: ContractTemplateUpdateOneWithoutContractsNestedInput
+    events?: ContractEventUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    templateId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -238245,6 +245343,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -238329,6 +245428,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -238469,6 +245569,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -238553,6 +245654,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -239027,6 +246129,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
@@ -239111,6 +246214,7 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
@@ -240738,6 +247842,168 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ContractCreateManyTemplateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    title: string
+    bodyHtml?: string | null
+    fileUrl?: string | null
+    fileName?: string | null
+    fileType?: string | null
+    recipientName: string
+    recipientEmail: string
+    recipientCompany?: string | null
+    subscriptionAmountPence?: number | null
+    status?: string
+    token: string
+    sentAt?: Date | string | null
+    firstOpenedAt?: Date | string | null
+    signedAt?: Date | string | null
+    voidedAt?: Date | string | null
+    lastRemindedAt?: Date | string | null
+    signerName?: string | null
+    signerEmail?: string | null
+    signatureImageUrl?: string | null
+    signerIp?: string | null
+    signerUserAgent?: string | null
+    subscriptionStartedAt?: Date | string | null
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ContractUpdateWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutContractsNestedInput
+    location?: LocationUpdateOneWithoutContractsNestedInput
+    events?: ContractEventUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractUncheckedUpdateWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: ContractEventUncheckedUpdateManyWithoutContractNestedInput
+  }
+
+  export type ContractUncheckedUpdateManyWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    bodyHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientName?: StringFieldUpdateOperationsInput | string
+    recipientEmail?: StringFieldUpdateOperationsInput | string
+    recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    firstOpenedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRemindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    signerName?: NullableStringFieldUpdateOperationsInput | string | null
+    signerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    signerIp?: NullableStringFieldUpdateOperationsInput | string | null
+    signerUserAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractEventCreateManyContractInput = {
+    id?: string
+    type: string
+    ip?: string | null
+    userAgent?: string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ContractEventUpdateWithoutContractInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractEventUncheckedUpdateWithoutContractInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ContractEventUncheckedUpdateManyWithoutContractInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    ip?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    meta?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -240875,6 +248141,14 @@ export namespace Prisma {
      * @deprecated Use CustomerPushSubscriptionCountOutputTypeDefaultArgs instead
      */
     export type CustomerPushSubscriptionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerPushSubscriptionCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ContractTemplateCountOutputTypeDefaultArgs instead
+     */
+    export type ContractTemplateCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ContractTemplateCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ContractCountOutputTypeDefaultArgs instead
+     */
+    export type ContractCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ContractCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TenantDefaultArgs instead
      */
@@ -241363,6 +248637,18 @@ export namespace Prisma {
      * @deprecated Use CustomerPushOrderDefaultArgs instead
      */
     export type CustomerPushOrderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerPushOrderDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ContractTemplateDefaultArgs instead
+     */
+    export type ContractTemplateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ContractTemplateDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ContractDefaultArgs instead
+     */
+    export type ContractArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ContractDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ContractEventDefaultArgs instead
+     */
+    export type ContractEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ContractEventDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

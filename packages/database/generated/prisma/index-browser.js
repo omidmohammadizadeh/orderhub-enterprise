@@ -2168,6 +2168,64 @@ exports.Prisma.CustomerPushOrderScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ContractTemplateScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  bodyHtml: 'bodyHtml',
+  fileUrl: 'fileUrl',
+  fileName: 'fileName',
+  fileType: 'fileType',
+  subscriptionAmountPence: 'subscriptionAmountPence',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.ContractScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  templateId: 'templateId',
+  locationId: 'locationId',
+  title: 'title',
+  bodyHtml: 'bodyHtml',
+  fileUrl: 'fileUrl',
+  fileName: 'fileName',
+  fileType: 'fileType',
+  recipientName: 'recipientName',
+  recipientEmail: 'recipientEmail',
+  recipientCompany: 'recipientCompany',
+  subscriptionAmountPence: 'subscriptionAmountPence',
+  status: 'status',
+  token: 'token',
+  sentAt: 'sentAt',
+  firstOpenedAt: 'firstOpenedAt',
+  signedAt: 'signedAt',
+  voidedAt: 'voidedAt',
+  lastRemindedAt: 'lastRemindedAt',
+  signerName: 'signerName',
+  signerEmail: 'signerEmail',
+  signatureImageUrl: 'signatureImageUrl',
+  signerIp: 'signerIp',
+  signerUserAgent: 'signerUserAgent',
+  subscriptionStartedAt: 'subscriptionStartedAt',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ContractEventScalarFieldEnum = {
+  id: 'id',
+  contractId: 'contractId',
+  type: 'type',
+  ip: 'ip',
+  userAgent: 'userAgent',
+  meta: 'meta',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3468,6 +3526,49 @@ exports.Prisma.CustomerPushOrderOrderByRelevanceFieldEnum = {
   orderId: 'orderId',
   trackPath: 'trackPath'
 };
+
+exports.Prisma.ContractTemplateOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  bodyHtml: 'bodyHtml',
+  fileUrl: 'fileUrl',
+  fileName: 'fileName',
+  fileType: 'fileType',
+  createdByUserId: 'createdByUserId'
+};
+
+exports.Prisma.ContractOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  templateId: 'templateId',
+  locationId: 'locationId',
+  title: 'title',
+  bodyHtml: 'bodyHtml',
+  fileUrl: 'fileUrl',
+  fileName: 'fileName',
+  fileType: 'fileType',
+  recipientName: 'recipientName',
+  recipientEmail: 'recipientEmail',
+  recipientCompany: 'recipientCompany',
+  status: 'status',
+  token: 'token',
+  signerName: 'signerName',
+  signerEmail: 'signerEmail',
+  signatureImageUrl: 'signatureImageUrl',
+  signerIp: 'signerIp',
+  signerUserAgent: 'signerUserAgent',
+  createdByUserId: 'createdByUserId'
+};
+
+exports.Prisma.ContractEventOrderByRelevanceFieldEnum = {
+  id: 'id',
+  contractId: 'contractId',
+  type: 'type',
+  ip: 'ip',
+  userAgent: 'userAgent'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -4040,7 +4141,10 @@ exports.Prisma.ModelName = {
   GroupOrder: 'GroupOrder',
   GroupOrderItem: 'GroupOrderItem',
   CustomerPushSubscription: 'CustomerPushSubscription',
-  CustomerPushOrder: 'CustomerPushOrder'
+  CustomerPushOrder: 'CustomerPushOrder',
+  ContractTemplate: 'ContractTemplate',
+  Contract: 'Contract',
+  ContractEvent: 'ContractEvent'
 };
 
 /**

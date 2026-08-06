@@ -79,6 +79,7 @@ import { CustomerPushModule } from "./modules/customer-push/customer-push.module
 import { VoiceModule } from "./modules/voice/voice.module";
 import { ReviewsModule } from "./modules/reviews/reviews.module";
 import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
+import { ContractsModule } from "./modules/contracts/contracts.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { SecurityModule } from "./modules/security/security.module";
 import { BrandingModule } from "./modules/branding/branding.module";
@@ -277,6 +278,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     VoiceModule,
     ReviewsModule,
     SubscriptionsModule,
+    ContractsModule,
     NotificationsModule,
     SecurityModule,
     BrandingModule,

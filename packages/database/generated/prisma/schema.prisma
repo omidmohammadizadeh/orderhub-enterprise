@@ -71,6 +71,8 @@ model Tenant {
   printerStations       PrinterStation[]
   printAgents           PrintAgent[]
   wallets               Wallet[]
+  contractTemplates     ContractTemplate[]
+  contracts             Contract[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -494,6 +496,7 @@ model Location {
   directOrderingConfig DirectOrderingConfig?
   channelPauses        ChannelPause[]
   merchantSubscription MerchantSubscription?
+  contracts            Contract[]
   menuAssignments      MenuChannelAssignment[]
   itemChannelSnoozes   MenuItemChannelAvailability[]
   homeDrivers          Driver[]                      @relation("DriverHomeLocation")
@@ -3105,7 +3108,7 @@ model NotificationLog {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
-// ═══════════════════════════════════════════════════════════════════��══════════
+// ═════════════════════════════���════════════════════════════════════════════════
 
 model TenantBranding {
   id              String  @id @default(cuid())
@@ -3517,7 +3520,7 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
-// ════════════════════════════════════════════════════════════════���═════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════
@@ -4607,4 +4610,123 @@ model CustomerPushOrder {
   @@unique([subscriptionId, orderId])
   @@index([orderId])
   @@map("customer_push_orders")
+}
+
+// ── Contracts (e-signature) ───────────────────────────────────────────────────
+//
+// Sending a client an agreement, proving they signed it, and — when the
+// agreement is a subscription — letting them start paying from the same page.
+//
+// The legal weight of an e-signature under the UK Electronic Communications
+// Act comes from EVIDENCE, not from the picture of a squiggle: who opened it,
+// from where, when, and that they acted deliberately. That is why every
+// transition is written to ContractEvent with IP and user-agent, and why the
+// signed body is frozen onto the Contract row rather than read back through
+// the template (which the operator can edit afterwards).
+
+model ContractTemplate {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+
+  // Two kinds of template, mutually exclusive:
+  //  • bodyHtml — written in the dashboard editor, rendered as the signable
+  //    page itself, and the only kind that supports {{placeholders}}.
+  //  • fileUrl  — an uploaded PDF shown in a viewer above the signature block.
+  bodyHtml String?
+  fileUrl  String?
+  fileName String?
+  fileType String?
+
+  /// Pre-fills the contract's subscription offer when one is built from this.
+  subscriptionAmountPence Int?
+
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  contracts Contract[]
+
+  @@index([tenantId])
+  @@map("contract_templates")
+}
+
+model Contract {
+  id         String            @id @default(cuid())
+  tenantId   String
+  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  templateId String?
+  template   ContractTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  /// Which location this agreement covers — drives the Subscribe button.
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  title String
+
+  // Frozen at send time. Editing the template afterwards must never change
+  // what a counterparty already put their name to.
+  bodyHtml String?
+  fileUrl  String?
+  fileName String?
+  fileType String?
+
+  recipientName    String
+  recipientEmail   String
+  recipientCompany String?
+
+  /// Set = the signed contract offers a subscription at this monthly price.
+  subscriptionAmountPence Int?
+
+  // DRAFT → SENT → OPENED → SIGNED, or VOIDED from anywhere before SIGNED.
+  status String @default("DRAFT")
+
+  /// The link IS the credential — long, random, unguessable.
+  token String @unique
+
+  sentAt         DateTime?
+  firstOpenedAt  DateTime?
+  signedAt       DateTime?
+  voidedAt       DateTime?
+  lastRemindedAt DateTime?
+
+  // Signature evidence
+  signerName        String?
+  signerEmail       String?
+  signatureImageUrl String?
+  signerIp          String?
+  signerUserAgent   String?
+
+  /// Stamped when the signer starts checkout from the contract.
+  subscriptionStartedAt DateTime?
+
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  events ContractEvent[]
+
+  @@index([tenantId, status])
+  @@index([locationId])
+  @@map("contracts")
+}
+
+model ContractEvent {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  /// CREATED | SENT | OPENED | SIGNED | VOIDED | REMINDED | SUBSCRIBE_STARTED
+  type      String
+  ip        String?
+  userAgent String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([contractId, createdAt])
+  @@map("contract_events")
 }
