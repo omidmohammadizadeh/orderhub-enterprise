@@ -773,6 +773,10 @@ function ComposeModal({
   const [recipientName, setRecipientName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [recipientCompany, setRecipientCompany] = useState("");
+  const [companyNumber, setCompanyNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [locationCount, setLocationCount] = useState("");
   const [locationId, setLocationId] = useState("");
   const [amount, setAmount] = useState("");
   // Both optional. Left blank, the matching clause is removed from the
@@ -831,6 +835,12 @@ function ComposeModal({
         recipientName: recipientName.trim(),
         recipientEmail: recipientEmail.trim(),
         recipientCompany: recipientCompany.trim() || undefined,
+        recipientCompanyNumber: companyNumber.trim() || undefined,
+        recipientAddress: address.trim() || undefined,
+        recipientPhone: phone.trim() || undefined,
+        locationCount: locationCount.trim()
+          ? parseInt(locationCount, 10)
+          : undefined,
         locationId: locationId || undefined,
         subscriptionAmountPence: pence,
         // Sent only when edited, so a later change to the registered address
@@ -912,6 +922,51 @@ function ComposeModal({
             onChange={(e) => setRecipientCompany(e.target.value)}
             className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
           />
+        </Field>
+
+        {/* Parties-clause detail. All optional — a sole trader has no company
+            number, and the agreement drops the line rather than printing a
+            label with nothing after it. */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Company number (optional)">
+            <input
+              value={companyNumber}
+              onChange={(e) => setCompanyNumber(e.target.value)}
+              placeholder="12345678"
+              className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Client phone (optional)">
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0191 123 4567"
+              className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+          </Field>
+        </div>
+
+        <Field label="Client address (optional)">
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="7 Front Street, Pelton, DH2 1DD"
+            className="w-full rounded-md border border-zinc-200 px-2 py-2 text-sm"
+          />
+        </Field>
+
+        <Field label="Number of locations (optional)">
+          <input
+            value={locationCount}
+            onChange={(e) => setLocationCount(e.target.value)}
+            placeholder="1"
+            inputMode="numeric"
+            className="w-32 rounded-md border border-zinc-200 px-2 py-2 text-sm"
+          />
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Reads as &quot;1 location&quot; or &quot;3 locations&quot; in the
+            agreement. Blank leaves it out.
+          </p>
         </Field>
 
         <Field label="Location this covers (optional)">
@@ -1229,11 +1284,34 @@ function TemplateModal({
               rows={14}
               className="w-full rounded-md border border-zinc-200 px-2 py-2 font-mono text-xs leading-relaxed"
             />
-            <p className="mt-1 text-[11px] text-zinc-500">
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
               HTML. Placeholders filled per contract:{" "}
-              <code>{"{{recipientName}}"}</code>,{" "}
-              <code>{"{{recipientCompany}}"}</code>, <code>{"{{location}}"}</code>,{" "}
-              <code>{"{{amount}}"}</code>, <code>{"{{date}}"}</code>
+              {[
+                "recipientName",
+                "recipientEmail",
+                "recipientCompany",
+                "recipientCompanyNumber",
+                "recipientAddress",
+                "recipientPhone",
+                "location",
+                "locationWord",
+                "amount",
+                "commission",
+                "serviceCharge",
+                "date",
+              ].map((k, i) => (
+                <span key={k}>
+                  {i > 0 && ", "}
+                  <code>{`{{${k}}}`}</code>
+                </span>
+              ))}
+              .
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+              Wrap an optional clause in <code>{"{{#commission}}"}</code> …{" "}
+              <code>{"{{/commission}}"}</code> and the whole block disappears
+              when that value is left blank — so an unset fee removes the
+              clause rather than printing an empty gap.
             </p>
           </Field>
         ) : (

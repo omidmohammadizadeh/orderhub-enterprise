@@ -4689,6 +4689,19 @@ model Contract {
   recipientEmail   String
   recipientCompany String?
 
+  /// Counterparty detail that appears in the agreement's parties clause.
+  /// Optional throughout: a sole trader has no company number, and a contract
+  /// should not be blocked on a field the client does not have. The matching
+  /// {{#…}} sections drop the line when it is blank rather than printing a
+  /// dangling label.
+  recipientCompanyNumber String?
+  recipientAddress       String?
+  recipientPhone         String?
+
+  /// How many premises the subscription covers. Drives the per-location
+  /// wording — "per location" reads oddly on an agreement for exactly one.
+  locationCount Int?
+
   /// Set = the signed contract offers a subscription at this monthly price.
   subscriptionAmountPence Int?
 

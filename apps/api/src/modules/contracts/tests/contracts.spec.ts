@@ -477,3 +477,79 @@ describe("amending a contract after it was sent", () => {
     ).rejects.toThrow(/name and email are required/i);
   });
 });
+
+
+describe("client details fill the parties clause", () => {
+  const PARTIES =
+    "<p>{{recipientCompany}}" +
+    "{{#recipientCompanyNumber}}, company number {{recipientCompanyNumber}}{{/recipientCompanyNumber}}" +
+    "{{#recipientAddress}}, of {{recipientAddress}}{{/recipientAddress}}" +
+    ", by {{recipientName}} ({{recipientEmail}}" +
+    "{{#recipientPhone}}, {{recipientPhone}}{{/recipientPhone}})</p>" +
+    "{{#locationWord}}<p>Covers {{locationWord}}.</p>{{/locationWord}}";
+
+  const create = async (dto: Record<string, any>) => {
+    const { svc, latest } = makeService({
+      template: { id: "t", name: "T", bodyHtml: PARTIES },
+    });
+    await svc.create(TENANT, {
+      templateId: "t",
+      recipientName: "Sam Patel",
+      recipientEmail: "sam@patelfoods.co.uk",
+      recipientCompany: "Patel Foods Ltd",
+      ...dto,
+    });
+    return latest().bodyHtml as string;
+  };
+
+  it("fills every client detail when given", async () => {
+    const body = await create({
+      recipientCompanyNumber: "12345678",
+      recipientAddress: "7 Front Street, Pelton, DH2 1DD",
+      recipientPhone: "0191 123 4567",
+      locationCount: 3,
+    });
+    expect(body).toContain("company number 12345678");
+    expect(body).toContain("of 7 Front Street, Pelton, DH2 1DD");
+    expect(body).toContain("0191 123 4567");
+    expect(body).toContain("Covers 3 locations.");
+  });
+
+  it("leaves NO dangling label when a detail is missing", async () => {
+    // A sole trader has no company number. ", company number ," in a document
+    // someone is about to sign reads as a broken system.
+    const body = await create({});
+    expect(body).not.toContain("company number");
+    expect(body).not.toContain(", of ");
+    expect(body).toContain("Patel Foods Ltd");
+    expect(body).toContain("sam@patelfoods.co.uk");
+  });
+
+  it("says '1 location', not '1 locations'", async () => {
+    const body = await create({ locationCount: 1 });
+    expect(body).toContain("Covers 1 location.");
+    expect(body).not.toContain("1 locations");
+  });
+
+  it("omits the location line entirely when not given", async () => {
+    const body = await create({});
+    expect(body).not.toContain("Covers");
+  });
+
+  it("stores the details so the record matches the document", async () => {
+    const { svc, latest } = makeService({
+      template: { id: "t", name: "T", bodyHtml: PARTIES },
+    });
+    await svc.create(TENANT, {
+      templateId: "t",
+      recipientName: "Sam",
+      recipientEmail: "s@b.co",
+      recipientCompanyNumber: "12345678",
+      recipientPhone: "0191 123 4567",
+      locationCount: 2,
+    });
+    expect(latest().recipientCompanyNumber).toBe("12345678");
+    expect(latest().recipientPhone).toBe("0191 123 4567");
+    expect(latest().locationCount).toBe(2);
+  });
+});

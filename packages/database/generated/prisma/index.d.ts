@@ -146659,12 +146659,14 @@ export namespace Prisma {
   }
 
   export type ContractAvgAggregateOutputType = {
+    locationCount: number | null
     subscriptionAmountPence: number | null
     commissionPercent: number | null
     customerServiceChargePence: number | null
   }
 
   export type ContractSumAggregateOutputType = {
+    locationCount: number | null
     subscriptionAmountPence: number | null
     commissionPercent: number | null
     customerServiceChargePence: number | null
@@ -146684,6 +146686,10 @@ export namespace Prisma {
     recipientName: string | null
     recipientEmail: string | null
     recipientCompany: string | null
+    recipientCompanyNumber: string | null
+    recipientAddress: string | null
+    recipientPhone: string | null
+    locationCount: number | null
     subscriptionAmountPence: number | null
     commissionPercent: number | null
     customerServiceChargePence: number | null
@@ -146719,6 +146725,10 @@ export namespace Prisma {
     recipientName: string | null
     recipientEmail: string | null
     recipientCompany: string | null
+    recipientCompanyNumber: string | null
+    recipientAddress: string | null
+    recipientPhone: string | null
+    locationCount: number | null
     subscriptionAmountPence: number | null
     commissionPercent: number | null
     customerServiceChargePence: number | null
@@ -146754,6 +146764,10 @@ export namespace Prisma {
     recipientName: number
     recipientEmail: number
     recipientCompany: number
+    recipientCompanyNumber: number
+    recipientAddress: number
+    recipientPhone: number
+    locationCount: number
     subscriptionAmountPence: number
     commissionPercent: number
     customerServiceChargePence: number
@@ -146779,12 +146793,14 @@ export namespace Prisma {
 
 
   export type ContractAvgAggregateInputType = {
+    locationCount?: true
     subscriptionAmountPence?: true
     commissionPercent?: true
     customerServiceChargePence?: true
   }
 
   export type ContractSumAggregateInputType = {
+    locationCount?: true
     subscriptionAmountPence?: true
     commissionPercent?: true
     customerServiceChargePence?: true
@@ -146804,6 +146820,10 @@ export namespace Prisma {
     recipientName?: true
     recipientEmail?: true
     recipientCompany?: true
+    recipientCompanyNumber?: true
+    recipientAddress?: true
+    recipientPhone?: true
+    locationCount?: true
     subscriptionAmountPence?: true
     commissionPercent?: true
     customerServiceChargePence?: true
@@ -146839,6 +146859,10 @@ export namespace Prisma {
     recipientName?: true
     recipientEmail?: true
     recipientCompany?: true
+    recipientCompanyNumber?: true
+    recipientAddress?: true
+    recipientPhone?: true
+    locationCount?: true
     subscriptionAmountPence?: true
     commissionPercent?: true
     customerServiceChargePence?: true
@@ -146874,6 +146898,10 @@ export namespace Prisma {
     recipientName?: true
     recipientEmail?: true
     recipientCompany?: true
+    recipientCompanyNumber?: true
+    recipientAddress?: true
+    recipientPhone?: true
+    locationCount?: true
     subscriptionAmountPence?: true
     commissionPercent?: true
     customerServiceChargePence?: true
@@ -146997,6 +147025,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany: string | null
+    recipientCompanyNumber: string | null
+    recipientAddress: string | null
+    recipientPhone: string | null
+    locationCount: number | null
     subscriptionAmountPence: number | null
     commissionPercent: number | null
     customerServiceChargePence: number | null
@@ -147052,6 +147084,10 @@ export namespace Prisma {
     recipientName?: boolean
     recipientEmail?: boolean
     recipientCompany?: boolean
+    recipientCompanyNumber?: boolean
+    recipientAddress?: boolean
+    recipientPhone?: boolean
+    locationCount?: boolean
     subscriptionAmountPence?: boolean
     commissionPercent?: boolean
     customerServiceChargePence?: boolean
@@ -147093,6 +147129,10 @@ export namespace Prisma {
     recipientName?: boolean
     recipientEmail?: boolean
     recipientCompany?: boolean
+    recipientCompanyNumber?: boolean
+    recipientAddress?: boolean
+    recipientPhone?: boolean
+    locationCount?: boolean
     subscriptionAmountPence?: boolean
     commissionPercent?: boolean
     customerServiceChargePence?: boolean
@@ -147132,6 +147172,10 @@ export namespace Prisma {
     recipientName?: boolean
     recipientEmail?: boolean
     recipientCompany?: boolean
+    recipientCompanyNumber?: boolean
+    recipientAddress?: boolean
+    recipientPhone?: boolean
+    locationCount?: boolean
     subscriptionAmountPence?: boolean
     commissionPercent?: boolean
     customerServiceChargePence?: boolean
@@ -147202,6 +147246,21 @@ export namespace Prisma {
       recipientName: string
       recipientEmail: string
       recipientCompany: string | null
+      /**
+       * Counterparty detail that appears in the agreement's parties clause.
+       * Optional throughout: a sole trader has no company number, and a contract
+       * should not be blocked on a field the client does not have. The matching
+       * {{#…}} sections drop the line when it is blank rather than printing a
+       * dangling label.
+       */
+      recipientCompanyNumber: string | null
+      recipientAddress: string | null
+      recipientPhone: string | null
+      /**
+       * How many premises the subscription covers. Drives the per-location
+       * wording — "per location" reads oddly on an agreement for exactly one.
+       */
+      locationCount: number | null
       /**
        * Set = the signed contract offers a subscription at this monthly price.
        */
@@ -147651,6 +147710,10 @@ export namespace Prisma {
     readonly recipientName: FieldRef<"Contract", 'String'>
     readonly recipientEmail: FieldRef<"Contract", 'String'>
     readonly recipientCompany: FieldRef<"Contract", 'String'>
+    readonly recipientCompanyNumber: FieldRef<"Contract", 'String'>
+    readonly recipientAddress: FieldRef<"Contract", 'String'>
+    readonly recipientPhone: FieldRef<"Contract", 'String'>
+    readonly locationCount: FieldRef<"Contract", 'Int'>
     readonly subscriptionAmountPence: FieldRef<"Contract", 'Int'>
     readonly commissionPercent: FieldRef<"Contract", 'Float'>
     readonly customerServiceChargePence: FieldRef<"Contract", 'Int'>
@@ -151468,6 +151531,10 @@ export namespace Prisma {
     recipientName: 'recipientName',
     recipientEmail: 'recipientEmail',
     recipientCompany: 'recipientCompany',
+    recipientCompanyNumber: 'recipientCompanyNumber',
+    recipientAddress: 'recipientAddress',
+    recipientPhone: 'recipientPhone',
+    locationCount: 'locationCount',
     subscriptionAmountPence: 'subscriptionAmountPence',
     commissionPercent: 'commissionPercent',
     customerServiceChargePence: 'customerServiceChargePence',
@@ -153220,6 +153287,9 @@ export namespace Prisma {
     recipientName: 'recipientName',
     recipientEmail: 'recipientEmail',
     recipientCompany: 'recipientCompany',
+    recipientCompanyNumber: 'recipientCompanyNumber',
+    recipientAddress: 'recipientAddress',
+    recipientPhone: 'recipientPhone',
     status: 'status',
     token: 'token',
     signerName: 'signerName',
@@ -166957,6 +167027,10 @@ export namespace Prisma {
     recipientName?: StringFilter<"Contract"> | string
     recipientEmail?: StringFilter<"Contract"> | string
     recipientCompany?: StringNullableFilter<"Contract"> | string | null
+    recipientCompanyNumber?: StringNullableFilter<"Contract"> | string | null
+    recipientAddress?: StringNullableFilter<"Contract"> | string | null
+    recipientPhone?: StringNullableFilter<"Contract"> | string | null
+    locationCount?: IntNullableFilter<"Contract"> | number | null
     subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
     commissionPercent?: FloatNullableFilter<"Contract"> | number | null
     customerServiceChargePence?: IntNullableFilter<"Contract"> | number | null
@@ -166997,6 +167071,10 @@ export namespace Prisma {
     recipientName?: SortOrder
     recipientEmail?: SortOrder
     recipientCompany?: SortOrderInput | SortOrder
+    recipientCompanyNumber?: SortOrderInput | SortOrder
+    recipientAddress?: SortOrderInput | SortOrder
+    recipientPhone?: SortOrderInput | SortOrder
+    locationCount?: SortOrderInput | SortOrder
     subscriptionAmountPence?: SortOrderInput | SortOrder
     commissionPercent?: SortOrderInput | SortOrder
     customerServiceChargePence?: SortOrderInput | SortOrder
@@ -167042,6 +167120,10 @@ export namespace Prisma {
     recipientName?: StringFilter<"Contract"> | string
     recipientEmail?: StringFilter<"Contract"> | string
     recipientCompany?: StringNullableFilter<"Contract"> | string | null
+    recipientCompanyNumber?: StringNullableFilter<"Contract"> | string | null
+    recipientAddress?: StringNullableFilter<"Contract"> | string | null
+    recipientPhone?: StringNullableFilter<"Contract"> | string | null
+    locationCount?: IntNullableFilter<"Contract"> | number | null
     subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
     commissionPercent?: FloatNullableFilter<"Contract"> | number | null
     customerServiceChargePence?: IntNullableFilter<"Contract"> | number | null
@@ -167081,6 +167163,10 @@ export namespace Prisma {
     recipientName?: SortOrder
     recipientEmail?: SortOrder
     recipientCompany?: SortOrderInput | SortOrder
+    recipientCompanyNumber?: SortOrderInput | SortOrder
+    recipientAddress?: SortOrderInput | SortOrder
+    recipientPhone?: SortOrderInput | SortOrder
+    locationCount?: SortOrderInput | SortOrder
     subscriptionAmountPence?: SortOrderInput | SortOrder
     commissionPercent?: SortOrderInput | SortOrder
     customerServiceChargePence?: SortOrderInput | SortOrder
@@ -167125,6 +167211,10 @@ export namespace Prisma {
     recipientName?: StringWithAggregatesFilter<"Contract"> | string
     recipientEmail?: StringWithAggregatesFilter<"Contract"> | string
     recipientCompany?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    recipientCompanyNumber?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    recipientAddress?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    recipientPhone?: StringNullableWithAggregatesFilter<"Contract"> | string | null
+    locationCount?: IntNullableWithAggregatesFilter<"Contract"> | number | null
     subscriptionAmountPence?: IntNullableWithAggregatesFilter<"Contract"> | number | null
     commissionPercent?: FloatNullableWithAggregatesFilter<"Contract"> | number | null
     customerServiceChargePence?: IntNullableWithAggregatesFilter<"Contract"> | number | null
@@ -182069,6 +182159,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -182109,6 +182203,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -182143,6 +182241,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -182183,6 +182285,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -182220,6 +182326,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -182253,6 +182363,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -182289,6 +182403,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -192453,6 +192571,10 @@ export namespace Prisma {
     recipientName?: SortOrder
     recipientEmail?: SortOrder
     recipientCompany?: SortOrder
+    recipientCompanyNumber?: SortOrder
+    recipientAddress?: SortOrder
+    recipientPhone?: SortOrder
+    locationCount?: SortOrder
     subscriptionAmountPence?: SortOrder
     commissionPercent?: SortOrder
     customerServiceChargePence?: SortOrder
@@ -192476,6 +192598,7 @@ export namespace Prisma {
   }
 
   export type ContractAvgOrderByAggregateInput = {
+    locationCount?: SortOrder
     subscriptionAmountPence?: SortOrder
     commissionPercent?: SortOrder
     customerServiceChargePence?: SortOrder
@@ -192495,6 +192618,10 @@ export namespace Prisma {
     recipientName?: SortOrder
     recipientEmail?: SortOrder
     recipientCompany?: SortOrder
+    recipientCompanyNumber?: SortOrder
+    recipientAddress?: SortOrder
+    recipientPhone?: SortOrder
+    locationCount?: SortOrder
     subscriptionAmountPence?: SortOrder
     commissionPercent?: SortOrder
     customerServiceChargePence?: SortOrder
@@ -192530,6 +192657,10 @@ export namespace Prisma {
     recipientName?: SortOrder
     recipientEmail?: SortOrder
     recipientCompany?: SortOrder
+    recipientCompanyNumber?: SortOrder
+    recipientAddress?: SortOrder
+    recipientPhone?: SortOrder
+    locationCount?: SortOrder
     subscriptionAmountPence?: SortOrder
     commissionPercent?: SortOrder
     customerServiceChargePence?: SortOrder
@@ -192552,6 +192683,7 @@ export namespace Prisma {
   }
 
   export type ContractSumOrderByAggregateInput = {
+    locationCount?: SortOrder
     subscriptionAmountPence?: SortOrder
     commissionPercent?: SortOrder
     customerServiceChargePence?: SortOrder
@@ -203100,6 +203232,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -203138,6 +203274,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -204062,6 +204202,10 @@ export namespace Prisma {
     recipientName?: StringFilter<"Contract"> | string
     recipientEmail?: StringFilter<"Contract"> | string
     recipientCompany?: StringNullableFilter<"Contract"> | string | null
+    recipientCompanyNumber?: StringNullableFilter<"Contract"> | string | null
+    recipientAddress?: StringNullableFilter<"Contract"> | string | null
+    recipientPhone?: StringNullableFilter<"Contract"> | string | null
+    locationCount?: IntNullableFilter<"Contract"> | number | null
     subscriptionAmountPence?: IntNullableFilter<"Contract"> | number | null
     commissionPercent?: FloatNullableFilter<"Contract"> | number | null
     customerServiceChargePence?: IntNullableFilter<"Contract"> | number | null
@@ -209379,6 +209523,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -209417,6 +209565,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -237052,6 +237204,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -237090,6 +237246,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -237854,6 +238014,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -237893,6 +238057,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -237942,6 +238110,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -237981,6 +238153,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -238404,6 +238580,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -239705,6 +239885,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -239743,6 +239927,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -239779,6 +239967,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -242258,6 +242450,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -243263,6 +243459,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -243301,6 +243501,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -243337,6 +243541,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -248070,6 +248278,10 @@ export namespace Prisma {
     recipientName: string
     recipientEmail: string
     recipientCompany?: string | null
+    recipientCompanyNumber?: string | null
+    recipientAddress?: string | null
+    recipientPhone?: string | null
+    locationCount?: number | null
     subscriptionAmountPence?: number | null
     commissionPercent?: number | null
     customerServiceChargePence?: number | null
@@ -248103,6 +248315,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -248141,6 +248357,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null
@@ -248177,6 +248397,10 @@ export namespace Prisma {
     recipientName?: StringFieldUpdateOperationsInput | string
     recipientEmail?: StringFieldUpdateOperationsInput | string
     recipientCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientCompanyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    recipientPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    locationCount?: NullableIntFieldUpdateOperationsInput | number | null
     subscriptionAmountPence?: NullableIntFieldUpdateOperationsInput | number | null
     commissionPercent?: NullableFloatFieldUpdateOperationsInput | number | null
     customerServiceChargePence?: NullableIntFieldUpdateOperationsInput | number | null

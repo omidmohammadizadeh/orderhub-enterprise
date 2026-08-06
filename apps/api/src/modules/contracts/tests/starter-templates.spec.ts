@@ -25,6 +25,11 @@ const KNOWN_PLACEHOLDERS = new Set([
   // they weren't.
   "commission",
   "serviceCharge",
+  "recipientCompanyNumber",
+  "recipientAddress",
+  "recipientPhone",
+  "locationCount",
+  "locationWord",
 ]);
 
 describe("starter templates", () => {
@@ -173,5 +178,58 @@ describe("optional fee clauses in the shipped agreement", () => {
     // Every agreement has a subscription; only the two extras are optional.
     expect(saas.bodyHtml).toContain("{{amount}} per month");
     expect(saas.bodyHtml).not.toContain("{{#amount}}");
+  });
+});
+
+
+describe("the shipped agreement covers what a client will ask about", () => {
+  const saas = STARTER_TEMPLATES.find((t) => t.key === "saas-agreement")!;
+
+  it("states a ONE MONTH notice period", () => {
+    // The single term a client checks first, and the one most likely to be
+    // argued about later if it is vague.
+    expect(saas.bodyHtml).toMatch(/one month's written notice/i);
+  });
+
+  it("keeps the service running through the notice period", () => {
+    // "You must pay the month" without "and you keep the service" is the
+    // version that generates complaints.
+    expect(saas.bodyHtml).toMatch(/remains available to you throughout/i);
+  });
+
+  it("has the sections a SaaS agreement is expected to have", () => {
+    for (const heading of [
+      "What we provide",
+      "What it costs",
+      "Terms of use",
+      "Payments and settlement",
+      "Data protection",
+      "Intellectual property",
+      "Service and support",
+      "Liability",
+      "Term and ending this Agreement",
+    ]) {
+      expect(saas.bodyHtml).toContain(heading);
+    }
+  });
+
+  it("wraps every optional client detail so a blank leaves no dangling label", () => {
+    // A sole trader has no company number. Printing ", company number " with
+    // nothing after it looks like a bug in a document someone is signing.
+    for (const key of [
+      "recipientCompanyNumber",
+      "recipientAddress",
+      "recipientPhone",
+      "locationWord",
+    ]) {
+      expect(saas.bodyHtml).toContain(`{{#${key}}}`);
+      expect(saas.bodyHtml).toContain(`{{/${key}}}`);
+    }
+  });
+
+  it("names both parties in the opening clause", () => {
+    expect(saas.bodyHtml).toContain("Order Hub Solutions Ltd");
+    expect(saas.bodyHtml).toContain("16608545");
+    expect(saas.bodyHtml).toContain("{{recipientCompany}}");
   });
 });

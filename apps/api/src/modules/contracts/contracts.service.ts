@@ -410,6 +410,10 @@ export class ContractsService {
       recipientName: string;
       recipientEmail: string;
       recipientCompany?: string;
+      recipientCompanyNumber?: string;
+      recipientAddress?: string;
+      recipientPhone?: string;
+      locationCount?: number;
       locationId?: string;
       subscriptionAmountPence?: number;
       /** Commission per order as a percentage. Blank/0 omits the clause. */
@@ -475,6 +479,11 @@ export class ContractsService {
         ? Math.round(Number(dto.customerServiceChargePence))
         : null;
 
+    const locationCount =
+      dto.locationCount != null && Number(dto.locationCount) > 0
+        ? Math.round(Number(dto.locationCount))
+        : null;
+
     // Kept before substitution so an amendment can re-render with new figures.
     const sourceHtml = bodyHtml ?? null;
 
@@ -483,6 +492,16 @@ export class ContractsService {
         recipientName: dto.recipientName.trim(),
         recipientEmail: dto.recipientEmail.trim(),
         recipientCompany: dto.recipientCompany?.trim() ?? "",
+        recipientCompanyNumber: dto.recipientCompanyNumber?.trim() ?? "",
+        recipientAddress: dto.recipientAddress?.trim() ?? "",
+        recipientPhone: dto.recipientPhone?.trim() ?? "",
+        locationCount: locationCount != null ? String(locationCount) : "",
+        // "1 location" / "3 locations" — so the clause reads properly either
+        // way instead of "1 locations".
+        locationWord:
+          locationCount != null
+            ? `${locationCount} location${locationCount === 1 ? "" : "s"}`
+            : "",
         location: location?.name ?? "",
         date: new Date().toLocaleDateString("en-GB", {
           day: "numeric",
@@ -517,6 +536,10 @@ export class ContractsService {
         recipientName: dto.recipientName.trim(),
         recipientEmail: dto.recipientEmail.trim().toLowerCase(),
         recipientCompany: dto.recipientCompany?.trim() || null,
+        recipientCompanyNumber: dto.recipientCompanyNumber?.trim() || null,
+        recipientAddress: dto.recipientAddress?.trim() || null,
+        recipientPhone: dto.recipientPhone?.trim() || null,
+        locationCount,
         subscriptionAmountPence: amount,
         // Only stored when it differs from the platform defaults, so changing
         // the registered address later updates every contract that never
@@ -966,6 +989,10 @@ export class ContractsService {
       recipientName: row.recipientName,
       recipientEmail: row.recipientEmail,
       recipientCompany: row.recipientCompany,
+      recipientCompanyNumber: row.recipientCompanyNumber ?? null,
+      recipientAddress: row.recipientAddress ?? null,
+      recipientPhone: row.recipientPhone ?? null,
+      locationCount: row.locationCount ?? null,
       locationId: row.locationId,
       locationName: row.location?.name ?? null,
       templateId: row.templateId,

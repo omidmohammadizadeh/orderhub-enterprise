@@ -127,6 +127,10 @@ export class ContractsController {
       recipientName: string;
       recipientEmail: string;
       recipientCompany?: string;
+      recipientCompanyNumber?: string;
+      recipientAddress?: string;
+      recipientPhone?: string;
+      locationCount?: number;
       locationId?: string;
       subscriptionAmountPence?: number;
       issuer?: {

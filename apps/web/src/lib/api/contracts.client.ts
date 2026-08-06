@@ -21,6 +21,10 @@ export interface Contract {
   recipientName: string;
   recipientEmail: string;
   recipientCompany: string | null;
+  recipientCompanyNumber: string | null;
+  recipientAddress: string | null;
+  recipientPhone: string | null;
+  locationCount: number | null;
   locationId: string | null;
   locationName: string | null;
   templateId: string | null;
@@ -127,6 +131,10 @@ export const contractsClient = {
     recipientName: string;
     recipientEmail: string;
     recipientCompany?: string;
+    recipientCompanyNumber?: string;
+    recipientAddress?: string;
+    recipientPhone?: string;
+    locationCount?: number;
     locationId?: string;
     subscriptionAmountPence?: number;
     /** Commission per order as a percentage. Blank omits the clause entirely. */

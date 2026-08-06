@@ -14,6 +14,8 @@
  * Placeholders available at send time (contracts.service.fillPlaceholders):
  *   {{recipientName}} {{recipientEmail}} {{recipientCompany}}
  *   {{location}} {{date}} {{amount}} {{commission}} {{serviceCharge}}
+ *   {{recipientCompanyNumber}} {{recipientAddress}} {{recipientPhone}}
+ *   {{locationCount}} {{locationWord}}  ("3 locations" / "1 location")
  *
  * Optional clauses use {{#key}}…{{/key}}: the block survives only when that
  * value was filled in. Commission and the customer service charge are both
@@ -38,13 +40,19 @@ const SAAS_AGREEMENT = `
 
 <p><strong>Order Hub Solutions Ltd</strong>, a company registered in England and Wales with company number 16608545, whose registered office is at 5 Sunningdale Drive, Washington, NE37 2LL ("we", "us", "Order Hub"); and</p>
 
-<p><strong>{{recipientCompany}}</strong>, represented by {{recipientName}} ("you", "the Client"), in respect of the premises known as {{location}} (the "Premises").</p>
+<p><strong>{{recipientCompany}}</strong>{{#recipientCompanyNumber}}, company number {{recipientCompanyNumber}}{{/recipientCompanyNumber}}{{#recipientAddress}}, of {{recipientAddress}}{{/recipientAddress}} ("you", "the Client"), represented by {{recipientName}} ({{recipientEmail}}{{#recipientPhone}}, {{recipientPhone}}{{/recipientPhone}}).</p>
+
+{{#locationWord}}
+<p>This Agreement covers {{locationWord}}.</p>
+{{/locationWord}}
 
 <h2>1. What this Agreement covers</h2>
 
-<p>1.1 We licence you to use the Order Hub platform (the "Platform") to take, manage and fulfil food and drink orders at the Premises, on the terms set out below.</p>
+<p>1.1 We licence you to use the Order Hub platform (the "Platform") to take, manage and fulfil food and drink orders at your premises, on the terms set out below.</p>
 
-<p>1.2 This Agreement, together with any order form, pricing schedule or written variation signed by both parties, is the entire agreement between us. It replaces anything discussed or proposed beforehand.</p>
+<p>1.2 This Agreement begins on the date above and continues monthly until either party ends it under clause 10.</p>
+
+<p>1.3 Nothing here makes either of us the other's partner, agent or employer. You run your business; we provide software to it.</p>
 
 <h2>2. What we provide</h2>
 
@@ -64,13 +72,15 @@ const SAAS_AGREEMENT = `
 
 <p>2.8 <strong>Delivery.</strong> Dispatch tools and a driver application for orders you deliver yourself, alongside marketplace courier options where available.</p>
 
-<p>2.9 <strong>Marketing and reporting.</strong> Customer database, promotions, SMS marketing, reviews and sales analytics.</p>
+<p>2.9 <strong>Marketing and reporting.</strong> Customer database, promotions, SMS marketing, reviews, caller ID and sales analytics.</p>
 
-<p>2.10 We may add, change or withdraw individual features. Where a change materially reduces the functionality you rely on, we will give you at least 30 days' notice and you may terminate under clause 10.4.</p>
+<p>2.10 <strong>Support and onboarding.</strong> Menu setup, channel connection and staff training at the outset, then ongoing support under clause 8.</p>
+
+<p>2.11 We may add, change or withdraw individual features. Where a change materially reduces functionality you rely on, we will give you at least 30 days' notice and you may terminate under clause 10.4.</p>
 
 <h2>3. What it costs</h2>
 
-<p>3.1 <strong>Subscription.</strong> You will pay {{amount}} per month per location, in advance, by continuous card authority. The first payment is taken when you activate your subscription and monthly thereafter on the same date.</p>
+<p>3.1 <strong>Subscription.</strong> You will pay {{amount}} per month{{#locationWord}} for {{locationWord}}{{/locationWord}}, in advance, by continuous card authority. The first payment is taken when you activate your subscription and monthly thereafter on the same date.</p>
 
 {{#commission}}
 <p>3.2 <strong>Order commission.</strong> In addition to the subscription, we charge commission of {{commission}} of the value of each order processed through the Platform. Commission on card orders is deducted automatically from settlement before payout. Commission on cash orders accrues in the same way and is collected in arrears. Commission is calculated on the order value excluding delivery charges, tips and VAT.</p>
@@ -82,15 +92,17 @@ const SAAS_AGREEMENT = `
 
 <p>3.4 <strong>Messaging.</strong> SMS is prepaid. You top up a messaging balance and we deduct the published rate per message segment sent. Unused balance is not refundable on termination but remains usable until then.</p>
 
-<p>3.5 <strong>Hardware.</strong> Printers, terminals, tablets and other equipment are charged separately and are not included in the subscription unless your pricing schedule says otherwise.</p>
+<p>3.5 <strong>Hardware.</strong> Printers, terminals, tablets and other equipment are charged separately and are not included in the subscription unless agreed in writing.</p>
 
-<p>3.6 <strong>Price changes.</strong> We may change our fees on 30 days' written notice. If you do not accept a change you may terminate under clause 10.4 before it takes effect.</p>
+<p>3.6 <strong>Payment processing.</strong> Card processing fees are charged by our payment partner at their published rates and are separate from our fees.</p>
 
-<p>3.7 <strong>Late payment.</strong> If a payment fails we will retry and notify you. If an amount remains unpaid 14 days after it fell due we may suspend the Platform under clause 10.5. Overdue sums carry interest under the Late Payment of Commercial Debts (Interest) Act 1998.</p>
+<p>3.7 <strong>Price changes.</strong> We may change our fees on 30 days' written notice. If you do not accept a change you may terminate under clause 10.4 before it takes effect.</p>
 
-<p>3.8 All fees are exclusive of VAT, which is charged at the prevailing rate.</p>
+<p>3.8 <strong>Late payment.</strong> If a payment fails we will retry and notify you. If an amount remains unpaid 14 days after it fell due we may suspend the Platform under clause 10.5. Overdue sums carry interest under the Late Payment of Commercial Debts (Interest) Act 1998.</p>
 
-<h2>4. What you commit to</h2>
+<p>3.9 All fees are exclusive of VAT, which is charged at the prevailing rate.</p>
+
+<h2>4. Terms of use</h2>
 
 <p>4.1 <strong>Accurate information.</strong> You are responsible for the accuracy of your menu, prices, allergen and dietary information, opening hours and delivery areas. We display what you publish; we do not verify it.</p>
 
@@ -98,7 +110,7 @@ const SAAS_AGREEMENT = `
 
 <p>4.3 <strong>Accepting orders.</strong> You will monitor incoming orders during your published opening hours and accept, reject or update them promptly. Orders left unattended may be automatically rejected by a marketplace and count against your standing with them.</p>
 
-<p>4.4 <strong>Your own equipment.</strong> You are responsible for providing and maintaining a working internet connection and compatible devices at the Premises. The Platform needs connectivity to operate; offline mode is a fallback, not a substitute.</p>
+<p>4.4 <strong>Your own equipment.</strong> You are responsible for providing and maintaining a working internet connection and compatible devices at your premises. The Platform needs connectivity to operate; offline mode is a fallback, not a substitute.</p>
 
 <p>4.5 <strong>Account security.</strong> You will keep login credentials confidential, give each staff member their own account at the appropriate permission level, and tell us promptly if you suspect unauthorised access.</p>
 
@@ -108,83 +120,87 @@ const SAAS_AGREEMENT = `
 
 <p>4.8 <strong>Marketing consent.</strong> Where you use our marketing tools you confirm you hold valid consent for every contact you message, and you will honour opt-outs. You indemnify us against claims arising from messages sent on your instruction.</p>
 
+<p>4.9 <strong>Fair use.</strong> The Platform is provided for normal restaurant trading volumes. If your usage materially exceeds that, we will discuss a suitable plan with you rather than restrict the service without warning.</p>
+
 <h2>5. Payments and settlement</h2>
 
-<p>5.1 Card payments are processed by Stripe. You will hold your own connected Stripe account, enter into Stripe's terms directly, and complete their identity and onboarding checks.</p>
+<p>5.1 Card payments are processed by our payment partner. Funds from card orders settle to your own connected account, less our fees and their processing charges.</p>
 
-<p>5.2 Customer funds settle from Stripe to your nominated bank account on Stripe's payout schedule. We do not hold your money. Our commission, where agreed, is deducted at the point of settlement.</p>
+<p>5.2 You are responsible for completing the payment partner's onboarding and identity checks. Until that is done, card payments cannot be accepted.</p>
 
-<p>5.3 Chargebacks, refunds and disputes are yours. We will give you the transaction records we hold to help you respond, but we do not fund or decide them.</p>
+<p>5.3 Chargebacks, refunds and disputes on orders you have taken are your responsibility. We will give you the records we hold to help you respond.</p>
 
-<p>5.4 If Stripe suspends or closes your account, card payments through the Platform will stop. That is outside our control and is not a breach of this Agreement by us.</p>
+<p>5.4 Cash orders are settled directly between you and your customer. Any fees due to us on cash orders are collected under clause 3.</p>
 
 <h2>6. Data protection</h2>
 
-<p>6.1 For personal data of your customers, you are the data controller and we are your processor. We process it only on your documented instructions and as needed to provide the Platform.</p>
+<p>6.1 For customer personal data processed through the Platform, you are the controller and we are the processor. We process it only on your documented instructions and as needed to provide the Platform.</p>
 
-<p>6.2 We will keep appropriate technical and organisational security measures, restrict access to staff who need it, and tell you without undue delay if we become aware of a personal data breach affecting your data.</p>
+<p>6.2 We apply appropriate technical and organisational measures to protect that data, and we will tell you without undue delay if we become aware of a personal data breach affecting it.</p>
 
-<p>6.3 We use sub-processors — including our hosting, payment, messaging and email providers — and remain responsible for their performance. We will tell you of any intended change that materially affects them.</p>
+<p>6.3 We use sub-processors — including hosting, payment, messaging and mapping providers — to deliver the Platform, and remain responsible for their performance.</p>
 
-<p>6.4 On termination we will, at your written request within 30 days, provide an export of your data in a machine-readable format. After that period we may delete it, subject to any legal retention obligation.</p>
+<p>6.4 On termination we will return or delete your data as set out in clause 10.7, subject to any retention we are legally required to apply.</p>
 
-<p>6.5 Both parties will comply with the UK GDPR and the Data Protection Act 2018.</p>
+<p>6.5 Each of us will comply with the UK GDPR and the Data Protection Act 2018.</p>
 
 <h2>7. Intellectual property</h2>
 
-<p>7.1 The Platform, and all software, design and documentation in it, remain ours. You receive a non-exclusive, non-transferable licence to use it for the term of this Agreement.</p>
+<p>7.1 The Platform, and all intellectual property in it, remains ours. You receive a non-exclusive, non-transferable licence to use it for the term of this Agreement.</p>
 
-<p>7.2 Your menu content, brand, photographs, customer data and trading records remain yours. You grant us only the licence needed to display and process them in providing the Platform.</p>
-
-<p>7.3 You permit us to name you and use your logo as a customer reference. You may withdraw that permission by writing to us.</p>
+<p>7.2 Your menu content, branding, images and customer data remain yours. You grant us a licence to use them only so far as is needed to operate the Platform for you.</p>
 
 <h2>8. Service and support</h2>
 
-<p>8.1 We aim to keep the Platform available at all times, and to respond to support requests promptly during business hours, with a faster route for issues that stop you trading.</p>
+<p>8.1 We aim to keep the Platform available at all times but do not guarantee uninterrupted service. Planned maintenance is carried out outside typical trading hours wherever practical.</p>
 
-<p>8.2 We may carry out planned maintenance, and will schedule it outside peak trading hours wherever practical.</p>
+<p>8.2 Support is available by phone, email and WhatsApp. We aim to respond to issues that stop you trading within one hour during your opening hours, and to other issues within one working day.</p>
 
-<p>8.3 We are not responsible for downtime caused by your internet connection, your hardware, a third-party marketplace or payment provider, or anything else outside our reasonable control.</p>
+<p>8.3 We are not responsible for downtime caused by your internet connection, your hardware, or a third-party marketplace or payment provider.</p>
 
 <h2>9. Liability</h2>
 
-<p>9.1 Nothing in this Agreement limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot lawfully be limited.</p>
+<p>9.1 Neither of us excludes liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot lawfully be excluded.</p>
 
-<p>9.2 Subject to clause 9.1, neither party is liable for loss of profit, loss of goodwill, or indirect or consequential loss.</p>
+<p>9.2 We are not liable for loss of profit, loss of business, loss of goodwill or any indirect or consequential loss.</p>
 
-<p>9.3 Subject to clause 9.1, our total liability in any twelve-month period is limited to the total subscription fees you paid us in that period.</p>
+<p>9.3 Our total liability in any twelve-month period is limited to the fees you paid us in that period.</p>
 
-<p>9.4 The Platform is a tool for running your business. We do not guarantee any level of sales, orders or customers.</p>
+<p>9.4 You indemnify us against claims arising from the food you sell, the information you publish, or your breach of clause 4.</p>
 
 <h2>10. Term and ending this Agreement</h2>
 
-<p>10.1 This Agreement starts on the date you sign it and continues monthly until ended under this clause.</p>
+<p>10.1 <strong>Notice period.</strong> Either party may end this Agreement by giving <strong>one month's written notice</strong>, expiring at the end of a billing month. Notice by email to the address each party has given in this Agreement is valid written notice.</p>
 
-<p>10.2 Either party may end it on 30 days' written notice, expiring at the end of a paid month.</p>
+<p>10.2 The subscription remains payable in full for the notice period, and the Platform remains available to you throughout it.</p>
 
-<p>10.3 Either party may end it immediately if the other commits a material breach that is not put right within 14 days of written notice, or becomes insolvent.</p>
+<p>10.3 We do not refund subscription paid for the current month if you cancel part-way through it.</p>
 
-<p>10.4 You may end it without notice if we change our fees or materially reduce functionality under clauses 2.10 or 3.5, provided you tell us before the change takes effect.</p>
+<p>10.4 Where we have changed the fees or materially reduced functionality, you may terminate on written notice before the change takes effect, without serving the month under clause 10.1.</p>
 
-<p>10.5 We may suspend your access while fees are overdue under clause 3.6, or immediately where we reasonably believe continued use presents a security or legal risk. Suspension does not reduce fees already due.</p>
+<p>10.5 <strong>Suspension.</strong> We may suspend the Platform where an amount is more than 14 days overdue, where you are in material breach of clause 4, or where we are required to by law or by a payment or marketplace partner. We will tell you why and what is needed to restore it.</p>
 
-<p>10.6 On termination your licence ends, connected channels are disconnected, and clause 6.4 applies to your data. Fees already paid for the current month are not refundable.</p>
+<p>10.6 Either party may terminate immediately if the other is in material breach and has not put it right within 14 days of being asked to, or becomes insolvent.</p>
+
+<p>10.7 <strong>On termination.</strong> Your access ends and your ordering channels stop taking orders. We will make your order history and customer data available for export for 30 days, after which we may delete it. You should disconnect marketplace integrations from your own accounts.</p>
 
 <h2>11. General</h2>
 
-<p>11.1 Neither party may assign this Agreement without the other's written consent, except that we may assign it to a successor of our business.</p>
+<p>11.1 <strong>Confidentiality.</strong> Neither party will disclose the other's confidential information, except where required by law.</p>
 
-<p>11.2 Any variation must be in writing and agreed by both parties.</p>
+<p>11.2 <strong>Assignment.</strong> Neither party may assign this Agreement without the other's written consent, except to a purchaser of substantially all of its business.</p>
 
-<p>11.3 If any provision is found unenforceable, the rest continues in force.</p>
+<p>11.3 <strong>Entire agreement.</strong> This Agreement is the whole agreement between us and replaces anything said or written beforehand.</p>
 
-<p>11.4 No third party may enforce this Agreement under the Contracts (Rights of Third Parties) Act 1999.</p>
+<p>11.4 <strong>Variation.</strong> Changes must be agreed in writing, except fee and feature changes made under clauses 3.7 and 2.11.</p>
 
-<p>11.5 This Agreement is governed by the law of England and Wales, and both parties submit to the exclusive jurisdiction of its courts.</p>
+<p>11.5 <strong>Third parties.</strong> No one other than you and us has any right to enforce this Agreement.</p>
+
+<p>11.6 <strong>Governing law.</strong> This Agreement is governed by the law of England and Wales, and the courts of England and Wales have exclusive jurisdiction.</p>
 
 <h2>12. Agreement</h2>
 
-<p>By signing below, {{recipientName}} confirms they are authorised to enter into this Agreement on behalf of {{recipientCompany}}, and that {{recipientCompany}} accepts the terms set out above.</p>
+<p>By signing below, {{recipientName}} confirms they have read and understood this Agreement, that they are authorised to accept it on behalf of {{recipientCompany}}, and that {{recipientCompany}} agrees to be bound by it.</p>
 `.trim();
 
 const TRIAL_AGREEMENT = `
