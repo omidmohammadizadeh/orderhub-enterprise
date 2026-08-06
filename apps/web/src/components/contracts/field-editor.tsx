@@ -43,6 +43,39 @@ const TOOLS: Array<{
   { type: "CHECKBOX", label: "Tick box", Icon: Check, w: 0.03, h: 0.02 },
 ];
 
+/**
+ * The two parties, and the colours that identify them everywhere.
+ *
+ * One definition drives the toolbar switch, the per-field selector and the
+ * boxes themselves — if the switch said blue and the box drew violet, the
+ * colour would stop meaning anything.
+ */
+const ASSIGNEES: Array<{
+  key: FieldAssignee;
+  label: string;
+  activeCls: string;
+  boxCls: string;
+  dotCls: string;
+}> = [
+  {
+    key: "RECIPIENT",
+    label: "Client",
+    activeCls: "bg-blue-600",
+    boxCls: "border-blue-500 bg-blue-500/15 text-blue-900",
+    dotCls: "bg-blue-500",
+  },
+  {
+    key: "SENDER",
+    label: "Team member",
+    activeCls: "bg-violet-600",
+    boxCls: "border-violet-500 bg-violet-500/15 text-violet-900",
+    dotCls: "bg-violet-500",
+  },
+];
+
+const assigneeStyle = (a: FieldAssignee) =>
+  ASSIGNEES.find((x) => x.key === a) ?? ASSIGNEES[0]!;
+
 /** Local ids until the server assigns real ones. */
 let seq = 0;
 const nextId = () => `new_${++seq}`;
@@ -56,6 +89,10 @@ export function FieldEditor({
   fields: PlacedField[];
   onChange: (fields: PlacedField[]) => void;
 }) {
+  // Who the NEXT box belongs to. Sticky on purpose: placing a run of boxes
+  // for the same party is the normal case, and having every drop snap back to
+  // the client meant re-picking the assignee on each one.
+  const [who, setWho] = useState<FieldAssignee>("RECIPIENT");
   const [tool, setTool] = useState<FieldType | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const drag = useRef<{
@@ -92,7 +129,7 @@ export function FieldEditor({
       w: spec.w,
       h: spec.h,
       type: tool,
-      assignee: "RECIPIENT",
+      assignee: who,
       label: spec.label,
       required: true,
       fontSize: 11,
@@ -149,7 +186,29 @@ export function FieldEditor({
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-white/95 p-2 backdrop-blur">
+      <div className="sticky top-0 z-10 space-y-2 rounded-lg border border-zinc-200 bg-white/95 p-2 backdrop-blur">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-zinc-500">
+            Who fills the next box:
+          </span>
+          <div className="flex overflow-hidden rounded-md border border-zinc-200">
+            {ASSIGNEES.map((a) => (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => setWho(a.key)}
+                className={`px-3 py-1.5 text-xs font-semibold transition ${
+                  who === a.key
+                    ? `${a.activeCls} text-white`
+                    : "bg-white text-zinc-600 hover:bg-zinc-50"
+                }`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold text-zinc-500">Add:</span>
         {TOOLS.map((t) => (
           <button
@@ -171,6 +230,7 @@ export function FieldEditor({
             ? "Now click where it goes"
             : `${fields.length} field${fields.length === 1 ? "" : "s"} placed`}
         </span>
+        </div>
       </div>
 
       {/* Properties for the selected box */}
@@ -182,22 +242,39 @@ export function FieldEditor({
             placeholder="Label"
             className="w-40 rounded-md border border-zinc-200 px-2 py-1.5 text-xs"
           />
-          <select
-            value={chosen.assignee}
-            onChange={(e) =>
-              update(chosen.id, { assignee: e.target.value as FieldAssignee })
-            }
-            className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs"
-          >
-            <option value="RECIPIENT">Client fills this</option>
-            <option value="SENDER">I fill this</option>
-          </select>
-          {chosen.assignee === "SENDER" && chosen.type !== "SIGNATURE" && (
+          <div className="flex overflow-hidden rounded-md border border-zinc-200">
+            {ASSIGNEES.map((a) => (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => {
+                  update(chosen.id, { assignee: a.key });
+                  // Follow the change: reassigning a box is usually the moment
+                  // you realise the next few belong to that party too.
+                  setWho(a.key);
+                }}
+                className={`px-2.5 py-1.5 text-xs font-semibold transition ${
+                  chosen.assignee === a.key
+                    ? `${a.activeCls} text-white`
+                    : "bg-white text-zinc-600 hover:bg-zinc-50"
+                }`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+          {chosen.assignee === "SENDER" && (
+            // Every SENDER field is ours to fill, signature included — that
+            // is how a countersignature gets onto the page.
             <input
               value={chosen.value ?? ""}
               onChange={(e) => update(chosen.id, { value: e.target.value })}
-              placeholder="Value"
-              className="w-40 rounded-md border border-zinc-200 px-2 py-1.5 text-xs"
+              placeholder={
+                chosen.type === "SIGNATURE" ? "Type our signature" : "Value"
+              }
+              className={`w-40 rounded-md border border-zinc-200 px-2 py-1.5 text-xs ${
+                chosen.type === "SIGNATURE" ? "italic" : ""
+              }`}
             />
           )}
           <label className="flex items-center gap-1 text-xs text-zinc-600">
@@ -244,10 +321,8 @@ export function FieldEditor({
                   }}
                   className={`absolute flex cursor-move items-center rounded border-2 px-1 text-[10px] font-medium ${
                     selected === f.id
-                      ? "border-orange-500 bg-orange-500/20"
-                      : f.assignee === "SENDER"
-                        ? "border-violet-400 bg-violet-400/15 text-violet-900"
-                        : "border-blue-400 bg-blue-400/15 text-blue-900"
+                      ? "border-orange-500 bg-orange-500/25 text-orange-900 ring-2 ring-orange-300"
+                      : assigneeStyle(f.assignee).boxCls
                   }`}
                 >
                   <span className="truncate">
@@ -264,14 +339,16 @@ export function FieldEditor({
         )}
       />
 
-      <p className="text-[11px] text-zinc-500">
-        <span className="mr-3">
-          <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-blue-400" />
-          Client fills
-        </span>
-        <span>
-          <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-violet-400" />
-          You fill
+      <p className="flex flex-wrap gap-4 text-[11px] text-zinc-500">
+        {ASSIGNEES.map((a) => (
+          <span key={a.key} className="inline-flex items-center gap-1.5">
+            <span className={`inline-block h-2.5 w-2.5 rounded-sm ${a.dotCls}`} />
+            {a.label} fills this
+          </span>
+        ))}
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-orange-500" />
+          Selected
         </span>
       </p>
     </div>
