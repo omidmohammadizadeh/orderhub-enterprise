@@ -2723,7 +2723,23 @@ function StoreItemRow({
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
+          ) : stepper ? (
+            // A simple item at zero. This HAS to be a real button: the wrapper
+            // above stops the click reaching the tile precisely when a stepper
+            // exists, so a plain span here left the + dead — and only for
+            // items with no modifiers, which is the half that should be the
+            // easiest to add.
+            <button
+              type="button"
+              aria-label={`Add ${item.name}`}
+              onClick={stepper.onInc}
+              className="grid h-11 w-11 place-items-center rounded-full bg-zinc-900 text-white shadow-sm active:opacity-80"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
           ) : (
+            // Opens the modifier sheet. No handler needed — the whole tile is
+            // the button, and this wrapper does not stop the click.
             <span className="grid h-11 w-11 place-items-center rounded-full bg-zinc-900 text-white shadow-sm">
               <Plus className="h-5 w-5" />
             </span>
