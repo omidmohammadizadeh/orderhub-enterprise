@@ -2198,6 +2198,8 @@ exports.Prisma.ContractScalarFieldEnum = {
   recipientEmail: 'recipientEmail',
   recipientCompany: 'recipientCompany',
   subscriptionAmountPence: 'subscriptionAmountPence',
+  commissionPercent: 'commissionPercent',
+  customerServiceChargePence: 'customerServiceChargePence',
   issuer: 'issuer',
   status: 'status',
   token: 'token',

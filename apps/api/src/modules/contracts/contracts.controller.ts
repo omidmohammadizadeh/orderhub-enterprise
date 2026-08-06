@@ -69,6 +69,8 @@ export class ContractsController {
       fileName?: string;
       fileType?: string;
       subscriptionAmountPence?: number;
+      commissionPercent?: number;
+      customerServiceChargePence?: number;
     },
   ) {
     return this.contracts.createTemplate(user.tenantId, body, user.userId);

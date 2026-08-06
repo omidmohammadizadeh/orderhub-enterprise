@@ -292,3 +292,89 @@ describe("voiding", () => {
     await expect(svc.void(TENANT, "c1")).rejects.toThrow(/already been agreed/i);
   });
 });
+
+
+describe("optional commercial terms", () => {
+  const withBody = (bodyHtml: string) => ({
+    template: { id: "t", name: "T", bodyHtml },
+  });
+  const CLAUSES =
+    "<p>Sub {{amount}}</p>" +
+    "{{#commission}}<p>Commission {{commission}}</p>{{/commission}}" +
+    "{{#serviceCharge}}<p>Charge {{serviceCharge}}</p>{{/serviceCharge}}";
+
+  const create = async (dto: Record<string, any>) => {
+    const { svc, latest } = makeService(withBody(CLAUSES));
+    await svc.create(TENANT, {
+      templateId: "t",
+      recipientName: "Sam",
+      recipientEmail: "sam@b.co",
+      ...dto,
+    });
+    return latest();
+  };
+
+  it("REMOVES the commission clause when left blank", async () => {
+    // Not "0%". A term negotiated down to nothing and a term that was never
+    // offered read very differently to whoever is signing, and a blank box
+    // means the second.
+    const c = await create({ subscriptionAmountPence: 4900 });
+    expect(c.bodyHtml).not.toContain("Commission");
+    expect(c.bodyHtml).toContain("Sub £49.00");
+  });
+
+  it("includes the commission clause with the agreed rate", async () => {
+    const c = await create({ commissionPercent: 2.5 });
+    expect(c.bodyHtml).toContain("Commission 2.5%");
+  });
+
+  it("treats zero as 'does not apply', not as a zero rate", async () => {
+    const c = await create({ commissionPercent: 0 });
+    expect(c.bodyHtml).not.toContain("Commission");
+  });
+
+  it("REMOVES the customer service charge when left blank", async () => {
+    const c = await create({ commissionPercent: 2 });
+    expect(c.bodyHtml).toContain("Commission");
+    expect(c.bodyHtml).not.toContain("Charge");
+  });
+
+  it("includes the service charge in pounds", async () => {
+    const c = await create({ customerServiceChargePence: 50 });
+    expect(c.bodyHtml).toContain("Charge £0.50");
+  });
+
+  it("can include both, or neither", async () => {
+    const both = await create({
+      commissionPercent: 3,
+      customerServiceChargePence: 99,
+    });
+    expect(both.bodyHtml).toContain("Commission 3%");
+    expect(both.bodyHtml).toContain("Charge £0.99");
+
+    const neither = await create({});
+    expect(neither.bodyHtml).not.toContain("Commission");
+    expect(neither.bodyHtml).not.toContain("Charge");
+  });
+
+  it("stores what was agreed, so the record matches the document", async () => {
+    const c = await create({
+      commissionPercent: 2.5,
+      customerServiceChargePence: 50,
+    });
+    expect(c.commissionPercent).toBe(2.5);
+    expect(c.customerServiceChargePence).toBe(50);
+  });
+
+  it("refuses a commission over 100%", async () => {
+    const { svc } = makeService(withBody(CLAUSES));
+    await expect(
+      svc.create(TENANT, {
+        templateId: "t",
+        recipientName: "Sam",
+        recipientEmail: "sam@b.co",
+        commissionPercent: 150,
+      }),
+    ).rejects.toThrow(/more than 100/i);
+  });
+});

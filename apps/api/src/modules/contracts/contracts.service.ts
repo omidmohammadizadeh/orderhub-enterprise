@@ -260,6 +260,10 @@ export class ContractsService {
       recipientCompany?: string;
       locationId?: string;
       subscriptionAmountPence?: number;
+      /** Commission per order as a percentage. Blank/0 omits the clause. */
+      commissionPercent?: number;
+      /** Per-order charge the CUSTOMER pays, in pence. Blank/0 omits it. */
+      customerServiceChargePence?: number;
       issuer?: Partial<Issuer> | null;
     },
     userId?: string,
@@ -302,6 +306,23 @@ export class ContractsService {
       template?.subscriptionAmountPence ??
       null;
 
+    // Both optional. A blank box means "this term does not apply" and removes
+    // the clause; 0 is treated the same way, since a 0% commission clause is
+    // noise on an agreement rather than a term worth stating.
+    const commissionPercent =
+      dto.commissionPercent != null && Number(dto.commissionPercent) > 0
+        ? Math.round(Number(dto.commissionPercent) * 100) / 100
+        : null;
+    if (commissionPercent != null && commissionPercent > 100) {
+      throw new BadRequestException("Commission can't be more than 100%");
+    }
+
+    const serviceChargePence =
+      dto.customerServiceChargePence != null &&
+      Number(dto.customerServiceChargePence) > 0
+        ? Math.round(Number(dto.customerServiceChargePence))
+        : null;
+
     if (bodyHtml) {
       bodyHtml = this.fillPlaceholders(bodyHtml, {
         recipientName: dto.recipientName.trim(),
@@ -314,12 +335,22 @@ export class ContractsService {
           year: "numeric",
         }),
         amount: amount ? `£${(amount / 100).toFixed(2)}` : "",
+        // Blank when not set, which is also what makes the matching
+        // {{#commission}} / {{#serviceCharge}} clauses disappear.
+        commission:
+          commissionPercent != null ? `${commissionPercent}%` : "",
+        serviceCharge:
+          serviceChargePence != null
+            ? `£${(serviceChargePence / 100).toFixed(2)}`
+            : "",
       });
     }
 
     const contract = await (this.prisma as any).contract.create({
       data: {
         tenantId,
+        commissionPercent,
+        customerServiceChargePence: serviceChargePence,
         templateId: template?.id ?? null,
         locationId: location?.id ?? null,
         title,
@@ -351,7 +382,25 @@ export class ContractsService {
     html: string,
     values: Record<string, string>,
   ): string {
-    return html.replace(
+    // Optional clauses first: {{#commission}}…{{/commission}} keeps its
+    // contents only when that value is present and non-empty, otherwise the
+    // whole block goes.
+    //
+    // This is why a blank commission field removes the clause rather than
+    // printing "0%". A term negotiated down to zero and a term that was never
+    // offered read very differently to whoever is signing, and the second is
+    // what an empty box means.
+    const withSections = html.replace(
+      /\{\{#\s*([a-zA-Z0-9_]+)\s*\}\}([\s\S]*?)\{\{\/\s*\1\s*\}\}/g,
+      (_whole: string, key: string, inner: string) => {
+        const v = values[key];
+        return v !== undefined && v !== null && String(v).trim() !== ""
+          ? inner
+          : "";
+      },
+    );
+
+    return withSections.replace(
       /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g,
       (whole: string, key: string) => values[key] ?? whole,
     );

@@ -4682,6 +4682,16 @@ model Contract {
   /// Set = the signed contract offers a subscription at this monthly price.
   subscriptionAmountPence Int?
 
+  /// Commission we take on each order, as a percentage (e.g. 2.5 = 2.5%).
+  /// Null means no commission clause appears in the agreement at all — the
+  /// section is removed rather than printed as "0%", which would read as a
+  /// term that was negotiated to zero rather than one that does not apply.
+  commissionPercent Float?
+
+  /// Per-order service charge the CUSTOMER pays at checkout, in pence.
+  /// Null removes the clause, same reasoning as commission.
+  customerServiceChargePence Int?
+
   // Who the agreement is FROM, shown on the signature certificate. Null =
   // platform defaults; a partial object overrides field by field, so an
   // operator can issue on behalf of another entity without reconfiguring.

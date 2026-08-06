@@ -127,6 +127,10 @@ export const contractsClient = {
     recipientCompany?: string;
     locationId?: string;
     subscriptionAmountPence?: number;
+    /** Commission per order as a percentage. Blank omits the clause entirely. */
+    commissionPercent?: number;
+    /** Per-order charge the CUSTOMER pays, in pence. Blank omits the clause. */
+    customerServiceChargePence?: number;
     /** Overrides the platform's own details on the signature certificate. */
     issuer?: {
       name?: string;

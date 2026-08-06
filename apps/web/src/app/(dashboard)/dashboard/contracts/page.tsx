@@ -604,6 +604,10 @@ function ComposeModal({
   const [recipientCompany, setRecipientCompany] = useState("");
   const [locationId, setLocationId] = useState("");
   const [amount, setAmount] = useState("");
+  // Both optional. Left blank, the matching clause is removed from the
+  // agreement entirely rather than printed as zero.
+  const [commission, setCommission] = useState("");
+  const [serviceCharge, setServiceCharge] = useState("");
   const [sendNow, setSendNow] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [senderOpen, setSenderOpen] = useState(false);
@@ -784,6 +788,41 @@ function ComposeModal({
               Pick a location, or the Subscribe button won&apos;t appear.
             </p>
           )}
+        </Field>
+
+        <Field label="Commission per order (optional)">
+          <div className="flex items-center gap-2">
+            <input
+              value={commission}
+              onChange={(e) => setCommission(e.target.value)}
+              placeholder="2.5"
+              inputMode="decimal"
+              className="w-32 rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+            <span className="text-sm text-zinc-500">% of each order</span>
+          </div>
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Leave blank and the commission clause is removed from the agreement
+            — not printed as 0%.
+          </p>
+        </Field>
+
+        <Field label="Customer service charge per order (optional)">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-zinc-500">£</span>
+            <input
+              value={serviceCharge}
+              onChange={(e) => setServiceCharge(e.target.value)}
+              placeholder="0.50"
+              inputMode="decimal"
+              className="w-32 rounded-md border border-zinc-200 px-2 py-2 text-sm"
+            />
+            <span className="text-xs text-zinc-500">per order</span>
+          </div>
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Paid by the customer at checkout, not by the client. Blank removes
+            the clause.
+          </p>
         </Field>
 
         <div>

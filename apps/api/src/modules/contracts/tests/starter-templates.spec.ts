@@ -20,6 +20,11 @@ const KNOWN_PLACEHOLDERS = new Set([
   "location",
   "date",
   "amount",
+  // Optional — present only when the operator filled them in. The matching
+  // {{#commission}} / {{#serviceCharge}} sections remove their clause when
+  // they weren't.
+  "commission",
+  "serviceCharge",
 ]);
 
 describe("starter templates", () => {
@@ -134,4 +139,39 @@ describe("issuer on the certificate", () => {
     });
     expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
   }, 30_000);
+});
+
+
+describe("optional fee clauses in the shipped agreement", () => {
+  const saas = STARTER_TEMPLATES.find((t) => t.key === "saas-agreement")!;
+
+  it("wraps commission and the service charge in optional sections", () => {
+    // Without the wrapper an unset fee would render as an empty clause —
+    // "we charge commission of  of the value of each order" — which is worse
+    // than either stating a rate or saying nothing.
+    expect(saas.bodyHtml).toContain("{{#commission}}");
+    expect(saas.bodyHtml).toContain("{{/commission}}");
+    expect(saas.bodyHtml).toContain("{{#serviceCharge}}");
+    expect(saas.bodyHtml).toContain("{{/serviceCharge}}");
+  });
+
+  it("closes every section it opens", () => {
+    // An unclosed section swallows the rest of the agreement, silently, since
+    // the regex would find no end tag and leave the block unrendered.
+    for (const t of STARTER_TEMPLATES) {
+      const opens = [...t.bodyHtml.matchAll(/\{\{#\s*([a-zA-Z0-9_]+)\s*\}\}/g)].map(
+        (m) => m[1],
+      );
+      const closes = [
+        ...t.bodyHtml.matchAll(/\{\{\/\s*([a-zA-Z0-9_]+)\s*\}\}/g),
+      ].map((m) => m[1]);
+      expect(opens.sort()).toEqual(closes.sort());
+    }
+  });
+
+  it("keeps the subscription clause unconditional", () => {
+    // Every agreement has a subscription; only the two extras are optional.
+    expect(saas.bodyHtml).toContain("{{amount}} per month");
+    expect(saas.bodyHtml).not.toContain("{{#amount}}");
+  });
 });

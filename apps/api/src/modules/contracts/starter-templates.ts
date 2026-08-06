@@ -13,7 +13,13 @@
  *
  * Placeholders available at send time (contracts.service.fillPlaceholders):
  *   {{recipientName}} {{recipientEmail}} {{recipientCompany}}
- *   {{location}} {{date}} {{amount}}
+ *   {{location}} {{date}} {{amount}} {{commission}} {{serviceCharge}}
+ *
+ * Optional clauses use {{#key}}…{{/key}}: the block survives only when that
+ * value was filled in. Commission and the customer service charge are both
+ * optional, so leaving either blank removes the clause entirely rather than
+ * printing "0%" — a term negotiated to nothing and a term never offered read
+ * very differently to whoever is signing.
  * Unknown keys are left visible rather than blanked, so a typo shows up in
  * review instead of silently deleting a term.
  */
@@ -66,17 +72,23 @@ const SAAS_AGREEMENT = `
 
 <p>3.1 <strong>Subscription.</strong> You will pay {{amount}} per month per location, in advance, by continuous card authority. The first payment is taken when you activate your subscription and monthly thereafter on the same date.</p>
 
-<p>3.2 <strong>Order commission.</strong> Where we have agreed a commission or service fee on orders, it is set out in your pricing schedule and is deducted automatically from card settlements. Commission on cash orders is invoiced or collected separately in arrears.</p>
+{{#commission}}
+<p>3.2 <strong>Order commission.</strong> In addition to the subscription, we charge commission of {{commission}} of the value of each order processed through the Platform. Commission on card orders is deducted automatically from settlement before payout. Commission on cash orders accrues in the same way and is collected in arrears. Commission is calculated on the order value excluding delivery charges, tips and VAT.</p>
+{{/commission}}
 
-<p>3.3 <strong>Messaging.</strong> SMS is prepaid. You top up a messaging balance and we deduct the published rate per message segment sent. Unused balance is not refundable on termination but remains usable until then.</p>
+{{#serviceCharge}}
+<p>3.3 <strong>Customer service charge.</strong> A service charge of {{serviceCharge}} per order is added to the customer's total at checkout and shown to them before they pay. This charge is collected on your behalf and is retained by us as part of the fees for the Platform. It is not part of your revenue and is not commission on your sales.</p>
+{{/serviceCharge}}
 
-<p>3.4 <strong>Hardware.</strong> Printers, terminals, tablets and other equipment are charged separately and are not included in the subscription unless your pricing schedule says otherwise.</p>
+<p>3.4 <strong>Messaging.</strong> SMS is prepaid. You top up a messaging balance and we deduct the published rate per message segment sent. Unused balance is not refundable on termination but remains usable until then.</p>
 
-<p>3.5 <strong>Price changes.</strong> We may change our fees on 30 days' written notice. If you do not accept a change you may terminate under clause 10.4 before it takes effect.</p>
+<p>3.5 <strong>Hardware.</strong> Printers, terminals, tablets and other equipment are charged separately and are not included in the subscription unless your pricing schedule says otherwise.</p>
 
-<p>3.6 <strong>Late payment.</strong> If a payment fails we will retry and notify you. If an amount remains unpaid 14 days after it fell due we may suspend the Platform under clause 10.5. Overdue sums carry interest under the Late Payment of Commercial Debts (Interest) Act 1998.</p>
+<p>3.6 <strong>Price changes.</strong> We may change our fees on 30 days' written notice. If you do not accept a change you may terminate under clause 10.4 before it takes effect.</p>
 
-<p>3.7 All fees are exclusive of VAT, which is charged at the prevailing rate.</p>
+<p>3.7 <strong>Late payment.</strong> If a payment fails we will retry and notify you. If an amount remains unpaid 14 days after it fell due we may suspend the Platform under clause 10.5. Overdue sums carry interest under the Late Payment of Commercial Debts (Interest) Act 1998.</p>
+
+<p>3.8 All fees are exclusive of VAT, which is charged at the prevailing rate.</p>
 
 <h2>4. What you commit to</h2>
 
