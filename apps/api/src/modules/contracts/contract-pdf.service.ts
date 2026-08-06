@@ -106,7 +106,30 @@ export class ContractPdfService {
   private readonly logger = new Logger(ContractPdfService.name);
 
   async build(contract: any, events: any[] = []): Promise<Buffer> {
-    const pdf = contract.fileUrl
+    // A contract can point at a file that is itself a finished Order Hub
+    // document — created before uploading one was blocked. Appending our
+    // certificate to it produces two, the first naming whoever signed the
+    // sample rather than this client.
+    //
+    // Where the contract also has written wording, use that instead: the
+    // agreement is repaired on the next download rather than reprinting a
+    // stranger's signature every time it is opened. Where there is no
+    // wording to fall back on, the file is all we have — say so loudly.
+    let useFile = !!contract.fileUrl;
+    if (contract.fileUrl && (await this.isOrderHubOutput(contract.fileUrl))) {
+      if (contract.bodyHtml) {
+        this.logger.warn(
+          `Contract ${contract.id} points at a finished Order Hub document — rendering its written wording instead so the certificate is this client's`,
+        );
+        useFile = false;
+      } else {
+        this.logger.error(
+          `Contract ${contract.id} is built on a finished Order Hub document and has no written wording — its PDF will carry the original signer's certificate. Delete and re-send it.`,
+        );
+      }
+    }
+
+    const pdf = useFile
       ? await this.loadOriginal(contract.fileUrl)
       : await PDFDocument.create();
 
@@ -123,7 +146,7 @@ export class ContractPdfService {
       this.logger.warn(`Contract logo embed failed: ${err?.message ?? err}`);
     }
 
-    if (!contract.fileUrl) {
+    if (!useFile) {
       this.renderBody(pdf, contract, regular, bold, logo);
     }
     this.renderCertificate(pdf, contract, events, regular, bold, italic, logo);

@@ -327,3 +327,67 @@ describe("telling our own output apart from a blank agreement", () => {
     global.fetch = realFetch;
   });
 });
+
+
+describe("a contract built on a finished document repairs itself", () => {
+  const ourOutput = async () => {
+    // A real previous output: has our marker AND a certificate page inside.
+    return await svc().build(
+      signed({ id: "sample", signerName: "Someone Else" }),
+      [],
+    );
+  };
+
+  it("renders the written wording instead of the poisoned file", async () => {
+    const stale = await ourOutput();
+    const realFetch = global.fetch;
+    global.fetch = (async () => ({
+      ok: true,
+      arrayBuffer: async () => stale,
+    })) as any;
+
+    const out = await svc().build(
+      signed({
+        id: "c_real",
+        signerName: "Omid Zadeh",
+        fileUrl: "https://x/stale.pdf",
+        bodyHtml: "<h2>Terms</h2><p>The real agreement.</p>",
+      }),
+      [],
+    );
+    global.fetch = realFetch;
+
+    // The stale file is 2+ pages (body + its own certificate). Rendering from
+    // the wording gives body pages plus exactly ONE certificate, so a
+    // repaired document is shorter than the poisoned one it replaced.
+    const repaired = await PDFDocument.load(out);
+    const poisoned = await PDFDocument.load(stale);
+    expect(repaired.getPageCount()).toBeLessThanOrEqual(
+      poisoned.getPageCount(),
+    );
+    expect(isPdf(out)).toBe(true);
+  }, 60_000);
+
+  it("still appends to a genuine uploaded agreement", async () => {
+    // The ordinary case must not regress: a solicitor's PDF keeps its pages
+    // and gains one certificate.
+    const original = await PDFDocument.create();
+    original.addPage([595, 842]);
+    original.addPage([595, 842]);
+    const bytes = await original.save();
+
+    const realFetch = global.fetch;
+    global.fetch = (async () => ({
+      ok: true,
+      arrayBuffer: async () => bytes,
+    })) as any;
+    const out = await svc().build(
+      signed({ fileUrl: "https://x/real.pdf", bodyHtml: null }),
+      [],
+    );
+    global.fetch = realFetch;
+
+    const doc = await PDFDocument.load(out);
+    expect(doc.getPageCount()).toBe(3);
+  }, 60_000);
+});
