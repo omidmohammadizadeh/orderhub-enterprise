@@ -6,6 +6,7 @@
 // that erases the evidence someone had already read it.
 
 import { ContractsService } from "../contracts.service";
+import { STARTER_TEMPLATES } from "../starter-templates";
 
 const TENANT = "t1";
 
@@ -551,5 +552,81 @@ describe("client details fill the parties clause", () => {
     expect(latest().recipientCompanyNumber).toBe("12345678");
     expect(latest().recipientPhone).toBe("0191 123 4567");
     expect(latest().locationCount).toBe(2);
+  });
+});
+
+
+describe("the SHIPPED agreement renders end to end", () => {
+  // The gap that let a bug through: every other test here uses a synthetic
+  // template, so they all passed while the real agreement went out with its
+  // fee clauses missing. These run the actual wording we ship.
+  const saas = () =>
+    STARTER_TEMPLATES.find((t) => t.key === "saas-agreement")!.bodyHtml;
+
+  const create = async (dto: Record<string, any>) => {
+    const { svc, latest } = makeService({
+      template: {
+        id: "t",
+        name: "SaaS Agreement — full",
+        bodyHtml: saas(),
+      },
+    });
+    await svc.create(TENANT, {
+      templateId: "t",
+      recipientName: "Sam Patel",
+      recipientEmail: "sam@patelfoods.co.uk",
+      recipientCompany: "Patel Foods Ltd",
+      subscriptionAmountPence: 4900,
+      ...dto,
+    });
+    return latest().bodyHtml as string;
+  };
+
+  it("prints the commission clause with the agreed rate", async () => {
+    const body = await create({ commissionPercent: 2.5 });
+    expect(body).toContain("Order commission");
+    expect(body).toContain("2.5%");
+  });
+
+  it("prints the customer service charge clause", async () => {
+    const body = await create({ customerServiceChargePence: 50 });
+    expect(body).toContain("Customer service charge");
+    expect(body).toContain("£0.50");
+  });
+
+  it("prints both when both are set", async () => {
+    const body = await create({
+      commissionPercent: 3,
+      customerServiceChargePence: 99,
+    });
+    expect(body).toContain("3%");
+    expect(body).toContain("£0.99");
+  });
+
+  it("omits both when neither is set", async () => {
+    const body = await create({});
+    expect(body).not.toContain("Order commission");
+    expect(body).not.toContain("Customer service charge");
+  });
+
+  it("leaves NO unrendered template syntax behind", async () => {
+    // An unclosed or misspelled section shows up as literal {{#…}} in a
+    // document a client is reading.
+    const body = await create({
+      commissionPercent: 2,
+      customerServiceChargePence: 50,
+      recipientCompanyNumber: "12345678",
+      recipientAddress: "7 Front Street",
+      recipientPhone: "0191 123 4567",
+      locationCount: 2,
+    });
+    expect(body).not.toMatch(/\{\{[#/]/);
+    expect(body).not.toMatch(/\{\{\s*\w+\s*\}\}/);
+  });
+
+  it("fills the subscription and the notice period", async () => {
+    const body = await create({});
+    expect(body).toContain("£49.00 per month");
+    expect(body).toMatch(/one month's written notice/i);
   });
 });

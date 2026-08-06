@@ -843,6 +843,12 @@ function ComposeModal({
           : undefined,
         locationId: locationId || undefined,
         subscriptionAmountPence: pence,
+        commissionPercent: commission.trim()
+          ? parseFloat(commission)
+          : undefined,
+        customerServiceChargePence: serviceCharge.trim()
+          ? Math.round(parseFloat(serviceCharge) * 100)
+          : undefined,
         // Sent only when edited, so a later change to the registered address
         // updates every contract that never needed an override.
         issuer: senderChanged ? sender : null,
