@@ -1028,6 +1028,15 @@ function ComposeModal({
             {templates.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
+                {/* A file template can share its name with the written one,
+                    which makes the two indistinguishable here — and picking
+                    the wrong one prints a stranger's certificate on the
+                    contract. Say which is which. */}
+                {t.isFinishedDocument
+                  ? "  ⚠️ has someone else's signature — delete this"
+                  : t.fileUrl
+                    ? "  (uploaded PDF — no auto-fill)"
+                    : ""}
               </option>
             ))}
           </select>

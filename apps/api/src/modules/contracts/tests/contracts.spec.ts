@@ -721,3 +721,56 @@ describe("spotting a finished document saved as a template", () => {
     expect(calls).toBe(0);
   });
 });
+
+
+describe("a finished document can never become a contract", () => {
+  const svcWith = (isOurs: boolean) => {
+    const svc = Object.create(ContractsService.prototype) as any;
+    svc.logger = { log() {}, warn() {}, error() {} };
+    svc.config = { get: () => "https://app.example.com" };
+    svc.pdf = { isOrderHubOutput: async () => isOurs };
+    const rows: any[] = [];
+    svc.prisma = {
+      contractTemplate: {
+        findFirst: async () => ({
+          id: "t",
+          // The trap: named exactly like the written agreement, so the two
+          // are indistinguishable in the compose dropdown.
+          name: "SaaS Agreement — full",
+          fileUrl: "https://x/sample.pdf",
+        }),
+      },
+      location: { findFirst: async () => ({ id: "loc1", name: "Pizza Uno" }) },
+      contract: {
+        create: async ({ data }: any) => {
+          rows.push(data);
+          return { id: "c1", ...data, location: null };
+        },
+      },
+      contractEvent: { create: async () => ({}) },
+    };
+    return { svc, rows };
+  };
+
+  const attempt = (svc: any) =>
+    svc.create(TENANT, {
+      templateId: "t",
+      recipientName: "Sam",
+      recipientEmail: "s@b.co",
+    });
+
+  it("refuses, naming the template so it can be found", async () => {
+    const { svc, rows } = svcWith(true);
+    await expect(attempt(svc)).rejects.toThrow(/SaaS Agreement — full/);
+    await expect(attempt(svc)).rejects.toThrow(/completed Order Hub document/i);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("still allows a genuine uploaded agreement", async () => {
+    // A solicitor's PDF is the whole point of the upload path. Blocking it
+    // would be a worse bug than the one being fixed.
+    const { svc, rows } = svcWith(false);
+    await expect(attempt(svc)).resolves.toBeDefined();
+    expect(rows).toHaveLength(1);
+  });
+});

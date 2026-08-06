@@ -525,6 +525,24 @@ export class ContractsService {
       );
     }
 
+    // Refuse to build a contract on top of a finished document.
+    //
+    // Uploading one as a template is now blocked, but a template saved before
+    // that check existed still resolves here — and it can be named identically
+    // to the written agreement, which makes the two indistinguishable in the
+    // compose dropdown. The result is a contract carrying a stranger's
+    // signature certificate above the client's own. Stopping it at the point
+    // of use catches every route in, whichever template was picked.
+    if (fileUrl) {
+      const ours = await this.pdf.isOrderHubOutput(fileUrl);
+      if (ours) {
+        throw new BadRequestException(
+          `The template "${template?.name ?? "selected"}" is a completed Order Hub document, not a blank agreement — it already contains someone else's signature certificate, which would be printed above your client's. Delete it under Templates and use a written agreement instead.`,
+        );
+      }
+    }
+
+
     // Location is resolved before substitution so {{location}} can use it.
     let location: any = null;
     if (dto.locationId) {
