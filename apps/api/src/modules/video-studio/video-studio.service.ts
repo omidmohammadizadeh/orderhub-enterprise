@@ -366,6 +366,32 @@ export class VideoStudioService {
             continue;
           }
           const finalUrl = await this.persist(url, gen.kind);
+          if (finalUrl === url) {
+            // persist() falls back to the provider URL when re-hosting fails.
+            // A replicate.delivery link is publicly playable — for about an
+            // hour. Storing one as a finished creation gives a video that
+            // works when you generate it and is a dead black box the next
+            // day, which is worse than a render that visibly failed.
+            //
+            // Same policy the Veo path already applies: the output exists and
+            // has been paid for, so a download blip must not be terminal —
+            // leave it RENDERING and retry next tick, give up only once it is
+            // clearly not coming back.
+            const ageMs = Date.now() - new Date(gen.createdAt).getTime();
+            if (ageMs < GEMINI_DOWNLOAD_GIVE_UP_MS) {
+              this.logger.warn(
+                `gen ${gen.id}: couldn't re-host the Replicate output yet — retrying next tick`,
+              );
+              continue;
+            }
+            this.logger.error(
+              `gen ${gen.id}: still couldn't re-host the Replicate output after ${Math.round(
+                ageMs / 60000,
+              )}m — refunding rather than storing a URL that will expire`,
+            );
+            await this.failAndRefund(gen, "couldn't save the finished video");
+            continue;
+          }
           await this.db().videoGeneration.update({
             where: { id: gen.id },
             data: { status: "READY", resultUrl: finalUrl },

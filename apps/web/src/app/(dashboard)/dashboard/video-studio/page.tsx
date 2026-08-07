@@ -425,11 +425,7 @@ export default function VideoStudioPage() {
                           className="h-full w-full object-contain"
                         />
                       ) : (
-                        <video
-                          src={g.resultUrl}
-                          controls
-                          className="h-full w-full object-contain"
-                        />
+                        <VideoTile url={g.resultUrl} />
                       )
                     ) : g.status === "FAILED" ? (
                       <div className="flex h-full flex-col items-center justify-center gap-1 p-3 text-center text-xs text-red-300">
@@ -474,5 +470,49 @@ export default function VideoStudioPage() {
         </>
       )}
     </div>
+  );
+}
+
+
+/**
+ * One finished video.
+ *
+ * playsInline matters: without it iOS hijacks the tap into a fullscreen
+ * player, which on a dashboard reads as the tile refusing to play in place.
+ *
+ * The error state matters more. A dead URL previously rendered a black box
+ * with controls that did nothing — indistinguishable from a broken feature,
+ * and impossible to report usefully. Now it says so, and still offers the
+ * link so the file can be checked directly.
+ */
+function VideoTile({ url }: { url: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
+        <AlertCircle className="h-5 w-5 text-amber-400" />
+        <p className="text-xs text-zinc-300">This video couldn&apos;t be loaded.</p>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] font-semibold text-orange-400 underline"
+        >
+          Open it directly
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <video
+      src={url}
+      controls
+      playsInline
+      preload="metadata"
+      onError={() => setFailed(true)}
+      className="h-full w-full object-contain"
+    />
   );
 }
