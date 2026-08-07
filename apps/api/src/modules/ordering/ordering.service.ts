@@ -75,6 +75,35 @@ export interface CheckoutDto {
   customerAccountId?: string;
 }
 
+/**
+ * A delivery order with a zero fee and no genuine FREE_DELIVERY campaign
+ * behind it means the postcode didn't match any of the brand's zones — a
+ * config gap or a lookup bug, not a real free delivery. Charging nothing in
+ * that case is a silent revenue leak, and blocking the order outright is
+ * worse for the customer. Fail safe by charging the brand's highest
+ * configured zone fee instead — never free, never blocked.
+ *
+ * `zoneFees` should already be scoped to the resolved brand's active zones.
+ * An empty list (nothing configured at all) leaves the fee untouched —
+ * there is no "highest fee" to fall back to.
+ */
+export function resolveDeliveryFee(input: {
+  fulfillmentType: "PICKUP" | "DELIVERY" | "DINE_IN";
+  requestedFee: number | undefined;
+  freeDeliveryApplied: boolean;
+  zoneFees: number[];
+}): number {
+  const requested = input.requestedFee ?? 0;
+  if (input.fulfillmentType !== "DELIVERY") return requested;
+  if (input.freeDeliveryApplied) return 0;
+  if (requested > 0) return requested;
+  const highestZoneFee = input.zoneFees.reduce(
+    (max, fee) => Math.max(max, fee),
+    0,
+  );
+  return highestZoneFee > 0 ? highestZoneFee : requested;
+}
+
 @Injectable()
 export class OrderingService {
   private readonly logger = new Logger(OrderingService.name);
@@ -1051,6 +1080,34 @@ export class OrderingService {
       this.logger.warn(
         `Free-delivery re-resolution failed for slug=${slug}: ${(err as Error).message}`,
       );
+    }
+    // See resolveDeliveryFee — a delivery order can never end up charged
+    // £0 unless a genuine FREE_DELIVERY campaign actually applied (the
+    // pizza-uno-pelton #MJBYC incident was exactly this: no zone match,
+    // fee silently stayed 0).
+    if (dto.fulfillmentType === "DELIVERY" && serverDeliveryFee <= 0) {
+      try {
+        const zones = await this.prisma.deliveryZone.findMany({
+          where: { brandId: campaignBrandId, isActive: true },
+          select: { fee: true },
+        });
+        const fallbackFee = resolveDeliveryFee({
+          fulfillmentType: dto.fulfillmentType,
+          requestedFee: serverDeliveryFee,
+          freeDeliveryApplied: !!appliedFreeDeliveryCampaign,
+          zoneFees: zones.map((z) => Number(z.fee)),
+        });
+        if (fallbackFee !== serverDeliveryFee) {
+          this.logger.warn(
+            `Delivery fee fallback: no zone match for slug=${slug}, charging highest configured fee (${fallbackFee}) instead of 0`,
+          );
+          serverDeliveryFee = fallbackFee;
+        }
+      } catch (err) {
+        this.logger.warn(
+          `Delivery fee fallback lookup failed for slug=${slug}: ${(err as Error).message}`,
+        );
+      }
     }
     const round2 = (n: number) => Math.round(n * 100) / 100;
     const serverDiscount = round2(Math.max(dto.discount ?? 0, campaignDiscount));

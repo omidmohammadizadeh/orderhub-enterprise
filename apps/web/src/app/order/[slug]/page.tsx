@@ -569,7 +569,25 @@ function OrderPage() {
     | null = (storefront as any)?.freeDelivery ?? null;
   const freeDelivery =
     promoApplied?.freeDelivery === true || !!freeDeliveryCampaign;
-  const rawDeliveryFee = matchedZone?.fee ?? 0;
+  // A postcode that doesn't match any configured zone is a data gap, not a
+  // free ride — charge the brand's highest configured fee instead of 0, so
+  // the customer never gets accidental free delivery and the order still
+  // goes through. The checkout endpoint re-enforces this same fallback
+  // server-side, so a tampered cart can't force it back to 0 either.
+  const highestZoneFee = useMemo(
+    () =>
+      (storefront?.deliveryZones ?? []).reduce(
+        (max, z) => Math.max(max, Number(z.fee)),
+        0,
+      ),
+    [storefront?.deliveryZones],
+  );
+  const noZoneMatched =
+    fulfillmentType === "DELIVERY" &&
+    !matchedZone &&
+    addrPostcode.replace(/\s+/g, "").length >= 3 &&
+    highestZoneFee > 0;
+  const rawDeliveryFee = matchedZone?.fee ?? (noZoneMatched ? highestZoneFee : 0);
   const deliveryFee = freeDelivery ? 0 : rawDeliveryFee;
 
   // Phase AW-19 — auto-apply the storefront's matched marketing
@@ -2208,6 +2226,8 @@ function OrderPage() {
           notes={notes}
           setNotes={setNotes}
           matchedZone={matchedZone}
+          noZoneMatched={noZoneMatched}
+          highestZoneFee={highestZoneFee}
           scheduledFor={scheduledFor}
           onOpenSchedule={() => setScheduleOpen(true)}
           onPlace={handlePlaceOrder}
@@ -2925,6 +2945,8 @@ interface CartPanelProps {
   notes: string;
   setNotes: (v: string) => void;
   matchedZone: { prefix: string; fee: number; minOrder: number | null } | null;
+  noZoneMatched: boolean;
+  highestZoneFee: number;
   scheduledFor: string | null;
   onOpenSchedule: () => void;
   onPlace: () => void;
@@ -3023,6 +3045,8 @@ function CartPanel(props: CartPanelProps) {
     notes,
     setNotes,
     matchedZone,
+    noZoneMatched,
+    highestZoneFee,
     scheduledFor,
     onOpenSchedule,
     onPlace,
@@ -3280,7 +3304,13 @@ function CartPanel(props: CartPanelProps) {
                   {matchedZone.minOrder ? ` · min £${matchedZone.minOrder.toFixed(2)}` : ""}
                 </p>
               )}
-              {!matchedZone && addrPostcode.length >= 3 && (
+              {noZoneMatched && (
+                <p className="text-[11px] text-amber-600">
+                  No matching delivery zone for this postcode — charging the
+                  standard £{highestZoneFee.toFixed(2)} delivery fee.
+                </p>
+              )}
+              {!matchedZone && !noZoneMatched && addrPostcode.length >= 3 && (
                 <p className="text-[11px] text-amber-600">
                   No matching delivery zone — restaurant may not deliver here.
                 </p>
