@@ -111,6 +111,23 @@ function serialiseOrderForCustomer(o: any) {
 // CustomerJwtStrategy verifies this matches before accepting a token,
 // so a leaked customer JWT can't be replayed against staff endpoints
 // and vice versa.
+/** One year, matching the staff refresh window. */
+export const CUSTOMER_TOKEN_TTL = "365d";
+export const CUSTOMER_TOKEN_TTL_MS = 365 * 24 * 60 * 60 * 1000;
+
+/**
+ * Cookie name for the customer session.
+ *
+ * The session lives in TWO places, on purpose. localStorage alone is not
+ * durable on the browsers takeaway customers actually use: iOS Safari purges
+ * script-writable storage after 7 days without a first-party interaction, and
+ * an in-app webview — the WhatsApp or Instagram browser a shared ordering link
+ * opens in — often never persists it at all. A cookie set by the server
+ * survives both, which is the difference between "remembered" and "log in
+ * again every time".
+ */
+export const CUSTOMER_TOKEN_COOKIE = "orderhub_customer";
+
 export const CUSTOMER_JWT_AUDIENCE = "orderhub-customer";
 
 @Injectable()
@@ -405,14 +422,11 @@ export class CustomerAuthService {
       },
       {
         audience: CUSTOMER_JWT_AUDIENCE,
-        // 90 days, and SLIDING — CustomerAuthController.me() re-signs a
-        // fresh 90-day token on every call (the storefront calls /me on
-        // every app load to validate the stored token), so an actively
-        // returning customer effectively never gets logged out. A flat,
-        // non-renewing expiry previously meant "remembered" for exactly
-        // 30 days from the original login regardless of how often the
-        // customer came back — this fixes that.
-        expiresIn: "90d",
+        // A year, and SLIDING — /me re-signs on every call, so an actively
+        // returning customer is never logged out. Matches the staff session
+        // length; there is no reason a takeaway customer should be asked to
+        // sign in more often than the staff who serve them.
+        expiresIn: CUSTOMER_TOKEN_TTL,
       },
     );
   }

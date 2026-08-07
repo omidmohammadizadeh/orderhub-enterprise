@@ -97,17 +97,23 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
     console.log(
       `[customer-auth] init origin=${window.location.origin} token=${stored ? `present(${stored.slice(0, 20)}...)` : "missing"}`,
     );
-    if (!stored) {
-      setIsLoading(false);
-      return;
-    }
-    setToken(stored);
+    // No token in localStorage is NOT proof of being signed out any more.
+    // The session also lives in an HttpOnly cookie, which survives the two
+    // things that were logging customers out: iOS Safari purging
+    // script-writable storage after 7 days, and in-app webviews (WhatsApp,
+    // Instagram) that start with empty storage every time a shared ordering
+    // link is opened. So ask /me regardless — the cookie rides along
+    // automatically because the storefront proxies /api on its own origin.
+    if (stored) setToken(stored);
     const meUrl = `${API_BASE}/v1/customer-auth/me`;
     // eslint-disable-next-line no-console
     console.log(`[customer-auth] GET ${meUrl}`);
     axios
       .get(meUrl, {
-        headers: { Authorization: `Bearer ${stored}` },
+        headers: stored ? { Authorization: `Bearer ${stored}` } : undefined,
+        // Same-origin via the /api rewrite, but explicit so a future change
+        // of base URL does not silently stop sending the cookie.
+        withCredentials: true,
       })
       .then((res) => {
         // eslint-disable-next-line no-console
@@ -190,10 +196,12 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
   };
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await axios.post(`${API_BASE}/v1/customer-auth/login`, {
-      email,
-      password,
-    });
+    const res = await axios.post(
+      `${API_BASE}/v1/customer-auth/login`,
+      { email, password },
+      // So the server's Set-Cookie is stored, not discarded.
+      { withCredentials: true },
+    );
     setToken(res.data.accessToken);
     setCustomer(res.data.customer);
     persistToken(res.data.accessToken);
@@ -213,6 +221,17 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
     setCustomer(null);
     persistToken(null);
     broadcastAuth({ customer: null, token: null });
+    // Clear the cookie too, or the next /me would sign them straight back in
+    // — the session outliving a deliberate sign-out is worse than the problem
+    // this cookie was added to solve. Fire-and-forget: the local state is
+    // already cleared, and a failed call must not leave them stuck.
+    void axios
+      .post(
+        `${API_BASE}/v1/customer-auth/logout`,
+        {},
+        { withCredentials: true },
+      )
+      .catch(() => undefined);
   }, []);
 
   const refresh = useCallback(async () => {

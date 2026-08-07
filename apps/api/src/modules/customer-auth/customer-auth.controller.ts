@@ -19,7 +19,11 @@ import { ConfigService } from "@nestjs/config";
 import { CustomerGoogleGuard } from "./customer-google.guard";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Public } from "../../common/decorators/public.decorator";
-import { CustomerAuthService } from "./customer-auth.service";
+import {
+  CUSTOMER_TOKEN_COOKIE,
+  CUSTOMER_TOKEN_TTL_MS,
+  CustomerAuthService,
+} from "./customer-auth.service";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
 import { CustomerJwtGuard, CurrentCustomer } from "./customer.decorator";
@@ -48,10 +52,41 @@ export class CustomerAuthController {
   }
 
   @Public()
+  /**
+   * Park the session in a cookie as well as returning it in the body.
+   *
+   * HttpOnly so script cannot read it, which is also what makes it survive
+   * iOS Safari's 7-day cap on script-writable storage. SameSite=Lax so it
+   * still arrives when a customer follows a link in from WhatsApp or a QR
+   * code — Strict would drop it on exactly that journey, which is how most
+   * of these orders start.
+   *
+   * The storefront reaches the API through its own /api rewrite, so this is
+   * a first-party cookie on the shop's domain, not a third-party one.
+   */
+  private setSessionCookie(res: Response, token: string) {
+    res.cookie(CUSTOMER_TOKEN_COOKIE, token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: CUSTOMER_TOKEN_TTL_MS,
+      path: "/",
+    });
+  }
+
+  private clearSessionCookie(res: Response) {
+    res.clearCookie(CUSTOMER_TOKEN_COOKIE, { path: "/" });
+  }
+
   @Post("login")
   @ApiOperation({ summary: "Customer email/password login" })
-  login(@Body() dto: CustomerLoginDto) {
-    return this.customerAuth.login(dto);
+  async login(
+    @Body() dto: CustomerLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const out = await this.customerAuth.login(dto);
+    if (out?.accessToken) this.setSessionCookie(res, out.accessToken);
+    return out;
   }
 
   // @Public() bypasses the global staff JwtAuthGuard registered in
@@ -67,9 +102,27 @@ export class CustomerAuthController {
   @UseGuards(CustomerJwtGuard)
   @Get("me")
   @ApiOperation({ summary: "Current customer (from JWT); returns a refreshed token" })
-  async me(@CurrentCustomer() customer: any) {
+  async me(
+    @CurrentCustomer() customer: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const accessToken = await this.customerAuth.signCustomerToken(customer);
+    // Re-stamp the cookie as well as the body. Without this the cookie would
+    // expire a year after the FIRST login however often they came back, which
+    // is the flat-expiry bug the sliding token already fixed for localStorage.
+    this.setSessionCookie(res, accessToken);
     return { ...customer, accessToken };
+  }
+
+  @Public()
+  @Post("logout")
+  @ApiOperation({ summary: "Clear the customer session cookie" })
+  logout(@Res({ passthrough: true }) res: Response) {
+    // Deliberately public and unauthenticated: signing out must work even
+    // when the token is already expired or malformed, which is exactly when
+    // someone is most likely to be trying.
+    this.clearSessionCookie(res);
+    return { ok: true };
   }
 
   // Phase AP-5 — customer's order history for the "My Orders" page.
