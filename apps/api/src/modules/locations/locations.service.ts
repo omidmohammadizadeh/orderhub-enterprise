@@ -605,10 +605,32 @@ export class LocationsService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.brand.updateMany({
+      const anchoredBrands = await tx.brand.findMany({
         where: { primaryLocationId: locationId },
-        data: { primaryLocationId: null },
+        select: { id: true },
       });
+      for (const b of anchoredBrands) {
+        // A brand anchored to only this location, with no footprint
+        // anywhere else, existed solely for it — remove it too rather than
+        // nulling primaryLocationId and leaving it behind. An orphaned
+        // brand like that has no location left to show it in any Brands
+        // drawer, yet still matches the "franchise parent" (no
+        // primaryLocationId) rule everywhere brands are picked — e.g. the
+        // Team Roles assign-role brand list — so it lingers there forever
+        // with no way for the operator to find or remove it.
+        const [otherLocations, menuCount, orderCount] = await Promise.all([
+          tx.location.count({ where: { brandId: b.id, id: { not: locationId } } }),
+          tx.menu.count({ where: { brandId: b.id } }),
+          tx.order.count({ where: { brandId: b.id } }),
+        ]);
+        const stillInUse = otherLocations > 0 || menuCount > 0 || orderCount > 0;
+        await tx.brand.update({
+          where: { id: b.id },
+          data: stillInUse
+            ? { primaryLocationId: null }
+            : { primaryLocationId: null, deletedAt: new Date() },
+        });
+      }
       await tx.location.delete({ where: { id: locationId } });
     });
     return { hardDeleted: true, orderCount: 0 };

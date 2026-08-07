@@ -623,6 +623,7 @@ function RoleModal({
 }) {
   const mode = state.kind;
   const editTarget = state.kind === "edit" ? state.member : null;
+  const qc = useQueryClient();
 
   const [email, setEmail] = useState(editTarget?.email ?? "");
   const [role, setRole] = useState<string>(editTarget?.role ?? "MANAGER");
@@ -667,6 +668,24 @@ function RoleModal({
         !b.primaryLocationId || locationIds.includes(b.primaryLocationId),
     );
   }, [brandsQuery.data, locationIds]);
+
+  // A brand with no primaryLocationId shows up here for every location —
+  // that's correct for a deliberate multi-location "virtual brand", but it's
+  // also what's left behind when a location gets deleted (the brand's FK is
+  // nulled out rather than the brand itself being removed — see
+  // locations.service.ts remove()). Since it belongs to no location, it
+  // never appears in any location's own Brands drawer either, so this
+  // picker is the only place an operator can find and clear it out.
+  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null);
+  const deleteBrand = useMutation({
+    mutationFn: (id: string) => brandsClient.remove(id),
+    onMutate: (id) => setDeletingBrandId(id),
+    onSuccess: (_data, id) => {
+      setBrandIds((prev) => prev.filter((b) => b !== id));
+      qc.invalidateQueries({ queryKey: ["brands"] });
+    },
+    onSettled: () => setDeletingBrandId(null),
+  });
 
   // Phase AR — only show role options the API actually lets the
   // caller grant. An Owner sees Manager / Staff / Driver only; a
@@ -862,10 +881,16 @@ function RoleModal({
           {/* Brands */}
           <MultiPicker
             label="Brands (within selected locations)"
-            options={visibleBrands.map((b: any) => ({ id: b.id, name: b.name }))}
+            options={visibleBrands.map((b: any) => ({
+              id: b.id,
+              name: b.name,
+              unassigned: !b.primaryLocationId,
+            }))}
             selected={brandIds}
             onChange={setBrandIds}
             empty="No brands available yet."
+            onDeleteOption={(id) => deleteBrand.mutate(id)}
+            deletingId={deletingBrandId}
           />
 
           {error && (
@@ -912,12 +937,17 @@ function MultiPicker({
   selected,
   onChange,
   empty,
+  onDeleteOption,
+  deletingId,
 }: {
   label: string;
-  options: { id: string; name: string }[];
+  options: { id: string; name: string; unassigned?: boolean }[];
   selected: string[];
   onChange: (next: string[]) => void;
   empty: string;
+  /** When set, unassigned options get a delete icon that calls this. */
+  onDeleteOption?: (id: string) => void;
+  deletingId?: string | null;
 }) {
   const toggle = (id: string) =>
     onChange(
@@ -937,17 +967,50 @@ function MultiPicker({
       ) : (
         <div className="max-h-36 overflow-y-auto rounded-md border border-zinc-300 p-2 space-y-1">
           {options.map((o) => (
-            <label
+            <div
               key={o.id}
-              className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-zinc-50"
+              className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-zinc-50"
             >
-              <input
-                type="checkbox"
-                checked={selected.includes(o.id)}
-                onChange={() => toggle(o.id)}
-              />
-              <span>{o.name}</span>
-            </label>
+              <label className="flex flex-1 cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(o.id)}
+                  onChange={() => toggle(o.id)}
+                />
+                <span>{o.name}</span>
+                {o.unassigned && (
+                  <span
+                    title="Not attached to any location — appears for every location until removed or given one."
+                    className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700"
+                  >
+                    unassigned
+                  </span>
+                )}
+              </label>
+              {o.unassigned && onDeleteOption && (
+                <button
+                  type="button"
+                  title="Delete this brand"
+                  disabled={deletingId === o.id}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Delete the brand "${o.name}"? It isn't attached to any location. This can't be undone from here.`,
+                      )
+                    ) {
+                      onDeleteOption(o.id);
+                    }
+                  }}
+                  className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                >
+                  {deletingId === o.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}
