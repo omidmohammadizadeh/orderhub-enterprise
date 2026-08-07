@@ -17,6 +17,7 @@ const STORED_URL = "https://supabase.co/storage/v1/object/public/x/video.mp4";
 function makeService(opts: {
   persistReturns: string;
   createdAt: Date;
+  reason?: string;
 }) {
   const updates: any[] = [];
   const refunds: any[] = [];
@@ -35,7 +36,11 @@ function makeService(opts: {
     outputUrl: (o: any) => o,
   };
   svc.gemini = { isConfigured: () => false };
-  svc.persist = async () => opts.persistReturns;
+  svc.persist = async () => ({
+    url: opts.persistReturns,
+    rehosted: opts.persistReturns !== PROVIDER_URL,
+    reason: opts.reason,
+  });
   svc.failAndRefund = async (g: any, reason: string) =>
     refunds.push({ id: g.id, reason });
   svc.db = () => ({
@@ -96,5 +101,25 @@ describe("a Replicate render is only READY once we own the file", () => {
     });
     await svc.reconcile();
     expect(refunds).toHaveLength(0);
+  });
+});
+
+
+describe("storage switched off is the operator's problem, not the render's", () => {
+  it("keeps the provider URL rather than refunding every single video", async () => {
+    // Retrying cannot fix an unset env var. Refusing here would mean nobody
+    // ever gets a video at all — strictly worse than one that plays for an
+    // hour while somebody notices the banner and fixes the config.
+    const { svc, updates, refunds } = makeService({
+      persistReturns: PROVIDER_URL,
+      reason: "not-configured",
+      createdAt: minutesAgo(45),
+    });
+    await svc.reconcile();
+    expect(refunds).toHaveLength(0);
+    expect(updates[0].data).toMatchObject({
+      status: "READY",
+      resultUrl: PROVIDER_URL,
+    });
   });
 });

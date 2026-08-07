@@ -189,6 +189,11 @@ export class VideoStudioService {
       topupBalance: acc.topupBalance,
       balance: acc.includedBalance + acc.topupBalance,
       providerReady: this.replicate.isConfigured() || this.gemini.isConfigured(),
+      // Without storage a finished video keeps a provider URL that dies
+      // within the hour, so the studio looks like it renders fine and then
+      // stops playing. Surfaced so that shows as a banner rather than being
+      // discovered days later.
+      storageReady: this.storage.isConfigured(),
       model: this.replicate.model,
       styles: this.styles().map((s) => ({
         id: s.id,
@@ -365,8 +370,12 @@ export class VideoStudioService {
             await this.failAndRefund(gen, "finished but produced no output");
             continue;
           }
-          const finalUrl = await this.persist(url, gen.kind);
-          if (finalUrl === url) {
+          const saved = await this.persist(url, gen.kind);
+          const finalUrl = saved.url;
+          // Storage being switched off is the operator's problem and no amount
+          // of retrying fixes it — a short-lived URL beats nobody ever getting
+          // a video. Only a transient failure is worth retrying then refunding.
+          if (!saved.rehosted && saved.reason !== "not-configured") {
             // persist() falls back to the provider URL when re-hosting fails.
             // A replicate.delivery link is publicly playable — for about an
             // hour. Storing one as a finished creation gives a video that
@@ -418,10 +427,14 @@ export class VideoStudioService {
     }
     // Veo's file endpoint needs the API key, so the download has to go through
     // the provider rather than persist()'s plain fetch.
-    const finalUrl = await this.persist(op.videoUri, gen.kind, (url) =>
+    const saved = await this.persist(op.videoUri, gen.kind, (url) =>
       this.gemini.fetchOutput(url),
     );
-    if (finalUrl === op.videoUri) {
+    const finalUrl = saved.url;
+    // Unlike Replicate, a Veo file URI needs our API key, so it is unplayable
+    // in a browser however fresh it is. There is no useful fallback: if we
+    // could not re-host it, there is nothing to hand over.
+    if (!saved.rehosted) {
       // persist() falls back to the provider URL when storage is unavailable.
       // For Replicate that URL is publicly playable; a Veo file URI is not —
       // it needs the key — so handing it to the browser would look like a
@@ -452,16 +465,26 @@ export class VideoStudioService {
     });
   }
 
-  /** Re-host the provider's (temporary) output to our own storage. */
+  /**
+   * Re-host the provider's (temporary) output to our own storage.
+   *
+   * Reports WHY it fell back, because the two reasons need opposite handling.
+   * "not-configured" is an operator problem no amount of retrying will fix —
+   * refusing the render there would mean nobody ever gets a video, so the
+   * short-lived provider URL is better than nothing. A failed download or
+   * upload is transient and worth retrying, then refunding.
+   */
   private async persist(
     providerUrl: string,
     kind?: string,
     fetcher?: (url: string) => Promise<Response>,
-  ): Promise<string> {
+  ): Promise<{ url: string; rehosted: boolean; reason?: string }> {
     try {
       if (!this.storage.isConfigured()) {
-        this.logger.warn("storage isn't configured — keeping the provider URL");
-        return providerUrl;
+        this.logger.error(
+          "VIDEO STUDIO: Supabase storage is NOT configured — videos keep a provider URL that expires within the hour. Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_STORAGE_BUCKET.",
+        );
+        return { url: providerUrl, rehosted: false, reason: "not-configured" };
       }
       const res = await (fetcher ? fetcher(providerUrl) : fetch(providerUrl));
       if (!res.ok) {
@@ -470,7 +493,7 @@ export class VideoStudioService {
         this.logger.warn(
           `download for re-hosting failed ${res.status} ${res.statusText}`,
         );
-        return providerUrl;
+        return { url: providerUrl, rehosted: false, reason: "download-failed" };
       }
       const buf = Buffer.from(await res.arrayBuffer());
       const isImage =
@@ -486,10 +509,17 @@ export class VideoStudioService {
             : "png"
         : "mp4";
       const folder = isImage ? "image-studio" : "video-studio";
-      return await this.storage.uploadBuffer(buf, contentType, folder, ext);
+      const stored = await this.storage.uploadBuffer(buf, contentType, folder, ext);
+      return { url: stored, rehosted: true };
     } catch (err: any) {
-      this.logger.warn(`persist to storage failed, keeping provider URL: ${err?.message}`);
-      return providerUrl;
+      // The likeliest cause by far is the bucket rejecting the file: a bucket
+      // created for menu images may restrict allowed MIME types to image/*, or
+      // cap file size below a 10-second video. Both surface here, and both
+      // read as "the video won't play" to whoever generated it.
+      this.logger.error(
+        `VIDEO STUDIO: re-hosting failed — ${err?.message}. Check the Supabase bucket allows video/mp4 and is large enough.`,
+      );
+      return { url: providerUrl, rehosted: false, reason: "upload-failed" };
     }
   }
 

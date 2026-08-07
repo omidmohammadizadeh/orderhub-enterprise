@@ -400,6 +400,15 @@ export default function VideoStudioPage() {
             </div>
           )}
 
+          {!status?.storageReady && (
+            <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              <strong>Videos won&apos;t stay playable.</strong> File storage
+              isn&apos;t configured, so finished videos keep a link from the AI
+              provider that expires within the hour. Set the Supabase storage
+              variables on the API service to fix it.
+            </div>
+          )}
+
           {/* Generations */}
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-zinc-500">
             Your creations

@@ -18,6 +18,9 @@ export interface VideoStatus {
   topupBalance: number;
   balance: number;
   providerReady: boolean;
+  /** False when file storage is off — finished videos then keep a provider
+   *  URL that expires within the hour. */
+  storageReady?: boolean;
   model: string;
   styles?: VideoStyle[];
   canTestActivate?: boolean;
