@@ -401,6 +401,24 @@ export default function VideoStudioPage() {
             </div>
           )}
 
+          {status?.providers && (
+            <p className="mt-4 text-xs text-zinc-500">
+              Renderer:{" "}
+              <strong className="text-zinc-800">
+                {status.providers.gemini
+                  ? "Google Veo (AI Studio)"
+                  : "Replicate"}
+              </strong>
+              {!status.providers.gemini && (
+                <>
+                  {" — "}
+                  Google isn&apos;t connected, so styles that ask for Veo fall
+                  back to Replicate. Set GEMINI_API_KEY to use Google.
+                </>
+              )}
+            </p>
+          )}
+
           <StorageDiagnostic />
 
           {!status?.storageReady && (

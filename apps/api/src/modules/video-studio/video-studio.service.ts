@@ -189,6 +189,17 @@ export class VideoStudioService {
       topupBalance: acc.topupBalance,
       balance: acc.includedBalance + acc.topupBalance,
       providerReady: this.replicate.isConfigured() || this.gemini.isConfigured(),
+      // WHICH renderer is live, not just "one of them is".
+      //
+      // A style can ask for Google Veo and silently fall back to Replicate
+      // when GEMINI_API_KEY is unset, so an operator who believes they are on
+      // Google AI Studio gets Replicate renders — and Replicate's output URLs
+      // are the ones that expire. Naming the live provider makes that visible
+      // instead of something you deduce from a broken video's hostname.
+      providers: {
+        gemini: this.gemini.isConfigured(),
+        replicate: this.replicate.isConfigured(),
+      },
       // Without storage a finished video keeps a provider URL that dies
       // within the hour, so the studio looks like it renders fine and then
       // stops playing. Surfaced so that shows as a banner rather than being
