@@ -239,6 +239,13 @@ function SubscriptionRow({
       apiClient.delete(`/v1/subscriptions/locations/${sub.locationId}`),
     onSuccess: onChanged,
   });
+  const resyncMutation = useMutation({
+    mutationFn: () =>
+      apiClient.post(
+        `/v1/subscriptions/locations/${sub.locationId}/resync-from-stripe`,
+      ),
+    onSuccess: onChanged,
+  });
 
   const monthly = (sub.monthlyAmountPence / 100).toFixed(2);
   const currencySym = sub.currency === "gbp" ? "£" : sub.currency.toUpperCase();
@@ -326,6 +333,23 @@ function SubscriptionRow({
             <Receipt className="w-3.5 h-3.5" />
             Invoices
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => resyncMutation.mutate()}
+              disabled={resyncMutation.isPending}
+              title="Pull the current status straight from Stripe — use this if you know a payment succeeded but the status here hasn't updated"
+              className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+            >
+              {resyncMutation.isPending ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Resync
+                </>
+              )}
+            </button>
+          )}
           {isAdmin && sub.status !== "canceled" && !sub.cancelAtPeriodEnd && (
             <button
               onClick={() => {

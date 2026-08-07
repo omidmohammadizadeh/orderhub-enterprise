@@ -504,6 +504,64 @@ export class SubscriptionsService {
     }
   }
 
+  /**
+   * Pulls the current truth straight from Stripe and mirrors it onto the
+   * MerchantSubscription row, instead of waiting for (or trying to replay)
+   * a webhook delivery. This is the only reliable fix once an event has
+   * already fired and been missed: Stripe has no way to redeliver an event
+   * to a destination that wasn't subscribed to that event type at the time
+   * — adding the event type afterwards doesn't backfill anything that
+   * already happened, it only starts new deliveries going forward.
+   */
+  async resyncFromStripe(
+    tenantId: string,
+    locationId: string,
+    userId?: string,
+    role?: string,
+  ) {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
+    const sub = await (this.prisma as any).merchantSubscription.findFirst({
+      where: { tenantId, locationId },
+    });
+    if (!sub) throw new NotFoundException("Subscription not found");
+    if (!this.stripe) {
+      throw new BadRequestException("Stripe isn't configured on this environment");
+    }
+    if (!sub.stripeSubscriptionId) {
+      throw new BadRequestException(
+        "No Stripe subscription id on file yet — nothing to resync",
+      );
+    }
+
+    const stripeSub = await this.stripe.subscriptions.retrieve(
+      sub.stripeSubscriptionId,
+      { expand: ["latest_invoice"] },
+    );
+    await this.syncFromStripeSubscription(stripeSub);
+    if (stripeSub.latest_invoice) {
+      await this.syncFromStripeInvoice(stripeSub.latest_invoice);
+    }
+
+    if (sub.stripeCustomerId) {
+      try {
+        const customer = await this.stripe.customers.retrieve(
+          sub.stripeCustomerId,
+        );
+        const pmId = customer?.invoice_settings?.default_payment_method;
+        if (pmId) {
+          const pm = await this.stripe.paymentMethods.retrieve(pmId);
+          await this.syncDefaultPaymentMethod(sub.stripeCustomerId, pm);
+        }
+      } catch (err: any) {
+        this.logger.warn(
+          `Payment method resync skipped for ${locationId}: ${err.message}`,
+        );
+      }
+    }
+
+    return this.getForLocation(tenantId, locationId, userId, role);
+  }
+
   // ── Webhook handlers ────────────────────────────────────────────
   //
   // Wired from billing/stripe-webhook.controller.ts. Each handler is

@@ -94,6 +94,24 @@ export class SubscriptionsController {
     return this.subs.restartCheckout(user.tenantId, locationId, user.userId, user.role);
   }
 
+  @Post("locations/:locationId/resync-from-stripe")
+  @Roles(...BILLING_ROLES)
+  @ApiOperation({
+    summary:
+      "Pull the current subscription/invoice/card status straight from Stripe — use when a webhook was missed",
+  })
+  resync(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+  ) {
+    return this.subs.resyncFromStripe(
+      user.tenantId,
+      locationId,
+      user.userId,
+      user.role,
+    );
+  }
+
   @Delete("locations/:locationId")
   @Roles(...BILLING_ROLES)
   @ApiOperation({
