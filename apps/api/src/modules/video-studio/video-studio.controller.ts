@@ -87,6 +87,16 @@ export class VideoStudioController {
   }
 
   // ── Admin/testing hooks (Stripe wiring replaces these in Phase 2) ─────────
+  @Get("admin/storage-check")
+  @Roles("PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Prove file storage accepts a video — returns Supabase's own error when it doesn't",
+  })
+  storageCheck() {
+    return this.studio.storageCheck();
+  }
+
   @Post("admin/activate")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
   @HttpCode(HttpStatus.OK)

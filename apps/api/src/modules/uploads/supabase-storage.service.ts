@@ -104,6 +104,70 @@ export class SupabaseStorageService {
    * the Video Studio to persist finished renders — the provider's output URL is
    * temporary, so we re-host it.
    */
+  /** Which bucket we write to — surfaced so a diagnostic can name it. */
+  bucketName(): string {
+    return this.bucket;
+  }
+
+  /**
+   * Prove an upload of this content type actually works, and return the real
+   * reason when it does not.
+   *
+   * Exists because every failure here surfaces to the operator as "the video
+   * won't play", with the actual cause — a bucket that only allows image/*,
+   * or a size cap below a short clip — visible nowhere. Guessing at that from
+   * the outside cost several rounds; asking Supabase directly answers it.
+   */
+  async selfTest(contentType = "video/mp4", ext = "mp4") {
+    if (!this.client) {
+      return {
+        ok: false as const,
+        bucket: this.bucket,
+        stage: "config" as const,
+        error:
+          "Supabase is not configured — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY",
+      };
+    }
+    // A few bytes is enough: we are testing permission and MIME acceptance,
+    // not throughput.
+    const path = `diagnostics/${randomUUID()}.${ext}`;
+    const body = new Blob([Buffer.from([0, 0, 0, 0])], { type: contentType });
+    const { error } = await this.client.storage
+      .from(this.bucket)
+      .upload(path, body, { contentType, upsert: false });
+    if (error) {
+      return {
+        ok: false as const,
+        bucket: this.bucket,
+        stage: "upload" as const,
+        error: error.message,
+      };
+    }
+    const { data } = this.client.storage.from(this.bucket).getPublicUrl(path);
+    // Read it back: an upload that succeeds into a PRIVATE bucket still
+    // produces a URL the browser cannot fetch, which looks identical to a
+    // dead link from the outside.
+    let readable = false;
+    let readError: string | undefined;
+    try {
+      const res = await fetch(data.publicUrl);
+      readable = res.ok;
+      if (!res.ok) readError = `${res.status} ${res.statusText}`;
+    } catch (err: any) {
+      readError = err?.message;
+    }
+    await this.client.storage.from(this.bucket).remove([path]);
+    return {
+      ok: readable,
+      bucket: this.bucket,
+      stage: readable ? ("ok" as const) : ("read" as const),
+      error: readable
+        ? undefined
+        : `Uploaded fine, but the public URL is not readable (${readError ?? "unknown"}) — the bucket is probably private.`,
+      publicUrl: data.publicUrl,
+    };
+  }
+
   async uploadBuffer(
     buffer: Buffer,
     contentType: string,

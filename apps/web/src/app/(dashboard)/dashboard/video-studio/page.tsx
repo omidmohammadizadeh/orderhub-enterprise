@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import {
   videoStudioClient,
+  type StorageCheck,
   type VideoGeneration,
 } from "@/lib/api/video-studio.client";
 import { uploadsClient } from "@/lib/api/catalog.client";
@@ -400,6 +401,8 @@ export default function VideoStudioPage() {
             </div>
           )}
 
+          <StorageDiagnostic />
+
           {!status?.storageReady && (
             <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
               <strong>Videos won&apos;t stay playable.</strong> File storage
@@ -523,5 +526,67 @@ function VideoTile({ url }: { url: string }) {
       onError={() => setFailed(true)}
       className="h-full w-full object-contain"
     />
+  );
+}
+
+
+/**
+ * One button that answers "why did my video disappear".
+ *
+ * Every failure in the re-hosting path surfaces to the operator as a dead
+ * video with no cause attached, and the cause is almost always a bucket
+ * setting only Supabase can report. Working that out from the outside cost
+ * several rounds of guessing; this asks directly.
+ */
+function StorageDiagnostic() {
+  const [result, setResult] = useState<StorageCheck | null>(null);
+  const check = useMutation({
+    mutationFn: () => videoStudioClient.storageCheck(),
+    onSuccess: setResult,
+  });
+
+  return (
+    <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => check.mutate()}
+          disabled={check.isPending}
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:border-zinc-300 disabled:opacity-50"
+        >
+          {check.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          Check file storage
+        </button>
+        <span className="text-[11px] text-zinc-500">
+          Run this if a finished video won&apos;t play — it reports whether we
+          can actually save one.
+        </span>
+      </div>
+
+      {result && (
+        <div className="mt-3 space-y-1.5 text-xs">
+          <p className="text-zinc-600">
+            Bucket: <code className="text-zinc-900">{result.bucket}</code>
+          </p>
+          <p className={result.video.ok ? "text-emerald-700" : "text-red-700"}>
+            {result.video.ok ? "✓" : "✕"} Video (mp4)
+            {result.video.error ? ` — ${result.video.error}` : ""}
+          </p>
+          <p className={result.image.ok ? "text-emerald-700" : "text-red-700"}>
+            {result.image.ok ? "✓" : "✕"} Image (png)
+            {result.image.error ? ` — ${result.image.error}` : ""}
+          </p>
+          {result.likelyCause && (
+            <p className="rounded bg-amber-50 p-2 text-amber-900">
+              {result.likelyCause}
+            </p>
+          )}
+        </div>
+      )}
+      {check.isError && (
+        <p className="mt-2 text-xs text-red-600">
+          Couldn&apos;t run the check.
+        </p>
+      )}
+    </div>
   );
 }

@@ -40,7 +40,19 @@ export interface VideoGeneration {
   createdAt: string;
 }
 
+export interface StorageCheck {
+  bucket: string;
+  video: { ok: boolean; stage: string; error?: string };
+  image: { ok: boolean; stage: string; error?: string };
+  likelyCause: string | null;
+}
+
 export const videoStudioClient = {
+  storageCheck: () =>
+    apiClient
+      .get<StorageCheck>("/v1/video-studio/admin/storage-check")
+      .then((r) => r.data),
+
   status: () => apiClient.get<VideoStatus>("/v1/video-studio").then((r) => r.data),
   generate: (body: {
     imageUrl?: string;

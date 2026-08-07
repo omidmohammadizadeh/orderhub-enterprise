@@ -523,6 +523,29 @@ export class VideoStudioService {
     }
   }
 
+  /**
+   * End-to-end check of the thing that has been failing silently: can we
+   * upload an mp4 and read it back publicly?
+   */
+  async storageCheck() {
+    const video = await this.storage.selfTest("video/mp4", "mp4");
+    const image = await this.storage.selfTest("image/png", "png");
+    return {
+      bucket: this.storage.bucketName(),
+      video,
+      image,
+      // The most common shape of this failure: a bucket set up for menu
+      // images accepts png and rejects mp4, so images work, videos vanish,
+      // and nothing says why.
+      likelyCause:
+        !video.ok && image.ok
+          ? "The bucket accepts images but not video/mp4 — check its Allowed MIME types and file size limit in Supabase."
+          : !video.ok && !image.ok
+            ? video.error
+            : null,
+    };
+  }
+
   /** Mark a generation FAILED and refund its credit exactly once. */
   private async failAndRefund(gen: any, message: string): Promise<void> {
     await this.prisma.$transaction(async (tx: any) => {
