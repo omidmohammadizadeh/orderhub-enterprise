@@ -527,14 +527,37 @@ export class SubscriptionsService {
     if (!this.stripe) {
       throw new BadRequestException("Stripe isn't configured on this environment");
     }
-    if (!sub.stripeSubscriptionId) {
-      throw new BadRequestException(
-        "No Stripe subscription id on file yet — nothing to resync",
-      );
+
+    // The subscription id is only ever filled in by the
+    // customer.subscription.* webhook — the customer id is set
+    // synchronously at plan-creation time, well before that. A row can
+    // easily have one and not the other if that webhook was missed (the
+    // exact situation this method exists to repair), so fall back to
+    // looking the subscription up by customer instead of requiring the id
+    // to already be on file.
+    let stripeSubscriptionId = sub.stripeSubscriptionId;
+    if (!stripeSubscriptionId) {
+      if (!sub.stripeCustomerId) {
+        throw new BadRequestException(
+          "No Stripe customer or subscription on file yet — nothing to resync",
+        );
+      }
+      const list = await this.stripe.subscriptions.list({
+        customer: sub.stripeCustomerId,
+        status: "all",
+        limit: 1,
+      });
+      const found = list.data?.[0];
+      if (!found) {
+        throw new BadRequestException(
+          "Stripe has no subscription for this customer yet — nothing to resync",
+        );
+      }
+      stripeSubscriptionId = found.id;
     }
 
     const stripeSub = await this.stripe.subscriptions.retrieve(
-      sub.stripeSubscriptionId,
+      stripeSubscriptionId,
       { expand: ["latest_invoice"] },
     );
     await this.syncFromStripeSubscription(stripeSub);
