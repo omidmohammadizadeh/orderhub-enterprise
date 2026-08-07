@@ -123,3 +123,48 @@ describe("storage switched off is the operator's problem, not the render's", () 
     });
   });
 });
+
+describe("failures say what actually went wrong", () => {
+  const svc = () => {
+    const s = Object.create(VideoStudioService.prototype) as any;
+    s.logger = { log() {}, warn() {}, error() {} };
+    return s;
+  };
+
+  it("names the status when the render can't be downloaded", async () => {
+    const s = svc();
+    s.storage = { isConfigured: () => true };
+    const out = await s.persist("https://x/v.mp4", "VIDEO", async () => ({
+      ok: false,
+      status: 403,
+      statusText: "Forbidden",
+    }));
+    // "couldn't save the finished video" told the operator nothing they could
+    // act on; a 403 points straight at the credential.
+    expect(out.rehosted).toBe(false);
+    expect(out.detail).toContain("403");
+  });
+
+  it("passes the storage error through verbatim", async () => {
+    const s = svc();
+    s.storage = {
+      isConfigured: () => true,
+      uploadBuffer: async () => {
+        throw new Error("mime type video/mp4 is not supported");
+      },
+    };
+    const out = await s.persist("https://x/v.mp4", "VIDEO", async () => ({
+      ok: true,
+      headers: { get: () => "video/mp4" },
+      arrayBuffer: async () => new ArrayBuffer(4),
+    }));
+    expect(out.detail).toContain("mime type video/mp4 is not supported");
+  });
+
+  it("says so plainly when storage was never configured", async () => {
+    const s = svc();
+    s.storage = { isConfigured: () => false };
+    const out = await s.persist("https://x/v.mp4");
+    expect(out.detail).toMatch(/storage isn't configured/i);
+  });
+});

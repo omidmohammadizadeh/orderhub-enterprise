@@ -20,6 +20,28 @@ import { ConfigService } from "@nestjs/config";
 //   → { name: "models/.../operations/..." }
 //   GET /v1beta/{operation name} → { done, response?, error? }
 
+/**
+ * Pull the human-readable reason out of a Google API error body.
+ *
+ * Shape is {"error":{"code":400,"message":"…","status":"INVALID_ARGUMENT"}},
+ * but a gateway can return HTML instead, so anything unparseable degrades to
+ * a trimmed snippet rather than throwing inside an error path.
+ */
+function geminiReason(body: string): string {
+  if (!body) return "";
+  try {
+    const parsed = JSON.parse(body);
+    const msg = parsed?.error?.message;
+    if (typeof msg === "string" && msg.trim()) {
+      return ` — ${msg.trim().slice(0, 300)}`;
+    }
+  } catch {
+    /* not JSON; fall through to the snippet below */
+  }
+  const snippet = body.replace(/\s+/g, " ").trim().slice(0, 200);
+  return snippet ? ` — ${snippet}` : "";
+}
+
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 export interface GeminiOperationStatus {
@@ -130,7 +152,15 @@ export class GeminiVideoProvider {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       this.logger.error(`Gemini create failed ${res.status}: ${text.slice(0, 500)}`);
-      throw new Error(`Gemini render request failed (${res.status})`);
+      // Carry Google's own words through to the operator. "(400)" on its own
+      // is unactionable, and the real reason is usually something they can
+      // fix themselves in one edit — a prompt Veo's safety filters refuse
+      // (people, and anything reading as a minor, are common), an aspect
+      // ratio the model does not take, or an image it rejects. All of that
+      // was going only to the server log.
+      throw new Error(
+        `Gemini render request failed (${res.status})${geminiReason(text)}`,
+      );
     }
     const json = (await res.json()) as { name?: string };
     if (!json?.name) throw new Error("Gemini returned no operation name");

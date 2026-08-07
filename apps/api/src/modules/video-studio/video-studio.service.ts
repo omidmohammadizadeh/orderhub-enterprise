@@ -409,7 +409,10 @@ export class VideoStudioService {
                 ageMs / 60000,
               )}m — refunding rather than storing a URL that will expire`,
             );
-            await this.failAndRefund(gen, "couldn't save the finished video");
+            await this.failAndRefund(
+              gen,
+              saved.detail ?? "couldn't save the finished video",
+            );
             continue;
           }
           await this.db().videoGeneration.update({
@@ -467,7 +470,10 @@ export class VideoStudioService {
           ageMs / 60000,
         )}m — refunding rather than storing an unplayable URI`,
       );
-      await this.failAndRefund(gen, "couldn't save the finished video");
+      await this.failAndRefund(
+        gen,
+        saved.detail ?? "couldn't save the finished video",
+      );
       return;
     }
     await this.db().videoGeneration.update({
@@ -489,13 +495,23 @@ export class VideoStudioService {
     providerUrl: string,
     kind?: string,
     fetcher?: (url: string) => Promise<Response>,
-  ): Promise<{ url: string; rehosted: boolean; reason?: string }> {
+  ): Promise<{
+    url: string;
+    rehosted: boolean;
+    reason?: string;
+    detail?: string;
+  }> {
     try {
       if (!this.storage.isConfigured()) {
         this.logger.error(
           "VIDEO STUDIO: Supabase storage is NOT configured — videos keep a provider URL that expires within the hour. Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_STORAGE_BUCKET.",
         );
-        return { url: providerUrl, rehosted: false, reason: "not-configured" };
+        return {
+          url: providerUrl,
+          rehosted: false,
+          reason: "not-configured",
+          detail: "file storage isn't configured",
+        };
       }
       const res = await (fetcher ? fetcher(providerUrl) : fetch(providerUrl));
       if (!res.ok) {
@@ -504,7 +520,12 @@ export class VideoStudioService {
         this.logger.warn(
           `download for re-hosting failed ${res.status} ${res.statusText}`,
         );
-        return { url: providerUrl, rehosted: false, reason: "download-failed" };
+        return {
+          url: providerUrl,
+          rehosted: false,
+          reason: "download-failed",
+          detail: `couldn't download the render (${res.status} ${res.statusText})`,
+        };
       }
       const buf = Buffer.from(await res.arrayBuffer());
       const isImage =
@@ -530,7 +551,12 @@ export class VideoStudioService {
       this.logger.error(
         `VIDEO STUDIO: re-hosting failed — ${err?.message}. Check the Supabase bucket allows video/mp4 and is large enough.`,
       );
-      return { url: providerUrl, rehosted: false, reason: "upload-failed" };
+      return {
+        url: providerUrl,
+        rehosted: false,
+        reason: "upload-failed",
+        detail: `couldn't store the file — ${err?.message ?? "unknown error"}`,
+      };
     }
   }
 
