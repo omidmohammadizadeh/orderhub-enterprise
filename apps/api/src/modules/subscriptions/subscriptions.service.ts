@@ -21,6 +21,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { SubscriptionAlertEmailService } from "./subscription-alert-email.service";
 
 // Stripe SDK is optional at runtime so dev environments without the key
 // can still boot (returns mock IDs in that mode).
@@ -42,6 +43,7 @@ export class SubscriptionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly alertEmail: SubscriptionAlertEmailService,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -635,6 +637,7 @@ export class SubscriptionsService {
     if (!subId) return;
     const sub = await (this.prisma as any).merchantSubscription.findFirst({
       where: { stripeSubscriptionId: subId },
+      include: { location: { select: { name: true } } },
     });
     if (!sub) return;
     const lastFailureMessage =
@@ -650,6 +653,42 @@ export class SubscriptionsService {
         lastFailureMessage,
       },
     });
+
+    // "paid" is the only status that isn't a problem — open/uncollectible/
+    // void all mean the client didn't successfully pay. Stripe fires a
+    // distinct event per real attempt (our webhook controller already
+    // dedupes literal redeliveries of the same event before this runs),
+    // so one email per genuine failed attempt is the right cadence, not
+    // spam from retried deliveries of the same one.
+    if (invoice.status !== "paid") {
+      let clientEmail: string | null = null;
+      if (this.stripe && sub.stripeCustomerId) {
+        try {
+          const customer = await this.stripe.customers.retrieve(
+            sub.stripeCustomerId,
+          );
+          clientEmail = customer?.deleted ? null : (customer?.email ?? null);
+        } catch (err: any) {
+          this.logger.warn(
+            `Couldn't look up client email for payment-failed notice (${sub.locationId}): ${err.message}`,
+          );
+        }
+      }
+      await this.alertEmail
+        .notifyPaymentFailed({
+          locationName: sub.location?.name ?? "Your location",
+          amountDue: invoice.amount_due ?? 0,
+          currency: invoice.currency ?? sub.currency ?? "gbp",
+          failureMessage: lastFailureMessage,
+          clientEmail,
+          manageUrl: `${this.webBase()}/dashboard/subscription`,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Payment-failed notification failed for ${sub.locationId}: ${err.message}`,
+          ),
+        );
+    }
   }
 
   async syncDefaultPaymentMethod(customerId: string, pm: any) {

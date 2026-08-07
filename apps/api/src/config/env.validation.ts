@@ -126,6 +126,10 @@ const envSchema = z.object({
   EMAIL_FROM: z
     .string()
     .default("Order Hub <hello@orderhubsolutions.com>"),
+  // Where "a merchant's subscription payment failed" alerts go on our side.
+  // Unset just means that half of the notification is skipped (logged, not
+  // sent) — the client still gets theirs.
+  BILLING_ALERT_EMAIL: z.string().email().optional(),
 
   // Socket.IO
   SOCKET_CORS_ORIGIN: z.string().default("http://localhost:3000"),
