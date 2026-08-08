@@ -63,14 +63,20 @@ export function ChargeReaderModal({
   const [readerId, setReaderId] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [regCode, setRegCode] = useState("");
-  // WisePad 3 (Bluetooth) is only available inside the native app, where the
-  // Stripe Terminal SDK is wired to window.OrderHubTerminal (see the mobile
-  // app's PosWebView bridge). On the desktop dashboard this stays hidden.
-  const nativeReader =
-    typeof window !== "undefined" &&
-    (window as { OrderHubTerminal?: { isReady?: boolean } }).OrderHubTerminal
-      ?.isReady === true;
-  const [method, setMethod] = useState<"server" | "wisepad">("server");
+  // WisePad 3 (Bluetooth) and Tap to Pay (this device's own NFC) are only
+  // available inside the native app, where the Stripe Terminal SDK is wired
+  // to window.OrderHubTerminal (see the mobile app's PosWebView bridge). On
+  // the desktop dashboard both stay hidden. Tap to Pay additionally needs
+  // the native side's own OS/hardware eligibility check to have passed
+  // (iOS 16.4+ / Android 11+) — see PosWebView's TAP_TO_PAY_SUPPORTED.
+  const ohTerminal =
+    typeof window !== "undefined"
+      ? (window as { OrderHubTerminal?: { isReady?: boolean; tapToPaySupported?: boolean } })
+          .OrderHubTerminal
+      : undefined;
+  const nativeReader = ohTerminal?.isReady === true;
+  const tapToPayAvailable = nativeReader && ohTerminal?.tapToPaySupported === true;
+  const [method, setMethod] = useState<"server" | "wisepad" | "tapToPay">("server");
   const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   // Simulated reader — verify the flow with no hardware (test mode only).
@@ -96,6 +102,8 @@ export function ChargeReaderModal({
       // for a split, where the mobile charge endpoint takes no amount
       // and would put the WHOLE bill on one person's card.
       setMethod(nativeReader && !isPart ? "wisepad" : "server");
+      // (Tap to Pay isn't the default even when available — WisePad 3 stays
+      // the operator's expected first tab; Tap to Pay is an extra option.)
       setConnectedLabel(null);
       setConnecting(false);
       setSimulate(false);
@@ -152,18 +160,25 @@ export function ChargeReaderModal({
     }
   };
 
-  // ── WisePad 3 (native app): connect the Bluetooth reader, then charge ─────
+  // ── On-device reader (native app): WisePad 3 (Bluetooth) or Tap to Pay
+  // (this device's own NFC) — both drive the same Stripe Terminal SDK
+  // session and the same charge/poll flow below, just a different
+  // discovery method under the hood (see services/terminal.ts).
   const oh = () =>
     (
       window as {
         OrderHubTerminal?: {
-          connect: (loc?: string, simulated?: boolean) => Promise<{ label: string }>;
+          connect: (
+            loc?: string,
+            simulated?: boolean,
+            readerType?: "wisepad" | "tapToPay",
+          ) => Promise<{ label: string }>;
           pay: (clientSecret: string) => Promise<{ status: string }>;
         };
       }
     ).OrderHubTerminal;
 
-  const connectWisepad = async () => {
+  const connectOnDeviceReader = async () => {
     setError(null);
     setConnecting(true);
     try {
@@ -174,8 +189,19 @@ export function ChargeReaderModal({
       if (!stripeLocationId) {
         throw new Error("Couldn't prepare the reader for this location.");
       }
-      const res = await oh()!.connect(stripeLocationId, simulate);
-      setConnectedLabel(res?.label ?? (simulate ? "Simulated reader" : "WisePad 3"));
+      const res = await oh()!.connect(
+        stripeLocationId,
+        simulate,
+        method === "tapToPay" ? "tapToPay" : "wisepad",
+      );
+      setConnectedLabel(
+        res?.label ??
+          (method === "tapToPay"
+            ? "Tap to Pay"
+            : simulate
+              ? "Simulated reader"
+              : "WisePad 3"),
+      );
       toast.success("Reader connected");
     } catch (e: any) {
       setError(
@@ -186,7 +212,20 @@ export function ChargeReaderModal({
     }
   };
 
-  const chargeWisepad = async () => {
+  // WisePad 3 and Tap to Pay are separate native connections (Bluetooth vs
+  // this device's NFC) — the SDK can only be connected to one at a time, so
+  // a connectedLabel carried over from the other one would misrepresent
+  // what's actually paired. Switching to/from "server" doesn't need this:
+  // that mode never touches connectedLabel.
+  const selectOnDeviceMethod = (m: "wisepad" | "tapToPay") => {
+    if (method !== m && (method === "wisepad" || method === "tapToPay")) {
+      setConnectedLabel(null);
+      setError(null);
+    }
+    setMethod(m);
+  };
+
+  const chargeOnDeviceReader = async () => {
     setError(null);
     setPhase("charging");
     try {
@@ -283,15 +322,27 @@ export function ChargeReaderModal({
           {nativeReader && !isPart && phase !== "paid" && (
             <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 text-xs font-medium">
               <button
-                onClick={() => setMethod("wisepad")}
+                onClick={() => selectOnDeviceMethod("wisepad")}
                 className={`flex-1 rounded-md px-2 py-1.5 ${
                   method === "wisepad"
                     ? "bg-white text-zinc-900 shadow-sm"
                     : "text-zinc-500"
                 }`}
               >
-                WisePad 3 (this device)
+                WisePad 3
               </button>
+              {tapToPayAvailable && (
+                <button
+                  onClick={() => selectOnDeviceMethod("tapToPay")}
+                  className={`flex-1 rounded-md px-2 py-1.5 ${
+                    method === "tapToPay"
+                      ? "bg-white text-zinc-900 shadow-sm"
+                      : "text-zinc-500"
+                  }`}
+                >
+                  Tap to Pay
+                </button>
+              )}
               <button
                 onClick={() => setMethod("server")}
                 className={`flex-1 rounded-md px-2 py-1.5 ${
@@ -310,12 +361,14 @@ export function ChargeReaderModal({
               <CheckCircle2 className="h-10 w-10" />
               <p className="font-semibold">Paid</p>
             </div>
-          ) : method === "wisepad" ? (
+          ) : method === "wisepad" || method === "tapToPay" ? (
             <div className="space-y-3">
               <p className="text-sm text-zinc-600">
                 {connectedLabel
                   ? `Connected: ${connectedLabel}`
-                  : "Connect the WisePad 3 over Bluetooth, then take the payment on the reader."}
+                  : method === "tapToPay"
+                    ? "Connect Tap to Pay, then hold the customer's card or phone to the back of this device."
+                    : "Connect the WisePad 3 over Bluetooth, then take the payment on the reader."}
               </p>
               {testMode && !connectedLabel && phase !== "waiting" && (
                 <label className="flex items-center gap-2 rounded-md bg-violet-50 px-3 py-2 text-xs text-violet-800">
@@ -331,23 +384,29 @@ export function ChargeReaderModal({
               {phase === "waiting" ? (
                 <div className="flex flex-col items-center gap-2 py-3 text-zinc-600">
                   <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-                  <p className="text-sm">Follow the prompts on the reader…</p>
+                  <p className="text-sm">
+                    {method === "tapToPay"
+                      ? "Hold the card or phone to the back of this device…"
+                      : "Follow the prompts on the reader…"}
+                  </p>
                 </div>
               ) : !connectedLabel ? (
                 <Button
-                  onClick={connectWisepad}
+                  onClick={connectOnDeviceReader}
                   disabled={connecting}
                   className="w-full bg-violet-600 py-3 text-white hover:bg-violet-700"
                 >
                   {connecting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : method === "tapToPay" ? (
+                    "Connect Tap to Pay"
                   ) : (
                     "Connect WisePad 3"
                   )}
                 </Button>
               ) : (
                 <Button
-                  onClick={chargeWisepad}
+                  onClick={chargeOnDeviceReader}
                   disabled={phase === "charging"}
                   className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
                 >
@@ -367,7 +426,11 @@ export function ChargeReaderModal({
                       NOT have recorded anything. */}
                   {phase === "error" && (
                     <Button
-                      onClick={method === "wisepad" ? chargeWisepad : startCharge}
+                      onClick={
+                        method === "wisepad" || method === "tapToPay"
+                          ? chargeOnDeviceReader
+                          : startCharge
+                      }
                       className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
                     >
                       Try again — £{chargeAmount.toFixed(2)}

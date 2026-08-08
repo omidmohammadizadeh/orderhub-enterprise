@@ -21,6 +21,9 @@
       "bundleIdentifier": "com.orderhubsolutions.pos",
       "buildNumber": "2",
       "usesAppleSignIn": true,
+      "entitlements": {
+        "com.apple.developer.proximity-reader.payment.acceptance": true
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
@@ -50,7 +53,8 @@
         "BLUETOOTH_SCAN",
         "BLUETOOTH_CONNECT",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "NFC"
       ]
     },
     "plugins": [
@@ -63,7 +67,8 @@
           "bluetoothBackgroundMode": true,
           "locationWhenInUsePermission": "Location is required by the payments provider to accept card payments.",
           "bluetoothPeripheralPermission": "Bluetooth is required to connect to card readers and receipt printers.",
-          "bluetoothAlwaysUsagePermission": "Bluetooth is required to connect to card readers and receipt printers."
+          "bluetoothAlwaysUsagePermission": "Bluetooth is required to connect to card readers and receipt printers.",
+          "tapToPayCheck": true
         }
       ],
       [

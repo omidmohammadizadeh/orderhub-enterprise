@@ -23,7 +23,7 @@
 //      in the system browser, not inside the WebView).
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import * as Linking from "expo-linking";
@@ -48,6 +48,22 @@ import { terminalController } from "@/services/terminal";
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
   "https://www.orderhubsolutions.com";
+
+// Tap to Pay hardware/OS eligibility — a cheap heuristic, not the SDK's own
+// supportsReadersOfType() check (that needs an initialised Terminal session,
+// and initialize() is deliberately lazy — see services/terminal.ts — so it
+// can't run just to decide whether to show a button). Good enough to hide the
+// option on devices that plainly can't do it; a genuinely unsupported device
+// that slips through this still gets a clear error from the SDK at connect
+// time, same as every other reader failure mode in this app.
+// iOS: Tap to Pay on iPhone needs iOS 16.4+. Android: Tap to Pay needs
+// Android 11 (API 30)+; NFC hardware presence isn't checked here.
+const TAP_TO_PAY_SUPPORTED: boolean =
+  Platform.OS === "ios"
+    ? parseFloat(String(Platform.Version)) >= 16.4
+    : Platform.OS === "android"
+      ? Number(Platform.Version) >= 30
+      : false;
 
 interface Props {
   tokens: AuthTokens;
@@ -206,17 +222,21 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           }
         };
 
-        // BBPOS WisePad 3 card reader. The web POS creates the charge
+        // BBPOS WisePad 3 (Bluetooth) or Tap to Pay (this device's own NFC)
+        // card reader. The web POS creates the charge
         // (POST /payments/terminal/charge/mobile → clientSecret), then:
-        //   OrderHubTerminal.connect(stripeLocationId?)  → pair the reader
+        //   OrderHubTerminal.connect(stripeLocationId?, simulated?, readerType?)
+        //     → pair the reader ("wisepad" default, or "tapToPay")
         //   OrderHubTerminal.pay(clientSecret)           → collect on reader
         // then polls /payments/terminal/charge/status to settle the order.
         window.OrderHubTerminal = {
           isReady: true,
-          connect: function (stripeLocationId, simulated) {
+          tapToPaySupported: ${TAP_TO_PAY_SUPPORTED},
+          connect: function (stripeLocationId, simulated, readerType) {
             return request('terminal:connect', {
               stripeLocationId: stripeLocationId || null,
-              simulated: !!simulated
+              simulated: !!simulated,
+              readerType: readerType || null
             });
           },
           pay: function (clientSecret) {
@@ -297,13 +317,16 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         }
       } else if (msg?.type === "terminal:connect" && msg?.reqId) {
         try {
-          const { stripeLocationId, simulated } = (msg.payload ?? {}) as {
-            stripeLocationId?: string | null;
-            simulated?: boolean;
-          };
+          const { stripeLocationId, simulated, readerType } =
+            (msg.payload ?? {}) as {
+              stripeLocationId?: string | null;
+              simulated?: boolean;
+              readerType?: "wisepad" | "tapToPay" | null;
+            };
           const res = await terminalController.connect(
             stripeLocationId || undefined,
             !!simulated,
+            readerType || undefined,
           );
           respond(msg.reqId, res);
         } catch (err: any) {

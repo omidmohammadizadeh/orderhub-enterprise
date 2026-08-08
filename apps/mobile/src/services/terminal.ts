@@ -117,6 +117,9 @@ async function withTimeout<T>(
 type ConnectFn = (
   stripeLocationId?: string,
   simulated?: boolean,
+  /** "tapToPay" turns THIS device's own NFC into the reader (iOS/Android).
+   *  Anything else (or omitted) keeps the existing WisePad 3 Bluetooth path. */
+  readerType?: "wisepad" | "tapToPay",
 ) => Promise<{ label: string }>;
 type PayFn = (clientSecret: string) => Promise<{ status: string }>;
 
@@ -193,7 +196,7 @@ export function TerminalHost(): React.ReactElement | null {
       initialized = true;
     };
 
-    const connect: ConnectFn = async (stripeLocationId, simulated) => {
+    const connect: ConnectFn = async (stripeLocationId, simulated, readerType) => {
       // One connect at a time. discoverReaders runs a CONTINUOUS background scan
       // in this SDK — a second connect while one is mid-flight throws "SDK is
       // busy with another command: discoverReaders". Serialise + always cancel.
@@ -218,6 +221,39 @@ export function TerminalHost(): React.ReactElement | null {
         tlog("init…");
         await withTimeout(ensureInit(), 20000, "Reader setup"); // first SDK activity
         initMode = wantMode;
+
+        // TAP TO PAY: this device's own NFC hardware IS the reader — no
+        // Bluetooth pairing, no separate physical unit. discoverReaders +
+        // connectReader collapse into one easyConnect call, same as the
+        // simulated-internet test drive below, except there's only ever
+        // ONE reader (the phone itself) so there's no "multiple readers
+        // found" ambiguity to fall back from. `simulated` still works here
+        // — Stripe's Tap to Pay simulator lets you test without tapping a
+        // real card. `tosAcceptancePermitted` lets the SDK show Apple's
+        // required first-use terms sheet itself instead of us building one.
+        if (readerType === "tapToPay") {
+          if (!stripeLocationId) {
+            throw new Error(
+              "Missing the reader's Stripe location — register a reader for this location first, then retry.",
+            );
+          }
+          tlog("easyConnect tapToPay…", { simulated: !!simulated });
+          const { reader: ttpReader, error: ttpErr } = await withTimeout(
+            easyConnect({
+              discoveryMethod: "tapToPay",
+              simulated: !!simulated,
+              locationId: stripeLocationId,
+              tosAcceptancePermitted: true,
+            }),
+            30000,
+            "Tap to Pay connect",
+          );
+          if (ttpErr) throw new Error(ttpErr.message);
+          const ttpLabel: string = ttpReader?.label ?? "Tap to Pay";
+          terminalController.connectedLabel = ttpLabel;
+          tlog("connected", { label: ttpLabel });
+          return { label: ttpLabel };
+        }
 
         // SIMULATED test drive: skip Bluetooth entirely. This SDK build's
         // simulated BLE discovery never delivered readers to JS (every attempt
