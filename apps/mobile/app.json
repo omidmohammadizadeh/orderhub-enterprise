@@ -67,8 +67,7 @@
           "bluetoothBackgroundMode": true,
           "locationWhenInUsePermission": "Location is required by the payments provider to accept card payments.",
           "bluetoothPeripheralPermission": "Bluetooth is required to connect to card readers and receipt printers.",
-          "bluetoothAlwaysUsagePermission": "Bluetooth is required to connect to card readers and receipt printers.",
-          "tapToPayCheck": true
+          "bluetoothAlwaysUsagePermission": "Bluetooth is required to connect to card readers and receipt printers."
         }
       ],
       [

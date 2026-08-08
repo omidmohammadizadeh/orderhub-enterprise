@@ -21,6 +21,18 @@
 //   signatures below track the SDK's documented API — pin the version and
 //   verify against it after install (the SDK's connect/collect names have
 //   shifted across versions; the version-sensitive calls are flagged).
+//
+// ⚠️ ANDROID PLUGIN NOTE: app.json's stripe-terminal-react-native plugin
+// config deliberately does NOT set "tapToPayCheck": true. Stripe's docs
+// call for it — it injects an early-return guard into MainApplication.
+// onCreate() (`if (TapToPay.isInTapToPayProcess()) { return }`) meant to
+// skip normal init during an OS-triggered Tap to Pay relaunch. On this
+// SDK's beta (0.0.1-beta.31) it fired on an ORDINARY cold launch too,
+// hanging the whole app on the splash screen — not just Tap to Pay,
+// EVERYTHING, since onCreate() returned before React Native finished
+// initialising. Re-enable it only after confirming (via adb logcat on a
+// real device) that isInTapToPayProcess() no longer misfires, ideally on a
+// newer SDK release.
 
 import React from "react";
 import { Platform, PermissionsAndroid } from "react-native";
