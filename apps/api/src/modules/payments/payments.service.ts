@@ -1613,8 +1613,11 @@ export class PaymentsService {
    * follow-up Stripe calls (capture / cancel / refund) use the same
    * direct-charge context. Falls back to the location's saved
    * Connect account if the Payment row pre-dates direct charges.
+   * Public — TerminalService reuses this for the same reason (poll +
+   * refund/cancel on a terminal-sourced Payment must hit the same
+   * account the PaymentIntent actually lives on).
    */
-  private async stripeAccountForPayment(payment: any): Promise<string | null> {
+  async stripeAccountForPayment(payment: any): Promise<string | null> {
     if (payment?.stripeConnectAccountId) {
       const row = await (this.prisma as any).stripeConnectAccount.findUnique({
         where: { id: payment.stripeConnectAccountId },
@@ -1634,13 +1637,23 @@ export class PaymentsService {
       // location/tenant account instead — so retrieve/capture/cancel/refund
       // hit the wrong account → "No such checkout.session" → card orders never
       // authorised and never appeared on the board.
+      //
+      // Terminal charges (S700 / WisePad 3 / Tap to Pay) are the opposite —
+      // a physical reader or an SDK connection session is fixed to ONE
+      // account for its whole lifetime, resolved at the LOCATION level
+      // (TerminalService never passes brandId when setting one up). Re-
+      // resolving WITH brandId here for a terminal Payment could land on a
+      // brand's own escape-hatch acct_… — a DIFFERENT account than the one
+      // the PaymentIntent actually lives on — so refund/cancel/poll must
+      // skip brandId for terminal-sourced rows.
       select: { tenantId: true, locationId: true, brandId: true },
     });
     if (!order) return null;
+    const isTerminal = (payment.metadata as any)?.source === "terminal";
     const connect = await this.resolveConnectAccount(
       order.tenantId,
       order.locationId,
-      order.brandId ?? null,
+      isTerminal ? null : (order.brandId ?? null),
     );
     return connect?.stripeAccountId ?? null;
   }

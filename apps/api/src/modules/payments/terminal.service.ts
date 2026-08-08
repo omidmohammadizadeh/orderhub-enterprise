@@ -25,6 +25,11 @@ export interface StoredReader {
   deviceType: string | null;
   simulated: boolean;
   addedAt: string;
+  // Direct-charge account this reader is registered on (Stripe requires the
+  // reader and any PaymentIntent it processes to live on the SAME account).
+  // Absent for simulated readers (no connected account in test mode) and
+  // for readers registered before the direct-charge migration.
+  stripeAccountId?: string | null;
 }
 interface TerminalConfig {
   stripeLocationId: string | null; // tml_… (LIVE mode)
@@ -40,13 +45,22 @@ interface TerminalConfig {
 // to it from the server (no native SDK, no per-tablet pairing) — so iPad,
 // Android, and desktop dashboard all drive the same counter reader.
 //
-// Flow per charge (destination charge, so the money lands in the location's
-// connected account with our application fee, exactly like online orders):
-//   1. create a card_present PaymentIntent (automatic capture)
-//   2. readers.processPaymentIntent(reader, { payment_intent }) → reader
-//      prompts tap/insert/PIN
-//   3. success → webhook (metadata.source="terminal") OR the poll endpoint
-//      settles it → order PAID.
+// Flow per charge (DIRECT charge — the Location, Reader, and PaymentIntent
+// all live ON the connected account, so Stripe's own processing fee is
+// deducted from the restaurant's balance, exactly like online orders. Only
+// our own application_fee_amount is transferred back to the platform):
+//   1. create a card_present PaymentIntent (automatic capture) with the
+//      {stripeAccount} request option
+//   2. readers.processPaymentIntent(reader, { payment_intent }, {stripeAccount})
+//      → reader prompts tap/insert/PIN
+//   3. success → webhook (metadata.source="terminal", Connect-scoped event)
+//      OR the poll endpoint settles it → order PAID.
+//
+// A reader/connection-token is fixed to ONE account for its whole lifetime
+// (Stripe requires the reader and the PI it processes to match), so the
+// account is resolved at the LOCATION level (no brandId) everywhere in this
+// file — see PaymentsService.stripeAccountForPayment for the matching
+// terminal-aware resolution used by refund/cancel/poll.
 //
 // Test WITHOUT hardware: register a `simulated-wpe` reader, then
 // simulatePresent() plays the card tap in test mode → the PI succeeds.
@@ -165,24 +179,28 @@ export class TerminalService {
   private async ensureStripeLocation(
     loc: { id: string; name: string; address: unknown; settings: unknown },
     cfg: TerminalConfig,
-    opts: { test: boolean },
+    opts: { test: boolean; stripeAccount?: string | null },
   ): Promise<string> {
     const existing = opts.test ? cfg.stripeTestLocationId : cfg.stripeLocationId;
     if (existing) return existing;
     const stripe = this.client(opts.test);
     const a = (loc.address ?? {}) as Record<string, any>;
+    const requestOpts = opts.stripeAccount ? { stripeAccount: opts.stripeAccount } : undefined;
     let created: any;
     try {
-      created = await stripe.terminal.locations.create({
-        display_name: loc.name || "Order Hub location",
-        address: {
-          line1: a.line1 || a.addressLine1 || "1 High Street",
-          city: a.city || "London",
-          postal_code: a.postcode || a.post_code || a.postal_code || "SW1A 1AA",
-          country: this.normCountry(a.country),
+      created = await stripe.terminal.locations.create(
+        {
+          display_name: loc.name || "Order Hub location",
+          address: {
+            line1: a.line1 || a.addressLine1 || "1 High Street",
+            city: a.city || "London",
+            postal_code: a.postcode || a.post_code || a.postal_code || "SW1A 1AA",
+            country: this.normCountry(a.country),
+          },
+          metadata: { orderhubLocationId: loc.id },
         },
-        metadata: { orderhubLocationId: loc.id },
-      });
+        requestOpts,
+      );
     } catch (err: any) {
       // Surface Stripe's real reason to the POS instead of a bare 400.
       throw new BadRequestException(
@@ -212,15 +230,33 @@ export class TerminalService {
     const stripe = this.client(simulated);
     const loc = await this.loadLocation(args.tenantId, args.locationId);
     const cfg = this.configFrom(loc);
+
+    // Direct charge: the reader must live on the SAME connected account
+    // every PaymentIntent it processes will be created on. SKIPPED for
+    // simulated readers — live connected accounts don't exist in test mode.
+    let stripeAccountId: string | null = null;
+    if (!simulated) {
+      const connect = await this.payments.resolveConnectAccount(
+        args.tenantId,
+        args.locationId,
+      );
+      stripeAccountId = connect?.stripeAccountId ?? null;
+    }
+    const requestOpts = stripeAccountId ? { stripeAccount: stripeAccountId } : undefined;
+
     const stripeLocationId = await this.ensureStripeLocation(loc, cfg, {
       test: simulated,
+      stripeAccount: stripeAccountId,
     });
 
-    const reader = await stripe.terminal.readers.create({
-      registration_code: args.registrationCode.trim(),
-      location: stripeLocationId,
-      label: args.label?.trim() || "Counter reader",
-    });
+    const reader = await stripe.terminal.readers.create(
+      {
+        registration_code: args.registrationCode.trim(),
+        location: stripeLocationId,
+        label: args.label?.trim() || "Counter reader",
+      },
+      requestOpts,
+    );
 
     const stored: StoredReader = {
       id: reader.id,
@@ -228,6 +264,7 @@ export class TerminalService {
       deviceType: reader.device_type ?? null,
       simulated,
       addedAt: new Date().toISOString(),
+      stripeAccountId,
     };
     cfg.readers = [...cfg.readers.filter((r) => r.id !== stored.id), stored];
     await this.saveConfig(loc.id, loc.settings, cfg);
@@ -255,8 +292,9 @@ export class TerminalService {
       cfg.readers.map(async (r) => {
         const stripe = r.simulated ? this.stripeTest : this.stripe;
         if (!stripe) return { ...r, status: "unknown" };
+        const requestOpts = r.stripeAccountId ? { stripeAccount: r.stripeAccountId } : undefined;
         try {
-          const live = await stripe.terminal.readers.retrieve(r.id);
+          const live = await stripe.terminal.readers.retrieve(r.id, requestOpts);
           return { ...r, status: live.status, deviceType: live.device_type ?? r.deviceType };
         } catch {
           return { ...r, status: "offline" };
@@ -274,7 +312,10 @@ export class TerminalService {
     await this.saveConfig(loc.id, loc.settings, cfg);
     const stripe = removed?.simulated ? this.stripeTest : this.stripe;
     if (stripe) {
-      await stripe.terminal.readers.del(readerId).catch(() => {
+      const requestOpts = removed?.stripeAccountId
+        ? { stripeAccount: removed.stripeAccountId }
+        : undefined;
+      await stripe.terminal.readers.del(readerId, requestOpts).catch(() => {
         /* already gone / not deletable */
       });
     }
@@ -288,10 +329,10 @@ export class TerminalService {
   // The device needs a short-lived connection token to authenticate the SDK,
   // and a card_present PaymentIntent to collect against. Two endpoints:
   //   1. createConnectionToken → the SDK's tokenProvider calls this.
-  //   2. createMobileCharge → server makes the card_present PI (Connect
-  //      destination charge, same as the S700) and returns its client secret;
-  //      the SDK collects + confirms on the reader, then the POS polls
-  //      status() (below) to settle the order PAID.
+  //   2. createMobileCharge → server makes the card_present PI (direct
+  //      charge on the connected account, same as the S700) and returns its
+  //      client secret; the SDK collects + confirms on the reader, then the
+  //      POS polls status() (below) to settle the order PAID.
   //
   // Test vs live follows the SERVER's Stripe key (test key on staging → the
   // SDK's simulated reader works; live key in prod → a real WisePad 3). The
@@ -308,12 +349,25 @@ export class TerminalService {
     // production, and it never touches the live account.
     const stripe = this.client(simulated);
     let stripeLocationId: string | null = null;
+    // Direct charge: the connection token — and every PaymentIntent the SDK
+    // confirms through the session it opens — must live on the SAME
+    // connected account. SKIPPED for simulated sessions — live connected
+    // accounts don't exist in test mode.
+    let stripeAccountId: string | null = null;
     if (locationId) {
+      if (!simulated) {
+        const connect = await this.payments.resolveConnectAccount(tenantId, locationId);
+        stripeAccountId = connect?.stripeAccountId ?? null;
+      }
       const loc = await this.loadLocation(tenantId, locationId);
       const cfg = this.configFrom(loc);
-      stripeLocationId = await this.ensureStripeLocation(loc, cfg, { test: simulated });
+      stripeLocationId = await this.ensureStripeLocation(loc, cfg, {
+        test: simulated,
+        stripeAccount: stripeAccountId,
+      });
     }
-    const token = await stripe.terminal.connectionTokens.create();
+    const requestOpts = stripeAccountId ? { stripeAccount: stripeAccountId } : undefined;
+    const token = await stripe.terminal.connectionTokens.create({}, requestOpts);
     return { secret: token.secret, stripeLocationId, simulated };
   }
 
@@ -362,36 +416,43 @@ export class TerminalService {
       },
     };
 
-    // Same destination-charge + application-fee routing as the S700 path so
-    // the money lands in the location's connected account. SKIPPED for
-    // simulated charges — live connected accounts don't exist in test mode.
+    // Direct charge — the PaymentIntent must live on the SAME account the
+    // connection token/SDK session was opened against (resolved at the
+    // LOCATION level, not per-order brandId — see the file-header comment).
+    // Stripe's own processing fee is now paid by the restaurant, exactly
+    // like online orders; application_fee_amount is still how we take our
+    // cut. SKIPPED for simulated charges — live connected accounts don't
+    // exist in test mode.
     let platformFeeGbp = 0;
+    let stripeAccountId: string | null = null;
+    let stripeConnectAccountRowId: string | null = null;
     if (!simulated) {
       const connect = await this.payments.resolveConnectAccount(
         args.tenantId,
         order.locationId,
-        order.brandId,
       );
       if (connect?.stripeAccountId) {
+        stripeAccountId = connect.stripeAccountId;
+        stripeConnectAccountRowId = connect.id ?? null;
         const feePence = await this.payments.applicationFeePenceForBasket(
           order.locationId,
           basketGbp,
         );
-        intentParams.on_behalf_of = connect.stripeAccountId;
-        intentParams.transfer_data = { destination: connect.stripeAccountId };
         if (feePence > 0) {
           intentParams.application_fee_amount = feePence;
           platformFeeGbp = feePence / 100;
         }
       }
     }
+    const requestOpts = stripeAccountId ? { stripeAccount: stripeAccountId } : undefined;
 
-    const pi = await stripe.paymentIntents.create(intentParams);
+    const pi = await stripe.paymentIntents.create(intentParams, requestOpts);
 
     await (this.prisma as any).payment.create({
       data: {
         tenantId: order.tenantId,
         orderId: order.id,
+        stripeConnectAccountId: stripeConnectAccountRowId,
         stripePaymentIntentId: pi.id,
         amount: order.total,
         currency: "gbp",
@@ -506,44 +567,50 @@ export class TerminalService {
       },
     };
 
-    // Connect routing — same destination-charge model + application fee as
-    // online orders. SKIPPED for simulated readers: they run on the TEST
-    // client, and live-mode connected accounts don't exist there ("No such
-    // account"). The test drive exercises the POS→reader→paid flow, not
-    // payout routing.
+    // Direct charge — the PaymentIntent must be created on the SAME account
+    // the reader is registered on (Stripe requires a reader to only process
+    // PaymentIntents that live on its own account), so we use the reader's
+    // OWN stored account rather than re-resolving it — that's the source of
+    // truth for what account this physical device is actually paired to.
+    // SKIPPED for simulated readers: they run on the TEST client, and
+    // live-mode connected accounts don't exist there ("No such account").
     let platformFeeGbp = 0;
-    if (!reader.simulated) {
+    const stripeAccountId = reader.simulated ? null : (reader.stripeAccountId ?? null);
+    let stripeConnectAccountRowId: string | null = null;
+    if (stripeAccountId) {
+      // Re-resolve just to get the DB row id (for the Payment FK) — the
+      // account id itself always comes from the reader, never from this.
       const connect = await this.payments.resolveConnectAccount(
         args.tenantId,
         order.locationId,
-        order.brandId,
       );
-      if (connect?.stripeAccountId) {
-        const feePence = await this.payments.applicationFeePenceForBasket(
-          order.locationId,
-          basketGbp,
-        );
-        intentParams.on_behalf_of = connect.stripeAccountId;
-        intentParams.transfer_data = { destination: connect.stripeAccountId };
-        if (feePence > 0) {
-          intentParams.application_fee_amount = feePence;
-          platformFeeGbp = feePence / 100;
-        }
+      stripeConnectAccountRowId = connect?.id ?? null;
+      const feePence = await this.payments.applicationFeePenceForBasket(
+        order.locationId,
+        basketGbp,
+      );
+      if (feePence > 0) {
+        intentParams.application_fee_amount = feePence;
+        platformFeeGbp = feePence / 100;
       }
     }
+    const requestOpts = stripeAccountId ? { stripeAccount: stripeAccountId } : undefined;
 
-    const pi = await stripe.paymentIntents.create(intentParams);
+    const pi = await stripe.paymentIntents.create(intentParams, requestOpts);
 
     // Push the PaymentIntent to the reader — it prompts the customer.
-    await stripe.terminal.readers.processPaymentIntent(args.readerId, {
-      payment_intent: pi.id,
-    });
+    await stripe.terminal.readers.processPaymentIntent(
+      args.readerId,
+      { payment_intent: pi.id },
+      requestOpts,
+    );
 
     // Persist a Payment row so reconciliation + the webhook can find it.
     await (this.prisma as any).payment.create({
       data: {
         tenantId: order.tenantId,
         orderId: order.id,
+        stripeConnectAccountId: stripeConnectAccountRowId,
         stripePaymentIntentId: pi.id,
         // The PART amount for a split, never the order total — this row
         // is what paymentSummary() sums to decide when the bill is clear.
@@ -607,12 +674,22 @@ export class TerminalService {
    */
   async status(tenantId: string, paymentIntentId: string) {
     this.assertStripe();
+    // Direct charge: the PI lives on the connected account (when one was
+    // resolved at charge time), not the platform — retrieve needs the same
+    // {stripeAccount} the charge was created with, or Stripe 404s it.
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { stripePaymentIntentId: paymentIntentId },
+    });
+    const stripeAccountId = payment
+      ? await this.payments.stripeAccountForPayment(payment)
+      : null;
+    const requestOpts = stripeAccountId ? { stripeAccount: stripeAccountId } : undefined;
     let pi: any;
     try {
-      pi = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      pi = await this.stripe.paymentIntents.retrieve(paymentIntentId, {}, requestOpts);
     } catch (err) {
       if (!this.stripeTest || this.stripeTest === this.stripe) throw err;
-      pi = await this.stripeTest.paymentIntents.retrieve(paymentIntentId);
+      pi = await this.stripeTest.paymentIntents.retrieve(paymentIntentId, {}, requestOpts);
     }
     if (pi.metadata?.tenantId && pi.metadata.tenantId !== tenantId) {
       throw new NotFoundException("Payment not found");

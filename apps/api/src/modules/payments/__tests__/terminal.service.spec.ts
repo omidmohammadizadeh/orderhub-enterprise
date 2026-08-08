@@ -8,9 +8,12 @@ jest.mock(
 
 import { TerminalService } from "../terminal.service";
 
-// Stripe Terminal (S700) charge flow — card-present PaymentIntent routed
-// through the location's Connect account with the platform application fee,
-// pushed to the reader, then settled to PAID.
+// Stripe Terminal (S700 / WisePad 3 / Tap to Pay) charge flow — card-present
+// PaymentIntent created as a DIRECT charge on the connected account (the
+// {stripeAccount} request option, not on_behalf_of/transfer_data), with the
+// platform application fee, pushed to the reader, then settled to PAID.
+// Direct charges mean Stripe's own processing fee is paid by the restaurant,
+// same as online orders — see terminal.service.ts's file-header comment.
 
 function makeService(opts: {
   order?: any;
@@ -20,6 +23,7 @@ function makeService(opts: {
   testKey?: boolean;
   withTestKey?: boolean;
   paidParts?: Array<{ amount: number }>;
+  payment?: any;
 }) {
   const order = opts.order ?? {
     id: "ord-1",
@@ -38,7 +42,16 @@ function makeService(opts: {
         stripeLocationId: "tml_1",
         readers: [
           { id: "tmr_sim", label: "Sim", deviceType: "simulated_wisepos_e", simulated: true, addedAt: "x" },
-          { id: "tmr_real", label: "Counter", deviceType: "stripe_s700", simulated: false, addedAt: "x" },
+          {
+            id: "tmr_real",
+            label: "Counter",
+            deviceType: "stripe_s700",
+            simulated: false,
+            addedAt: "x",
+            // Direct charges: the reader is fixed to the account it was
+            // registered on — chargeOrder reads THIS, not resolveConnectAccount.
+            stripeAccountId: "acct_shop",
+          },
         ],
       },
     },
@@ -50,13 +63,14 @@ function makeService(opts: {
   const paymentFindMany = jest
     .fn()
     .mockResolvedValue(opts.paidParts ?? []);
+  const paymentFindFirst = jest.fn().mockResolvedValue(opts.payment ?? null);
   const prisma = {
     order: { findFirst: jest.fn().mockResolvedValue(order) },
     location: {
       findFirst: jest.fn().mockResolvedValue(location),
       update: jest.fn().mockResolvedValue({}),
     },
-    payment: { create: paymentCreate, findMany: paymentFindMany },
+    payment: { create: paymentCreate, findMany: paymentFindMany, findFirst: paymentFindFirst },
   } as any;
 
   const config = {
@@ -73,6 +87,7 @@ function makeService(opts: {
       .mockResolvedValue("connect" in opts ? opts.connect : { id: null, stripeAccountId: "acct_shop" }),
     applicationFeePenceForBasket: jest.fn().mockResolvedValue(opts.feePence ?? 75),
     settleTerminalPi: jest.fn().mockResolvedValue(undefined),
+    stripeAccountForPayment: jest.fn().mockResolvedValue(opts.payment ? "acct_shop" : null),
   } as any;
 
   const svc = new TerminalService(config, prisma, payments);
@@ -103,35 +118,56 @@ function makeService(opts: {
 }
 
 describe("TerminalService.chargeOrder", () => {
-  it("creates a card_present PI with Connect destination + application fee and pushes it to the reader", async () => {
+  it("creates a card_present PI as a DIRECT charge on the reader's own account + application fee, and pushes it to the reader", async () => {
     const { svc, stripe, paymentCreate } = makeService({});
     const out = await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_real" });
 
-    const pi = stripe.paymentIntents.create.mock.calls[0][0];
+    const call = stripe.paymentIntents.create.mock.calls[0];
+    const pi = call[0];
     expect(pi).toMatchObject({
       amount: 2450,
       currency: "gbp",
       payment_method_types: ["card_present"],
       capture_method: "automatic",
-      on_behalf_of: "acct_shop",
-      transfer_data: { destination: "acct_shop" },
       application_fee_amount: 75,
     });
+    // Direct charge: stripeAccount is a REQUEST OPTION, not on_behalf_of/transfer_data.
+    expect(pi.on_behalf_of).toBeUndefined();
+    expect(pi.transfer_data).toBeUndefined();
+    expect(call[1]).toEqual({ stripeAccount: "acct_shop" });
     expect(pi.metadata).toMatchObject({ orderId: "ord-1", source: "terminal" });
 
-    expect(stripe.terminal.readers.processPaymentIntent).toHaveBeenCalledWith("tmr_real", {
-      payment_intent: "pi_1",
-    });
+    expect(stripe.terminal.readers.processPaymentIntent).toHaveBeenCalledWith(
+      "tmr_real",
+      { payment_intent: "pi_1" },
+      { stripeAccount: "acct_shop" },
+    );
     expect(paymentCreate).toHaveBeenCalled();
     expect(out).toMatchObject({ paymentIntentId: "pi_1", readerId: "tmr_real", simulated: false });
   });
 
-  it("charges without Connect routing when the location isn't connected", async () => {
-    const { svc, stripe } = makeService({ connect: null });
+  it("charges without Connect routing when the reader has no stored account", async () => {
+    // A reader registered before any Connect account existed for the
+    // location — chargeOrder reads the READER's own account, not
+    // resolveConnectAccount, so this is what actually gates routing.
+    const location = {
+      id: "loc-1",
+      name: "Pizza Uno",
+      address: { line1: "1 High St", city: "London", postcode: "SW1A 1AA", country: "GB" },
+      settings: {
+        terminal: {
+          stripeLocationId: "tml_1",
+          readers: [
+            { id: "tmr_real", label: "Counter", deviceType: "stripe_s700", simulated: false, addedAt: "x" },
+          ],
+        },
+      },
+    };
+    const { svc, stripe } = makeService({ location });
     await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_real" });
-    const pi = stripe.paymentIntents.create.mock.calls[0][0];
-    expect(pi.transfer_data).toBeUndefined();
-    expect(pi.application_fee_amount).toBeUndefined();
+    const call = stripe.paymentIntents.create.mock.calls[0];
+    expect(call[0].application_fee_amount).toBeUndefined();
+    expect(call[1]).toBeUndefined();
   });
 
   it("simulated reader (test drive): charges on the TEST client, SKIPS Connect routing, tags testDrive", async () => {
@@ -139,10 +175,10 @@ describe("TerminalService.chargeOrder", () => {
     // simulated charge to one would throw "No such account".
     const { svc, stripe, payments } = makeService({});
     const out = await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_sim" });
-    const pi = stripe.paymentIntents.create.mock.calls[0][0];
-    expect(pi.transfer_data).toBeUndefined();
-    expect(pi.application_fee_amount).toBeUndefined();
-    expect(pi.metadata.testDrive).toBe("1");
+    const call = stripe.paymentIntents.create.mock.calls[0];
+    expect(call[0].application_fee_amount).toBeUndefined();
+    expect(call[1]).toBeUndefined();
+    expect(call[0].metadata.testDrive).toBe("1");
     expect(payments.resolveConnectAccount).not.toHaveBeenCalled();
     expect(out).toMatchObject({ readerId: "tmr_sim", simulated: true });
   });
@@ -162,21 +198,92 @@ describe("TerminalService.chargeOrder", () => {
   });
 });
 
-describe("TerminalService.status", () => {
-  it("settles the order when the PI has succeeded", async () => {
+// WisePad 3 / Tap to Pay — SDK-driven, no fixed physical reader resource,
+// but the connect account is resolved the SAME way as the S700 (location
+// level, no brandId) since a live connection session is equally fixed to
+// one account for its lifetime.
+describe("TerminalService.createMobileCharge", () => {
+  it("creates a card_present PI as a DIRECT charge on the location's resolved account + application fee", async () => {
+    const { svc, stripe, paymentCreate } = makeService({});
+    const out = await svc.createMobileCharge({ tenantId: "t-1", orderId: "ord-1" });
+
+    const call = stripe.paymentIntents.create.mock.calls[0];
+    const pi = call[0];
+    expect(pi).toMatchObject({
+      amount: 2450,
+      currency: "gbp",
+      payment_method_types: ["card_present"],
+      capture_method: "automatic",
+      application_fee_amount: 75,
+    });
+    expect(pi.on_behalf_of).toBeUndefined();
+    expect(pi.transfer_data).toBeUndefined();
+    expect(call[1]).toEqual({ stripeAccount: "acct_shop" });
+    expect(pi.metadata).toMatchObject({ orderId: "ord-1", source: "terminal", channel: "mobile_reader" });
+
+    const row = paymentCreate.mock.calls[0][0].data;
+    expect(row.platformFee).toBe(0.75);
+    expect(row.netAmount).toBe(23.75); // 24.5 - 0.75
+    expect(out).toMatchObject({ paymentIntentId: "pi_1", simulated: false });
+  });
+
+  it("charges without Connect routing when the location isn't connected", async () => {
+    const { svc, stripe } = makeService({ connect: null });
+    await svc.createMobileCharge({ tenantId: "t-1", orderId: "ord-1" });
+    const call = stripe.paymentIntents.create.mock.calls[0];
+    expect(call[0].application_fee_amount).toBeUndefined();
+    expect(call[1]).toBeUndefined();
+  });
+
+  it("simulated charge: runs on the TEST client, SKIPS Connect routing entirely, tags testDrive", async () => {
     const { svc, stripe, payments } = makeService({});
+    const out = await svc.createMobileCharge({ tenantId: "t-1", orderId: "ord-1", simulated: true });
+    const call = stripe.paymentIntents.create.mock.calls[0];
+    expect(call[0].application_fee_amount).toBeUndefined();
+    expect(call[1]).toBeUndefined();
+    expect(call[0].metadata.testDrive).toBe("1");
+    expect(payments.resolveConnectAccount).not.toHaveBeenCalled();
+    expect(out.simulated).toBe(true);
+  });
+
+  it("rejects an already-paid order", async () => {
+    const { svc } = makeService({
+      order: { id: "o", tenantId: "t-1", locationId: "loc-1", brandId: null, total: 5, paymentStatus: "PAID" },
+    });
+    await expect(
+      svc.createMobileCharge({ tenantId: "t-1", orderId: "o" }),
+    ).rejects.toThrow(/already paid/i);
+  });
+});
+
+describe("TerminalService.status", () => {
+  it("settles the order when the PI has succeeded, retrieving on the direct-charge account", async () => {
+    // A Payment row exists for this PI (created at charge time) — status()
+    // must resolve its stripeAccount via PaymentsService.stripeAccountForPayment
+    // and retrieve the PI with that {stripeAccount}, or a direct-charge PI
+    // 404s against the platform account.
+    const { svc, stripe, payments } = makeService({ payment: { id: "pay-1", orderId: "ord-1" } });
     stripe.paymentIntents.retrieve.mockResolvedValue({ id: "pi_1", status: "succeeded", metadata: { tenantId: "t-1" } });
     const out = await svc.status("t-1", "pi_1");
+    expect(payments.stripeAccountForPayment).toHaveBeenCalled();
+    expect(stripe.paymentIntents.retrieve).toHaveBeenCalledWith("pi_1", {}, { stripeAccount: "acct_shop" });
     expect(payments.settleTerminalPi).toHaveBeenCalled();
     expect(out).toMatchObject({ status: "succeeded", paid: true });
   });
 
   it("does not settle while still processing", async () => {
-    const { svc, stripe, payments } = makeService({});
+    const { svc, stripe, payments } = makeService({ payment: { id: "pay-1", orderId: "ord-1" } });
     stripe.paymentIntents.retrieve.mockResolvedValue({ id: "pi_1", status: "processing", metadata: { tenantId: "t-1" } });
     const out = await svc.status("t-1", "pi_1");
     expect(payments.settleTerminalPi).not.toHaveBeenCalled();
     expect(out.paid).toBe(false);
+  });
+
+  it("retrieves without a stripeAccount when no local Payment row is found", async () => {
+    const { svc, stripe } = makeService({}); // payment: null by default
+    stripe.paymentIntents.retrieve.mockResolvedValue({ id: "pi_1", status: "processing", metadata: { tenantId: "t-1" } });
+    await svc.status("t-1", "pi_1");
+    expect(stripe.paymentIntents.retrieve).toHaveBeenCalledWith("pi_1", {}, undefined);
   });
 });
 
@@ -190,9 +297,12 @@ describe("TerminalService simulated reader guard", () => {
     const { svc, stripe } = makeService({ testKey: false, withTestKey: true });
     const reader = await svc.registerSimulatedReader("t-1", "loc-1");
     expect(reader).toMatchObject({ id: "tmr_new", simulated: true });
-    // Registered against a TEST-mode terminal location, not the live one.
+    // Registered against a TEST-mode terminal location, not the live one —
+    // and with no {stripeAccount} request option (simulated readers skip
+    // Connect routing entirely; live connected accounts don't exist in test mode).
     expect(stripe.terminal.readers.create).toHaveBeenCalledWith(
       expect.objectContaining({ location: "tml_test", registration_code: "simulated-wpe" }),
+      undefined,
     );
     expect((svc as any).isTestMode).toBe(true);
   });
