@@ -1216,49 +1216,14 @@ export function buildTestReceiptStar(paperWidth: number = 80): Uint8Array {
 // Async wrapper that prepares graphics (logo raster) then builds the
 // receipt. Logo prints by default when the payload carries a brand logo
 // (disable per-printer with defaults.printLogo === false); the QR prints
-/**
- * The marketing QR as its OWN ticket, cut free of the receipt.
- *
- * It used to render inside the receipt, above the single closing cut, so it
- * came out joined to the bottom of the order and staff had to cut it off by
- * hand before sticking it to the bag — on every order, all night. Printed
- * separately it lands ready to use.
- *
- * Kept deliberately short: a caption, the code, and enough feed to clear the
- * tear bar. This is a sticker, not a second receipt.
- */
-function buildQrTicket(
-  payload: any,
-  paperWidth: number,
-  codeBytes: number[],
-): number[] {
-  const cols = paperWidth === 58 ? 32 : 48;
-  const buf: number[] = [];
-  buf.push(...INIT);
-  buf.push(...ALIGN_CENTER);
-  // Name the shop on the ticket. Once it's a separate slip there's nothing
-  // else on it to say where the offer came from.
-  if (payload?.brandName) {
-    buf.push(...BOLD_ON);
-    for (const w of wrap(String(payload.brandName), cols)) line(buf, w);
-    buf.push(...BOLD_OFF);
-  }
-  if (payload?.qrCaption) {
-    buf.push(...BOLD_ON);
-    for (const w of wrap(String(payload.qrCaption), cols)) line(buf, w);
-    buf.push(...BOLD_OFF);
-  }
-  line(buf, "");
-  buf.push(...codeBytes);
-  buf.push(LF);
-  buf.push(...ALIGN_LEFT);
-  buf.push(LF, LF, LF, LF);
-  buf.push(...CUT);
-  return buf;
-}
-
 // only when the printer has defaults.qrCode on and the payload has a
 // qrData value. Logo failures fall back to a clean text receipt.
+//
+// The QR attaches to the bottom of the ticket itself, above the single
+// closing cut — NOT a separate cut-free slip. A separate second ticket
+// (its own INIT + cut mid-job) turned out to not be supported by every
+// printer model in the field, so this went back to one continuous ticket
+// like it originally was.
 export async function renderReceiptBytes(
   payload: any,
   paperWidth: number = 80,
@@ -1287,48 +1252,35 @@ export async function renderReceiptBytes(
     logoBytes = await imageToRaster(String(payload.brandLogoUrl), maxDots);
   }
   const qr = opts?.qrCode && payload?.qrData ? String(payload.qrData) : null;
-  // Receipt first, WITHOUT the QR — buildOrderReceipt closes with a cut, so
-  // the order ticket tears off complete on its own.
-  const receipt = buildOrderReceipt(payload, paperWidth, {
+  const qrCodeBytes = qr
+    ? await qrCommandBytes(qr, paperWidth, opts?.qrDialect ?? "ESCPOS")
+    : null;
+  return buildOrderReceipt(payload, paperWidth, {
     logoBytes,
-    qr: null,
+    qr,
+    qrCodeBytes,
     fontScale: opts?.fontScale,
     modifierScale: opts?.modifierScale,
     printFont: opts?.printFont,
   });
-  if (!qr) return receipt;
-  // Then the offer as a second, separately-cut slip in the same write. One
-  // job, two tickets — sending them as two writes would risk another
-  // printer's job landing between them on a shared machine.
-  const qrTicket = buildQrTicket(
-    payload,
-    paperWidth,
-    await qrCommandBytes(qr, paperWidth, opts?.qrDialect ?? "ESCPOS"),
-  );
-  const out = new Uint8Array(receipt.length + qrTicket.length);
-  out.set(receipt, 0);
-  out.set(qrTicket, receipt.length);
-  return out;
 }
 
 /**
- * Receipt and offer slip as separate blocks, so callers can repeat the
- * receipt for extra copies WITHOUT repeating the sticker.
- *
- * Copies exist to give the kitchen and the counter each a ticket; only the
- * customer's bag needs the offer. Repeating the whole rendered job would
- * print a QR per copy, which is wasted paper on every order that prints
- * twice.
+ * Receipt (without QR) plus the same receipt WITH the QR attached at the
+ * bottom, built separately so callers printing N copies can repeat the
+ * plain receipt for the kitchen/counter and only attach the QR to the
+ * LAST copy — the one that goes in the customer's bag. Baking the QR into
+ * every copy would print it N times for one order.
  */
 export async function renderReceiptParts(
   payload: any,
   paperWidth: number = 80,
   opts?: Parameters<typeof renderReceiptBytes>[2],
-): Promise<{ receipt: Uint8Array; qrTicket: Uint8Array | null }> {
+): Promise<{ receipt: Uint8Array; receiptWithQr: Uint8Array | null }> {
   if (String(opts?.commandSet ?? "").toUpperCase() === "STAR") {
     return {
       receipt: await renderReceiptBytes(payload, paperWidth, opts),
-      qrTicket: null,
+      receiptWithQr: null,
     };
   }
   let logoBytes: number[] | null = null;
@@ -1344,30 +1296,38 @@ export async function renderReceiptParts(
     modifierScale: opts?.modifierScale,
     printFont: opts?.printFont,
   });
-  return {
-    receipt,
-    qrTicket: qr
-      ? new Uint8Array(
-          buildQrTicket(
-            payload,
-            paperWidth,
-            await qrCommandBytes(qr, paperWidth, opts?.qrDialect ?? "ESCPOS"),
-          ),
-        )
-      : null,
-  };
+  if (!qr) return { receipt, receiptWithQr: null };
+  const qrCodeBytes = await qrCommandBytes(
+    qr,
+    paperWidth,
+    opts?.qrDialect ?? "ESCPOS",
+  );
+  const receiptWithQr = buildOrderReceipt(payload, paperWidth, {
+    logoBytes,
+    qr,
+    qrCodeBytes,
+    fontScale: opts?.fontScale,
+    modifierScale: opts?.modifierScale,
+    printFont: opts?.printFont,
+  });
+  return { receipt, receiptWithQr };
 }
 
-/** Receipt copies followed by ONE offer slip. */
+/**
+ * `copies - 1` plain receipts followed by ONE receipt with the QR attached
+ * at its bottom — every copy is still one continuous ticket with a single
+ * cut, just the last one carries the QR.
+ */
 export function joinReceiptAndQr(
   receipt: Uint8Array,
-  qrTicket: Uint8Array | null,
+  receiptWithQr: Uint8Array | null,
   copies: number,
 ): Uint8Array {
-  const body = repeatReceipt(receipt, copies);
-  if (!qrTicket) return body;
-  const out = new Uint8Array(body.length + qrTicket.length);
-  out.set(body, 0);
-  out.set(qrTicket, body.length);
+  const n = Math.max(1, Math.floor(copies) || 1);
+  if (!receiptWithQr) return repeatReceipt(receipt, n);
+  const leading = n > 1 ? repeatReceipt(receipt, n - 1) : new Uint8Array(0);
+  const out = new Uint8Array(leading.length + receiptWithQr.length);
+  out.set(leading, 0);
+  out.set(receiptWithQr, leading.length);
   return out;
 }

@@ -137,12 +137,15 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           // on the slip) while a reprint of the same order got the raster and
           // came out right. printFont was missing too, so the per-printer
           // typeface never applied to a first print either.
-          const { receipt, qrTicket } = await renderReceiptParts(
+          const { receipt, receiptWithQr } = await renderReceiptParts(
             payload,
             p.paperWidth ?? 80,
             printerRenderOptions(p),
           );
-          await writeToPrinter(p, joinReceiptAndQr(receipt, qrTicket, copies));
+          await writeToPrinter(
+            p,
+            joinReceiptAndQr(receipt, receiptWithQr, copies),
+          );
           printedAny = true;
           const msg = `Printed ${copies}× ${banner ? "cancellation" : "order"} #${
             order.displayId ?? order.orderNumber ?? order.id?.slice(-4)

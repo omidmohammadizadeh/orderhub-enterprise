@@ -245,14 +245,14 @@ export async function printOrderViaBridge(
         1,
         Number((p as any).defaults?.copiesReprint ?? 1) || 1,
       );
-      // Receipt and offer slip come back separately so extra copies repeat
-      // the RECEIPT only — the kitchen copy doesn't need its own sticker.
-      const { receipt, qrTicket } = await renderReceiptParts(
+      // Plain + QR-attached variants come back separately so extra copies
+      // repeat the plain receipt — only the last (bag) copy carries the QR.
+      const { receipt, receiptWithQr } = await renderReceiptParts(
         payload,
         p.paperWidth ?? 80,
         printerRenderOptions(p),
       );
-      await writeToPrinter(p, joinReceiptAndQr(receipt, qrTicket, copies));
+      await writeToPrinter(p, joinReceiptAndQr(receipt, receiptWithQr, copies));
       printed++;
     } catch (e: any) {
       const label = (p as any)?.name ?? p.ipAddress ?? "printer";
