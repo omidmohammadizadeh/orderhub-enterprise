@@ -49,6 +49,16 @@ import { api } from "./auth";
 // is decided by the token the SDK first receives, so `connect()` sets this flag
 // BEFORE it calls initialize() (which is when the SDK first pulls a token).
 let pendingSimulated = false;
+// Direct charges: the connected account is resolved server-side FROM the
+// location, so every connection token — including the ones the SDK fetches
+// on its OWN via fetchConnectionToken(), not just the one-off warm-up call
+// connectOnDeviceReader() makes for stripeLocationId — must carry the SAME
+// locationId, or the SDK's actual session stays scoped to the platform
+// account while easyConnect's Stripe Location lives on the connected
+// account, producing a "No such location" mismatch. Same set-before-init
+// pattern as pendingSimulated, since the SDK's tokenProvider takes no
+// arguments — this is the only way to get the location into that callback.
+let pendingLocationId: string | undefined;
 // The mode the SDK actually initialised in. Stripe can't switch a live SDK
 // session to test (or back) without re-initialising, which the SDK only does on
 // a fresh launch — so a mode change asks the operator to restart the app.
@@ -64,7 +74,7 @@ let connectInFlight = false;
 export async function fetchConnectionToken(): Promise<string> {
   const res = await api.post<{ secret: string }>(
     "/v1/payments/terminal/connection-token",
-    { simulated: pendingSimulated },
+    { simulated: pendingSimulated, locationId: pendingLocationId },
   );
   return res.data.secret;
 }
@@ -218,9 +228,11 @@ export function TerminalHost(): React.ReactElement | null {
       connectInFlight = true;
       try {
         tlog("connect start", { simulated: !!simulated, stripeLocationId });
-        // Decide the Stripe environment BEFORE init: the token provider reads
-        // pendingSimulated when the SDK pulls its first token in ensureInit().
+        // Decide the Stripe environment + connected account BEFORE init: the
+        // token provider reads pendingSimulated/pendingLocationId when the
+        // SDK pulls its first (and every later) token in ensureInit().
         pendingSimulated = !!simulated;
+        pendingLocationId = stripeLocationId;
         const wantMode: "test" | "live" = simulated ? "test" : "live";
         if (initMode && initMode !== wantMode) {
           throw new Error(
