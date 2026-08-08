@@ -365,6 +365,7 @@ export class TerminalService {
     // Same destination-charge + application-fee routing as the S700 path so
     // the money lands in the location's connected account. SKIPPED for
     // simulated charges — live connected accounts don't exist in test mode.
+    let platformFeeGbp = 0;
     if (!simulated) {
       const connect = await this.payments.resolveConnectAccount(
         args.tenantId,
@@ -378,7 +379,10 @@ export class TerminalService {
         );
         intentParams.on_behalf_of = connect.stripeAccountId;
         intentParams.transfer_data = { destination: connect.stripeAccountId };
-        if (feePence > 0) intentParams.application_fee_amount = feePence;
+        if (feePence > 0) {
+          intentParams.application_fee_amount = feePence;
+          platformFeeGbp = feePence / 100;
+        }
       }
     }
 
@@ -393,6 +397,8 @@ export class TerminalService {
         currency: "gbp",
         status: "PROCESSING",
         method: "CARD",
+        platformFee: platformFeeGbp,
+        netAmount: Math.round((basketGbp - platformFeeGbp) * 100) / 100,
         metadata: { source: "terminal", channel: "mobile_reader", simulated },
       },
     });
@@ -505,6 +511,7 @@ export class TerminalService {
     // client, and live-mode connected accounts don't exist there ("No such
     // account"). The test drive exercises the POS→reader→paid flow, not
     // payout routing.
+    let platformFeeGbp = 0;
     if (!reader.simulated) {
       const connect = await this.payments.resolveConnectAccount(
         args.tenantId,
@@ -518,7 +525,10 @@ export class TerminalService {
         );
         intentParams.on_behalf_of = connect.stripeAccountId;
         intentParams.transfer_data = { destination: connect.stripeAccountId };
-        if (feePence > 0) intentParams.application_fee_amount = feePence;
+        if (feePence > 0) {
+          intentParams.application_fee_amount = feePence;
+          platformFeeGbp = feePence / 100;
+        }
       }
     }
 
@@ -541,6 +551,8 @@ export class TerminalService {
         currency: "gbp",
         status: "PROCESSING",
         method: "CARD",
+        platformFee: platformFeeGbp,
+        netAmount: Math.round((basketGbp - platformFeeGbp) * 100) / 100,
         metadata: {
           source: "terminal",
           readerId: args.readerId,
