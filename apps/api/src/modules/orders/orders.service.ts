@@ -30,6 +30,11 @@ import {
   assertWebhookTransition,
   getTimestampField,
 } from "./order-state-machine";
+import {
+  resolveOrderScope as resolveOrderScopePure,
+  ORDER_ADMIN_ROLES,
+  type OrderScope,
+} from "./order-access";
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import type { CanonicalOrder } from "@orderhub/shared";
@@ -38,13 +43,6 @@ import type { CanonicalOrder } from "@orderhub/shared";
 // into the future, we suppress the immediate PrinterJob and surface a
 // "Start preparing now" action on the Orders board instead.
 const SCHEDULED_FUTURE_THRESHOLD_SECONDS = 60 * 10; // 10 min
-
-// Admin roles that see every location/brand in their tenant (full access,
-// no per-assignment scoping). "OWNER" is a SCOPED location-owner role (not
-// an admin) — it's constrained to its assigned locations/brands like
-// MANAGER / STAFF / DRIVER. Kept in sync with the TENANT_WIDE_ROLES set in
-// the locations + brands controllers and the socket gateway.
-const ORDER_ADMIN_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER"];
 
 const ORDER_INCLUDE = {
   items: true,
@@ -2098,57 +2096,8 @@ export class OrdersService {
    * `null` = unrestricted for that dimension. An empty `locationIds`
    * array means the (non-admin) user has no assignments → sees nothing.
    */
-  private async resolveOrderScope(user: AuthenticatedUser): Promise<{
-    admin: boolean;
-    // Locations the user is DIRECTLY assigned to (owns the board here → sees
-    // every brand's orders at these locations).
-    directLocationIds: string[];
-    // Brands the user is assigned to (sees these brands' orders wherever they
-    // trade). null = no brand assignments.
-    brandIds: string[] | null;
-    // Every location the user may view at all (direct + brand-derived) — used
-    // only to validate a requested-location filter, NOT to filter orders.
-    allowedLocationIds: string[];
-  }> {
-    if (ORDER_ADMIN_ROLES.includes(String(user.role))) {
-      return { admin: true, directLocationIds: [], brandIds: null, allowedLocationIds: [] };
-    }
-    const [locs, brands] = await Promise.all([
-      (this.prisma as any).userLocation.findMany({
-        where: { userId: user.userId },
-        select: { locationId: true },
-      }),
-      (this.prisma as any).userBrand.findMany({
-        where: { userId: user.userId },
-        select: { brandId: true },
-      }),
-    ]);
-    const directLocationIds: string[] = locs.map((l: any) => l.locationId as string);
-    const brandIds: string[] = brands.map((b: any) => b.brandId as string);
-
-    // Brand-derived locations only widen the *viewable* set (so a requested
-    // location filter validates); they don't force a brand filter on orders.
-    const allowed = new Set<string>(directLocationIds);
-    if (brandIds.length) {
-      const brandRows = await this.prisma.brand.findMany({
-        where: { id: { in: brandIds }, tenantId: user.tenantId },
-        select: {
-          primaryLocationId: true,
-          locations: { select: { id: true } },
-        },
-      });
-      for (const b of brandRows) {
-        if (b.primaryLocationId) allowed.add(b.primaryLocationId);
-        for (const l of b.locations) allowed.add(l.id);
-      }
-    }
-
-    return {
-      admin: false,
-      directLocationIds,
-      brandIds: brandIds.length ? brandIds : null,
-      allowedLocationIds: Array.from(allowed),
-    };
+  private resolveOrderScope(user: AuthenticatedUser): Promise<OrderScope> {
+    return resolveOrderScopePure(this.prisma, user);
   }
 
   /**

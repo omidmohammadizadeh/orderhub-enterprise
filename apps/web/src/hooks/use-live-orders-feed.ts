@@ -30,6 +30,8 @@ import {
   getSocket,
   joinLocationRoom,
   leaveLocationRoom,
+  joinAllLocationsRoom,
+  leaveAllLocationsRoom,
 } from "../lib/socket/socket.client";
 import { useAuthStore } from "../stores/auth.store";
 import { queryKeys } from "../lib/api/query-keys";
@@ -80,12 +82,13 @@ export function useLiveOrdersFeed(
     enabled,
     // Socket healthy → no poll at all; socket down → one 60s fallback.
     // (React Query resolves conflicting intervals across observers to the
-    // smallest, so every consumer must come through this hook.)
-    // EXCEPTION: the admin "All locations" view (locationId undefined) joins
-    // no location room — the server only broadcasts order events into
-    // per-location rooms — so socket connectivity alone delivers it nothing.
-    // That view keeps the 60s poll even while connected.
-    refetchInterval: connected && locationId ? false : FALLBACK_POLL_MS,
+    // smallest, so every consumer must come through this hook.) The "All
+    // locations" view (locationId undefined) used to always poll — it
+    // joined no room at all, so a socket event never reached it. It now
+    // asks the server to join every room it's allowed to see (room:join-all
+    // below), so it gets the same socket-first treatment as a single
+    // location once connected.
+    refetchInterval: connected ? false : FALLBACK_POLL_MS,
     staleTime: 30_000,
     // Focus-refetch races in-flight status mutations (see useLiveOrders for
     // the war story); event-driven invalidation covers freshness instead.
@@ -120,6 +123,7 @@ export function useLiveOrdersFeed(
     socket.on("order:cancelled", onOrderEvent as never);
     socket.on("connect", onReconnect);
     if (locationId) joinLocationRoom(socket, locationId);
+    else joinAllLocationsRoom(socket);
 
     return () => {
       socket.off("order:new", onOrderEvent);
@@ -131,6 +135,7 @@ export function useLiveOrdersFeed(
         debounceRef.current = null;
       }
       if (locationId) leaveLocationRoom(socket, locationId);
+      else leaveAllLocationsRoom(socket);
     };
   }, [token, locationId, enabled, queryClient]);
 

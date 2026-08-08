@@ -66,6 +66,12 @@ export interface CallerIdRingPayload {
 export interface ClientToServerEvents {
   "room:join": (locationId: string) => void;
   "room:leave": (locationId: string) => void;
+  // The "All locations" board has no single locationId to join — this asks
+  // the server to join every location the caller is actually allowed to see
+  // (server-resolved, same access rule as the REST orders endpoint), so
+  // that view gets real-time pushes too instead of a 60s-only poll.
+  "room:join-all": () => void;
+  "room:leave-all": () => void;
   // Staff accepts an order from the dashboard
   "order:accept": (orderId: string) => void;
   // Staff bumps a KDS ticket

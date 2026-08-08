@@ -13,6 +13,7 @@ import { Server, Socket } from "socket.io";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "../../database/prisma.service";
 import { SocketService } from "../socket.service";
+import { accessibleLocationIdsForRealtime } from "../../../modules/orders/order-access";
 import type { ClientToServerEvents, ServerToClientEvents } from "@orderhub/shared";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -158,5 +159,40 @@ export class OrdersGateway
     @MessageBody() locationId: string,
   ) {
     client.leave(`location:${locationId}`);
+  }
+
+  // "All locations" board has no single locationId to join against — this
+  // resolves the caller's FULL accessible set (same rule as the REST orders
+  // endpoint, via OrdersService) and joins every one of those location
+  // rooms. Without this, that view received zero realtime pushes (no room
+  // ever joined) and fell back to a 60s poll only — which is what made it
+  // look like the dashboard needed a manual refresh to see new orders.
+  @SubscribeMessage("room:join-all")
+  async handleJoinAllRooms(@ConnectedSocket() client: TypedSocket) {
+    const auth = await this.extractAuth(client);
+    if (!auth) {
+      this.logger.warn(
+        `${client.id} room:join-all denied — no valid JWT (stale handshake?)`,
+      );
+      return;
+    }
+    const ids = await accessibleLocationIdsForRealtime(this.prisma, {
+      tenantId: auth.tenantId,
+      userId: auth.userId,
+      role: auth.role as any,
+      permissions: [],
+    });
+    for (const id of ids) client.join(`location:${id}`);
+    (client.data as any).joinAllLocationIds = ids;
+    this.logger.debug(
+      `${client.id} (tenant:${auth.tenantId}) joined all ${ids.length} accessible location rooms`,
+    );
+  }
+
+  @SubscribeMessage("room:leave-all")
+  handleLeaveAllRooms(@ConnectedSocket() client: TypedSocket) {
+    const ids: string[] = (client.data as any)?.joinAllLocationIds ?? [];
+    for (const id of ids) client.leave(`location:${id}`);
+    (client.data as any).joinAllLocationIds = undefined;
   }
 }

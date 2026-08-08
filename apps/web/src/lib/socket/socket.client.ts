@@ -36,6 +36,21 @@ export function leaveLocationRoom(s: TypedSocket, locationId: string): void {
   }
 }
 
+// Same refcounting for the "All locations" board — it has no single
+// locationId to join, so it asks the server to resolve + join every room
+// this user is allowed to see instead (see room:join-all on the gateway).
+let joinAllCount = 0;
+
+export function joinAllLocationsRoom(s: TypedSocket): void {
+  joinAllCount += 1;
+  s.emit("room:join-all");
+}
+
+export function leaveAllLocationsRoom(s: TypedSocket): void {
+  joinAllCount = Math.max(0, joinAllCount - 1);
+  if (joinAllCount === 0) s.emit("room:leave-all");
+}
+
 export function getSocket(token = ""): TypedSocket {
   if (socket) {
     // Same auth (or no token supplied) → always reuse, connected or not:
@@ -78,6 +93,7 @@ export function getSocket(token = ""): TypedSocket {
   // still hold on every (re)connect so consumers don't go silently deaf.
   socket.on("connect", () => {
     for (const id of roomCounts.keys()) socket?.emit("room:join", id);
+    if (joinAllCount > 0) socket?.emit("room:join-all");
   });
 
   return socket;
@@ -88,6 +104,7 @@ export function disconnectSocket() {
   socket = null;
   socketToken = null;
   roomCounts.clear();
+  joinAllCount = 0;
 }
 
 // Namespaced accessor for consumers that prefer object-style imports.
