@@ -107,6 +107,7 @@ function makeService(opts: {
         }),
       },
       locations: { create: jest.fn().mockResolvedValue({ id: "tml_test" }) },
+      connectionTokens: { create: jest.fn().mockResolvedValue({ secret: "ct_secret_1" }) },
     },
     testHelpers: { terminal: { readers: { presentPaymentMethod: jest.fn().mockResolvedValue({}) } } },
   };
@@ -195,6 +196,60 @@ describe("TerminalService.chargeOrder", () => {
     await expect(
       svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_other" }),
     ).rejects.toThrow(/not registered/i);
+  });
+});
+
+// Regression: a Stripe Terminal Location created BEFORE the direct-charge
+// migration lives on the platform account. If ensureStripeLocation kept
+// reusing that cached id once a connected account exists, the SDK would be
+// handed a Location on a DIFFERENT account than its connection token and
+// PaymentIntent — which is exactly the "No such payment_intent" failure
+// this pins against (self-heals with no manual data cleanup required).
+describe("TerminalService.createConnectionToken — stale pre-migration Location", () => {
+  it("creates a FRESH Location on the connected account instead of reusing a platform-scoped one", async () => {
+    // The default mock location has stripeLocationId: "tml_1" with NO
+    // stripeLocationAccountId — exactly what a pre-migration config looks
+    // like (the field didn't exist yet, so it reads back as null/platform).
+    const { svc, stripe, prisma } = makeService({});
+    const out = await svc.createConnectionToken("t-1", "loc-1", false);
+
+    // A NEW location was created on the connected account — "tml_1" was NOT reused.
+    expect(stripe.terminal.locations.create).toHaveBeenCalledWith(
+      expect.objectContaining({ metadata: { orderhubLocationId: "loc-1" } }),
+      { stripeAccount: "acct_shop" },
+    );
+    expect(out.stripeLocationId).toBe("tml_test"); // the mock's created-location id, not "tml_1"
+
+    // The connection token itself is also scoped to the connected account.
+    expect(stripe.terminal.connectionTokens.create).toHaveBeenCalledWith(
+      {},
+      { stripeAccount: "acct_shop" },
+    );
+
+    // The new Location's owning account is persisted, so a LATER call with
+    // the SAME account correctly reuses it instead of creating yet another one.
+    const saved = prisma.location.update.mock.calls[0][0].data.settings.terminal;
+    expect(saved.stripeLocationId).toBe("tml_test");
+    expect(saved.stripeLocationAccountId).toBe("acct_shop");
+  });
+
+  it("reuses the stored Location once its recorded account matches what's resolved now", async () => {
+    const location = {
+      id: "loc-1",
+      name: "Pizza Uno",
+      address: { line1: "1 High St", city: "London", postcode: "SW1A 1AA", country: "GB" },
+      settings: {
+        terminal: {
+          stripeLocationId: "tml_migrated",
+          stripeLocationAccountId: "acct_shop", // already migrated
+          readers: [],
+        },
+      },
+    };
+    const { svc, stripe } = makeService({ location });
+    const out = await svc.createConnectionToken("t-1", "loc-1", false);
+    expect(stripe.terminal.locations.create).not.toHaveBeenCalled();
+    expect(out.stripeLocationId).toBe("tml_migrated");
   });
 });
 

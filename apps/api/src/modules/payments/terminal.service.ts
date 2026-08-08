@@ -33,9 +33,17 @@ export interface StoredReader {
 }
 interface TerminalConfig {
   stripeLocationId: string | null; // tml_… (LIVE mode)
+  // Which account stripeLocationId was actually CREATED on (null = the
+  // platform). A Location object created before the direct-charge
+  // migration lives on the platform even though we now resolve a
+  // connected account for it — ensureStripeLocation compares this against
+  // the freshly-resolved account and creates a new Location instead of
+  // reusing a mismatched one, so no manual data cleanup is ever needed.
+  stripeLocationAccountId?: string | null;
   // Stripe Terminal locations are per-mode; simulated readers register
   // against a separate TEST-mode location.
   stripeTestLocationId?: string | null;
+  stripeTestLocationAccountId?: string | null;
   readers: StoredReader[];
 }
 
@@ -135,7 +143,12 @@ export class TerminalService {
     const t = (s.terminal ?? {}) as Partial<TerminalConfig>;
     return {
       stripeLocationId: t.stripeLocationId ?? null,
+      // Absent on any config saved before the direct-charge migration —
+      // undefined here reads as "created on the platform", which is
+      // exactly what those pre-migration Location objects actually are.
+      stripeLocationAccountId: t.stripeLocationAccountId ?? null,
       stripeTestLocationId: t.stripeTestLocationId ?? null,
+      stripeTestLocationAccountId: t.stripeTestLocationAccountId ?? null,
       readers: Array.isArray(t.readers) ? (t.readers as StoredReader[]) : [],
     };
   }
@@ -182,7 +195,19 @@ export class TerminalService {
     opts: { test: boolean; stripeAccount?: string | null },
   ): Promise<string> {
     const existing = opts.test ? cfg.stripeTestLocationId : cfg.stripeLocationId;
-    if (existing) return existing;
+    const existingAccount = opts.test
+      ? cfg.stripeTestLocationAccountId
+      : cfg.stripeLocationAccountId;
+    // Reuse ONLY if it was created on the SAME account we're targeting now
+    // (both null means "the platform", which still matches). A Location
+    // created before the direct-charge migration lives on the platform —
+    // reusing it here would hand the SDK a Location object on a DIFFERENT
+    // account than its connection token/PaymentIntent, which Stripe then
+    // reports back as a confusing "No such payment_intent". Falling
+    // through creates a fresh, correctly-scoped Location instead.
+    if (existing && (existingAccount ?? null) === (opts.stripeAccount ?? null)) {
+      return existing;
+    }
     const stripe = this.client(opts.test);
     const a = (loc.address ?? {}) as Record<string, any>;
     const requestOpts = opts.stripeAccount ? { stripeAccount: opts.stripeAccount } : undefined;
@@ -207,8 +232,13 @@ export class TerminalService {
         `Couldn't set up the card reader for this location: ${err?.message ?? "Stripe rejected the location details"}`,
       );
     }
-    if (opts.test) cfg.stripeTestLocationId = created.id;
-    else cfg.stripeLocationId = created.id;
+    if (opts.test) {
+      cfg.stripeTestLocationId = created.id;
+      cfg.stripeTestLocationAccountId = opts.stripeAccount ?? null;
+    } else {
+      cfg.stripeLocationId = created.id;
+      cfg.stripeLocationAccountId = opts.stripeAccount ?? null;
+    }
     await this.saveConfig(loc.id, loc.settings, cfg);
     this.logger.log(
       `Stripe Terminal ${opts.test ? "TEST " : ""}location ${created.id} created for ${loc.id}`,
