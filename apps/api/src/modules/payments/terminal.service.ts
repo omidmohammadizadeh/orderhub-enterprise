@@ -432,7 +432,14 @@ export class TerminalService {
     }
     const requestOpts = stripeAccountId ? { stripeAccount: stripeAccountId } : undefined;
     const token = await stripe.terminal.connectionTokens.create({}, requestOpts);
-    return { secret: token.secret, stripeLocationId, simulated };
+    // stripeAccountId is returned so the CLIENT can tell whether an already
+    // connected SDK session is usable for this charge. A session opened for a
+    // different account (e.g. paired from the Card Readers settings page with
+    // no order → location-level account, then reused for an order whose brand
+    // has its own escape-hatch acct_…) can't see the PaymentIntent that
+    // createMobileCharge makes, and fails with "No such payment_intent".
+    // The mobile side fingerprints on this and reconnects when it changes.
+    return { secret: token.secret, stripeLocationId, simulated, stripeAccountId };
   }
 
   /** Create a card_present PaymentIntent for an order and return its client

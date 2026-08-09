@@ -24,6 +24,7 @@ function oh() {
           readerType?: "wisepad" | "tapToPay",
           orderHubLocationId?: string,
           orderId?: string,
+          stripeAccountId?: string | null,
         ) => Promise<{ label: string }>;
         showHowToTap?: () => Promise<boolean>;
       };
@@ -81,11 +82,19 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
   const connect = async (readerType: "wisepad" | "tapToPay") => {
     setConnecting(readerType);
     try {
-      const { stripeLocationId } = await terminalClient.connectionToken(locationId);
+      const { stripeLocationId, stripeAccountId } =
+        await terminalClient.connectionToken(locationId);
       if (!stripeLocationId) {
         throw new Error("Couldn't prepare the reader for this location.");
       }
-      const res = await oh()!.connect(stripeLocationId, false, readerType, locationId);
+      const res = await oh()!.connect(
+        stripeLocationId,
+        false,
+        readerType,
+        locationId,
+        undefined,
+        stripeAccountId,
+      );
       setConnectedLabel(res?.label ?? (readerType === "tapToPay" ? "Tap to Pay" : "WisePad 3"));
       toast.success("Reader connected");
     } catch (e: any) {

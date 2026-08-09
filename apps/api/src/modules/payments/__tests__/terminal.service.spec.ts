@@ -277,6 +277,26 @@ describe("TerminalService.createConnectionToken — brandId resolution via order
     await svc.createConnectionToken("t-1", "loc-1", false);
     expect(payments.resolveConnectAccount).toHaveBeenCalledWith("t-1", "loc-1", undefined);
   });
+
+  // Regression: the CLIENT needs to know which account the session is being
+  // opened against, so the native SDK can tell an already-paired session
+  // apart from one bound to a DIFFERENT account. Pairing from the Card
+  // Readers settings page (no order → location-level account) and then
+  // charging an order whose brand has its own acct_… reused the wrong
+  // session and failed with "No such payment_intent" — the reader looked
+  // connected but could not see the PaymentIntent. See kindOf() in
+  // apps/mobile/src/services/terminal.ts.
+  it("returns the resolved connected account so the client can fingerprint the session", async () => {
+    const { svc } = makeService({});
+    const out = await svc.createConnectionToken("t-1", "loc-1", false, "ord-1");
+    expect(out.stripeAccountId).toBe("acct_shop");
+  });
+
+  it("returns a null account for a simulated session (test mode has no connected account)", async () => {
+    const { svc } = makeService({});
+    const out = await svc.createConnectionToken("t-1", "loc-1", true);
+    expect(out.stripeAccountId).toBeNull();
+  });
 });
 
 // WisePad 3 / Tap to Pay — SDK-driven. A fresh SDK session is opened PER

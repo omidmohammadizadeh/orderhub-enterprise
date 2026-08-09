@@ -104,9 +104,25 @@ let connectInFlight = false;
 // connect() checks this FIRST and reuses the existing connection instead of
 // re-running discovery — a genuine kind change (switching WisePad ↔ Tap to
 // Pay, or live ↔ simulated) disconnects first instead.
+// The fingerprint MUST include the connected account, not just the reader
+// type. A session opened for one account cannot see PaymentIntents created
+// on another — that surfaces as "No such payment_intent" at charge time,
+// with the reader looking perfectly connected. Real case that produced it:
+// pairing from the Card Readers settings page (no order → LOCATION-level
+// account) and then charging an order whose brand has its own escape-hatch
+// acct_… (→ BRAND-level account). Same reader type, different account, so a
+// type-only fingerprint wrongly reused the session. Orders on the same brand
+// still resolve to the same account and still reuse the session, which is
+// what keeps repeat charges fast (see the repeat-payment fix above).
 let connectedKind: string | null = null;
-function kindOf(readerType: string | undefined, simulated: boolean | undefined): string {
-  return `${readerType ?? "wisepad"}:${simulated ? "sim" : "live"}`;
+function kindOf(
+  readerType: string | undefined,
+  simulated: boolean | undefined,
+  stripeAccountId?: string | null,
+): string {
+  return `${readerType ?? "wisepad"}:${simulated ? "sim" : "live"}:${
+    stripeAccountId ?? "platform"
+  }`;
 }
 
 // ── Connection-token provider ───────────────────────────────────────────────
@@ -194,6 +210,11 @@ type ConnectFn = (
    *  AND the SDK's own later refetches) must agree, or they land on
    *  different accounts and the reader can never stay connected. */
   orderId?: string,
+  /** The connected account this session will be opened against, as returned
+   *  by POST /connection-token. Part of the reuse fingerprint: an existing
+   *  session bound to a DIFFERENT account is torn down rather than reused,
+   *  since it could not see this charge's PaymentIntent. */
+  stripeAccountId?: string | null,
 ) => Promise<{ label: string }>;
 type PayFn = (clientSecret: string) => Promise<{ status: string }>;
 /** Apple's Tap to Pay requirement 1.5: warm up at launch/foreground rather
@@ -289,6 +310,7 @@ export function TerminalHost(): React.ReactElement | null {
       readerType,
       orderHubLocationId,
       orderId,
+      stripeAccountId,
     ) => {
       // One connect at a time. discoverReaders runs a CONTINUOUS background scan
       // in this SDK — a second connect while one is mid-flight throws "SDK is
@@ -298,10 +320,20 @@ export function TerminalHost(): React.ReactElement | null {
       }
       connectInFlight = true;
       try {
-        // Already connected as the SAME kind of reader (e.g. the operator's
-        // 2nd, 3rd, ... charge in a shift) — reuse it instead of re-running
-        // discovery, which the SDK would reject outright.
-        const requestedKind = kindOf(readerType, simulated);
+        // Keep the token provider in step with THIS call before anything else
+        // — including the reuse path below. The SDK refetches connection
+        // tokens on its own schedule; if these still held a previous call's
+        // order/location, a later refetch would silently re-scope the live
+        // session to a different account.
+        pendingSimulated = !!simulated;
+        pendingLocationId = orderHubLocationId;
+        pendingOrderId = orderId;
+
+        // Already connected as the SAME kind of reader AND the same connected
+        // account (e.g. the operator's 2nd, 3rd, ... charge in a shift) —
+        // reuse it instead of re-running discovery, which the SDK would
+        // reject outright.
+        const requestedKind = kindOf(readerType, simulated, stripeAccountId);
         if (terminalController.connectedLabel && connectedKind === requestedKind) {
           tlog("already connected, reusing", { label: terminalController.connectedLabel });
           return { label: terminalController.connectedLabel };
@@ -319,14 +351,10 @@ export function TerminalHost(): React.ReactElement | null {
         }
 
         tlog("connect start", { simulated: !!simulated, stripeLocationId });
-        // Decide the Stripe environment + connected account BEFORE init: the
-        // token provider reads pendingSimulated/pendingLocationId/pendingOrderId
-        // when the SDK pulls its first (and every later) token in ensureInit().
-        // orderHubLocationId is OrderHub's own Location.id, NOT the Stripe
-        // tml_… id — the backend resolves the connected account FROM these.
-        pendingSimulated = !!simulated;
-        pendingLocationId = orderHubLocationId;
-        pendingOrderId = orderId;
+        // pendingSimulated/pendingLocationId/pendingOrderId were set at the top
+        // of this call — they must already be correct here, because the SDK
+        // reads them via the token provider on its FIRST token fetch inside
+        // ensureInit() below (and on every later refetch of its own).
         const wantMode: "test" | "live" = simulated ? "test" : "live";
         if (initMode && initMode !== wantMode) {
           throw new Error(

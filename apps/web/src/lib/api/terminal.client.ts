@@ -79,12 +79,19 @@ export const terminalClient = {
   // resolve the connected account WITH that order's brandId, so this call
   // and the later chargeMobile(orderId) land on the SAME account — required
   // whenever a brand has its own escape-hatch Stripe account.
+  // `stripeAccountId` is the connected account this session will be opened
+  // against. Pass it into OrderHubTerminal.connect so the native side can
+  // tell an already-paired session apart from one opened for a DIFFERENT
+  // account — reusing the wrong one makes the reader fail to see the
+  // PaymentIntent ("No such payment_intent").
   connectionToken: (locationId?: string, simulated?: boolean, orderId?: string) =>
     apiClient
-      .post<{ secret: string; stripeLocationId: string | null; simulated: boolean }>(
-        `/v1/payments/terminal/connection-token`,
-        { locationId, simulated, orderId },
-      )
+      .post<{
+        secret: string;
+        stripeLocationId: string | null;
+        simulated: boolean;
+        stripeAccountId: string | null;
+      }>(`/v1/payments/terminal/connection-token`, { locationId, simulated, orderId })
       .then((r) => r.data),
 
   // Prepares an on-device card-present charge; returns the client secret the

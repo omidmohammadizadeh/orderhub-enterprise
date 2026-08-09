@@ -239,13 +239,14 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         window.OrderHubTerminal = {
           isReady: true,
           tapToPaySupported: ${TAP_TO_PAY_SUPPORTED},
-          connect: function (stripeLocationId, simulated, readerType, orderHubLocationId, orderId) {
+          connect: function (stripeLocationId, simulated, readerType, orderHubLocationId, orderId, stripeAccountId) {
             return request('terminal:connect', {
               stripeLocationId: stripeLocationId || null,
               simulated: !!simulated,
               readerType: readerType || null,
               orderHubLocationId: orderHubLocationId || null,
-              orderId: orderId || null
+              orderId: orderId || null,
+              stripeAccountId: stripeAccountId || null
             });
           },
           pay: function (clientSecret) {
@@ -343,20 +344,28 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         }
       } else if (msg?.type === "terminal:connect" && msg?.reqId) {
         try {
-          const { stripeLocationId, simulated, readerType, orderHubLocationId, orderId } =
-            (msg.payload ?? {}) as {
-              stripeLocationId?: string | null;
-              simulated?: boolean;
-              readerType?: "wisepad" | "tapToPay" | null;
-              orderHubLocationId?: string | null;
-              orderId?: string | null;
-            };
+          const {
+            stripeLocationId,
+            simulated,
+            readerType,
+            orderHubLocationId,
+            orderId,
+            stripeAccountId,
+          } = (msg.payload ?? {}) as {
+            stripeLocationId?: string | null;
+            simulated?: boolean;
+            readerType?: "wisepad" | "tapToPay" | null;
+            orderHubLocationId?: string | null;
+            orderId?: string | null;
+            stripeAccountId?: string | null;
+          };
           const res = await terminalController.connect(
             stripeLocationId || undefined,
             !!simulated,
             readerType || undefined,
             orderHubLocationId || undefined,
             orderId || undefined,
+            stripeAccountId ?? null,
           );
           respond(msg.reqId, res);
         } catch (err: any) {

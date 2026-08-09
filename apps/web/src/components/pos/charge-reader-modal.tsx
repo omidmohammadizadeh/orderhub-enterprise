@@ -182,6 +182,7 @@ export function ChargeReaderModal({
             readerType?: "wisepad" | "tapToPay",
             orderHubLocationId?: string,
             orderId?: string,
+            stripeAccountId?: string | null,
           ) => Promise<{ label: string }>;
           pay: (clientSecret: string) => Promise<{ status: string }>;
           warmUp?: (orderHubLocationId: string, orderId: string) => Promise<void>;
@@ -193,7 +194,7 @@ export function ChargeReaderModal({
     setError(null);
     setConnecting(true);
     try {
-      const { stripeLocationId } = await terminalClient.connectionToken(
+      const { stripeLocationId, stripeAccountId } = await terminalClient.connectionToken(
         locationId,
         simulate,
         orderId ?? undefined,
@@ -207,6 +208,7 @@ export function ChargeReaderModal({
         method === "tapToPay" ? "tapToPay" : "wisepad",
         locationId,
         orderId ?? undefined,
+        stripeAccountId,
       );
       setConnectedLabel(
         res?.label ??
