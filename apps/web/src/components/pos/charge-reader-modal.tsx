@@ -375,17 +375,6 @@ export function ChargeReaderModal({
                     ? "Connect Tap to Pay, then hold the customer's card or phone to the back of this device."
                     : "Connect the WisePad 3 over Bluetooth, then take the payment on the reader."}
               </p>
-              {testMode && !connectedLabel && phase !== "waiting" && (
-                <label className="flex items-center gap-2 rounded-md bg-violet-50 px-3 py-2 text-xs text-violet-800">
-                  <input
-                    type="checkbox"
-                    checked={simulate}
-                    onChange={(e) => setSimulate(e.target.checked)}
-                    className="h-3.5 w-3.5"
-                  />
-                  Simulate reader — no hardware, test mode (no real charge)
-                </label>
-              )}
               {phase === "waiting" ? (
                 <div className="flex flex-col items-center gap-2 py-3 text-zinc-600">
                   <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
