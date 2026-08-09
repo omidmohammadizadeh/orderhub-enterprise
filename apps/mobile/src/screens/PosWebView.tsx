@@ -225,18 +225,22 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         // BBPOS WisePad 3 (Bluetooth) or Tap to Pay (this device's own NFC)
         // card reader. The web POS creates the charge
         // (POST /payments/terminal/charge/mobile → clientSecret), then:
-        //   OrderHubTerminal.connect(stripeLocationId?, simulated?, readerType?)
+        //   OrderHubTerminal.connect(stripeLocationId?, simulated?, readerType?, orderHubLocationId?)
         //     → pair the reader ("wisepad" default, or "tapToPay")
         //   OrderHubTerminal.pay(clientSecret)           → collect on reader
         // then polls /payments/terminal/charge/status to settle the order.
+        // orderHubLocationId is OUR Location.id (distinct from the Stripe
+        // tml_… id) — direct charges need it for every connection-token
+        // fetch the SDK makes on its own, not just this initial connect.
         window.OrderHubTerminal = {
           isReady: true,
           tapToPaySupported: ${TAP_TO_PAY_SUPPORTED},
-          connect: function (stripeLocationId, simulated, readerType) {
+          connect: function (stripeLocationId, simulated, readerType, orderHubLocationId) {
             return request('terminal:connect', {
               stripeLocationId: stripeLocationId || null,
               simulated: !!simulated,
-              readerType: readerType || null
+              readerType: readerType || null,
+              orderHubLocationId: orderHubLocationId || null
             });
           },
           pay: function (clientSecret) {
@@ -317,16 +321,18 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         }
       } else if (msg?.type === "terminal:connect" && msg?.reqId) {
         try {
-          const { stripeLocationId, simulated, readerType } =
+          const { stripeLocationId, simulated, readerType, orderHubLocationId } =
             (msg.payload ?? {}) as {
               stripeLocationId?: string | null;
               simulated?: boolean;
               readerType?: "wisepad" | "tapToPay" | null;
+              orderHubLocationId?: string | null;
             };
           const res = await terminalController.connect(
             stripeLocationId || undefined,
             !!simulated,
             readerType || undefined,
+            orderHubLocationId || undefined,
           );
           respond(msg.reqId, res);
         } catch (err: any) {

@@ -142,6 +142,11 @@ type ConnectFn = (
   /** "tapToPay" turns THIS device's own NFC into the reader (iOS/Android).
    *  Anything else (or omitted) keeps the existing WisePad 3 Bluetooth path. */
   readerType?: "wisepad" | "tapToPay",
+  /** OrderHub's OWN Location.id (cuid) — NOT the Stripe tml_… id above.
+   *  Direct charges: fetchConnectionToken()'s tokenProvider calls need this
+   *  to resolve the connected account server-side; passing the tml_… id
+   *  there 404s ("Location not found") since it isn't an OrderHub id. */
+  orderHubLocationId?: string,
 ) => Promise<{ label: string }>;
 type PayFn = (clientSecret: string) => Promise<{ status: string }>;
 
@@ -218,7 +223,12 @@ export function TerminalHost(): React.ReactElement | null {
       initialized = true;
     };
 
-    const connect: ConnectFn = async (stripeLocationId, simulated, readerType) => {
+    const connect: ConnectFn = async (
+      stripeLocationId,
+      simulated,
+      readerType,
+      orderHubLocationId,
+    ) => {
       // One connect at a time. discoverReaders runs a CONTINUOUS background scan
       // in this SDK — a second connect while one is mid-flight throws "SDK is
       // busy with another command: discoverReaders". Serialise + always cancel.
@@ -230,9 +240,11 @@ export function TerminalHost(): React.ReactElement | null {
         tlog("connect start", { simulated: !!simulated, stripeLocationId });
         // Decide the Stripe environment + connected account BEFORE init: the
         // token provider reads pendingSimulated/pendingLocationId when the
-        // SDK pulls its first (and every later) token in ensureInit().
+        // SDK pulls its first (and every later) token in ensureInit(). This
+        // is OrderHub's own Location.id, NOT the Stripe tml_… id — the
+        // backend resolves the connected account FROM it.
         pendingSimulated = !!simulated;
-        pendingLocationId = stripeLocationId;
+        pendingLocationId = orderHubLocationId;
         const wantMode: "test" | "live" = simulated ? "test" : "live";
         if (initMode && initMode !== wantMode) {
           throw new Error(
