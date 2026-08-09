@@ -186,6 +186,7 @@ export function ChargeReaderModal({
       const { stripeLocationId } = await terminalClient.connectionToken(
         locationId,
         simulate,
+        orderId ?? undefined,
       );
       if (!stripeLocationId) {
         throw new Error("Couldn't prepare the reader for this location.");

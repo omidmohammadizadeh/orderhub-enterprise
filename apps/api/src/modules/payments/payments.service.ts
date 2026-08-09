@@ -1638,22 +1638,27 @@ export class PaymentsService {
       // hit the wrong account → "No such checkout.session" → card orders never
       // authorised and never appeared on the board.
       //
-      // Terminal charges (S700 / WisePad 3 / Tap to Pay) are the opposite —
-      // a physical reader or an SDK connection session is fixed to ONE
-      // account for its whole lifetime, resolved at the LOCATION level
-      // (TerminalService never passes brandId when setting one up). Re-
-      // resolving WITH brandId here for a terminal Payment could land on a
-      // brand's own escape-hatch acct_… — a DIFFERENT account than the one
-      // the PaymentIntent actually lives on — so refund/cancel/poll must
-      // skip brandId for terminal-sourced rows.
+      // Terminal charges split further by CHANNEL:
+      //   - S700 (physical counter reader): the reader is registered ONCE
+      //     and reused across many later orders/brands, so it's fixed to
+      //     ONE account resolved at the LOCATION level (no brandId) —
+      //     re-resolving WITH brandId here could land on a DIFFERENT
+      //     account than the one the reader/PI actually live on.
+      //   - WisePad 3 / Tap to Pay (metadata.channel === "mobile_reader"):
+      //     a fresh SDK connection is opened PER ORDER by the POS modal, so
+      //     createConnectionToken/createMobileCharge both resolve WITH that
+      //     order's brandId — re-resolving here must match, or a brand's
+      //     own escape-hatch account never gets used for refund/cancel/poll.
       select: { tenantId: true, locationId: true, brandId: true },
     });
     if (!order) return null;
-    const isTerminal = (payment.metadata as any)?.source === "terminal";
+    const meta = (payment.metadata as any) ?? {};
+    const isLocationFixedTerminal =
+      meta.source === "terminal" && meta.channel !== "mobile_reader";
     const connect = await this.resolveConnectAccount(
       order.tenantId,
       order.locationId,
-      isTerminal ? null : (order.brandId ?? null),
+      isLocationFixedTerminal ? null : (order.brandId ?? null),
     );
     return connect?.stripeAccountId ?? null;
   }

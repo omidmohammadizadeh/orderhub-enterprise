@@ -65,10 +65,18 @@ interface TerminalConfig {
 //      OR the poll endpoint settles it → order PAID.
 //
 // A reader/connection-token is fixed to ONE account for its whole lifetime
-// (Stripe requires the reader and the PI it processes to match), so the
-// account is resolved at the LOCATION level (no brandId) everywhere in this
-// file — see PaymentsService.stripeAccountForPayment for the matching
-// terminal-aware resolution used by refund/cancel/poll.
+// (Stripe requires the reader and the PI it processes to match). WHERE that
+// account is resolved from differs by channel:
+//   - S700 (physical counter reader): registered ONCE, reused across many
+//     later orders — resolved at the LOCATION level (no brandId) in
+//     registerReader, and chargeOrder charges through the READER's own
+//     stored account rather than re-resolving.
+//   - WisePad 3 / Tap to Pay (mobile SDK): a fresh session is opened PER
+//     ORDER by the POS modal, so createConnectionToken/createMobileCharge
+//     both resolve WITH that order's brandId — same as online orders — so
+//     a brand's own escape-hatch acct_… is honoured for terminal charges too.
+// See PaymentsService.stripeAccountForPayment for the matching
+// channel-aware resolution used by refund/cancel/poll.
 //
 // Test WITHOUT hardware: register a `simulated-wpe` reader, then
 // simulatePresent() plays the card tap in test mode → the PI succeeds.
@@ -371,8 +379,22 @@ export class TerminalService {
   /** Short-lived Stripe Terminal connection token for the on-device SDK. When a
    *  location is supplied, also ENSURE its Stripe Terminal location exists and
    *  return its id — a Bluetooth reader (WisePad 3) requires that id to connect,
-   *  and the POS fetches it here before pairing. */
-  async createConnectionToken(tenantId: string, locationId?: string, simulated = false) {
+   *  and the POS fetches it here before pairing.
+   *
+   *  When orderId is ALSO supplied (the mobile-reader modal always has one —
+   *  it opens for a specific order), the connected account is resolved WITH
+   *  that order's brandId, exactly like createMobileCharge — so a brand with
+   *  its own escape-hatch account (or any brand-level override) gets the
+   *  SAME account for both the SDK session and the PaymentIntent it confirms.
+   *  Without orderId (S700 reader registration — a physical reader has no
+   *  live order yet and is reused across many later ones) this falls back to
+   *  the location-level account. */
+  async createConnectionToken(
+    tenantId: string,
+    locationId?: string,
+    simulated = false,
+    orderId?: string,
+  ) {
     this.assertStripe();
     // Simulated (no-hardware) testing runs on the TEST client — client(true)
     // throws unless STRIPE_TEST_SECRET_KEY is set, so it can't be forced in
@@ -386,7 +408,19 @@ export class TerminalService {
     let stripeAccountId: string | null = null;
     if (locationId) {
       if (!simulated) {
-        const connect = await this.payments.resolveConnectAccount(tenantId, locationId);
+        let brandId: string | null | undefined;
+        if (orderId) {
+          const order = await this.prisma.order.findFirst({
+            where: { id: orderId, tenantId },
+            select: { brandId: true },
+          });
+          brandId = order?.brandId;
+        }
+        const connect = await this.payments.resolveConnectAccount(
+          tenantId,
+          locationId,
+          brandId,
+        );
         stripeAccountId = connect?.stripeAccountId ?? null;
       }
       const loc = await this.loadLocation(tenantId, locationId);
@@ -447,12 +481,13 @@ export class TerminalService {
     };
 
     // Direct charge — the PaymentIntent must live on the SAME account the
-    // connection token/SDK session was opened against (resolved at the
-    // LOCATION level, not per-order brandId — see the file-header comment).
-    // Stripe's own processing fee is now paid by the restaurant, exactly
-    // like online orders; application_fee_amount is still how we take our
-    // cut. SKIPPED for simulated charges — live connected accounts don't
-    // exist in test mode.
+    // connection token/SDK session was opened against. Resolved WITH the
+    // order's brandId, exactly like createConnectionToken now does for this
+    // SAME orderId — a brand-level escape-hatch account only ever matches
+    // between the two calls if both resolve identically. Stripe's own
+    // processing fee is now paid by the restaurant, exactly like online
+    // orders; application_fee_amount is still how we take our cut. SKIPPED
+    // for simulated charges — live connected accounts don't exist in test mode.
     let platformFeeGbp = 0;
     let stripeAccountId: string | null = null;
     let stripeConnectAccountRowId: string | null = null;
@@ -460,6 +495,7 @@ export class TerminalService {
       const connect = await this.payments.resolveConnectAccount(
         args.tenantId,
         order.locationId,
+        order.brandId,
       );
       if (connect?.stripeAccountId) {
         stripeAccountId = connect.stripeAccountId;

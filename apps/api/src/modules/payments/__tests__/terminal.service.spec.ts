@@ -253,14 +253,45 @@ describe("TerminalService.createConnectionToken — stale pre-migration Location
   });
 });
 
-// WisePad 3 / Tap to Pay — SDK-driven, no fixed physical reader resource,
-// but the connect account is resolved the SAME way as the S700 (location
-// level, no brandId) since a live connection session is equally fixed to
-// one account for its lifetime.
+// Regression: the connection token the SDK actually uses (fetched via
+// createConnectionToken, incl. the SDK's OWN internal refetches — see
+// terminal.ts's fetchConnectionToken) must resolve the SAME account as the
+// PaymentIntent createMobileCharge creates for that SAME order, or the SDK
+// session and the PI it confirms end up on two different connected accounts
+// — a real payment landed on the wrong restaurant's Stripe account before
+// this was pinned.
+describe("TerminalService.createConnectionToken — brandId resolution via orderId", () => {
+  it("looks up the order and resolves the connect account WITH its brandId", async () => {
+    const { svc, prisma, payments } = makeService({});
+    await svc.createConnectionToken("t-1", "loc-1", false, "ord-1");
+    expect(prisma.order.findFirst).toHaveBeenCalledWith({
+      where: { id: "ord-1", tenantId: "t-1" },
+      select: { brandId: true },
+    });
+    // The default mock order has brandId: "brand-1".
+    expect(payments.resolveConnectAccount).toHaveBeenCalledWith("t-1", "loc-1", "brand-1");
+  });
+
+  it("falls back to location-only resolution when no orderId is given (S700 reader registration)", async () => {
+    const { svc, payments } = makeService({});
+    await svc.createConnectionToken("t-1", "loc-1", false);
+    expect(payments.resolveConnectAccount).toHaveBeenCalledWith("t-1", "loc-1", undefined);
+  });
+});
+
+// WisePad 3 / Tap to Pay — SDK-driven. A fresh SDK session is opened PER
+// ORDER by the POS modal (unlike the S700's persistent physical reader), so
+// the connect account is resolved WITH that order's brandId — same as an
+// online order — and createConnectionToken (below) resolves identically for
+// the SAME orderId, or the SDK session and the PaymentIntent it confirms
+// would land on two different accounts (the exact "No such payment_intent" /
+// wrong-connected-account regression this pins against).
 describe("TerminalService.createMobileCharge", () => {
-  it("creates a card_present PI as a DIRECT charge on the location's resolved account + application fee", async () => {
-    const { svc, stripe, paymentCreate } = makeService({});
+  it("creates a card_present PI as a DIRECT charge, resolved WITH the order's brandId, + application fee", async () => {
+    const { svc, stripe, payments, paymentCreate } = makeService({});
     const out = await svc.createMobileCharge({ tenantId: "t-1", orderId: "ord-1" });
+
+    expect(payments.resolveConnectAccount).toHaveBeenCalledWith("t-1", "loc-1", "brand-1");
 
     const call = stripe.paymentIntents.create.mock.calls[0];
     const pi = call[0];

@@ -121,7 +121,7 @@ export class TerminalController {
       "Short-lived Stripe Terminal connection token for the on-device SDK (WisePad 3 / Tap to Pay)",
   })
   connectionToken(
-    @Body() body: { locationId?: string; simulated?: boolean },
+    @Body() body: { locationId?: string; simulated?: boolean; orderId?: string },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     // simulated only honoured for the platform admin — anyone else silently
@@ -130,6 +130,7 @@ export class TerminalController {
       user.tenantId,
       body?.locationId,
       body?.simulated === true && this.canSimulate(user),
+      body?.orderId,
     );
   }
 

@@ -3,18 +3,20 @@ import { PaymentsService } from "../payments.service";
 // stripeAccountForPayment resolves which connected account a follow-up
 // Stripe call (refund / cancel / terminal poll) must target.
 //
-// Online orders resolve WITH the order's brandId, so a brand's own
+// Online orders and WisePad 3 / Tap to Pay charges (metadata.channel ===
+// "mobile_reader") resolve WITH the order's brandId, so a brand's own
 // escape-hatch acct_… (pasted directly on the Brand settings drawer) wins —
-// that's how a virtual brand at a shared kitchen routes its own payouts.
+// that's how a virtual brand at a shared kitchen routes its own payouts, and
+// how a mobile SDK session opened per-order stays on the SAME account as the
+// PaymentIntent it confirms.
 //
-// Terminal charges (S700 / WisePad 3 / Tap to Pay) are the opposite: a
-// physical reader or an SDK connection session is fixed to ONE account,
-// resolved at the LOCATION level (TerminalService never passes brandId
-// when creating the PaymentIntent). Re-resolving WITH brandId here for a
-// terminal Payment would land on the brand's escape-hatch account —
-// DIFFERENT from the one the PaymentIntent actually lives on — so refund,
-// cancel, and the terminal poll endpoint would 404 against the wrong
-// account. This is pinned so that regression can't creep back in.
+// The S700 counter reader is the opposite: it's registered ONCE and reused
+// across many later orders/brands, so it's fixed at the LOCATION level (no
+// brandId). Re-resolving WITH brandId here for an S700 Payment would land on
+// a brand's escape-hatch account — DIFFERENT from the one the reader/PI
+// actually live on — so refund, cancel, and the terminal poll endpoint
+// would 404 against the wrong account. This is pinned so regression can't
+// creep back into either direction.
 
 const TENANT = "t1";
 
@@ -57,13 +59,22 @@ describe("stripeAccountForPayment", () => {
     expect(account).toBe("acct_brand_vegan");
   });
 
-  it("ignores brandId for a terminal payment — resolves the location-level account instead", async () => {
+  it("ignores brandId for an S700 payment (no channel) — resolves the location-level account instead", async () => {
     const svc = makeService();
     const account = await svc.stripeAccountForPayment({
       orderId: "o1",
       metadata: { source: "terminal" },
     });
     expect(account).toBe("acct_location");
+  });
+
+  it("honours brandId for a mobile-reader (WisePad 3 / Tap to Pay) payment — brand escape-hatch wins", async () => {
+    const svc = makeService();
+    const account = await svc.stripeAccountForPayment({
+      orderId: "o1",
+      metadata: { source: "terminal", channel: "mobile_reader" },
+    });
+    expect(account).toBe("acct_brand_vegan");
   });
 
   it("uses the FK-linked StripeConnectAccount row directly when present, skipping order lookup entirely", async () => {

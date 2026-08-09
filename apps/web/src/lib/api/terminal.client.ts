@@ -75,12 +75,15 @@ export const terminalClient = {
 
   // Ensures the Stripe Terminal location exists and returns its id (needed to
   // connect the Bluetooth reader). The `secret` is unused by the web — the
-  // native SDK fetches its own connection token.
-  connectionToken: (locationId?: string, simulated?: boolean) =>
+  // native SDK fetches its own connection token. `orderId` lets the backend
+  // resolve the connected account WITH that order's brandId, so this call
+  // and the later chargeMobile(orderId) land on the SAME account — required
+  // whenever a brand has its own escape-hatch Stripe account.
+  connectionToken: (locationId?: string, simulated?: boolean, orderId?: string) =>
     apiClient
       .post<{ secret: string; stripeLocationId: string | null; simulated: boolean }>(
         `/v1/payments/terminal/connection-token`,
-        { locationId, simulated },
+        { locationId, simulated, orderId },
       )
       .then((r) => r.data),
 
