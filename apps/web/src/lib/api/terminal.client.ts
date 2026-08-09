@@ -58,6 +58,14 @@ export const terminalClient = {
       })
       .then((r) => r.data),
 
+  // Email the customer a receipt for an in-person sale. Apple's Tap to Pay
+  // App Review checklist (5.10) requires a digital receipt option alongside
+  // the printed one — for declined sales too, not just approved.
+  emailReceipt: (orderId: string, email: string) =>
+    apiClient
+      .post<{ sent: true }>(`/v1/payments/orders/${orderId}/receipt/email`, { email })
+      .then((r) => r.data),
+
   simulatePresent: (readerId: string) =>
     apiClient
       .post(`/v1/payments/terminal/simulate-present`, { readerId })

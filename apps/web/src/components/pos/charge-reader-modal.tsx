@@ -81,6 +81,12 @@ export function ChargeReaderModal({
   const [connecting, setConnecting] = useState(false);
   // Simulated reader — verify the flow with no hardware (test mode only).
   const [simulate, setSimulate] = useState(false);
+  // Digital receipt (Apple Tap to Pay checklist 5.10). Offered for declined
+  // sales too, not just approved ones — the customer is entitled to a record
+  // either way.
+  const [receiptEmail, setReceiptEmail] = useState("");
+  const [sendingReceipt, setSendingReceipt] = useState(false);
+  const [receiptSentTo, setReceiptSentTo] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const readersQuery = useQuery({
@@ -107,6 +113,9 @@ export function ChargeReaderModal({
       setConnectedLabel(null);
       setConnecting(false);
       setSimulate(false);
+      setReceiptEmail("");
+      setSendingReceipt(false);
+      setReceiptSentTo(null);
       // Fire the moment this screen opens — well before the operator taps
       // Connect — so the native SDK's init cost is already paid by the time
       // they do (Apple's Tap to Pay requirement to warm up ahead of use).
@@ -148,7 +157,9 @@ export function ChargeReaderModal({
             setPhase("paid");
             toast.success("Card payment received");
             onPaid?.();
-            setTimeout(onClose, 1200);
+            // Deliberately NOT auto-closing: the receipt step below needs to
+            // stay reachable (Apple Tap to Pay checklist 5.10). Staff close
+            // with the Done button.
             return;
           }
           if (FAILED_PI_STATUSES.has(s.status)) {
@@ -261,7 +272,9 @@ export function ChargeReaderModal({
             setPhase("paid");
             toast.success("Card payment received");
             onPaid?.();
-            setTimeout(onClose, 1200);
+            // Deliberately NOT auto-closing: the receipt step below needs to
+            // stay reachable (Apple Tap to Pay checklist 5.10). Staff close
+            // with the Done button.
             return;
           }
           if (FAILED_PI_STATUSES.has(s.status)) {
@@ -278,6 +291,21 @@ export function ChargeReaderModal({
       setError(
         e?.response?.data?.message ?? e?.message ?? "Card payment failed",
       );
+    }
+  };
+
+  const sendReceipt = async () => {
+    const to = receiptEmail.trim();
+    if (!to) return;
+    setSendingReceipt(true);
+    try {
+      await terminalClient.emailReceipt(orderId, to);
+      setReceiptSentTo(to);
+      toast.success("Receipt sent");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't send the receipt");
+    } finally {
+      setSendingReceipt(false);
     }
   };
 
@@ -373,9 +401,21 @@ export function ChargeReaderModal({
           )}
 
           {phase === "paid" ? (
-            <div className="flex flex-col items-center gap-2 py-4 text-emerald-600">
-              <CheckCircle2 className="h-10 w-10" />
-              <p className="font-semibold">Paid</p>
+            <div className="space-y-4">
+              <div className="flex flex-col items-center gap-2 py-2 text-emerald-600">
+                <CheckCircle2 className="h-10 w-10" />
+                <p className="font-semibold">Paid</p>
+              </div>
+              <ReceiptBox
+                email={receiptEmail}
+                setEmail={setReceiptEmail}
+                sending={sendingReceipt}
+                sentTo={receiptSentTo}
+                onSend={sendReceipt}
+              />
+              <Button onClick={onClose} className="w-full bg-zinc-900 py-3 text-white hover:bg-zinc-800">
+                Done
+              </Button>
             </div>
           ) : method === "wisepad" || method === "tapToPay" ? (
             <div className="space-y-3">
@@ -440,6 +480,16 @@ export function ChargeReaderModal({
                     >
                       Try again — £{chargeAmount.toFixed(2)}
                     </Button>
+                  )}
+                  {phase === "error" && (
+                    <ReceiptBox
+                      email={receiptEmail}
+                      setEmail={setReceiptEmail}
+                      sending={sendingReceipt}
+                      sentTo={receiptSentTo}
+                      onSend={sendReceipt}
+                      declined
+                    />
                   )}
                 </div>
               )}
@@ -532,6 +582,16 @@ export function ChargeReaderModal({
                       Try again — £{chargeAmount.toFixed(2)}
                     </Button>
                   )}
+                  {phase === "error" && (
+                    <ReceiptBox
+                      email={receiptEmail}
+                      setEmail={setReceiptEmail}
+                      sending={sendingReceipt}
+                      sentTo={receiptSentTo}
+                      onSend={sendReceipt}
+                      declined
+                    />
+                  )}
                 </div>
               )}
             </>
@@ -549,6 +609,65 @@ export function ChargeReaderModal({
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Digital receipt — Apple's Tap to Pay App Review checklist (5.10) requires
+// that the customer can be sent a confidential receipt for an in-person
+// sale, approved OR declined, not just handed the printed one. Email rather
+// than SMS: no per-message cost and no prepaid balance that can run dry
+// mid-service on a compliance-required feature.
+function ReceiptBox({
+  email,
+  setEmail,
+  sending,
+  sentTo,
+  onSend,
+  declined,
+}: {
+  email: string;
+  setEmail: (v: string) => void;
+  sending: boolean;
+  sentTo: string | null;
+  onSend: () => void;
+  /** Softens the wording when the sale didn't go through. */
+  declined?: boolean;
+}) {
+  if (sentTo) {
+    return (
+      <p className="flex items-center justify-center gap-1.5 text-sm text-emerald-700">
+        <CheckCircle2 className="h-4 w-4" /> Receipt sent to {sentTo}
+      </p>
+    );
+  }
+  return (
+    <div className="rounded-lg border border-zinc-200 p-3">
+      <label className="text-xs font-semibold text-zinc-700">
+        {declined ? "Email a record of this attempt" : "Email the receipt"}
+      </label>
+      <div className="mt-2 flex gap-2">
+        <input
+          type="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && email.trim() && !sending) onSend();
+          }}
+          placeholder="customer@example.com"
+          className="flex-1 rounded-md border border-zinc-200 px-3 py-2 text-sm"
+        />
+        <Button
+          variant="outline"
+          disabled={!email.trim() || sending}
+          onClick={onSend}
+        >
+          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
+        </Button>
       </div>
     </div>
   );

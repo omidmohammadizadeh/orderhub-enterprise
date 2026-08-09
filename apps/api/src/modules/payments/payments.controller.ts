@@ -9,6 +9,7 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { Request } from "express";
@@ -22,12 +23,16 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import { ReceiptEmailService } from "./receipt-email.service";
 
 @ApiTags("payments")
 @ApiBearerAuth()
 @Controller({ path: "payments", version: "1" })
 export class PaymentsController {
-  constructor(private readonly payments: PaymentsService) {}
+  constructor(
+    private readonly payments: PaymentsService,
+    private readonly receiptEmail: ReceiptEmailService,
+  ) {}
 
   // POST /v1/payments/intent
   @Post("intent")
@@ -113,6 +118,35 @@ export class PaymentsController {
       body?.phone ?? "",
       user.userId,
     );
+  }
+
+  // POST /v1/payments/orders/:orderId/receipt/email
+  //
+  // Apple's Tap to Pay App Review checklist (5.10) requires that a customer
+  // can be sent a confidential digital receipt for an in-person sale —
+  // whether it was approved OR declined — not just handed a printed one.
+  // Staff key in the address at the counter (Order has no customerEmail for
+  // walk-ins). Free to send, unlike the billable SMS route above.
+  @Post("orders/:orderId/receipt/email")
+  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Email the customer a receipt for this order" })
+  emailOrderReceipt(
+    @Param("orderId") orderId: string,
+    @Body() body: { email?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const to = (body?.email ?? "").trim();
+    // Deliberately strict-ish but not RFC-complete: catches the realistic
+    // counter typo (missing @, trailing comma) without rejecting valid
+    // addresses. Resend does the authoritative validation.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      throw new BadRequestException("Enter a valid email address.");
+    }
+    return this.receiptEmail.sendOrderReceipt({
+      tenantId: user.tenantId,
+      orderId,
+      to,
+    });
   }
 
   // POST /v1/payments/:paymentId/refund
