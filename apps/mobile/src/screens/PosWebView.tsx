@@ -39,6 +39,7 @@ import {
 import { sendBytesOverTcp } from "@/print/transport/lan";
 import { startCometReader, stopCometReader } from "@/callerid/comet";
 import { terminalController } from "@/services/terminal";
+import { showHowToTap } from "how-to-tap";
 
 // MUST be the canonical domain the site actually serves (www). Loading the
 // non-www host triggers a redirect to www, and because the login handoff sets
@@ -258,6 +259,14 @@ export function PosWebView({ tokens, onSignOut }: Props) {
               orderHubLocationId: orderHubLocationId || null,
               orderId: orderId || null
             }).catch(function () {});
+          },
+          // On-demand replay of Apple's "How to Tap" merchant-education
+          // overlay — for the Settings entry point (Apple's App Review
+          // checklist 4.3: merchant education must be reachable later, not
+          // just shown once automatically). Resolves false on iOS < 18 or
+          // Android, same as the automatic one-time version.
+          showHowToTap: function () {
+            return request('terminal:howtotap', {}).catch(function () { return false; });
           }
         };
         true;
@@ -377,6 +386,17 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           /* non-fatal by design */
         }
         respond(msg.reqId, { ok: true });
+      } else if (msg?.type === "terminal:howtotap" && msg?.reqId) {
+        // On-demand replay from Settings — unlike the automatic one-time
+        // trigger in terminal.ts, this always calls the native overlay
+        // regardless of whether it's been shown before.
+        let shown = false;
+        try {
+          shown = await showHowToTap();
+        } catch {
+          /* resolves false below */
+        }
+        respond(msg.reqId, shown);
       }
     } catch {
       // Ignore non-JSON / non-OrderHub messages.

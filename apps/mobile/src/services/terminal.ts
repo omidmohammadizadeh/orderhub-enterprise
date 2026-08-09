@@ -356,16 +356,30 @@ export function TerminalHost(): React.ReactElement | null {
             );
           }
           tlog("easyConnect tapToPay…", { simulated: !!simulated });
-          const { reader: ttpReader, error: ttpErr } = await withTimeout(
-            easyConnect({
-              discoveryMethod: "tapToPay",
-              simulated: !!simulated,
-              locationId: stripeLocationId,
-              tosAcceptancePermitted: true,
-            }),
-            30000,
-            "Tap to Pay connect",
-          );
+          const ttpConnectOnce = () =>
+            withTimeout(
+              easyConnect({
+                discoveryMethod: "tapToPay",
+                simulated: !!simulated,
+                locationId: stripeLocationId!,
+                tosAcceptancePermitted: true,
+              }),
+              30000,
+              "Tap to Pay connect",
+            );
+          let { reader: ttpReader, error: ttpErr } = await ttpConnectOnce();
+          // The native SDK session can genuinely connect while Apple's
+          // system Terms & Conditions/account-linking sheet is up — if
+          // anything (e.g. the WebView) interrupts the JS side mid-flow,
+          // terminalController/connectedKind never get set even though the
+          // reader IS connected, so the NEXT attempt hits Stripe's own
+          // "already connected" guard. Self-heal: disconnect the orphaned
+          // native session and connect fresh, exactly once.
+          if (ttpErr?.code === "ALREADY_CONNECTED_TO_READER") {
+            tlog("tapToPay already connected natively — resyncing…");
+            await disconnectReader?.().catch(() => {});
+            ({ reader: ttpReader, error: ttpErr } = await ttpConnectOnce());
+          }
           if (ttpErr) {
             // Apple requires iOS 17.6+ for Tap to Pay; on an older OS the SDK
             // reports the device/OS as ineligible rather than a generic

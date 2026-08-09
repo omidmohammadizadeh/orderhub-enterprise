@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, Plus, Smartphone, Radio, Trash2 } from "lucide-react";
+import { BookOpen, CheckCircle2, Loader2, Plus, Smartphone, Radio, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
@@ -25,6 +25,7 @@ function oh() {
           orderHubLocationId?: string,
           orderId?: string,
         ) => Promise<{ label: string }>;
+        showHowToTap?: () => Promise<boolean>;
       };
     }
   ).OrderHubTerminal;
@@ -136,6 +137,14 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
                 Connect WisePad 3
               </Button>
             </div>
+          )}
+          {tapToPayAvailable && (
+            <button
+              onClick={() => oh()?.showHowToTap?.()}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 underline hover:text-zinc-700"
+            >
+              <BookOpen className="h-3.5 w-3.5" /> How Tap to Pay works
+            </button>
           )}
         </div>
       )}
