@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, CheckCircle2, Loader2, Plus, Smartphone, Radio, Trash2 } from "lucide-react";
+import { BookOpen, CheckCircle2, Loader2, Plus, Radio, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
@@ -47,11 +47,21 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
 
   const ohTerminal =
     typeof window !== "undefined"
-      ? (window as { OrderHubTerminal?: { isReady?: boolean; tapToPaySupported?: boolean } })
-          .OrderHubTerminal
+      ? (
+          window as {
+            OrderHubTerminal?: {
+              isReady?: boolean;
+              tapToPaySupported?: boolean;
+              tapToPayLabel?: string;
+            };
+          }
+        ).OrderHubTerminal
       : undefined;
   const nativeReader = ohTerminal?.isReady === true;
   const tapToPayAvailable = nativeReader && ohTerminal?.tapToPaySupported === true;
+  // Apple checklist 5.4 — Apple's own naming on iPhone; the native side picks
+  // the platform-correct string (see PosWebView).
+  const tapToPayLabel = ohTerminal?.tapToPayLabel ?? "Tap to Pay";
 
   const registerCode = async (code: string, simulated = false) => {
     try {
@@ -95,7 +105,9 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
         undefined,
         stripeAccountId,
       );
-      setConnectedLabel(res?.label ?? (readerType === "tapToPay" ? "Tap to Pay" : "WisePad 3"));
+      setConnectedLabel(
+        res?.label ?? (readerType === "tapToPay" ? tapToPayLabel : "WisePad 3"),
+      );
       toast.success("Reader connected");
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? e?.message ?? "Couldn't connect the reader");
@@ -108,7 +120,9 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
     <div className="space-y-6">
       {nativeReader && (
         <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <h2 className="text-sm font-semibold text-zinc-900">Enable Tap to Pay / WisePad 3</h2>
+          <h2 className="text-sm font-semibold text-zinc-900">
+            Enable {tapToPayLabel} / WisePad 3
+          </h2>
           <p className="mt-1 text-sm text-zinc-500">
             Link this device to accept contactless card payments. You only need to do
             this once — the reader stays connected for future orders.
@@ -125,12 +139,10 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
                   disabled={connecting !== null}
                   className="bg-violet-600 text-white hover:bg-violet-700"
                 >
-                  {connecting === "tapToPay" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Smartphone className="mr-1.5 h-4 w-4" />
+                  {connecting === "tapToPay" && (
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                   )}
-                  Connect Tap to Pay
+                  Connect {tapToPayLabel}
                 </Button>
               )}
               <Button
@@ -152,7 +164,7 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
               onClick={() => oh()?.showHowToTap?.()}
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 underline hover:text-zinc-700"
             >
-              <BookOpen className="h-3.5 w-3.5" /> How Tap to Pay works
+              <BookOpen className="h-3.5 w-3.5" /> How {tapToPayLabel} works
             </button>
           )}
         </div>

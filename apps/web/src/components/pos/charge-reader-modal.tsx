@@ -14,6 +14,12 @@ import { CreditCard, Loader2, X, CheckCircle2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
+import {
+  getTerminalStatus,
+  subscribeTerminalStatus,
+  isPreparing,
+  type TerminalStatus,
+} from "@/lib/pos/terminal-status";
 import { apiClient } from "@/lib/api/client";
 
 type Phase = "idle" | "charging" | "waiting" | "paid" | "error";
@@ -71,11 +77,22 @@ export function ChargeReaderModal({
   // (iOS 16.4+ / Android 11+) — see PosWebView's TAP_TO_PAY_SUPPORTED.
   const ohTerminal =
     typeof window !== "undefined"
-      ? (window as { OrderHubTerminal?: { isReady?: boolean; tapToPaySupported?: boolean } })
-          .OrderHubTerminal
+      ? (
+          window as {
+            OrderHubTerminal?: {
+              isReady?: boolean;
+              tapToPaySupported?: boolean;
+              tapToPayLabel?: string;
+            };
+          }
+        ).OrderHubTerminal
       : undefined;
   const nativeReader = ohTerminal?.isReady === true;
   const tapToPayAvailable = nativeReader && ohTerminal?.tapToPaySupported === true;
+  // Apple checklist 5.4 — the trigger must carry Apple's own naming on
+  // iPhone. Decided natively (see PosWebView) since the same UI runs on
+  // Android, where "on iPhone" would be wrong.
+  const tapToPayLabel = ohTerminal?.tapToPayLabel ?? "Tap to Pay";
   const [method, setMethod] = useState<"server" | "wisepad" | "tapToPay">("server");
   const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
@@ -84,6 +101,9 @@ export function ChargeReaderModal({
   // Digital receipt (Apple Tap to Pay checklist 5.10). Offered for declined
   // sales too, not just approved ones — the customer is entitled to a record
   // either way.
+  // Live reader setup progress from the native SDK (Apple checklist 3.9.1
+  // configuration indicator + 5.7 "initializing" state).
+  const [readerStatus, setReaderStatus] = useState<TerminalStatus>({ stage: "idle" });
   const [receiptEmail, setReceiptEmail] = useState("");
   const [sendingReceipt, setSendingReceipt] = useState(false);
   const [receiptSentTo, setReceiptSentTo] = useState<string | null>(null);
@@ -129,6 +149,14 @@ export function ChargeReaderModal({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, orderId]);
+
+  // Subscribe for as long as the modal is mounted, seeding from the last
+  // known value so opening mid-setup renders the right state immediately.
+  useEffect(() => {
+    if (!open) return;
+    setReaderStatus(getTerminalStatus());
+    return subscribeTerminalStatus(setReaderStatus);
+  }, [open]);
 
   if (!open || !orderId) return null;
 
@@ -224,7 +252,7 @@ export function ChargeReaderModal({
       setConnectedLabel(
         res?.label ??
           (method === "tapToPay"
-            ? "Tap to Pay"
+            ? tapToPayLabel
             : simulate
               ? "Simulated reader"
               : "WisePad 3"),
@@ -384,7 +412,7 @@ export function ChargeReaderModal({
                       : "text-zinc-500"
                   }`}
                 >
-                  Tap to Pay
+                  {tapToPayLabel}
                 </button>
               )}
               <button
@@ -423,9 +451,15 @@ export function ChargeReaderModal({
                 {connectedLabel
                   ? `Connected: ${connectedLabel}`
                   : method === "tapToPay"
-                    ? "Connect Tap to Pay, then hold the customer's card or phone to the back of this device."
+                    ? `Connect ${tapToPayLabel}, then hold the customer's card or phone to the back of this device.`
                     : "Connect the WisePad 3 over Bluetooth, then take the payment on the reader."}
               </p>
+              {/* Apple checklist 3.9.1 / 5.7 — while the SDK is still
+                  configuring the reader, say so and show real progress
+                  rather than leaving the operator on a bare spinner. */}
+              {isPreparing(readerStatus) && phase !== "waiting" && (
+                <SetupProgress status={readerStatus} />
+              )}
               {phase === "waiting" ? (
                 <div className="flex flex-col items-center gap-2 py-3 text-zinc-600">
                   <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
@@ -444,7 +478,7 @@ export function ChargeReaderModal({
                   {connecting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : method === "tapToPay" ? (
-                    "Connect Tap to Pay"
+                    `Connect ${tapToPayLabel}`
                   ) : (
                     "Connect WisePad 3"
                   )}
@@ -669,6 +703,39 @@ function ReceiptBox({
           {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+// Apple's Tap to Pay App Review checklist asks for a configuration progress
+// indicator while the reader is being set up (3.9.1), and for the operator to
+// be told "not ready yet, it's coming" rather than met with a dead button if
+// they try to charge too early (5.7). Driven by the Stripe SDK's connection
+// status + software-update progress events — its equivalent of Apple's
+// PaymentCardReader updateProgress.
+function SetupProgress({ status }: { status: TerminalStatus }) {
+  const pct =
+    typeof status.progress === "number"
+      ? Math.max(0, Math.min(100, Math.round(status.progress * 100)))
+      : null;
+  return (
+    <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
+      <div className="flex items-center gap-2 text-sm font-medium text-violet-800">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {status.message ?? "Getting the reader ready…"}
+        {pct !== null && <span className="ml-auto tabular-nums">{pct}%</span>}
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-violet-200">
+        <div
+          className={`h-full rounded-full bg-violet-600 ${
+            pct === null ? "w-1/3 animate-pulse" : "transition-all"
+          }`}
+          style={pct === null ? undefined : { width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1.5 text-[11px] text-violet-700">
+        The reader will be available in a moment.
+      </p>
     </div>
   );
 }

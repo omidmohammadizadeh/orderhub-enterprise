@@ -94,6 +94,39 @@ let initMode: "test" | "live" | null = null;
 // Guards against overlapping connect() calls — the SDK rejects a second
 // discoverReaders while one is running ("SDK is busy with discoverReaders").
 let connectInFlight = false;
+// Reader setup progress, pushed to the POS so it can show a real
+// "getting ready" state instead of an opaque spinner. Apple's Tap to Pay
+// App Review checklist requires BOTH: a configuration progress indicator
+// while the reader is being set up (3.9.1), and an "initializing" screen if
+// the operator hits Charge before it's ready (5.7). The Stripe SDK's
+// onDidChangeConnectionStatus / onDidReportReaderSoftwareUpdateProgress are
+// its equivalent of Apple's PaymentCardReader.Event.updateProgress.
+export type TerminalStage =
+  | "idle"
+  | "connecting"
+  | "discovering"
+  | "updating"
+  | "connected"
+  | "disconnected";
+export interface TerminalStatus {
+  stage: TerminalStage;
+  /** 0..1 while reader software is installing, else undefined. */
+  progress?: number;
+  /** Short human-readable line for the POS to display verbatim. */
+  message?: string;
+}
+let statusListener: ((s: TerminalStatus) => void) | null = null;
+let lastStatus: TerminalStatus = { stage: "idle" };
+function publishStatus(s: TerminalStatus) {
+  lastStatus = s;
+  tlog("status", s);
+  try {
+    statusListener?.(s);
+  } catch {
+    // A listener that throws must never break the reader flow.
+  }
+}
+
 // Fingerprint of the CURRENTLY connected reader (readerType + live/sim). The
 // native SDK session survives the web modal closing and reopening for a new
 // order — but the modal's own "Connected" UI is just local React state, so
@@ -230,6 +263,10 @@ interface Controller {
   connect: ConnectFn;
   pay: PayFn;
   warmUp: WarmUpFn;
+  /** Current setup stage — read on demand (e.g. when the POS reopens). */
+  status: () => TerminalStatus;
+  /** Single-slot subscription; the WebView bridge owns it. */
+  onStatus: (cb: ((s: TerminalStatus) => void) | null) => void;
 }
 
 const notReady = async (): Promise<never> => {
@@ -244,6 +281,10 @@ export const terminalController: Controller = {
   // Best-effort — a warm-up that hasn't run yet (host not mounted) or that
   // fails must never block or surface an error; connect() still works cold.
   warmUp: async () => {},
+  status: () => lastStatus,
+  onStatus: (cb) => {
+    statusListener = cb;
+  },
 };
 
 // ── Host component: binds the hook to the controller ────────────────────────
@@ -263,6 +304,40 @@ export function TerminalHost(): React.ReactElement | null {
     onUpdateDiscoveredReaders: (readers) => {
       discovered = readers;
       tlog("readers via callback", readers?.length ?? 0);
+    },
+    // Stripe's stand-in for Apple's PaymentCardReader updateProgress events.
+    onDidChangeConnectionStatus: (status) => {
+      if (status === "connected") {
+        publishStatus({ stage: "connected", message: "Reader ready" });
+      } else if (status === "connecting" || status === "reconnecting") {
+        publishStatus({
+          stage: "connecting",
+          message:
+            status === "reconnecting"
+              ? "Reconnecting to the reader…"
+              : "Setting up the reader…",
+        });
+      } else if (status === "discovering") {
+        publishStatus({ stage: "discovering", message: "Looking for the reader…" });
+      } else {
+        publishStatus({ stage: "disconnected", message: "Reader not connected" });
+      }
+    },
+    onDidStartInstallingUpdate: () => {
+      publishStatus({ stage: "updating", progress: 0, message: "Updating the reader…" });
+    },
+    onDidReportReaderSoftwareUpdateProgress: (progress) => {
+      // The SDK hands this back as a string ("0.42"); surface it as a number
+      // so the POS can drive a real progress bar rather than a guess.
+      const pct = Number(progress);
+      publishStatus({
+        stage: "updating",
+        progress: Number.isFinite(pct) ? pct : undefined,
+        message: "Updating the reader…",
+      });
+    },
+    onDidFinishInstallingUpdate: () => {
+      publishStatus({ stage: "connecting", message: "Finishing setup…" });
     },
   });
 
@@ -592,6 +667,7 @@ export function TerminalHost(): React.ReactElement | null {
       terminalController.warmUp = async () => {};
       terminalController.connectedLabel = null;
       connectedKind = null;
+      publishStatus({ stage: "idle" });
       void disconnectReader?.().catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

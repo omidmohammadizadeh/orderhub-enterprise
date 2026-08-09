@@ -239,6 +239,14 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         window.OrderHubTerminal = {
           isReady: true,
           tapToPaySupported: ${TAP_TO_PAY_SUPPORTED},
+          // Apple's App Review checklist (5.4) requires the trigger to use
+          // Apple's own naming on iPhone — "Tap to Pay on iPhone", not a
+          // paraphrase. The same web POS also runs on Android, where that
+          // wording would be wrong, so the platform-correct label is decided
+          // natively rather than guessed in the WebView.
+          tapToPayLabel: ${JSON.stringify(
+            Platform.OS === "ios" ? "Tap to Pay on iPhone" : "Tap to Pay",
+          )},
           connect: function (stripeLocationId, simulated, readerType, orderHubLocationId, orderId, stripeAccountId) {
             return request('terminal:connect', {
               stripeLocationId: stripeLocationId || null,
@@ -268,13 +276,42 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           // Android, same as the automatic one-time version.
           showHowToTap: function () {
             return request('terminal:howtotap', {}).catch(function () { return false; });
-          }
+          },
+          // Latest reader setup stage, pushed from native via
+          // window.__ohTerminalStatus (below). Read synchronously so a POS
+          // screen that mounts mid-setup can render the right state
+          // immediately instead of waiting for the next event.
+          lastStatus: { stage: 'idle' }
+        };
+        // Native pushes reader setup progress here (see terminalController
+        // .onStatus). Keeps the last value on OrderHubTerminal so a late
+        // subscriber isn't blind, then fans out to whoever is listening.
+        window.__ohTerminalStatus = function (s) {
+          try {
+            window.OrderHubTerminal.lastStatus = s;
+            (window.__ohTerminalStatusListeners || []).forEach(function (fn) {
+              try { fn(s); } catch (e) {}
+            });
+          } catch (e) {}
         };
         true;
       })();
     `,
     [],
   );
+
+  // Native → web push for reader setup progress. Apple's checklist wants a
+  // real configuration indicator (3.9.1) and an "initializing" state if the
+  // operator charges too early (5.7), which needs events, not just the
+  // request/response bridge below.
+  useEffect(() => {
+    terminalController.onStatus((s) => {
+      webRef.current?.injectJavaScript(
+        `window.__ohTerminalStatus && window.__ohTerminalStatus(${JSON.stringify(s)}); true;`,
+      );
+    });
+    return () => terminalController.onStatus(null);
+  }, []);
 
   const respond = (reqId: string, value: unknown) => {
     webRef.current?.injectJavaScript(
