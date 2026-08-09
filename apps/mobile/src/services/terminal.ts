@@ -36,12 +36,31 @@
 
 import React from "react";
 import { Platform, PermissionsAndroid } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   StripeTerminalProvider,
   useStripeTerminal,
   type Reader,
 } from "@stripe/stripe-terminal-react-native";
+import { showHowToTap } from "how-to-tap";
 import { api } from "./auth";
+
+// Apple requires the "How to Tap" merchant-education overlay to have been
+// shown before the app is submitted for review — see modules/how-to-tap.
+// Shown once ever (per device), the first time Tap to Pay actually connects,
+// not at every connect — nobody wants a tutorial before every charge.
+const HOW_TO_TAP_SHOWN_KEY = "oh:howToTapShown";
+async function showHowToTapOnce(): Promise<void> {
+  try {
+    if (Platform.OS !== "ios") return;
+    const shown = await AsyncStorage.getItem(HOW_TO_TAP_SHOWN_KEY);
+    if (shown) return;
+    await showHowToTap();
+    await AsyncStorage.setItem(HOW_TO_TAP_SHOWN_KEY, "1");
+  } catch {
+    // Never let education UI block a real payment flow.
+  }
+}
 
 // Which Stripe environment the SDK should authenticate against. A SIMULATED
 // (no-hardware) reader only exists in Stripe TEST mode, so when the operator
@@ -363,6 +382,8 @@ export function TerminalHost(): React.ReactElement | null {
           terminalController.connectedLabel = ttpLabel;
           connectedKind = requestedKind;
           tlog("connected", { label: ttpLabel });
+          // Fire-and-forget — never block the reader being ready to charge.
+          void showHowToTapOnce();
           return { label: ttpLabel };
         }
 
