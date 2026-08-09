@@ -75,6 +75,20 @@ let initMode: "test" | "live" | null = null;
 // Guards against overlapping connect() calls — the SDK rejects a second
 // discoverReaders while one is running ("SDK is busy with discoverReaders").
 let connectInFlight = false;
+// Fingerprint of the CURRENTLY connected reader (readerType + live/sim). The
+// native SDK session survives the web modal closing and reopening for a new
+// order — but the modal's own "Connected" UI is just local React state, so
+// it resets and calls connect() again for every new charge even though the
+// reader is already paired. Stripe refuses a second discover/connect while
+// one is already connected ("You must disconnect from reader before
+// discovering readers"), which is exactly the error this was producing.
+// connect() checks this FIRST and reuses the existing connection instead of
+// re-running discovery — a genuine kind change (switching WisePad ↔ Tap to
+// Pay, or live ↔ simulated) disconnects first instead.
+let connectedKind: string | null = null;
+function kindOf(readerType: string | undefined, simulated: boolean | undefined): string {
+  return `${readerType ?? "wisepad"}:${simulated ? "sim" : "live"}`;
+}
 
 // ── Connection-token provider ───────────────────────────────────────────────
 // The SDK calls this whenever it needs a fresh token. `api` already attaches
@@ -252,6 +266,26 @@ export function TerminalHost(): React.ReactElement | null {
       }
       connectInFlight = true;
       try {
+        // Already connected as the SAME kind of reader (e.g. the operator's
+        // 2nd, 3rd, ... charge in a shift) — reuse it instead of re-running
+        // discovery, which the SDK would reject outright.
+        const requestedKind = kindOf(readerType, simulated);
+        if (terminalController.connectedLabel && connectedKind === requestedKind) {
+          tlog("already connected, reusing", { label: terminalController.connectedLabel });
+          return { label: terminalController.connectedLabel };
+        }
+        // Connected as a DIFFERENT kind (switched WisePad ↔ Tap to Pay, or
+        // toggled Simulate) — must disconnect before discovering again.
+        if (terminalController.connectedLabel && connectedKind !== requestedKind) {
+          tlog("switching reader kind, disconnecting first…", {
+            from: connectedKind,
+            to: requestedKind,
+          });
+          await disconnectReader?.().catch(() => {});
+          terminalController.connectedLabel = null;
+          connectedKind = null;
+        }
+
         tlog("connect start", { simulated: !!simulated, stripeLocationId });
         // Decide the Stripe environment + connected account BEFORE init: the
         // token provider reads pendingSimulated/pendingLocationId/pendingOrderId
@@ -303,6 +337,7 @@ export function TerminalHost(): React.ReactElement | null {
           if (ttpErr) throw new Error(ttpErr.message);
           const ttpLabel: string = ttpReader?.label ?? "Tap to Pay";
           terminalController.connectedLabel = ttpLabel;
+          connectedKind = requestedKind;
           tlog("connected", { label: ttpLabel });
           return { label: ttpLabel };
         }
@@ -328,6 +363,7 @@ export function TerminalHost(): React.ReactElement | null {
           if (!simErr) {
             const simLabel: string = sim?.label ?? "Simulated reader";
             terminalController.connectedLabel = simLabel;
+            connectedKind = requestedKind;
             tlog("connected", { label: simLabel });
             return { label: simLabel };
           }
@@ -362,6 +398,7 @@ export function TerminalHost(): React.ReactElement | null {
           const pickedLabel: string =
             simConn?.label ?? simReader.label ?? "Simulated reader";
           terminalController.connectedLabel = pickedLabel;
+          connectedKind = requestedKind;
           tlog("connected", { label: pickedLabel });
           return { label: pickedLabel };
         }
@@ -411,6 +448,7 @@ export function TerminalHost(): React.ReactElement | null {
         if (connErr) throw new Error(connErr.message);
         const label: string = connected?.label ?? "Card reader";
         terminalController.connectedLabel = label;
+        connectedKind = requestedKind;
         tlog("connected", { label });
         return { label };
       } catch (e: any) {
@@ -444,6 +482,8 @@ export function TerminalHost(): React.ReactElement | null {
       terminalController.ready = false;
       terminalController.connect = notReady;
       terminalController.pay = notReady;
+      terminalController.connectedLabel = null;
+      connectedKind = null;
       void disconnectReader?.().catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
