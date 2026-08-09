@@ -173,6 +173,7 @@ export function ChargeReaderModal({
             simulated?: boolean,
             readerType?: "wisepad" | "tapToPay",
             orderHubLocationId?: string,
+            orderId?: string,
           ) => Promise<{ label: string }>;
           pay: (clientSecret: string) => Promise<{ status: string }>;
         };
@@ -196,6 +197,7 @@ export function ChargeReaderModal({
         simulate,
         method === "tapToPay" ? "tapToPay" : "wisepad",
         locationId,
+        orderId ?? undefined,
       );
       setConnectedLabel(
         res?.label ??

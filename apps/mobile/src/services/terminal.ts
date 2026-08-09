@@ -59,6 +59,15 @@ let pendingSimulated = false;
 // pattern as pendingSimulated, since the SDK's tokenProvider takes no
 // arguments — this is the only way to get the location into that callback.
 let pendingLocationId: string | undefined;
+// Same reasoning, for the order: the backend resolves the connected account
+// WITH the order's brandId (a brand can have its own escape-hatch Stripe
+// account), so the warm-up call AND every token the SDK fetches on its own
+// must carry the SAME orderId — otherwise one resolves with brandId and the
+// other without, landing on two different accounts. That mismatch made
+// ensureStripeLocation self-heal into an ENDLESS loop: every call disagreed
+// with the account the previous call had just saved, so it created a brand
+// new Stripe Terminal Location every single time, forever.
+let pendingOrderId: string | undefined;
 // The mode the SDK actually initialised in. Stripe can't switch a live SDK
 // session to test (or back) without re-initialising, which the SDK only does on
 // a fresh launch — so a mode change asks the operator to restart the app.
@@ -74,7 +83,7 @@ let connectInFlight = false;
 export async function fetchConnectionToken(): Promise<string> {
   const res = await api.post<{ secret: string }>(
     "/v1/payments/terminal/connection-token",
-    { simulated: pendingSimulated, locationId: pendingLocationId },
+    { simulated: pendingSimulated, locationId: pendingLocationId, orderId: pendingOrderId },
   );
   return res.data.secret;
 }
@@ -147,6 +156,11 @@ type ConnectFn = (
    *  to resolve the connected account server-side; passing the tml_… id
    *  there 404s ("Location not found") since it isn't an OrderHub id. */
   orderHubLocationId?: string,
+  /** The order this payment is for. The backend resolves the connected
+   *  account WITH this order's brandId — every token fetch (this connect
+   *  AND the SDK's own later refetches) must agree, or they land on
+   *  different accounts and the reader can never stay connected. */
+  orderId?: string,
 ) => Promise<{ label: string }>;
 type PayFn = (clientSecret: string) => Promise<{ status: string }>;
 
@@ -228,6 +242,7 @@ export function TerminalHost(): React.ReactElement | null {
       simulated,
       readerType,
       orderHubLocationId,
+      orderId,
     ) => {
       // One connect at a time. discoverReaders runs a CONTINUOUS background scan
       // in this SDK — a second connect while one is mid-flight throws "SDK is
@@ -239,12 +254,13 @@ export function TerminalHost(): React.ReactElement | null {
       try {
         tlog("connect start", { simulated: !!simulated, stripeLocationId });
         // Decide the Stripe environment + connected account BEFORE init: the
-        // token provider reads pendingSimulated/pendingLocationId when the
-        // SDK pulls its first (and every later) token in ensureInit(). This
-        // is OrderHub's own Location.id, NOT the Stripe tml_… id — the
-        // backend resolves the connected account FROM it.
+        // token provider reads pendingSimulated/pendingLocationId/pendingOrderId
+        // when the SDK pulls its first (and every later) token in ensureInit().
+        // orderHubLocationId is OrderHub's own Location.id, NOT the Stripe
+        // tml_… id — the backend resolves the connected account FROM these.
         pendingSimulated = !!simulated;
         pendingLocationId = orderHubLocationId;
+        pendingOrderId = orderId;
         const wantMode: "test" | "live" = simulated ? "test" : "live";
         if (initMode && initMode !== wantMode) {
           throw new Error(
