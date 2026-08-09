@@ -107,10 +107,18 @@ export function ChargeReaderModal({
       setConnectedLabel(null);
       setConnecting(false);
       setSimulate(false);
+      // Fire the moment this screen opens — well before the operator taps
+      // Connect — so the native SDK's init cost is already paid by the time
+      // they do (Apple's Tap to Pay requirement to warm up ahead of use).
+      // Best-effort: errors are swallowed inside the bridge itself.
+      if (nativeReader && orderId) {
+        void oh()?.warmUp?.(locationId, orderId);
+      }
     }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, orderId]);
 
   if (!open || !orderId) return null;
@@ -176,6 +184,7 @@ export function ChargeReaderModal({
             orderId?: string,
           ) => Promise<{ label: string }>;
           pay: (clientSecret: string) => Promise<{ status: string }>;
+          warmUp?: (orderHubLocationId: string, orderId: string) => Promise<void>;
         };
       }
     ).OrderHubTerminal;

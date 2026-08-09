@@ -177,12 +177,19 @@ type ConnectFn = (
   orderId?: string,
 ) => Promise<{ label: string }>;
 type PayFn = (clientSecret: string) => Promise<{ status: string }>;
+/** Apple's Tap to Pay requirement 1.5: warm up at launch/foreground rather
+ *  than paying the SDK's initialize() cost when the operator taps Connect.
+ *  Takes the SAME orderHubLocationId + orderId as connect() so it resolves
+ *  the identical connected account — never a location-only guess — which is
+ *  what makes it safe to call ahead of the operator picking a reader. */
+type WarmUpFn = (orderHubLocationId: string, orderId: string) => Promise<void>;
 
 interface Controller {
   ready: boolean;
   connectedLabel: string | null;
   connect: ConnectFn;
   pay: PayFn;
+  warmUp: WarmUpFn;
 }
 
 const notReady = async (): Promise<never> => {
@@ -194,6 +201,9 @@ export const terminalController: Controller = {
   connectedLabel: null,
   connect: notReady,
   pay: notReady,
+  // Best-effort — a warm-up that hasn't run yet (host not mounted) or that
+  // fails must never block or surface an error; connect() still works cold.
+  warmUp: async () => {},
 };
 
 // ── Host component: binds the hook to the controller ────────────────────────
@@ -240,9 +250,12 @@ export function TerminalHost(): React.ReactElement | null {
 
   React.useEffect(() => {
     // LAZY INIT — nothing touches the Stripe SDK (no initialize, no connection
-    // token) until the operator actually connects a reader. So at app launch /
-    // login the card-reader layer is completely inert and cannot interfere with
-    // the login handoff or anything else.
+    // token) at app launch/login; the card-reader layer stays completely inert
+    // until it's told about a specific order (via warmUp() or connect()). This
+    // still protects the login handoff — only order-scoped code can trigger the
+    // SDK — while warmUp() lets the checkout screen pay initialize()'s cost
+    // BEFORE the operator taps Connect, satisfying Apple's Tap to Pay
+    // requirement that the app warm up ahead of use (see warmUp() below).
     let initialized = false;
     const ensureInit = async () => {
       if (initialized) return;
@@ -334,7 +347,18 @@ export function TerminalHost(): React.ReactElement | null {
             30000,
             "Tap to Pay connect",
           );
-          if (ttpErr) throw new Error(ttpErr.message);
+          if (ttpErr) {
+            // Apple requires iOS 17.6+ for Tap to Pay; on an older OS the SDK
+            // reports the device/OS as ineligible rather than a generic
+            // connect failure — give the operator something actionable
+            // instead of a raw SDK error string.
+            if (ttpErr.code === "TAP_TO_PAY_UNSUPPORTED_DEVICE") {
+              throw new Error(
+                "Tap to Pay needs iOS 17.6 or later on this iPhone. Update iOS in Settings, or use WisePad 3 / the counter reader instead.",
+              );
+            }
+            throw new Error(ttpErr.message);
+          }
           const ttpLabel: string = ttpReader?.label ?? "Tap to Pay";
           terminalController.connectedLabel = ttpLabel;
           connectedKind = requestedKind;
@@ -474,14 +498,35 @@ export function TerminalHost(): React.ReactElement | null {
       return { status: done?.status ?? "succeeded" };
     };
 
+    // Fire the moment a checkout screen opens — well before the operator taps
+    // Connect — using the SAME orderHubLocationId + orderId connect() would
+    // use, so it resolves the identical connected account rather than a
+    // location-only guess. Never throws: a failed/slow warm-up just means
+    // connect() pays the init cost itself, same as before this existed.
+    const warmUp: WarmUpFn = async (orderHubLocationId, orderId) => {
+      if (connectInFlight || terminalController.connectedLabel) return;
+      try {
+        pendingSimulated = false;
+        pendingLocationId = orderHubLocationId;
+        pendingOrderId = orderId;
+        tlog("warm up…");
+        await ensureInit();
+        tlog("warm up done");
+      } catch (e: any) {
+        tlog("warm up FAILED (non-fatal)", e?.message ?? String(e));
+      }
+    };
+
     terminalController.connect = connect;
     terminalController.pay = pay;
+    terminalController.warmUp = warmUp;
     terminalController.ready = true;
 
     return () => {
       terminalController.ready = false;
       terminalController.connect = notReady;
       terminalController.pay = notReady;
+      terminalController.warmUp = async () => {};
       terminalController.connectedLabel = null;
       connectedKind = null;
       void disconnectReader?.().catch(() => {});

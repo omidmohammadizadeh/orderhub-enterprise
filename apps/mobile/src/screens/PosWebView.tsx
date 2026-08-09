@@ -249,6 +249,15 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           },
           pay: function (clientSecret) {
             return request('terminal:pay', { clientSecret: clientSecret });
+          },
+          // Best-effort — call as soon as the checkout screen opens (before
+          // the operator taps Connect) so the SDK's init cost is already paid
+          // by the time they do. Never rejects.
+          warmUp: function (orderHubLocationId, orderId) {
+            return request('terminal:warmup', {
+              orderHubLocationId: orderHubLocationId || null,
+              orderId: orderId || null
+            }).catch(function () {});
           }
         };
         true;
@@ -353,6 +362,21 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         } catch (err: any) {
           reject(msg.reqId, err?.message ?? "Card payment failed");
         }
+      } else if (msg?.type === "terminal:warmup" && msg?.reqId) {
+        // Best-effort — always resolve. A failed/slow warm-up must never
+        // surface to the operator; connect() still works cold either way.
+        try {
+          const { orderHubLocationId, orderId } = (msg.payload ?? {}) as {
+            orderHubLocationId?: string | null;
+            orderId?: string | null;
+          };
+          if (orderHubLocationId && orderId) {
+            await terminalController.warmUp(orderHubLocationId, orderId);
+          }
+        } catch {
+          /* non-fatal by design */
+        }
+        respond(msg.reqId, { ok: true });
       }
     } catch {
       // Ignore non-JSON / non-OrderHub messages.
