@@ -71,9 +71,20 @@ export const terminalClient = {
       .post(`/v1/payments/terminal/simulate-present`, { readerId })
       .then((r) => r.data),
 
+  // declineCode/failureMessage let the POS route a decline to a FALLBACK
+  // payment method rather than just saying "try again" — required by Apple's
+  // checklist (4.8 / 5.11). Notably `offline_pin_required`: Stripe confirmed
+  // some UK-issued cards are insert-only under SCA and Tap to Pay cannot
+  // read them at all, so retrying the same way can never succeed.
   status: (paymentIntentId: string) =>
     apiClient
-      .get<{ paymentIntentId: string; status: string; paid: boolean }>(
+      .get<{
+        paymentIntentId: string;
+        status: string;
+        paid: boolean;
+        declineCode?: string | null;
+        failureMessage?: string | null;
+      }>(
         `/v1/payments/terminal/charge/status`,
         { params: { paymentIntentId } },
       )

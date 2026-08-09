@@ -770,10 +770,21 @@ export class TerminalService {
     if (pi.status === "succeeded") {
       await this.payments.settleTerminalPi(pi);
     }
+    // Surface WHY a card failed, not just that it did. UK cards are the
+    // reason this matters: per Stripe (and confirmed with their support for
+    // this account), Strong Customer Authentication makes some UK-issued
+    // cards insert-only, and Tap to Pay cannot read those at all — the
+    // charge is declined BEFORE any PIN screen with `offline_pin_required`.
+    // Apple's checklist (4.8 / 5.11) requires the app to route the operator
+    // to a fallback in exactly that case, which it can only do if it knows
+    // the reason. See charge-reader-modal's decline handling.
+    const lastError = pi.last_payment_error ?? null;
     return {
       paymentIntentId: pi.id,
       status: pi.status,
       paid: pi.status === "succeeded",
+      declineCode: lastError?.decline_code ?? lastError?.code ?? null,
+      failureMessage: lastError?.message ?? null,
     };
   }
 }

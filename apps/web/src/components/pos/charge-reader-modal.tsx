@@ -14,6 +14,7 @@ import { CreditCard, Loader2, X, CheckCircle2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
+import { paymentLinkClient } from "@/lib/api/pos.client";
 import {
   getTerminalStatus,
   subscribeTerminalStatus,
@@ -33,7 +34,17 @@ const FAILED_PI_STATUSES = new Set([
   "requires_payment_method", // declined, or the card was removed
   "canceled",
 ]);
-function failureMessage(status: string): string {
+// Stripe confirmed for this account that some UK-issued cards are
+// insert-only under Strong Customer Authentication: Tap to Pay cannot read
+// them at all, and the charge is declined BEFORE any PIN screen with
+// `offline_pin_required`. Retrying the tap can never work, so the operator
+// has to be told to switch method rather than tap again.
+const INSERT_ONLY_DECLINES = new Set(["offline_pin_required", "online_or_offline_pin_required"]);
+
+function failureMessage(status: string, declineCode?: string | null): string {
+  if (declineCode && INSERT_ONLY_DECLINES.has(declineCode)) {
+    return "This card must be inserted — it can't be read by tapping. Use another payment method below.";
+  }
   if (status === "canceled") return "Payment cancelled on the reader.";
   return "Card declined or not completed. You can try again.";
 }
@@ -104,6 +115,10 @@ export function ChargeReaderModal({
   // Live reader setup progress from the native SDK (Apple checklist 3.9.1
   // configuration indicator + 5.7 "initializing" state).
   const [readerStatus, setReaderStatus] = useState<TerminalStatus>({ stage: "idle" });
+  // Why the last attempt failed. Drives the fallback options below — Apple
+  // checklist 4.8 / 5.11 require routing the operator to another payment
+  // method when a card can't be read, not just offering a doomed retry.
+  const [declineCode, setDeclineCode] = useState<string | null>(null);
   const [receiptEmail, setReceiptEmail] = useState("");
   const [sendingReceipt, setSendingReceipt] = useState(false);
   const [receiptSentTo, setReceiptSentTo] = useState<string | null>(null);
@@ -133,6 +148,7 @@ export function ChargeReaderModal({
       setConnectedLabel(null);
       setConnecting(false);
       setSimulate(false);
+      setDeclineCode(null);
       setReceiptEmail("");
       setSendingReceipt(false);
       setReceiptSentTo(null);
@@ -195,7 +211,8 @@ export function ChargeReaderModal({
             // share can be retried on another card without re-keying it.
             if (pollRef.current) clearInterval(pollRef.current);
             setPhase("error");
-            setError(failureMessage(s.status));
+            setDeclineCode(s.declineCode ?? null);
+            setError(failureMessage(s.status, s.declineCode));
           }
         } catch {
           /* transient network — keep polling */
@@ -308,7 +325,8 @@ export function ChargeReaderModal({
           if (FAILED_PI_STATUSES.has(s.status)) {
             if (pollRef.current) clearInterval(pollRef.current);
             setPhase("error");
-            setError(failureMessage(s.status));
+            setDeclineCode(s.declineCode ?? null);
+            setError(failureMessage(s.status, s.declineCode));
           }
         } catch {
           /* transient network — keep polling */
@@ -320,6 +338,31 @@ export function ChargeReaderModal({
         e?.response?.data?.message ?? e?.message ?? "Card payment failed",
       );
     }
+  };
+
+  // Apple checklist 4.8 / 5.11 — when a card can't be read, the operator must
+  // be routed to another way to collect, not left retrying a tap that (for an
+  // insert-only UK card) can never succeed. Both routes already exist in
+  // OrderHub: the counter reader, and a hosted Stripe payment link.
+  const [linkUrl, setLinkUrl] = useState<string | null>(null);
+  const [makingLink, setMakingLink] = useState(false);
+  const createPaymentLink = async () => {
+    setMakingLink(true);
+    try {
+      const { url } = await paymentLinkClient.create(orderId);
+      setLinkUrl(url);
+      window.open(url, "_blank");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't create a payment link");
+    } finally {
+      setMakingLink(false);
+    }
+  };
+  const switchToCounterReader = () => {
+    setMethod("server");
+    setPhase("idle");
+    setError(null);
+    setDeclineCode(null);
   };
 
   const sendReceipt = async () => {
@@ -516,6 +559,16 @@ export function ChargeReaderModal({
                     </Button>
                   )}
                   {phase === "error" && (
+                    <FallbackOptions
+                      insertOnly={!!declineCode && INSERT_ONLY_DECLINES.has(declineCode)}
+                      canUseCounterReader
+                      onCounterReader={switchToCounterReader}
+                      onPaymentLink={createPaymentLink}
+                      makingLink={makingLink}
+                      linkUrl={linkUrl}
+                    />
+                  )}
+                  {phase === "error" && (
                     <ReceiptBox
                       email={receiptEmail}
                       setEmail={setReceiptEmail}
@@ -615,6 +668,16 @@ export function ChargeReaderModal({
                     >
                       Try again — £{chargeAmount.toFixed(2)}
                     </Button>
+                  )}
+                  {phase === "error" && (
+                    <FallbackOptions
+                      insertOnly={!!declineCode && INSERT_ONLY_DECLINES.has(declineCode)}
+                      canUseCounterReader={false}
+                      onCounterReader={switchToCounterReader}
+                      onPaymentLink={createPaymentLink}
+                      makingLink={makingLink}
+                      linkUrl={linkUrl}
+                    />
                   )}
                   {phase === "error" && (
                     <ReceiptBox
@@ -736,6 +799,55 @@ function SetupProgress({ status }: { status: TerminalStatus }) {
       <p className="mt-1.5 text-[11px] text-violet-700">
         The reader will be available in a moment.
       </p>
+    </div>
+  );
+}
+
+// Apple's Tap to Pay checklist requires a fallback path when a card can't be
+// read (4.8, and 5.11 for regional compliance). Stripe confirmed for this
+// account that UK Strong Customer Authentication makes some cards
+// insert-only — Tap to Pay physically cannot read them — so "try again" is
+// not a valid answer there. Both fallbacks already existed in OrderHub; this
+// just puts them in front of the operator at the moment they're needed.
+function FallbackOptions({
+  insertOnly,
+  canUseCounterReader,
+  onCounterReader,
+  onPaymentLink,
+  makingLink,
+  linkUrl,
+}: {
+  /** True when the card can never be tapped — lead with the alternatives. */
+  insertOnly: boolean;
+  canUseCounterReader: boolean;
+  onCounterReader: () => void;
+  onPaymentLink: () => void;
+  makingLink: boolean;
+  linkUrl: string | null;
+}) {
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+      <p className="text-xs font-semibold text-zinc-700">
+        {insertOnly ? "Take payment another way" : "Or take payment another way"}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {canUseCounterReader && (
+          <Button variant="outline" onClick={onCounterReader}>
+            Use counter reader
+          </Button>
+        )}
+        <Button variant="outline" onClick={onPaymentLink} disabled={makingLink}>
+          {makingLink ? (
+            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+          ) : null}
+          Send a payment link
+        </Button>
+      </div>
+      {linkUrl && (
+        <p className="mt-2 break-all text-[11px] text-zinc-500">
+          Link created — it also opened in a new tab. {linkUrl}
+        </p>
+      )}
     </div>
   );
 }
