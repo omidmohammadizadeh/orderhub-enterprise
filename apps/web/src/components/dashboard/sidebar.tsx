@@ -22,6 +22,7 @@ import {
   Palette,
   PhoneCall,
   Printer,
+  Smartphone,
   Zap,
   ChefHat,
   FlaskConical,
@@ -147,6 +148,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: [...MANAGER_TIER, "MANAGER"] },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
   { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: [...MANAGER_TIER, "MANAGER"] },
+  { href: "/dashboard/card-readers", label: "Card Readers", icon: Smartphone, roles: [...MANAGER_TIER, "MANAGER"] },
   // Diagnostics for the Comet USB box. Lives next to Printers because it is
   // the same job: "is the hardware on this counter actually working?"
   { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: [...MANAGER_TIER, "MANAGER"] },
