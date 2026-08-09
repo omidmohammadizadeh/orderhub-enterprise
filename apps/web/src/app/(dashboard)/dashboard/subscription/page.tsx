@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth.store";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { cn } from "@/lib/utils";
 
 interface MerchantSubscription {
@@ -100,12 +101,29 @@ function Inner() {
 
   const [setupLocationId, setSetupLocationId] = useState<string | null>(null);
 
-  const subs = subsQuery.data ?? [];
-  const locations = locationsQuery.data ?? [];
+  // Respect the dashboard's location picker, like every other page does.
+  // The API already scopes this list to the locations the caller is assigned
+  // to (see SubscriptionsService.accessibleLocationIds) — so this is NOT what
+  // stops one restaurant seeing another's billing. It's what stops a
+  // multi-location operator, who is legitimately entitled to all of them,
+  // from being shown every shop's subscription while they have one specific
+  // shop selected. null = "All locations" = the deliberate overview.
+  const selectedLocationId = useSelectedLocationStore((st) => st.selectedLocationId);
+  const allSubs = subsQuery.data ?? [];
+  const allLocations = locationsQuery.data ?? [];
+  const subs = selectedLocationId
+    ? allSubs.filter((s) => s.locationId === selectedLocationId)
+    : allSubs;
+  const locations = selectedLocationId
+    ? allLocations.filter((l) => l.id === selectedLocationId)
+    : allLocations;
   const subscribedLocationIds = new Set(subs.map((s) => s.locationId));
   const unsubscribed = locations.filter(
     (l) => !subscribedLocationIds.has(l.id),
   );
+  const selectedLocationName = selectedLocationId
+    ? (allLocations.find((l) => l.id === selectedLocationId)?.name ?? null)
+    : null;
 
   if (user && !mayView) {
     return (
@@ -124,8 +142,9 @@ function Inner() {
       <div>
         <h1 className="text-xl font-semibold text-zinc-900">Subscription</h1>
         <p className="text-sm text-zinc-500 mt-0.5">
-          Monthly platform fee per location. Card on file, invoices, and
-          automatic retries are managed by Stripe.
+          {selectedLocationName
+            ? `Monthly platform fee for ${selectedLocationName}. Card on file, invoices, and automatic retries are managed by Stripe.`
+            : "Monthly platform fee per location. Card on file, invoices, and automatic retries are managed by Stripe."}
         </p>
       </div>
 
@@ -145,7 +164,9 @@ function Inner() {
           </div>
         ) : subs.length === 0 ? (
           <p className="text-sm text-zinc-500">
-            No subscriptions yet. Pick a location below to set one up.
+            {selectedLocationName
+              ? `${selectedLocationName} doesn't have a subscription yet. Set one up below.`
+              : "No subscriptions yet. Pick a location below to set one up."}
           </p>
         ) : (
           <ul className="divide-y divide-zinc-100">
