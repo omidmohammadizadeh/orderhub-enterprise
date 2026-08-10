@@ -1,4 +1,4 @@
-import { resolveDeliveryFee } from "../ordering.service";
+import { resolveDeliveryFee, deliveryZoneScope } from "../ordering.service";
 
 // A postcode that doesn't match any of the brand's delivery zones used to
 // leave the order's delivery fee at whatever the client sent — usually 0,
@@ -80,5 +80,43 @@ describe("resolveDeliveryFee", () => {
         zoneFees: [5.0],
       }),
     ).toBe(0);
+  });
+});
+
+// The earlier fix tested the max-of-fees maths but not WHICH fees got
+// collected — and that's where order #JWDBH (pizza uno pelton) went wrong.
+// It shipped with £0 delivery months after resolveDeliveryFee landed: the
+// checkout carried no pinned brand, so the brand fell back to the location's
+// default brand, that brand had no zones of its own, and a brand-only lookup
+// found nothing to charge. These pin the SCOPE.
+describe("deliveryZoneScope", () => {
+  it("includes zones scoped directly to the location", () => {
+    const where = deliveryZoneScope({ locationId: "loc-1", brandId: "brand-1" });
+    expect(where.OR).toContainEqual({ locationId: "loc-1" });
+  });
+
+  it("includes zones scoped to the resolved brand", () => {
+    const where = deliveryZoneScope({ locationId: "loc-1", brandId: "brand-1" });
+    expect(where.OR).toContainEqual({ brandId: "brand-1" });
+  });
+
+  // The one that actually fixes #JWDBH: the order resolved to the location's
+  // default brand, which had no zones, while the brand the customer really
+  // ordered from did.
+  it("includes zones from ANY brand serving that location", () => {
+    const where = deliveryZoneScope({ locationId: "loc-1", brandId: "brand-1" });
+    expect(where.OR).toContainEqual({
+      brand: { locations: { some: { id: "loc-1" } } },
+    });
+  });
+
+  it("still scopes by location when no brand could be resolved at all", () => {
+    const where = deliveryZoneScope({ locationId: "loc-1", brandId: null });
+    expect(where.OR).toContainEqual({ locationId: "loc-1" });
+    expect(where.OR.some((c: any) => "brandId" in c)).toBe(false);
+  });
+
+  it("only ever considers active zones", () => {
+    expect(deliveryZoneScope({ locationId: "loc-1" }).isActive).toBe(true);
   });
 });

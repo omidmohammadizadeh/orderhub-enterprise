@@ -104,6 +104,32 @@ export function resolveDeliveryFee(input: {
   return highestZoneFee > 0 ? highestZoneFee : requested;
 }
 
+/** Every delivery zone that could apply at one shop.
+ *
+ *  DeliveryZone is scoped to a LOCATION or to a BRAND, and a location can
+ *  serve several brands, so a brand-only lookup misses zones that plainly do
+ *  apply there. Order #JWDBH (pizza uno pelton) shipped with £0 delivery
+ *  because of that: the checkout carried no pinned brand, so the brand fell
+ *  back to the location's default, that brand had no zones, and the fallback
+ *  found nothing to charge.
+ *
+ *  Kept separate from resolveDeliveryFee so the SCOPE is testable on its own —
+ *  the earlier fix tested the max-of-fees maths but not which fees got
+ *  collected, which is where this bug actually lived. */
+export function deliveryZoneScope(input: {
+  locationId: string;
+  brandId?: string | null;
+}) {
+  return {
+    isActive: true,
+    OR: [
+      { locationId: input.locationId },
+      ...(input.brandId ? [{ brandId: input.brandId }] : []),
+      { brand: { locations: { some: { id: input.locationId } } } },
+    ],
+  };
+}
+
 @Injectable()
 export class OrderingService {
   private readonly logger = new Logger(OrderingService.name);
@@ -1087,8 +1113,24 @@ export class OrderingService {
     // fee silently stayed 0).
     if (dto.fulfillmentType === "DELIVERY" && serverDeliveryFee <= 0) {
       try {
+        // Widened deliberately. DeliveryZone can be scoped to a LOCATION
+        // or to a BRAND, and a location can serve several brands, so
+        // looking only at campaignBrandId misses zones that plainly do
+        // apply at this shop. Order #JWDBH (pizza uno pelton) went out with
+        // £0 delivery for exactly that reason: the checkout carried no
+        // pinned brand, campaignBrandId fell back to the location's default
+        // brand, that brand has no zones of its own, and the earlier
+        // brand-only fallback therefore found nothing to charge.
+        //
+        // "Highest fee from the postcodes available at that location" is the
+        // rule the operator asked for, so gather every zone that could apply
+        // here — location-scoped, the resolved brand's, and any brand
+        // serving this location — and let resolveDeliveryFee take the max.
         const zones = await this.prisma.deliveryZone.findMany({
-          where: { brandId: campaignBrandId, isActive: true },
+          where: deliveryZoneScope({
+            locationId: location.id,
+            brandId: campaignBrandId,
+          }),
           select: { fee: true },
         });
         const fallbackFee = resolveDeliveryFee({
