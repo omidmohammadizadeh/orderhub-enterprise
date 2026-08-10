@@ -174,13 +174,16 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
           {/* Filming aid for Apple's review videos, admin-only so no
               restaurant ever sees it. The announcement is once-per-user by
               design, which would otherwise make the "Existing User Flow"
-              recording a single take. */}
+              recording a single take.
+              Deliberately does NOT reload: that video has to show the Tap to
+              Pay button existing BEFORE the announcement appears, so the
+              splash must stay held back until the next login rather than
+              popping up here and being dismissed (and re-consumed) early. */}
           {isPlatformAdmin && user?.id && (
             <button
               onClick={() => {
                 resetTapToPaySplash(user.id);
-                toast.success("Announcement re-armed — reload to see it");
-                window.location.reload();
+                toast.success("Re-armed — it will appear at your next login");
               }}
               className="mt-3 block text-[11px] text-zinc-400 underline hover:text-zinc-600"
             >
