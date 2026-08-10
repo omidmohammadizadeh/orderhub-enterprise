@@ -130,6 +130,32 @@ export function deliveryZoneScope(input: {
   };
 }
 
+/** Which brand an un-pinned order belongs to.
+ *
+ *  Two fields describe a location's brand and they can disagree:
+ *  Location.brandId (a required FK, set at creation) and
+ *  Brand.primaryLocationId (what the location's Brands drawer lists). Deleting
+ *  a location nulls the second but never repoints the first, so a shop can end
+ *  up with Location.brandId still aimed at an orphaned brand while the brand
+ *  actually trading there is a different row. Order #JWDBH printed "Order Hub"
+ *  as the shop name for exactly that reason, and looked up delivery zones
+ *  against a brand that has none.
+ *
+ *  Deliberately conservative: the stored brand wins unless it is genuinely
+ *  orphaned AND exactly one brand operates at the location. With two or more
+ *  there is no non-arbitrary answer, and guessing would mis-attribute revenue,
+ *  so it keeps the existing behaviour and the receipt stays wrong rather than
+ *  becoming wrong in a new and less traceable way. */
+export function resolveUnpinnedBrandId(input: {
+  locationBrandId: string;
+  locationBrandIsOrphan: boolean;
+  operatingBrandIds: string[];
+}): string {
+  if (!input.locationBrandIsOrphan) return input.locationBrandId;
+  if (input.operatingBrandIds.length === 1) return input.operatingBrandIds[0]!;
+  return input.locationBrandId;
+}
+
 @Injectable()
 export class OrderingService {
   private readonly logger = new Logger(OrderingService.name);
@@ -1044,8 +1070,44 @@ export class OrderingService {
     // customerAccountId (or treat guest checkouts as NEW). Discount
     // applies to subtotal only, never delivery/tax. Order.discount and
     // Order.total are rewritten to use the server-computed values.
-    const campaignBrandId =
-      pinnedBrandId ?? (location as any).brandId;
+    // No ?brand= on the checkout — fall back to the location's brand, but
+    // only after checking that field still points somewhere real. See
+    // resolveUnpinnedBrandId: a deleted location can leave Location.brandId
+    // aimed at an orphaned brand, which is how #JWDBH printed the wrong shop
+    // name and found no delivery zones.
+    let campaignBrandId: string = pinnedBrandId ?? (location as any).brandId;
+    if (!pinnedBrandId) {
+      try {
+        const [stored, operating] = await Promise.all([
+          this.prisma.brand.findUnique({
+            where: { id: (location as any).brandId },
+            select: { primaryLocationId: true, deletedAt: true },
+          }),
+          this.prisma.brand.findMany({
+            where: {
+              primaryLocationId: location.id,
+              deletedAt: null,
+            },
+            select: { id: true },
+          }),
+        ]);
+        const resolved = resolveUnpinnedBrandId({
+          locationBrandId: (location as any).brandId,
+          locationBrandIsOrphan: !stored || !!stored.deletedAt || !stored.primaryLocationId,
+          operatingBrandIds: operating.map((b) => b.id),
+        });
+        if (resolved !== campaignBrandId) {
+          this.logger.warn(
+            `Location ${location.id} has brandId pointing at an orphaned brand; attributing this order to ${resolved} instead`,
+          );
+          campaignBrandId = resolved;
+        }
+      } catch (err) {
+        this.logger.warn(
+          `Unpinned brand resolution failed for slug=${slug}: ${(err as Error).message}`,
+        );
+      }
+    }
     let campaignDiscount = 0;
     // Phase MK-INSIGHTS — remember which campaigns actually applied so we
     // can attribute the order to them after it's created (drives the
