@@ -665,10 +665,20 @@ export function TerminalHost(): React.ReactElement | null {
       terminalController.connect = notReady;
       terminalController.pay = notReady;
       terminalController.warmUp = async () => {};
+      const wasConnected = !!terminalController.connectedLabel;
       terminalController.connectedLabel = null;
       connectedKind = null;
       publishStatus({ stage: "idle" });
-      void disconnectReader?.().catch(() => {});
+      // Only touch the SDK if we actually opened a session. Init is lazy, so
+      // the common case — app launched, no charge attempted — has no session
+      // at all, and calling disconnectReader() then makes the SDK complain
+      // "First initialize the Stripe Terminal SDK before performing any
+      // action". That surfaces as a red console error over the app on a
+      // development build, and the .catch() below can't suppress it because
+      // the SDK raises it before returning a promise.
+      if (initialized && wasConnected) {
+        void disconnectReader?.().catch(() => {});
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
