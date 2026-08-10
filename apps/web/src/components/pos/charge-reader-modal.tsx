@@ -589,8 +589,21 @@ export function ChargeReaderModal({
           ) : readers.length === 0 ? (
             <div className="space-y-3">
               <p className="text-sm text-zinc-600">
-                No card reader registered at this location yet.
+                No counter reader registered at this location yet.
               </p>
+              {/* Without the native bridge the on-device readers can't even be
+                  offered, so the bare "no reader registered" line reads as
+                  "you have no way to take a card" — wrong for a shop that
+                  uses Tap to Pay every day, just not from a desktop. Say
+                  where those live instead of implying hardware is missing. */}
+              {!nativeReader && (
+                <p className="rounded-md bg-blue-50 p-2.5 text-xs leading-relaxed text-blue-800">
+                  Tap to Pay on iPhone and the WisePad 3 run on the device
+                  itself, so they&rsquo;re only available in the OrderHub app on
+                  your phone or tablet. Open this order there to use them — or
+                  register a counter reader below to charge from any device.
+                </p>
+              )}
               {testMode && (
                 <Button
                   onClick={() => registerCode("", true)}
