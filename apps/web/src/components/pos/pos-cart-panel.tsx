@@ -9,7 +9,7 @@
 // (customer, address, schedule, discounts, etc.) is local here. On submit
 // we hand the parent a fully-shaped Order payload via onPlaceOrder.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed } from "lucide-react";
 import { round2 } from "@orderhub/shared";
@@ -48,7 +48,13 @@ export type PaymentMethod =
   | "PAYMENT_LINK"
   // QR code — identical flow to Payment Link (unpaid until scanned), but the
   // POS pops the QR prominently for the customer to scan at the counter.
-  | "QR_CODE";
+  | "QR_CODE"
+  // Phone collection — the customer isn't in the shop yet, so cash-vs-card is
+  // a guess at placement and was routinely recorded wrong. Order sits as
+  // "waiting for payment"; staff settle it from the order card when the
+  // customer arrives. Walk-in and delivery are unaffected: a walk-in customer
+  // is standing there, and delivery is settled by the driver.
+  | "PAY_ON_COLLECTION";
 export type DiscountType = null | "PROMO_CODE" | "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
 
 // What the panel hands the parent when "Place order" is clicked.
@@ -285,6 +291,27 @@ export function PosCartPanel(props: CartPanelProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     initialDraft?.paymentMethod ?? "CASH",
   );
+  // A phone collection order (PICKUP, not walk-in) can't know how the
+  // customer will pay — they're not here yet. Default those to
+  // PAY_ON_COLLECTION so the order sits as "waiting for payment" instead of
+  // recording a guess. Only ever moves OFF the default automatically; once
+  // the operator picks something themselves it's left alone, and walk-in and
+  // delivery keep their existing behaviour untouched.
+  const autoPickedRef = useRef(false);
+  useEffect(() => {
+    if (dineIn) return;
+    const isPhoneCollection = fulfillmentType === "PICKUP" && !walkIn;
+    if (isPhoneCollection && paymentMethod === "CASH" && !autoPickedRef.current) {
+      autoPickedRef.current = true;
+      setPaymentMethod("PAY_ON_COLLECTION");
+    }
+    if (!isPhoneCollection && paymentMethod === "PAY_ON_COLLECTION") {
+      // Switched to walk-in or delivery — that default no longer applies.
+      autoPickedRef.current = false;
+      setPaymentMethod("CASH");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fulfillmentType, walkIn, dineIn]);
 
   // Network state
   const online = useOnlineStatus();
@@ -1156,6 +1183,7 @@ export function PosCartPanel(props: CartPanelProps) {
               [
                 { value: "CASH", label: "Cash" },
                 { value: "CARD_TERMINAL", label: "Card terminal" },
+                { value: "PAY_ON_COLLECTION", label: "Pay on collection" },
                 { value: "ONLINE_CARD", label: "Online card" },
                 { value: "PAYMENT_LINK", label: "Payment link" },
                 { value: "QR_CODE", label: "QR code" },

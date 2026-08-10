@@ -69,6 +69,13 @@ export function paymentLabelFor(
     if (status === "PAID") return "*** PAID (CASH) ***";
     return "*** CASH ON HANDOVER ***";
   }
+  // Phone collection order — the customer isn't in the shop yet, so how
+  // they'll pay is genuinely unknown at placement. Says so plainly rather
+  // than falling through to a bare UNPAID, which reads like a problem.
+  if (method === "PAY_ON_COLLECTION") {
+    if (status === "PAID") return "*** PAID ***";
+    return "*** PAY ON COLLECTION ***";
+  }
   // Marketplace orders (Uber/Deliveroo/Just Eat) come pre-paid; just
   // honour whatever the platform reported.
   if (status === "PAID") return "*** PAID ***";

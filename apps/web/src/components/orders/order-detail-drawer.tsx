@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
 import { useRouter } from "next/navigation";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard } from "lucide-react";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote } from "lucide-react";
 import { PaymentLinkModal } from "../pos/payment-link-modal";
 import { ChargeReaderModal } from "../pos/charge-reader-modal";
+import { CashPaymentModal } from "../pos/cash-payment-modal";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
@@ -79,6 +80,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const [cancelling, setCancelling] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [showChargeModal, setShowChargeModal] = useState(false);
+  const [showCashModal, setShowCashModal] = useState(false);
 
   // POS "Payment link" / "QR code" orders can re-open the payment modal (QR +
   // copyable link + SMS) so staff can show the customer the QR again or resend
@@ -511,14 +513,22 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
       </div>
 
       {canTakeCardPayment && (
-        <div className="border-t border-zinc-200 px-5 py-4">
+        <div className="grid grid-cols-2 gap-2 border-t border-zinc-200 px-5 py-4">
           <Button
             size="sm"
-            className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+            className="bg-emerald-600 text-white hover:bg-emerald-700"
             onClick={() => setShowChargeModal(true)}
           >
             <CreditCard className="h-3.5 w-3.5 mr-1.5" />
-            Take card payment
+            Card
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowCashModal(true)}
+          >
+            <Banknote className="h-3.5 w-3.5 mr-1.5" />
+            Cash
           </Button>
         </div>
       )}
@@ -592,6 +602,17 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           onClose={() => setShowDispatch(false)}
         />
       )}
+
+      <CashPaymentModal
+        open={showCashModal}
+        orderId={showCashModal ? order.id : null}
+        locationId={(order as any).locationId ?? null}
+        amount={Number(order.total ?? 0)}
+        onClose={() => setShowCashModal(false)}
+        onPaid={() => {
+          queryClient.invalidateQueries({ queryKey: ["orders"] });
+        }}
+      />
 
       <ChargeReaderModal
         open={showChargeModal}
