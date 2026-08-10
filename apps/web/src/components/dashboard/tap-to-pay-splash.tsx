@@ -8,15 +8,24 @@
 // merchant discovers the feature rather than having to stumble on it. It's
 // also what the "Existing User Flow" review video has to demonstrate.
 //
-// Copy follows Apple's own UK in-app banner template from the Tap to Pay on
-// iPhone Marketing Toolkit (GBEN_..._In_App_Tile_..._Q324):
-//   • the headline is Apple's product name on its own — their templates do
-//     NOT use an invented marketing headline,
-//   • the body is plain instructional copy,
-//   • the CTA is the template's "[Partner Button]" slot, which is ours to
-//     name and which must lead somewhere the user can act,
-//   • the disclaimer is Apple's, reproduced verbatim — the EMVCo trademark
-//     attribution in particular is not ours to reword.
+// Copy is taken VERBATIM from Apple's UK copy guide
+// (GBEN_Digital_Q126_Tap_to_Pay_on_iPhone_Copy.docx) — headline, subheadline,
+// "Short copy" block and CTA are all theirs, with only the bracketed partner
+// placeholders filled in. This is not copy we may rewrite for tone.
+//
+// The legal block is the reason this component looks text-heavy. Apple's
+// guide: "The following disclaimers must be used across all advertising. In
+// placements where space is limited, the short disclaimer can be used but
+// must click through to your Tap to Pay on iPhone product page where the
+// full disclaimer is displayed." We have no such product page, so the SHORT
+// form ("Terms apply.") is not available to us and the FULL disclaimer has
+// to appear inline.
+//
+// The Apple Pay paragraph is a SECOND, additional disclaimer that Apple
+// requires whenever the communication mentions Apple Pay — which this one
+// does, in the approved body copy. Dropping either is a compliance failure,
+// not a tidy-up.
+//
 // Naming rule that must survive any edit: always the full "Tap to Pay on
 // iPhone", never "Tap to Pay" alone and never "Apple Tap to Pay".
 //
@@ -107,10 +116,14 @@ export function TapToPaySplash() {
         </div>
 
         <div className="space-y-4 p-6">
+          <p className="text-sm font-medium text-zinc-900">
+            Accept contactless payments on your iPhone.
+          </p>
           <p className="text-sm leading-relaxed text-zinc-600">
-            Now available in OrderHub. Accept contactless cards, Apple Pay and
-            other digital wallets using only your iPhone — no card reader and
-            no extra hardware needed.
+            With Tap to Pay on iPhone and OrderHub, you can accept all types of
+            in-person, contactless payments on your iPhone — from physical debit
+            and credit cards to Apple Pay and other digital wallets. No extra
+            readers or hardware needed. It&rsquo;s easy, secure and private.
           </p>
 
           <button
@@ -120,7 +133,7 @@ export function TapToPaySplash() {
             }}
             className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
           >
-            Set up Tap to Pay on iPhone
+            Enable now
           </button>
           <button
             onClick={dismiss}
@@ -129,14 +142,37 @@ export function TapToPaySplash() {
             Not now
           </button>
 
-          {/* Apple's own disclaimer, reproduced verbatim from their UK
-              in-app banner template. The EMVCo attribution is a trademark
-              notice — do not reword or drop it. */}
-          <p className="text-center text-[11px] leading-relaxed text-zinc-400">
-            Some contactless cards may not be accepted. Transaction limits may
-            apply. The Contactless Symbol is a trademark owned by and used with
-            permission of EMVCo, LLC.
-          </p>
+          {/* Apple's FULL disclaimer, verbatim. The short "Terms apply."
+              form is only permitted where it click-throughs to a product page
+              carrying this text, which we don't have. */}
+          <div className="max-h-32 space-y-2 overflow-y-auto rounded-md bg-zinc-50 p-2.5 text-[10px] leading-relaxed text-zinc-500">
+            <p>
+              Tap to Pay on iPhone Requirements: Tap to Pay on iPhone requires a
+              supported payment app and the latest version of iOS. Update to the
+              latest version by going to Settings &gt; General &gt; Software
+              Update. Tap Download and Install. Some contactless cards may not be
+              accepted by your payment app. Transaction limits may apply. The
+              Contactless Symbol is a trademark owned by and used with permission
+              of EMVCo, LLC. Tap to Pay on iPhone is not available in all
+              markets. For Tap to Pay on iPhone countries and regions, see{" "}
+              <a
+                href="https://developer.apple.com/tap-to-pay/regions"
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+              >
+                developer.apple.com/tap-to-pay/regions
+              </a>
+              .
+            </p>
+            {/* Required IN ADDITION whenever the copy mentions Apple Pay. */}
+            <p>
+              Apple Pay is a service provided by Apple Payments Services LLC, a
+              subsidiary of Apple Inc. Neither Apple Inc. nor Apple Payments
+              Services LLC is a bank. Any card used in Apple Pay is offered by
+              the card issuer.
+            </p>
+          </div>
         </div>
       </div>
     </div>
