@@ -82,6 +82,24 @@ export interface OrderFilters {
   limit?: number;
 }
 
+/** Whether an order's money has moved enough to block amending it.
+ *
+ *  CASH is always amendable: it's collected at handover, so re-quoting is
+ *  just a different number to ask for. Other methods are amendable only
+ *  while unpaid — an unpaid card order has no captured amount either. A PAID
+ *  card order is not: changing the total would need a top-up or a partial
+ *  refund, which is a separate feature.
+ *
+ *  Pure so the rule is testable without standing up the service; it guards
+ *  money, so it should not only be reachable through a full edit call. */
+export function canAmendOrderPayment(input: {
+  paymentMethod: string | null | undefined;
+  paymentStatus: string;
+}): boolean {
+  if ((input.paymentMethod ?? "").toUpperCase() === "CASH") return true;
+  return input.paymentStatus !== "PAID";
+}
+
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
@@ -1147,8 +1165,13 @@ export class OrdersService {
   //   - status must be PENDING / ACCEPTED / PREPARING (anything up
   //     to READY); past READY the kitchen has it and editing the
   //     items will trail behind reality.
-  //   - paymentMethod must be CASH. CARD orders may already be
-  //     captured; we don't want a delta that the customer can't pay.
+  //   - the money must not already have moved. CASH stays editable as it
+  //     always was (it's collected at handover, so a re-quote is just a
+  //     different number to ask for). Other methods are editable only while
+  //     paymentStatus is not PAID — an unpaid card order has no captured
+  //     amount either, so amending it is exactly as safe as amending cash.
+  //     A PAID card order still isn't: changing the total would need a
+  //     top-up or partial refund, which is a different feature.
   //   - orderSource must be POS. Online + marketplace orders have
   //     their own correction flows.
   //
@@ -1207,9 +1230,18 @@ export class OrdersService {
         "Order can only be edited before it's marked Ready",
       );
     }
-    if ((order.paymentMethod ?? "").toUpperCase() !== "CASH") {
+    // Additive on purpose: every order that was editable before still is.
+    // Operators rang in about the gap — a customer adds a item to an unpaid
+    // card order, or rings back before paying — and refusing those was
+    // stricter than the money actually requires.
+    if (
+      !canAmendOrderPayment({
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+      })
+    ) {
       throw new BadRequestException(
-        "Only cash orders can be edited",
+        "This order has already been paid by card. Refund it or take a separate payment for the difference.",
       );
     }
     if (order.orderSource !== "POS") {

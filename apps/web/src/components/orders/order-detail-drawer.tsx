@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
 import { useRouter } from "next/navigation";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode } from "lucide-react";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard } from "lucide-react";
 import { PaymentLinkModal } from "../pos/payment-link-modal";
+import { ChargeReaderModal } from "../pos/charge-reader-modal";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
@@ -77,6 +78,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const [showDispatch, setShowDispatch] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
+  const [showChargeModal, setShowChargeModal] = useState(false);
 
   // POS "Payment link" / "QR code" orders can re-open the payment modal (QR +
   // copyable link + SMS) so staff can show the customer the QR again or resend
@@ -89,6 +91,15 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const canReshowPayment =
     isLinkOrQrOrder &&
     ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID";
+  // Customers change their mind at the counter or on the phone — an order
+  // taken as cash gets paid by card instead. Previously the only way was to
+  // void and re-key it. Offered for any unpaid POS order regardless of the
+  // method it was placed under; the charge modal drives the same readers the
+  // POS does, and settles this order on success.
+  const canTakeCardPayment =
+    (order as any)?.orderSource === "POS" &&
+    ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID" &&
+    !!(order as any)?.locationId;
   const queryClient = useQueryClient();
 
   async function handleCancelDispatch() {
@@ -134,12 +145,17 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const isCash =
     ((order as any).paymentMethod ?? "").toString().toUpperCase() === "CASH";
   const isPos = (order as any).orderSource === "POS";
+  // Mirrors the widened server gate: cash stays editable as before, and any
+  // other method is editable while the money hasn't actually moved. A PAID
+  // card order is excluded — amending it would need a top-up or refund.
+  const alreadyPaid =
+    ((order as any).paymentStatus ?? "").toString().toUpperCase() === "PAID";
   const canEdit =
     !!userRole &&
     EDIT_ROLES.has(userRole) &&
     editableStatus &&
-    isCash &&
-    isPos;
+    isPos &&
+    (isCash || !alreadyPaid);
 
   function handleAction(status: string) {
     if ((status === "CANCELLED" || status === "REJECTED") && !showCancelInput) {
@@ -494,6 +510,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         )}
       </div>
 
+      {canTakeCardPayment && (
+        <div className="border-t border-zinc-200 px-5 py-4">
+          <Button
+            size="sm"
+            className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+            onClick={() => setShowChargeModal(true)}
+          >
+            <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+            Take card payment
+          </Button>
+        </div>
+      )}
+
       {/* Payment link / QR re-show — for unpaid POS Payment-link or QR orders,
           staff can pull the QR + link back up to show or resend to the
           customer. */}
@@ -563,6 +592,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           onClose={() => setShowDispatch(false)}
         />
       )}
+
+      <ChargeReaderModal
+        open={showChargeModal}
+        orderId={showChargeModal ? order.id : null}
+        locationId={(order as any).locationId ?? ""}
+        amount={Number(order.total ?? 0)}
+        onClose={() => setShowChargeModal(false)}
+        onPaid={() => {
+          // Refresh the board so the order flips to PAID without a manual
+          // reload — same invalidation the status actions use.
+          queryClient.invalidateQueries({ queryKey: ["orders"] });
+        }}
+      />
 
       <PaymentLinkModal
         open={showPayModal}
