@@ -6,6 +6,8 @@ import { BookOpen, CheckCircle2, Loader2, Plus, Radio, Trash2 } from "lucide-rea
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
+import { useAuthStore } from "@/stores/auth.store";
+import { resetTapToPaySplash } from "@/components/dashboard/tap-to-pay-splash";
 
 // Tap to Pay / WisePad 3 only exist inside the native app, where the Stripe
 // Terminal SDK is wired to window.OrderHubTerminal — same bridge the
@@ -34,6 +36,8 @@ function oh() {
 
 export function CardReadersTab({ locationId }: { locationId: string }) {
   const qc = useQueryClient();
+  const user = useAuthStore((st) => st.user);
+  const isPlatformAdmin = user?.role === "PLATFORM_ADMIN";
   const [regCode, setRegCode] = useState("");
   const [connecting, setConnecting] = useState<"wisepad" | "tapToPay" | null>(null);
   const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
@@ -165,6 +169,22 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 underline hover:text-zinc-700"
             >
               <BookOpen className="h-3.5 w-3.5" /> How {tapToPayLabel} works
+            </button>
+          )}
+          {/* Filming aid for Apple's review videos, admin-only so no
+              restaurant ever sees it. The announcement is once-per-user by
+              design, which would otherwise make the "Existing User Flow"
+              recording a single take. */}
+          {isPlatformAdmin && user?.id && (
+            <button
+              onClick={() => {
+                resetTapToPaySplash(user.id);
+                toast.success("Announcement re-armed — reload to see it");
+                window.location.reload();
+              }}
+              className="mt-3 block text-[11px] text-zinc-400 underline hover:text-zinc-600"
+            >
+              Show the {tapToPayLabel} announcement again (admin)
             </button>
           )}
         </div>

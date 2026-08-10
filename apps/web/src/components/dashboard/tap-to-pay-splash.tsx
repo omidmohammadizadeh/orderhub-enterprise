@@ -48,6 +48,19 @@ import { useAuthStore } from "@/stores/auth.store";
 
 const SEEN_KEY_PREFIX = "oh:ttp:announced:";
 
+/** Re-arm the announcement for this user so it shows again on next load.
+ *  Exists for Apple's review recordings: the splash is deliberately
+ *  once-per-user, which makes the "Existing User Flow" video a single take —
+ *  one fumbled shot would otherwise mean creating a fresh staff login to try
+ *  again. Admin-only, surfaced on the Card Readers page. */
+export function resetTapToPaySplash(userId: string) {
+  try {
+    localStorage.removeItem(SEEN_KEY_PREFIX + userId);
+  } catch {
+    /* storage disabled — nothing to clear */
+  }
+}
+
 // Mirrors the roles allowed on /dashboard/card-readers (see sidebar.tsx) —
 // the CTA has to land somewhere the user can actually use.
 const CAN_ENABLE_ROLES = new Set([
