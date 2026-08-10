@@ -7,7 +7,12 @@
 // webhook (which pushes an order:updated socket event to the board).
 //
 // Phase 2 adds "Text link to customer" — sends the same link over SMS via
-// Twilio (a billable send, metered per restaurant in sms_messages).
+// Twilio. Still metered per restaurant in sms_messages, but NOT billed to
+// their prepaid wallet: a payment link is how the platform gets paid, so an
+// empty wallet must never be able to block collecting on a live order. The
+// wallet top-up prompt below is therefore unreachable for this send today;
+// it's left in place so the error still guides correctly if billing is ever
+// re-enabled.
 
 import { useCallback, useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";

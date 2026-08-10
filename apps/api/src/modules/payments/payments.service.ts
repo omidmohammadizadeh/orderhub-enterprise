@@ -1599,6 +1599,12 @@ export class PaymentsService {
       brandId: (order as any).brandId ?? null,
       orderId: order.id,
       createdBy: userId ?? null,
+      // Not billed to the tenant's prepaid SMS wallet. A payment link is how
+      // the platform gets paid, so making the restaurant fund it — and
+      // letting a flat wallet block collection on a live order — was the
+      // wrong way round. The send is still metered and attributed, just not
+      // charged. Marketing and caller-ID sends remain billable.
+      bill: false,
     });
     return { ok: true };
   }
