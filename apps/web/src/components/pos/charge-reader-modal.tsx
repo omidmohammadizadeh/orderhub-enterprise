@@ -122,6 +122,13 @@ export function ChargeReaderModal({
   const [receiptEmail, setReceiptEmail] = useState("");
   const [sendingReceipt, setSendingReceipt] = useState(false);
   const [receiptSentTo, setReceiptSentTo] = useState<string | null>(null);
+  // Fallback payment state. MUST live with the other hooks, above the early
+  // return below — declaring these further down (next to the handler that
+  // uses them) put two useState calls after `if (!open) return null`, so the
+  // hook count changed the moment the modal opened and React tore the whole
+  // POS down with "Something went wrong".
+  const [linkUrl, setLinkUrl] = useState<string | null>(null);
+  const [makingLink, setMakingLink] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const readersQuery = useQuery({
@@ -344,8 +351,6 @@ export function ChargeReaderModal({
   // be routed to another way to collect, not left retrying a tap that (for an
   // insert-only UK card) can never succeed. Both routes already exist in
   // OrderHub: the counter reader, and a hosted Stripe payment link.
-  const [linkUrl, setLinkUrl] = useState<string | null>(null);
-  const [makingLink, setMakingLink] = useState(false);
   const createPaymentLink = async () => {
     setMakingLink(true);
     try {
