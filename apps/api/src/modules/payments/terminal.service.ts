@@ -507,7 +507,7 @@ export class TerminalService {
       if (connect?.stripeAccountId) {
         stripeAccountId = connect.stripeAccountId;
         stripeConnectAccountRowId = connect.id ?? null;
-        const feePence = await this.payments.applicationFeePenceForBasket(
+        const feePence = await this.payments.terminalApplicationFeePence(
           order.locationId,
           basketGbp,
         );
@@ -658,7 +658,7 @@ export class TerminalService {
         order.locationId,
       );
       stripeConnectAccountRowId = connect?.id ?? null;
-      const feePence = await this.payments.applicationFeePenceForBasket(
+      const feePence = await this.payments.terminalApplicationFeePence(
         order.locationId,
         basketGbp,
       );

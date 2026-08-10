@@ -27676,6 +27676,8 @@ export namespace Prisma {
     applicationFeePercentage: Decimal | null
     posApplicationFeePercent: Decimal | null
     posApplicationFeeFixedMinor: number | null
+    posTerminalApplicationFeePercent: Decimal | null
+    posTerminalApplicationFeeFixedMinor: number | null
     prepTime: number | null
     busyExtraPrepTime: number | null
     onboardingStep: number | null
@@ -27688,6 +27690,8 @@ export namespace Prisma {
     applicationFeePercentage: Decimal | null
     posApplicationFeePercent: Decimal | null
     posApplicationFeeFixedMinor: number | null
+    posTerminalApplicationFeePercent: Decimal | null
+    posTerminalApplicationFeeFixedMinor: number | null
     prepTime: number | null
     busyExtraPrepTime: number | null
     onboardingStep: number | null
@@ -27727,6 +27731,8 @@ export namespace Prisma {
     posStripeAccountId: string | null
     posApplicationFeePercent: Decimal | null
     posApplicationFeeFixedMinor: number | null
+    posTerminalApplicationFeePercent: Decimal | null
+    posTerminalApplicationFeeFixedMinor: number | null
     status: string | null
     googleReviewUrl: string | null
     shopCode: string | null
@@ -27781,6 +27787,8 @@ export namespace Prisma {
     posStripeAccountId: string | null
     posApplicationFeePercent: Decimal | null
     posApplicationFeeFixedMinor: number | null
+    posTerminalApplicationFeePercent: Decimal | null
+    posTerminalApplicationFeeFixedMinor: number | null
     status: string | null
     googleReviewUrl: string | null
     shopCode: string | null
@@ -27839,6 +27847,8 @@ export namespace Prisma {
     posStripeAccountId: number
     posApplicationFeePercent: number
     posApplicationFeeFixedMinor: number
+    posTerminalApplicationFeePercent: number
+    posTerminalApplicationFeeFixedMinor: number
     status: number
     googleReviewUrl: number
     busyModeJson: number
@@ -27871,6 +27881,8 @@ export namespace Prisma {
     applicationFeePercentage?: true
     posApplicationFeePercent?: true
     posApplicationFeeFixedMinor?: true
+    posTerminalApplicationFeePercent?: true
+    posTerminalApplicationFeeFixedMinor?: true
     prepTime?: true
     busyExtraPrepTime?: true
     onboardingStep?: true
@@ -27883,6 +27895,8 @@ export namespace Prisma {
     applicationFeePercentage?: true
     posApplicationFeePercent?: true
     posApplicationFeeFixedMinor?: true
+    posTerminalApplicationFeePercent?: true
+    posTerminalApplicationFeeFixedMinor?: true
     prepTime?: true
     busyExtraPrepTime?: true
     onboardingStep?: true
@@ -27922,6 +27936,8 @@ export namespace Prisma {
     posStripeAccountId?: true
     posApplicationFeePercent?: true
     posApplicationFeeFixedMinor?: true
+    posTerminalApplicationFeePercent?: true
+    posTerminalApplicationFeeFixedMinor?: true
     status?: true
     googleReviewUrl?: true
     shopCode?: true
@@ -27976,6 +27992,8 @@ export namespace Prisma {
     posStripeAccountId?: true
     posApplicationFeePercent?: true
     posApplicationFeeFixedMinor?: true
+    posTerminalApplicationFeePercent?: true
+    posTerminalApplicationFeeFixedMinor?: true
     status?: true
     googleReviewUrl?: true
     shopCode?: true
@@ -28034,6 +28052,8 @@ export namespace Prisma {
     posStripeAccountId?: true
     posApplicationFeePercent?: true
     posApplicationFeeFixedMinor?: true
+    posTerminalApplicationFeePercent?: true
+    posTerminalApplicationFeeFixedMinor?: true
     status?: true
     googleReviewUrl?: true
     busyModeJson?: true
@@ -28182,6 +28202,8 @@ export namespace Prisma {
     posStripeAccountId: string | null
     posApplicationFeePercent: Decimal | null
     posApplicationFeeFixedMinor: number | null
+    posTerminalApplicationFeePercent: Decimal | null
+    posTerminalApplicationFeeFixedMinor: number | null
     status: string
     googleReviewUrl: string | null
     busyModeJson: JsonValue
@@ -28262,6 +28284,8 @@ export namespace Prisma {
     posStripeAccountId?: boolean
     posApplicationFeePercent?: boolean
     posApplicationFeeFixedMinor?: boolean
+    posTerminalApplicationFeePercent?: boolean
+    posTerminalApplicationFeeFixedMinor?: boolean
     status?: boolean
     googleReviewUrl?: boolean
     busyModeJson?: boolean
@@ -28351,6 +28375,8 @@ export namespace Prisma {
     posStripeAccountId?: boolean
     posApplicationFeePercent?: boolean
     posApplicationFeeFixedMinor?: boolean
+    posTerminalApplicationFeePercent?: boolean
+    posTerminalApplicationFeeFixedMinor?: boolean
     status?: boolean
     googleReviewUrl?: boolean
     busyModeJson?: boolean
@@ -28416,6 +28442,8 @@ export namespace Prisma {
     posStripeAccountId?: boolean
     posApplicationFeePercent?: boolean
     posApplicationFeeFixedMinor?: boolean
+    posTerminalApplicationFeePercent?: boolean
+    posTerminalApplicationFeeFixedMinor?: boolean
     status?: boolean
     googleReviewUrl?: boolean
     busyModeJson?: boolean
@@ -28545,6 +28573,8 @@ export namespace Prisma {
       posStripeAccountId: string | null
       posApplicationFeePercent: Prisma.Decimal | null
       posApplicationFeeFixedMinor: number | null
+      posTerminalApplicationFeePercent: Prisma.Decimal | null
+      posTerminalApplicationFeeFixedMinor: number | null
       status: string
       googleReviewUrl: string | null
       busyModeJson: Prisma.JsonValue
@@ -29023,6 +29053,8 @@ export namespace Prisma {
     readonly posStripeAccountId: FieldRef<"Location", 'String'>
     readonly posApplicationFeePercent: FieldRef<"Location", 'Decimal'>
     readonly posApplicationFeeFixedMinor: FieldRef<"Location", 'Int'>
+    readonly posTerminalApplicationFeePercent: FieldRef<"Location", 'Decimal'>
+    readonly posTerminalApplicationFeeFixedMinor: FieldRef<"Location", 'Int'>
     readonly status: FieldRef<"Location", 'String'>
     readonly googleReviewUrl: FieldRef<"Location", 'String'>
     readonly busyModeJson: FieldRef<"Location", 'Json'>
@@ -149366,6 +149398,8 @@ export namespace Prisma {
     posStripeAccountId: 'posStripeAccountId',
     posApplicationFeePercent: 'posApplicationFeePercent',
     posApplicationFeeFixedMinor: 'posApplicationFeeFixedMinor',
+    posTerminalApplicationFeePercent: 'posTerminalApplicationFeePercent',
+    posTerminalApplicationFeeFixedMinor: 'posTerminalApplicationFeeFixedMinor',
     status: 'status',
     googleReviewUrl: 'googleReviewUrl',
     busyModeJson: 'busyModeJson',
@@ -155467,6 +155501,8 @@ export namespace Prisma {
     posStripeAccountId?: StringNullableFilter<"Location"> | string | null
     posApplicationFeePercent?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: IntNullableFilter<"Location"> | number | null
+    posTerminalApplicationFeePercent?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: IntNullableFilter<"Location"> | number | null
     status?: StringFilter<"Location"> | string
     googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
@@ -155555,6 +155591,8 @@ export namespace Prisma {
     posStripeAccountId?: SortOrderInput | SortOrder
     posApplicationFeePercent?: SortOrderInput | SortOrder
     posApplicationFeeFixedMinor?: SortOrderInput | SortOrder
+    posTerminalApplicationFeePercent?: SortOrderInput | SortOrder
+    posTerminalApplicationFeeFixedMinor?: SortOrderInput | SortOrder
     status?: SortOrder
     googleReviewUrl?: SortOrderInput | SortOrder
     busyModeJson?: SortOrder
@@ -155650,6 +155688,8 @@ export namespace Prisma {
     posStripeAccountId?: StringNullableFilter<"Location"> | string | null
     posApplicationFeePercent?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: IntNullableFilter<"Location"> | number | null
+    posTerminalApplicationFeePercent?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: IntNullableFilter<"Location"> | number | null
     status?: StringFilter<"Location"> | string
     googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
@@ -155735,6 +155775,8 @@ export namespace Prisma {
     posStripeAccountId?: SortOrderInput | SortOrder
     posApplicationFeePercent?: SortOrderInput | SortOrder
     posApplicationFeeFixedMinor?: SortOrderInput | SortOrder
+    posTerminalApplicationFeePercent?: SortOrderInput | SortOrder
+    posTerminalApplicationFeeFixedMinor?: SortOrderInput | SortOrder
     status?: SortOrder
     googleReviewUrl?: SortOrderInput | SortOrder
     busyModeJson?: SortOrder
@@ -155804,6 +155846,8 @@ export namespace Prisma {
     posStripeAccountId?: StringNullableWithAggregatesFilter<"Location"> | string | null
     posApplicationFeePercent?: DecimalNullableWithAggregatesFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: IntNullableWithAggregatesFilter<"Location"> | number | null
+    posTerminalApplicationFeePercent?: DecimalNullableWithAggregatesFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: IntNullableWithAggregatesFilter<"Location"> | number | null
     status?: StringWithAggregatesFilter<"Location"> | string
     googleReviewUrl?: StringNullableWithAggregatesFilter<"Location"> | string | null
     busyModeJson?: JsonWithAggregatesFilter<"Location">
@@ -168855,6 +168899,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -168943,6 +168989,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -169023,6 +169071,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -169111,6 +169161,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -169195,6 +169247,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -169252,6 +169306,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -169313,6 +169369,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -184158,6 +184216,8 @@ export namespace Prisma {
     posStripeAccountId?: SortOrder
     posApplicationFeePercent?: SortOrder
     posApplicationFeeFixedMinor?: SortOrder
+    posTerminalApplicationFeePercent?: SortOrder
+    posTerminalApplicationFeeFixedMinor?: SortOrder
     status?: SortOrder
     googleReviewUrl?: SortOrder
     busyModeJson?: SortOrder
@@ -184188,6 +184248,8 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrder
     posApplicationFeePercent?: SortOrder
     posApplicationFeeFixedMinor?: SortOrder
+    posTerminalApplicationFeePercent?: SortOrder
+    posTerminalApplicationFeeFixedMinor?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
     onboardingStep?: SortOrder
@@ -184227,6 +184289,8 @@ export namespace Prisma {
     posStripeAccountId?: SortOrder
     posApplicationFeePercent?: SortOrder
     posApplicationFeeFixedMinor?: SortOrder
+    posTerminalApplicationFeePercent?: SortOrder
+    posTerminalApplicationFeeFixedMinor?: SortOrder
     status?: SortOrder
     googleReviewUrl?: SortOrder
     shopCode?: SortOrder
@@ -184281,6 +184345,8 @@ export namespace Prisma {
     posStripeAccountId?: SortOrder
     posApplicationFeePercent?: SortOrder
     posApplicationFeeFixedMinor?: SortOrder
+    posTerminalApplicationFeePercent?: SortOrder
+    posTerminalApplicationFeeFixedMinor?: SortOrder
     status?: SortOrder
     googleReviewUrl?: SortOrder
     shopCode?: SortOrder
@@ -184308,6 +184374,8 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrder
     posApplicationFeePercent?: SortOrder
     posApplicationFeeFixedMinor?: SortOrder
+    posTerminalApplicationFeePercent?: SortOrder
+    posTerminalApplicationFeeFixedMinor?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
     onboardingStep?: SortOrder
@@ -205137,6 +205205,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -205224,6 +205294,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -205382,6 +205454,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -205469,6 +205543,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -207078,6 +207154,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -207164,6 +207242,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -208114,6 +208194,8 @@ export namespace Prisma {
     posStripeAccountId?: StringNullableFilter<"Location"> | string | null
     posApplicationFeePercent?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: IntNullableFilter<"Location"> | number | null
+    posTerminalApplicationFeePercent?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: IntNullableFilter<"Location"> | number | null
     status?: StringFilter<"Location"> | string
     googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
@@ -211183,6 +211265,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -211270,6 +211354,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -211476,6 +211562,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -211563,6 +211651,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -211642,6 +211732,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -211729,6 +211821,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -211824,6 +211918,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -211911,6 +212007,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -212536,6 +212634,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -212623,6 +212723,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -212809,6 +212911,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -212896,6 +213000,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -213942,6 +214048,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -214029,6 +214137,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -214124,6 +214234,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -214211,6 +214323,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -214389,6 +214503,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -214476,6 +214592,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -214676,6 +214794,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -214763,6 +214883,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -217632,6 +217754,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -217719,6 +217843,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -217919,6 +218045,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -218006,6 +218134,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -219441,6 +219571,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -219528,6 +219660,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -219728,6 +219862,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -219815,6 +219951,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -220005,6 +220143,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -220092,6 +220232,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -220187,6 +220329,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -220274,6 +220418,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -220422,6 +220568,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -220509,6 +220657,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -221149,6 +221299,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -221236,6 +221388,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -222427,6 +222581,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -222514,6 +222670,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -222637,6 +222795,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -222724,6 +222884,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -222819,6 +222981,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -222906,6 +223070,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223106,6 +223272,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223193,6 +223361,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223383,6 +223553,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223470,6 +223642,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223617,6 +223791,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223704,6 +223880,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223799,6 +223977,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223886,6 +224066,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -223981,6 +224163,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -224068,6 +224252,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -224147,6 +224333,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -224234,6 +224422,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -224392,6 +224582,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -224479,6 +224671,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225043,6 +225237,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225130,6 +225326,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225375,6 +225573,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225461,6 +225661,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225551,6 +225753,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225637,6 +225841,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225738,6 +225944,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -225825,6 +226033,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -226952,6 +227162,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -227039,6 +227251,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -227382,6 +227596,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -227468,6 +227684,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -227710,6 +227928,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -227797,6 +228017,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -228130,6 +228352,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -228217,6 +228441,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -228541,6 +228767,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -228628,6 +228856,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -229516,6 +229746,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -229603,6 +229835,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -229892,6 +230126,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -229979,6 +230215,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -234707,6 +234945,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -234794,6 +235034,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -234964,6 +235206,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -235051,6 +235295,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236360,6 +236606,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236447,6 +236695,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236542,6 +236792,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236629,6 +236881,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236708,6 +236962,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236795,6 +237051,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236890,6 +237148,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -236977,6 +237237,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -237553,6 +237815,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -237640,6 +237904,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -237881,6 +238147,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -237968,6 +238236,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -240847,6 +241117,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -241169,6 +241441,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -241255,6 +241529,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -241338,6 +241614,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -245529,6 +245807,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -245589,6 +245869,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -245778,6 +246060,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -245864,6 +246148,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -245947,6 +246233,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -246004,6 +246292,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -246090,6 +246380,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -246173,6 +246465,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -246288,6 +246582,8 @@ export namespace Prisma {
     posStripeAccountId?: string | null
     posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -246564,6 +246860,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -246650,6 +246948,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
@@ -246733,6 +247033,8 @@ export namespace Prisma {
     posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue

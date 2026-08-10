@@ -67,6 +67,8 @@ export interface UpdateLocationDto {
   posStripeAccountId?: string | null;
   posApplicationFeePercent?: number | null;
   posApplicationFeeFixedMinor?: number | null;
+  posTerminalApplicationFeePercent?: number | null;
+  posTerminalApplicationFeeFixedMinor?: number | null;
   status?: "active" | "suspended" | "closed";
   timezone?: string;
   isActive?: boolean;
@@ -504,7 +506,8 @@ export class LocationsService {
         }),
         ...(dto.applicationFeeMode !== undefined && { applicationFeeMode: dto.applicationFeeMode }),
         // NOTE: posStripeAccountId / posApplicationFeePercent /
-        // posApplicationFeeFixedMinor are intentionally NOT written here.
+        // posApplicationFeeFixedMinor / posTerminalApplicationFee* are
+        // intentionally NOT written here.
         // They are persisted via a raw SQL UPDATE below so the save keeps
         // working even if the deployed Prisma client is stale (a cached
         // build can ship a runtime client whose DMMF predates these
@@ -553,6 +556,17 @@ export class LocationsService {
       posParams.push(dto.posApplicationFeeFixedMinor);
       posSets.push(`"posApplicationFeeFixedMinor" = $${posParams.length}`);
     }
+    // Card-present fee. Same raw-SQL treatment as the fields above, and for
+    // the same reason: a stale deployed Prisma client would otherwise reject
+    // a column it doesn't know about yet.
+    if (dto.posTerminalApplicationFeePercent !== undefined) {
+      posParams.push(dto.posTerminalApplicationFeePercent);
+      posSets.push(`"posTerminalApplicationFeePercent" = $${posParams.length}`);
+    }
+    if (dto.posTerminalApplicationFeeFixedMinor !== undefined) {
+      posParams.push(dto.posTerminalApplicationFeeFixedMinor);
+      posSets.push(`"posTerminalApplicationFeeFixedMinor" = $${posParams.length}`);
+    }
     if (posSets.length > 0) {
       posParams.push(locationId);
       await this.prisma.$executeRawUnsafe(
@@ -570,6 +584,13 @@ export class LocationsService {
         }),
         ...(dto.posApplicationFeeFixedMinor !== undefined && {
           posApplicationFeeFixedMinor: dto.posApplicationFeeFixedMinor,
+        }),
+        ...(dto.posTerminalApplicationFeePercent !== undefined && {
+          posTerminalApplicationFeePercent: dto.posTerminalApplicationFeePercent,
+        }),
+        ...(dto.posTerminalApplicationFeeFixedMinor !== undefined && {
+          posTerminalApplicationFeeFixedMinor:
+            dto.posTerminalApplicationFeeFixedMinor,
         }),
       });
     }

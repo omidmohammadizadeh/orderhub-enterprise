@@ -570,9 +570,28 @@ model Location {
   // account with its own platform fee. Blank = fall back to the normal
   // resolveConnectAccount cascade. Fee = percent of order total + a fixed
   // pence amount, both optional (0/blank = no platform fee).
+  // NOTE ON NAMING: these three drive PAYMENT LINKS only — nothing else in
+  // the codebase reads them. The "pos" prefix is historical (they arrived
+  // with the POS payment-link feature) and the dashboard now labels this
+  // section "Payment link settings" to match what it actually does. The
+  // columns are deliberately NOT renamed: this location row is written by
+  // raw SQL precisely because a stale deployed Prisma client can lag the
+  // schema, and a column rename is the worst thing to put in front of that.
   posStripeAccountId          String?
   posApplicationFeePercent    Decimal? @db.Decimal(5, 2)
   posApplicationFeeFixedMinor Int?
+
+  // ── POS terminal fee (card-present) ────────────────────────────────────
+  // Platform fee for charges taken on a card reader AT this location —
+  // S700 / WisePOS, WisePad 3, and Tap to Pay on iPhone or Android.
+  // Deliberately per-location, not per-brand: a shop's card-present takings
+  // are the shop's, and one brand can trade from several shops.
+  // NULL = inherit the existing brand/location applicationFee* resolution,
+  // so nothing changes until an operator sets this. An explicit 0 means
+  // "charge nothing on terminal payments", which is a real choice and
+  // distinct from leaving it unset.
+  posTerminalApplicationFeePercent    Decimal? @db.Decimal(5, 2)
+  posTerminalApplicationFeeFixedMinor Int?
 
   // Phase AN — operational status string (active | suspended | closed)
   // kept alongside isActive/isPaused for finer-grained UI presentation.

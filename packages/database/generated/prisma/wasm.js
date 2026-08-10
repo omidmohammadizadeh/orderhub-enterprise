@@ -348,6 +348,8 @@ exports.Prisma.LocationScalarFieldEnum = {
   posStripeAccountId: 'posStripeAccountId',
   posApplicationFeePercent: 'posApplicationFeePercent',
   posApplicationFeeFixedMinor: 'posApplicationFeeFixedMinor',
+  posTerminalApplicationFeePercent: 'posTerminalApplicationFeePercent',
+  posTerminalApplicationFeeFixedMinor: 'posTerminalApplicationFeeFixedMinor',
   status: 'status',
   googleReviewUrl: 'googleReviewUrl',
   busyModeJson: 'busyModeJson',

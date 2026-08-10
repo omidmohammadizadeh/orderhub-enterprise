@@ -184,6 +184,18 @@ function GeneralTab({
       ? String((location as any).posApplicationFeeFixedMinor / 100)
       : "",
   );
+  // Card-reader fee. Held as strings so "" (inherit) stays distinguishable
+  // from "0" (explicitly charge nothing) — the two mean different things.
+  const [posTerminalFeePercent, setPosTerminalFeePercent] = useState<string>(
+    (location as any)?.posTerminalApplicationFeePercent != null
+      ? String((location as any).posTerminalApplicationFeePercent)
+      : "",
+  );
+  const [posTerminalFeeFixed, setPosTerminalFeeFixed] = useState<string>(
+    (location as any)?.posTerminalApplicationFeeFixedMinor != null
+      ? String((location as any).posTerminalApplicationFeeFixedMinor / 100)
+      : "",
+  );
   // POS display name — which brand's name POS + receipts show for this
   // location's walk-in/phone orders. Empty = use the order's own brand.
   const [posBrandId, setPosBrandId] = useState<string>(
@@ -313,13 +325,23 @@ function GeneralTab({
           : {}),
         hubriseCatalogId: hubriseCatalogId || null,
         hubriseLocationId: hubriseLocationId || null,
-        // POS "Payment link" Stripe settings.
+        // Payment link Stripe settings (DB columns keep their historical
+        // pos* names — see the section comment in the form below).
         posStripeAccountId: posStripeAccountId.trim() || null,
         posApplicationFeePercent: posFeePercent.trim()
           ? Number(posFeePercent)
           : null,
         posApplicationFeeFixedMinor: posFeeFixed.trim()
           ? Math.round(Number(posFeeFixed) * 100)
+          : null,
+        // Card-reader fee. Blank sends null (inherit the brand's
+        // online-ordering fee); "0" sends 0 (charge nothing). Number("")
+        // is 0, so the trim() check is what keeps those two apart.
+        posTerminalApplicationFeePercent: posTerminalFeePercent.trim()
+          ? Number(posTerminalFeePercent)
+          : null,
+        posTerminalApplicationFeeFixedMinor: posTerminalFeeFixed.trim()
+          ? Math.round(Number(posTerminalFeeFixed) * 100)
           : null,
         // POS display name + per-location SMS/caller-ID identity — shallow-
         // merged into Location.settings.
@@ -633,17 +655,23 @@ function GeneralTab({
         ordering" channel to configure payouts.
       </div>
 
-      {/* POS Stripe settings — the Connect account + platform fee that POS
-          "Payment link" charges use for THIS location. Overrides the brand
-          account so a shop's card links always land on its own Stripe. */}
+      {/* Payment link settings — the Connect account + platform fee that
+          payment-link charges use for THIS location. Overrides the brand
+          account so a shop's card links always land on its own Stripe.
+          Historically labelled "POS Stripe settings", which read as though it
+          covered card readers too; it never has. The DB columns keep their
+          pos* names deliberately — this row is written by raw SQL to survive
+          a stale Prisma client, and a rename is the last thing to put in
+          front of that. */}
       <div className="rounded-md border border-zinc-200 p-3 space-y-3">
         <div>
           <h3 className="text-sm font-semibold text-zinc-900">
-            POS Stripe settings
+            Payment link settings
           </h3>
           <p className="text-[11px] text-zinc-500">
-            Used for POS <strong>Payment link</strong> charges at this location.
-            Leave blank to use the brand&apos;s Stripe account.
+            Used only for <strong>payment link</strong> charges at this
+            location — not card readers. Leave the account blank to use the
+            brand&apos;s Stripe account.
           </p>
         </div>
         <Field label="Stripe connected account ID">
@@ -679,8 +707,54 @@ function GeneralTab({
           </Field>
         </div>
         <p className="text-[11px] text-zinc-400">
-          Platform fee taken per payment-link charge = percentage of the order
-          total plus the fixed amount. Both optional.
+          Platform fee per payment-link charge. The percentage comes out of the
+          restaurant&apos;s payout; the fixed amount is added to the
+          customer&apos;s bill and kept by the platform. Both optional.
+        </p>
+      </div>
+
+      {/* Card-reader fee — previously shared with online ordering via the
+          brand's applicationFee*, so a shop couldn't price a counter tap
+          differently from a delivery order. Per-location by design: these are
+          the shop's card-present takings, and a brand can span several shops. */}
+      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">
+            Card reader fee (POS terminal)
+          </h3>
+          <p className="text-[11px] text-zinc-500">
+            Platform fee on payments taken through a card reader at this shop —
+            S700, WisePad 3, and Tap to Pay on iPhone or Android.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Application fee (%)">
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={posTerminalFeePercent}
+              onChange={(e) => setPosTerminalFeePercent(e.target.value)}
+              placeholder="e.g. 1.5"
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+          <Field label="Fixed fee per order (£)">
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={posTerminalFeeFixed}
+              onChange={(e) => setPosTerminalFeeFixed(e.target.value)}
+              placeholder="e.g. 0.10"
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+        </div>
+        <p className="text-[11px] text-zinc-400">
+          Leave both blank to keep using the brand&apos;s online-ordering fee
+          for card readers. Enter <strong>0</strong> to charge nothing on
+          terminal payments — that&apos;s different from leaving it blank.
         </p>
       </div>
 

@@ -85,6 +85,10 @@ function makeService(opts: {
     resolveConnectAccount: jest
       .fn()
       .mockResolvedValue("connect" in opts ? opts.connect : { id: null, stripeAccountId: "acct_shop" }),
+    // Card-present charges resolve their platform fee through
+    // terminalApplicationFeePence now, so a location can price a counter tap
+    // differently from an online order.
+    terminalApplicationFeePence: jest.fn().mockResolvedValue(opts.feePence ?? 75),
     applicationFeePenceForBasket: jest.fn().mockResolvedValue(opts.feePence ?? 75),
     settleTerminalPi: jest.fn().mockResolvedValue(undefined),
     stripeAccountForPayment: jest.fn().mockResolvedValue(opts.payment ? "acct_shop" : null),

@@ -842,6 +842,45 @@ export class PaymentsService {
   }
 
   /**
+   * Platform fee for a CARD-PRESENT charge (S700 / WisePad 3 / Tap to Pay).
+   *
+   * Card-present used to share applicationFeePenceForBasket with online
+   * ordering, so a shop couldn't price a counter tap differently from a
+   * delivery order. Location.posTerminalApplicationFee* overrides that when
+   * set, and is per-location by design: card-present takings belong to the
+   * shop, and one brand can trade from several shops.
+   *
+   * Unset (both NULL) falls through to the previous resolution, so no live
+   * location changes behaviour until someone configures it. An explicit 0 is
+   * honoured as "charge nothing" — that's a real choice, and distinct from
+   * never having set it.
+   */
+  async terminalApplicationFeePence(
+    locationId: string,
+    basketGbp: number,
+  ): Promise<number> {
+    const loc = (await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: {
+        posTerminalApplicationFeePercent: true,
+        posTerminalApplicationFeeFixedMinor: true,
+      },
+    })) as any;
+    const pct = loc?.posTerminalApplicationFeePercent;
+    const fixed = loc?.posTerminalApplicationFeeFixedMinor;
+    if (pct == null && fixed == null) {
+      return this.applicationFeePenceForBasket(locationId, basketGbp);
+    }
+    // basketGbp is pounds and pct is whole-percent, so pounds×percent already
+    // yields pence — the ÷100 for percent and ×100 for pounds→pence cancel.
+    // Getting this wrong is what made a 5% fee round to 0p on small orders
+    // before (see the payment-link branch).
+    const pctPence = Math.max(0, Math.round(Number(basketGbp) * Number(pct ?? 0)));
+    const fixedPence = Math.max(0, Math.round(Number(fixed ?? 0)));
+    return pctPence + fixedPence;
+  }
+
+  /**
    * Settle a card-present (Terminal) PaymentIntent — mark the linked Payment
    * SUCCEEDED and the Order PAID, then broadcast. Idempotent: re-settling an
    * already-paid order is a no-op. Called from the poll endpoint AND the
