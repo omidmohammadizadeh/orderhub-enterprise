@@ -291,6 +291,11 @@ export function PosCartPanel(props: CartPanelProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     initialDraft?.paymentMethod ?? "CASH",
   );
+  // A phone collection order: PICKUP, customer not in the shop. Walk-in and
+  // delivery are deliberately excluded — a walk-in is at the counter, and a
+  // delivery is settled by the driver.
+  const isPhoneCollection =
+    !dineIn && fulfillmentType === "PICKUP" && !walkIn;
   // A phone collection order (PICKUP, not walk-in) can't know how the
   // customer will pay — they're not here yet. Default those to
   // PAY_ON_COLLECTION so the order sits as "waiting for payment" instead of
@@ -300,7 +305,6 @@ export function PosCartPanel(props: CartPanelProps) {
   const autoPickedRef = useRef(false);
   useEffect(() => {
     if (dineIn) return;
-    const isPhoneCollection = fulfillmentType === "PICKUP" && !walkIn;
     if (isPhoneCollection && paymentMethod === "CASH" && !autoPickedRef.current) {
       autoPickedRef.current = true;
       setPaymentMethod("PAY_ON_COLLECTION");
@@ -1181,15 +1185,30 @@ export function PosCartPanel(props: CartPanelProps) {
           <div className="grid grid-cols-2 gap-1.5">
             {(
               [
+                { value: "PAY_ON_COLLECTION", label: "Pay on collection" },
                 { value: "CASH", label: "Cash" },
                 { value: "CARD_TERMINAL", label: "Card terminal" },
-                { value: "PAY_ON_COLLECTION", label: "Pay on collection" },
                 { value: "ONLINE_CARD", label: "Online card" },
                 { value: "PAYMENT_LINK", label: "Payment link" },
                 { value: "QR_CODE", label: "QR code" },
                 { value: "EXTERNAL", label: "External" },
               ] as const
-            ).map((opt) => (
+            )
+              // Phone collection: the customer isn't here, so Cash and Card
+              // terminal can't actually be taken yet — offering them is what
+              // produced orders recorded as "cash" that were paid by card.
+              // Both come back on the order card when they arrive. Payment
+              // link / QR stay, since those genuinely can be paid remotely.
+              .filter(
+                (opt) =>
+                  !isPhoneCollection ||
+                  (opt.value !== "CASH" && opt.value !== "CARD_TERMINAL"),
+              )
+              // "Pay on collection" only makes sense for a collection order.
+              .filter(
+                (opt) => opt.value !== "PAY_ON_COLLECTION" || isPhoneCollection,
+              )
+              .map((opt) => (
               <button
                 key={opt.value}
                 type="button"

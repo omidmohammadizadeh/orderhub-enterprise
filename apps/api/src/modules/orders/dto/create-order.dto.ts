@@ -121,7 +121,18 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() promoCode?: string;
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(["CASH", "CARD_TERMINAL", "ONLINE_CARD", "PAYMENT_LINK", "QR_CODE", "EXTERNAL"])
+  // PAY_ON_COLLECTION — a phone collection order the customer hasn't arrived
+  // for yet, so cash-vs-card is genuinely unknown at placement. Settled from
+  // the order card on arrival.
+  @IsEnum([
+    "CASH",
+    "CARD_TERMINAL",
+    "ONLINE_CARD",
+    "PAYMENT_LINK",
+    "QR_CODE",
+    "EXTERNAL",
+    "PAY_ON_COLLECTION",
+  ])
   paymentMethod?: string;
   @ApiPropertyOptional()
   @IsOptional()
