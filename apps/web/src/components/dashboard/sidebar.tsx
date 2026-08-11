@@ -153,7 +153,9 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
-  { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: MANAGER_TIER },
+  // Managers keep Printers: a jammed or offline printer is a mid-service
+  // problem, and the person on shift is the one who has to clear it.
+  { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/card-readers", label: "Card Readers", icon: Smartphone, roles: MANAGER_TIER },
   // Diagnostics for the Comet USB box. Lives next to Printers because it is
   // the same job: "is the hardware on this counter actually working?"
