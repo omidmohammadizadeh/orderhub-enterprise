@@ -80,7 +80,9 @@ export class LocationsController {
     @Body() dto: UpdateLocationDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.locations.update(locationId, user.tenantId, dto);
+    // Role is passed through so the service can refuse the commercial and
+    // dine-in fields for a MANAGER — see managerForbiddenLocationFields.
+    return this.locations.update(locationId, user.tenantId, dto, user.role);
   }
 
   // ── Phase AN extensions ─────────────────────────────────────────────────

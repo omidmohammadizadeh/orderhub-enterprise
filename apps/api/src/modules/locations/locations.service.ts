@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
@@ -225,6 +230,45 @@ export function isOpenAt(hours: OpeningHours | null | undefined, at: Date): bool
   });
 }
 
+/** Fields on a location a MANAGER may not change.
+ *
+ *  PATCH /locations/:id is one endpoint covering very different things — the
+ *  shop's address, its opening hours, the table-service toggle, booking
+ *  settings, and the Stripe Connect account and platform fees. Managers need
+ *  the day-to-day parts; the last two are commercial settings that decide
+ *  where money lands, and the table-service and booking settings are
+ *  explicitly owner-level.
+ *
+ *  Enforced here rather than by hiding buttons: the dashboard hides them too,
+ *  but a hidden control is not a permission — the same PATCH is one curl away.
+ *
+ *  Returns the offending field names so the caller can say which, instead of
+ *  a blanket "forbidden" the operator can't act on. */
+export function managerForbiddenLocationFields(dto: {
+  settings?: Record<string, unknown> | null;
+  [k: string]: unknown;
+}): string[] {
+  const MONEY_FIELDS = [
+    "stripeConnectedAccountId",
+    "applicationFeeMode",
+    "applicationFeeFixedAmount",
+    "applicationFeePercentage",
+    "posStripeAccountId",
+    "posApplicationFeePercent",
+    "posApplicationFeeFixedMinor",
+    "posTerminalApplicationFeePercent",
+    "posTerminalApplicationFeeFixedMinor",
+  ];
+  const offending = MONEY_FIELDS.filter((f) => dto[f] !== undefined);
+  // The dine-in switch and the booking rules share one settings key:
+  // settings.tableService.enabled is the toggle, .reservations the rules. One
+  // check covers both.
+  if (dto.settings && "tableService" in dto.settings) {
+    offending.push("settings.tableService");
+  }
+  return offending;
+}
+
 @Injectable()
 export class LocationsService {
   constructor(
@@ -426,7 +470,22 @@ export class LocationsService {
     return created.id;
   }
 
-  async update(locationId: string, tenantId: string, dto: UpdateLocationDto) {
+  async update(
+    locationId: string,
+    tenantId: string,
+    dto: UpdateLocationDto,
+    /** Caller's role. Optional so existing internal callers are unaffected;
+     *  only a MANAGER is restricted. */
+    role?: string,
+  ) {
+    if (role === "MANAGER") {
+      const forbidden = managerForbiddenLocationFields(dto as any);
+      if (forbidden.length) {
+        throw new ForbiddenException(
+          `Managers can't change: ${forbidden.join(", ")}. Ask an owner.`,
+        );
+      }
+    }
     const current = await this.assertAccess(locationId, tenantId);
     // Inline logo → hosted file, before it can land in a column and be
     // re-sent inside every storefront response.

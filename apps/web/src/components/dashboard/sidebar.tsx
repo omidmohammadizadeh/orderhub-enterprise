@@ -82,6 +82,12 @@ const MANAGER_TIER = [
   "DARK_KITCHEN_MANAGER",
 ];
 const STAFF_TIER = [...MANAGER_TIER, "MANAGER", "STAFF"];
+// MANAGER's remit is deliberately narrow: the running of one shop. Anything
+// that shapes the business — menu, pricing, marketing, team, hardware,
+// locations — stays with owners. Kept as its own list rather than bolted onto
+// STAFF_TIER so the boundary is visible in one place instead of inferred from
+// a dozen scattered role arrays.
+const MANAGER_TIER_PLUS = [...MANAGER_TIER, "MANAGER"];
 const DRIVER_TIER = [...STAFF_TIER, "DRIVER"];
 // Money features — SMS Marketing, Wallet, Payments, Subscription. Visible only
 // to platform admin, tenant/location owners, and financial agents. NOT managers
@@ -121,7 +127,7 @@ const primaryNav: NavItem[] = [
     icon: MonitorSmartphone,
     // The kiosk device signs in as a KIOSK user, which reaches this and
     // nothing else — see the filter below.
-    roles: [...STAFF_TIER, "KIOSK"],
+    roles: [...MANAGER_TIER, "STAFF", "KIOSK"],
   },
   // Phase AW — Direct online ordering settings moved into the per-brand
   // settings drawer (Locations → Brands → DIRECT_ONLINE channel →
@@ -137,21 +143,21 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/signage", label: "Digital Signage", icon: Monitor, roles: MANAGER_TIER },
   // Admin-only business co-pilot (read-only, Phase 1).
   { href: "/dashboard/assistant", label: "AI Assistant", icon: Bot, roles: ["PLATFORM_ADMIN"] },
-  { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: STAFF_TIER },
+  { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: [...MANAGER_TIER, "STAFF"] },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
   { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/reviews", label: "Reviews", icon: Star, roles: MANAGER_TIER },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
-  { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: [...MANAGER_TIER, "MANAGER"] },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
-  { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: [...MANAGER_TIER, "MANAGER"] },
-  { href: "/dashboard/card-readers", label: "Card Readers", icon: Smartphone, roles: [...MANAGER_TIER, "MANAGER"] },
+  { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: MANAGER_TIER },
+  { href: "/dashboard/card-readers", label: "Card Readers", icon: Smartphone, roles: MANAGER_TIER },
   // Diagnostics for the Comet USB box. Lives next to Printers because it is
   // the same job: "is the hardware on this counter actually working?"
-  { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: [...MANAGER_TIER, "MANAGER"] },
+  { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin, roles: MANAGER_TIER },
   // Phase LG — activity feed: menu publishes, order pushes, stock changes,
   // store status — the HubRise-style "what did the system do" timeline.
@@ -184,7 +190,7 @@ const primaryNav: NavItem[] = [
 
 const operationsNav: NavItem[] = [
   { href: "/dashboard/orders/kitchen", label: "Kitchen Display", icon: ChefHat, roles: MANAGER_TIER },
-  { href: "/dashboard/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER },
+  { href: "/dashboard/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag, roles: MANAGER_TIER },
 ];
 

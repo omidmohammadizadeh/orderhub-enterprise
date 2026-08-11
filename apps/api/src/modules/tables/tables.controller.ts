@@ -28,14 +28,17 @@ interface UpsertBody {
 // (CASHIER) too. Tenant scope comes from the verified JWT.
 // Lists include BOTH legacy role names and the newer Team-Roles (OWNER, STAFF,
 // DARK_KITCHEN_MANAGER) so every equivalent role can run table service.
+// MANAGER is deliberately absent from MANAGE: a manager runs table service
+// (seat, move, merge, free) but doesn't define the floor. Creating, editing,
+// deleting tables and saving the layout are owner-level, alongside the
+// dine-in toggle itself (blocked in locations.service).
 const MANAGE = [
   "PLATFORM_ADMIN",
   "TENANT_OWNER",
   "OWNER",
-  "MANAGER",
   "DARK_KITCHEN_MANAGER",
 ] as const;
-const OPERATE = [...MANAGE, "CASHIER", "STAFF"] as const;
+const OPERATE = [...MANAGE, "MANAGER", "CASHIER", "STAFF"] as const;
 
 @ApiTags("tables")
 @ApiBearerAuth()

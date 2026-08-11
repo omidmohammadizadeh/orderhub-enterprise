@@ -41,11 +41,14 @@ const VIEW_KEY = "oh.tables.view";
 
 // Same list the API's @Roles(...MANAGE) uses on POST /v1/tables/layout —
 // showing "Edit layout" to a cashier would only earn them a 403.
+// MANAGER is absent by design: a manager runs table service (seat, move,
+// merge, free) but doesn't define the floor plan or switch dine-in on. Keep
+// this in step with MANAGE in tables.controller.ts — that's where it's
+// actually enforced; this only decides what's worth showing.
 const MANAGE_ROLES = [
   "PLATFORM_ADMIN",
   "TENANT_OWNER",
   "OWNER",
-  "MANAGER",
   "DARK_KITCHEN_MANAGER",
 ];
 
@@ -417,14 +420,24 @@ export default function TablesPage() {
               <ListIcon className="h-3.5 w-3.5" /> List
             </button>
           </div>
-          <label className="flex items-center gap-2 text-sm text-zinc-700">
-            <input
-              type="checkbox"
-              checked={enabled}
-              onChange={(e) => toggleMut.mutate(e.target.checked)}
-            />
-            Table service on for this location
-          </label>
+          {/* Turning dine-in on or off is an owner decision, not a shift
+              decision — the API refuses settings.tableService for a MANAGER
+              (see managerForbiddenLocationFields), so showing the checkbox
+              would only produce a 403. Managers still see the state. */}
+          {canManage ? (
+            <label className="flex items-center gap-2 text-sm text-zinc-700">
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => toggleMut.mutate(e.target.checked)}
+              />
+              Table service on for this location
+            </label>
+          ) : (
+            <span className="text-sm text-zinc-500">
+              Table service {enabled ? "on" : "off"} for this location
+            </span>
+          )}
           {manage && (
             <Button
               variant="outline"
@@ -438,9 +451,14 @@ export default function TablesPage() {
               + Add area
             </Button>
           )}
-          <Button variant="outline" onClick={() => setManage((m) => !m)}>
-            {manage ? "Done" : "Manage tables"}
-          </Button>
+          {/* Manage mode is the floor-plan editor — create/edit/delete tables
+              and areas. Owner-level: the API's MANAGE list excludes MANAGER,
+              so a manager entering this mode would only collect 403s. */}
+          {canManage && (
+            <Button variant="outline" onClick={() => setManage((m) => !m)}>
+              {manage ? "Done" : "Manage tables"}
+            </Button>
+          )}
           {manage && (
             <Button onClick={() => setCreating(true)}>
               <Plus className="mr-1 h-4 w-4" /> Add table

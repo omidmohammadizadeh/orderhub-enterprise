@@ -166,6 +166,10 @@ export default function ReservationsPage() {
 
   const isToday = date === toDateInput(new Date());
   const canManage = !!role && MANAGE_ROLES.includes(role);
+  // Owner-level only — a manager takes and seats bookings but doesn't set the
+  // rules (party size, lead time, whether the shop takes bookings online).
+  const canEditBookingSettings =
+    !!role && MANAGE_ROLES.filter((r) => r !== "MANAGER").includes(role);
 
   if (!locationId) {
     return (
@@ -190,14 +194,21 @@ export default function ReservationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowSettings((s) => !s)}
-            className="min-h-[44px]"
-          >
-            <Settings2 className="mr-1 h-4 w-4" />
-            {showSettings ? "Hide settings" : "Booking settings"}
-          </Button>
+          {/* Booking settings write settings.tableService.reservations, which
+              the API refuses for a MANAGER (managerForbiddenLocationFields).
+              Separate from canManage below, which still lets a manager delete
+              a booking — these are different powers and shouldn't share a
+              flag. */}
+          {canEditBookingSettings && (
+            <Button
+              variant="outline"
+              onClick={() => setShowSettings((s) => !s)}
+              className="min-h-[44px]"
+            >
+              <Settings2 className="mr-1 h-4 w-4" />
+              {showSettings ? "Hide settings" : "Booking settings"}
+            </Button>
+          )}
           <Button
             onClick={() => setCreating(true)}
             disabled={!tableServiceEnabled}
@@ -208,7 +219,9 @@ export default function ReservationsPage() {
         </div>
       </div>
 
-      {showSettings && <ReservationSettingsCard locationId={locationId} />}
+      {showSettings && canEditBookingSettings && (
+        <ReservationSettingsCard locationId={locationId} />
+      )}
 
       {!tableServiceEnabled && (
         <div className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
