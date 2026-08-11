@@ -28,7 +28,7 @@ import * as crypto from "crypto";
 import * as bcrypt from "bcryptjs";
 import { TeamInviteEmailService } from "./team-invite-email.service";
 
-const NEW_ROLES = [
+export const NEW_ROLES = [
   "OWNER",
   "DARK_KITCHEN_MANAGER",
   "MANAGER",
@@ -39,6 +39,12 @@ const NEW_ROLES = [
   // Platform-level — kept in the list so an admin user can re-assign
   // peers, but the UI hides this option for non-admins.
   "PLATFORM_ADMIN",
+  // Device accounts. This list is the FIRST gate every assign/invite passes
+  // through, before ALLOWED_GRANTS is even consulted — a role missing here is
+  // rejected as "Unknown role" no matter who is granting it. Keep the two in
+  // step; the spec below fails if they drift.
+  "KIOSK",
+  "KITCHEN_DISPLAY",
 ] as const;
 
 type NewRole = (typeof NEW_ROLES)[number];
@@ -63,7 +69,7 @@ const PLATFORM_ROLES = new Set([
 /** Roles that are hardware, not people. Mirrors DeviceLocationGuard. */
 const DEVICE_ROLES = new Set(["KIOSK", "KITCHEN_DISPLAY"]);
 
-const ALLOWED_GRANTS: Record<string, string[]> = {
+export const ALLOWED_GRANTS: Record<string, string[]> = {
   PLATFORM_ADMIN: [
     "OWNER",
     "DARK_KITCHEN_MANAGER",
