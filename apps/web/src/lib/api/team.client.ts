@@ -110,6 +110,21 @@ export const ASSIGNABLE_ROLES: { value: string; label: string; description: stri
   { value: "DRIVER", label: "Driver", description: "Driver app — orders assigned to them." },
   { value: "ONBOARDING_AGENT", label: "Onboarding agent", description: "Can create new locations and brands." },
   { value: "FINANCIAL_AGENT", label: "Financial agent", description: "Subscription management." },
+  // Device accounts, not people. Each signs a single screen in and reaches
+  // exactly one page — enforced by a route guard AND the nav, so a wall-
+  // mounted tablet in a public doorway or a hot kitchen can't be poked into
+  // takings or customer data. Revoking one is disabling an account rather
+  // than rotating a shared URL.
+  {
+    value: "KIOSK",
+    label: "Kiosk screen",
+    description: "Device account — self-service kiosk only, for its location.",
+  },
+  {
+    value: "KITCHEN_DISPLAY",
+    label: "Kitchen display",
+    description: "Device account — kitchen display only, for its location.",
+  },
 ];
 
 // The account-admin roles (full tenant access) both display as "Admin".

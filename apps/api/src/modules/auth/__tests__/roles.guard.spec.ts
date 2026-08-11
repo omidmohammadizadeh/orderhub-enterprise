@@ -136,4 +136,30 @@ describe("RolesGuard", () => {
     });
     expect(guard.canActivate(ctx)).toBe(true);
   });
+
+  // ── Device accounts ──────────────────────────────────────────────────────
+  // KIOSK and KITCHEN_DISPLAY sit OUTSIDE the hierarchy on purpose. If either
+  // ever gained a rank, granting a route to a low role would silently hand it
+  // to a wall-mounted screen as well.
+
+  it("does not let a kitchen display inherit a route granted to KITCHEN_STAFF", () => {
+    reflector.getAllAndOverride.mockReturnValueOnce(["KITCHEN_STAFF"]);
+    const ctx = makeContext(baseUser("KITCHEN_DISPLAY" as any));
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+  });
+
+  it("does not let a kiosk inherit a route granted to STAFF or CASHIER", () => {
+    reflector.getAllAndOverride.mockReturnValueOnce(["CASHIER", "STAFF"]);
+    const ctx = makeContext(baseUser("KIOSK" as any));
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+  });
+
+  it("admits a device only where its role is named outright", () => {
+    reflector.getAllAndOverride.mockReturnValueOnce([
+      "KITCHEN_DISPLAY",
+      "KITCHEN_STAFF",
+    ]);
+    const ctx = makeContext(baseUser("KITCHEN_DISPLAY" as any));
+    expect(guard.canActivate(ctx)).toBe(true);
+  });
 });

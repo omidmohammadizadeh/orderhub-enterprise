@@ -17,6 +17,7 @@ import { MaintenanceMiddleware } from "./common/middleware/maintenance.middlewar
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
+import { DeviceLocationGuard } from "./common/guards/device-location.guard";
 import { BillingGuard } from "./common/guards/billing.guard";
 
 import { appConfig } from "./config/app.config";
@@ -300,6 +301,8 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    // After RolesGuard: role says WHAT a device may do, this says WHERE.
+    { provide: APP_GUARD, useClass: DeviceLocationGuard },
     { provide: APP_GUARD, useClass: BillingGuard },
     { provide: APP_GUARD, useClass: UserThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },

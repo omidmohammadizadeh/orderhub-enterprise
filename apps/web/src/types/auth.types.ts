@@ -21,8 +21,9 @@ export type UserRole =
   | "STAFF"
   | "ONBOARDING_AGENT"
   | "FINANCIAL_AGENT"
-  // A self-service kiosk device account — reaches the Kiosk tab only.
-  | "KIOSK";
+  // Device accounts, not people — each reaches exactly one tab.
+  | "KIOSK"
+  | "KITCHEN_DISPLAY";
 
 export interface UserProfile {
   id: string;

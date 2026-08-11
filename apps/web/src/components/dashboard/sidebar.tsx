@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth.store";
+import { deviceHomeFor } from "@/components/dashboard/kiosk-route-guard";
 import { humaniseRole } from "@/lib/api/team.client";
 import { getInitials } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -191,7 +192,14 @@ const primaryNav: NavItem[] = [
 ];
 
 const operationsNav: NavItem[] = [
-  { href: "/dashboard/orders/kitchen", label: "Kitchen Display", icon: ChefHat, roles: MANAGER_TIER },
+  // The kitchen screen signs in as a KITCHEN_DISPLAY user, which reaches
+  // this and nothing else — see DEVICE_HOME.
+  {
+    href: "/dashboard/orders/kitchen",
+    label: "Kitchen Display",
+    icon: ChefHat,
+    roles: [...MANAGER_TIER, "KITCHEN_DISPLAY"],
+  },
   { href: "/dashboard/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag, roles: MANAGER_TIER },
 ];
@@ -234,6 +242,9 @@ export function Sidebar() {
 function _Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
+  // Non-null only for device accounts (kiosk tablet, kitchen screen), in
+  // which case it is the sole page they may see a link to.
+  const deviceHome = deviceHomeFor(user?.role);
 
   // Phase AR — live unread-leads count for the sidebar badge. Only
   // PLATFORM_ADMIN + ONBOARDING_AGENT see the Leads entry; everyone
@@ -294,11 +305,12 @@ function _Sidebar() {
         {primaryNav
           .filter(
             (item) =>
-              // A kiosk device account gets exactly one destination. This
-              // is belt-and-braces with the route guard in the dashboard
-              // layout — a customer must never be one stray tap away from
+              // A device account gets exactly one destination. This is
+              // belt-and-braces with the route guard in the dashboard
+              // layout — a customer at a kiosk, or anyone walking past the
+              // kitchen screen, must never be one stray tap away from
               // takings or the menu editor.
-              (user?.role !== "KIOSK" || item.href === "/dashboard/kiosk") &&
+              (!deviceHome || item.href === deviceHome) &&
               // Phase AP — items with a `roles` array are hidden from
               // users without that role. Server enforces too — this is
               // UI cleanliness.
@@ -327,8 +339,9 @@ function _Sidebar() {
           const filterFor = (nav: NavItem[]) =>
             nav.filter(
               (i) =>
-                !i.roles ||
-                (user?.role && i.roles.includes(user.role)),
+                (!deviceHome || i.href === deviceHome) &&
+                (!i.roles ||
+                  (user?.role && i.roles.includes(user.role))),
             );
           const ops = filterFor(operationsNav);
           const fin = filterFor(financeNav);
@@ -384,10 +397,12 @@ function _Sidebar() {
           );
         })()}
 
-        <SidebarNavItem
-          item={{ href: "#", label: "Help & Support", icon: HelpCircle }}
-          isActive={false}
-        />
+        {!deviceHome && (
+          <SidebarNavItem
+            item={{ href: "#", label: "Help & Support", icon: HelpCircle }}
+            isActive={false}
+          />
+        )}
       </nav>
 
       {/* ── User footer ──────────────────────────────── */}

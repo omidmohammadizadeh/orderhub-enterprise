@@ -107,8 +107,12 @@ export class OrdersController {
   }
 
   // ── POST /api/v1/orders ───────────────────────────────
+  // KIOSK is granted here and NOWHERE else in this controller: a self-service
+  // screen must be able to place an order, but not refund one, void a line,
+  // or change a payment status. Adding it to POS_STAFF would have handed it
+  // all three.
   @Post()
-  @Roles(...POS_STAFF)
+  @Roles(...POS_STAFF, "KIOSK")
   @ApiOperation({ summary: "Create a direct / POS order" })
   @ApiResponse({ status: 201 })
   async create(

@@ -91,6 +91,13 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.KDS.OPERATE,
   ],
   DRIVER: [PERMISSIONS.DISPATCH.VIEW, PERMISSIONS.ORDERS.READ],
+  // ── Device accounts ─────────────────────────────────────────────────────
+  // Not people. Each drives one unattended screen, so each gets the smallest
+  // set that screen needs and nothing that would be useful to a passer-by.
+  // A kiosk writes orders but must never read the order book; a kitchen
+  // display reads and bumps tickets but must never create an order.
+  KIOSK: [PERMISSIONS.MENUS.READ, PERMISSIONS.ORDERS.WRITE],
+  KITCHEN_DISPLAY: [PERMISSIONS.KDS.VIEW, PERMISSIONS.KDS.OPERATE],
   VIEWER: [
     PERMISSIONS.ORDERS.READ,
     PERMISSIONS.MENUS.READ,

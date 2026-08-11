@@ -60,6 +60,9 @@ const PLATFORM_ROLES = new Set([
 // What roles a given caller can grant via Assign Role / Invite. The
 // keys are the caller's current role; the values are the set of
 // roles they're allowed to set on someone else.
+/** Roles that are hardware, not people. Mirrors DeviceLocationGuard. */
+const DEVICE_ROLES = new Set(["KIOSK", "KITCHEN_DISPLAY"]);
+
 const ALLOWED_GRANTS: Record<string, string[]> = {
   PLATFORM_ADMIN: [
     "OWNER",
@@ -70,6 +73,8 @@ const ALLOWED_GRANTS: Record<string, string[]> = {
     "ONBOARDING_AGENT",
     "FINANCIAL_AGENT",
     "PLATFORM_ADMIN",
+    "KIOSK",
+    "KITCHEN_DISPLAY",
   ],
   TENANT_OWNER: [
     "OWNER",
@@ -77,16 +82,24 @@ const ALLOWED_GRANTS: Record<string, string[]> = {
     "MANAGER",
     "STAFF",
     "DRIVER",
+    // Device accounts — a kiosk in the doorway, a screen in the kitchen. The
+    // people who run the shop are the ones who set its hardware up, so they
+    // can create these without going through the platform team.
+    "KIOSK",
+    "KITCHEN_DISPLAY",
   ],
   // OWNER + DARK_KITCHEN_MANAGER can grow their kitchen team but not
   // promote anyone to ownership or any platform-level role.
-  OWNER: ["MANAGER", "STAFF", "DRIVER"],
-  DARK_KITCHEN_MANAGER: ["MANAGER", "STAFF", "DRIVER"],
+  OWNER: ["MANAGER", "STAFF", "DRIVER", "KIOSK", "KITCHEN_DISPLAY"],
+  DARK_KITCHEN_MANAGER: ["MANAGER", "STAFF", "DRIVER", "KIOSK", "KITCHEN_DISPLAY"],
   // Everyone else can't manage the team at all — the @Roles guard on
   // the controller also blocks them, but defence-in-depth.
   MANAGER: [],
   STAFF: [],
   DRIVER: [],
+  // Device accounts can't grant anything — they aren't people.
+  KIOSK: [],
+  KITCHEN_DISPLAY: [],
   ONBOARDING_AGENT: [],
   FINANCIAL_AGENT: [],
 };
@@ -366,6 +379,20 @@ export class TeamService {
       );
     }
 
+    // A device account is defined by WHERE it is — DeviceLocationGuard
+    // refuses every location-bearing request from a device with no
+    // assignment, so one created without a location isn't a permissive
+    // account, it's a screen that shows nothing but 403s. Say so here rather
+    // than letting someone debug a blank kiosk in a live shop.
+    if (
+      DEVICE_ROLES.has(dto.role as string) &&
+      dto.locationIds.length !== 1
+    ) {
+      throw new BadRequestException(
+        "A kiosk or kitchen display must be assigned to exactly one location.",
+      );
+    }
+
     // Validate referenced locations / brands actually belong to this
     // tenant. Cheap guard against a forged payload that ships an
     // unrelated locationId.
@@ -464,6 +491,16 @@ export class TeamService {
     const email = dto.email.toLowerCase().trim();
     if (!email.includes("@")) {
       throw new BadRequestException("Invalid email");
+    }
+
+    // Same rule as Assign Role — a device is defined by where it stands.
+    if (
+      DEVICE_ROLES.has(dto.role as string) &&
+      (dto.locationIds ?? []).length !== 1
+    ) {
+      throw new BadRequestException(
+        "A kiosk or kitchen display must be assigned to exactly one location.",
+      );
     }
 
     // Block double-invites + duplicate user creation.

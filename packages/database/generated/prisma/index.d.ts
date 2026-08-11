@@ -674,7 +674,8 @@ export const UserRole: {
   STAFF: 'STAFF',
   ONBOARDING_AGENT: 'ONBOARDING_AGENT',
   FINANCIAL_AGENT: 'FINANCIAL_AGENT',
-  KIOSK: 'KIOSK'
+  KIOSK: 'KIOSK',
+  KITCHEN_DISPLAY: 'KITCHEN_DISPLAY'
 };
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]

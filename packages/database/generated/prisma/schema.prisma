@@ -3652,6 +3652,13 @@ enum UserRole {
   // access is revoked by disabling an account, and every kiosk order is
   // attributable to a real user id.
   KIOSK
+
+  // A kitchen screen signs in as its own restricted user, exactly like KIOSK.
+  // It reaches the Kitchen Display and nothing else — no takings, no menu
+  // editor, no customer data. A screen bolted to a wall in a hot kitchen is
+  // the least supervised device in the building, so it gets the least access,
+  // and revoking it means disabling one account rather than rotating a URL.
+  KITCHEN_DISPLAY
 }
 
 enum OAuthProvider {

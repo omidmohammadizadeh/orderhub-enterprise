@@ -107,7 +107,14 @@ export class KdsController {
   }
 
   @Post("screens/:screenId/tickets/:orderId/bump")
-  @Roles("KITCHEN_STAFF", "CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(
+    "KITCHEN_DISPLAY",
+    "KITCHEN_STAFF",
+    "CASHIER",
+    "MANAGER",
+    "TENANT_OWNER",
+    "PLATFORM_ADMIN",
+  )
   @ApiOperation({ summary: "Bump (complete) a ticket" })
   bumpTicket(
     @Param("screenId") screenId: string,
@@ -118,7 +125,14 @@ export class KdsController {
   }
 
   @Post("screens/:screenId/tickets/:orderId/items/:orderItemId/state")
-  @Roles("KITCHEN_STAFF", "CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(
+    "KITCHEN_DISPLAY",
+    "KITCHEN_STAFF",
+    "CASHIER",
+    "MANAGER",
+    "TENANT_OWNER",
+    "PLATFORM_ADMIN",
+  )
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Mark an item line cooked / not cooked on a ticket" })
   setItemState(
@@ -139,7 +153,14 @@ export class KdsController {
   }
 
   @Post("screens/:screenId/tickets/:orderId/recall")
-  @Roles("KITCHEN_STAFF", "CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(
+    "KITCHEN_DISPLAY",
+    "KITCHEN_STAFF",
+    "CASHIER",
+    "MANAGER",
+    "TENANT_OWNER",
+    "PLATFORM_ADMIN",
+  )
   @ApiOperation({ summary: "Recall a bumped ticket" })
   recallTicket(
     @Param("screenId") screenId: string,
