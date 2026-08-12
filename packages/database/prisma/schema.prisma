@@ -97,6 +97,7 @@ model User {
   lastLoginAt DateTime?
 
   refreshTokens  RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
   oauthAccounts  OAuthAccount[]
   auditLogs      AuditLog[]
   mfaConfig      MfaConfig?
@@ -271,6 +272,32 @@ model CustomerAccount {
 }
 
 // ── RefreshToken ──────────────────────────────────────────────────────────────
+/// A one-time link emailed to someone who has forgotten their password.
+///
+/// Only the HASH of the token is stored, exactly as with RefreshToken: our
+/// database is the thing most likely to leak, and a stolen table of raw reset
+/// tokens is a stolen table of accounts. The emailed half exists nowhere on
+/// our side.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  /// Set the moment it is spent — these are single use, so a link forwarded
+  /// on or left sitting in a mailbox can't be replayed.
+  usedAt    DateTime?
+  /// Kept for abuse investigation, never for validation.
+  requestedIp String?
+  userAgent   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
 model RefreshToken {
   id                String    @id @default(cuid())
   userId            String

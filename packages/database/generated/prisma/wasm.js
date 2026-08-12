@@ -217,6 +217,17 @@ exports.Prisma.CustomerAccountScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PasswordResetTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  requestedIp: 'requestedIp',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.RefreshTokenScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -2333,6 +2344,14 @@ exports.Prisma.CustomerAccountOrderByRelevanceFieldEnum = {
   emailVerificationToken: 'emailVerificationToken'
 };
 
+exports.Prisma.PasswordResetTokenOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  requestedIp: 'requestedIp',
+  userAgent: 'userAgent'
+};
+
 exports.Prisma.RefreshTokenOrderByRelevanceFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -4043,6 +4062,7 @@ exports.Prisma.ModelName = {
   Invitation: 'Invitation',
   Lead: 'Lead',
   CustomerAccount: 'CustomerAccount',
+  PasswordResetToken: 'PasswordResetToken',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   ApiKey: 'ApiKey',

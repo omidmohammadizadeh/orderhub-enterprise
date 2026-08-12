@@ -10,6 +10,7 @@ import {
   HttpStatus,
   UseGuards,
   Delete,
+  Query,
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
@@ -17,6 +18,11 @@ import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
 import { OAuthService } from "./services/oauth.service";
 import { NativeOAuthService } from "./services/native-oauth.service";
+import { PasswordResetService } from "./services/password-reset.service";
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from "./dto/password-reset.dto";
 import { TokenService } from "./services/token.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { OAuthProfile } from "./interfaces/oauth-provider.interface";
@@ -74,6 +80,7 @@ export class AuthController {
     private readonly tokenService: TokenService,
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly passwordReset: PasswordResetService,
   ) {}
 
   /** True when Google OAuth env vars are configured. Routes return 503
@@ -104,6 +111,57 @@ export class AuthController {
       req.user as AuthenticatedUser,
       extractMeta(req),
     );
+  }
+
+  // ── Forgot password ───────────────────────────────────
+  //
+  // Always 200 with the same body, whether or not that address has an
+  // account. A different status, message or timing here would turn this into
+  // a way to test which emails are registered with us.
+  //
+  // 3/minute per IP: generous for a person who mistyped their address, mean
+  // enough that nobody walks a list of addresses through it, and it also caps
+  // how often we can be used to send mail to a third party.
+  @Public()
+  @Post("forgot-password")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { ttl: 60_000, limit: 3 }, medium: { ttl: 60_000, limit: 3 } })
+  @ApiOperation({ summary: "Email a password reset link" })
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const meta = extractMeta(req);
+    await this.passwordReset.request(dto.email, {
+      ip: meta.ipAddress,
+      userAgent: meta.userAgent,
+    });
+    return {
+      message:
+        "If that email address has an Order Hub account, a reset link is on its way.",
+    };
+  }
+
+  // Lets the reset page say "this link has expired" up front rather than
+  // after someone has typed a new password twice.
+  @Public()
+  @Get("reset-password/check")
+  @Throttle({ short: { ttl: 60_000, limit: 20 }, medium: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({ summary: "Is this reset link still usable?" })
+  async checkReset(@Query("token") token: string) {
+    return this.passwordReset.check(token ?? "");
+  }
+
+  @Public()
+  @Post("reset-password")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { ttl: 60_000, limit: 10 }, medium: { ttl: 60_000, limit: 10 } })
+  @ApiOperation({ summary: "Set a new password using an emailed link" })
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.passwordReset.reset(dto.token, dto.newPassword);
+    return { message: "Your password has been changed. You can now sign in." };
   }
 
   // ── POST /api/v1/auth/refresh ─────────────────────────

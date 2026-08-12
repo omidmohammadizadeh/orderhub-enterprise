@@ -9,6 +9,7 @@ import { AuthService } from "./auth.service";
 // Services
 import { TokenService } from "./services/token.service";
 import { PasswordService } from "./services/password.service";
+import { PasswordResetService } from "./services/password-reset.service";
 import { OAuthService } from "./services/oauth.service";
 import { NativeOAuthService } from "./services/native-oauth.service";
 import { AuditLogService } from "./services/audit-log.service";
@@ -44,6 +45,7 @@ import { AppleStrategy } from "./strategies/oauth/apple.strategy";
     // Sub-services (single-responsibility)
     TokenService,
     PasswordService,
+    PasswordResetService,
     OAuthService,
     NativeOAuthService,
     AuditLogService,
