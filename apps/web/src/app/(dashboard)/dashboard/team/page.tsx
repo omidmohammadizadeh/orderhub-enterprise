@@ -99,6 +99,38 @@ export default function TeamRolesPage() {
     );
   }, [invitesQuery.data, selectedLocationId]);
 
+  // Free-text search over the scoped lists. Matching the shop and brand names
+  // too, because "who works at Pelton" is asked as often as "where's Kerrie" —
+  // and both are typed into the same box.
+  const [search, setSearch] = useState("");
+  const q = search.trim().toLowerCase();
+
+  const visibleMembers = useMemo(() => {
+    if (!q) return scopedMembers;
+    return scopedMembers.filter((m) =>
+      [
+        m.firstName,
+        m.lastName,
+        [m.firstName, m.lastName].filter(Boolean).join(" "),
+        m.email,
+        m.role,
+        ...m.locations.map((l) => l.name),
+        ...m.brands.map((b) => b.name),
+      ]
+        .filter(Boolean)
+        .some((f) => String(f).toLowerCase().includes(q)),
+    );
+  }, [scopedMembers, q]);
+
+  const visibleInvites = useMemo(() => {
+    if (!q) return scopedInvites;
+    return scopedInvites.filter((i) =>
+      [i.email, i.role].filter(Boolean).some((f) =>
+        String(f).toLowerCase().includes(q),
+      ),
+    );
+  }, [scopedInvites, q]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -127,19 +159,39 @@ export default function TeamRolesPage() {
         </div>
       </div>
 
+      {/* Search — above the tabs because it narrows whichever one is open. */}
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name, email, role or location…"
+          className="w-full rounded-md border border-zinc-300 py-2 pl-9 pr-8 text-sm outline-none placeholder:text-zinc-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch("")}
+            aria-label="Clear search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
       {/* Tabs */}
       <div className="border-b border-zinc-200">
         <div className="flex gap-1">
           <TabBtn active={tab === "members"} onClick={() => setTab("members")}>
             Members{" "}
             <span className="text-xs text-zinc-400">
-              ({scopedMembers.length})
+              ({visibleMembers.length})
             </span>
           </TabBtn>
           <TabBtn active={tab === "invites"} onClick={() => setTab("invites")}>
             Pending invitations{" "}
             <span className="text-xs text-zinc-400">
-              ({scopedInvites.length})
+              ({visibleInvites.length})
             </span>
           </TabBtn>
         </div>
@@ -149,7 +201,8 @@ export default function TeamRolesPage() {
       {tab === "members" ? (
         <MembersTable
           loading={membersQuery.isLoading}
-          members={scopedMembers}
+          members={visibleMembers}
+          searching={!!q}
           onEdit={(m) => setModal({ kind: "edit", member: m })}
           onDelete={(m) => {
             setDeleteError(null);
@@ -159,7 +212,8 @@ export default function TeamRolesPage() {
       ) : (
         <InvitesTable
           loading={invitesQuery.isLoading}
-          invites={scopedInvites}
+          invites={visibleInvites}
+          searching={!!q}
           onCancel={async (id) => {
             await teamClient.cancelInvitation(id);
             qc.invalidateQueries({ queryKey: ["team", "invites"] });
@@ -240,16 +294,28 @@ function TabBtn({
 function MembersTable({
   loading,
   members,
+  searching,
   onEdit,
   onDelete,
 }: {
   loading: boolean;
   members: TeamMember[];
+  /** True when a search is filtering the list, so "empty" can say why. */
+  searching: boolean;
   onEdit: (m: TeamMember) => void;
   onDelete: (m: TeamMember) => void;
 }) {
   if (loading) return <Skeleton />;
-  if (!members.length) return <Empty message="No team members yet." />;
+  if (!members.length)
+    return (
+      <Empty
+        message={
+          searching
+            ? "No one matches that search."
+            : "No team members yet."
+        }
+      />
+    );
   return (
     <>
     {/* Phone: a card per member.
@@ -474,17 +540,27 @@ function DeleteMemberModal({
 function InvitesTable({
   loading,
   invites,
+  searching,
   onCancel,
   onResend,
 }: {
   loading: boolean;
   invites: PendingInvitation[];
+  searching: boolean;
   onCancel: (id: string) => void;
   onResend: (id: string) => void;
 }) {
   if (loading) return <Skeleton />;
   if (!invites.length)
-    return <Empty message="No pending invitations." />;
+    return (
+      <Empty
+        message={
+          searching
+            ? "No invitations match that search."
+            : "No pending invitations."
+        }
+      />
+    );
   return (
     <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
       <table className="min-w-full divide-y divide-zinc-200 text-sm">

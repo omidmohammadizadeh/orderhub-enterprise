@@ -24,6 +24,7 @@ import {
 import toast from "react-hot-toast";
 import { payoutsClient, type PayoutRow } from "@/lib/api/payouts.client";
 import { cn } from "@/lib/utils";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 const STATUS: Record<string, { label: string; className: string }> = {
   PAID: { label: "Paid", className: "text-emerald-700 bg-emerald-100" },
@@ -131,34 +132,29 @@ export default function PayoutsPage() {
         </button>
       </div>
 
-      {/* Account picker — only earns its space with more than one shop. */}
+      {/* Shop picker — only earns its space with more than one. A dozen shops
+          as chips wraps over two lines and forces you to read every label;
+          this stays one control and lets you type the name. */}
       {accounts.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            onClick={() => setAccountId(undefined)}
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-xs font-medium",
-              !accountId
-                ? "border-zinc-900 bg-zinc-900 text-white"
-                : "border-zinc-200 text-zinc-700 hover:bg-zinc-50",
-            )}
-          >
-            All
-          </button>
-          {accounts.map((a) => (
-            <button
-              key={a.id}
-              onClick={() => setAccountId(a.id)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-medium",
-                accountId === a.id
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-200 text-zinc-700 hover:bg-zinc-50",
-              )}
-            >
-              {a.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <SearchableSelect
+            className="w-64"
+            allLabel="All shops"
+            placeholder="All shops"
+            searchPlaceholder="Search shops…"
+            emptyLabel="No shop by that name"
+            value={accountId}
+            onChange={(v) => {
+              setAccountId(v);
+              // The open breakdown belongs to a payout that may not exist in
+              // the new selection.
+              setOpenPayout(null);
+            }}
+            options={accounts.map((a) => ({ value: a.id, label: a.label }))}
+          />
+          <span className="text-xs text-zinc-400">
+            {accounts.length} shops
+          </span>
         </div>
       )}
 
