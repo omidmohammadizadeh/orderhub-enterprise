@@ -38,6 +38,21 @@ try {
  *    someone tries to redirect a shop's takings — with Stripe, where they
  *    belong.
  */
+/** Stripe's payout.status → the badge the merchant sees. */
+const STRIPE_TO_DISPLAY_STATUS: Record<string, string> = {
+  paid: "PAID",
+  pending: "PENDING",
+  in_transit: "IN_TRANSIT",
+  canceled: "CANCELLED",
+  failed: "FAILED",
+};
+
+/**
+ * Ceiling on how many accounts one page load will query Stripe for. A group
+ * with dozens of shops viewing "All" would otherwise fire a round-trip each.
+ */
+const MAX_ACCOUNTS_PER_FETCH = 12;
+
 @Injectable()
 export class PayoutsService {
   private readonly logger = new Logger(PayoutsService.name);
@@ -208,6 +223,15 @@ export class PayoutsService {
   /**
    * Payouts, newest first, labelled with the shop they belong to and never
    * reaching past the caller's own locations.
+   *
+   * Read from STRIPE, not from our own table.
+   *
+   * The `payouts` table is filled by webhooks, so it only knows about payouts
+   * that happened after we subscribed to the events. Every merchant already
+   * paid out before that — which is all of them — showed an empty page saying
+   * "no payouts yet" while Stripe had a year of history. Since Stripe is the
+   * source of truth and we are already calling it for the balance, ask it.
+   * Our table stays as the fallback for when Stripe can't be reached.
    */
   async list(
     tenantId: string,
@@ -227,28 +251,87 @@ export class PayoutsService {
       throw new NotFoundException("Payout account not found");
     }
 
-    const rows = await (this.prisma as any).payout.findMany({
-      where: { tenantId, connectAccountId: { in: picked.map((a) => a.id) } },
-      orderBy: { createdAt: "desc" },
-      take: Math.min(opts.limit ?? 50, 200),
-    });
+    const limit = Math.min(opts.limit ?? 50, 200);
+    // Cap the fan-out: "All" on a big group would otherwise be one Stripe
+    // round-trip per shop on every page load.
+    const perAccount = Math.max(5, Math.ceil(limit / picked.length));
 
-    const byId = new Map(picked.map((a) => [a.id, a]));
-    return {
-      accounts,
-      payouts: rows.map((p: any) => ({
-        id: p.id,
-        stripePayoutId: p.stripePayoutId,
-        amount: p.amount,
-        currency: p.currency,
-        status: p.status,
-        arrivalDate: p.arrivalDate,
-        description: p.description,
-        createdAt: p.createdAt,
-        accountId: p.connectAccountId,
-        accountLabel: byId.get(p.connectAccountId)?.label ?? null,
-      })),
-    };
+    if (picked.length > MAX_ACCOUNTS_PER_FETCH) {
+      // Say so rather than quietly returning a partial list that reads like
+      // the whole picture.
+      this.logger.warn(
+        `Payout history covering ${picked.length} accounts truncated to ${MAX_ACCOUNTS_PER_FETCH} — pick a location to see the rest`,
+      );
+    }
+
+    const results = await Promise.all(
+      picked
+        .slice(0, MAX_ACCOUNTS_PER_FETCH)
+        .map((a) => this.payoutsForAccount(tenantId, a, perAccount)),
+    );
+
+    const payouts = results
+      .flat()
+      .sort((x, y) => +new Date(y.createdAt) - +new Date(x.createdAt))
+      .slice(0, limit);
+
+    return { accounts, payouts };
+  }
+
+  /**
+   * One account's payouts, from Stripe where possible and our mirror table
+   * otherwise. A shop whose Stripe call fails still shows whatever we know
+   * rather than dropping out of the list silently.
+   */
+  private async payoutsForAccount(
+    tenantId: string,
+    account: { id: string; stripeAccountId: string; label: string },
+    limit: number,
+  ) {
+    if (this.stripe && !account.stripeAccountId.startsWith("mock_acct_")) {
+      try {
+        const res = await this.stripe.payouts.list(
+          { limit },
+          { stripeAccount: account.stripeAccountId },
+        );
+        return (res.data ?? []).map((p: any) => ({
+          id: p.id,
+          stripePayoutId: p.id,
+          amount: ((p.amount ?? 0) / 100).toFixed(2),
+          currency: p.currency ?? "gbp",
+          status: STRIPE_TO_DISPLAY_STATUS[p.status as string] ?? "PENDING",
+          arrivalDate: p.arrival_date
+            ? new Date(p.arrival_date * 1000).toISOString()
+            : null,
+          description: p.description ?? null,
+          createdAt: new Date((p.created ?? 0) * 1000).toISOString(),
+          accountId: account.id,
+          accountLabel: account.label,
+        }));
+      } catch (e: any) {
+        this.logger.warn(
+          `Payout list failed for ${account.stripeAccountId}: ${e?.message} — falling back to our records`,
+        );
+      }
+    }
+
+    const rows = await (this.prisma as any).payout.findMany({
+      where: { tenantId, connectAccountId: account.id },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return rows.map((p: any) => ({
+      id: p.id,
+      stripePayoutId: p.stripePayoutId,
+      amount: String(p.amount),
+      currency: p.currency,
+      status: p.status,
+      arrivalDate: p.arrivalDate ? new Date(p.arrivalDate).toISOString() : null,
+      description: p.description,
+      createdAt: new Date(p.createdAt).toISOString(),
+      accountId: account.id,
+      accountLabel: account.label,
+    }));
   }
 
   /**
@@ -282,26 +365,43 @@ export class PayoutsService {
     }
 
     try {
-      const [balance, inTransit] = await Promise.all([
+      const [balance, recent] = await Promise.all([
         this.stripe.balance.retrieve({ stripeAccount: account.stripeAccountId }),
         this.stripe.payouts
-          .list(
-            { limit: 5, status: "in_transit" },
-            { stripeAccount: account.stripeAccountId },
-          )
+          .list({ limit: 20 }, { stripeAccount: account.stripeAccountId })
           .catch(() => ({ data: [] })),
       ]);
 
       const sum = (rows: any[]) =>
         (rows ?? []).reduce((t, b) => t + (b.amount ?? 0), 0) / 100;
-      const next = (inTransit.data ?? [])[0];
+
+      // Money genuinely still on its way, decided HERE rather than by asking
+      // Stripe for status:"in_transit".
+      //
+      // That filter did not do what it looks like it does: the sum came back
+      // as every recent payout added together, so a shop with five settled
+      // July payouts was told £1,975.94 was arriving today. Two independent
+      // conditions now have to hold — the payout must still be open, AND its
+      // arrival date must not already have passed — so a payout that has
+      // landed cannot be counted however its status reads.
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const onItsWay = (recent.data ?? []).filter((p: any) => {
+        if (p.status !== "in_transit" && p.status !== "pending") return false;
+        if (!p.arrival_date) return true;
+        return new Date(p.arrival_date * 1000) >= startOfToday;
+      });
+      // Soonest to land, not merely the most recently created.
+      const next = [...onItsWay].sort(
+        (a: any, b: any) => (a.arrival_date ?? 0) - (b.arrival_date ?? 0),
+      )[0];
 
       return {
         accountId: account.id,
         currency: (balance.available?.[0]?.currency ?? "gbp") as string,
         available: sum(balance.available),
         pending: sum(balance.pending),
-        inTransit: sum(inTransit.data ?? []),
+        inTransit: sum(onItsWay),
         nextPayout: next
           ? {
               amount: (next.amount ?? 0) / 100,

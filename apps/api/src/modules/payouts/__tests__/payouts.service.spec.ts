@@ -129,9 +129,10 @@ describe("PayoutsService — history", () => {
 
     await svc.list(TENANT, "u1", "OWNER", {});
 
+    expect(prisma.payout.findMany).toHaveBeenCalledTimes(1);
     expect(prisma.payout.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { tenantId: TENANT, connectAccountId: { in: ["acc-a"] } },
+        where: { tenantId: TENANT, connectAccountId: "acc-a" },
       }),
     );
   });
@@ -165,7 +166,7 @@ describe("PayoutsService — history", () => {
     });
     const svc = makeService({ prisma });
 
-    const { payouts } = await svc.list(TENANT, "u1", "OWNER", {});
+    const { payouts } = await svc.list(TENANT, "u1", "OWNER", { accountId: "acc-b" });
 
     expect(payouts[0].accountLabel).toBe("Pizza Uno Chester");
   });
@@ -312,23 +313,30 @@ describe("PayoutsService — balance", () => {
     expect(res.unavailableReason).toBe("timeout");
   });
 
+  const secs = (d: Date) => Math.floor(d.getTime() / 1000);
+  const daysFromNow = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d;
+  };
+
+  const balanceStripe = (payoutRows: any[]) => ({
+    balance: {
+      retrieve: jest.fn().mockResolvedValue({
+        available: [{ amount: 12_500, currency: "gbp" }],
+        pending: [{ amount: 3_000, currency: "gbp" }],
+      }),
+    },
+    payouts: { list: jest.fn().mockResolvedValue({ data: payoutRows }) },
+  });
+
   it("reports in-transit money and when it lands", async () => {
-    const arrival = Math.floor(Date.UTC(2026, 7, 14) / 1000);
+    const arrival = secs(daysFromNow(2));
     const svc = makeService({
       prisma: prismaWith({ userLocations: [LOC_A] }),
-      stripe: {
-        balance: {
-          retrieve: jest.fn().mockResolvedValue({
-            available: [{ amount: 12_500, currency: "gbp" }],
-            pending: [{ amount: 3_000, currency: "gbp" }],
-          }),
-        },
-        payouts: {
-          list: jest
-            .fn()
-            .mockResolvedValue({ data: [{ amount: 42_000, arrival_date: arrival }] }),
-        },
-      },
+      stripe: balanceStripe([
+        { amount: 42_000, arrival_date: arrival, status: "in_transit" },
+      ]),
     });
 
     const res = await svc.balance(TENANT, "u1", "OWNER");
@@ -336,6 +344,121 @@ describe("PayoutsService — balance", () => {
     expect(res.available).toBe(125);
     expect(res.pending).toBe(30);
     expect(res.inTransit).toBe(420);
-    expect(res.nextPayout?.arrivalDate).toContain("2026-08-14");
+    expect(res.nextPayout?.amount).toBe(420);
+  });
+
+  it("does NOT count payouts that already landed as on their way", async () => {
+    // The live bug, in miniature. Asking Stripe for status:"in_transit" came
+    // back as every recent payout, so a shop with settled July payouts was
+    // told the lot was arriving today. Only the genuinely open one counts.
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: balanceStripe([
+        { amount: 5_462, arrival_date: secs(daysFromNow(1)), status: "in_transit" },
+        { amount: 157, arrival_date: secs(daysFromNow(-1)), status: "paid" },
+        { amount: 70_680, arrival_date: secs(daysFromNow(-30)), status: "paid" },
+      ]),
+    });
+
+    const res = await svc.balance(TENANT, "u1", "OWNER");
+
+    expect(res.inTransit).toBe(54.62);
+  });
+
+  it("ignores a stale in_transit status once the arrival date has passed", async () => {
+    // Belt and braces: even if Stripe still says in_transit, a payout dated a
+    // month ago is not "on its way to your bank".
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: balanceStripe([
+        { amount: 58_745, arrival_date: secs(daysFromNow(-30)), status: "in_transit" },
+      ]),
+    });
+
+    const res = await svc.balance(TENANT, "u1", "OWNER");
+
+    expect(res.inTransit).toBe(0);
+    expect(res.nextPayout).toBeNull();
+  });
+
+  it("names the SOONEST arrival as the next payout, not the newest row", async () => {
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: balanceStripe([
+        { amount: 10_000, arrival_date: secs(daysFromNow(6)), status: "in_transit" },
+        { amount: 2_500, arrival_date: secs(daysFromNow(1)), status: "in_transit" },
+      ]),
+    });
+
+    const res = await svc.balance(TENANT, "u1", "OWNER");
+
+    expect(res.inTransit).toBe(125);
+    expect(res.nextPayout?.amount).toBe(25);
+  });
+});
+
+describe("PayoutsService — history reads Stripe", () => {
+  it("shows Stripe's payouts even when our webhook table is empty", async () => {
+    // Merchants had a year of payouts at Stripe and an empty table here,
+    // because webhooks only started recording last week.
+    const prisma = prismaWith({ userLocations: [LOC_A], payouts: [] });
+    const svc = makeService({
+      prisma,
+      stripe: {
+        payouts: {
+          list: jest.fn().mockResolvedValue({
+            data: [
+              {
+                id: "po_1",
+                amount: 70_680,
+                currency: "gbp",
+                status: "paid",
+                created: 1_754_000_000,
+                arrival_date: 1_754_100_000,
+              },
+            ],
+          }),
+        },
+      },
+    });
+
+    const { payouts } = await svc.list(TENANT, "u1", "OWNER", {});
+
+    expect(payouts).toHaveLength(1);
+    expect(payouts[0]).toMatchObject({
+      amount: "706.80",
+      status: "PAID",
+      accountLabel: "Pizza Uno Pelton",
+    });
+    expect(prisma.payout.findMany).not.toHaveBeenCalled();
+  });
+
+  it("falls back to our own records when Stripe can't be reached", async () => {
+    const prisma = prismaWith({
+      userLocations: [LOC_A],
+      payouts: [
+        {
+          id: "p1",
+          stripePayoutId: "po_db",
+          amount: "12.00",
+          currency: "gbp",
+          status: "PAID",
+          arrivalDate: new Date(),
+          description: null,
+          createdAt: new Date(),
+          connectAccountId: "acc-a",
+        },
+      ],
+    });
+    const svc = makeService({
+      prisma,
+      stripe: {
+        payouts: { list: jest.fn().mockRejectedValue(new Error("network")) },
+      },
+    });
+
+    const { payouts } = await svc.list(TENANT, "u1", "OWNER", {});
+
+    expect(payouts[0].stripePayoutId).toBe("po_db");
   });
 });
