@@ -11,6 +11,12 @@ export interface PayoutAccount {
   payoutsEnabled: boolean;
   chargesEnabled: boolean;
   onboardingComplete: boolean;
+  /**
+   * Which kind of Stripe login this merchant has, once we've learned it.
+   * "full" means their own Stripe account — we can't open it for them.
+   * Null until the first attempt tells us.
+   */
+  dashboardType: "express" | "full" | "none" | null;
 }
 
 export interface PayoutRow {
@@ -61,7 +67,11 @@ export const payoutsClient = {
   // or onboarding when the account was never finished.
   dashboardLink: (accountId?: string) =>
     apiClient
-      .post<{ url: string; kind: "DASHBOARD" | "ONBOARDING" | "ACCOUNT_UPDATE" }>(
+      .post<{
+        url: string;
+        kind: "DASHBOARD" | "ONBOARDING" | "ACCOUNT_UPDATE" | "EXTERNAL";
+        message?: string;
+      }>(
         "/v1/payouts/dashboard-link",
         { accountId },
       )

@@ -67,7 +67,11 @@ export default function PayoutsPage() {
 
   const dashboard = useMutation({
     mutationFn: () => payoutsClient.dashboardLink(balanceAccountId),
-    onSuccess: ({ url, kind }) => {
+    onSuccess: ({ url, kind, message }) => {
+      if (kind === "EXTERNAL") {
+        // Their own Stripe account. Not a failure — don't dress it as one.
+        toast(message ?? "Opening Stripe.", { icon: "🔗", duration: 6000 });
+      }
       if (kind === "ONBOARDING") {
         // This account never finished Stripe setup, so there's no dashboard to
         // open yet. Say so before the tab appears, or the owner lands on a
@@ -94,6 +98,10 @@ export default function PayoutsPage() {
 
   const payouts = listQuery.data?.payouts ?? [];
   const balance = balanceQuery.data;
+  // A Standard account belongs to the merchant, not to us — say so plainly
+  // rather than letting them find out by pressing a button that can't work.
+  const ownStripe =
+    accounts.find((a) => a.id === balanceAccountId)?.dashboardType === "full";
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -114,7 +122,9 @@ export default function PayoutsPage() {
           ) : (
             <Building2 className="h-4 w-4" />
           )}
-          Bank details & statements
+          {/* Once we know it's the merchant's own Stripe, promise less: this
+              button can only send them to the sign-in page. */}
+          {ownStripe ? "Open Stripe" : "Bank details & statements"}
         </button>
       </div>
 
@@ -236,7 +246,9 @@ export default function PayoutsPage() {
 
       <p className="flex items-center gap-1.5 px-1 text-xs text-zinc-400">
         <ExternalLink className="h-3 w-3" />
-        Bank details are held and verified by Stripe, not by OrderHub.
+        {ownStripe
+          ? "This location uses its own Stripe account — sign in there to change its bank details."
+          : "Bank details are held and verified by Stripe, not by OrderHub."}
       </p>
     </div>
   );

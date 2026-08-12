@@ -304,11 +304,13 @@ describe("PayoutsService — Stripe dashboard link", () => {
     );
   });
 
-  it("names the shop and points at their own login for a Standard account", async () => {
-    // A Standard account is the merchant's own Stripe. There is no link we can
-    // mint into it and there shouldn't be — they already have a password.
+  it("treats the merchant's own Stripe account as normal, not an error", async () => {
+    // Stripe won't let a platform mint a link into a Standard account, and
+    // shouldn't. That's permanent and correct, so it must not surface as a red
+    // failure the operator will try to fix.
+    const prisma = prismaWith({ userLocations: [LOC_A] });
     const svc = makeService({
-      prisma: prismaWith({ userLocations: [LOC_A] }),
+      prisma,
       stripe: {
         accounts: {
           retrieve: jest.fn().mockResolvedValue({
@@ -323,8 +325,38 @@ describe("PayoutsService — Stripe dashboard link", () => {
       },
     });
 
-    await expect(svc.dashboardLink(TENANT, "u1", "OWNER")).rejects.toThrow(
-      /Pizza Uno Pelton is connected through its own Stripe account/,
+    const res = await svc.dashboardLink(TENANT, "u1", "OWNER");
+
+    expect(res.kind).toBe("EXTERNAL");
+    expect(res.url).toContain("dashboard.stripe.com");
+    expect(res.message).toMatch(/Pizza Uno Pelton is connected through its own Stripe account/);
+  });
+
+  it("remembers the dashboard type so the button can stop over-promising", async () => {
+    const prisma = prismaWith({ userLocations: [LOC_A] });
+    const svc = makeService({
+      prisma,
+      stripe: {
+        accounts: {
+          retrieve: jest.fn().mockResolvedValue({
+            details_submitted: true,
+            charges_enabled: true,
+            payouts_enabled: true,
+            controller: { stripe_dashboard: { type: "full" } },
+          }),
+          createLoginLink: jest.fn(),
+        },
+      },
+    });
+
+    await svc.dashboardLink(TENANT, "u1", "OWNER");
+
+    expect(prisma.stripeConnectAccount.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({ dashboardType: "full" }),
+        }),
+      }),
     );
   });
 

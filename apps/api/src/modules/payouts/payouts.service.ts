@@ -170,6 +170,9 @@ export class PayoutsService {
       payoutsEnabled: boolean;
       chargesEnabled: boolean;
       onboardingComplete: boolean;
+      /** Null until the first dashboard-link click has told us. */
+      dashboardType: "express" | "full" | "none" | null;
+      metadata: any;
     }> = [];
 
     for (const a of accounts) {
@@ -208,6 +211,8 @@ export class PayoutsService {
         payoutsEnabled: !!a.payoutsEnabled,
         chargesEnabled: !!a.chargesEnabled,
         onboardingComplete: !!a.onboardingComplete,
+        dashboardType: (a.metadata as any)?.dashboardType ?? null,
+        metadata: a.metadata ?? {},
       });
     }
     return out;
@@ -443,7 +448,11 @@ export class PayoutsService {
     userId: string | undefined,
     role: string | undefined,
     accountId?: string,
-  ): Promise<{ url: string; kind: "DASHBOARD" | "ONBOARDING" | "ACCOUNT_UPDATE" }> {
+  ): Promise<{
+    url: string;
+    kind: "DASHBOARD" | "ONBOARDING" | "ACCOUNT_UPDATE" | "EXTERNAL";
+    message?: string;
+  }> {
     const accounts = await this.visibleAccounts(tenantId, userId, role);
     const account = accountId
       ? accounts.find((a) => a.id === accountId)
@@ -495,6 +504,9 @@ export class PayoutsService {
             chargesEnabled: !!fresh.charges_enabled,
             payoutsEnabled: !!fresh.payouts_enabled,
             onboardingComplete: detailsSubmitted,
+            // Cache what kind of Stripe login this merchant has, so the page
+            // can label the button correctly next time without another call.
+            metadata: { ...(account.metadata ?? {}), dashboardType },
           },
         })
         .catch(() => {});
@@ -520,14 +532,22 @@ export class PayoutsService {
       return { url: link.url, kind: "ONBOARDING" };
     }
 
-    // A Standard account is the merchant's OWN Stripe login. There is no link
-    // we can mint into it, and there shouldn't be — they already have a
-    // password for it. Say that plainly instead of implying something broke.
+    // A Standard account is the merchant's OWN Stripe login. Stripe won't let
+    // a platform mint a link into one, and shouldn't — that would be us
+    // logging into their account.
+    //
+    // This is NOT a failure though, and a red error implies something is
+    // broken that someone could fix. It is the permanent, correct state for
+    // this kind of connection, so it returns normally and sends them to the
+    // Stripe sign-in page they need.
     if (dashboardType === "full") {
-      throw new BadRequestException(
-        `${account.label} is connected through its own Stripe account. ` +
-          "Sign in at dashboard.stripe.com with that account's login to change its bank details.",
-      );
+      return {
+        url: "https://dashboard.stripe.com/settings/payouts",
+        kind: "EXTERNAL",
+        message:
+          `${account.label} is connected through its own Stripe account, so its bank ` +
+          "details live there. Sign in with that account to change them.",
+      };
     }
 
     // No Stripe-hosted dashboard at all (created for embedded components, or
