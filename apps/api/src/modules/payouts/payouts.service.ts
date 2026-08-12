@@ -343,7 +343,7 @@ export class PayoutsService {
     userId: string | undefined,
     role: string | undefined,
     accountId?: string,
-  ): Promise<{ url: string }> {
+  ): Promise<{ url: string; kind: "DASHBOARD" | "ONBOARDING" }> {
     const accounts = await this.visibleAccounts(tenantId, userId, role);
     const account = accountId
       ? accounts.find((a) => a.id === accountId)
@@ -356,19 +356,61 @@ export class PayoutsService {
       );
     }
 
-    if (!account.onboardingComplete) {
-      // Stripe rejects login links for an account that hasn't finished
-      // onboarding, with a message that means nothing to a restaurant owner.
-      throw new BadRequestException(
-        "Finish Stripe onboarding for this location before managing payouts.",
+    // Ask Stripe, don't trust our own flag.
+    //
+    // `onboardingComplete` is only written by the account.updated webhook and
+    // the brand-connect status call, so an account onboarded before either
+    // existed — or a per-location account from the older flow — can be live
+    // and taking money while our row still says false. Gating the button on
+    // that flag told owners to "finish onboarding" they finished months ago.
+    // The account's real state is one API call away, so use it.
+    let detailsSubmitted = account.onboardingComplete;
+    try {
+      const fresh = await this.stripe.accounts.retrieve(account.stripeAccountId);
+      detailsSubmitted = !!fresh.details_submitted;
+      // Self-heal the row while we have the truth in hand — this flag is read
+      // by the payments and locations screens too, and they were all wrong in
+      // the same way.
+      await (this.prisma as any).stripeConnectAccount
+        .update({
+          where: { id: account.id },
+          data: {
+            chargesEnabled: !!fresh.charges_enabled,
+            payoutsEnabled: !!fresh.payouts_enabled,
+            onboardingComplete: detailsSubmitted,
+          },
+        })
+        .catch(() => {});
+    } catch (e: any) {
+      // Couldn't reach Stripe, or it isn't an account we can read. Fall
+      // through and let the link attempt below produce the real error.
+      this.logger.warn(
+        `Account retrieve failed for ${account.stripeAccountId}: ${e?.message}`,
       );
+    }
+
+    // Genuinely unfinished → send them somewhere useful instead of refusing.
+    // A dead end here is the worst outcome: the owner wants to add a bank
+    // account and we would be telling them to go and do the very thing this
+    // link does.
+    if (!detailsSubmitted) {
+      const webBase = (
+        this.config.get<string>("WEB_URL") ?? "https://www.orderhubsolutions.com"
+      ).replace(/\/+$/, "");
+      const link = await this.stripe.accountLinks.create({
+        account: account.stripeAccountId,
+        refresh_url: `${webBase}/dashboard/payouts`,
+        return_url: `${webBase}/dashboard/payouts`,
+        type: "account_onboarding",
+      });
+      return { url: link.url, kind: "ONBOARDING" };
     }
 
     try {
       const link = await this.stripe.accounts.createLoginLink(
         account.stripeAccountId,
       );
-      return { url: link.url };
+      return { url: link.url, kind: "DASHBOARD" };
     } catch (e: any) {
       // The commonest cause by far: the account was pasted in as a raw acct_…
       // (someone's existing Standard account) rather than created by us as

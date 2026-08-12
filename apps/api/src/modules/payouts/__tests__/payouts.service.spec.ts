@@ -15,6 +15,7 @@ function makeService(overrides: { prisma?: any; stripe?: any } = {}) {
   svc.logger = { warn: jest.fn(), log: jest.fn(), error: jest.fn() };
   svc.prisma = overrides.prisma;
   svc.stripe = overrides.stripe ?? null;
+  svc.config = { get: () => "https://www.orderhubsolutions.com" };
   return svc as PayoutsService & any;
 }
 
@@ -23,9 +24,11 @@ function prismaWith({
   userLocations = [] as string[],
   userBrands = [] as string[],
   payouts = [] as any[],
+  onboardingComplete = true,
 } = {}) {
   return {
     stripeConnectAccount: {
+      update: jest.fn().mockResolvedValue({}),
       findMany: jest.fn().mockResolvedValue([
         {
           id: "acc-a",
@@ -34,7 +37,7 @@ function prismaWith({
           brandId: null,
           payoutsEnabled: true,
           chargesEnabled: true,
-          onboardingComplete: true,
+          onboardingComplete,
         },
         {
           id: "acc-b",
@@ -180,26 +183,85 @@ describe("PayoutsService — history", () => {
 });
 
 describe("PayoutsService — Stripe dashboard link", () => {
+  const retrieveOk = (details_submitted = true) =>
+    jest.fn().mockResolvedValue({
+      details_submitted,
+      charges_enabled: true,
+      payouts_enabled: true,
+    });
+
   it("mints a login link for the caller's own account", async () => {
     const createLoginLink = jest
       .fn()
       .mockResolvedValue({ url: "https://connect.stripe.com/express/xyz" });
     const svc = makeService({
       prisma: prismaWith({ userLocations: [LOC_A] }),
-      stripe: { accounts: { createLoginLink } },
+      stripe: { accounts: { retrieve: retrieveOk(), createLoginLink } },
     });
 
-    const { url } = await svc.dashboardLink(TENANT, "u1", "OWNER");
+    const { url, kind } = await svc.dashboardLink(TENANT, "u1", "OWNER");
 
     expect(createLoginLink).toHaveBeenCalledWith("acct_A");
+    expect(kind).toBe("DASHBOARD");
     expect(url).toContain("connect.stripe.com");
+  });
+
+  it("opens the dashboard when OUR onboarding flag is stale but Stripe says done", async () => {
+    // The live bug: onboardingComplete is only written by account.updated and
+    // the brand-connect status call, so accounts onboarded before either
+    // existed sat at false forever — and the button told owners to finish
+    // setup they had finished months earlier.
+    const prisma = prismaWith({ userLocations: [LOC_A], onboardingComplete: false });
+    const createLoginLink = jest
+      .fn()
+      .mockResolvedValue({ url: "https://connect.stripe.com/express/xyz" });
+    const accountLinksCreate = jest.fn();
+    const svc = makeService({
+      prisma,
+      stripe: {
+        accounts: { retrieve: retrieveOk(true), createLoginLink },
+        accountLinks: { create: accountLinksCreate },
+      },
+    });
+
+    const { kind } = await svc.dashboardLink(TENANT, "u1", "OWNER");
+
+    expect(kind).toBe("DASHBOARD");
+    expect(accountLinksCreate).not.toHaveBeenCalled();
+    // ...and the stale row is repaired on the way past, so every other screen
+    // reading this flag stops lying too.
+    expect(prisma.stripeConnectAccount.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "acc-a" },
+        data: expect.objectContaining({ onboardingComplete: true }),
+      }),
+    );
+  });
+
+  it("sends a genuinely unfinished account to onboarding instead of refusing", async () => {
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A], onboardingComplete: false }),
+      stripe: {
+        accounts: { retrieve: retrieveOk(false), createLoginLink: jest.fn() },
+        accountLinks: {
+          create: jest
+            .fn()
+            .mockResolvedValue({ url: "https://connect.stripe.com/setup/abc" }),
+        },
+      },
+    });
+
+    const { kind, url } = await svc.dashboardLink(TENANT, "u1", "OWNER");
+
+    expect(kind).toBe("ONBOARDING");
+    expect(url).toContain("/setup/");
   });
 
   it("won't mint a link into another shop's Stripe account", async () => {
     const createLoginLink = jest.fn();
     const svc = makeService({
       prisma: prismaWith({ userLocations: [LOC_A] }),
-      stripe: { accounts: { createLoginLink } },
+      stripe: { accounts: { retrieve: jest.fn(), createLoginLink } },
     });
 
     await expect(
@@ -216,6 +278,11 @@ describe("PayoutsService — Stripe dashboard link", () => {
       prisma: prismaWith({ userLocations: [LOC_A] }),
       stripe: {
         accounts: {
+          retrieve: jest.fn().mockResolvedValue({
+            details_submitted: true,
+            charges_enabled: true,
+            payouts_enabled: true,
+          }),
           createLoginLink: jest
             .fn()
             .mockRejectedValue(new Error("Only Express accounts have login links")),

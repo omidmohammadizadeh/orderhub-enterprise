@@ -67,7 +67,15 @@ export default function PayoutsPage() {
 
   const dashboard = useMutation({
     mutationFn: () => payoutsClient.dashboardLink(balanceAccountId),
-    onSuccess: ({ url }) => {
+    onSuccess: ({ url, kind }) => {
+      if (kind === "ONBOARDING") {
+        // This account never finished Stripe setup, so there's no dashboard to
+        // open yet. Say so before the tab appears, or the owner lands on a
+        // form they weren't expecting.
+        toast("Finishing Stripe setup first — add your bank details there.", {
+          icon: "🏦",
+        });
+      }
       // Single-use link — open it straight away rather than rendering it.
       window.open(url, "_blank", "noopener,noreferrer");
     },
