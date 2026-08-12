@@ -75,6 +75,13 @@ export default function PayoutsPage() {
         toast("Finishing Stripe setup first — add your bank details there.", {
           icon: "🏦",
         });
+      } else if (kind === "ACCOUNT_UPDATE") {
+        // No Stripe dashboard on this account, so they get the hosted update
+        // form. It edits bank details but has no statements, hence the
+        // narrower promise than the button makes.
+        toast("Opening your Stripe details form to update bank details.", {
+          icon: "🏦",
+        });
       }
       // Single-use link — open it straight away rather than rendering it.
       window.open(url, "_blank", "noopener,noreferrer");

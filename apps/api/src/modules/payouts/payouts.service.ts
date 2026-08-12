@@ -443,7 +443,7 @@ export class PayoutsService {
     userId: string | undefined,
     role: string | undefined,
     accountId?: string,
-  ): Promise<{ url: string; kind: "DASHBOARD" | "ONBOARDING" }> {
+  ): Promise<{ url: string; kind: "DASHBOARD" | "ONBOARDING" | "ACCOUNT_UPDATE" }> {
     const accounts = await this.visibleAccounts(tenantId, userId, role);
     const account = accountId
       ? accounts.find((a) => a.id === accountId)
@@ -465,9 +465,26 @@ export class PayoutsService {
     // that flag told owners to "finish onboarding" they finished months ago.
     // The account's real state is one API call away, so use it.
     let detailsSubmitted = account.onboardingComplete;
+    // Which kind of Stripe login, if any, this merchant has. Decides where the
+    // button can send them — see resolveDoor below.
+    let dashboardType: "express" | "full" | "none" | null = null;
     try {
       const fresh = await this.stripe.accounts.retrieve(account.stripeAccountId);
       detailsSubmitted = !!fresh.details_submitted;
+      // Leave this NULL when Stripe tells us neither, rather than assuming.
+      // An unknown account falls through to "try the login link, and use the
+      // update form if that fails" — which lands correctly whatever it turns
+      // out to be. Guessing "none" here would have sent every ordinary Express
+      // merchant to a bare update form instead of their dashboard.
+      dashboardType =
+        fresh.controller?.stripe_dashboard?.type ??
+        (fresh.type === "standard"
+          ? "full"
+          : fresh.type === "express"
+            ? "express"
+            : fresh.type === "custom"
+              ? "none"
+              : null);
       // Self-heal the row while we have the truth in hand — this flag is read
       // by the payments and locations screens too, and they were all wrong in
       // the same way.
@@ -494,16 +511,38 @@ export class PayoutsService {
     // account and we would be telling them to go and do the very thing this
     // link does.
     if (!detailsSubmitted) {
-      const webBase = (
-        this.config.get<string>("WEB_URL") ?? "https://www.orderhubsolutions.com"
-      ).replace(/\/+$/, "");
       const link = await this.stripe.accountLinks.create({
         account: account.stripeAccountId,
-        refresh_url: `${webBase}/dashboard/payouts`,
-        return_url: `${webBase}/dashboard/payouts`,
+        refresh_url: this.payoutsUrl(),
+        return_url: this.payoutsUrl(),
         type: "account_onboarding",
       });
       return { url: link.url, kind: "ONBOARDING" };
+    }
+
+    // A Standard account is the merchant's OWN Stripe login. There is no link
+    // we can mint into it, and there shouldn't be — they already have a
+    // password for it. Say that plainly instead of implying something broke.
+    if (dashboardType === "full") {
+      throw new BadRequestException(
+        `${account.label} is connected through its own Stripe account. ` +
+          "Sign in at dashboard.stripe.com with that account's login to change its bank details.",
+      );
+    }
+
+    // No Stripe-hosted dashboard at all (created for embedded components, or
+    // Custom). A login link is impossible, but an account-update link is not —
+    // it opens a Stripe-hosted form where the owner edits exactly what they
+    // came here for, bank account included. Refusing them was the wrong call:
+    // we manage this account, so getting them to their bank details is our job.
+    if (dashboardType === "none") {
+      const link = await this.stripe.accountLinks.create({
+        account: account.stripeAccountId,
+        refresh_url: this.payoutsUrl(),
+        return_url: this.payoutsUrl(),
+        type: "account_update",
+      });
+      return { url: link.url, kind: "ACCOUNT_UPDATE" };
     }
 
     try {
@@ -512,17 +551,34 @@ export class PayoutsService {
       );
       return { url: link.url, kind: "DASHBOARD" };
     } catch (e: any) {
-      // The commonest cause by far: the account was pasted in as a raw acct_…
-      // (someone's existing Standard account) rather than created by us as
-      // Express. Login links only work for accounts where we control the
-      // dashboard, and the merchant already has their own Stripe login.
+      // We couldn't read the account type above (Stripe unreachable), so we
+      // guessed Express and guessed wrong. Fall back to the update form, which
+      // works for every account we control.
       this.logger.warn(
-        `Login link failed for ${account.stripeAccountId}: ${e?.message}`,
+        `Login link failed for ${account.stripeAccountId}: ${e?.message} — trying an account-update link`,
       );
-      throw new BadRequestException(
-        "This location's payouts go to a Stripe account we don't manage. " +
-          "Sign in at dashboard.stripe.com to change its bank details.",
-      );
+      try {
+        const link = await this.stripe.accountLinks.create({
+          account: account.stripeAccountId,
+          refresh_url: this.payoutsUrl(),
+          return_url: this.payoutsUrl(),
+          type: "account_update",
+        });
+        return { url: link.url, kind: "ACCOUNT_UPDATE" };
+      } catch {
+        throw new BadRequestException(
+          `${account.label} is connected through a Stripe account we can't open from here. ` +
+            "Sign in at dashboard.stripe.com to change its bank details.",
+        );
+      }
     }
+  }
+
+  /** Where Stripe sends the owner back to when they finish. */
+  private payoutsUrl() {
+    const base = (
+      this.config.get<string>("WEB_URL") ?? "https://www.orderhubsolutions.com"
+    ).replace(/\/+$/, "");
+    return `${base}/dashboard/payouts`;
   }
 }

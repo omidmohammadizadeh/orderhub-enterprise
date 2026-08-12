@@ -56,11 +56,12 @@ export const payoutsClient = {
       .then((r) => r.data),
 
   // Returns a single-use Stripe URL — open it immediately, never store it.
-  // `kind` says which door it opens: the merchant's Express dashboard, or
-  // Stripe onboarding when the account was never finished.
+  // `kind` says which door it opens: the merchant's Express dashboard, the
+  // Stripe-hosted update form (for accounts with no dashboard of their own),
+  // or onboarding when the account was never finished.
   dashboardLink: (accountId?: string) =>
     apiClient
-      .post<{ url: string; kind: "DASHBOARD" | "ONBOARDING" }>(
+      .post<{ url: string; kind: "DASHBOARD" | "ONBOARDING" | "ACCOUNT_UPDATE" }>(
         "/v1/payouts/dashboard-link",
         { accountId },
       )

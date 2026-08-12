@@ -271,7 +271,64 @@ describe("PayoutsService — Stripe dashboard link", () => {
     expect(createLoginLink).not.toHaveBeenCalled();
   });
 
-  it("explains itself when the account is one we don't manage", async () => {
+  it("opens the hosted update form for an account with no Stripe dashboard", async () => {
+    // Accounts built for embedded components have no dashboard to log into,
+    // but they DO have a Stripe-hosted form that edits bank details — which is
+    // the whole reason the owner pressed the button. Refusing them was wrong.
+    const createLoginLink = jest.fn();
+    const accountLinksCreate = jest
+      .fn()
+      .mockResolvedValue({ url: "https://connect.stripe.com/setup/upd" });
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: {
+        accounts: {
+          retrieve: jest.fn().mockResolvedValue({
+            details_submitted: true,
+            charges_enabled: true,
+            payouts_enabled: true,
+            controller: { stripe_dashboard: { type: "none" } },
+          }),
+          createLoginLink,
+        },
+        accountLinks: { create: accountLinksCreate },
+      },
+    });
+
+    const { kind } = await svc.dashboardLink(TENANT, "u1", "OWNER");
+
+    expect(kind).toBe("ACCOUNT_UPDATE");
+    expect(createLoginLink).not.toHaveBeenCalled();
+    expect(accountLinksCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "account_update" }),
+    );
+  });
+
+  it("names the shop and points at their own login for a Standard account", async () => {
+    // A Standard account is the merchant's own Stripe. There is no link we can
+    // mint into it and there shouldn't be — they already have a password.
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: {
+        accounts: {
+          retrieve: jest.fn().mockResolvedValue({
+            details_submitted: true,
+            charges_enabled: true,
+            payouts_enabled: true,
+            type: "standard",
+            controller: { stripe_dashboard: { type: "full" } },
+          }),
+          createLoginLink: jest.fn(),
+        },
+      },
+    });
+
+    await expect(svc.dashboardLink(TENANT, "u1", "OWNER")).rejects.toThrow(
+      /Pizza Uno Pelton is connected through its own Stripe account/,
+    );
+  });
+
+  it("falls back to the update form when a login link unexpectedly fails", async () => {
     // A pasted-in acct_… belongs to the merchant's own Stripe login; Stripe
     // rejects login links for it. The owner needs to be told where to go, not
     // shown a raw Stripe error.
@@ -288,6 +345,31 @@ describe("PayoutsService — Stripe dashboard link", () => {
             .fn()
             .mockRejectedValue(new Error("Only Express accounts have login links")),
         },
+        accountLinks: {
+          create: jest
+            .fn()
+            .mockResolvedValue({ url: "https://connect.stripe.com/setup/upd" }),
+        },
+      },
+    });
+
+    const { kind } = await svc.dashboardLink(TENANT, "u1", "OWNER");
+    expect(kind).toBe("ACCOUNT_UPDATE");
+  });
+
+  it("only gives up when even the update form can't be created", async () => {
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: {
+        accounts: {
+          retrieve: jest.fn().mockResolvedValue({
+            details_submitted: true,
+            charges_enabled: true,
+            payouts_enabled: true,
+          }),
+          createLoginLink: jest.fn().mockRejectedValue(new Error("nope")),
+        },
+        accountLinks: { create: jest.fn().mockRejectedValue(new Error("nope")) },
       },
     });
 
