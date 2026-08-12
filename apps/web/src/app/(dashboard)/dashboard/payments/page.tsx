@@ -18,6 +18,7 @@ import {
   CreditCard,
   Banknote,
 } from "lucide-react";
+import Link from "next/link";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,8 @@ interface Payout {
   arrivalDate: string | null;
   description: string | null;
   createdAt: string;
+  /** Which shop this payout belongs to — null on single-account tenants. */
+  accountLabel?: string | null;
 }
 
 interface ReconcileResult {
@@ -223,6 +226,12 @@ export default function PaymentsPage() {
           <div className="flex items-center gap-2 px-5 py-4 border-b border-zinc-100">
             <Banknote className="w-5 h-5 text-purple-500" />
             <h2 className="font-medium text-zinc-900">Recent Payouts</h2>
+            <Link
+              href="/dashboard/payouts"
+              className="ml-auto text-xs font-medium text-zinc-500 hover:text-zinc-900"
+            >
+              View all &amp; bank details
+            </Link>
           </div>
           {payoutsLoading ? (
             <div className="flex items-center justify-center py-10">
@@ -241,6 +250,7 @@ export default function PaymentsPage() {
                         {p.currency.toUpperCase()} {parseFloat(p.amount).toFixed(2)}
                       </div>
                       <div className="text-xs text-zinc-500 mt-0.5">
+                        {p.accountLabel ? `${p.accountLabel} · ` : ""}
                         {p.arrivalDate
                           ? `Arrives ${new Date(p.arrivalDate).toLocaleDateString()}`
                           : new Date(p.createdAt).toLocaleDateString()}

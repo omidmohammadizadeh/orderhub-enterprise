@@ -61,6 +61,19 @@ const PayoutStatus = {
 } as const;
 type PayoutStatus = (typeof PayoutStatus)[keyof typeof PayoutStatus];
 
+/**
+ * Stripe's payout.status → ours. Stripe's own vocabulary is the source of
+ * truth for where a payout has got to; the event name only tells us why we
+ * were woken up.
+ */
+const PAYOUT_STATUS_BY_STRIPE: Record<string, PayoutStatus> = {
+  pending: PayoutStatus.PENDING,
+  in_transit: PayoutStatus.IN_TRANSIT,
+  paid: PayoutStatus.PAID,
+  failed: PayoutStatus.FAILED,
+  canceled: PayoutStatus.CANCELLED,
+};
+
 const PaymentStatus = {
   PENDING: "PENDING",
   PAID: "PAID",
@@ -2393,14 +2406,6 @@ export class PaymentsService {
     return { data, total, limit, offset };
   }
 
-  async getPayoutHistory(tenantId: string, limit = 20) {
-    return (this.prisma as any).payout.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: "desc" },
-      take: limit,
-      include: { connectAccount: { select: { stripeAccountId: true } } },
-    });
-  }
 
   async reconcile(tenantId: string, date: string) {
     const dayStart = new Date(`${date}T00:00:00.000Z`);
@@ -3078,11 +3083,26 @@ export class PaymentsService {
         break;
       }
 
+      case "payout.created":
+      case "payout.updated":
+      case "payout.canceled":
       case "payout.paid":
       case "payout.failed": {
         const stripePayout = event.data.object;
-        const status =
-          event.type === "payout.paid" ? PayoutStatus.PAID : PayoutStatus.FAILED;
+        // Read the status off the payout itself rather than inferring it from
+        // the event name. Stripe sends several of these for one payout as it
+        // moves (created → in transit → paid), and out-of-order delivery is
+        // normal — trusting the object keeps the row correct whatever order
+        // they arrive in, and means a new payout.* event we subscribe to later
+        // needs no extra mapping here.
+        const status = PAYOUT_STATUS_BY_STRIPE[stripePayout.status as string]
+          ?? (event.type === "payout.paid"
+            ? PayoutStatus.PAID
+            : event.type === "payout.failed"
+              ? PayoutStatus.FAILED
+              : event.type === "payout.canceled"
+                ? PayoutStatus.CANCELLED
+                : PayoutStatus.PENDING);
 
         const connectAccount = await (this.prisma as any).stripeConnectAccount.findUnique({
           where: { stripeAccountId: event.account ?? "" },
@@ -3104,7 +3124,17 @@ export class PaymentsService {
               description: stripePayout.description ?? null,
               metadata: { stripeObject: stripePayout },
             },
-            update: { status },
+            update: {
+              status,
+              // Stripe revises the arrival date after a payout is created, so
+              // a row written from payout.created would otherwise keep showing
+              // the merchant a date that has since moved.
+              arrivalDate: stripePayout.arrival_date
+                ? new Date(stripePayout.arrival_date * 1000)
+                : null,
+              amount: new Decimal((stripePayout.amount / 100).toFixed(2)),
+              metadata: { stripeObject: stripePayout },
+            },
           })
           .catch((err: any) =>
             this.logger.error(`Payout upsert failed: ${err.message}`),

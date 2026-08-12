@@ -24,6 +24,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { ReceiptEmailService } from "./receipt-email.service";
+import { PayoutsService } from "../payouts/payouts.service";
 
 @ApiTags("payments")
 @ApiBearerAuth()
@@ -32,6 +33,7 @@ export class PaymentsController {
   constructor(
     private readonly payments: PaymentsService,
     private readonly receiptEmail: ReceiptEmailService,
+    private readonly payouts: PayoutsService,
   ) {}
 
   // POST /v1/payments/intent
@@ -184,17 +186,26 @@ export class PaymentsController {
   }
 
   // GET /v1/payments/payouts
+  //
+  // Kept for the summary card on this page, but the work is done by
+  // PayoutsService so there is exactly ONE code path that decides which
+  // locations' money a caller may see. The previous implementation here read
+  // the whole tenant, which handed a single-shop owner every other shop's
+  // takings.
   @Get("payouts")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
-  @ApiOperation({ summary: "Get Stripe payout history" })
-  getPayouts(
+  @ApiOperation({ summary: "Get Stripe payout history (scoped to the caller)" })
+  async getPayouts(
     @CurrentUser() user: AuthenticatedUser,
     @Query("limit") limit?: string,
   ) {
-    return this.payments.getPayoutHistory(
+    const { payouts } = await this.payouts.list(
       user.tenantId,
-      limit ? parseInt(limit, 10) : 20,
+      user.userId,
+      user.role,
+      { limit: limit ? parseInt(limit, 10) : 20 },
     );
+    return payouts;
   }
 
   // GET /v1/payments/reconcile?date=YYYY-MM-DD
