@@ -76,6 +76,7 @@ function prismaWith({
       ]),
     },
     brand: { findMany: jest.fn().mockResolvedValue([]) },
+    payment: { findMany: jest.fn().mockResolvedValue([]) },
     payout: { findMany: jest.fn().mockResolvedValue(payouts) },
   };
 }
@@ -574,5 +575,164 @@ describe("PayoutsService — history reads Stripe", () => {
     const { payouts } = await svc.list(TENANT, "u1", "OWNER", {});
 
     expect(payouts[0].stripePayoutId).toBe("po_db");
+  });
+});
+
+describe("PayoutsService — breakdown", () => {
+  // A real-shaped payout: two sales, a refund, Stripe's cut, our commission.
+  const TXNS = [
+    {
+      id: "txn_1",
+      type: "charge",
+      amount: 2_000,
+      fee: 50,
+      net: 1_950,
+      currency: "gbp",
+      created: 1_754_000_000,
+      source: { id: "ch_1", payment_intent: "pi_1" },
+    },
+    {
+      id: "txn_2",
+      type: "charge",
+      amount: 3_000,
+      fee: 74,
+      net: 2_926,
+      currency: "gbp",
+      created: 1_754_000_100,
+      source: { id: "ch_2", payment_intent: "pi_2" },
+    },
+    {
+      id: "txn_3",
+      type: "refund",
+      amount: -500,
+      fee: 0,
+      net: -500,
+      currency: "gbp",
+      created: 1_754_000_200,
+      source: { id: "re_1" },
+    },
+    {
+      id: "txn_4",
+      type: "application_fee",
+      amount: -200,
+      fee: 0,
+      net: -200,
+      currency: "gbp",
+      created: 1_754_000_300,
+      source: { id: "fee_1" },
+    },
+  ];
+
+  function svcWith(txns = TXNS, payments: any[] = []) {
+    const prisma = prismaWith({ userLocations: [LOC_A] });
+    prisma.payment.findMany = jest.fn().mockResolvedValue(payments);
+    return {
+      prisma,
+      svc: makeService({
+        prisma,
+        stripe: {
+          balanceTransactions: {
+            list: jest.fn().mockResolvedValue({ data: txns }),
+          },
+        },
+      }),
+    };
+  }
+
+  it("totals to what actually hit the bank", async () => {
+    // The whole point: the parts must add up to the payout, or the merchant
+    // is worse off than before they opened it.
+    const { svc } = svcWith();
+
+    const b = await svc.breakdown(TENANT, "u1", "OWNER", "po_1");
+
+    expect(b.sales).toBe(50);
+    expect(b.refunds).toBe(-5);
+    expect(b.stripeFees).toBe(-1.24);
+    expect(b.commission).toBe(-2);
+    expect(b.total).toBe(41.76);
+    expect(b.sales + b.refunds + b.stripeFees + b.commission).toBeCloseTo(
+      b.total,
+      2,
+    );
+  });
+
+  it("names the orders behind the charges", async () => {
+    // Stripe says ch_3ReF…; the owner thinks in order numbers.
+    const { svc } = svcWith(TXNS, [
+      {
+        stripeChargeId: "ch_1",
+        stripePaymentIntentId: "pi_1",
+        order: {
+          id: "o1",
+          displayId: "JWDBH",
+          orderNumber: 42,
+          customerName: "Sam",
+          total: "20.00",
+          createdAt: new Date(),
+        },
+      },
+    ]);
+
+    const b = await svc.breakdown(TENANT, "u1", "OWNER", "po_1");
+
+    expect(b.orderCount).toBe(1);
+    expect(b.lines.find((l: any) => l.id === "txn_1").order.reference).toBe("JWDBH");
+    expect(b.lines.find((l: any) => l.id === "txn_2").order).toBeNull();
+  });
+
+  it("matches a destination charge by its payment intent, not just the charge id", async () => {
+    const { svc } = svcWith(TXNS, [
+      {
+        stripeChargeId: null,
+        stripePaymentIntentId: "pi_2",
+        order: {
+          id: "o2",
+          displayId: null,
+          orderNumber: 7,
+          customerName: null,
+          total: "30.00",
+          createdAt: new Date(),
+        },
+      },
+    ]);
+
+    const b = await svc.breakdown(TENANT, "u1", "OWNER", "po_1");
+
+    expect(b.lines.find((l: any) => l.id === "txn_2").order.reference).toBe("#7");
+  });
+
+  it("flags when Stripe's page limit hides transactions", async () => {
+    // A short list that doesn't add up reads as a wrong total, so say so.
+    const many = Array.from({ length: 100 }, (_, i) => ({
+      ...TXNS[0],
+      id: `txn_${i}`,
+      source: { id: `ch_${i}` },
+    }));
+    const { svc } = svcWith(many);
+
+    const b = await svc.breakdown(TENANT, "u1", "OWNER", "po_1");
+
+    expect(b.truncated).toBe(true);
+  });
+
+  it("refuses a payout on an account outside the caller's scope", async () => {
+    const { svc } = svcWith();
+
+    await expect(
+      svc.breakdown(TENANT, "u1", "OWNER", "po_1", "acc-b"),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it("scopes the order lookup to the tenant", async () => {
+    const { prisma, svc } = svcWith();
+
+    await svc.breakdown(TENANT, "u1", "OWNER", "po_1");
+
+    expect(prisma.payment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ tenantId: TENANT }),
+      }),
+    );
   });
 });

@@ -433,6 +433,175 @@ export class PayoutsService {
     }
   }
 
+  // ── What made up a payout ─────────────────────────────────────────────────
+
+  /**
+   * "This £420 — where did it come from?"
+   *
+   * The single most common merchant support call. A payout is a net figure
+   * covering several days of takings minus refunds, Stripe's cut and our
+   * commission, so it never matches any number the owner already knows, and
+   * without this the only honest answer is "log into Stripe and add it up".
+   *
+   * Built from Stripe's balance transactions rather than our ledger, for the
+   * same reason the history is: Stripe decides what went into a payout, so
+   * anything we compute ourselves is a second opinion that will eventually
+   * disagree with the bank. Their figures always total to the payout exactly.
+   *
+   * We then add the one thing Stripe can't: which of OUR orders each charge
+   * was. Stripe shows `ch_3ReF…`; the owner thinks in order numbers.
+   */
+  async breakdown(
+    tenantId: string,
+    userId: string | undefined,
+    role: string | undefined,
+    payoutId: string,
+    accountId?: string,
+  ) {
+    const accounts = await this.visibleAccounts(tenantId, userId, role);
+    const account = accountId
+      ? accounts.find((a) => a.id === accountId)
+      : accounts[0];
+    if (!account) throw new NotFoundException("Payout account not found");
+
+    if (!this.stripe || account.stripeAccountId.startsWith("mock_acct_")) {
+      throw new BadRequestException(
+        "Stripe isn't configured in this environment.",
+      );
+    }
+
+    let txns: any[] = [];
+    try {
+      const res = await this.stripe.balanceTransactions.list(
+        { payout: payoutId, limit: 100, expand: ["data.source"] },
+        { stripeAccount: account.stripeAccountId },
+      );
+      txns = res.data ?? [];
+    } catch (e: any) {
+      this.logger.warn(`Breakdown failed for ${payoutId}: ${e?.message}`);
+      throw new NotFoundException("Couldn't load that payout's breakdown");
+    }
+
+    const orders = await this.ordersForTransactions(tenantId, txns);
+
+    const lines = txns.map((t: any) => {
+      const key = this.matchKeys(t).find((k) => orders.has(k));
+      const order = key ? orders.get(key) : null;
+      return {
+        id: t.id,
+        type: t.type as string,
+        // Stripe signs these for us: charges positive, refunds and fees
+        // negative. Passing the sign straight through means the lines add up
+        // to the payout without the UI having to know which way each goes.
+        gross: (t.amount ?? 0) / 100,
+        fee: (t.fee ?? 0) / 100,
+        net: (t.net ?? 0) / 100,
+        currency: t.currency ?? "gbp",
+        description: t.description ?? null,
+        createdAt: new Date((t.created ?? 0) * 1000).toISOString(),
+        order: order
+          ? {
+              id: order.id,
+              // displayId is what's on the ticket and what the customer
+              // quotes on the phone; orderNumber is the fallback.
+              reference: order.displayId ?? (order.orderNumber != null ? `#${order.orderNumber}` : null),
+              customerName: order.customerName,
+              total: String(order.total),
+              placedAt: order.createdAt,
+            }
+          : null,
+      };
+    });
+
+    const sumWhere = (pred: (t: any) => boolean, field: "amount" | "fee" | "net") =>
+      Math.round(
+        txns.filter(pred).reduce((acc, t) => acc + (t[field] ?? 0), 0),
+      ) / 100;
+
+    const isSale = (t: any) => t.type === "charge" || t.type === "payment";
+    const isRefund = (t: any) =>
+      t.type === "refund" || t.type === "payment_refund";
+    // Our commission leaves the merchant's account as an application fee.
+    const isCommission = (t: any) =>
+      t.type === "application_fee" || t.type === "application_fee_refund";
+
+    return {
+      payoutId,
+      accountId: account.id,
+      accountLabel: account.label,
+      currency: (txns[0]?.currency ?? "gbp") as string,
+      // Sales gross, then everything taken off it. Stripe's own `fee` field
+      // carries card processing; the application-fee rows are our commission.
+      sales: sumWhere(isSale, "amount"),
+      refunds: sumWhere(isRefund, "amount"),
+      stripeFees: -sumWhere(isSale, "fee") - sumWhere(isRefund, "fee"),
+      commission: sumWhere(isCommission, "amount"),
+      other: sumWhere(
+        (t) => !isSale(t) && !isRefund(t) && !isCommission(t),
+        "net",
+      ),
+      total: sumWhere(() => true, "net"),
+      orderCount: lines.filter((l) => l.order).length,
+      // Stripe pages at 100; say so rather than showing a short list that
+      // silently doesn't add up to the total above.
+      truncated: txns.length >= 100,
+      lines,
+    };
+  }
+
+  /** Every id a balance transaction might be findable by on our side. */
+  private matchKeys(t: any): string[] {
+    const src = t.source;
+    const keys: string[] = [];
+    if (typeof src === "string") keys.push(src);
+    else if (src?.id) {
+      keys.push(src.id);
+      // Direct charges carry the intent; destination charges carry the
+      // originating charge. Collect both — we match on either column.
+      if (typeof src.payment_intent === "string") keys.push(src.payment_intent);
+      if (typeof src.charge === "string") keys.push(src.charge);
+      if (typeof src.source_transaction === "string") keys.push(src.source_transaction);
+    }
+    return keys;
+  }
+
+  /** charge/intent id → the order it paid for, tenant-scoped. */
+  private async ordersForTransactions(tenantId: string, txns: any[]) {
+    const ids = Array.from(new Set(txns.flatMap((t) => this.matchKeys(t))));
+    const found = new Map<string, any>();
+    if (!ids.length) return found;
+
+    const payments = await (this.prisma as any).payment.findMany({
+      where: {
+        tenantId,
+        OR: [
+          { stripeChargeId: { in: ids } },
+          { stripePaymentIntentId: { in: ids } },
+        ],
+      },
+      select: {
+        stripeChargeId: true,
+        stripePaymentIntentId: true,
+        order: {
+          select: {
+            id: true,
+            displayId: true,
+            orderNumber: true,
+            customerName: true,
+            total: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+    for (const p of payments) {
+      if (!p.order) continue;
+      if (p.stripeChargeId) found.set(p.stripeChargeId, p.order);
+      if (p.stripePaymentIntentId) found.set(p.stripePaymentIntentId, p.order);
+    }
+    return found;
+  }
+
   // ── Bank details ──────────────────────────────────────────────────────────
 
   /**

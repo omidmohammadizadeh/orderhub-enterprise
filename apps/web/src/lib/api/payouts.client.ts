@@ -43,6 +43,41 @@ export interface PayoutBalance {
   unavailableReason?: string;
 }
 
+export interface PayoutBreakdownLine {
+  id: string;
+  type: string;
+  gross: number;
+  fee: number;
+  net: number;
+  currency: string;
+  description: string | null;
+  createdAt: string;
+  order: {
+    id: string;
+    reference: string | null;
+    customerName: string | null;
+    total: string;
+    placedAt: string;
+  } | null;
+}
+
+export interface PayoutBreakdown {
+  payoutId: string;
+  accountId: string;
+  accountLabel: string;
+  currency: string;
+  sales: number;
+  refunds: number;
+  stripeFees: number;
+  commission: number;
+  other: number;
+  total: number;
+  orderCount: number;
+  /** Stripe pages at 100 — the lines shown won't total to `total`. */
+  truncated: boolean;
+  lines: PayoutBreakdownLine[];
+}
+
 export const payoutsClient = {
   accounts: () =>
     apiClient.get<PayoutAccount[]>("/v1/payouts/accounts").then((r) => r.data),
@@ -57,6 +92,13 @@ export const payoutsClient = {
   balance: (accountId?: string) =>
     apiClient
       .get<PayoutBalance>("/v1/payouts/balance", {
+        params: accountId ? { accountId } : undefined,
+      })
+      .then((r) => r.data),
+
+  breakdown: (payoutId: string, accountId?: string) =>
+    apiClient
+      .get<PayoutBreakdown>(`/v1/payouts/${payoutId}/breakdown`, {
         params: accountId ? { accountId } : undefined,
       })
       .then((r) => r.data),

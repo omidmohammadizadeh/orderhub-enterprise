@@ -19,7 +19,7 @@ import {
   ExternalLink,
   Loader2,
   AlertTriangle,
-  ArrowRight,
+  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { payoutsClient, type PayoutRow } from "@/lib/api/payouts.client";
@@ -48,6 +48,9 @@ const day = (d: string) =>
 
 export default function PayoutsPage() {
   const [accountId, setAccountId] = useState<string | undefined>();
+  // Which payout is showing its breakdown. One at a time — this is a
+  // "what made up THIS one" question, not a comparison.
+  const [openPayout, setOpenPayout] = useState<string | null>(null);
 
   const listQuery = useQuery({
     queryKey: ["payouts", accountId ?? "all"],
@@ -238,7 +241,17 @@ export default function PayoutsPage() {
         ) : (
           <div className="divide-y divide-zinc-50">
             {payouts.map((p) => (
-              <PayoutLine key={p.id} p={p} showAccount={!accountId && accounts.length > 1} />
+              <PayoutLine
+                key={p.id}
+                p={p}
+                showAccount={!accountId && accounts.length > 1}
+                expanded={openPayout === p.stripePayoutId}
+                onToggle={() =>
+                  setOpenPayout(
+                    openPayout === p.stripePayoutId ? null : p.stripePayoutId,
+                  )
+                }
+              />
             ))}
           </div>
         )}
@@ -254,36 +267,172 @@ export default function PayoutsPage() {
   );
 }
 
-function PayoutLine({ p, showAccount }: { p: PayoutRow; showAccount: boolean }) {
+function PayoutLine({
+  p,
+  showAccount,
+  expanded,
+  onToggle,
+}: {
+  p: PayoutRow;
+  showAccount: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
   const s = STATUS[p.status] ?? {
     label: p.status,
     className: "bg-zinc-100 text-zinc-600",
   };
   return (
-    <div className="flex items-center justify-between gap-3 px-5 py-3.5">
-      <div className="min-w-0">
-        <div className="text-sm font-semibold tabular-nums text-zinc-900">
-          {money(parseFloat(p.amount), p.currency)}
+    <div>
+      <button
+        onClick={onToggle}
+        aria-expanded={expanded}
+        className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left hover:bg-zinc-50"
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          <ChevronRight
+            className={cn(
+              "h-4 w-4 flex-shrink-0 text-zinc-400 transition-transform",
+              expanded && "rotate-90",
+            )}
+          />
+          <div className="min-w-0">
+            <div className="text-sm font-semibold tabular-nums text-zinc-900">
+              {money(parseFloat(p.amount), p.currency)}
+            </div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-zinc-500">
+              {showAccount && p.accountLabel && (
+                <span className="font-medium text-zinc-600">{p.accountLabel}</span>
+              )}
+              <span>
+                {p.arrivalDate
+                  ? `${p.status === "PAID" ? "Paid" : "Arrives"} ${day(p.arrivalDate)}`
+                  : day(p.createdAt)}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-zinc-500">
-          {showAccount && p.accountLabel && (
-            <span className="font-medium text-zinc-600">{p.accountLabel}</span>
+        <span
+          className={cn(
+            "flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+            s.className,
           )}
-          <span>
-            {p.arrivalDate
-              ? `${p.status === "PAID" ? "Paid" : "Arrives"} ${day(p.arrivalDate)}`
-              : day(p.createdAt)}
-          </span>
+        >
+          {s.label}
+        </span>
+      </button>
+      {expanded && (
+        <PayoutBreakdownPanel payoutId={p.stripePayoutId} accountId={p.accountId} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * What this payout was made of. Fetched on expand rather than up front —
+ * it's a Stripe round-trip per payout, and most rows are never opened.
+ */
+function PayoutBreakdownPanel({
+  payoutId,
+  accountId,
+}: {
+  payoutId: string;
+  accountId: string | null;
+}) {
+  const q = useQuery({
+    queryKey: ["payout-breakdown", payoutId],
+    queryFn: () => payoutsClient.breakdown(payoutId, accountId ?? undefined),
+  });
+
+  if (q.isLoading) {
+    return (
+      <div className="flex justify-center border-t border-zinc-100 bg-zinc-50/60 py-6">
+        <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+  if (q.isError || !q.data) {
+    return (
+      <div className="border-t border-zinc-100 bg-zinc-50/60 px-5 py-4 text-xs text-zinc-500">
+        Couldn&apos;t load this payout&apos;s breakdown.
+      </div>
+    );
+  }
+
+  const b = q.data;
+  const ccy = b.currency;
+  // Deductions are already negative from Stripe, so they render with their own
+  // sign and the column still adds up to the payout.
+  const rows: Array<{ label: string; value: number; muted?: boolean }> = [
+    { label: `Sales${b.orderCount ? ` (${b.orderCount} orders)` : ""}`, value: b.sales },
+    { label: "Refunds", value: b.refunds },
+    { label: "Card processing (Stripe)", value: b.stripeFees },
+    { label: "OrderHub commission", value: b.commission },
+  ];
+  if (b.other) rows.push({ label: "Other adjustments", value: b.other, muted: true });
+
+  const orderLines = b.lines.filter((l) => l.order);
+
+  return (
+    <div className="space-y-3 border-t border-zinc-100 bg-zinc-50/60 px-5 py-4">
+      <div className="space-y-1">
+        {rows
+          .filter((r) => r.value !== 0)
+          .map((r) => (
+            <div key={r.label} className="flex justify-between text-xs">
+              <span className={r.muted ? "text-zinc-400" : "text-zinc-600"}>
+                {r.label}
+              </span>
+              <span
+                className={cn(
+                  "tabular-nums",
+                  r.value < 0 ? "text-red-600" : "text-zinc-700",
+                )}
+              >
+                {money(r.value, ccy)}
+              </span>
+            </div>
+          ))}
+        <div className="flex justify-between border-t border-zinc-200 pt-1 text-xs font-semibold">
+          <span className="text-zinc-800">Paid to your bank</span>
+          <span className="tabular-nums text-zinc-900">{money(b.total, ccy)}</span>
         </div>
       </div>
-      <span
-        className={cn(
-          "flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
-          s.className,
-        )}
-      >
-        {s.label}
-      </span>
+
+      {b.truncated && (
+        <p className="text-[11px] text-amber-700">
+          Showing the first 100 transactions — the lines below don&apos;t add up
+          to the total above.
+        </p>
+      )}
+
+      {orderLines.length > 0 && (
+        <div>
+          <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+            Orders in this payout
+          </p>
+          <div className="max-h-56 space-y-0.5 overflow-y-auto">
+            {orderLines.map((l) => (
+              <div key={l.id} className="flex justify-between gap-2 text-xs">
+                <span className="min-w-0 truncate text-zinc-600">
+                  {l.order?.reference ?? "Order"}
+                  {l.order?.customerName ? ` · ${l.order.customerName}` : ""}
+                </span>
+                <span className="flex-shrink-0 tabular-nums text-zinc-700">
+                  {money(l.gross, l.currency)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {orderLines.length === 0 && b.lines.length > 0 && (
+        <p className="text-[11px] text-zinc-400">
+          We couldn&apos;t match these transactions to orders in OrderHub — they
+          may predate the integration.
+        </p>
+      )}
     </div>
   );
 }

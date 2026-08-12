@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Body } from "@nestjs/common";
+import { Controller, Get, Post, Query, Body, Param } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { PayoutsService } from "./payouts.service";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -56,6 +56,23 @@ export class PayoutsController {
       user.tenantId,
       user.userId,
       user.role,
+      accountId,
+    );
+  }
+
+  @Get(":payoutId/breakdown")
+  @Roles(...FINANCE_ROLES)
+  @ApiOperation({ summary: "Which orders and fees made up one payout" })
+  breakdown(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("payoutId") payoutId: string,
+    @Query("accountId") accountId?: string,
+  ) {
+    return this.payouts.breakdown(
+      user.tenantId,
+      user.userId,
+      user.role,
+      payoutId,
       accountId,
     );
   }
