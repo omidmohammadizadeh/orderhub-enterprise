@@ -482,6 +482,13 @@ export class PayoutsService {
       throw new NotFoundException("Couldn't load that payout's breakdown");
     }
 
+    // Stripe includes the PAYOUT ITSELF in this list — the debit that moves
+    // the money to the bank. Counting it alongside the charges that funded it
+    // nets every payout to zero, which is what "Paid to your bank £0.00" under
+    // £743.49 of sales was. It is the answer, not one of the parts.
+    const payoutRow = txns.find((t: any) => String(t.type).startsWith("payout"));
+    txns = txns.filter((t: any) => !String(t.type).startsWith("payout"));
+
     const orders = await this.ordersForTransactions(tenantId, txns);
 
     const lines = txns.map((t: any) => {
@@ -540,7 +547,12 @@ export class PayoutsService {
         (t) => !isSale(t) && !isRefund(t) && !isCommission(t),
         "net",
       ),
-      total: sumWhere(() => true, "net"),
+      // Stripe's own payout figure wins when we have it — that is literally
+      // the amount that hit the bank. The sum of the parts is the fallback,
+      // and the two agreeing is the point of the whole panel.
+      total: payoutRow
+        ? Math.abs(payoutRow.amount ?? 0) / 100
+        : sumWhere(() => true, "net"),
       orderCount: lines.filter((l) => l.order).length,
       // Stripe pages at 100; say so rather than showing a short list that
       // silently doesn't add up to the total above.

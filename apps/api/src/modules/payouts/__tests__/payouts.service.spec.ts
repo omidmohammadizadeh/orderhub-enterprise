@@ -621,6 +621,18 @@ describe("PayoutsService — breakdown", () => {
       created: 1_754_000_300,
       source: { id: "fee_1" },
     },
+    // Stripe returns the payout debit alongside what funded it. It is the
+    // answer, not a part — counting it nets everything to zero.
+    {
+      id: "txn_payout",
+      type: "payout",
+      amount: -4_176,
+      fee: 0,
+      net: -4_176,
+      currency: "gbp",
+      created: 1_754_000_400,
+      source: { id: "po_1" },
+    },
   ];
 
   function svcWith(txns = TXNS, payments: any[] = []) {
@@ -651,10 +663,30 @@ describe("PayoutsService — breakdown", () => {
     expect(b.stripeFees).toBe(-1.24);
     expect(b.commission).toBe(-2);
     expect(b.total).toBe(41.76);
+    expect(b.other).toBe(0);
     expect(b.sales + b.refunds + b.stripeFees + b.commission).toBeCloseTo(
       b.total,
       2,
     );
+  });
+
+  it("never lists the payout itself as one of its own parts", async () => {
+    // The live bug: the payout debit landed in "Other adjustments" and
+    // cancelled the sales that funded it, so every payout read £0.00.
+    const { svc } = svcWith();
+
+    const b = await svc.breakdown(TENANT, "u1", "OWNER", "po_1");
+
+    expect(b.lines.some((l: any) => l.type.startsWith("payout"))).toBe(false);
+    expect(b.total).not.toBe(0);
+  });
+
+  it("falls back to summing the parts when Stripe omits the payout row", async () => {
+    const { svc } = svcWith(TXNS.filter((t) => t.type !== "payout"));
+
+    const b = await svc.breakdown(TENANT, "u1", "OWNER", "po_1");
+
+    expect(b.total).toBe(41.76);
   });
 
   it("names the orders behind the charges", async () => {
