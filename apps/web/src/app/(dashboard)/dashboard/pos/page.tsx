@@ -16,7 +16,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Search, ShoppingBag, Pencil, X, SlidersHorizontal } from "lucide-react";
+import {
+  Search,
+  ShoppingBag,
+  Pencil,
+  X,
+  SlidersHorizontal,
+  ChevronLeft,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { round2, type SelectedModifier, type ProductSku } from "@orderhub/shared";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
@@ -26,6 +33,7 @@ import {
   type PlaceOrderPayload,
   type PartialDraft,
 } from "@/components/pos/pos-cart-panel";
+import { PosStartScreen } from "@/components/pos/pos-start-screen";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
 import { PaymentLinkModal } from "@/components/pos/payment-link-modal";
@@ -128,6 +136,17 @@ export default function PosPage() {
   // its customer/address/payment fields are internal state seeded from
   // initialDraft, so clearing `draft` alone doesn't wipe them.
   const [cartResetKey, setCartResetKey] = useState(0);
+  /**
+   * Which half of the till we're on.
+   *
+   * "start" asks the one question that changes everything downstream — who is
+   * this order for — before a single item is tapped. "menu" is the existing
+   * menu + cart layout, unchanged.
+   *
+   * A dine-in tab and an order being edited both skip it: the table already
+   * says who it's for, and an edited order was answered when it was placed.
+   */
+  const [step, setStep] = useState<"start" | "menu">("start");
   /** Phone only — the cart is a full-screen step rather than a side column.
    *  Ignored from md up, where the cart is always on screen. */
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
@@ -644,6 +663,7 @@ export default function PosPage() {
         setCart([]);
         setDraft({});
         setCartResetKey((k) => k + 1);
+        setStep("start");
         if (selectedLocationId) clearCartDraft(cartScopeKey);
         window.setTimeout(() => setSubmitFeedback(null), 6000);
         return;
@@ -678,6 +698,7 @@ export default function PosPage() {
       setCart([]);
       setDraft({});
       setCartResetKey((k) => k + 1); // wipe the panel's internal fields
+      setStep("start"); // next order starts by asking who it's for
       if (selectedLocationId) clearCartDraft(cartScopeKey);
       if (edited) {
         // Drop edit-mode and return to a fresh POS cart.
@@ -824,6 +845,21 @@ export default function PosPage() {
    * than duplicating five buttons is what stops the phone quietly losing one
    * the next time somebody adds a sixth.
    */
+  // A table tab and an order being edited both already know who they're for.
+  useEffect(() => {
+    if (tableId || editOrderId) setStep("menu");
+  }, [tableId, editOrderId]);
+
+  /** Reminds staff which kind of order they're building, once past step 1. */
+  const orderTypeLabel =
+    draft.walkIn
+      ? "Walk-in"
+      : draft.fulfillmentType === "DELIVERY"
+        ? "Delivery"
+        : draft.fulfillmentType === "PICKUP"
+          ? "Collection"
+          : null;
+
   const posTools = [
     {
       key: "drawer",
@@ -1015,8 +1051,27 @@ export default function PosPage() {
           screen goes to the products instead. */}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold text-zinc-900">
+          <h1 className="flex items-center gap-2 truncate text-lg font-semibold text-zinc-900">
+            {/* Back to the order-type / customer step. The cart survives, so a
+                phone customer switching collection → delivery mid-order
+                doesn't lose their basket. Hidden on a dine-in tab and while
+                editing, neither of which has a start step to go back to. */}
+            {step === "menu" && !tableId && !editOrderId && (
+              <button
+                type="button"
+                onClick={() => setStep("start")}
+                aria-label="Back to order details"
+                className="-ml-1 rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )}
             {tableId ? `POS · ${tableName ?? "Table"}` : "POS"}
+            {step === "menu" && orderTypeLabel && (
+              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                {orderTypeLabel}
+              </span>
+            )}
           </h1>
           {/* The subtitle is orientation, not information — on a phone the
               vertical space is worth more than the sentence. */}
@@ -1122,6 +1177,29 @@ export default function PosPage() {
         <EmptyState text="Loading menu…" />
       ) : !menuData ? (
         <EmptyState text="No active menu found for this location. Create one in Menu Manager." />
+      ) : step === "start" ? (
+        <PosStartScreen
+          draft={draft}
+          onDraftChange={setDraft}
+          onContinue={() => setStep("menu")}
+          cartCount={cartCount}
+          tools={
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {posTools.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={t.onClick}
+                  disabled={t.disabled}
+                  title={t.title}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
+                >
+                  <t.icon className="h-4 w-4" /> {t.label}
+                </button>
+              ))}
+            </div>
+          }
+        />
       ) : (
         <div className="grid flex-1 grid-cols-1 gap-3 overflow-hidden md:grid-cols-12">
           {/* Left — menu.

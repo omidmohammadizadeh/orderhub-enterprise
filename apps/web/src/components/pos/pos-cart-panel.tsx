@@ -124,6 +124,9 @@ export interface PartialDraft {
   customerPhone?: string;
   callerId?: string;
   fulfillmentType?: FulfillmentType;
+  /** Counter customer — no name, no phone, no address. Set on the start
+   *  screen and mirrored here so both steps agree on the order type. */
+  walkIn?: boolean;
   notes?: string;
   addressLine1?: string;
   addressLine2?: string;
@@ -163,7 +166,7 @@ export function PosCartPanel(props: CartPanelProps) {
   // ── Cart-adjacent state ────────────────────────────────────────────────────
   const [customerName, setCustomerName] = useState(initialDraft?.customerName ?? "");
   // Counter trade: skip the name/phone boxes entirely.
-  const [walkIn, setWalkIn] = useState(false);
+  const [walkIn, setWalkIn] = useState(initialDraft?.walkIn ?? false);
   const [customerPhone, setCustomerPhone] = useState(initialDraft?.customerPhone ?? "");
   // Ticked by default — the customer can decline SMS offers at the till.
   const [smsConsent, setSmsConsent] = useState(true);
@@ -317,6 +320,26 @@ export function PosCartPanel(props: CartPanelProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fulfillmentType, walkIn, dineIn]);
 
+  /** What this order type can actually be paid by. */
+  const allowedPayments: PaymentMethod[] = dineIn
+    ? ["CASH", "CARD_TERMINAL", "PAYMENT_LINK", "QR_CODE", "ONLINE_CARD", "EXTERNAL"]
+    : isPhoneCollection
+      ? ["PAY_ON_COLLECTION", "PAYMENT_LINK"]
+      : walkIn
+        ? ["CASH", "CARD_TERMINAL", "QR_CODE", "PAYMENT_LINK"]
+        : ["CASH", "CARD_TERMINAL", "PAYMENT_LINK", "QR_CODE"];
+
+  // Never leave a method selected that this order type can't use — switching
+  // collection→walk-in with PAY_ON_COLLECTION still set would place an order
+  // nobody can settle at the counter.
+  useEffect(() => {
+    const fallback = allowedPayments[0];
+    if (fallback && !allowedPayments.includes(paymentMethod)) {
+      setPaymentMethod(fallback);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fulfillmentType, walkIn, dineIn]);
+
   // Network state
   const online = useOnlineStatus();
 
@@ -325,6 +348,7 @@ export function PosCartPanel(props: CartPanelProps) {
     onDraftChange?.({
       customerName,
       customerPhone,
+      walkIn,
       callerId,
       fulfillmentType,
       notes,
@@ -343,6 +367,7 @@ export function PosCartPanel(props: CartPanelProps) {
   }, [
     customerName,
     customerPhone,
+    walkIn,
     callerId,
     fulfillmentType,
     notes,
@@ -1194,20 +1219,17 @@ export function PosCartPanel(props: CartPanelProps) {
                 { value: "EXTERNAL", label: "External" },
               ] as const
             )
-              // Phone collection: the customer isn't here, so Cash and Card
-              // terminal can't actually be taken yet — offering them is what
-              // produced orders recorded as "cash" that were paid by card.
-              // Both come back on the order card when they arrive. Payment
-              // link / QR stay, since those genuinely can be paid remotely.
-              .filter(
-                (opt) =>
-                  !isPhoneCollection ||
-                  (opt.value !== "CASH" && opt.value !== "CARD_TERMINAL"),
-              )
-              // "Pay on collection" only makes sense for a collection order.
-              .filter(
-                (opt) => opt.value !== "PAY_ON_COLLECTION" || isPhoneCollection,
-              )
+              // One allowlist per order type, rather than a pile of
+              // subtractions. What can actually be taken depends entirely on
+              // whether the customer is standing there:
+              //
+              //  Collection — they're not here yet, so nothing can be taken
+              //    at the counter. Offering Cash and Card terminal is what
+              //    produced orders recorded as "cash" that were paid by card.
+              //    Both come back on the order card when they arrive.
+              //  Walk-in   — they're at the till, so everything works.
+              //  Delivery  — settled by the driver or remotely.
+              .filter((opt) => allowedPayments.includes(opt.value))
               .map((opt) => (
               <button
                 key={opt.value}
