@@ -1513,8 +1513,12 @@ function ProductCard({
   product: MenuItem;
   onClick: () => void;
   /** Category colour, or the item's own override. Null = the plain tile. */
-  colour?: { bg: string; border: string } | null;
+  colour?: { bg: string; border: string; fg?: string } | null;
 }) {
+  // The strong shades carry their own text colour. The tile's usual near-black
+  // on a dark navy is a label nobody can read across a counter, which would
+  // make the colours actively worse than none.
+  const onDark = !!colour?.fg;
   return (
     <button
       type="button"
@@ -1523,14 +1527,22 @@ function ProductCard({
       // something Tailwind can know about at build time.
       style={
         colour
-          ? { backgroundColor: colour.bg, borderColor: colour.border }
+          ? {
+              backgroundColor: colour.bg,
+              borderColor: colour.border,
+              color: colour.fg,
+            }
           : undefined
       }
       className="flex flex-col items-start gap-1 rounded-lg border border-zinc-200 bg-white p-3 text-left transition-colors hover:border-zinc-900 hover:shadow-sm disabled:opacity-50"
       disabled={product.outOfStock}
     >
       <div className="flex w-full items-start justify-between gap-2">
-        <span className="text-xs font-medium text-zinc-900 leading-snug line-clamp-2">
+        <span
+          className={`text-xs font-medium leading-snug line-clamp-2 ${
+            onDark ? "" : "text-zinc-900"
+          }`}
+        >
           {product.name}
         </span>
         {product.outOfStock && (
@@ -1539,7 +1551,9 @@ function ProductCard({
           </span>
         )}
       </div>
-      <span className="mt-0.5 text-xs text-zinc-500">
+      <span
+        className={`mt-0.5 text-xs ${onDark ? "opacity-90" : "text-zinc-500"}`}
+      >
         {formatDisplayPrice(product as any)}
       </span>
     </button>
