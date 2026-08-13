@@ -725,6 +725,10 @@ function PrinterSettingsDrawer({
   );
   const [printLogo, setPrintLogo] = useState<boolean>(!!d.printLogo);
   const [printQr, setPrintQr] = useState<boolean>(!!d.qrCode);
+  // Where the QR goes: on the bottom of the receipt (default, one ticket) or
+  // on a ticket of its own printed after it. Which is right depends on how
+  // the shop hands food over — bag vs counter — so it's per printer.
+  const [qrDetached, setQrDetached] = useState<boolean>(!!d.qrDetached);
   // Receipt text size. Was a dead boolean ("Large font") that saved but
   // never reached the renderer — seed from it so printers already ticked
   // land on Large rather than silently resetting to Standard.
@@ -765,6 +769,7 @@ function PrinterSettingsDrawer({
           copies: copiesNewOrder,
           printLogo,
           qrCode: printQr,
+          qrDetached,
           fontScale,
           printFont,
           modifierScale,
@@ -938,6 +943,15 @@ function PrinterSettingsDrawer({
                 value={printQr}
                 onChange={setPrintQr}
               />
+              {/* Only meaningful once the QR is switched on — showing it
+                  otherwise offers a choice that changes nothing. */}
+              {printQr && (
+                <Toggle
+                  label="Detached QR code"
+                  value={qrDetached}
+                  onChange={setQrDetached}
+                />
+              )}
               <Toggle
                 label="Open cash drawer"
                 value={openDrawer}

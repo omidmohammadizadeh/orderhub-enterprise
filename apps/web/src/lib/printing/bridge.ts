@@ -1272,15 +1272,69 @@ export async function renderReceiptBytes(
  * LAST copy — the one that goes in the customer's bag. Baking the QR into
  * every copy would print it N times for one order.
  */
+/**
+ * A QR on a ticket of its own, printed after the receipt.
+ *
+ * Some shops want the reorder QR attached to the bottom of the receipt (one
+ * ticket, one cut); others want it separate, so it can go in the bag while the
+ * receipt goes to the customer, or on the counter, or in the bin when they
+ * don't want it. Both are reasonable, and which one is right depends on how
+ * that shop hands food over — so it's a printer setting rather than a rule.
+ *
+ * Deliberately its own ESC/POS document: INIT at the top and CUT at the bottom,
+ * so the printer treats it as a second ticket rather than more of the first.
+ */
+function buildQrSlip(
+  payload: any,
+  paperWidth: number,
+  qr: string,
+  qrCodeBytes: number[] | null,
+  printFont: PrintFont = "A",
+): Uint8Array {
+  const buf: number[] = [];
+  const cols = colsForFont(paperWidth, printFont);
+  buf.push(...INIT);
+  buf.push(...ALIGN_CENTER);
+  buf.push(LF);
+
+  // Enough of the order to tie the slip back to the receipt it followed —
+  // two tickets landing in a pile are otherwise impossible to pair up.
+  if (payload?.orderNumber || payload?.displayId) {
+    buf.push(...BOLD_ON);
+    line(buf, String(payload.displayId ?? `#${payload.orderNumber}`));
+    buf.push(...BOLD_OFF);
+  }
+  if (payload?.qrCaption) {
+    buf.push(...BOLD_ON);
+    for (const w of wrap(String(payload.qrCaption), cols)) line(buf, w);
+    buf.push(...BOLD_OFF);
+  }
+  buf.push(LF);
+  buf.push(
+    ...(qrCodeBytes ?? qrEscPos(qr, qrModuleSize(qr, paperWidth))),
+  );
+  buf.push(LF);
+  buf.push(...ALIGN_LEFT);
+  buf.push(LF, LF, LF, LF);
+  buf.push(...CUT);
+  return new Uint8Array(buf);
+}
+
 export async function renderReceiptParts(
   payload: any,
   paperWidth: number = 80,
   opts?: Parameters<typeof renderReceiptBytes>[2],
-): Promise<{ receipt: Uint8Array; receiptWithQr: Uint8Array | null }> {
+): Promise<{
+  receipt: Uint8Array;
+  receiptWithQr: Uint8Array | null;
+  qrSlip: Uint8Array | null;
+}> {
   if (String(opts?.commandSet ?? "").toUpperCase() === "STAR") {
+    // Star Line Mode has its own builder and no QR support here.
     return {
       receipt: await renderReceiptBytes(payload, paperWidth, opts),
       receiptWithQr: null,
+      qrSlip: null,
     };
   }
   let logoBytes: number[] | null = null;
@@ -1296,7 +1350,7 @@ export async function renderReceiptParts(
     modifierScale: opts?.modifierScale,
     printFont: opts?.printFont,
   });
-  if (!qr) return { receipt, receiptWithQr: null };
+  if (!qr) return { receipt, receiptWithQr: null, qrSlip: null };
   const qrCodeBytes = await qrCommandBytes(
     qr,
     paperWidth,
@@ -1310,7 +1364,11 @@ export async function renderReceiptParts(
     modifierScale: opts?.modifierScale,
     printFont: opts?.printFont,
   });
-  return { receipt, receiptWithQr };
+  return {
+    receipt,
+    receiptWithQr,
+    qrSlip: buildQrSlip(payload, paperWidth, qr, qrCodeBytes, opts?.printFont),
+  };
 }
 
 /**
@@ -1322,8 +1380,23 @@ export function joinReceiptAndQr(
   receipt: Uint8Array,
   receiptWithQr: Uint8Array | null,
   copies: number,
+  /**
+   * A QR on its own ticket, for shops that want it separate from the receipt.
+   * When given, every copy is a plain receipt and the slip follows the last
+   * one — so the QR can go in the bag while the receipt goes to the customer.
+   */
+  qrSlip?: Uint8Array | null,
 ): Uint8Array {
   const n = Math.max(1, Math.floor(copies) || 1);
+
+  if (qrSlip) {
+    const body = repeatReceipt(receipt, n);
+    const out = new Uint8Array(body.length + qrSlip.length);
+    out.set(body, 0);
+    out.set(qrSlip, body.length);
+    return out;
+  }
+
   if (!receiptWithQr) return repeatReceipt(receipt, n);
   const leading = n > 1 ? repeatReceipt(receipt, n - 1) : new Uint8Array(0);
   const out = new Uint8Array(leading.length + receiptWithQr.length);

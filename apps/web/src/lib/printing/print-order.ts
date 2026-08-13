@@ -247,12 +247,17 @@ export async function printOrderViaBridge(
       );
       // Plain + QR-attached variants come back separately so extra copies
       // repeat the plain receipt — only the last (bag) copy carries the QR.
-      const { receipt, receiptWithQr } = await renderReceiptParts(
+      const { receipt, receiptWithQr, qrSlip } = await renderReceiptParts(
         payload,
         p.paperWidth ?? 80,
         printerRenderOptions(p),
       );
-      await writeToPrinter(p, joinReceiptAndQr(receipt, receiptWithQr, copies));
+      // Detached: plain receipts, then the QR on its own ticket.
+      const detached = (p as any).defaults?.qrDetached ? qrSlip : null;
+      await writeToPrinter(
+        p,
+        joinReceiptAndQr(receipt, receiptWithQr, copies, detached),
+      );
       printed++;
     } catch (e: any) {
       const label = (p as any)?.name ?? p.ipAddress ?? "printer";

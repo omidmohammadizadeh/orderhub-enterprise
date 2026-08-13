@@ -137,14 +137,18 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           // on the slip) while a reprint of the same order got the raster and
           // came out right. printFont was missing too, so the per-printer
           // typeface never applied to a first print either.
-          const { receipt, receiptWithQr } = await renderReceiptParts(
+          const { receipt, receiptWithQr, qrSlip } = await renderReceiptParts(
             payload,
             p.paperWidth ?? 80,
             printerRenderOptions(p),
           );
+          // Detached: plain receipts, then the QR on its own ticket. Applied
+          // here as well as on reprint — a setting that only worked on one of
+          // the two is exactly the drift this comment block already warns of.
+          const detached = (p as any).defaults?.qrDetached ? qrSlip : null;
           await writeToPrinter(
             p,
-            joinReceiptAndQr(receipt, receiptWithQr, copies),
+            joinReceiptAndQr(receipt, receiptWithQr, copies, detached),
           );
           printedAny = true;
           const msg = `Printed ${copies}× ${banner ? "cancellation" : "order"} #${
