@@ -41,7 +41,10 @@ import { queryKeys } from "@/lib/api/query-keys";
 import {
   resolveTileColour,
   tileColoursFromSettings,
+  tileSizeFromSettings,
+  TILE_SIZES,
   type TileColours,
+  type TileSize,
 } from "@/lib/pos/tile-colours";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
@@ -877,8 +880,19 @@ export default function PosPage() {
     () => tileColoursFromSettings((locationQuery.data as any)?.settings),
     [locationQuery.data],
   );
+  const tileSize = useMemo(
+    () => tileSizeFromSettings((locationQuery.data as any)?.settings),
+    [locationQuery.data],
+  );
+  const sizing = TILE_SIZES[tileSize];
   const saveColours = useMutation({
-    mutationFn: async (next: TileColours) => {
+    mutationFn: async ({
+      colours: next,
+      size,
+    }: {
+      colours: TileColours;
+      size: TileSize;
+    }) => {
       const settings = ((locationQuery.data as any)?.settings ?? {}) as Record<
         string,
         unknown
@@ -886,7 +900,11 @@ export default function PosPage() {
       return locationsClient.update(selectedLocationId!, {
         settings: {
           ...settings,
-          pos: { ...((settings.pos as object) ?? {}), tileColours: next },
+          pos: {
+            ...((settings.pos as object) ?? {}),
+            tileColours: next,
+            tileSize: size,
+          },
         },
       } as any);
     },
@@ -1292,7 +1310,7 @@ export default function PosPage() {
                   key={cat.id}
                   type="button"
                   onClick={() => setActiveCategoryId(cat.id)}
-                  className={`flex-shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                  className={`flex-shrink-0 rounded-lg border font-medium ${sizing.chip} ${
                     activeCategory?.id === cat.id
                       ? "border-zinc-900 bg-zinc-900 text-white"
                       : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300"
@@ -1312,7 +1330,7 @@ export default function PosPage() {
                   <p className="text-sm text-zinc-400">No items in this category.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
+                <div className={`grid gap-2 ${sizing.grid}`}>
                   {products.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -1323,6 +1341,7 @@ export default function PosPage() {
                         activeCategoryId,
                       )}
                       onClick={() => onProductClick(product)}
+                      sizing={sizing}
                     />
                   ))}
                 </div>
@@ -1406,8 +1425,9 @@ export default function PosPage() {
         open={coloursOpen}
         categories={colourableCategories}
         initial={tileColours}
+        initialSize={tileSize}
         saving={saveColours.isPending}
-        onSave={(next) => saveColours.mutate(next)}
+        onSave={(colours, size) => saveColours.mutate({ colours, size })}
         onClose={() => setColoursOpen(false)}
       />
 
@@ -1509,11 +1529,14 @@ function ProductCard({
   product,
   onClick,
   colour,
+  sizing,
 }: {
   product: MenuItem;
   onClick: () => void;
   /** Category colour, or the item's own override. Null = the plain tile. */
   colour?: { bg: string; border: string; fg?: string } | null;
+  /** Padding and text steps for the shop's chosen tile size. */
+  sizing: { pad: string; name: string; price: string };
 }) {
   // The strong shades carry their own text colour. The tile's usual near-black
   // on a dark navy is a label nobody can read across a counter, which would
@@ -1534,12 +1557,12 @@ function ProductCard({
             }
           : undefined
       }
-      className="flex flex-col items-start gap-1 rounded-lg border border-zinc-200 bg-white p-3 text-left transition-colors hover:border-zinc-900 hover:shadow-sm disabled:opacity-50"
+      className={`flex flex-col items-start gap-1 rounded-lg border border-zinc-200 bg-white text-left transition-colors hover:border-zinc-900 hover:shadow-sm disabled:opacity-50 ${sizing.pad}`}
       disabled={product.outOfStock}
     >
       <div className="flex w-full items-start justify-between gap-2">
         <span
-          className={`text-xs font-medium leading-snug line-clamp-2 ${
+          className={`font-medium leading-snug line-clamp-2 ${sizing.name} ${
             onDark ? "" : "text-zinc-900"
           }`}
         >
@@ -1552,7 +1575,7 @@ function ProductCard({
         )}
       </div>
       <span
-        className={`mt-0.5 text-xs ${onDark ? "opacity-90" : "text-zinc-500"}`}
+        className={`mt-0.5 ${sizing.price} ${onDark ? "opacity-90" : "text-zinc-500"}`}
       >
         {formatDisplayPrice(product as any)}
       </span>

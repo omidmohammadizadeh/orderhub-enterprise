@@ -5,6 +5,10 @@ const config: Config = {
   content: [
     "./src/app/**/*.{ts,tsx}",
     "./src/components/**/*.{ts,tsx}",
+    // lib too: shared style maps (e.g. the POS tile sizes) hold class strings,
+    // and a glob that misses them ships a page whose classes were never
+    // generated — no error, just no styling.
+    "./src/lib/**/*.{ts,tsx}",
     "./src/providers/**/*.{ts,tsx}",
     "../../packages/ui/src/**/*.{ts,tsx}",
   ],

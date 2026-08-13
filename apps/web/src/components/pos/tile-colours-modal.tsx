@@ -14,7 +14,9 @@ import { useMemo, useState } from "react";
 import { ChevronDown, Loader2, Paintbrush, RotateCcw, X } from "lucide-react";
 import {
   TILE_PALETTE,
+  TILE_SIZES,
   type TileColours,
+  type TileSize,
   paletteEntry,
 } from "@/lib/pos/tile-colours";
 import { cn } from "@/lib/utils";
@@ -29,6 +31,7 @@ export function TileColoursModal({
   open,
   categories,
   initial,
+  initialSize,
   saving,
   onSave,
   onClose,
@@ -36,11 +39,13 @@ export function TileColoursModal({
   open: boolean;
   categories: Category[];
   initial: TileColours;
+  initialSize: TileSize;
   saving: boolean;
-  onSave: (next: TileColours) => void;
+  onSave: (next: TileColours, size: TileSize) => void;
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState<TileColours>(initial);
+  const [size, setSize] = useState<TileSize>(initialSize);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // Remount on open so a cancelled edit doesn't linger into the next one.
@@ -48,6 +53,7 @@ export function TileColoursModal({
   if (open && !seen) {
     setSeen(true);
     setDraft(initial);
+    setSize(initialSize);
   }
   if (!open && seen) setSeen(false);
 
@@ -80,7 +86,7 @@ export function TileColoursModal({
       <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-t-2xl bg-white sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5">
           <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900">
-            <Paintbrush className="h-4 w-4" /> Tile colours
+            <Paintbrush className="h-4 w-4" /> Tile size &amp; colours
           </h2>
           <button
             onClick={onClose}
@@ -95,6 +101,43 @@ export function TileColoursModal({
           Colour a category and every item in it follows. Open a category to
           give one item a colour of its own.
         </p>
+
+        <div className="border-b border-zinc-100 px-5 py-3">
+          <p className="mb-2 text-xs font-medium text-zinc-600">Tile size</p>
+          <div className="grid grid-cols-4 gap-2">
+            {(Object.keys(TILE_SIZES) as TileSize[]).map((k) => {
+              const s = TILE_SIZES[k];
+              const active = size === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setSize(k)}
+                  aria-pressed={active}
+                  className={cn(
+                    "rounded-lg border px-2 py-2 text-center",
+                    active
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 text-zinc-700 hover:bg-zinc-50",
+                  )}
+                >
+                  <span className="block text-xs font-semibold">{s.label}</span>
+                  <span
+                    className={cn(
+                      "block text-[10px]",
+                      active ? "text-zinc-300" : "text-zinc-400",
+                    )}
+                  >
+                    {s.hint}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-1.5 text-[11px] text-zinc-400">
+            Changes the item tiles and the category buttons together.
+          </p>
+        </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-3">
           {categories.length === 0 ? (
@@ -197,7 +240,7 @@ export function TileColoursModal({
           </button>
           <button
             type="button"
-            onClick={() => onSave(draft)}
+            onClick={() => onSave(draft, size)}
             disabled={saving}
             className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
           >

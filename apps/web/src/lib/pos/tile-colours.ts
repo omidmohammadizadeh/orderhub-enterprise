@@ -87,3 +87,73 @@ export function tileColoursFromSettings(settings: unknown): TileColours {
     items: pos?.items ?? {},
   };
 }
+
+// ── Tile size ───────────────────────────────────────────────────────────────
+//
+// A POS screen might be a 24" counter monitor or an 8" tablet propped by the
+// phone, and the right tile is a different size on each. Rather than a pixel
+// value nobody can reason about, four named steps that move the grid AND the
+// text together — a bigger tile with the same tiny label is just more empty
+// box, which is the mistake a raw width slider invites.
+
+export type TileSize = "S" | "M" | "L" | "XL";
+
+export const TILE_SIZES: Record<
+  TileSize,
+  {
+    label: string;
+    hint: string;
+    /** Column counts — fewer columns is how a tile gets bigger. */
+    grid: string;
+    /** Product tile. */
+    pad: string;
+    name: string;
+    price: string;
+    /** Category chip, so the two scale together. */
+    chip: string;
+  }
+> = {
+  S: {
+    label: "Small",
+    hint: "Most items on screen",
+    grid: "grid-cols-3 md:grid-cols-5 xl:grid-cols-6",
+    pad: "p-2",
+    name: "text-[11px]",
+    price: "text-[11px]",
+    chip: "px-2.5 py-1 text-[11px]",
+  },
+  M: {
+    label: "Medium",
+    hint: "Default",
+    grid: "grid-cols-2 md:grid-cols-3 xl:grid-cols-4",
+    pad: "p-3",
+    name: "text-xs",
+    price: "text-xs",
+    chip: "px-3 py-1.5 text-xs",
+  },
+  L: {
+    label: "Large",
+    hint: "Easier to hit mid-rush",
+    grid: "grid-cols-2 md:grid-cols-3",
+    pad: "p-4",
+    name: "text-sm",
+    price: "text-sm",
+    chip: "px-4 py-2 text-sm",
+  },
+  XL: {
+    label: "Extra large",
+    hint: "Small screens, gloved hands",
+    grid: "grid-cols-1 md:grid-cols-2",
+    pad: "p-5",
+    name: "text-base",
+    price: "text-base",
+    chip: "px-5 py-2.5 text-base",
+  },
+};
+
+export const DEFAULT_TILE_SIZE: TileSize = "M";
+
+export function tileSizeFromSettings(settings: unknown): TileSize {
+  const v = (settings as any)?.pos?.tileSize;
+  return v && v in TILE_SIZES ? (v as TileSize) : DEFAULT_TILE_SIZE;
+}
