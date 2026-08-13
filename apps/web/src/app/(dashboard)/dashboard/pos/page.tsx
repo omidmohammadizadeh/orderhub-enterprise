@@ -23,6 +23,7 @@ import {
   X,
   SlidersHorizontal,
   ChevronLeft,
+  Paintbrush,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { round2, type SelectedModifier, type ProductSku } from "@orderhub/shared";
@@ -34,6 +35,14 @@ import {
   type PartialDraft,
 } from "@/components/pos/pos-cart-panel";
 import { PosStartScreen } from "@/components/pos/pos-start-screen";
+import { TileColoursModal } from "@/components/pos/tile-colours-modal";
+import { locationsClient } from "@/lib/api/locations.client";
+import { queryKeys } from "@/lib/api/query-keys";
+import {
+  resolveTileColour,
+  tileColoursFromSettings,
+  type TileColours,
+} from "@/lib/pos/tile-colours";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
 import { PaymentLinkModal } from "@/components/pos/payment-link-modal";
@@ -852,6 +861,55 @@ export default function PosPage() {
     if (tableId || editOrderId) setStep("menu");
   }, [tableId, editOrderId]);
 
+  // ── Tile colours ──────────────────────────────────────────────────────
+  // Held per location, so the same menu is the same colours on every till in
+  // the shop. Read once with the location and written back merged, because
+  // the API shallow-merges `settings` — sending { pos: { tileColours } } alone
+  // would wipe every other pos setting the shop has.
+  const [coloursOpen, setColoursOpen] = useState(false);
+  const locationQuery = useQuery({
+    queryKey: queryKeys.locationDetail(selectedLocationId ?? ""),
+    queryFn: () => locationsClient.get(selectedLocationId!),
+    enabled: !!selectedLocationId,
+    staleTime: 60_000,
+  });
+  const tileColours = useMemo(
+    () => tileColoursFromSettings((locationQuery.data as any)?.settings),
+    [locationQuery.data],
+  );
+  const saveColours = useMutation({
+    mutationFn: async (next: TileColours) => {
+      const settings = ((locationQuery.data as any)?.settings ?? {}) as Record<
+        string,
+        unknown
+      >;
+      return locationsClient.update(selectedLocationId!, {
+        settings: {
+          ...settings,
+          pos: { ...((settings.pos as object) ?? {}), tileColours: next },
+        },
+      } as any);
+    },
+    onSuccess: () => {
+      setColoursOpen(false);
+      void locationQuery.refetch();
+    },
+  });
+
+  /** Categories + their items, for the colour picker. */
+  const colourableCategories = useMemo(
+    () =>
+      categories.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        items: (c.items ?? [])
+          .map((l: any) => l.item)
+          .filter(Boolean)
+          .map((i: any) => ({ id: i.id, name: i.name })),
+      })),
+    [categories],
+  );
+
   /** Reminds staff which kind of order they're building, once past step 1. */
   const orderTypeLabel =
     draft.walkIn
@@ -863,6 +921,14 @@ export default function PosPage() {
           : null;
 
   const posTools = [
+    {
+      key: "tile-colours",
+      label: "Tile colours",
+      title: "Colour-code the menu tiles",
+      icon: Paintbrush,
+      onClick: () => setColoursOpen(true),
+      disabled: !selectedLocationId,
+    },
     {
       key: "drawer",
       // Always listed (not gated on the bridge) so staff can find it; on a
@@ -1237,6 +1303,11 @@ export default function PosPage() {
                     <ProductCard
                       key={product.id}
                       product={product}
+                      colour={resolveTileColour(
+                        tileColours,
+                        product.id,
+                        activeCategoryId,
+                      )}
                       onClick={() => onProductClick(product)}
                     />
                   ))}
@@ -1316,6 +1387,15 @@ export default function PosPage() {
 
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
+
+      <TileColoursModal
+        open={coloursOpen}
+        categories={colourableCategories}
+        initial={tileColours}
+        saving={saveColours.isPending}
+        onSave={(next) => saveColours.mutate(next)}
+        onClose={() => setColoursOpen(false)}
+      />
 
       {pinOpen && selectedLocationId && canManagePin && (
         <ManagerPinModal
@@ -1414,14 +1494,24 @@ export default function PosPage() {
 function ProductCard({
   product,
   onClick,
+  colour,
 }: {
   product: MenuItem;
   onClick: () => void;
+  /** Category colour, or the item's own override. Null = the plain tile. */
+  colour?: { bg: string; border: string } | null;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      // Inline rather than a class: the palette is data the shop chose, not
+      // something Tailwind can know about at build time.
+      style={
+        colour
+          ? { backgroundColor: colour.bg, borderColor: colour.border }
+          : undefined
+      }
       className="flex flex-col items-start gap-1 rounded-lg border border-zinc-200 bg-white p-3 text-left transition-colors hover:border-zinc-900 hover:shadow-sm disabled:opacity-50"
       disabled={product.outOfStock}
     >
