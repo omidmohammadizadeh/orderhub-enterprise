@@ -826,231 +826,25 @@ export function PosCartPanel(props: CartPanelProps) {
           </div>
         )}
 
-        {/* Customer / Guest */}
-        <Section title={dineIn ? "Guest (optional)" : "Customer"}>
-          {/* Walk-in — the counter case. Name and phone were already
-              optional for collection, but staff still tabbed through two
-              empty boxes on every order. One tap now skips them, and the
-              order is filed as "Walk-in" so reporting can separate counter
-              trade from phone and online. */}
-          {!dineIn && (
-            <button
-              type="button"
-              onClick={() => {
-                const next = !walkIn;
-                setWalkIn(next);
-                if (next) {
-                  setCustomerName("");
-                  setCustomerPhone("");
-                  setCallerId("");
-                  setSmsConsent(false);
-                }
-              }}
-              className={
-                "mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold " +
-                (walkIn
-                  ? "bg-zinc-900 text-white"
-                  : "border border-zinc-200 text-zinc-700 hover:bg-zinc-50")
-              }
-            >
-              {walkIn ? "✓ Walk-in — no details needed" : "🚶 Walk-in customer"}
-            </button>
-          )}
-          {!walkIn && (
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              value={customerName}
-              onChange={setCustomerName}
-              placeholder={dineIn ? "Guest name (optional)" : "Name"}
-            />
-            <Input
-              value={customerPhone}
-              onChange={setCustomerPhone}
-              placeholder={dineIn ? "Phone (optional)" : "Phone"}
-              type="tel"
-            />
-          </div>
-          )}
-          {/* Caller ID + SMS consent are phone-order concepts — a seated
-              guest never rings in, and consent capture happens online. */}
-          {!dineIn && !walkIn && (
-            <>
-              <div className="mt-2 flex items-center gap-1.5">
-                <Phone className="h-3 w-3 text-zinc-400" />
-                <Input
-                  value={callerId}
-                  onChange={setCallerId}
-                  placeholder="Caller ID (auto-populated by CTI integration)"
-                />
-              </div>
-              <label className="mt-2 flex cursor-pointer items-start gap-2 text-xs text-zinc-600">
-                <input
-                  type="checkbox"
-                  checked={smsConsent}
-                  onChange={(e) => setSmsConsent(e.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
-                />
-                <span>
-                  Customer agrees to receive offers &amp; updates by SMS
-                  <span className="block text-[10px] text-zinc-400">
-                    Untick if they decline. Adds them to your SMS marketing list.
-                  </span>
-                </span>
-              </label>
-            </>
-          )}
-          <div className="mt-2">
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={
-                dineIn
-                  ? "Kitchen notes for this round (allergies, cooking preferences…)"
-                  : "Order notes (e.g. allergies, instructions)"
-              }
-              rows={2}
-              className="w-full resize-none rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-            />
-          </div>
+        {/* Guest name — dine-in only. For takeaway, the customer was
+            captured on step 1; asking again here is a second place for
+            the same fact to drift out of step with the order. */}
+        {dineIn && (
+        <Section title="Guest (optional)">
+          <Input
+            value={customerName}
+            onChange={setCustomerName}
+            placeholder="Guest name"
+          />
         </Section>
-
-        {/* Order type — hidden for dine-in (the table card above owns it) */}
-        {!dineIn && (
-          <Section title="Order type">
-            <Toggle
-              value={fulfillmentType}
-              onChange={(v) => setFulfillmentType(v as FulfillmentType)}
-              options={[
-                { value: "PICKUP", label: "Collection" },
-                { value: "DELIVERY", label: "Delivery" },
-              ]}
-            />
-          </Section>
         )}
 
-        {/* Delivery address */}
-        {fulfillmentType === "DELIVERY" && (
-          <Section title="Delivery address">
-            {addrProvider !== "manual" && (
-              <div className="relative mb-2">
-                <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-400" />
-                <input
-                  value={addrQuery}
-                  onChange={(e) => setAddrQuery(e.target.value)}
-                  placeholder={`Search address (${addrProvider})`}
-                  className="w-full rounded-md border border-zinc-200 px-7 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-                />
-                {addrSearching && (
-                  <Loader2 className="absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 animate-spin text-zinc-400" />
-                )}
-                {addrSuggestions.length > 0 && (
-                  <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg">
-                    {addrSuggestions.map((s) => (
-                      <li key={s.id}>
-                        <button
-                          type="button"
-                          onClick={() => pickAddressSuggestion(s)}
-                          className="w-full px-2 py-1.5 text-left text-[11px] hover:bg-zinc-50"
-                        >
-                          {s.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-            <div className="space-y-1.5">
-              {/* Phase AP fix #3 — House/flat number gets its own row
-                  above line 1 so the operator never accidentally puts
-                  it on the street line. We use line2 as the canonical
-                  storage so the existing print payload / API doesn't
-                  need a new column. The placeholder is enough hint. */}
-              <Input value={addrLine2} onChange={setAddrLine2} placeholder="House / flat number" />
-              <Input value={addrLine1} onChange={setAddrLine1} placeholder="Street name" />
-              <div className="grid grid-cols-2 gap-2">
-                <Input value={city} onChange={setCity} placeholder="City" />
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    value={postcode}
-                    onChange={(e) => setPostcode(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => {
-                      // Pressing Enter inside the postcode field should
-                      // fire the lookup, like a search bar would.
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        runPostcodeLookup();
-                      }
-                    }}
-                    placeholder="Postcode"
-                    className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={runPostcodeLookup}
-                    disabled={pcLookupLoading || postcode.trim().length < 5}
-                    title={
-                      postcodeProvider === "manual"
-                        ? "Postcode lookup unavailable (set GETADDRESS_API_KEY)"
-                        : "Find addresses at this postcode"
-                    }
-                    className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 text-[10px] font-medium hover:bg-zinc-50 disabled:opacity-50"
-                  >
-                    {pcLookupLoading ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Search className="h-3 w-3" />
-                    )}
-                    Find
-                  </button>
-                </div>
-              </div>
 
-              {/* Postcode lookup results */}
-              {pcLookupNote && (
-                <p className="text-[10px] text-zinc-500">{pcLookupNote}</p>
-              )}
-              {pcLookupResults.length > 0 && (
-                <ul className="max-h-44 overflow-y-auto rounded-md border border-zinc-200 bg-white">
-                  {pcLookupResults.map((s) => (
-                    <li key={s.id}>
-                      <button
-                        type="button"
-                        onClick={() => pickAddressSuggestion(s)}
-                        className="w-full px-2 py-1.5 text-left text-[11px] leading-snug hover:bg-zinc-50"
-                      >
-                        {s.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+        {/* Order type and the customer's details are step 1's job now. Asking
+            again here gave two places to change the same thing, which is how
+            a cart ends up disagreeing with the order that gets placed. */}
 
-              {deliveryLookupNote && (
-                <p className="text-[10px] text-zinc-500">{deliveryLookupNote}</p>
-              )}
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] text-zinc-500">
-                  Manual fee override (£):
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={deliveryFeeOverride ?? ""}
-                  onChange={(e) =>
-                    setDeliveryFeeOverride(
-                      e.target.value === "" ? null : Number(e.target.value),
-                    )
-                  }
-                  className="w-20 rounded-md border border-zinc-200 px-1.5 py-0.5 text-[11px]"
-                  placeholder="auto"
-                />
-              </div>
-            </div>
-          </Section>
-        )}
+        {/* Delivery address is captured on step 1 and drives the fee below. */}
 
         {/* Expected time / schedule — takeaway-only. Dine-in food fires to
             the kitchen the moment the round is sent; there is nothing to
@@ -1119,6 +913,57 @@ export function PosCartPanel(props: CartPanelProps) {
               />
             </div>
           )}
+        </Section>
+        )}
+
+        {/* Payment — takeaway-only. A dine-in tab settles once, at the end,
+            via the "Pay & close" button (card terminal / cash), never per
+            round. */}
+        {!dineIn && (
+        <Section title="Payment">
+          <div className="grid grid-cols-2 gap-1.5">
+            {(
+              [
+                { value: "PAY_ON_COLLECTION", label: "Pay on collection" },
+                { value: "CASH", label: "Cash" },
+                { value: "CARD_TERMINAL", label: "Card terminal" },
+                { value: "ONLINE_CARD", label: "Online card" },
+                { value: "PAYMENT_LINK", label: "Payment link" },
+                { value: "QR_CODE", label: "QR code" },
+                { value: "EXTERNAL", label: "External" },
+              ] as const
+            )
+              // One allowlist per order type, rather than a pile of
+              // subtractions. What can actually be taken depends entirely on
+              // whether the customer is standing there:
+              //
+              //  Collection — they're not here yet, so nothing can be taken
+              //    at the counter. Offering Cash and Card terminal is what
+              //    produced orders recorded as "cash" that were paid by card.
+              //    Both come back on the order card when they arrive.
+              //  Walk-in   — they're at the till, so everything works.
+              //  Delivery  — settled by the driver or remotely.
+              .filter((opt) => allowedPayments.includes(opt.value))
+              .map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setPaymentMethod(opt.value)}
+                disabled={opt.value === "ONLINE_CARD" && !online}
+                className={`rounded-md border px-2 py-1.5 text-[11px] ${
+                  paymentMethod === opt.value
+                    ? "border-zinc-900 bg-zinc-900 text-white"
+                    : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
+                } disabled:opacity-40`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-[10px] text-zinc-500">
+            Online card &amp; Payment link require Stripe. Payment link places the
+            order as pending and shows a QR/link for the customer to pay.
+          </p>
         </Section>
         )}
 
@@ -1202,56 +1047,22 @@ export function PosCartPanel(props: CartPanelProps) {
           )}
         </Section>
 
-        {/* Payment — takeaway-only. A dine-in tab settles once, at the end,
-            via the "Pay & close" button (card terminal / cash), never per
-            round. */}
-        {!dineIn && (
-        <Section title="Payment">
-          <div className="grid grid-cols-2 gap-1.5">
-            {(
-              [
-                { value: "PAY_ON_COLLECTION", label: "Pay on collection" },
-                { value: "CASH", label: "Cash" },
-                { value: "CARD_TERMINAL", label: "Card terminal" },
-                { value: "ONLINE_CARD", label: "Online card" },
-                { value: "PAYMENT_LINK", label: "Payment link" },
-                { value: "QR_CODE", label: "QR code" },
-                { value: "EXTERNAL", label: "External" },
-              ] as const
-            )
-              // One allowlist per order type, rather than a pile of
-              // subtractions. What can actually be taken depends entirely on
-              // whether the customer is standing there:
-              //
-              //  Collection — they're not here yet, so nothing can be taken
-              //    at the counter. Offering Cash and Card terminal is what
-              //    produced orders recorded as "cash" that were paid by card.
-              //    Both come back on the order card when they arrive.
-              //  Walk-in   — they're at the till, so everything works.
-              //  Delivery  — settled by the driver or remotely.
-              .filter((opt) => allowedPayments.includes(opt.value))
-              .map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setPaymentMethod(opt.value)}
-                disabled={opt.value === "ONLINE_CARD" && !online}
-                className={`rounded-md border px-2 py-1.5 text-[11px] ${
-                  paymentMethod === opt.value
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
-                } disabled:opacity-40`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <p className="mt-1 text-[10px] text-zinc-500">
-            Online card &amp; Payment link require Stripe. Payment link places the
-            order as pending and shows a QR/link for the customer to pay.
-          </p>
+        {/* Notes — last, because a kitchen note is written after the food is
+            chosen, not before it. */}
+        <Section title="Notes">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={
+              dineIn
+                ? "Kitchen notes for this round (allergies, cooking preferences…)"
+                : "Order notes (e.g. allergies, instructions)"
+            }
+            rows={2}
+            className="w-full resize-none rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+          />
         </Section>
-        )}
+
       </div>
 
       {/* Footer totals + submit */}

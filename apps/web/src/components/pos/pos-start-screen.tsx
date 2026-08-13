@@ -21,7 +21,7 @@
 // Caller ID is untouched: it still fills the phone, name and last-used address
 // through the same draft this screen reads and writes.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bike,
   ShoppingBag,
@@ -84,15 +84,12 @@ export function PosStartScreen({
   onDraftChange,
   onContinue,
   cartCount,
-  tools,
 }: {
   draft: PartialDraft;
   onDraftChange: (next: PartialDraft) => void;
   onContinue: () => void;
   /** Shown on the continue button when returning to a started order. */
   cartCount: number;
-  /** Delivery fee, cash drawer, promos, service charge — kept on this step. */
-  tools?: React.ReactNode;
 }) {
   const type = orderTypeOf(draft);
   const set = (patch: Partial<PartialDraft>) =>
@@ -207,9 +204,6 @@ export function PosStartScreen({
         </div>
       )}
 
-      {/* ── Tools: delivery fee, cash drawer, promos, service charge ── */}
-      {tools}
-
       {/* ── Continue ──
           Fixed to the bottom so it's under the thumb on a tablet, whatever
           the form above has grown to. */}
@@ -282,11 +276,9 @@ function AddressField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AddressSuggestion[]>([]);
   const [searching, setSearching] = useState(false);
-  const [manual, setManual] = useState(false);
-  const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (manual || query.trim().length < 3) {
+    if (query.trim().length < 3) {
       setResults([]);
       return;
     }
@@ -303,7 +295,7 @@ function AddressField({
       cancelled = true;
       clearTimeout(t);
     };
-  }, [query, manual]);
+  }, [query]);
 
   /** Mirrors the cart panel: only overwrite what the suggestion actually
    *  provides. The postcodes.io fallback returns an empty line1, and picking
@@ -333,109 +325,74 @@ function AddressField({
     }
   };
 
-  const chosen = draft.addressLine1?.trim();
-
   return (
     <Field label="Delivery address" Icon={MapPin} required>
-      {chosen && !manual ? (
-        <div className="flex items-start justify-between gap-2 rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5">
-          <div className="min-w-0 text-sm text-zinc-800">
-            <div className="truncate">{draft.addressLine1}</div>
-            <div className="truncate text-xs text-zinc-500">
-              {[draft.addressLine2, draft.city, draft.postcode]
-                .filter(Boolean)
-                .join(", ")}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() =>
-              set({ addressLine1: "", addressLine2: "", city: "", postcode: "" })
-            }
-            className="flex-shrink-0 text-xs font-medium text-zinc-500 underline hover:text-zinc-900"
-          >
-            Change
-          </button>
-        </div>
-      ) : (
-        <div ref={boxRef} className="relative space-y-2">
-          {!manual ? (
-            <>
-              <div className="relative">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Start typing a postcode or street…"
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-3 text-base outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900"
-                />
-                {searching && (
-                  <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-zinc-400" />
+      {/* Search first — one tap fills the four fields below. */}
+      <div className="relative">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search a postcode or street…"
+          className="w-full rounded-lg border border-zinc-300 px-3 py-3 text-base outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900"
+        />
+        {searching && (
+          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-zinc-400" />
+        )}
+        {results.length > 0 && (
+          <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg">
+            {results.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => void pick(r)}
+                className="block w-full px-3 py-2.5 text-left text-sm hover:bg-zinc-50"
+              >
+                {r.label || r.line1}
+                {r.postcode && (
+                  <span className="ml-1 text-xs text-zinc-400">{r.postcode}</span>
                 )}
-              </div>
-              {results.length > 0 && (
-                <div className="max-h-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-sm">
-                  {results.map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => void pick(r)}
-                      className="block w-full px-3 py-2.5 text-left text-sm hover:bg-zinc-50"
-                    >
-                      {r.label || r.line1}
-                      {r.postcode && (
-                        <span className="ml-1 text-xs text-zinc-400">
-                          {r.postcode}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {/* Lookup fails, rural addresses don't exist in it, and the
-                  phone is still ringing. Always leave a way through. */}
-              <button
-                type="button"
-                onClick={() => setManual(true)}
-                className="text-xs font-medium text-zinc-500 underline hover:text-zinc-900"
-              >
-                Enter the address manually
               </button>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <input
-                value={draft.addressLine1 ?? ""}
-                onChange={(e) => set({ addressLine1: e.target.value })}
-                placeholder="Address line 1"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  value={draft.city ?? ""}
-                  onChange={(e) => set({ city: e.target.value })}
-                  placeholder="Town / city"
-                  className="rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
-                />
-                <input
-                  value={draft.postcode ?? ""}
-                  onChange={(e) =>
-                    set({ postcode: e.target.value.toUpperCase() })
-                  }
-                  placeholder="Postcode"
-                  className="rounded-lg border border-zinc-300 px-3 py-2.5 text-sm uppercase outline-none focus:border-zinc-900"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setManual(false)}
-                className="text-xs font-medium text-zinc-500 underline hover:text-zinc-900"
-              >
-                Search for an address instead
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ...and the parts stay visible and editable.
+          A lookup result is a starting point, not the answer: it never knows
+          the flat number, it misses new builds, and caller ID fills these in
+          from the customer's last order. Hiding them behind a "change" button
+          made the one field a driver actually needs — which flat — the
+          hardest to reach. */}
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        <input
+          value={draft.addressLine2 ?? ""}
+          onChange={(e) => set({ addressLine2: e.target.value })}
+          placeholder="Flat / house no."
+          aria-label="Flat or house number"
+          className="col-span-1 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+        />
+        <input
+          value={draft.addressLine1 ?? ""}
+          onChange={(e) => set({ addressLine1: e.target.value })}
+          placeholder="Address line"
+          aria-label="Address line"
+          className="col-span-2 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+        />
+        <input
+          value={draft.city ?? ""}
+          onChange={(e) => set({ city: e.target.value })}
+          placeholder="City"
+          aria-label="City"
+          className="col-span-2 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+        />
+        <input
+          value={draft.postcode ?? ""}
+          onChange={(e) => set({ postcode: e.target.value.toUpperCase() })}
+          placeholder="Postcode"
+          aria-label="Postcode"
+          className="col-span-1 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm uppercase outline-none focus:border-zinc-900"
+        />
+      </div>
       <p className="text-[11px] text-zinc-400">
         The postcode sets the delivery fee on the next step.
       </p>

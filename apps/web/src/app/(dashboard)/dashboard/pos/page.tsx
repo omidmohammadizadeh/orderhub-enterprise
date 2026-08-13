@@ -147,9 +147,8 @@ export default function PosPage() {
    * says who it's for, and an edited order was answered when it was placed.
    */
   const [step, setStep] = useState<"start" | "menu">("start");
-  /** Phone only — the cart is a full-screen step rather than a side column.
-   *  Ignored from md up, where the cart is always on screen. */
-  const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  /** The cart is a sheet over the menu at every size — see the render. */
+  const [cartOpen, setCartOpen] = useState(false);
   /** Phone only — the header tools live in a bottom sheet. */
   const [toolsOpen, setToolsOpen] = useState(false);
   /** Summary for the phone bottom bar. Modifier prices are included so the
@@ -648,6 +647,7 @@ export default function PosPage() {
         setCart([]);
         setDraft({});
         setCartResetKey((k) => k + 1);
+        setCartOpen(false);
         if (selectedLocationId) clearCartDraft(cartScopeKey);
         void tableQuery.refetch();
         void tabOrderQuery.refetch();
@@ -664,6 +664,7 @@ export default function PosPage() {
         setDraft({});
         setCartResetKey((k) => k + 1);
         setStep("start");
+      setCartOpen(false); // don't leave the sheet open over an empty cart
         if (selectedLocationId) clearCartDraft(cartScopeKey);
         window.setTimeout(() => setSubmitFeedback(null), 6000);
         return;
@@ -698,7 +699,8 @@ export default function PosPage() {
       setCart([]);
       setDraft({});
       setCartResetKey((k) => k + 1); // wipe the panel's internal fields
-      setStep("start"); // next order starts by asking who it's for
+      setStep("start");
+      setCartOpen(false); // don't leave the sheet open over an empty cart // next order starts by asking who it's for
       if (selectedLocationId) clearCartDraft(cartScopeKey);
       if (edited) {
         // Drop edit-mode and return to a fresh POS cart.
@@ -1183,22 +1185,6 @@ export default function PosPage() {
           onDraftChange={setDraft}
           onContinue={() => setStep("menu")}
           cartCount={cartCount}
-          tools={
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {posTools.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={t.onClick}
-                  disabled={t.disabled}
-                  title={t.title}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
-                >
-                  <t.icon className="h-4 w-4" /> {t.label}
-                </button>
-              ))}
-            </div>
-          }
         />
       ) : (
         <div className="grid flex-1 grid-cols-1 gap-3 overflow-hidden md:grid-cols-12">
@@ -1207,7 +1193,7 @@ export default function PosPage() {
               at ~156px each on a 375px screen, which is narrower than a
               single product tile. Below md the cart becomes a full-screen
               step instead (see the bottom bar). */}
-          <div className="flex flex-col gap-3 overflow-hidden md:col-span-7 lg:col-span-8">
+          <div className="flex flex-col gap-3 overflow-hidden md:col-span-12">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
@@ -1239,7 +1225,7 @@ export default function PosPage() {
 
             {/* Extra bottom padding on a phone so the last row of products
                 isn't sitting under the fixed cart bar. */}
-            <div className="flex-1 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-3 pb-24 md:pb-3">
+            <div className="flex-1 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-3 pb-24">
               {products.length === 0 ? (
                 <div className="py-12 text-center">
                   <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
@@ -1259,21 +1245,22 @@ export default function PosPage() {
             </div>
           </div>
 
-          {/* Right — cart panel.
-              Tablet and up: the familiar side column, unchanged.
-              Phone: a full-screen sheet, opened from the bottom bar. Taking
-              an order on a phone is two steps (pick items, then settle) and
-              pretending otherwise gives you two unusable half-screens. */}
+          {/* The cart is a sheet at every size now, not a side column.
+              Half the screen sat on a cart that is empty for the first half of
+              every order, while the menu — the thing staff are actually
+              tapping — was squeezed into the other half. Kiosk-style: the menu
+              gets the room, and the cart is one tap away. */}
           <div
-            className={`flex-col overflow-hidden md:col-span-5 md:static md:z-auto md:flex md:bg-transparent md:p-0 lg:col-span-4 ${
-              mobileCartOpen ? "fixed inset-0 z-50 flex bg-white p-3" : "hidden"
+            className={`flex-col overflow-hidden ${
+              cartOpen
+                ? "fixed inset-0 z-50 flex bg-white p-3 md:inset-y-0 md:left-auto md:right-0 md:w-[26rem] md:border-l md:border-zinc-200 md:shadow-2xl"
+                : "hidden"
             }`}
           >
-            {/* Phone-only way back to the menu. */}
             <button
               type="button"
-              onClick={() => setMobileCartOpen(false)}
-              className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 md:hidden"
+              onClick={() => setCartOpen(false)}
+              className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700"
             >
               <X className="h-4 w-4" />
               Back to menu
@@ -1309,11 +1296,11 @@ export default function PosPage() {
               Sits above the iOS home indicator via safe-area padding, and
               only exists while the cart sheet is closed so it can't cover
               the Place order button underneath it. */}
-          {!mobileCartOpen && cart.length > 0 && (
-            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden">
+          {!cartOpen && (
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
               <button
                 type="button"
-                onClick={() => setMobileCartOpen(true)}
+                onClick={() => setCartOpen(true)}
                 className="flex w-full items-center justify-between rounded-lg bg-zinc-900 px-4 py-3 text-sm font-semibold text-white"
               >
                 <span className="inline-flex items-center gap-2">
