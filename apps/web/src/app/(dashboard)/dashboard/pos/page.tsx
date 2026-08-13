@@ -920,7 +920,18 @@ export default function PosPage() {
           ? "Collection"
           : null;
 
-  const posTools = [
+  // `show` is REQUIRED, and typed that way deliberately: the array is filtered
+  // on it below, so an entry that omits it is dropped silently — the button is
+  // simply never there, with nothing to debug. That cost a round trip once.
+  const posTools: Array<{
+    key: string;
+    label: string;
+    title: string;
+    icon: React.ComponentType<{ className?: string }>;
+    onClick: () => void;
+    disabled?: boolean;
+    show: boolean;
+  }> = [
     {
       key: "tile-colours",
       label: "Tile colours",
@@ -928,6 +939,9 @@ export default function PosPage() {
       icon: Paintbrush,
       onClick: () => setColoursOpen(true),
       disabled: !selectedLocationId,
+      // Required: the array is filtered by `show` below, so an entry without
+      // it is silently dropped rather than rendered.
+      show: true,
     },
     {
       key: "drawer",
