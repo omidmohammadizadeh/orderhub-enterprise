@@ -52,6 +52,7 @@ import {
   type AnalyticsOverview,
 } from "@/lib/api/analytics.client";
 import { brandsClient, locationsClient } from "@/lib/api/locations.client";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 // Channel catalog for the Filter popover. Same list and same popover the
 // Orders board uses, so "which channels am I looking at" is answered the
@@ -302,30 +303,36 @@ export default function AnalyticsPage() {
           )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <select
-            value={locationId}
-            onChange={(e) => setLocationId(e.target.value)}
-            className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs"
-          >
-            <option value="">All locations</option>
-            {(locationsQuery.data ?? []).map((l: any) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={brandId}
-            onChange={(e) => setBrandId(e.target.value)}
-            className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs"
-          >
-            <option value="">All brands</option>
-            {(brandsQuery.data ?? []).map((b: any) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+          {/* Typeable rather than a native select: a group with twenty
+              locations turns a one-tap filter into a scroll-and-scan. */}
+          <SearchableSelect
+            className="w-full"
+            buttonClassName="px-2 py-1.5 text-xs"
+            allLabel="All locations"
+            placeholder="All locations"
+            searchPlaceholder="Search locations…"
+            emptyLabel="No location by that name"
+            value={locationId || undefined}
+            onChange={(v) => setLocationId(v ?? "")}
+            options={(locationsQuery.data ?? []).map((l: any) => ({
+              value: l.id,
+              label: l.name,
+            }))}
+          />
+          <SearchableSelect
+            className="w-full"
+            buttonClassName="px-2 py-1.5 text-xs"
+            allLabel="All brands"
+            placeholder="All brands"
+            searchPlaceholder="Search brands…"
+            emptyLabel="No brand by that name"
+            value={brandId || undefined}
+            onChange={(v) => setBrandId(v ?? "")}
+            options={(brandsQuery.data ?? []).map((b: any) => ({
+              value: b.id,
+              label: b.name,
+            }))}
+          />
           {/* Channel filter — same Filter popover as the Orders board. */}
           <div className="relative" ref={channelFilterRef}>
             <button

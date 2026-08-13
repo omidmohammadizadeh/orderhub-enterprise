@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, ChevronDown, Check } from "lucide-react";
+import { Building2, ChevronDown, Check, Search } from "lucide-react";
 import { locationsClient, type Location } from "../../lib/api/locations.client";
 import { useSelectedLocationStore } from "../../stores/selected-location.store";
 
@@ -56,6 +56,10 @@ export function SidebarLocationSwitcher() {
   const selected = locations?.find((l) => l.id === selectedLocationId) ?? null;
 
   const [open, setOpen] = useState(false);
+  // Typing beats scrolling once a group passes a handful of shops, and this
+  // switcher is the most-used control in the app.
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,6 +70,21 @@ export function SidebarLocationSwitcher() {
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
+
+  // Straight into the box, and cleared on close so reopening starts fresh.
+  useEffect(() => {
+    if (open) searchRef.current?.focus();
+    else setQuery("");
+  }, [open]);
+
+  const q = query.trim().toLowerCase();
+  const shown = q
+    ? (locations ?? []).filter((l: Location) =>
+        [l.name, (l as any).city]
+          .filter(Boolean)
+          .some((f) => String(f).toLowerCase().includes(q)),
+      )
+    : (locations ?? []);
 
   const display =
     selected?.name ?? (allowAll ? "All locations" : "Select location");
@@ -98,8 +117,22 @@ export function SidebarLocationSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-72 overflow-y-auto rounded-lg border border-white/[0.08] bg-[#161617] py-1 shadow-xl shadow-black/40">
-          {allowAll && (
+        <div className="absolute left-0 right-0 top-full z-40 mt-1 overflow-hidden rounded-lg border border-white/[0.08] bg-[#161617] shadow-xl shadow-black/40">
+          {/* Only worth the row when there's enough to search through. */}
+          {(locations?.length ?? 0) > 5 && (
+            <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2">
+              <Search className="h-3.5 w-3.5 flex-shrink-0 text-zinc-500" />
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search locations…"
+                className="w-full bg-transparent text-xs text-zinc-100 outline-none placeholder:text-zinc-500"
+              />
+            </div>
+          )}
+          <div className="max-h-72 overflow-y-auto py-1">
+          {allowAll && !q && (
             <SwitcherRow
               label="All locations"
               hint="Combined view across every location"
@@ -110,12 +143,12 @@ export function SidebarLocationSwitcher() {
               }}
             />
           )}
-          {locations?.length ? (
+          {shown.length ? (
             <>
-              {allowAll && (
+              {allowAll && !q && (
                 <div className="my-1 mx-3 h-px bg-white/[0.06]" />
               )}
-              {locations.map((loc: Location) => (
+              {shown.map((loc: Location) => (
                 <SwitcherRow
                   key={loc.id}
                   label={loc.name}
@@ -130,9 +163,10 @@ export function SidebarLocationSwitcher() {
             </>
           ) : (
             <p className="px-3 py-2 text-[11px] text-zinc-500">
-              No locations yet.
+              {q ? "No location by that name." : "No locations yet."}
             </p>
           )}
+          </div>
         </div>
       )}
     </div>
