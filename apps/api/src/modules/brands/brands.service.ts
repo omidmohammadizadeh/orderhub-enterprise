@@ -413,14 +413,20 @@ export class BrandsService {
   }
 
   // Phase AW — unique slug generator for the brand storefront URL.
-  // Same shape as locations.generateUniqueSlug: derive a base from the
-  // name, suffix -2/-3 until a free one exists. Scoped per-tenant
-  // because onlineOrderingSlug is globally unique.
+  // Derive a base from the name, suffix -2/-3 until a free one exists.
+  //
+  // Deliberately does NOT filter on deletedAt. The unique index on
+  // onlineOrderingSlug covers every row in the table, deleted or not, so a
+  // probe that skipped soft-deleted brands would keep handing back a slug the
+  // database then refuses. That is exactly what happened when an operator
+  // deleted a brand and recreated it under the right location: the generator
+  // saw no live clash, returned the same slug, and the update 500'd on the
+  // dead row still holding it.
   async generateUniqueSlug(
     name: string,
     ignoreBrandId?: string,
   ): Promise<string> {
-    const base = slugify(name);
+    const base = slugify(name) || "brand";
     let candidate = base;
     let counter = 1;
     // eslint-disable-next-line no-constant-condition
@@ -428,7 +434,6 @@ export class BrandsService {
       const clash = await this.prisma.brand.findFirst({
         where: {
           onlineOrderingSlug: candidate,
-          deletedAt: null,
           ...(ignoreBrandId && { NOT: { id: ignoreBrandId } }),
         },
         select: { id: true },
@@ -443,24 +448,50 @@ export class BrandsService {
    *  resolved slug — the controller decorates it with the public URL. */
   async setSlug(brandId: string, tenantId: string, requestedSlug?: string | null) {
     const brand = await this.assertAccess(brandId, tenantId);
-    const slug = requestedSlug
-      ? slugify(requestedSlug)
-      : await this.generateUniqueSlug(brand.name, brandId);
+
     if (requestedSlug) {
+      const slug = slugify(requestedSlug);
+      // No deletedAt filter, for the reason in generateUniqueSlug: the index
+      // is global. A slug held by a deleted brand is genuinely taken, and the
+      // operator needs to be told that rather than shown a 500.
       const clash = await this.prisma.brand.findFirst({
-        where: {
-          onlineOrderingSlug: slug,
-          deletedAt: null,
-          NOT: { id: brandId },
-        },
-        select: { id: true },
+        where: { onlineOrderingSlug: slug, NOT: { id: brandId } },
+        select: { id: true, deletedAt: true },
       });
-      if (clash) throw new ConflictException("Slug already taken");
+      if (clash) {
+        throw new ConflictException(
+          clash.deletedAt
+            ? "That link was used by a brand that has since been deleted. Choose a different one."
+            : "Slug already taken",
+        );
+      }
+      return this.prisma.brand.update({
+        where: { id: brandId },
+        data: { onlineOrderingSlug: slug, directOrderingEnabled: true },
+      });
     }
-    return this.prisma.brand.update({
-      where: { id: brandId },
-      data: { onlineOrderingSlug: slug, directOrderingEnabled: true },
-    });
+
+    // Auto-generate. The probe and the write aren't atomic, so two operators
+    // minting a link at once can still collide — retry rather than fail, since
+    // the caller asked for "a" link, not a specific one.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const slug = await this.generateUniqueSlug(brand.name, brandId);
+      try {
+        return await this.prisma.brand.update({
+          where: { id: brandId },
+          data: { onlineOrderingSlug: slug, directOrderingEnabled: true },
+        });
+      } catch (e: any) {
+        // P2002 = unique violation. Anything else is a real error.
+        if (e?.code !== "P2002") throw e;
+        this.logger.warn(
+          `Slug "${slug}" taken between probe and write for brand ${brandId} — retrying`,
+        );
+      }
+    }
+    throw new ConflictException(
+      "Couldn't generate a free online-ordering link. Please set one manually.",
+    );
   }
 
   // Phase AS-6 — public storefront resolver. Returns the brand + its
@@ -703,9 +734,19 @@ export class BrandsService {
     }
     // Soft delete — historical orders keep their brandId, so reporting and
     // past receipts stay intact.
+    //
+    // The storefront link is released, though. It's a globally unique column,
+    // so a deleted brand that keeps its slug holds that name hostage forever —
+    // and the commonest reason to delete a brand is having created it in the
+    // wrong place and wanting to make it again properly. The public page for a
+    // deleted brand shouldn't resolve anyway.
     await this.prisma.brand.update({
       where: { id: brandId },
-      data: { deletedAt: new Date() },
+      data: {
+        deletedAt: new Date(),
+        onlineOrderingSlug: null,
+        directOrderingEnabled: false,
+      },
     });
   }
 
