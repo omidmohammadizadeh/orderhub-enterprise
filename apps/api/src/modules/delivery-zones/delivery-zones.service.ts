@@ -12,7 +12,10 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 export interface CreateDeliveryZoneDto {
   locationId?: string;
   brandId?: string;
-  postcodePrefix: string;
+  /** Postcode mode. Exactly one of this or maxDistanceMiles. */
+  postcodePrefix?: string;
+  /** Radius mode — the outer edge of this band, in miles. */
+  maxDistanceMiles?: number;
   fee: number;
   minOrderValue?: number;
   isActive?: boolean;
@@ -20,6 +23,7 @@ export interface CreateDeliveryZoneDto {
 
 export interface UpdateDeliveryZoneDto {
   postcodePrefix?: string;
+  maxDistanceMiles?: number | null;
   fee?: number;
   minOrderValue?: number | null;
   isActive?: boolean;
@@ -31,6 +35,61 @@ export interface LookupResult {
   postcodePrefix?: string;
   fee: number;
   minOrderValue?: number | null;
+  /** Radius mode only — how far the customer is, for the UI to show. */
+  distanceMiles?: number;
+  /** True when the address is past the furthest band and paying the top rate. */
+  beyondLastBand?: boolean;
+}
+
+/**
+ * Straight-line miles between two points.
+ *
+ * As-the-crow-flies, matching how Uber and Deliveroo draw their radius. It is
+ * not driving distance — a customer two miles across the river can be a six
+ * mile drive — but it costs nothing, answers instantly, and is what operators
+ * are used to seeing on a map. Driving distance would mean a paid routing call
+ * on every basket change.
+ */
+export function milesBetween(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 3958.7613; // Earth radius in miles
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/**
+ * Which band a distance falls in.
+ *
+ * Bands are outer edges: 3.0 then 4.0 means 0–3 miles and 3–4 miles. The
+ * smallest band that still covers the distance wins.
+ *
+ * Past the furthest band we charge the TOP band rather than refusing. That
+ * matches the rule already agreed for unrecognised postcodes — an order that
+ * quotes nothing is an order that goes out with no delivery fee charged, which
+ * is the failure that costs the shop money. `beyondLastBand` is set so the UI
+ * can say so.
+ */
+export function resolveRadiusBand<T extends { maxDistanceMiles: unknown }>(
+  bands: T[],
+  distanceMiles: number,
+): { band: T; beyondLastBand: boolean } | null {
+  const sorted = [...bands]
+    .filter((b) => b.maxDistanceMiles != null)
+    .sort((x, y) => Number(x.maxDistanceMiles) - Number(y.maxDistanceMiles));
+  if (!sorted.length) return null;
+  const hit = sorted.find((b) => distanceMiles <= Number(b.maxDistanceMiles));
+  return hit
+    ? { band: hit, beyondLastBand: false }
+    : { band: sorted[sorted.length - 1]!, beyondLastBand: true };
 }
 
 export function normalisePostcode(raw: string): string {
@@ -74,8 +133,23 @@ export class DeliveryZonesService {
   }
 
   async create(tenantId: string, dto: CreateDeliveryZoneDto) {
-    const prefix = normalisePostcode(dto.postcodePrefix);
-    if (!prefix) throw new BadRequestException("postcodePrefix is required");
+    const prefix = normalisePostcode(dto.postcodePrefix ?? "");
+    const radius = dto.maxDistanceMiles;
+    // One or the other. A row that is both would match twice and quote two
+    // different fees depending on which resolver ran.
+    if (prefix && radius != null) {
+      throw new BadRequestException(
+        "A zone is either a postcode prefix or a distance band, not both",
+      );
+    }
+    if (!prefix && radius == null) {
+      throw new BadRequestException(
+        "postcodePrefix or maxDistanceMiles is required",
+      );
+    }
+    if (radius != null && !(radius > 0)) {
+      throw new BadRequestException("maxDistanceMiles must be greater than 0");
+    }
     if (dto.fee < 0) throw new BadRequestException("fee must be ≥ 0");
     if (!dto.locationId && !dto.brandId) {
       throw new BadRequestException("locationId or brandId is required");
@@ -93,7 +167,8 @@ export class DeliveryZonesService {
         tenantId,
         locationId: dto.locationId ?? null,
         brandId: dto.brandId ?? null,
-        postcodePrefix: prefix,
+        postcodePrefix: prefix || null,
+        maxDistanceMiles: radius ?? null,
         fee: dto.fee,
         minOrderValue: dto.minOrderValue ?? null,
         isActive: dto.isActive ?? true,
@@ -111,7 +186,10 @@ export class DeliveryZonesService {
       where: { id },
       data: {
         ...(dto.postcodePrefix !== undefined && {
-          postcodePrefix: normalisePostcode(dto.postcodePrefix),
+          postcodePrefix: normalisePostcode(dto.postcodePrefix) || null,
+        }),
+        ...(dto.maxDistanceMiles !== undefined && {
+          maxDistanceMiles: dto.maxDistanceMiles,
         }),
         ...(dto.fee !== undefined && { fee: dto.fee }),
         ...(dto.minOrderValue !== undefined && { minOrderValue: dto.minOrderValue }),
@@ -146,12 +224,26 @@ export class DeliveryZonesService {
       where: { locationId, isActive: true },
     });
 
-    // Match the LONGEST prefix that the postcode starts with.
+    // Radius mode: if this location has distance bands, they ARE the fee
+    // model. Delegating here rather than at every call site means the
+    // storefront, POS and cart panel all get radius support without knowing
+    // it exists — and a shop can't end up quoting by postcode in one surface
+    // and by distance in another.
+    if (zones.some((z) => z.maxDistanceMiles != null)) {
+      return this.lookupByDistance(tenantId, { locationId }, { postcode });
+    }
+
+    // Match the LONGEST prefix that the postcode starts with. Radius rows
+    // carry no prefix, so they're skipped here.
     let best: (typeof zones)[number] | null = null;
     for (const z of zones) {
+      if (!z.postcodePrefix) continue;
       const zp = normalisePostcode(z.postcodePrefix);
       if (normalised.startsWith(zp)) {
-        if (!best || zp.length > normalisePostcode(best.postcodePrefix).length) {
+        if (
+          !best ||
+          zp.length > normalisePostcode(best.postcodePrefix ?? "").length
+        ) {
           best = z;
         }
       }
@@ -162,9 +254,152 @@ export class DeliveryZonesService {
     return {
       matched: true,
       zoneId: best.id,
-      postcodePrefix: best.postcodePrefix,
+      postcodePrefix: best.postcodePrefix ?? undefined,
       fee: Number(best.fee),
       minOrderValue: best.minOrderValue !== null ? Number(best.minOrderValue) : null,
     };
+  }
+
+  /**
+   * Quote by distance rather than postcode.
+   *
+   * Takes the customer's coordinates where the caller has them (an address
+   * picked from the lookup carries lat/lng) and otherwise geocodes their
+   * postcode — a centroid is easily precise enough for a one-mile band, and
+   * without the fallback every hand-typed address would quote nothing.
+   */
+  async lookupByDistance(
+    tenantId: string,
+    scope: { locationId?: string; brandId?: string },
+    customer: { lat?: number; lng?: number; postcode?: string },
+  ): Promise<LookupResult> {
+    const zones = await this.prisma.deliveryZone.findMany({
+      where: {
+        isActive: true,
+        ...(scope.brandId ? { brandId: scope.brandId } : {}),
+        ...(scope.locationId ? { locationId: scope.locationId } : {}),
+      },
+    });
+    const bands = zones.filter((z) => z.maxDistanceMiles != null);
+    if (!bands.length) return { matched: false, fee: 0 };
+
+    const origin = await this.originFor(tenantId, scope);
+    if (!origin) {
+      // The shop has no coordinates, so nothing can be measured. Charge the
+      // top band rather than nothing — same reasoning as beyondLastBand.
+      const top = resolveRadiusBand(bands, Number.POSITIVE_INFINITY);
+      if (!top) return { matched: false, fee: 0 };
+      return {
+        matched: true,
+        zoneId: top.band.id,
+        fee: Number(top.band.fee),
+        minOrderValue:
+          top.band.minOrderValue !== null ? Number(top.band.minOrderValue) : null,
+        beyondLastBand: true,
+      };
+    }
+
+    const point = await this.customerPoint(customer);
+    if (!point) {
+      const top = resolveRadiusBand(bands, Number.POSITIVE_INFINITY);
+      if (!top) return { matched: false, fee: 0 };
+      return {
+        matched: true,
+        zoneId: top.band.id,
+        fee: Number(top.band.fee),
+        minOrderValue:
+          top.band.minOrderValue !== null ? Number(top.band.minOrderValue) : null,
+        beyondLastBand: true,
+      };
+    }
+
+    const distanceMiles = milesBetween(origin, point);
+    const hit = resolveRadiusBand(bands, distanceMiles);
+    if (!hit) return { matched: false, fee: 0 };
+    return {
+      matched: true,
+      zoneId: hit.band.id,
+      fee: Number(hit.band.fee),
+      minOrderValue:
+        hit.band.minOrderValue !== null ? Number(hit.band.minOrderValue) : null,
+      distanceMiles: Math.round(distanceMiles * 100) / 100,
+      beyondLastBand: hit.beyondLastBand,
+    };
+  }
+
+  /** The shop's coordinates, geocoded from its postcode on first use. */
+  private async originFor(
+    tenantId: string,
+    scope: { locationId?: string; brandId?: string },
+  ): Promise<{ lat: number; lng: number } | null> {
+    let locationId = scope.locationId ?? null;
+    if (!locationId && scope.brandId) {
+      const brand = await this.prisma.brand.findFirst({
+        where: { id: scope.brandId, tenantId },
+        select: { primaryLocationId: true },
+      });
+      locationId = brand?.primaryLocationId ?? null;
+    }
+    if (!locationId) return null;
+
+    const loc = await this.prisma.location.findFirst({
+      where: { id: locationId },
+      select: { id: true, latitude: true, longitude: true, postcode: true },
+    });
+    if (!loc) return null;
+    if (loc.latitude != null && loc.longitude != null) {
+      return { lat: loc.latitude, lng: loc.longitude };
+    }
+    if (!loc.postcode) return null;
+
+    const geo = await this.geocodePostcode(loc.postcode);
+    if (!geo) return null;
+    // Cache it — the shop doesn't move, and geocoding on every basket change
+    // would be a paid call per keystroke.
+    await this.prisma.location
+      .update({
+        where: { id: loc.id },
+        data: { latitude: geo.lat, longitude: geo.lng },
+      })
+      .catch(() => undefined);
+    return geo;
+  }
+
+  private async customerPoint(customer: {
+    lat?: number;
+    lng?: number;
+    postcode?: string;
+  }): Promise<{ lat: number; lng: number } | null> {
+    if (customer.lat != null && customer.lng != null) {
+      return { lat: customer.lat, lng: customer.lng };
+    }
+    if (!customer.postcode) return null;
+    return this.geocodePostcode(customer.postcode);
+  }
+
+  /**
+   * postcodes.io — free, no key, UK-only, and already the fallback the address
+   * lookup uses. Failure returns null and the caller charges the top band.
+   */
+  private async geocodePostcode(
+    postcode: string,
+  ): Promise<{ lat: number; lng: number } | null> {
+    const pc = normalisePostcode(postcode);
+    if (pc.length < 5) return null;
+    try {
+      const res = await fetch(
+        `https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`,
+        { signal: AbortSignal.timeout(4000) },
+      );
+      if (!res.ok) return null;
+      const body: any = await res.json();
+      const lat = body?.result?.latitude;
+      const lng = body?.result?.longitude;
+      return typeof lat === "number" && typeof lng === "number"
+        ? { lat, lng }
+        : null;
+    } catch {
+      return null;
+    }
   }
 }

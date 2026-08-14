@@ -666,6 +666,11 @@ model Location {
   throttleLimit   Int?
   storeStatusNote String?
 
+  /// Geocoded from the shop's own postcode, once. Radius delivery fees measure
+  /// from here; without it a radius zone set can't quote at all.
+  latitude  Float?
+  longitude Float?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1721,7 +1726,16 @@ model DeliveryZone {
   location       Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
   brandId        String?
   brand          Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  postcodePrefix String
+  /// Postcode mode: the prefix a customer's postcode must start with.
+  /// Null on radius rows.
+  postcodePrefix String?
+  /// Radius mode: the outer edge of this band, in miles. A row with 3.0 means
+  /// "up to 3 miles". Null on postcode rows.
+  ///
+  /// A zone set uses ONE mode — the presence of any radius row is what puts a
+  /// brand in radius mode, so there is no separate flag to drift out of step
+  /// with the rows it describes.
+  maxDistanceMiles Decimal? @db.Decimal(6, 2)
   fee            Decimal   @db.Decimal(10, 2)
   minOrderValue  Decimal?  @db.Decimal(10, 2)
   isActive       Boolean   @default(true)

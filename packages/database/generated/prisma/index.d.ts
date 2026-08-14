@@ -28784,6 +28784,8 @@ export namespace Prisma {
     onboardingStep: number | null
     currentPrepTime: number | null
     throttleLimit: number | null
+    latitude: number | null
+    longitude: number | null
   }
 
   export type LocationSumAggregateOutputType = {
@@ -28798,6 +28800,8 @@ export namespace Prisma {
     onboardingStep: number | null
     currentPrepTime: number | null
     throttleLimit: number | null
+    latitude: number | null
+    longitude: number | null
   }
 
   export type LocationMinAggregateOutputType = {
@@ -28852,6 +28856,8 @@ export namespace Prisma {
     currentPrepTime: number | null
     throttleLimit: number | null
     storeStatusNote: string | null
+    latitude: number | null
+    longitude: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -28908,6 +28914,8 @@ export namespace Prisma {
     currentPrepTime: number | null
     throttleLimit: number | null
     storeStatusNote: string | null
+    latitude: number | null
+    longitude: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -28971,6 +28979,8 @@ export namespace Prisma {
     currentPrepTime: number
     throttleLimit: number
     storeStatusNote: number
+    latitude: number
+    longitude: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -28989,6 +28999,8 @@ export namespace Prisma {
     onboardingStep?: true
     currentPrepTime?: true
     throttleLimit?: true
+    latitude?: true
+    longitude?: true
   }
 
   export type LocationSumAggregateInputType = {
@@ -29003,6 +29015,8 @@ export namespace Prisma {
     onboardingStep?: true
     currentPrepTime?: true
     throttleLimit?: true
+    latitude?: true
+    longitude?: true
   }
 
   export type LocationMinAggregateInputType = {
@@ -29057,6 +29071,8 @@ export namespace Prisma {
     currentPrepTime?: true
     throttleLimit?: true
     storeStatusNote?: true
+    latitude?: true
+    longitude?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -29113,6 +29129,8 @@ export namespace Prisma {
     currentPrepTime?: true
     throttleLimit?: true
     storeStatusNote?: true
+    latitude?: true
+    longitude?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -29176,6 +29194,8 @@ export namespace Prisma {
     currentPrepTime?: true
     throttleLimit?: true
     storeStatusNote?: true
+    latitude?: true
+    longitude?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -29326,6 +29346,8 @@ export namespace Prisma {
     currentPrepTime: number
     throttleLimit: number | null
     storeStatusNote: string | null
+    latitude: number | null
+    longitude: number | null
     createdAt: Date
     updatedAt: Date
     _count: LocationCountAggregateOutputType | null
@@ -29408,6 +29430,8 @@ export namespace Prisma {
     currentPrepTime?: boolean
     throttleLimit?: boolean
     storeStatusNote?: boolean
+    latitude?: boolean
+    longitude?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -29499,6 +29523,8 @@ export namespace Prisma {
     currentPrepTime?: boolean
     throttleLimit?: boolean
     storeStatusNote?: boolean
+    latitude?: boolean
+    longitude?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -29566,6 +29592,8 @@ export namespace Prisma {
     currentPrepTime?: boolean
     throttleLimit?: boolean
     storeStatusNote?: boolean
+    latitude?: boolean
+    longitude?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -29697,6 +29725,12 @@ export namespace Prisma {
       currentPrepTime: number
       throttleLimit: number | null
       storeStatusNote: string | null
+      /**
+       * Geocoded from the shop's own postcode, once. Radius delivery fees measure
+       * from here; without it a radius zone set can't quote at all.
+       */
+      latitude: number | null
+      longitude: number | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["location"]>
@@ -30177,6 +30211,8 @@ export namespace Prisma {
     readonly currentPrepTime: FieldRef<"Location", 'Int'>
     readonly throttleLimit: FieldRef<"Location", 'Int'>
     readonly storeStatusNote: FieldRef<"Location", 'String'>
+    readonly latitude: FieldRef<"Location", 'Float'>
+    readonly longitude: FieldRef<"Location", 'Float'>
     readonly createdAt: FieldRef<"Location", 'DateTime'>
     readonly updatedAt: FieldRef<"Location", 'DateTime'>
   }
@@ -57645,11 +57681,13 @@ export namespace Prisma {
   }
 
   export type DeliveryZoneAvgAggregateOutputType = {
+    maxDistanceMiles: Decimal | null
     fee: Decimal | null
     minOrderValue: Decimal | null
   }
 
   export type DeliveryZoneSumAggregateOutputType = {
+    maxDistanceMiles: Decimal | null
     fee: Decimal | null
     minOrderValue: Decimal | null
   }
@@ -57660,6 +57698,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     postcodePrefix: string | null
+    maxDistanceMiles: Decimal | null
     fee: Decimal | null
     minOrderValue: Decimal | null
     isActive: boolean | null
@@ -57673,6 +57712,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     postcodePrefix: string | null
+    maxDistanceMiles: Decimal | null
     fee: Decimal | null
     minOrderValue: Decimal | null
     isActive: boolean | null
@@ -57686,6 +57726,7 @@ export namespace Prisma {
     locationId: number
     brandId: number
     postcodePrefix: number
+    maxDistanceMiles: number
     fee: number
     minOrderValue: number
     isActive: number
@@ -57696,11 +57737,13 @@ export namespace Prisma {
 
 
   export type DeliveryZoneAvgAggregateInputType = {
+    maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
   }
 
   export type DeliveryZoneSumAggregateInputType = {
+    maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
   }
@@ -57711,6 +57754,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     postcodePrefix?: true
+    maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
     isActive?: true
@@ -57724,6 +57768,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     postcodePrefix?: true
+    maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
     isActive?: true
@@ -57737,6 +57782,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     postcodePrefix?: true
+    maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
     isActive?: true
@@ -57836,7 +57882,8 @@ export namespace Prisma {
     tenantId: string
     locationId: string | null
     brandId: string | null
-    postcodePrefix: string
+    postcodePrefix: string | null
+    maxDistanceMiles: Decimal | null
     fee: Decimal
     minOrderValue: Decimal | null
     isActive: boolean
@@ -57869,6 +57916,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     postcodePrefix?: boolean
+    maxDistanceMiles?: boolean
     fee?: boolean
     minOrderValue?: boolean
     isActive?: boolean
@@ -57884,6 +57932,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     postcodePrefix?: boolean
+    maxDistanceMiles?: boolean
     fee?: boolean
     minOrderValue?: boolean
     isActive?: boolean
@@ -57899,6 +57948,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     postcodePrefix?: boolean
+    maxDistanceMiles?: boolean
     fee?: boolean
     minOrderValue?: boolean
     isActive?: boolean
@@ -57926,7 +57976,20 @@ export namespace Prisma {
       tenantId: string
       locationId: string | null
       brandId: string | null
-      postcodePrefix: string
+      /**
+       * Postcode mode: the prefix a customer's postcode must start with.
+       * Null on radius rows.
+       */
+      postcodePrefix: string | null
+      /**
+       * Radius mode: the outer edge of this band, in miles. A row with 3.0 means
+       * "up to 3 miles". Null on postcode rows.
+       * 
+       * A zone set uses ONE mode — the presence of any radius row is what puts a
+       * brand in radius mode, so there is no separate flag to drift out of step
+       * with the rows it describes.
+       */
+      maxDistanceMiles: Prisma.Decimal | null
       fee: Prisma.Decimal
       minOrderValue: Prisma.Decimal | null
       isActive: boolean
@@ -58332,6 +58395,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"DeliveryZone", 'String'>
     readonly brandId: FieldRef<"DeliveryZone", 'String'>
     readonly postcodePrefix: FieldRef<"DeliveryZone", 'String'>
+    readonly maxDistanceMiles: FieldRef<"DeliveryZone", 'Decimal'>
     readonly fee: FieldRef<"DeliveryZone", 'Decimal'>
     readonly minOrderValue: FieldRef<"DeliveryZone", 'Decimal'>
     readonly isActive: FieldRef<"DeliveryZone", 'Boolean'>
@@ -150536,6 +150600,8 @@ export namespace Prisma {
     currentPrepTime: 'currentPrepTime',
     throttleLimit: 'throttleLimit',
     storeStatusNote: 'storeStatusNote',
+    latitude: 'latitude',
+    longitude: 'longitude',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -151073,6 +151139,7 @@ export namespace Prisma {
     locationId: 'locationId',
     brandId: 'brandId',
     postcodePrefix: 'postcodePrefix',
+    maxDistanceMiles: 'maxDistanceMiles',
     fee: 'fee',
     minOrderValue: 'minOrderValue',
     isActive: 'isActive',
@@ -154667,6 +154734,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
    * Reference to a field of type 'IntegrationPlatform'
    */
   export type EnumIntegrationPlatformFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IntegrationPlatform'>
@@ -154873,20 +154954,6 @@ export namespace Prisma {
    * Reference to a field of type 'FulfillmentType[]'
    */
   export type ListEnumFulfillmentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FulfillmentType[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float'
-   */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float[]'
-   */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -156724,6 +156791,8 @@ export namespace Prisma {
     currentPrepTime?: IntFilter<"Location"> | number
     throttleLimit?: IntNullableFilter<"Location"> | number | null
     storeStatusNote?: StringNullableFilter<"Location"> | string | null
+    latitude?: FloatNullableFilter<"Location"> | number | null
+    longitude?: FloatNullableFilter<"Location"> | number | null
     createdAt?: DateTimeFilter<"Location"> | Date | string
     updatedAt?: DateTimeFilter<"Location"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -156814,6 +156883,8 @@ export namespace Prisma {
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrderInput | SortOrder
     storeStatusNote?: SortOrderInput | SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     brand?: BrandOrderByWithRelationInput
@@ -156908,6 +156979,8 @@ export namespace Prisma {
     currentPrepTime?: IntFilter<"Location"> | number
     throttleLimit?: IntNullableFilter<"Location"> | number | null
     storeStatusNote?: StringNullableFilter<"Location"> | string | null
+    latitude?: FloatNullableFilter<"Location"> | number | null
+    longitude?: FloatNullableFilter<"Location"> | number | null
     createdAt?: DateTimeFilter<"Location"> | Date | string
     updatedAt?: DateTimeFilter<"Location"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -156998,6 +157071,8 @@ export namespace Prisma {
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrderInput | SortOrder
     storeStatusNote?: SortOrderInput | SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: LocationCountOrderByAggregateInput
@@ -157069,6 +157144,8 @@ export namespace Prisma {
     currentPrepTime?: IntWithAggregatesFilter<"Location"> | number
     throttleLimit?: IntNullableWithAggregatesFilter<"Location"> | number | null
     storeStatusNote?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    latitude?: FloatNullableWithAggregatesFilter<"Location"> | number | null
+    longitude?: FloatNullableWithAggregatesFilter<"Location"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Location"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Location"> | Date | string
   }
@@ -159861,7 +159938,8 @@ export namespace Prisma {
     tenantId?: StringFilter<"DeliveryZone"> | string
     locationId?: StringNullableFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableFilter<"DeliveryZone"> | string | null
-    postcodePrefix?: StringFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringNullableFilter<"DeliveryZone"> | string | null
+    maxDistanceMiles?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFilter<"DeliveryZone"> | boolean
@@ -159876,7 +159954,8 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
-    postcodePrefix?: SortOrder
+    postcodePrefix?: SortOrderInput | SortOrder
+    maxDistanceMiles?: SortOrderInput | SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrderInput | SortOrder
     isActive?: SortOrder
@@ -159897,7 +159976,8 @@ export namespace Prisma {
     tenantId?: StringFilter<"DeliveryZone"> | string
     locationId?: StringNullableFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableFilter<"DeliveryZone"> | string | null
-    postcodePrefix?: StringFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringNullableFilter<"DeliveryZone"> | string | null
+    maxDistanceMiles?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFilter<"DeliveryZone"> | boolean
@@ -159912,7 +159992,8 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
-    postcodePrefix?: SortOrder
+    postcodePrefix?: SortOrderInput | SortOrder
+    maxDistanceMiles?: SortOrderInput | SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrderInput | SortOrder
     isActive?: SortOrder
@@ -159933,7 +160014,8 @@ export namespace Prisma {
     tenantId?: StringWithAggregatesFilter<"DeliveryZone"> | string
     locationId?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
-    postcodePrefix?: StringWithAggregatesFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
+    maxDistanceMiles?: DecimalNullableWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolWithAggregatesFilter<"DeliveryZone"> | boolean
@@ -170202,6 +170284,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -170292,6 +170376,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -170374,6 +170460,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -170464,6 +170552,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -170550,6 +170640,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -170609,6 +170701,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -170672,6 +170766,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -173894,7 +173990,8 @@ export namespace Prisma {
   export type DeliveryZoneCreateInput = {
     id?: string
     tenantId: string
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -173909,7 +174006,8 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     brandId?: string | null
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -173920,7 +174018,8 @@ export namespace Prisma {
   export type DeliveryZoneUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -173935,7 +174034,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -173948,7 +174048,8 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     brandId?: string | null
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -173959,7 +174060,8 @@ export namespace Prisma {
   export type DeliveryZoneUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -173972,7 +174074,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -185388,6 +185491,17 @@ export namespace Prisma {
     not?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel> | $Enums.LocationGoLiveStatus
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type IntegrationListRelationFilter = {
     every?: IntegrationWhereInput
     some?: IntegrationWhereInput
@@ -185568,6 +185682,8 @@ export namespace Prisma {
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
     storeStatusNote?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -185584,6 +185700,8 @@ export namespace Prisma {
     onboardingStep?: SortOrder
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
   }
 
   export type LocationMaxOrderByAggregateInput = {
@@ -185638,6 +185756,8 @@ export namespace Prisma {
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
     storeStatusNote?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -185694,6 +185814,8 @@ export namespace Prisma {
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
     storeStatusNote?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -185710,6 +185832,8 @@ export namespace Prisma {
     onboardingStep?: SortOrder
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -185736,6 +185860,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel>
     _max?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel>
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type BrandPlatformConnectionOrderByRelevanceInput = {
@@ -187804,6 +187944,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     postcodePrefix?: SortOrder
+    maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
     isActive?: SortOrder
@@ -187812,6 +187953,7 @@ export namespace Prisma {
   }
 
   export type DeliveryZoneAvgOrderByAggregateInput = {
+    maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
   }
@@ -187822,6 +187964,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     postcodePrefix?: SortOrder
+    maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
     isActive?: SortOrder
@@ -187835,6 +187978,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     postcodePrefix?: SortOrder
+    maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
     isActive?: SortOrder
@@ -187843,6 +187987,7 @@ export namespace Prisma {
   }
 
   export type DeliveryZoneSumOrderByAggregateInput = {
+    maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
   }
@@ -187923,17 +188068,6 @@ export namespace Prisma {
     in?: $Enums.FulfillmentType[] | ListEnumFulfillmentTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.FulfillmentType[] | ListEnumFulfillmentTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumFulfillmentTypeFilter<$PrismaModel> | $Enums.FulfillmentType
-  }
-
-  export type FloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type EnumPaymentStatusFilter<$PrismaModel = never> = {
@@ -188315,22 +188449,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumFulfillmentTypeFilter<$PrismaModel>
     _max?: NestedEnumFulfillmentTypeFilter<$PrismaModel>
-  }
-
-  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type EnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -196722,6 +196840,14 @@ export namespace Prisma {
     set?: $Enums.LocationGoLiveStatus
   }
 
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type BrandUpdateOneRequiredWithoutLocationsNestedInput = {
     create?: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
     connectOrCreate?: BrandCreateOrConnectWithoutLocationsInput
@@ -199105,14 +199231,6 @@ export namespace Prisma {
 
   export type EnumFulfillmentTypeFieldUpdateOperationsInput = {
     set?: $Enums.FulfillmentType
-  }
-
-  export type NullableFloatFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type EnumPaymentStatusFieldUpdateOperationsInput = {
@@ -202726,6 +202844,22 @@ export namespace Prisma {
     _max?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel>
   }
 
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type NestedEnumIntegrationPlatformFilter<$PrismaModel = never> = {
     equals?: $Enums.IntegrationPlatform | EnumIntegrationPlatformFieldRefInput<$PrismaModel>
     in?: $Enums.IntegrationPlatform[] | ListEnumIntegrationPlatformFieldRefInput<$PrismaModel>
@@ -203013,22 +203147,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumFulfillmentTypeFilter<$PrismaModel>
     _max?: NestedEnumFulfillmentTypeFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -206677,6 +206795,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -206766,6 +206886,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -206928,6 +207050,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -207017,6 +207141,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -208776,6 +208902,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
@@ -208864,6 +208992,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -209476,7 +209606,8 @@ export namespace Prisma {
   export type DeliveryZoneCreateWithoutBrandInput = {
     id?: string
     tenantId: string
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -209489,7 +209620,8 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId?: string | null
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -209816,6 +209948,8 @@ export namespace Prisma {
     currentPrepTime?: IntFilter<"Location"> | number
     throttleLimit?: IntNullableFilter<"Location"> | number | null
     storeStatusNote?: StringNullableFilter<"Location"> | string | null
+    latitude?: FloatNullableFilter<"Location"> | number | null
+    longitude?: FloatNullableFilter<"Location"> | number | null
     createdAt?: DateTimeFilter<"Location"> | Date | string
     updatedAt?: DateTimeFilter<"Location"> | Date | string
   }
@@ -210112,7 +210246,8 @@ export namespace Prisma {
     tenantId?: StringFilter<"DeliveryZone"> | string
     locationId?: StringNullableFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableFilter<"DeliveryZone"> | string | null
-    postcodePrefix?: StringFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringNullableFilter<"DeliveryZone"> | string | null
+    maxDistanceMiles?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFilter<"DeliveryZone"> | boolean
@@ -210974,7 +211109,8 @@ export namespace Prisma {
   export type DeliveryZoneCreateWithoutLocationInput = {
     id?: string
     tenantId: string
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -210987,7 +211123,8 @@ export namespace Prisma {
     id?: string
     tenantId: string
     brandId?: string | null
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -212887,6 +213024,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -212976,6 +213115,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -213184,6 +213325,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -213273,6 +213416,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -213354,6 +213499,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -213443,6 +213590,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
@@ -213540,6 +213689,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -213629,6 +213780,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
@@ -214256,6 +214409,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -214345,6 +214500,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -214533,6 +214690,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -214622,6 +214781,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -215670,6 +215831,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -215759,6 +215922,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -215856,6 +216021,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -215945,6 +216112,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -216125,6 +216294,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -216214,6 +216385,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -216416,6 +216589,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -216505,6 +216680,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -219376,6 +219553,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -219465,6 +219644,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -219667,6 +219848,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -219756,6 +219939,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -221193,6 +221378,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -221282,6 +221469,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -221484,6 +221673,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -221573,6 +221764,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -221765,6 +221958,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -221854,6 +222049,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -221951,6 +222148,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -222040,6 +222239,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -222190,6 +222391,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -222279,6 +222482,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -222921,6 +223126,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -223010,6 +223217,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -224203,6 +224412,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -224292,6 +224503,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -224417,6 +224630,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -224506,6 +224721,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -224603,6 +224820,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -224692,6 +224911,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -224894,6 +225115,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -224983,6 +225206,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -225175,6 +225400,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -225264,6 +225491,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -225413,6 +225642,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -225502,6 +225733,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -225599,6 +225832,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -225688,6 +225923,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -225785,6 +226022,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -225874,6 +226113,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -225955,6 +226196,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -226044,6 +226287,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -226204,6 +226449,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -226293,6 +226540,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -226859,6 +227108,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -226948,6 +227199,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -227195,6 +227448,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -227283,6 +227538,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -227375,6 +227632,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -227463,6 +227722,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -227566,6 +227827,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -227655,6 +227918,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -228784,6 +229049,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -228873,6 +229140,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -229218,6 +229487,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -229306,6 +229577,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -229550,6 +229823,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -229639,6 +229914,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -229974,6 +230251,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -230063,6 +230342,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -230389,6 +230670,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -230478,6 +230761,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -231368,6 +231653,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -231457,6 +231744,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -231748,6 +232037,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -231837,6 +232128,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -236571,6 +236864,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -236660,6 +236955,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -236832,6 +237129,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -236921,6 +237220,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -238240,6 +238541,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -238329,6 +238632,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -238426,6 +238731,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -238515,6 +238822,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -238596,6 +238905,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -238685,6 +238996,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -238782,6 +239095,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -238871,6 +239186,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -239449,6 +239766,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutLocationsInput
@@ -239538,6 +239857,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
@@ -239781,6 +240102,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -239870,6 +240193,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -242793,6 +243118,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -243031,7 +243358,8 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId?: string | null
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -243117,6 +243445,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
@@ -243205,6 +243535,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -243290,6 +243622,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -244019,7 +244353,8 @@ export namespace Prisma {
   export type DeliveryZoneUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -244032,7 +244367,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -244044,7 +244380,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -244372,7 +244709,8 @@ export namespace Prisma {
     id?: string
     tenantId: string
     brandId?: string | null
-    postcodePrefix: string
+    postcodePrefix?: string | null
+    maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
@@ -245285,7 +245623,8 @@ export namespace Prisma {
   export type DeliveryZoneUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -245298,7 +245637,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -245310,7 +245650,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
-    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -247483,6 +247824,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -247545,6 +247888,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -247736,6 +248081,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -247824,6 +248171,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -247909,6 +248258,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -247968,6 +248319,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -248056,6 +248409,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -248141,6 +248496,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -248258,6 +248615,8 @@ export namespace Prisma {
     currentPrepTime?: number
     throttleLimit?: number | null
     storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -248536,6 +248895,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
@@ -248624,6 +248985,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
@@ -248709,6 +249072,8 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

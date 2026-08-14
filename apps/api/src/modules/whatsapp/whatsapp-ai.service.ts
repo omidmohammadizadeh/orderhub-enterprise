@@ -1437,7 +1437,9 @@ export class WhatsAppAiService {
       });
       let best: { fee: number; minOrder: number | null; len: number } | null = null;
       for (const z of zones) {
-        const zp = z.postcodePrefix.toUpperCase().replace(/\s+/g, "");
+        // Radius rows carry no prefix — skip them here; WhatsApp quoting is
+        // postcode-only for now.
+        const zp = (z.postcodePrefix ?? "").toUpperCase().replace(/\s+/g, "");
         if (zp && norm.startsWith(zp) && (!best || zp.length > best.len)) {
           best = {
             fee: Number(z.fee),

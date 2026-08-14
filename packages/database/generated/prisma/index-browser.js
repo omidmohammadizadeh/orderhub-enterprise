@@ -382,6 +382,8 @@ exports.Prisma.LocationScalarFieldEnum = {
   currentPrepTime: 'currentPrepTime',
   throttleLimit: 'throttleLimit',
   storeStatusNote: 'storeStatusNote',
+  latitude: 'latitude',
+  longitude: 'longitude',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -844,6 +846,7 @@ exports.Prisma.DeliveryZoneScalarFieldEnum = {
   locationId: 'locationId',
   brandId: 'brandId',
   postcodePrefix: 'postcodePrefix',
+  maxDistanceMiles: 'maxDistanceMiles',
   fee: 'fee',
   minOrderValue: 'minOrderValue',
   isActive: 'isActive',

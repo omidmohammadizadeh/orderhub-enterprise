@@ -59,7 +59,8 @@ export class DeliveryZonesController {
     body: {
       locationId?: string;
       brandId?: string;
-      postcodePrefix: string;
+      postcodePrefix?: string;
+      maxDistanceMiles?: number;
       fee: number;
       minOrderValue?: number;
       isActive?: boolean;
@@ -77,6 +78,7 @@ export class DeliveryZonesController {
     @Body()
     body: {
       postcodePrefix?: string;
+      maxDistanceMiles?: number | null;
       fee?: number;
       minOrderValue?: number | null;
       isActive?: boolean;
