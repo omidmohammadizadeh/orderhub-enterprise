@@ -1035,6 +1035,26 @@ function DeliveryZonesEditor({
 
   const zones = zonesQuery.data ?? [];
 
+  /**
+   * Bands in order, each with the lower edge derived from the band below it.
+   *
+   * Only the OUTER edge is stored. The lower edge is always the previous
+   * band's outer edge, so ranges are contiguous by construction — if both
+   * edges were typed in, an operator could leave a gap (0–3 then 5–6) and a
+   * four-mile customer would fall through it, or overlap them (0–3 then 2–4)
+   * and two bands would claim the same customer. Neither can happen here.
+   */
+  const bands = zones
+    .filter((z) => z.maxDistanceMiles != null)
+    .sort((a, b) => Number(a.maxDistanceMiles) - Number(b.maxDistanceMiles))
+    .map((z, i, arr) => ({
+      zone: z,
+      from: i === 0 ? 0 : Number(arr[i - 1]!.maxDistanceMiles),
+      to: Number(z.maxDistanceMiles),
+    }));
+  /** Where the next band starts — shown beside the input so it's not a guess. */
+  const nextFrom = bands.length ? bands[bands.length - 1]!.to : 0;
+
   return (
     <div className="space-y-2">
       {/* How this brand charges for delivery. Locked once rows exist —
@@ -1068,10 +1088,11 @@ function DeliveryZonesEditor({
 
       {mode === "RADIUS" && (
         <p className="rounded-md bg-zinc-50 px-2 py-1.5 text-[10px] leading-relaxed text-zinc-500">
-          Each band is an outer edge: 3 then 4 means 0–3 miles, then 3–4 miles.
-          Distance is measured straight-line from the shop. Anyone past the
-          furthest band is charged that band&apos;s fee rather than being
-          refused.
+          Bands run on from each other: the first starts at the shop, and each
+          one after it starts where the last ended. You only set where each
+          band <em>ends</em>, so there can never be a gap a customer falls
+          into. Distance is straight-line from the shop, and anyone past the
+          furthest band is charged that band&apos;s fee rather than refused.
         </p>
       )}
 
@@ -1090,9 +1111,12 @@ function DeliveryZonesEditor({
               key={z.id}
               className="flex items-center gap-2 px-2 py-1.5 text-xs"
             >
-              <span className="w-24 font-mono font-semibold tracking-wider text-zinc-900">
+              <span className="w-28 font-mono font-semibold tracking-wider text-zinc-900">
                 {z.maxDistanceMiles != null
-                  ? `${Number(z.maxDistanceMiles)} mi`
+                  ? (() => {
+                      const b = bands.find((x) => x.zone.id === z.id);
+                      return b ? `${b.from}–${b.to} mi` : `${Number(z.maxDistanceMiles)} mi`;
+                    })()
                   : z.postcodePrefix}
               </span>
               <span className="w-20 text-zinc-700">£{Number(z.fee).toFixed(2)}</span>
@@ -1129,17 +1153,20 @@ function DeliveryZonesEditor({
 
       <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 pt-1">
         {mode === "RADIUS" ? (
-          <Field label="Up to (miles)">
-            <input
-              value={newMiles}
-              onChange={(e) => setNewMiles(e.target.value)}
-              placeholder="3"
-              type="number"
-              min="0.1"
-              step="0.1"
-              disabled={!isAdmin}
-              className="input"
-            />
+          <Field label={`From ${nextFrom} mi — up to`}>
+            <div className="flex items-center gap-1.5">
+              <input
+                value={newMiles}
+                onChange={(e) => setNewMiles(e.target.value)}
+                placeholder={String(nextFrom + 1)}
+                type="number"
+                min={String(nextFrom)}
+                step="0.1"
+                disabled={!isAdmin}
+                className="input"
+              />
+              <span className="text-[11px] text-zinc-500">mi</span>
+            </div>
           </Field>
         ) : (
           <Field label="Postcode">
@@ -1184,7 +1211,7 @@ function DeliveryZonesEditor({
             create.isPending ||
             !newFee ||
             (mode === "RADIUS"
-              ? !(Number(newMiles) > 0)
+              ? !(Number(newMiles) > nextFrom)
               : !newPrefix.trim())
           }
           className="inline-flex h-[34px] items-center gap-1 rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
@@ -1199,6 +1226,12 @@ function DeliveryZonesEditor({
           )}
         </button>
       </div>
+      {mode === "RADIUS" && newMiles !== "" && Number(newMiles) <= nextFrom && (
+        <p className="text-[11px] text-amber-600">
+          This band has to end past {nextFrom} mi — that&apos;s where the
+          previous one finished.
+        </p>
+      )}
       {create.isError && (
         <p className="text-[11px] text-red-600">
           {(create.error as any)?.response?.data?.message ?? "Add failed"}
