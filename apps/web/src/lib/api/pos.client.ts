@@ -8,7 +8,10 @@ export interface DeliveryZone {
   id: string;
   locationId: string | null;
   brandId: string | null;
-  postcodePrefix: string;
+  /** Postcode mode. Null on distance bands. */
+  postcodePrefix: string | null;
+  /** Radius mode — outer edge of this band in miles. Null on postcode rows. */
+  maxDistanceMiles: string | number | null;
   fee: string | number; // Prisma serialises Decimal → string
   minOrderValue: string | number | null;
   isActive: boolean;
@@ -40,7 +43,8 @@ export const deliveryZonesClient = {
   create: (body: {
     locationId?: string;
     brandId?: string;
-    postcodePrefix: string;
+    postcodePrefix?: string;
+    maxDistanceMiles?: number;
     fee: number;
     minOrderValue?: number;
     isActive?: boolean;

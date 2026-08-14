@@ -890,7 +890,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
             </div>
           </Section>
 
-          <Section title="Delivery postcodes & charges">
+          <Section title="Delivery charges">
             <p className="mb-2 text-[11px] text-zinc-500">
               Customers entering one of these postcode prefixes get the
               matching delivery fee. The longest matching prefix wins
@@ -985,19 +985,35 @@ function DeliveryZonesEditor({
   });
 
   const [newPrefix, setNewPrefix] = useState("");
+  const [newMiles, setNewMiles] = useState("");
   const [newFee, setNewFee] = useState("");
   const [newMin, setNewMin] = useState("");
+
+  const zonesLoaded = zonesQuery.data ?? [];
+  const hasRadius = zonesLoaded.some((z) => z.maxDistanceMiles != null);
+  const hasPostcode = zonesLoaded.some((z) => z.postcodePrefix);
+  // The saved rows decide the mode; the toggle only picks one for an empty
+  // brand. Inferring means the editor can never disagree with what's actually
+  // quoting fees.
+  const [mode, setMode] = useState<"POSTCODE" | "RADIUS">("POSTCODE");
+  useEffect(() => {
+    if (hasRadius) setMode("RADIUS");
+    else if (hasPostcode) setMode("POSTCODE");
+  }, [hasRadius, hasPostcode]);
 
   const create = useMutation({
     mutationFn: () =>
       deliveryZonesClient.create({
         brandId,
-        postcodePrefix: newPrefix.trim().toUpperCase(),
+        ...(mode === "RADIUS"
+          ? { maxDistanceMiles: Number(newMiles) }
+          : { postcodePrefix: newPrefix.trim().toUpperCase() }),
         fee: Number(newFee) || 0,
         minOrderValue: newMin ? Number(newMin) : undefined,
       }),
     onSuccess: () => {
       setNewPrefix("");
+      setNewMiles("");
       setNewFee("");
       setNewMin("");
       qc.invalidateQueries({ queryKey: ["brand-delivery-zones", brandId] });
@@ -1021,11 +1037,51 @@ function DeliveryZonesEditor({
 
   return (
     <div className="space-y-2">
+      {/* How this brand charges for delivery. Locked once rows exist —
+          switching with live rows would leave two competing fee models on one
+          brand, and the resolver picks radius whenever a band exists, so the
+          postcodes would silently stop applying. Clear the rows to switch. */}
+      <div className="flex items-center gap-2">
+        {(["POSTCODE", "RADIUS"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            disabled={!isAdmin || zones.length > 0}
+            onClick={() => setMode(m)}
+            className={`rounded-md border px-3 py-1.5 text-[11px] font-medium disabled:opacity-60 ${
+              mode === m
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300"
+            }`}
+          >
+            {m === "POSTCODE" ? "By postcode" : "By distance"}
+          </button>
+        ))}
+        <span className="text-[10px] text-zinc-400">
+          {zones.length > 0
+            ? "Remove all rows to switch mode"
+            : mode === "RADIUS"
+              ? "Charge by how far the customer is"
+              : "Charge by postcode prefix"}
+        </span>
+      </div>
+
+      {mode === "RADIUS" && (
+        <p className="rounded-md bg-zinc-50 px-2 py-1.5 text-[10px] leading-relaxed text-zinc-500">
+          Each band is an outer edge: 3 then 4 means 0–3 miles, then 3–4 miles.
+          Distance is measured straight-line from the shop. Anyone past the
+          furthest band is charged that band&apos;s fee rather than being
+          refused.
+        </p>
+      )}
+
       {zonesQuery.isLoading ? (
         <p className="text-[11px] text-zinc-500">Loading…</p>
       ) : zones.length === 0 ? (
         <p className="text-[11px] text-zinc-500">
-          No postcodes configured yet. Add one below.
+          {mode === "RADIUS"
+            ? "No distance bands yet. Add one below."
+            : "No postcodes configured yet. Add one below."}
         </p>
       ) : (
         <ul className="divide-y divide-zinc-100 rounded border border-zinc-200">
@@ -1035,7 +1091,9 @@ function DeliveryZonesEditor({
               className="flex items-center gap-2 px-2 py-1.5 text-xs"
             >
               <span className="w-24 font-mono font-semibold tracking-wider text-zinc-900">
-                {z.postcodePrefix}
+                {z.maxDistanceMiles != null
+                  ? `${Number(z.maxDistanceMiles)} mi`
+                  : z.postcodePrefix}
               </span>
               <span className="w-20 text-zinc-700">£{Number(z.fee).toFixed(2)}</span>
               <span className="flex-1 text-zinc-500">
@@ -1070,15 +1128,30 @@ function DeliveryZonesEditor({
       )}
 
       <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 pt-1">
-        <Field label="Postcode">
-          <input
-            value={newPrefix}
-            onChange={(e) => setNewPrefix(e.target.value)}
-            placeholder="SW1A"
-            disabled={!isAdmin}
-            className="input"
-          />
-        </Field>
+        {mode === "RADIUS" ? (
+          <Field label="Up to (miles)">
+            <input
+              value={newMiles}
+              onChange={(e) => setNewMiles(e.target.value)}
+              placeholder="3"
+              type="number"
+              min="0.1"
+              step="0.1"
+              disabled={!isAdmin}
+              className="input"
+            />
+          </Field>
+        ) : (
+          <Field label="Postcode">
+            <input
+              value={newPrefix}
+              onChange={(e) => setNewPrefix(e.target.value)}
+              placeholder="SW1A"
+              disabled={!isAdmin}
+              className="input"
+            />
+          </Field>
+        )}
         <Field label="Fee (£)">
           <input
             value={newFee}
@@ -1107,7 +1180,12 @@ function DeliveryZonesEditor({
           type="button"
           onClick={() => create.mutate()}
           disabled={
-            !isAdmin || create.isPending || !newPrefix.trim() || !newFee
+            !isAdmin ||
+            create.isPending ||
+            !newFee ||
+            (mode === "RADIUS"
+              ? !(Number(newMiles) > 0)
+              : !newPrefix.trim())
           }
           className="inline-flex h-[34px] items-center gap-1 rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
         >
