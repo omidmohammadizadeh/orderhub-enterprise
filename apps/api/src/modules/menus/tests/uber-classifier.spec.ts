@@ -1,4 +1,7 @@
-import { classifyUberMenu } from "../importers/uber-menu.classifier";
+import {
+  classifyUberMenu,
+  groupLinkFieldUsed,
+} from "../importers/uber-menu.classifier";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Phase AK — Uber menu classifier
@@ -312,5 +315,110 @@ describe("Uber classifier — sizes", () => {
     const r = classifyUberMenu(sized("Choose your sauce"));
     expect(r.products[0]!.hasMultipleSkus).toBe(false);
     expect(r.modifierGroups.map((g) => g.externalId)).toEqual(["mg_size"]);
+  });
+});
+
+// ── The field Uber's Get Menu actually uses ─────────────────────────────────
+//
+// Publishing writes `modifier_group_ids`. Reading the same store back gives
+// items keyed [id, external_data, title, price_info, tax_info, dish_info,
+// product_info, bundled_items] — the links come home in `bundled_items`, and
+// we were probing `bundled_item_ids`, a field no payload has ever had.
+//
+// Every product, group and option imported correctly on its own and none of
+// them were joined to anything: pizzas with no toppings, sizes with no
+// crusts. Nothing in the import log said so.
+
+describe("Uber classifier — group links via bundled_items", () => {
+  const viaBundled = (): any => ({
+    categories: [
+      { id: "c", title: { translations: { en_us: "Pizzas" } }, entities: [{ id: "pizza" }] },
+    ],
+    items: [
+      {
+        id: "pizza",
+        external_data: "MARG",
+        title: { translations: { en_us: "Margharita" } },
+        price_info: { price: 800 },
+        tax_info: {},
+        dish_info: {},
+        product_info: {},
+        bundled_items: ["mg_size", "mg_top"],
+      },
+      {
+        id: "s10",
+        external_data: "M10",
+        title: { translations: { en_us: "10 inch" } },
+        price_info: { price: 0 },
+        bundled_items: ["mg_crust"],
+      },
+      { id: "s12", external_data: "M12", title: { translations: { en_us: "12 inch" } }, price_info: { price: 200 } },
+      { id: "o_cheese", title: { translations: { en_us: "Extra cheese" } }, price_info: { price: 100 } },
+      { id: "o_thin", title: { translations: { en_us: "Thin" } }, price_info: { price: 0 } },
+    ],
+    modifier_groups: [
+      {
+        id: "mg_size",
+        title: { translations: { en_us: "Size" } },
+        quantity_info: { quantity: { min_permitted: 1, max_permitted: 1 } },
+        modifier_options: [{ id: "s10" }, { id: "s12" }],
+      },
+      {
+        id: "mg_top",
+        title: { translations: { en_us: "Toppings" } },
+        quantity_info: { quantity: { min_permitted: 0, max_permitted: 5 } },
+        modifier_options: [{ id: "o_cheese" }],
+      },
+      {
+        id: "mg_crust",
+        title: { translations: { en_us: "Crust" } },
+        quantity_info: { quantity: { min_permitted: 1, max_permitted: 1 } },
+        modifier_options: [{ id: "o_thin" }],
+      },
+    ],
+  });
+
+  it("finds the size group and lifts it into SKUs", () => {
+    const r = classifyUberMenu(viaBundled());
+    expect(r.products[0]!.productSkus.map((s) => s.name)).toEqual([
+      "10 inch",
+      "12 inch",
+    ]);
+  });
+
+  it("attaches the product's own groups to every size", () => {
+    // The screenshot that started this: three sizes, "0 MODIFIER GROUPS"
+    // under each. A sized product routes its groups through the selected
+    // SKU, so an empty list here means the pizza offers nothing at all.
+    const r = classifyUberMenu(viaBundled());
+    for (const sku of r.products[0]!.productSkus) {
+      expect(sku.modifierGroups).toContain("mg_top");
+    }
+  });
+
+  it("gives a size the groups that hang off that size alone", () => {
+    const r = classifyUberMenu(viaBundled());
+    const [ten, twelve] = r.products[0]!.productSkus;
+    expect(ten!.modifierGroups).toEqual(["mg_top", "mg_crust"]);
+    expect(twelve!.modifierGroups).toEqual(["mg_top"]);
+  });
+
+  it("reports which field the links came from", () => {
+    expect(groupLinkFieldUsed(viaBundled().items)).toBe("bundled_items");
+    expect(groupLinkFieldUsed([{ id: "x" }])).toBeNull();
+  });
+
+  it("accepts object entries as well as bare ids", () => {
+    // Same field, seen carrying [{id}] rather than ["id"].
+    const payload = viaBundled();
+    payload.items[0].bundled_items = [{ id: "mg_size" }, { id: "mg_top" }];
+    const r = classifyUberMenu(payload);
+    expect(r.products[0]!.productSkus[0]!.modifierGroups).toContain("mg_top");
+  });
+
+  it("still prefers modifier_group_ids when Uber does send it", () => {
+    const payload = viaBundled();
+    payload.items[0].modifier_group_ids = { ids: ["mg_top"] };
+    expect(groupLinkFieldUsed(payload.items)).toBe("modifier_group_ids");
   });
 });

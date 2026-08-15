@@ -65,8 +65,10 @@ import type {
  *   2 — sizes lift into productSkus, options carry their nested groups, and
  *       the per-size group copies publishing emits fold back into one group
  *       with pricesBySize. Before this an Uber import dropped all three.
+ *   3 — group links are read from `bundled_items`, which is where Uber's Get
+ *       Menu actually puts them. Nothing was attached to anything before.
  */
-const CLASSIFIER_VERSION = 2;
+const CLASSIFIER_VERSION = 3;
 
 // ── Public ──────────────────────────────────────────────────────────────────
 
@@ -102,6 +104,8 @@ interface UberItem {
   option_lists?: string[];
   modifier_group_refs?: string[];
   option_list_refs?: string[];
+  /** What Uber's Get Menu actually returns the group links in. */
+  bundled_items?: Array<string | { id?: string }> | { ids?: string[] };
   bundled_item_ids?: string[];
   suspension_info?: { suspended?: boolean };
 }
@@ -167,18 +171,70 @@ const sha = (s: string): string =>
   createHash("sha256").update(s).digest("hex").slice(0, 32);
 
 /**
- * The set of modifier-group fields we accept on an Uber item. Tries each
- * in order; first one with content wins. Matches the Base44 fallback list.
+ * Ids out of whatever container Uber used. Accepts `["id"]`,
+ * `{ ids: ["id"] }`, and `[{ id: "…" }]` / `[{ item_id: "…" }]`, because the
+ * field that carries the links varies AND so does the shape inside it.
  */
+function idsFrom(value: unknown): string[] {
+  const list = Array.isArray(value)
+    ? value
+    : Array.isArray((value as { ids?: unknown })?.ids)
+      ? (value as { ids: unknown[] }).ids
+      : [];
+  const out: string[] = [];
+  for (const entry of list) {
+    if (typeof entry === "string") {
+      if (entry) out.push(entry);
+      continue;
+    }
+    const id =
+      (entry as any)?.id ??
+      (entry as any)?.item_id ??
+      (entry as any)?.modifier_group_id;
+    if (typeof id === "string" && id) out.push(id);
+  }
+  return out;
+}
+
+/**
+ * The fields that can carry an item's modifier-group links, most specific
+ * first. First one with content wins.
+ *
+ * `bundled_items` is the one that matters in practice and was the last to be
+ * added: Uber's Get Menu does NOT echo back the `modifier_group_ids` we send
+ * on publish. A real store's items came back keyed
+ * `[id, external_data, title, price_info, tax_info, dish_info, product_info,
+ * bundled_items]` — every group link lives in that last field. We were probing
+ * `bundled_item_ids`, which no payload has ever contained, so every Uber
+ * import attached nothing: no groups on products, no options under sizes.
+ *
+ * Both spellings stay listed. Cheap, and neither is the one to bet on.
+ */
+const GROUP_LINK_FIELDS = [
+  "modifier_group_ids",
+  "modifier_groups",
+  "option_list_ids",
+  "option_lists",
+  "modifier_group_refs",
+  "option_list_refs",
+  "bundled_items",
+  "bundled_item_ids",
+] as const;
+
 function extractModifierGroupIds(item: UberItem): string[] {
-  if (item.modifier_group_ids?.ids?.length) return item.modifier_group_ids.ids;
-  if (item.modifier_groups?.length) return item.modifier_groups;
-  if (item.option_list_ids?.ids?.length) return item.option_list_ids.ids;
-  if (item.option_lists?.length) return item.option_lists;
-  if (item.modifier_group_refs?.length) return item.modifier_group_refs;
-  if (item.option_list_refs?.length) return item.option_list_refs;
-  if (item.bundled_item_ids?.length) return item.bundled_item_ids;
+  for (const field of GROUP_LINK_FIELDS) {
+    const ids = idsFrom((item as any)[field]);
+    if (ids.length) return ids;
+  }
   return [];
+}
+
+/** Which field a menu's links came from — for the import diagnostics. */
+export function groupLinkFieldUsed(items: Array<Record<string, unknown>>): string | null {
+  for (const field of GROUP_LINK_FIELDS) {
+    if (items.some((i) => idsFrom(i[field]).length > 0)) return field;
+  }
+  return null;
 }
 
 // ── Public entry point ──────────────────────────────────────────────────────

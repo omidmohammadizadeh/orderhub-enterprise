@@ -5,6 +5,7 @@ import { SupabaseStorageService } from "../../uploads/supabase-storage.service";
 import { MenuWriterService } from "./menu-writer.service";
 import {
   classifyUberMenu,
+  groupLinkFieldUsed,
   type UberMenuPayload,
 } from "./uber-menu.classifier";
 
@@ -144,6 +145,30 @@ export class UberMenuImporter {
     }
 
     const normalized = classifyUberMenu(payload);
+
+    // What the classifier actually attached. Uber's Get Menu doesn't echo the
+    // `modifier_group_ids` we publish — it returns the links in a different
+    // field — and when we probed the wrong one every import came back with
+    // products, groups and options that were all correct individually and
+    // joined to nothing. That is invisible in a success log and takes a
+    // screenshot of the product editor to notice, so it gets counted here.
+    try {
+      const linkField = groupLinkFieldUsed((payload as any)?.items ?? []);
+      const sized = normalized.products.filter((p) => p.productSkus.length > 0);
+      const skusWithGroups = sized.reduce(
+        (n, p) => n + p.productSkus.filter((s) => (s.modifierGroups ?? []).length > 0).length,
+        0,
+      );
+      const totalSkus = sized.reduce((n, p) => n + p.productSkus.length, 0);
+      this.logger.log(
+        `Uber menu import: group links read from ${linkField ?? "NOTHING — no item carried any"}; ` +
+          `${normalized.productModifierGroupLinks.length} product→group, ` +
+          `${normalized.optionNestedGroupLinks.length} nested, ` +
+          `${sized.length} sized products (${skusWithGroups}/${totalSkus} SKUs with groups)`,
+      );
+    } catch {
+      /* diagnostics only */
+    }
     // Menus WE published carry absolute URLs to our own API (Uber echoes
     // them back). Store them relative — same shape the HubRise import uses —
     // so they load same-origin through the web app.
