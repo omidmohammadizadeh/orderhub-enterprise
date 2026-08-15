@@ -29,6 +29,11 @@ import {
   isModifierAvailable,
   type ProductSku,
 } from "@orderhub/shared";
+import {
+  buildSizeGroup,
+  needsPerSizeExpansion,
+  sizeBasePrice,
+} from "../shared/publish-sizes";
 
 // Item images imported from HubRise are stored as same-origin relative paths
 // (/api/v1/menus/hubrise-image/…). Deliveroo fetches image URLs from the
@@ -384,6 +389,53 @@ export class DeliverooMenuPublishService {
     const skus = skusByItem.get(it.id);
 
     if (skus && skus.length > 0) {
+      // One item + a required Size group whenever the menu can be said that
+      // way faithfully; one item per size only when a modifier's price or
+      // availability depends on the size, which no marketplace can express.
+      if (!needsPerSizeExpansion(skus, groupsById)) {
+        const base = sizeBasePrice(skus);
+        const groups: SrcGroup[] = [buildSizeGroup(it.id, skus, { taxRate })];
+        // Every size offers the same groups here — that is the condition for
+        // taking this branch — so one unsuffixed copy serves all of them.
+        for (const gid of skus[0]!.modifierGroups ?? []) {
+          const g = groupsById.get(gid);
+          if (!g) continue;
+          const options = (g.options ?? [])
+            .filter((o: any) => isModifierAvailable(o, null, { audience: "customer" }))
+            .map((o: any) => ({
+              id: o.id,
+              name: o.name,
+              price: variantMap?.optionPrice(o) ?? getModifierPrice(o, null),
+              plu: getModifierPlu(o, null) ?? o.id,
+              taxRate: Number(o.deliveryTax),
+              available: o.isAvailable !== false,
+            }));
+          if (options.length === 0) continue;
+          groups.push({
+            id: g.id,
+            name: g.name,
+            minSelections: g.minSelections,
+            maxSelections: g.maxSelections,
+            selectionType: g.selectionType,
+            allowDuplicateSelections: g.allowDuplicateSelections,
+            options,
+          });
+        }
+        return [
+          {
+            id: it.id,
+            name: it.name,
+            description: it.description ?? null,
+            price: base,
+            plu: it.plu || it.id,
+            taxRate,
+            imageUrl,
+            available,
+            groups,
+          },
+        ];
+      }
+
       return skus.map((sku, i) => {
         const sizeKey = extractSizeKey(sku.name) ?? sku.name;
         const groups: SrcGroup[] = [];
