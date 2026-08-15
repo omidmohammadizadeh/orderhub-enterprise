@@ -366,7 +366,15 @@ export class PrintJobsController {
   markOrderPrinted(
     @CurrentUser() user: AuthenticatedUser,
     @Param("orderId") orderId: string,
+    @Body() body?: { qr?: Record<string, unknown> },
   ) {
+    // The QR decision is made entirely in the browser — printer defaults,
+    // then the marketplace check, then the render. The server never saw any
+    // of it, so "why was there no QR?" could only ever be answered by
+    // guessing. The tablet now says which gate it took.
+    if (body?.qr) {
+      this.jobs.logQrDecision(orderId, body.qr);
+    }
     return this.jobs.markOrderPrinted(orderId, user.tenantId);
   }
 

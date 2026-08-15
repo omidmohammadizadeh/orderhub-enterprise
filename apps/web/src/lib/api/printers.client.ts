@@ -126,9 +126,9 @@ export const printersClient = {
       .then((r) => r.data),
   // After the tablet prints an order's receipt itself, clear that
   // order's server-side job(s) from the queue + bump "last print".
-  markOrderPrinted: (orderId: string) =>
+  markOrderPrinted: (orderId: string, qr?: Record<string, unknown>) =>
     apiClient
-      .post(`/v1/print-jobs/order/${orderId}/printed`, {})
+      .post(`/v1/print-jobs/order/${orderId}/printed`, qr ? { qr } : {})
       .then((r) => r.data)
       .catch(() => null),
   // Log a print outcome (failure or test) into the activity feed. Success

@@ -226,7 +226,12 @@ export async function printOrderViaBridge(
       order?.total ?? 0,
     ).toFixed(2)} ***`;
   }
-  applyReceiptOffer(payload, await resolveReceiptOffer(order));
+  const offer = await resolveReceiptOffer(order);
+  applyReceiptOffer(payload, offer);
+  // Filled in per printer below and posted with markOrderPrinted. Every gate
+  // the QR must pass lives in this file, so without reporting them a missing
+  // code can only be guessed at from the server side.
+  let qrDecision: Record<string, unknown> | null = null;
 
   // Print to each target independently. Crucially, one bad target must
   // NOT fail the whole job: locations often accumulate a stale/duplicate
@@ -247,11 +252,23 @@ export async function printOrderViaBridge(
       );
       // Plain + QR-attached variants come back separately so extra copies
       // repeat the plain receipt — only the last (bag) copy carries the QR.
+      const renderOpts = printerRenderOptions(p);
       const { receipt, receiptWithQr, qrSlip } = await renderReceiptParts(
         payload,
         p.paperWidth ?? 80,
-        printerRenderOptions(p),
+        renderOpts,
       );
+      qrDecision = {
+        printer: (p as any)?.name ?? p.ipAddress ?? "?",
+        qrEnabled: !!renderOpts.qrCode,
+        dialect: renderOpts.qrDialect,
+        marketplace: !!offer?.isMarketplace,
+        offerUrl: offer?.url ? "yes" : "NONE",
+        qrData: (payload as any)?.qrData ? "yes" : "NONE",
+        detachedOpt: !!(p as any).defaults?.qrDetached,
+        slipBytes: qrSlip?.length ?? 0,
+        withQrBytes: receiptWithQr?.length ?? 0,
+      };
       // Detached: plain receipts, then the QR on its own ticket.
       const detached = (p as any).defaults?.qrDetached ? qrSlip : null;
       await writeToPrinter(
@@ -281,7 +298,7 @@ export async function printOrderViaBridge(
 
   // At least one printer produced the receipt — clear the order's queued
   // job(s) + bump "last print" (this also logs the success server-side).
-  void printersClient.markOrderPrinted(order.id);
+  void printersClient.markOrderPrinted(order.id, qrDecision ?? undefined);
 
   if (failures.length) {
     // Some (not all) printers failed — log the dead one(s) too.

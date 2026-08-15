@@ -508,6 +508,20 @@ export class PrintJobsService {
     return created;
   }
 
+  /**
+   * What the tablet decided about the receipt QR, for one order.
+   *
+   * Every gate lives client-side, so without this the log shows a healthy
+   * print and nothing about why the code is missing from the paper.
+   */
+  logQrDecision(orderId: string, qr: Record<string, unknown>) {
+    this.logger.log(
+      `order ${orderId} QR decision: ${Object.entries(qr)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(" ")}`,
+    );
+  }
+
   // ── Test print ──────────────────────────────────────────────────────
   //
   // Synthetic PrintJob targeting a specific printer. Used during setup
