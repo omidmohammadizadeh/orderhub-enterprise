@@ -46,6 +46,11 @@ import {
   sizeBasePrice,
 } from "../shared/publish-sizes";
 
+// Publish a per-size-priced product as one item whose Size options open
+// that size's own groups, rather than as one item per size. Flip to false
+// for a marketplace that rejects nested modifier groups.
+const NEST_SIZED_PRODUCTS = true;
+
 const PROD_API_ORIGIN = "https://orderhub-api-0re6.onrender.com";
 const PLATFORM_KEY = "UBER_EATS";
 
@@ -721,7 +726,7 @@ export class UberEatsMenuPublishService {
         ];
       }
 
-      return skus.map((sku, i) => {
+      const perSize = skus.map((sku, i) => {
         const sizeKey = extractSizeKey(sku.name) ?? sku.name;
         const groups: SrcGroup[] = [];
         for (const gid of sku.modifierGroups ?? []) {
@@ -771,6 +776,38 @@ export class UberEatsMenuPublishService {
           groups,
         };
       });
+
+      // ONE tile, priced by size, with each size opening its own groups.
+      //
+      // Both marketplaces model a nested group by letting a modifier OPTION
+      // carry groups of its own — the same shape their menus already use for
+      // "Make It a Meal → Choose Side", which is what we import. It is the
+      // only way to keep a single item while a crust costs £2 on a 10" and £3
+      // on a 12": each size opens its own copy of the crust group.
+      if (NEST_SIZED_PRODUCTS) {
+        const sizeGroup = buildSizeGroup(it.id, skus, { taxRate });
+        sizeGroup.options = sizeGroup.options.map((o, i) => ({
+          ...o,
+          nestedGroups: perSize[i]!.groups,
+        }));
+        return [
+          {
+            id: it.id,
+            name: it.name,
+            description: it.description ?? null,
+            price: sizeBasePrice(skus),
+            plu: it.plu || it.id,
+            taxRate,
+            imageUrl,
+            available,
+            groups: [sizeGroup],
+          },
+        ];
+      }
+
+      // Legacy shape: one item per size. Kept so a marketplace that rejects
+      // nesting can be put back with a one-line change rather than a revert.
+      return perSize;
     }
 
     const basePrice =

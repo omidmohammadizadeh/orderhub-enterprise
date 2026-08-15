@@ -20,6 +20,15 @@ export interface SrcOption {
   plu?: string | null;
   taxRate?: number | null; // percentage points, e.g. 20
   available?: boolean;
+  /**
+   * Groups this option opens when chosen. Deliveroo models a nested group by
+   * putting `modifier_ids` on a CHOICE item — the same shape their live menus
+   * use for "Make It a Meal → Choose Side", which is what we import.
+   *
+   * It is how a sized product keeps ONE tile while still pricing its crust
+   * per size: each size option opens its own copy of the crust group.
+   */
+  nestedGroups?: SrcGroup[];
 }
 export interface SrcGroup {
   id: string;
@@ -142,6 +151,51 @@ export function buildDeliverooMenu(input: {
   const seenOptions = new Set<string>();
   const emittedProducts = new Set<string>();
 
+  /**
+   * Emit the groups an option opens, and their own options, returning the
+   * group ids to hang off that option. Recursive so a nested group's options
+   * can themselves nest — the shape is the same at every level.
+   */
+  const emitNested = (groups: SrcGroup[] | undefined): string[] => {
+    const ids: string[] = [];
+    for (const g of groups ?? []) {
+      if (g.options.length === 0) continue;
+      ids.push(g.id);
+      if (seenGroups.has(g.id)) continue;
+      seenGroups.add(g.id);
+      const optionIds: string[] = [];
+      for (const o of g.options) {
+        optionIds.push(o.id);
+        if (seenOptions.has(o.id)) continue;
+        seenOptions.add(o.id);
+        const deeper = emitNested(o.nestedGroups);
+        items.push({
+          id: o.id,
+          type: "CHOICE",
+          name: { en: o.name },
+          plu: String(o.plu || o.id),
+          tax_rate: formatTaxRate(o.taxRate),
+          price_info: { price: toPence(o.price) },
+          ...(deeper.length ? { modifier_ids: deeper } : {}),
+        });
+      }
+      const isVariant = g.selectionType !== "ADDON";
+      let max = g.maxSelections ?? (isVariant ? 1 : optionIds.length || 1);
+      max = Math.max(1, max);
+      let min = g.minSelections ?? 0;
+      min = Math.min(Math.max(0, min), max);
+      modifiers.push({
+        id: g.id,
+        name: { en: g.name },
+        min_selection: min,
+        max_selection: max,
+        repeatable: !!g.allowDuplicateSelections,
+        item_ids: optionIds,
+      });
+    }
+    return ids;
+  };
+
   for (const cat of input.categories) {
     const productIds: string[] = [];
 
@@ -162,6 +216,9 @@ export function buildDeliverooMenu(input: {
               optionIds.push(o.id);
               if (!seenOptions.has(o.id)) {
                 seenOptions.add(o.id);
+                // An option that opens its own groups is emitted with
+                // modifier_ids, exactly as Deliveroo's own menus do it.
+                const nestedIds = emitNested(o.nestedGroups);
                 items.push({
                   id: o.id,
                   type: "CHOICE",
@@ -169,6 +226,7 @@ export function buildDeliverooMenu(input: {
                   plu: String(o.plu || o.id),
                   tax_rate: formatTaxRate(o.taxRate),
                   price_info: { price: toPence(o.price) },
+                  ...(nestedIds.length ? { modifier_ids: nestedIds } : {}),
                 });
               }
             }

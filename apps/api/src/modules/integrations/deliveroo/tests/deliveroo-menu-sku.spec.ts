@@ -1,8 +1,16 @@
 import { DeliverooMenuPublishService } from "../deliveroo-menu-publish.service";
 
-// Multi-SKU items (a pizza with sizes, each carrying its own price + modifier
-// groups, with size-aware modifier pricing) must flatten to one Deliveroo item
-// per size. This drives the private loader with a mocked Prisma.
+// A multi-SKU item — a pizza whose sizes carry their own price and their own
+// size-aware modifier prices — goes to Deliveroo as ONE item with a required
+// Size group, each size opening its own copy of the groups at that size's
+// prices. Deliveroo models that by letting a CHOICE carry modifier_ids, the
+// same shape their live menus use for "Make It a Meal → Choose Side".
+//
+// It used to flatten to one item per size, which put three Margheritas on the
+// menu. The size-aware pricing and the off-size hiding below are the reasons
+// a single flat item cannot be used instead — they are what the nesting buys.
+//
+// Drives the private loader with a mocked Prisma.
 
 function makeService(opts: { categories: any[]; groupsById: any[] }) {
   const prisma = {
@@ -64,8 +72,8 @@ const toppingsGroup = () => ({
   ],
 });
 
-describe("DeliverooMenuPublishService multi-SKU flattening", () => {
-  it("flattens each SKU into its own item with size-aware groups", async () => {
+describe("DeliverooMenuPublishService multi-SKU publishing", () => {
+  it("publishes one item whose sizes open their own size-priced groups", async () => {
     const svc = makeService({
       categories: [multiSkuCategory()],
       groupsById: [toppingsGroup()],
@@ -74,47 +82,66 @@ describe("DeliverooMenuPublishService multi-SKU flattening", () => {
     const cats = await (svc as any).loadCategories("m1");
     expect(cats).toHaveLength(1);
     const products = cats[0].products;
-    expect(products.map((p: any) => p.name)).toEqual([
-      "Margherita - 10 inch",
-      "Margherita - 12 inch",
-    ]);
 
-    const ten = products[0];
-    expect(ten.id).toBe("item1__s0");
-    expect(ten.price).toBe(9.99);
-    expect(ten.plu).toBe("M10");
-    expect(ten.groups).toHaveLength(1);
-    expect(ten.groups[0].id).toBe("grpT__10");
-    expect(ten.groups[0].options[0]).toMatchObject({
+    // One tile on the marketplace, not one per size.
+    expect(products).toHaveLength(1);
+    expect(products[0].name).toBe("Margherita");
+    expect(products[0].id).toBe("item1");
+    // Priced at the cheapest size; each size adds its difference.
+    expect(products[0].price).toBe(9.99);
+
+    expect(products[0].groups).toHaveLength(1);
+    const sizes = products[0].groups[0];
+    expect(sizes).toMatchObject({
+      name: "Size",
+      minSelections: 1,
+      maxSelections: 1,
+      selectionType: "VARIANT",
+    });
+    expect(sizes.options.map((o: any) => o.name)).toEqual([
+      "10 inch",
+      "12 inch",
+    ]);
+    expect(sizes.options.map((o: any) => o.price)).toEqual([0, 3]);
+    // Each size keeps its own PLU so an order line reconciles to the size.
+    expect(sizes.options.map((o: any) => o.plu)).toEqual(["M10", "M12"]);
+
+    // 10" opens Toppings at 10" prices…
+    const ten = sizes.options[0].nestedGroups[0];
+    expect(ten.id).toBe("grpT__10");
+    expect(ten.options[0]).toMatchObject({
       id: "optCheese__10",
       name: "Extra Cheese",
-      price: 0.5, // 10" price
+      price: 0.5,
       plu: "CH10",
     });
 
-    const twelve = products[1];
-    expect(twelve.price).toBe(12.99);
-    expect(twelve.plu).toBe("M12");
-    expect(twelve.groups[0].id).toBe("grpT__12");
-    expect(twelve.groups[0].options[0]).toMatchObject({
+    // …and 12" opens its own copy at 12" prices. Two copies of one group is
+    // exactly what lets a single item price a topping per size.
+    const twelve = sizes.options[1].nestedGroups[0];
+    expect(twelve.id).toBe("grpT__12");
+    expect(twelve.options[0]).toMatchObject({
       id: "optCheese__12",
-      price: 0.75, // 12" price
+      price: 0.75,
       plu: "CH12",
     });
   });
 
-  it("hides an option not priced for the selected size", async () => {
+  it("hides an option not priced for that size", async () => {
     const g = toppingsGroup();
-    // Cheese only priced for 10" — should vanish from the 12" item.
+    // Cheese only priced for 10" — it must not appear under 12".
     g.options[0]!.pricesBySize = { "10": 0.5 };
     const svc = makeService({
       categories: [multiSkuCategory()],
       groupsById: [g],
     });
+
     const cats = await (svc as any).loadCategories("m1");
-    const [ten, twelve] = cats[0].products;
-    expect(ten.groups[0].options).toHaveLength(1);
-    // 12" group has no valid options → group dropped entirely.
-    expect(twelve.groups).toHaveLength(0);
+    const sizes = cats[0].products[0].groups[0];
+
+    expect(sizes.options[0].nestedGroups[0].options).toHaveLength(1);
+    // 12" has no valid options left, so the group is dropped from that size
+    // rather than published empty.
+    expect(sizes.options[1].nestedGroups).toHaveLength(0);
   });
 });

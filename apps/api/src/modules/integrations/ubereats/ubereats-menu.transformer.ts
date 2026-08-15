@@ -163,11 +163,24 @@ export function buildUberEatsMenu(input: {
       optionIds.push(o.id);
       if (!seenOptions.has(o.id)) {
         seenOptions.add(o.id);
+        // Uber puts modifier options in the SAME items[] pool as products, and
+        // an item can carry modifier_group_ids — so an option can open its own
+        // groups. That is how a sized product keeps one tile while still
+        // pricing its crust per size. Recursive: emitGroup calls back here.
+        const nestedIds: string[] = [];
+        for (const ng of o.nestedGroups ?? []) {
+          if (ng.options.length === 0) continue;
+          nestedIds.push(ng.id);
+          emitGroup(ng);
+        }
         items.push({
           id: o.id,
           title: T(o.name),
           price_info: { price: toPence(o.price) },
           tax_info: { tax_rate: taxRate(o.taxRate) },
+          ...(nestedIds.length
+            ? { modifier_group_ids: { ids: nestedIds } }
+            : {}),
           ...(o.plu ? { external_data: String(o.plu) } : {}),
         });
       }
