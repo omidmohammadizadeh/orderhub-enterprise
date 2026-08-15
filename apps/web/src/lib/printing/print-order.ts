@@ -62,13 +62,20 @@ export interface ReceiptOffer {
 
 // Resolve the receipt logo + (for marketplace orders) the storefront QR
 // and live marketing caption. Returns null only when we can't key it
-// (no brand/location) or on failure, so printing never breaks.
+// (no location) or on failure, so printing never breaks.
 export async function resolveReceiptOffer(
   order: any,
 ): Promise<ReceiptOffer | null> {
-  const brandId = order?.brandId ?? order?.brand?.id;
   const locationId = order?.locationId;
-  if (!brandId || !locationId) return null;
+  if (!locationId) return null;
+  // The order's brand is OPTIONAL. A channel order only gets one when brand
+  // matching finds a hint — HubRise keys off connection_name, and an order
+  // that arrives without one (an unmapped connection, or a Developer Tools
+  // test) is ingested with no brand at all. Requiring it here bailed out
+  // before the marketplace check ran, silently costing that ticket both its
+  // QR and its logo even though the location is known and has a brand of its
+  // own. The API falls back to the location's brand when this is empty.
+  const brandId = order?.brandId ?? order?.brand?.id ?? "";
   const key = `${brandId}|${locationId}`;
   try {
     let offer = offerCache.get(key);

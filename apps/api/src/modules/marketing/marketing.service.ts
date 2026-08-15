@@ -213,15 +213,23 @@ export class MarketingService {
           logoUrl: true,
         },
       }),
-      (this.prisma as any).brand.findFirst({
-        where: { id: brandId, tenantId },
-        select: {
-          logoUrl: true,
-          onlineOrderingSlug: true,
-          directOrderingEnabled: true,
-        },
-      }),
+      // brandId is optional — a channel order only carries one when brand
+      // matching found a hint. Skip the lookup entirely when it's empty
+      // rather than querying for id: "".
+      brandId
+        ? (this.prisma as any).brand.findFirst({
+            where: { id: brandId, tenantId },
+            select: {
+              logoUrl: true,
+              onlineOrderingSlug: true,
+              directOrderingEnabled: true,
+            },
+          })
+        : null,
     ]);
+    // Everything below keys off the brand we can actually serve: the order's
+    // when it has one, otherwise the location's own.
+    const effectiveBrandId = brandId || loc?.brandId || "";
     // Receipt logo: the order's brand first, else the location's own
     // logo (operators often upload the store logo at the location level).
     const logoUrl = brand?.logoUrl ?? loc?.logoUrl ?? null;
@@ -239,7 +247,7 @@ export class MarketingService {
     // Uber ticket printed fine and just had no "order direct next time" code,
     // with nothing anywhere saying why.
     const { url, storefrontBrandId, reason } = buildStorefrontQrUrl({
-      brandId,
+      brandId: effectiveBrandId,
       brand,
       loc,
       base,
@@ -250,7 +258,7 @@ export class MarketingService {
     // session — so a support question of "why was there no QR?" left no trace
     // anywhere at all. One line here is the only durable record.
     this.logger.log(
-      `receiptOffer brand=${brandId} location=${locationId} → ` +
+      `receiptOffer brand=${brandId || `(from location: ${effectiveBrandId})`} location=${locationId} → ` +
         (url
           ? `url=${url}${storefrontBrandId !== brandId ? " (storefront brand from location)" : ""}`
           : `NO URL — ${reason}, so no QR will print`),
@@ -260,7 +268,7 @@ export class MarketingService {
     const campaigns = await (this.prisma as any).marketingCampaign.findMany({
       where: {
         tenantId,
-        brandId,
+        brandId: effectiveBrandId,
         status: "ACTIVE",
         OR: [{ startsAt: null }, { startsAt: { lte: now } }],
         AND: [{ OR: [{ endsAt: null }, { endsAt: { gte: now } }] }],
