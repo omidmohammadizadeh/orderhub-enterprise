@@ -308,11 +308,34 @@ export class DeliverooMenuPublishService {
 
     const links = cats.reduce((n, c) => n + c.items.length, 0);
     const kept = result.reduce((n, c) => n + c.products.length, 0);
+
+    // Sizes have no equivalent on Deliveroo, so a multi-SKU product is
+    // published as one item PER SIZE ("Margherita - 12 inch"), each carrying
+    // the groups named in that SKU's modifierGroups. A menu imported before
+    // those ids were back-filled has them empty, and the size items then
+    // publish with no modifiers at all — which looks exactly like "the sizes
+    // didn't attach". Counted so the two are told apart.
+    const sizedItems = skusByItem.size;
+    let sizeRows = 0;
+    let sizeRowsNoGroups = 0;
+    for (const c of result) {
+      for (const p of c.products) {
+        if (!String(p.id).includes("__s")) continue;
+        sizeRows++;
+        if (p.groups.length === 0) sizeRowsNoGroups++;
+      }
+    }
     this.logger.log(
       `Deliveroo publish menu=${menuId}: ${cats.length} categories, ` +
         `${links} item links → kept ${kept} ` +
         `(dropped hidden=${dropped.hidden} missing=${dropped.missing} ` +
         `variant-brand=${dropped.variant})` +
+        (sizedItems
+          ? `; ${sizedItems} sized products → ${sizeRows} size rows` +
+            (sizeRowsNoGroups
+              ? ` (${sizeRowsNoGroups} with NO modifier groups — re-import or re-clone to back-fill productSkus[].modifierGroups)`
+              : " (all carry their modifier groups)")
+          : "") +
         (restrictedTo ? ` [variant restricts to brand ${brandLabel}]` : ""),
     );
     if (links > 0 && kept === 0) {
