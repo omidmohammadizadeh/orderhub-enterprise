@@ -351,33 +351,6 @@ export function renderToEscPos(
     newline();
   }
 
-  // Phase BN-QR — marketing QR, pre-rasterised.
-  //
-  // Bytes only: the raster is built once when the print job is created
-  // (qr-raster.ts) and carried on the payload as base64, so this stays
-  // synchronous and this file stays byte-identical to its twin.
-  //
-  // A raster rather than `GS ( k` because Sunmi implements no QR command —
-  // it accepts the ESC/POS one and silently prints nothing.
-  if (payload.qrRaster) {
-    try {
-      const raster = Buffer.from(String(payload.qrRaster), "base64");
-      if (raster.length > 8) {
-        hr();
-        out.push(...alignCenter());
-        if (payload.qrCaption) {
-          write(String(payload.qrCaption));
-          newline();
-        }
-        out.push(...Array.from(raster));
-        newline();
-        out.push(...alignLeft());
-      }
-    } catch {
-      // A malformed raster must never cost the ticket.
-    }
-  }
-
   newline();
   newline();
   newline();
