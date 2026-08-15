@@ -294,6 +294,22 @@ export function ProductForm({
         .filter(Boolean),
     [existing],
   );
+  // The list SKU rows resolve their group ids against.
+  //
+  // `allGroups` is scoped to the location, and a sized product's SKU groups
+  // are bare ids with no FK — an imported menu's groups often sit on another
+  // brand of the same tenant and so are absent from it. The server resolves
+  // them by id + tenant on the item itself; merge those in or the row cannot
+  // name what is genuinely attached.
+  const groupsForSkus = useMemo(() => {
+    const merged = new Map<string, any>();
+    for (const g of allGroups) merged.set(g.id, g);
+    for (const g of (existing as any)?.skuModifierGroups ?? []) {
+      if (!merged.has(g.id)) merged.set(g.id, g);
+    }
+    return Array.from(merged.values());
+  }, [allGroups, existing]);
+
   const attachedGroups = useMemo(() => {
     const merged = new Map<string, any>();
     for (const g of linkedGroups) merged.set(g.id, g);
@@ -488,7 +504,7 @@ export function ProductForm({
                   <SkuRow
                     key={i}
                     sku={sku}
-                    allGroups={allGroups}
+                    allGroups={groupsForSkus}
                     onChange={(next) =>
                       setSkus(skus.map((r, idx) => (idx === i ? next : r)))
                     }
@@ -1063,8 +1079,17 @@ function SkuRow({
   onCreateNew: () => void;
   onEditGroup: (groupId: string) => void;
 }) {
-  const attached = allGroups.filter((g) =>
-    sku.modifierGroupIds.includes(g.id),
+  // Resolve in the SKU's own order, and never drop an id we can't name.
+  //
+  // This filtered `allGroups` — the LOCATION-scoped list — so any group the
+  // list didn't contain vanished and the row said "No groups attached to this
+  // size yet". An imported menu routinely references groups on another brand
+  // of the same tenant, so that read "the import attached nothing" when the
+  // import had attached them correctly. Four rounds of debugging went to the
+  // importer because of it. An id that won't resolve is now shown as an id.
+  const byId = new Map(allGroups.map((g) => [g.id, g]));
+  const attached = sku.modifierGroupIds.map(
+    (id) => byId.get(id) ?? { id, name: null, options: [] },
   );
 
   return (
@@ -1126,7 +1151,16 @@ function SkuRow({
           {attached.map((g) => (
             <span
               key={g.id}
-              className="group inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-medium text-orange-800"
+              className={`group inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                g.name
+                  ? "bg-orange-100 text-orange-800"
+                  : "bg-amber-100 text-amber-900"
+              }`}
+              title={
+                g.name
+                  ? undefined
+                  : "This size references a modifier group that isn't in this location's list. It's attached — it just can't be named here."
+              }
             >
               <button
                 type="button"
@@ -1134,7 +1168,7 @@ function SkuRow({
                 className="hover:underline"
                 title="Edit this modifier group + its modifiers"
               >
-                {g.name}
+                {g.name ?? `Group ${g.id.slice(-6)}`}
                 <span className="ml-1 font-normal text-orange-600">
                   ({g.options?.length ?? 0})
                 </span>

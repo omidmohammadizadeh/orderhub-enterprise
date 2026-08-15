@@ -41,6 +41,13 @@ export interface CatalogProduct {
     groupId: string;
     group: CatalogModifierGroup;
   }>;
+  /**
+   * Groups referenced by `productSkus[].modifierGroups`, resolved server-side
+   * by id + tenant. They have no FK and routinely live on a different brand of
+   * the same tenant, so no brand- or location-scoped list is guaranteed to
+   * contain them — this is the only reliable way to name them.
+   */
+  skuModifierGroups?: CatalogModifierGroup[];
   variants?: CatalogVariant[];
   createdAt: string;
   updatedAt: string;

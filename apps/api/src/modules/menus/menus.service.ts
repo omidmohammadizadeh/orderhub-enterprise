@@ -1242,6 +1242,26 @@ export class MenusService {
     });
     if (!item) throw new NotFoundException(`Item ${itemId} not found`);
     await this.assertBrandAccess(item.brandId, tenantId);
+
+    // A sized product's groups hang off the SKU as bare ids in a JSON column,
+    // reachable from no include at any depth. The editor used to resolve them
+    // against the LOCATION's group list, which drops every id that list
+    // doesn't have — an imported menu whose groups sit on another brand of the
+    // same tenant rendered as "No groups attached to this size yet", which is
+    // a statement about the lookup, not about the product.
+    const skuGroupIds = new Set<string>();
+    const skus = (item as any).productSkus;
+    if (Array.isArray(skus)) {
+      for (const sku of skus) {
+        for (const gid of sku?.modifierGroups ?? []) {
+          if (typeof gid === "string" && gid) skuGroupIds.add(gid);
+        }
+      }
+    }
+    (item as any).skuModifierGroups = await this.loadGroupsByIds(
+      skuGroupIds,
+      tenantId,
+    );
     return item;
   }
 
@@ -2481,6 +2501,19 @@ export class MenusService {
         }
       }
     }
+    return this.loadGroupsByIds(ids, tenantId);
+  }
+
+  /**
+   * Groups behind a set of bare ids, scoped by TENANT rather than brand.
+   *
+   * `productSkus[].modifierGroups` is a JSON array with no FK, so the only way
+   * to render a sized product's options is to look the ids up directly. It has
+   * to be tenant-scoped: a menu imported under one brand routinely references
+   * groups on another brand of the same tenant, and every brand- or
+   * location-scoped list is therefore incomplete by construction.
+   */
+  private async loadGroupsByIds(ids: Set<string>, tenantId: string) {
     if (ids.size === 0) return [];
     const groups = await this.prisma.modifierGroup.findMany({
       where: { id: { in: Array.from(ids) }, brand: { tenantId } },
