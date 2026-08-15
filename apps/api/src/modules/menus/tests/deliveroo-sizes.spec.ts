@@ -122,6 +122,44 @@ describe("Deliveroo import — sizes", () => {
     expect(r.modifiers.map((m) => m.externalId)).toEqual(["cheese"]);
   });
 
+  it("gives every size the product's other modifier groups", () => {
+    // The picker routes a sized product's groups through the SELECTED SKU and
+    // ignores the product's own links, so an empty list here means the pizza
+    // offers its sizes and not one topping. Six "Choose Size" groups on a real
+    // Deliveroo menu meant six products silently losing every option.
+    const r = classifyDeliverooMenu(payload() as any);
+    const pizza = r.products.find((p) => p.externalId === "pizza")!;
+
+    expect(pizza.productSkus.map((s) => s.modifierGroups)).toEqual([
+      ["grp-extras"],
+      ["grp-extras"],
+    ]);
+  });
+
+  it("keeps the size group itself off the SKUs", () => {
+    // Otherwise picking 12 inch asks you to pick a size again.
+    const r = classifyDeliverooMenu(payload() as any);
+    for (const sku of r.products.find((p) => p.externalId === "pizza")!.productSkus) {
+      expect(sku.modifierGroups).not.toContain("grp-size");
+    }
+  });
+
+  it("changes the product hash when the SKU groups change", () => {
+    // Products are matched across imports by externalId and skipped when the
+    // hash matches. If the groups didn't ride the hash, every product that
+    // imported with empty SKU groups would stay broken forever.
+    const withGroups = classifyDeliverooMenu(payload() as any).products.find(
+      (p) => p.externalId === "pizza",
+    )!;
+    const noExtras = payload() as any;
+    noExtras.menu.items.find((i: any) => i.id === "pizza").modifier_ids = ["grp-size"];
+    const without = classifyDeliverooMenu(noExtras).products.find(
+      (p) => p.externalId === "pizza",
+    )!;
+
+    expect(withGroups.syncHash).not.toBe(without.syncHash);
+  });
+
   it("says in the warnings which group became sizes", () => {
     const r = classifyDeliverooMenu(payload() as any);
     expect(r.warnings.join(" ")).toContain("Choose a size");

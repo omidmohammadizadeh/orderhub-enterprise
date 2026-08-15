@@ -46,6 +46,41 @@ import type {
 //      lastSyncedAt=now, syncHash=newHash. ALWAYS release the import lock
 //      in the finally block.
 
+/**
+ * Fill in each SKU's modifier-group list with LOCAL group ids.
+ *
+ * A multi-SKU product routes its modifier groups through the chosen SKU:
+ * the picker reads `selectedSku.modifierGroups`, NOT the product's own
+ * group links. Both importers that produce sizes emitted `modifierGroups: []`
+ * on every SKU and left the back-fill to the writer, which never did it — so
+ * any product that got sizes showed its sizes and not one of its options.
+ * Six "Choose Size" groups converting on a Deliveroo menu meant six products
+ * silently losing every topping.
+ *
+ * Neither Deliveroo nor a photographed menu has a per-size group concept, so
+ * a SKU with no list of its own inherits the product's. A SKU that DOES carry
+ * ids keeps them, translated from external to local where we can — that's the
+ * per-size case the dashboard can express.
+ */
+export function resolveSkuModifierGroups(
+  productSkus: Array<{ modifierGroups?: string[] }>,
+  productLocalGroupIds: string[],
+  groupExtToLocal: Map<string, string>,
+): Array<{ modifierGroups: string[] }> {
+  return (productSkus ?? []).map((sku) => {
+    const own = sku.modifierGroups ?? [];
+    if (own.length === 0) {
+      return { ...sku, modifierGroups: [...productLocalGroupIds] };
+    }
+    return {
+      ...sku,
+      // Unknown ids pass through untouched: they're already local, written
+      // by the dashboard rather than by an import.
+      modifierGroups: own.map((id) => groupExtToLocal.get(id) ?? id),
+    };
+  });
+}
+
 @Injectable()
 export class MenuWriterService {
   private readonly logger = new Logger(MenuWriterService.name);
@@ -239,6 +274,17 @@ export class MenuWriterService {
         // --- Products ---
         const productExtToLocal = new Map<string, string>();
         for (const p of normalized.products) {
+          // The picker routes a sized product's groups through the SELECTED
+          // SKU, so these have to be real local ids or the product shows its
+          // sizes and none of its options.
+          const localGroupIds = p.modifierGroupExternalIds
+            .map((ext) => groupExtToLocal.get(ext))
+            .filter((id): id is string => !!id);
+          const productSkus = resolveSkuModifierGroups(
+            p.productSkus as any,
+            localGroupIds,
+            groupExtToLocal,
+          );
           const existing = await tx.menuItem.findFirst({
             where: {
               platformSource: source,
@@ -260,7 +306,7 @@ export class MenuWriterService {
                   outOfStock: p.outOfStock,
                   visibleToCustomers: p.visibleToCustomers,
                   hasMultipleSkus: p.hasMultipleSkus,
-                  productSkus: p.productSkus as any,
+                  productSkus: productSkus as any,
                   rawModifierGroupIds: p.modifierGroupExternalIds as any,
                   syncHash: p.syncHash,
                   syncStatus: "synced",
@@ -286,7 +332,7 @@ export class MenuWriterService {
                 outOfStock: p.outOfStock,
                 visibleToCustomers: p.visibleToCustomers,
                 hasMultipleSkus: p.hasMultipleSkus,
-                productSkus: p.productSkus as any,
+                productSkus: productSkus as any,
                 rawModifierGroupIds: p.modifierGroupExternalIds as any,
                 menuIds: [menuId],
                 platformSource: source,

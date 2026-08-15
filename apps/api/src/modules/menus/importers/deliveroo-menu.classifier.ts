@@ -79,6 +79,16 @@ interface DeliverooModifierGroup {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
+/**
+ * Bumped whenever this classifier's OUTPUT changes shape, so an unchanged
+ * Deliveroo payload still re-imports. See the fullHash comment at the bottom.
+ *
+ *   2 — sized products carry their modifier groups on each SKU (they were
+ *       emitted empty, so a product with sizes offered no options at all),
+ *       and options carry their nested groups.
+ */
+const CLASSIFIER_VERSION = 2;
+
 const sha = (s: string): string =>
   createHash("sha256").update(s).digest("hex").slice(0, 32);
 
@@ -242,6 +252,8 @@ export function classifyDeliverooMenu(
       // is a SIZE on the product rather than a topping the operator has to
       // pick before they can price anything.
       const sizeGroupId = groupIds.find((g) => sizeGroupIds.has(g));
+      // Everything else stays a normal modifier group on the product.
+      const normalGroupIds = groupIds.filter((g) => g !== sizeGroupId);
       const skus = sizeGroupId
         ? (groupsById.get(sizeGroupId)?.item_ids ?? []).map((optId) => {
             const opt = itemsById.get(optId);
@@ -249,12 +261,19 @@ export function classifyDeliverooMenu(
               name: localized(opt?.name) || optId,
               plu: (opt?.plu ?? optId).toString(),
               price: opt ? priceFrom(opt) : 0,
-              modifierGroups: [] as string[],
+              // A sized product routes its groups through the SELECTED SKU —
+              // the picker reads selectedSku.modifierGroups and ignores the
+              // product's own links. Emitting [] here is why every product
+              // that got sizes lost all of its toppings.
+              //
+              // Deliveroo has no per-size group concept: the product's other
+              // groups apply whichever size you pick, so every SKU gets the
+              // same list. These are EXTERNAL ids; the writer translates them
+              // to local ids once the groups have been upserted.
+              modifierGroups: [...normalGroupIds],
             };
           })
         : [];
-      // Everything else stays a normal modifier group on the product.
-      const normalGroupIds = groupIds.filter((g) => g !== sizeGroupId);
       if (sizeGroupId && skus.length) {
         sizeGroupsUsed.add(sizeGroupId);
       }
@@ -434,7 +453,13 @@ export function classifyDeliverooMenu(
     );
   }
 
-  const fullHash = sha(JSON.stringify(payload));
+  // The menu-level hash short-circuits the ENTIRE import when it matches, so
+  // a classifier fix would never reach a menu whose Deliveroo payload hadn't
+  // also changed — the operator re-imports, gets "unchanged", and the bug
+  // survives. Folding the version in means shipping a fix is enough to make
+  // the next re-import actually apply it. Bump on any change to what the
+  // classifier emits.
+  const fullHash = sha(`${CLASSIFIER_VERSION}:${JSON.stringify(payload)}`);
 
   return {
     platformSource: "deliveroo",
