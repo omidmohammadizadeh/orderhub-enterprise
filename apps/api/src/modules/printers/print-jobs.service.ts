@@ -27,6 +27,11 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PrintRoutingService, type PrintTarget } from "./print-routing.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+import { qrRasterBase64 } from "./qr-raster";
+import {
+  buildStorefrontQrUrl,
+  isMarketplaceSource,
+} from "../marketing/receipt-qr-url";
 
 // Client-reported print outcome (used for the Logs feed). Success prints are
 // already logged server-side via markOrderPrinted; the client posts here for
@@ -189,6 +194,8 @@ export class PrintJobsService {
       return true;
     });
     if (!deduped.length) return [];
+
+    await this.bakeQrForServerRenderedReceipts(deduped, order);
 
     const created: string[] = [];
     for (let i = 0; i < deduped.length; i++) {
@@ -973,6 +980,108 @@ export class PrintJobsService {
   // unconditionally because there's only ever one "natural" trigger
   // for them and the operator has already opted in by configuring
   // Location.receiptPrinterId / dispatchPrinterId.
+  /**
+   * Bake the marketplace "scan to order direct" QR into receipts that will be
+   * rendered SERVER-side, as a ready-to-splice raster.
+   *
+   * Scoped deliberately narrowly. Bluetooth tablets rasterise their own QR in
+   * the browser from payload.qrData; if this baked one into every payload they
+   * would render both and print two QR codes on one receipt. So it only ever
+   * touches jobs whose printer is LAN/EPSON_EPOS with no bound agent — the
+   * exact set ServerDirectPrintCron renders — which leaves a Bluetooth
+   * printer's payload byte-for-byte what it is today.
+   *
+   * Still gated on the printer's own defaults.qrCode, so this is opt-in per
+   * device and changes nothing for anyone who hasn't switched it on.
+   *
+   * Never throws: a receipt without its marketing QR is a nuisance, a receipt
+   * that failed to print is a lost order.
+   */
+  private async bakeQrForServerRenderedReceipts(
+    targets: any[],
+    order: any,
+  ): Promise<void> {
+    try {
+      const receiptTargets = targets.filter(
+        (t) => t.type === "CUSTOMER_RECEIPT" && t.printerId,
+      );
+      if (!receiptTargets.length) return;
+      if (!isMarketplaceSource(order.orderSource, order.platform)) return;
+
+      const printers = await (this.prisma as any).printer.findMany({
+        where: {
+          id: { in: receiptTargets.map((t) => t.printerId) },
+          agentId: null,
+          connectionType: { in: ["LAN", "EPSON_EPOS"] },
+        },
+        select: { id: true, paperWidth: true, defaults: true },
+      });
+      const eligible = new Map<string, any>(
+        printers
+          .filter((p: any) => p?.defaults?.qrCode)
+          .map((p: any) => [p.id, p]),
+      );
+      if (eligible.size === 0) return;
+
+      const [loc, brand] = await Promise.all([
+        (this.prisma as any).location.findUnique({
+          where: { id: order.locationId },
+          select: {
+            id: true,
+            slug: true,
+            brandId: true,
+            onlineOrderingSlug: true,
+          },
+        }),
+        order.brandId
+          ? (this.prisma as any).brand.findUnique({
+              where: { id: order.brandId },
+              select: { onlineOrderingSlug: true, directOrderingEnabled: true },
+            })
+          : null,
+      ]);
+
+      const base = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com")
+        .replace(/\/+$/, "");
+      const { url, reason } = buildStorefrontQrUrl({
+        brandId: order.brandId ?? loc?.brandId ?? "",
+        brand,
+        loc,
+        base,
+      });
+      if (!url) {
+        this.logger.log(
+          `order ${order.id}: no server-side receipt QR — ${reason}`,
+        );
+        return;
+      }
+
+      for (const t of receiptTargets) {
+        const printer = eligible.get(t.printerId);
+        if (!printer) continue;
+        const paperWidth = printer.paperWidth === 58 ? 58 : 80;
+        const raster = qrRasterBase64(url, { paperWidth });
+        if (!raster) continue;
+        t.payload = {
+          ...(t.payload ?? {}),
+          // Consumed by escpos-renderer. Deliberately NOT `qrData` — that is
+          // the browser path's field, and reusing it would make a tablet
+          // render this one as well as its own.
+          qrRaster: raster,
+          qrCaption: t.payload?.qrCaption ?? "Scan to order direct next time",
+        };
+        this.logger.log(
+          `order ${order.id}: baked receipt QR for LAN printer ${t.printerId} (${paperWidth}mm) → ${url}`,
+        );
+      }
+    } catch (err: any) {
+      // Never let the marketing QR cost anyone a ticket.
+      this.logger.warn(
+        `order ${order?.id}: server-side receipt QR skipped — ${err?.message}`,
+      );
+    }
+  }
+
   private async filterTargetsByAutoRules(
     targets: PrintTarget[],
     trigger: string,
