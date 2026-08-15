@@ -553,14 +553,12 @@ export function classifyDeliverooMenu(
       maxSelections: g.maxSelections,
       allowDuplicateSelections: g.allowDuplicateSelections,
       modifierExternalIds: g.optionExternalIds,
-      syncHash: sha(
-        JSON.stringify({
-          name: g.name,
-          min: g.minSelections,
-          max: g.maxSelections,
-          optionIds: g.optionExternalIds,
-        }),
-      ),
+      syncHash: entityHash({
+        name: g.name,
+        min: g.minSelections,
+        max: g.maxSelections,
+        optionIds: g.optionExternalIds,
+      }),
     });
   }
 

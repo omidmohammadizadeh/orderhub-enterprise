@@ -443,9 +443,7 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
         // that only adds images is skipped as "unchanged" (items upsert by
         // externalId across the brand). Same fix as the Deliveroo classifier.
         // Sizes ride it too, so a price change on one size re-imports the item.
-        syncHash: sha(
-          JSON.stringify({ name, price: basePrice, plu, groupIds, skus, isSuspended, imageUrl, description }),
-        ),
+        syncHash: entityHash({ name, price: basePrice, plu, groupIds, skus, isSuspended, imageUrl, description }),
       });
 
       for (const groupExt of groupIds) {
@@ -601,14 +599,12 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
       maxSelections: g.maxSelections,
       allowDuplicateSelections: g.allowDuplicateSelections,
       modifierExternalIds: g.optionExternalIds,
-      syncHash: sha(
-        JSON.stringify({
-          name: g.name,
-          min: g.minSelections,
-          max: g.maxSelections,
-          optionIds: g.optionExternalIds,
-        }),
-      ),
+      syncHash: entityHash({
+        name: g.name,
+        min: g.minSelections,
+        max: g.maxSelections,
+        optionIds: g.optionExternalIds,
+      }),
     });
   }
 
