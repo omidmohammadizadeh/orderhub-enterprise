@@ -258,6 +258,9 @@ export function classifyAiMenu(draft: AiMenuDraft, ns: string): NormalizedMenu {
     modifiers,
     productModifierGroupLinks,
     modifierGroupModifierLinks,
+    // Vision parsing reads a printed menu, which has no way to express a
+    // group hanging off one option. Flat by construction.
+    optionNestedGroupLinks: [],
     warnings,
   };
 }

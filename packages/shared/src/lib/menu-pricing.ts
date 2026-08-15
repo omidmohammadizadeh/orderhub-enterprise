@@ -74,6 +74,27 @@ export interface SelectedModifier {
   price: number;
   /** PLU at the time of selection (size-aware). */
   plu?: string | null;
+
+  // ── Nested selections (Phase BN) ──────────────────────────────────────
+  // A modifier group can hang off an OPTION rather than a product:
+  // "Make It a Meal" → "Choose Side" → "Fries" → "Garlic Mayo".
+  //
+  // The selection list stays FLAT and gains these annotations rather than
+  // becoming a tree. Everything downstream — the kitchen ticket, station
+  // routing, the receipt, the server's line total — reads this array as a
+  // flat list of {name, price, groupId} and keeps working untouched; only
+  // the surfaces that want to show the hierarchy read the fields below.
+
+  /** The option whose selection opened this modifier's group. */
+  parentOptionId?: string | null;
+  /** 0 for a group attached to the product itself, 1+ when nested. */
+  depth?: number;
+  /**
+   * Names from the top-level option down to this one, inclusive:
+   * ["Make It a Meal", "Fries", "Garlic Mayo"]. Printed on the kitchen
+   * ticket so the line reads as the choice the customer actually made.
+   */
+  path?: string[];
 }
 
 // ── Size key extraction ─────────────────────────────────────────────────────

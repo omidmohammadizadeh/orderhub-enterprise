@@ -1,0 +1,379 @@
+// ── Phase BN — nested modifier groups ───────────────────────────────────────
+//
+// A modifier group can hang off an OPTION instead of a product:
+//
+//   Big Boss Burger
+//   └── Make It a Meal (group)
+//       └── Make It a Meal +£3.99 (option)
+//           ├── Choose Side (group)
+//           │   └── Fries (option)
+//           │       └── Dip (group) → Garlic Mayo
+//           └── Choose Drink (group)
+//
+// This module turns "the groups on this product" + "what the customer has
+// ticked so far" into the tree the picker renders, the flat list the cart and
+// the kitchen ticket consume, and the list of still-unanswered required
+// questions. It lives in @orderhub/shared for the same reason the pricing
+// maths does: the till, the storefront and the kiosk must agree to the penny,
+// and a second copy of this walk is how they'd start disagreeing.
+//
+// The walk only descends into options that are actually SELECTED. That's what
+// makes deselecting "Make It a Meal" drop the £3.99, the fries and the dip
+// from the price in one step, and what stops a hidden sub-selection being
+// charged for a branch the customer closed.
+
+import {
+  getModifierPlu,
+  getModifierPrice,
+  isModifierAvailable,
+  type PriceableModifier,
+  type SelectedModifier,
+} from "./menu-pricing";
+
+/** Mirrors MAX_NESTING_DEPTH on the API — the two must not disagree. */
+export const MAX_NESTING_DEPTH = 3;
+
+export interface NestableOption extends PriceableModifier {
+  /** Groups this option opens when chosen. Ordered. */
+  nestedGroupIds?: string[] | null;
+  sortOrder?: number;
+}
+
+export interface NestableGroup {
+  id: string;
+  name: string;
+  selectionType?: "VARIANT" | "ADDON" | null;
+  minSelections?: number | null;
+  maxSelections?: number | null;
+  options?: NestableOption[] | null;
+}
+
+export interface ModifierTreeOption {
+  option: NestableOption;
+  price: number;
+  plu: string | null;
+  selected: boolean;
+  /** Groups this option opens — populated only while it is selected. */
+  children: ModifierTreeNode[];
+}
+
+export interface ModifierTreeNode {
+  group: NestableGroup;
+  /** Selection-state key for this group in THIS branch. See selectionKey. */
+  key: string;
+  depth: number;
+  /** Option names from the root down to this group's parent. */
+  ancestorNames: string[];
+  /** The option that opened this group, or null at the top level. */
+  parentOptionId: string | null;
+  options: ModifierTreeOption[];
+}
+
+/**
+ * Selection state is keyed by the whole branch, not by group id.
+ *
+ * The same group legitimately appears in two places at once — a "Dip" group
+ * nested under both "Fries" and "Waffle Fries" is one group row. Keyed by
+ * group id alone, ticking a dip under fries would tick it under waffle fries
+ * too, and charge for both.
+ */
+export function selectionKey(
+  ancestorOptionIds: string[],
+  groupId: string,
+): string {
+  return [...ancestorOptionIds, groupId].join(">");
+}
+
+export function buildModifierTree(args: {
+  rootGroups: NestableGroup[];
+  /** Every group reachable by id, nested ones included. */
+  groupsById: Map<string, NestableGroup>;
+  /** groupKey → selected option ids. */
+  selections: Record<string, string[]>;
+  sizeKey?: string | null;
+  audience?: "pos" | "customer";
+  maxDepth?: number;
+}): ModifierTreeNode[] {
+  const {
+    rootGroups,
+    groupsById,
+    selections,
+    sizeKey = null,
+    audience = "pos",
+    maxDepth = MAX_NESTING_DEPTH,
+  } = args;
+
+  const walk = (
+    groups: NestableGroup[],
+    depth: number,
+    ancestorOptionIds: string[],
+    ancestorNames: string[],
+    parentOptionId: string | null,
+    // Groups already open above this point in THIS branch. A catalog can be
+    // hand-edited into a cycle, and an unguarded walk would never return.
+    branchGroupIds: ReadonlySet<string>,
+  ): ModifierTreeNode[] => {
+    if (depth > maxDepth) return [];
+    const nodes: ModifierTreeNode[] = [];
+
+    for (const group of groups) {
+      if (!group || branchGroupIds.has(group.id)) continue;
+      const key = selectionKey(ancestorOptionIds, group.id);
+      const picked = selections[key] ?? [];
+      const nextBranch = new Set(branchGroupIds).add(group.id);
+
+      const options: ModifierTreeOption[] = [];
+      for (const option of group.options ?? []) {
+        if (!isModifierAvailable(option, sizeKey, { audience })) continue;
+        const selected = picked.includes(option.id);
+        const childGroups = selected
+          ? (option.nestedGroupIds ?? [])
+              .map((id) => groupsById.get(id))
+              .filter((g): g is NestableGroup => !!g)
+          : [];
+
+        options.push({
+          option,
+          price: getModifierPrice(option, sizeKey),
+          plu: getModifierPlu(option, sizeKey),
+          selected,
+          children: walk(
+            childGroups,
+            depth + 1,
+            [...ancestorOptionIds, option.id],
+            [...ancestorNames, option.name],
+            option.id,
+            nextBranch,
+          ),
+        });
+      }
+
+      nodes.push({ group, key, depth, ancestorNames, parentOptionId, options });
+    }
+
+    return nodes;
+  };
+
+  return walk(rootGroups, 0, [], [], null, new Set());
+}
+
+/**
+ * The flat selection list the cart, the server and the printer consume.
+ *
+ * Flat on purpose: `calculateCartItem` sums this array, so a nested selection
+ * rolls its price up to the line total with no special case, and every
+ * existing consumer that reads `.name` / `.price` / `.groupId` keeps working.
+ * Depth-first, so a ticket prints the meal, then its side, then the side's dip.
+ */
+export function collectSelectedModifiers(
+  nodes: ModifierTreeNode[],
+): SelectedModifier[] {
+  const out: SelectedModifier[] = [];
+
+  const visit = (list: ModifierTreeNode[]) => {
+    for (const node of list) {
+      for (const entry of node.options) {
+        if (!entry.selected) continue;
+        out.push({
+          id: entry.option.id,
+          name: entry.option.name,
+          groupId: node.group.id,
+          groupName: node.group.name,
+          price: entry.price,
+          plu: entry.plu,
+          parentOptionId: node.parentOptionId,
+          depth: node.depth,
+          path: [...node.ancestorNames, entry.option.name],
+        });
+        visit(entry.children);
+      }
+    }
+  };
+
+  visit(nodes);
+  return out;
+}
+
+export interface UnmetRequirement {
+  groupId: string;
+  groupName: string;
+  key: string;
+  min: number;
+  picked: number;
+}
+
+/**
+ * Required groups that still need an answer.
+ *
+ * A nested group only counts once its parent option is selected — "Choose
+ * Side" is not an unanswered question until the customer says they want the
+ * meal. That falls out of the tree: an unselected option has no children.
+ */
+export function findUnmetRequirements(
+  nodes: ModifierTreeNode[],
+): UnmetRequirement[] {
+  const out: UnmetRequirement[] = [];
+
+  const visit = (list: ModifierTreeNode[]) => {
+    for (const node of list) {
+      const min = node.group.minSelections ?? 0;
+      const picked = node.options.filter((o) => o.selected).length;
+      if (picked < min) {
+        out.push({
+          groupId: node.group.id,
+          groupName: node.group.name,
+          key: node.key,
+          min,
+          picked,
+        });
+      }
+      for (const entry of node.options) {
+        if (entry.selected) visit(entry.children);
+      }
+    }
+  };
+
+  visit(nodes);
+  return out;
+}
+
+/**
+ * Applies a tick/untick, respecting the group's selection type and capacity.
+ *
+ * Returns a new selections object. Selections beneath a deselected option are
+ * left in place rather than scrubbed: the tree stops descending into a closed
+ * branch, so they can't be priced or printed while it's closed, and reopening
+ * it restores what the customer had already chosen instead of silently
+ * clearing their work.
+ */
+export function toggleModifierSelection(
+  selections: Record<string, string[]>,
+  args: {
+    key: string;
+    optionId: string;
+    selectionType?: "VARIANT" | "ADDON" | null;
+    maxSelections?: number | null;
+    /** VARIANT groups that aren't required can be un-picked. */
+    minSelections?: number | null;
+  },
+): Record<string, string[]> {
+  const current = selections[args.key] ?? [];
+
+  if ((args.selectionType ?? "VARIANT") === "VARIANT") {
+    // Re-tapping the chosen option clears it, but only where clearing is a
+    // legal answer — a required pick-one must always hold exactly one.
+    if (current.includes(args.optionId) && (args.minSelections ?? 0) === 0) {
+      return { ...selections, [args.key]: [] };
+    }
+    return { ...selections, [args.key]: [args.optionId] };
+  }
+
+  if (current.includes(args.optionId)) {
+    return {
+      ...selections,
+      [args.key]: current.filter((id) => id !== args.optionId),
+    };
+  }
+  const max = args.maxSelections ?? Infinity;
+  if (current.length >= max) return selections;
+  return { ...selections, [args.key]: [...current, args.optionId] };
+}
+
+/** Index a flat group list by id, for `groupsById` above. */
+export function indexGroups(
+  ...lists: Array<Array<NestableGroup> | null | undefined>
+): Map<string, NestableGroup> {
+  const map = new Map<string, NestableGroup>();
+  for (const list of lists) {
+    for (const g of list ?? []) {
+      if (g?.id && !map.has(g.id)) map.set(g.id, g);
+    }
+  }
+  return map;
+}
+
+// ── Order lines ─────────────────────────────────────────────────────────────
+
+/** What an order line stores per selected modifier. */
+export interface OrderLineModifier {
+  name: string;
+  price: number;
+  depth?: number;
+  path?: string[];
+  parentOptionId?: string | null;
+}
+
+/**
+ * Maps a cart selection to the shape an order line stores.
+ *
+ * Every checkout path used to write `{name, price}` by hand, which quietly
+ * threw away the nesting on the way to the kitchen: the ticket listed the
+ * meal, the side and the dip as three unrelated extras. Going through one
+ * function means adding a field can't reach three surfaces and miss the
+ * fourth.
+ */
+export function toOrderLineModifier(m: {
+  name: string;
+  price: number;
+  depth?: number | null;
+  path?: string[] | null;
+  parentOptionId?: string | null;
+}): OrderLineModifier {
+  return {
+    name: m.name,
+    price: m.price,
+    ...(m.depth ? { depth: m.depth } : {}),
+    ...(m.path?.length ? { path: m.path } : {}),
+    ...(m.parentOptionId ? { parentOptionId: m.parentOptionId } : {}),
+  };
+}
+
+// ── Printing / display ──────────────────────────────────────────────────────
+
+/** How deep a selection sits. Absent on every pre-Phase-BN order line. */
+export function modifierDepth(m: { depth?: number | null }): number {
+  const d = m.depth ?? 0;
+  return Number.isFinite(d) && d > 0 ? Math.min(Math.trunc(d), MAX_NESTING_DEPTH) : 0;
+}
+
+/**
+ * Leading whitespace for a modifier line on a ticket or receipt.
+ *
+ * Hierarchy is shown by indentation rather than by repeating the ancestors on
+ * every line: a 42-column thermal ticket has the width for
+ * "        + Garlic Mayo" but not for the whole path on each row, and kitchen
+ * staff read the indent faster than a repeated prefix.
+ *
+ *   1x  BIG BOSS BURGER
+ *       + Make It a Meal
+ *         + Fries
+ *           + Garlic Mayo
+ *         + Coke
+ */
+export function modifierIndent(
+  m: { depth?: number | null },
+  unit = "  ",
+): string {
+  return unit.repeat(modifierDepth(m));
+}
+
+/**
+ * The single-line reading, for surfaces with room for it (order detail, KDS
+ * expanded view): "Make It a Meal → Fries → Garlic Mayo".
+ *
+ * Falls back to the plain name for a flat selection or an order placed before
+ * nesting existed.
+ */
+export function formatModifierPath(
+  m: { path?: string[] | null; name: string },
+  separator = " → ",
+): string {
+  return m.path?.length ? m.path.join(separator) : m.name;
+}
+
+/** True when any group in the catalog nests — lets callers skip the walk. */
+export function hasNestedGroups(groups: NestableGroup[]): boolean {
+  return groups.some((g) =>
+    (g.options ?? []).some((o) => (o.nestedGroupIds?.length ?? 0) > 0),
+  );
+}

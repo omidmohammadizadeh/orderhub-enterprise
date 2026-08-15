@@ -1,0 +1,462 @@
+import {
+  buildModifierTree,
+  collectSelectedModifiers,
+  findUnmetRequirements,
+  toggleModifierSelection,
+  indexGroups,
+  selectionKey,
+  hasNestedGroups,
+  toOrderLineModifier,
+  modifierIndent,
+  formatModifierPath,
+  calculateCartItem,
+  type NestableGroup,
+} from "@orderhub/shared";
+
+// ──────────────────────────────────────────────────────────────────────────
+// Phase BN — nested modifier groups
+//
+// The real shape, from The Grill Stop's Big Boss Burger:
+//
+//   Big Boss Burger  £9.99
+//   └── Make It a Meal
+//       └── Make It a Meal  +£3.99
+//           ├── Choose Side (required, pick one)
+//           │   ├── Fries
+//           │   │   └── Dip (required, pick one) → Garlic Mayo +£0.50
+//           │   └── Waffle Fries +£1.00
+//           └── Choose Drink (required, pick one) → Coke
+//
+// These tests are the contract between the till, the storefront and the
+// kiosk. All three walk this code, so a divergence here is a mispriced
+// order on one surface and not the other.
+// ──────────────────────────────────────────────────────────────────────────
+
+const opt = (id: string, name: string, price = 0, nested?: string[]) => ({
+  id,
+  name,
+  priceAdjustment: price,
+  ...(nested ? { nestedGroupIds: nested } : {}),
+});
+
+function catalog(): NestableGroup[] {
+  return [
+    {
+      id: "g-meal",
+      name: "Make It a Meal",
+      selectionType: "VARIANT",
+      minSelections: 0,
+      maxSelections: 1,
+      options: [opt("o-meal", "Make It a Meal", 3.99, ["g-side", "g-drink"])],
+    },
+    {
+      id: "g-side",
+      name: "Choose Side",
+      selectionType: "VARIANT",
+      minSelections: 1,
+      maxSelections: 1,
+      options: [
+        opt("o-fries", "Fries", 0, ["g-dip"]),
+        opt("o-waffle", "Waffle Fries", 1.0),
+      ],
+    },
+    {
+      id: "g-drink",
+      name: "Choose Drink",
+      selectionType: "VARIANT",
+      minSelections: 1,
+      maxSelections: 1,
+      options: [opt("o-coke", "Coke")],
+    },
+    {
+      id: "g-dip",
+      name: "Dip",
+      selectionType: "VARIANT",
+      minSelections: 1,
+      maxSelections: 1,
+      options: [opt("o-mayo", "Garlic Mayo", 0.5)],
+    },
+  ];
+}
+
+const ROOTS = ["g-meal"];
+
+function tree(selections: Record<string, string[]>) {
+  const all = catalog();
+  return buildModifierTree({
+    rootGroups: all.filter((g) => ROOTS.includes(g.id)),
+    groupsById: indexGroups(all),
+    selections,
+  });
+}
+
+/** The fully-answered meal: fries with garlic mayo, and a coke. */
+const FULL_MEAL = {
+  [selectionKey([], "g-meal")]: ["o-meal"],
+  [selectionKey(["o-meal"], "g-side")]: ["o-fries"],
+  [selectionKey(["o-meal"], "g-drink")]: ["o-coke"],
+  [selectionKey(["o-meal", "o-fries"], "g-dip")]: ["o-mayo"],
+};
+
+describe("nested modifiers — the tree", () => {
+  it("shows only the top-level group until the parent is picked", () => {
+    const nodes = tree({});
+    expect(nodes.map((n) => n.group.id)).toEqual(["g-meal"]);
+    expect(nodes[0].options[0].children).toEqual([]);
+  });
+
+  it("opens the nested groups when the parent option is selected, in order", () => {
+    const nodes = tree({ [selectionKey([], "g-meal")]: ["o-meal"] });
+    const children = nodes[0].options[0].children;
+    // Side before drink — the order the payload gave us.
+    expect(children.map((c) => c.group.id)).toEqual(["g-side", "g-drink"]);
+  });
+
+  it("goes a second level deep", () => {
+    const nodes = tree(FULL_MEAL);
+    const side = nodes[0].options[0].children[0];
+    const fries = side.options.find((o) => o.option.id === "o-fries")!;
+    expect(fries.children.map((c) => c.group.id)).toEqual(["g-dip"]);
+  });
+
+  it("closes the whole subtree when the parent is deselected", () => {
+    // The bug this guards: a £3.99 meal deselected but its dip still priced.
+    const nodes = tree({ ...FULL_MEAL, [selectionKey([], "g-meal")]: [] });
+    expect(nodes[0].options[0].children).toEqual([]);
+    expect(collectSelectedModifiers(nodes)).toEqual([]);
+  });
+
+  it("keeps a group nested under two different options independent", () => {
+    // "Dip" under Fries and under Waffle Fries is ONE group row. Keyed by
+    // group id alone, ticking a dip under one would tick it under both.
+    const all = catalog();
+    all.find((g) => g.id === "g-side")!.options = [
+      opt("o-fries", "Fries", 0, ["g-dip"]),
+      opt("o-waffle", "Waffle Fries", 1.0, ["g-dip"]),
+    ];
+    all.find((g) => g.id === "g-side")!.selectionType = "ADDON";
+    all.find((g) => g.id === "g-side")!.maxSelections = 2;
+
+    const nodes = buildModifierTree({
+      rootGroups: all.filter((g) => ROOTS.includes(g.id)),
+      groupsById: indexGroups(all),
+      selections: {
+        [selectionKey([], "g-meal")]: ["o-meal"],
+        [selectionKey(["o-meal"], "g-side")]: ["o-fries", "o-waffle"],
+        [selectionKey(["o-meal", "o-fries"], "g-dip")]: ["o-mayo"],
+      },
+    });
+
+    const side = nodes[0].options[0].children[0];
+    const fries = side.options.find((o) => o.option.id === "o-fries")!;
+    const waffle = side.options.find((o) => o.option.id === "o-waffle")!;
+    expect(fries.children[0].options[0].selected).toBe(true);
+    expect(waffle.children[0].options[0].selected).toBe(false);
+  });
+
+  it("survives a group nested under its own descendant", () => {
+    // Nothing in the schema forbids a cycle, and an unguarded walk would
+    // never return. A hand-edited catalog must not hang the till.
+    const all = catalog();
+    all.find((g) => g.id === "g-dip")!.options = [
+      opt("o-mayo", "Garlic Mayo", 0.5, ["g-meal"]),
+    ];
+    expect(() =>
+      buildModifierTree({
+        rootGroups: all.filter((g) => ROOTS.includes(g.id)),
+        groupsById: indexGroups(all),
+        selections: FULL_MEAL,
+      }),
+    ).not.toThrow();
+  });
+
+  it("stops at the depth cap", () => {
+    const nodes = buildModifierTree({
+      rootGroups: catalog().filter((g) => ROOTS.includes(g.id)),
+      groupsById: indexGroups(catalog()),
+      selections: FULL_MEAL,
+      maxDepth: 1,
+    });
+    const side = nodes[0].options[0].children[0];
+    expect(side.options.find((o) => o.option.id === "o-fries")!.children).toEqual([]);
+  });
+
+  it("skips a nested id that resolves to no group", () => {
+    // An option pointing at a group the API didn't return must render as a
+    // plain option, not crash the picker.
+    const all = catalog();
+    all.find((g) => g.id === "g-meal")!.options = [
+      opt("o-meal", "Make It a Meal", 3.99, ["g-ghost"]),
+    ];
+    const nodes = buildModifierTree({
+      rootGroups: all.filter((g) => ROOTS.includes(g.id)),
+      groupsById: indexGroups(all),
+      selections: { [selectionKey([], "g-meal")]: ["o-meal"] },
+    });
+    expect(nodes[0].options[0].children).toEqual([]);
+  });
+});
+
+describe("nested modifiers — selections and pricing", () => {
+  it("flattens every level into one list, depth-first", () => {
+    const picked = collectSelectedModifiers(tree(FULL_MEAL));
+    expect(picked.map((m) => m.name)).toEqual([
+      "Make It a Meal",
+      "Fries",
+      "Garlic Mayo",
+      "Coke",
+    ]);
+  });
+
+  it("rolls nested prices up into the line total", () => {
+    const picked = collectSelectedModifiers(tree(FULL_MEAL));
+    // 9.99 burger + 3.99 meal + 0 fries + 0.50 mayo + 0 coke
+    expect(calculateCartItem({ basePrice: 9.99, modifiers: picked, quantity: 1 }))
+      .toMatchObject({ unitPrice: 14.48, lineTotal: 14.48 });
+  });
+
+  it("multiplies a nested selection through quantity", () => {
+    const picked = collectSelectedModifiers(tree(FULL_MEAL));
+    expect(
+      calculateCartItem({ basePrice: 9.99, modifiers: picked, quantity: 2 }).lineTotal,
+    ).toBe(28.96);
+  });
+
+  it("drops the nested prices again when the parent is deselected", () => {
+    const nodes = tree({ ...FULL_MEAL, [selectionKey([], "g-meal")]: [] });
+    const picked = collectSelectedModifiers(nodes);
+    expect(calculateCartItem({ basePrice: 9.99, modifiers: picked, quantity: 1 }).unitPrice)
+      .toBe(9.99);
+  });
+
+  it("records the path so a ticket can read Meal → Fries → Garlic Mayo", () => {
+    const picked = collectSelectedModifiers(tree(FULL_MEAL));
+    expect(picked.find((m) => m.name === "Garlic Mayo")!.path).toEqual([
+      "Make It a Meal",
+      "Fries",
+      "Garlic Mayo",
+    ]);
+  });
+
+  it("records depth and parent option", () => {
+    const picked = collectSelectedModifiers(tree(FULL_MEAL));
+    expect(picked.find((m) => m.name === "Make It a Meal")).toMatchObject({
+      depth: 0,
+      parentOptionId: null,
+    });
+    expect(picked.find((m) => m.name === "Garlic Mayo")).toMatchObject({
+      depth: 2,
+      parentOptionId: "o-fries",
+    });
+  });
+
+  it("still carries groupId on nested selections, for station routing", () => {
+    // Kitchen routing buckets a line by the modifier groups it touches; a
+    // nested selection with no groupId would never reach the fryer station.
+    const picked = collectSelectedModifiers(tree(FULL_MEAL));
+    expect(picked.find((m) => m.name === "Fries")!.groupId).toBe("g-side");
+  });
+});
+
+describe("nested modifiers — required questions", () => {
+  it("doesn't ask for a side until the meal is chosen", () => {
+    expect(findUnmetRequirements(tree({}))).toEqual([]);
+  });
+
+  it("asks for both the side and the drink once the meal is chosen", () => {
+    const unmet = findUnmetRequirements(
+      tree({ [selectionKey([], "g-meal")]: ["o-meal"] }),
+    );
+    expect(unmet.map((u) => u.groupName)).toEqual(["Choose Side", "Choose Drink"]);
+  });
+
+  it("asks for the dip only once fries are chosen", () => {
+    const unmet = findUnmetRequirements(
+      tree({
+        [selectionKey([], "g-meal")]: ["o-meal"],
+        [selectionKey(["o-meal"], "g-side")]: ["o-fries"],
+        [selectionKey(["o-meal"], "g-drink")]: ["o-coke"],
+      }),
+    );
+    expect(unmet.map((u) => u.groupName)).toEqual(["Dip"]);
+  });
+
+  it("is satisfied when every open branch is answered", () => {
+    expect(findUnmetRequirements(tree(FULL_MEAL))).toEqual([]);
+  });
+
+  it("doesn't ask for the dip when the side that opens it isn't chosen", () => {
+    const unmet = findUnmetRequirements(
+      tree({
+        [selectionKey([], "g-meal")]: ["o-meal"],
+        [selectionKey(["o-meal"], "g-side")]: ["o-waffle"],
+        [selectionKey(["o-meal"], "g-drink")]: ["o-coke"],
+      }),
+    );
+    expect(unmet).toEqual([]);
+  });
+});
+
+describe("nested modifiers — toggling", () => {
+  const key = selectionKey([], "g-meal");
+
+  it("replaces the pick in a VARIANT group", () => {
+    const next = toggleModifierSelection(
+      { [key]: ["o-a"] },
+      { key, optionId: "o-b", selectionType: "VARIANT" },
+    );
+    expect(next[key]).toEqual(["o-b"]);
+  });
+
+  it("lets an optional pick-one be un-picked", () => {
+    // "Make It a Meal" is min 0 — the customer must be able to change their
+    // mind and get the £3.99 back.
+    const next = toggleModifierSelection(
+      { [key]: ["o-meal"] },
+      { key, optionId: "o-meal", selectionType: "VARIANT", minSelections: 0 },
+    );
+    expect(next[key]).toEqual([]);
+  });
+
+  it("keeps a required pick-one filled", () => {
+    const next = toggleModifierSelection(
+      { [key]: ["o-fries"] },
+      { key, optionId: "o-fries", selectionType: "VARIANT", minSelections: 1 },
+    );
+    expect(next[key]).toEqual(["o-fries"]);
+  });
+
+  it("adds and removes in an ADDON group", () => {
+    const added = toggleModifierSelection(
+      {},
+      { key, optionId: "o-a", selectionType: "ADDON", maxSelections: 2 },
+    );
+    expect(added[key]).toEqual(["o-a"]);
+    const removed = toggleModifierSelection(added, {
+      key,
+      optionId: "o-a",
+      selectionType: "ADDON",
+      maxSelections: 2,
+    });
+    expect(removed[key]).toEqual([]);
+  });
+
+  it("refuses to exceed maxSelections", () => {
+    const next = toggleModifierSelection(
+      { [key]: ["o-a", "o-b"] },
+      { key, optionId: "o-c", selectionType: "ADDON", maxSelections: 2 },
+    );
+    expect(next[key]).toEqual(["o-a", "o-b"]);
+  });
+});
+
+describe("nested modifiers — what reaches the kitchen", () => {
+  it("carries the nesting onto the order line", () => {
+    // Every checkout path used to write {name, price} by hand and throw the
+    // nesting away, so the ticket listed the meal, the side and the dip as
+    // three unrelated extras.
+    const picked = collectSelectedModifiers(tree(FULL_MEAL));
+    const lines = picked.map(toOrderLineModifier);
+
+    expect(lines.find((l) => l.name === "Garlic Mayo")).toEqual({
+      name: "Garlic Mayo",
+      price: 0.5,
+      depth: 2,
+      path: ["Make It a Meal", "Fries", "Garlic Mayo"],
+      parentOptionId: "o-fries",
+    });
+  });
+
+  it("leaves a flat selection exactly as it was", () => {
+    // An order line for a flat menu must serialise identically to before,
+    // or every existing consumer sees a changed shape for no reason.
+    expect(toOrderLineModifier({ name: "Extra cheese", price: 1.5 })).toEqual({
+      name: "Extra cheese",
+      price: 1.5,
+    });
+  });
+
+  it("indents a ticket line by its depth", () => {
+    expect(modifierIndent({ depth: 0 })).toBe("");
+    expect(modifierIndent({ depth: 1 })).toBe("  ");
+    expect(modifierIndent({ depth: 2 })).toBe("    ");
+  });
+
+  it("indents an order placed before nesting existed at all", () => {
+    expect(modifierIndent({})).toBe("");
+    expect(modifierIndent({ depth: null })).toBe("");
+  });
+
+  it("refuses to indent a ticket off the edge of the paper", () => {
+    // 42 columns. A corrupt depth must not push the name off the roll.
+    expect(modifierIndent({ depth: 99 })).toBe("      ");
+  });
+
+  it("reads the path back on surfaces with room for it", () => {
+    expect(
+      formatModifierPath({ name: "Garlic Mayo", path: ["Make It a Meal", "Fries", "Garlic Mayo"] }),
+    ).toBe("Make It a Meal → Fries → Garlic Mayo");
+    expect(formatModifierPath({ name: "Extra cheese" })).toBe("Extra cheese");
+  });
+});
+
+describe("nested modifiers — flat menus are untouched", () => {
+  const flat: NestableGroup[] = [
+    {
+      id: "g-toppings",
+      name: "Extra toppings",
+      selectionType: "ADDON",
+      minSelections: 0,
+      maxSelections: 3,
+      options: [opt("o-cheese", "Extra cheese", 1.5), opt("o-ham", "Ham", 1.0)],
+    },
+  ];
+
+  it("reports no nesting", () => {
+    expect(hasNestedGroups(flat)).toBe(false);
+    expect(hasNestedGroups(catalog())).toBe(true);
+  });
+
+  it("prices a flat pick exactly as before", () => {
+    const nodes = buildModifierTree({
+      rootGroups: flat,
+      groupsById: indexGroups(flat),
+      selections: { [selectionKey([], "g-toppings")]: ["o-cheese"] },
+    });
+    const picked = collectSelectedModifiers(nodes);
+    expect(picked).toHaveLength(1);
+    expect(picked[0]).toMatchObject({
+      id: "o-cheese",
+      groupId: "g-toppings",
+      groupName: "Extra toppings",
+      price: 1.5,
+      depth: 0,
+    });
+    expect(calculateCartItem({ basePrice: 8, modifiers: picked, quantity: 1 }).unitPrice)
+      .toBe(9.5);
+  });
+
+  it("hides an option the size context rules out", () => {
+    // pricesBySize with no matching key means "not for this size" — the
+    // existing rule, which must keep applying inside a nested group too.
+    const sized: NestableGroup[] = [
+      {
+        id: "g-x",
+        name: "Toppings",
+        selectionType: "ADDON",
+        minSelections: 0,
+        options: [
+          { id: "o-1", name: "Ten only", priceAdjustment: 0, pricesBySize: { "10": 1 } },
+          { id: "o-2", name: "Any size", priceAdjustment: 1 },
+        ],
+      },
+    ];
+    const nodes = buildModifierTree({
+      rootGroups: sized,
+      groupsById: indexGroups(sized),
+      selections: {},
+      sizeKey: "12",
+    });
+    expect(nodes[0].options.map((o) => o.option.id)).toEqual(["o-2"]);
+  });
+});

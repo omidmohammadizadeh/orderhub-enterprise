@@ -25,6 +25,7 @@ import {
   calculateCartItem,
   round2,
   type SelectedModifier,
+  toOrderLineModifier,
 } from "@orderhub/shared";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
@@ -188,8 +189,7 @@ export default function KioskPage() {
           unitPrice: l.unitPrice,
           totalPrice: round2(l.unitPrice * l.quantity),
           modifiers: l.modifiers.map((m) => ({
-            name: m.name,
-            price: m.price,
+            ...toOrderLineModifier(m),
             quantity: 1,
           })),
           notes: l.notes,

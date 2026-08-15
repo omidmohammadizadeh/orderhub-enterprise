@@ -33,6 +33,23 @@ const cut = () => [GS, 0x56, 0x42, 0x00]; // partial cut
 const openCashDrawer = () => [ESC, 0x70, 0x00, 0x40, 0xc8]; // kick pin 2
 
 // QR code: model 2, error correction L, module size 6.
+
+/**
+ * Indent for a nested modifier line. A modifier group can hang off an option
+ * ("Make It a Meal" → "Choose Side" → "Fries" → a dip), and without the indent
+ * the ticket reads as four separate things the kitchen owes rather than one
+ * meal. Absent depth = a flat selection, which is every order line placed
+ * before nested groups existed.
+ *
+ * Duplicated rather than imported: this file is twinned with the Print Bridge
+ * copy, which has no dependency on @orderhub/shared. Keep the two identical.
+ */
+function modifierIndent(m: { depth?: number | null }): string {
+  const d = Number(m?.depth ?? 0);
+  if (!Number.isFinite(d) || d <= 0) return "";
+  return "  ".repeat(Math.min(Math.trunc(d), 3));
+}
+
 function qrCode(text: string): number[] {
   const data = Buffer.from(text, "utf8");
   const length = data.length + 3;
@@ -222,7 +239,7 @@ export function renderToEscPos(
     newline();
     out.push(...boldOff());
     for (const m of it.modifiers ?? []) {
-      write(`  + ${m.name}`);
+      write(`  ${modifierIndent(m)}+ ${m.name}`);
       newline();
     }
     if (it.notes) {

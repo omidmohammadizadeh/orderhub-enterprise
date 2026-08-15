@@ -20,6 +20,7 @@ import { uberDirectClient } from "../../lib/api/uber-direct.client";
 import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
+import { modifierDepth } from "@orderhub/shared";
 
 const NEXT_ACTIONS: Record<string, Array<{ status: string; label: string; variant: "default" | "outline" | "destructive" }>> = {
   PENDING: [
@@ -430,7 +431,14 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                 {item.modifiers?.length > 0 && (
                   <div className="mt-1 ml-3 space-y-0.5">
                     {item.modifiers.map((m, j) => (
-                      <p key={j} className="text-xs text-zinc-500">
+                      <p
+                        key={j}
+                        className="text-xs text-zinc-500"
+                        // Nested selections indent under the option that opened
+                        // them, so a meal deal reads as one choice rather than
+                        // four unrelated extras.
+                        style={{ paddingLeft: `${modifierDepth(m) * 12}px` }}
+                      >
                         + {m.name}{m.price > 0 ? ` (£${m.price.toFixed(2)})` : ""}
                       </p>
                     ))}

@@ -317,6 +317,10 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
     modifiers,
     productModifierGroupLinks: productGroupLinks,
     modifierGroupModifierLinks: groupModifierLinks,
+    // Uber nests too (customization_options can carry child_modifier_group_refs),
+    // but that's a separate classifier change — left empty rather than
+    // half-wired, so Uber imports behave exactly as they do today.
+    optionNestedGroupLinks: [],
     warnings,
   };
 }

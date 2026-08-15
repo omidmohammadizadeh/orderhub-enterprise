@@ -1,3 +1,5 @@
+import { modifierIndent } from "@orderhub/shared";
+
 // ESC/POS command constants
 const ESC = "\x1B";
 const GS = "\x1D";
@@ -93,7 +95,7 @@ export interface OrderPrintData {
     unitPrice: number;
     totalPrice: number;
     notes?: string;
-    modifiers?: Array<{ name: string; price: number }>;
+    modifiers?: Array<{ name: string; price: number; depth?: number }>;
   }>;
   subtotal: number;
   deliveryFee?: number;
@@ -173,7 +175,7 @@ export function buildReceiptDocument(order: OrderPrintData): PrintDocument {
     lines.push({ text: padded(`${item.quantity}x ${item.name}`, formatPrice(item.totalPrice)), bold: true });
     if (item.modifiers?.length) {
       for (const mod of item.modifiers) {
-        lines.push({ text: `  + ${mod.name}${mod.price > 0 ? ` (${formatPrice(mod.price)})` : ""}` });
+        lines.push({ text: `  ${modifierIndent(mod)}+ ${mod.name}${mod.price > 0 ? ` (${formatPrice(mod.price)})` : ""}` });
       }
     }
     if (item.notes) lines.push({ text: `  Note: ${item.notes}` });
@@ -244,7 +246,7 @@ export function buildKitchenTicketDocument(order: OrderPrintData): PrintDocument
     lines.push({ text: `${item.quantity}x  ${item.name.toUpperCase()}`, bold: true, size: "double-height" });
     if (item.modifiers?.length) {
       for (const mod of item.modifiers) {
-        lines.push({ text: `    + ${mod.name}` });
+        lines.push({ text: `    ${modifierIndent(mod)}+ ${mod.name}` });
       }
     }
     if (item.notes) {

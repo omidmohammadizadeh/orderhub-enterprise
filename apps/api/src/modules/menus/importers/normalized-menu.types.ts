@@ -56,6 +56,19 @@ export interface NormalizedMenu {
     modifierGroupExternalId: string;
     modifierExternalId: string;
   }>;
+  /**
+   * Nested groups: a modifier OPTION that opens further groups when chosen
+   * ("Make It a Meal" → "Choose Side" + "Choose Drink"). Same post-upsert
+   * relinking as the two link arrays above — both ends need local ids first.
+   *
+   * Order matters and is carried by position, so the picker asks for a side
+   * before it asks for a drink. Platforms that don't nest leave this empty.
+   */
+  optionNestedGroupLinks: Array<{
+    modifierExternalId: string;
+    modifierGroupExternalId: string;
+    sortOrder: number;
+  }>;
   warnings: string[];
 }
 

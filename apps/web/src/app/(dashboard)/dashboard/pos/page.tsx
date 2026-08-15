@@ -26,7 +26,12 @@ import {
   Paintbrush,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { round2, type SelectedModifier, type ProductSku } from "@orderhub/shared";
+import {
+  round2,
+  toOrderLineModifier,
+  type SelectedModifier,
+  type ProductSku,
+} from "@orderhub/shared";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import {
   PosCartPanel,
@@ -835,7 +840,7 @@ export default function PosPage() {
         unitPrice: line.unitPrice,
         quantity: line.quantity,
         plu: line.plu ?? null,
-        modifiers: line.modifiers.map((m) => ({ name: m.name, price: m.price })),
+        modifiers: line.modifiers.map(toOrderLineModifier),
         notes: line.notes,
       },
     ]);

@@ -318,6 +318,52 @@ export class MenuWriterService {
           });
         }
 
+        // --- Option → nested modifier group link rows ---
+        //
+        // "Make It a Meal +£3.99" opening a sides picker and a drinks picker.
+        // Both ends were written above (nested groups arrive in the same
+        // menu.modifiers[] as any other group), so this is purely the edge.
+        //
+        // Re-import must not accumulate stale steps: an option that no longer
+        // opens "Choose Drink" should stop opening it. Delete this option's
+        // links first, then rewrite the ones the payload still has.
+        const nestedByOption = new Map<string, Array<{ groupId: string; sortOrder: number }>>();
+        const nestedOptionIds = normalized.optionNestedGroupLinks
+          .map((l) => modifierExtToLocal.get(l.modifierExternalId))
+          .filter((id): id is string => !!id);
+        // One lookup for the self-reference guard below, not one per link.
+        const ownGroupOf = new Map(
+          (
+            await tx.modifierOption.findMany({
+              where: { id: { in: Array.from(new Set(nestedOptionIds)) } },
+              select: { id: true, groupId: true },
+            })
+          ).map((o: { id: string; groupId: string }) => [o.id, o.groupId]),
+        );
+        for (const link of normalized.optionNestedGroupLinks) {
+          const optionId = modifierExtToLocal.get(link.modifierExternalId);
+          const groupId = groupExtToLocal.get(link.modifierGroupExternalId);
+          if (!optionId || !groupId) continue;
+          // An option opening the group it already lives in is an infinite
+          // picker. Deliveroo shouldn't emit it; a hand-edited catalog could.
+          if (ownGroupOf.get(optionId) === groupId) continue;
+          const list = nestedByOption.get(optionId) ?? [];
+          list.push({ groupId, sortOrder: link.sortOrder });
+          nestedByOption.set(optionId, list);
+        }
+        for (const [optionId, groups] of nestedByOption) {
+          await tx.modifierOptionNestedGroup.deleteMany({ where: { optionId } });
+          for (const g of groups) {
+            // Upsert rather than createMany: same reason as the product link
+            // rows above — a unique violation aborts the whole transaction.
+            await tx.modifierOptionNestedGroup.upsert({
+              where: { optionId_groupId: { optionId, groupId: g.groupId } },
+              create: { optionId, groupId: g.groupId, sortOrder: g.sortOrder },
+              update: { sortOrder: g.sortOrder },
+            });
+          }
+        }
+
         // --- Categories ---
         for (const cat of normalized.categories) {
           const existing = await tx.menuCategory.findFirst({

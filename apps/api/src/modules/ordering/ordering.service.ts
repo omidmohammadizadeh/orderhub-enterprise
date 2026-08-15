@@ -14,6 +14,7 @@ import {
   VariantPriceResolverService,
   type VariantPriceMap,
 } from "../menus/variant-price-resolver.service";
+import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 
@@ -22,7 +23,19 @@ export interface CheckoutItemDto {
   name: string;
   quantity: number;
   unitPrice: number;
-  modifiers?: Array<{ name: string; price: number }>;
+  /**
+   * Selected modifiers, flat across every nesting level. `depth` and `path`
+   * describe where a selection sat ("Make It a Meal" → "Fries" → a dip) so
+   * the kitchen ticket can indent it under the choice that opened it. They're
+   * stored verbatim on OrderItem.modifiers and are absent on flat lines.
+   */
+  modifiers?: Array<{
+    name: string;
+    price: number;
+    depth?: number;
+    path?: string[];
+    parentOptionId?: string | null;
+  }>;
   notes?: string;
 }
 
@@ -622,6 +635,34 @@ export class OrderingService {
       [...brandModifierGroups, ...linkedGroups],
       menuBrandId,
     );
+
+    // Phase BN — groups that hang off an OPTION rather than a product
+    // ("Make It a Meal" opening a sides and a drinks picker). They're
+    // unreachable from item.modifierGroupLinks at any include depth, so
+    // resolve them by id and merge them into the same catalogue the modal
+    // already indexes by id. Runs AFTER the fold above so array-attached
+    // options are present and their own nested groups get followed too.
+    const nestedTenant = await this.prisma.brand.findUnique({
+      where: { id: menuBrandId },
+      select: { tenantId: true },
+    });
+    if (nestedTenant) {
+      const nestedGroups = await resolveNestedModifierGroups(
+        this.prisma,
+        [...brandModifierGroups, ...linkedGroups],
+        { tenantId: nestedTenant.tenantId, onlyAvailable: true },
+      );
+      if (nestedGroups.length) {
+        // Nested groups have the same FK-only blind spot as every other
+        // group, so they need the fold as well or a nested picker shows
+        // four sauces when the group holds a dozen.
+        await this.foldArrayAttachedOptions(nestedGroups, menuBrandId);
+        const have = new Set(brandModifierGroups.map((g) => g.id));
+        for (const g of nestedGroups) {
+          if (!have.has(g.id)) brandModifierGroups.push(g);
+        }
+      }
+    }
 
     // Phase AW-30 — brand-level opening hours win when configured.
     // Brand.openingHours default is `{}` which we treat as "not set"

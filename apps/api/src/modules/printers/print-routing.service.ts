@@ -70,7 +70,7 @@ export interface ResolveOptions {
     menuItemId?: string | null;
     name: string;
     quantity: number;
-    modifiers?: { name: string; quantity?: number; price?: number }[];
+    modifiers?: { name: string; quantity?: number; price?: number; depth?: number }[];
     notes?: string | null;
   }[];
   // Skip receipt / driver-slip / dispatch targets — kitchen tickets only.
@@ -93,7 +93,7 @@ interface OrderItemForRouting {
   name: string;
   quantity: number;
   modifierGroupIds?: string[];
-  modifiers?: { name: string; quantity?: number; price?: number }[];
+  modifiers?: { name: string; quantity?: number; price?: number; depth?: number }[];
   notes?: string | null;
 }
 

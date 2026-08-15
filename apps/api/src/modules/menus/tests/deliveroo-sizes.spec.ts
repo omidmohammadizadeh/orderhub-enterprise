@@ -157,15 +157,115 @@ describe("Deliveroo import — what must NOT become a size", () => {
 });
 
 describe("Deliveroo import — nested modifier groups", () => {
-  it("warns when an option owns its own groups instead of dropping it silently", () => {
-    // "Make it a meal" opening a drinks picker. Can't be imported yet, but
-    // arriving silently incomplete is what made this hard to spot.
+  it("says in the warnings which options open their own groups", () => {
     const r = classifyDeliverooMenu(payload({ nestedOnChoice: true }) as any);
-    expect(r.warnings.join(" ")).toMatch(/own modifier groups/i);
+    expect(r.warnings.join(" ")).toMatch(/open their own modifier groups/i);
   });
 
   it("says nothing when no option has nested groups", () => {
     const r = classifyDeliverooMenu(payload() as any);
-    expect(r.warnings.join(" ")).not.toMatch(/own modifier groups/i);
+    expect(r.warnings.join(" ")).not.toMatch(/open their own modifier groups/i);
+  });
+
+  it("emits no nested links for a flat menu", () => {
+    expect(classifyDeliverooMenu(payload() as any).optionNestedGroupLinks).toEqual([]);
+  });
+
+  // The real shape, from The Grill Stop's Big Boss Burger:
+  //
+  //   Big Boss Burger
+  //   └── Make It a Meal (group)
+  //       └── Make It a Meal +£3.99 (option)
+  //           ├── Choose Side (group)
+  //           │   └── Fries (option)
+  //           │       └── Dip (group)
+  //           └── Choose Drink (group)
+  function mealDealPayload() {
+    return {
+      menu: {
+        categories: [{ id: "cat1", name: L("Burgers"), item_ids: ["burger"] }],
+        modifiers: [
+          { id: "g-meal", name: L("Make It a Meal"), item_ids: ["o-meal"], min_selection: 0, max_selection: 1 },
+          { id: "g-side", name: L("Choose Side"), item_ids: ["o-fries"], min_selection: 1, max_selection: 1 },
+          { id: "g-drink", name: L("Choose Drink"), item_ids: ["o-coke"], min_selection: 1, max_selection: 1 },
+          { id: "g-dip", name: L("Dip"), item_ids: ["o-mayo"], min_selection: 1, max_selection: 1 },
+        ],
+        items: [
+          { id: "burger", type: "ITEM" as const, name: L("Big Boss Burger"), price_info: { price: 999 }, modifier_ids: ["g-meal"] },
+          // Order is load-bearing: side is asked before drink.
+          { id: "o-meal", type: "CHOICE" as const, name: L("Make It a Meal"), price_info: { price: 399 }, modifier_ids: ["g-side", "g-drink"] },
+          { id: "o-fries", type: "CHOICE" as const, name: L("Fries"), price_info: { price: 0 }, modifier_ids: ["g-dip"] },
+          { id: "o-coke", type: "CHOICE" as const, name: L("Coke"), price_info: { price: 0 } },
+          { id: "o-mayo", type: "CHOICE" as const, name: L("Garlic Mayo"), price_info: { price: 50 } },
+        ],
+      },
+    };
+  }
+
+  it("links an option to every group it opens, in payload order", () => {
+    const r = classifyDeliverooMenu(mealDealPayload() as any);
+    const meal = r.optionNestedGroupLinks.filter((l) => l.modifierExternalId === "o-meal");
+
+    expect(meal.map((l) => l.modifierGroupExternalId)).toEqual(["g-side", "g-drink"]);
+    expect(meal.map((l) => l.sortOrder)).toEqual([0, 1]);
+  });
+
+  it("captures the second level of nesting", () => {
+    // Fries → Dip. This is the level Deliveroo actually uses and the one
+    // that made a meal deal read as complete while behaving as empty.
+    const r = classifyDeliverooMenu(mealDealPayload() as any);
+    expect(
+      r.optionNestedGroupLinks.find((l) => l.modifierExternalId === "o-fries"),
+    ).toMatchObject({ modifierGroupExternalId: "g-dip", sortOrder: 0 });
+  });
+
+  it("still writes the nested groups and their options as normal rows", () => {
+    // The edges are useless if the groups they point at were never created.
+    const r = classifyDeliverooMenu(mealDealPayload() as any);
+    expect(r.modifierGroups.map((g) => g.externalId).sort()).toEqual([
+      "g-dip", "g-drink", "g-meal", "g-side",
+    ]);
+    expect(r.modifiers.map((m) => m.externalId).sort()).toEqual([
+      "o-coke", "o-fries", "o-mayo", "o-meal",
+    ]);
+  });
+
+  it("leaves the product linked only to its own top-level group", () => {
+    // A nested group must NOT also attach to the product, or the burger asks
+    // for a side whether or not you made it a meal.
+    const r = classifyDeliverooMenu(mealDealPayload() as any);
+    expect(
+      r.products.find((p) => p.externalId === "burger")!.modifierGroupExternalIds,
+    ).toEqual(["g-meal"]);
+  });
+
+  it("skips a nested link whose group is missing from the payload", () => {
+    // Would otherwise import a picker step that opens nothing.
+    const p = mealDealPayload() as any;
+    p.menu.items.find((i: any) => i.id === "o-meal").modifier_ids = ["g-side", "g-ghost"];
+    const r = classifyDeliverooMenu(p);
+
+    expect(
+      r.optionNestedGroupLinks.map((l) => l.modifierGroupExternalId),
+    ).not.toContain("g-ghost");
+    expect(r.warnings.join(" ")).toMatch(/missing from the menu payload/i);
+  });
+
+  it("skips a nested link to a group that became product sizes", () => {
+    // The size branch removes that group from the group list, so the link
+    // would dangle.
+    const p = mealDealPayload() as any;
+    p.menu.modifiers.push({
+      id: "g-size", name: L("Choose a size"), item_ids: ["s9"], min_selection: 1, max_selection: 1,
+    });
+    p.menu.items.push({ id: "s9", type: "CHOICE", name: L('9 inch'), price_info: { price: 899 } });
+    p.menu.items.find((i: any) => i.id === "burger").modifier_ids = ["g-meal", "g-size"];
+    p.menu.items.find((i: any) => i.id === "o-meal").modifier_ids = ["g-side", "g-size"];
+    const r = classifyDeliverooMenu(p);
+
+    expect(r.products.find((x) => x.externalId === "burger")!.hasMultipleSkus).toBe(true);
+    expect(
+      r.optionNestedGroupLinks.map((l) => l.modifierGroupExternalId),
+    ).not.toContain("g-size");
   });
 });

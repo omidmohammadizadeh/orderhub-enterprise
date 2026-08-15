@@ -218,8 +218,11 @@ export function classifyDeliverooMenu(
   let itemsWithoutModifierIdsCount = 0;
   /** Size groups actually converted, so they aren't also written as groups. */
   const sizeGroupsUsed = new Set<string>();
-  /** Choices that own their own groups — not importable yet, see below. */
+  /** Choices that own their own groups — "Make It a Meal" and friends. */
   const modifiersWithNestedGroups: string[] = [];
+  const optionNestedGroupLinks: NormalizedMenu["optionNestedGroupLinks"] = [];
+  /** Nested groups pointing at something absent from menu.modifiers[]. */
+  const danglingNestedGroupIds = new Set<string>();
 
   for (const item of items) {
     const isChoiceType = item.type === "CHOICE";
@@ -294,14 +297,29 @@ export function classifyDeliverooMenu(
       // "12 inch" as a topping as well as a size.
       if (sizeChoiceIds.has(item.id)) continue;
       // A choice can itself carry modifier groups — "Make it a meal" opening
-      // a drinks and a sides picker. Our model is product → group → modifier
-      // with no modifier → group link, so these can't be imported yet. They
-      // were being read off the payload and dropped without a word, which is
-      // why a meal deal arrives looking complete and behaves as if empty.
-      // Name them so the operator knows what to rebuild by hand.
+      // a sides and a drinks picker. Those groups and their options are
+      // already in menu.modifiers[] / menu.items[], so they import as normal
+      // rows; only the option → group edge was missing, which is why a meal
+      // deal used to arrive looking complete and behave as if empty.
+      //
+      // Order is the payload's own: side before drink, as Deliveroo lists it.
       const nested = extractModifierGroupIds(item);
       if (nested.length) {
         modifiersWithNestedGroups.push(localized(item.name) || item.id);
+        let sortOrder = 0;
+        for (const grpExt of nested) {
+          // A size group nested under an option can't become product SKUs —
+          // there's no product here to hang them on. Keep it a normal group.
+          if (!groupsById.has(grpExt)) {
+            danglingNestedGroupIds.add(grpExt);
+            continue;
+          }
+          optionNestedGroupLinks.push({
+            modifierExternalId: item.id,
+            modifierGroupExternalId: grpExt,
+            sortOrder: sortOrder++,
+          });
+        }
       }
       const price = priceFrom(item);
       const plu = (item.plu ?? item.id).toString();
@@ -384,6 +402,17 @@ export function classifyDeliverooMenu(
     );
   }
 
+  // A group can't be both a product's sizes and a nested group — the size
+  // branch removes it from the group list, so the link would point at a row
+  // that was never written. Drop those links rather than import a picker
+  // step that opens nothing.
+  const writtenGroupIds = new Set(normalizedGroups.map((g) => g.externalId));
+  const liveNestedLinks = optionNestedGroupLinks.filter((l) => {
+    const ok = writtenGroupIds.has(l.modifierGroupExternalId);
+    if (!ok) danglingNestedGroupIds.add(l.modifierGroupExternalId);
+    return ok;
+  });
+
   if (modifiersWithNestedGroups.length) {
     const shown = modifiersWithNestedGroups.slice(0, 8).join(", ");
     const more =
@@ -391,9 +420,17 @@ export function classifyDeliverooMenu(
         ? ` (+${modifiersWithNestedGroups.length - 8} more)`
         : "";
     warnings.push(
-      `${modifiersWithNestedGroups.length} option(s) have their own modifier groups on Deliveroo ` +
-        `— e.g. ${shown}${more}. Nested groups can't be imported yet, so those options ` +
-        "arrive without their follow-on choices and need building by hand.",
+      `${modifiersWithNestedGroups.length} option(s) open their own modifier groups ` +
+        `— e.g. ${shown}${more}. Imported as nested groups: choosing the option ` +
+        "asks for the follow-on choices.",
+    );
+  }
+
+  if (danglingNestedGroupIds.size) {
+    warnings.push(
+      `${danglingNestedGroupIds.size} nested modifier group(s) referenced by an option ` +
+        "are missing from the menu payload and were skipped. Those options import " +
+        "without their follow-on choices.",
     );
   }
 
@@ -412,6 +449,7 @@ export function classifyDeliverooMenu(
     modifiers,
     productModifierGroupLinks: productGroupLinks,
     modifierGroupModifierLinks: groupModifierLinks,
+    optionNestedGroupLinks: liveNestedLinks,
     warnings,
   };
 }

@@ -645,6 +645,13 @@ exports.Prisma.ModifierOptionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ModifierOptionNestedGroupScalarFieldEnum = {
+  optionId: 'optionId',
+  groupId: 'groupId',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.ModifierGroupOnItemScalarFieldEnum = {
   itemId: 'itemId',
   groupId: 'groupId',
@@ -2600,6 +2607,11 @@ exports.Prisma.ModifierOptionOrderByRelevanceFieldEnum = {
   nestedGroupId: 'nestedGroupId'
 };
 
+exports.Prisma.ModifierOptionNestedGroupOrderByRelevanceFieldEnum = {
+  optionId: 'optionId',
+  groupId: 'groupId'
+};
+
 exports.Prisma.ModifierGroupOnItemOrderByRelevanceFieldEnum = {
   itemId: 'itemId',
   groupId: 'groupId'
@@ -4084,6 +4096,7 @@ exports.Prisma.ModelName = {
   MenuItemOnCategory: 'MenuItemOnCategory',
   ModifierGroup: 'ModifierGroup',
   ModifierOption: 'ModifierOption',
+  ModifierOptionNestedGroup: 'ModifierOptionNestedGroup',
   ModifierGroupOnItem: 'ModifierGroupOnItem',
   MenuItemVariant: 'MenuItemVariant',
   MealDeal: 'MealDeal',

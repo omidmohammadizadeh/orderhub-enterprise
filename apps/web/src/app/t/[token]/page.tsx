@@ -33,7 +33,7 @@ import {
   Utensils,
   AlertCircle,
 } from "lucide-react";
-import { round2, buildCartItemName } from "@orderhub/shared";
+import { round2, buildCartItemName, toOrderLineModifier } from "@orderhub/shared";
 import type { SelectedModifier } from "@orderhub/shared";
 import { cn } from "@/lib/utils";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
@@ -218,8 +218,7 @@ export default function TableQrPage() {
         unitPrice: l.unitPrice,
         totalPrice: round2(l.unitPrice * l.quantity),
         modifiers: l.modifiers.map((m) => ({
-          name: m.name,
-          price: m.price,
+          ...toOrderLineModifier(m),
           quantity: 1,
         })),
         notes: l.notes || null,

@@ -28,6 +28,7 @@ import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth.store";
 import { socketClient } from "@/lib/socket/socket.client";
 import { cn } from "@/lib/utils";
+import { modifierDepth } from "@orderhub/shared";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,7 +56,12 @@ interface TicketItem {
   id: string;
   name: string;
   quantity: number;
-  modifiers: Array<{ name: string; quantity?: number }>;
+  /**
+   * Nesting level of each selection: 0 for a group on the product itself,
+   * 1+ when the group hung off an option ("Make It a Meal" → "Fries" → a
+   * dip). Absent on every order line placed before nested groups existed.
+   */
+  modifiers: Array<{ name: string; quantity?: number; depth?: number }>;
   notes?: string | null;
 }
 
@@ -950,6 +956,10 @@ function TicketCard({
                           ? "text-zinc-600 line-through"
                           : "text-zinc-300",
                       )}
+                      // A nested selection indents under the option that
+                      // opened it: "Make It a Meal" then its side, then the
+                      // side's dip. Flat lines read as separate dishes.
+                      style={{ paddingLeft: `${modifierDepth(mod) * 14}px` }}
                     >
                       <span
                         className={cn(

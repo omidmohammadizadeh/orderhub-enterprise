@@ -91,6 +91,13 @@ export interface CatalogModifier {
   eatInTax: string | number;
   // Per-variant price overrides keyed by pricing-variant ref.
   platformPricingOverrides?: Record<string, number>;
+  /**
+   * Groups this option opens when it's chosen ("Make It a Meal" → a sides
+   * picker and a drinks picker), in the order they should be asked. The
+   * groups themselves arrive in the same modifier-group list, since they
+   * hang off an option and so never appear in an item's own group links.
+   */
+  nestedGroupIds?: string[];
 }
 
 export interface MealDeal {

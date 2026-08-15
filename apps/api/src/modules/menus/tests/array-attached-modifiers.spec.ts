@@ -41,6 +41,9 @@ function makeService() {
           : [SAME_BRAND_OPTION];
       },
     },
+    // These groups are flat — no option opens another group. The read path
+    // still asks, so the delegate has to exist.
+    modifierOptionNestedGroup: { findMany: async () => [] },
   };
   const svc = new MenusService(
     prisma,

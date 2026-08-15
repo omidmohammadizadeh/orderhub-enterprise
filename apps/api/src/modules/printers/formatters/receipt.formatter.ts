@@ -111,6 +111,7 @@ export function buildReceiptPayload(
       modifiers: (item.modifiers ?? []).map((m: any) => ({
         name: m.name,
         price: Number(m.price ?? 0),
+        depth: m.depth ?? 0,
       })),
       notes: item.notes ?? null,
     })),

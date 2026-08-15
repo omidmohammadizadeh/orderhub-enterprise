@@ -7,7 +7,12 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  modifiers: Array<{ name: string; price: number; quantity?: number }>;
+  /**
+   * Nesting level of each selection: 0 for a group on the product itself,
+   * 1+ when the group hung off an option ("Make It a Meal" → "Fries" → a
+   * dip). Absent on every order line placed before nested groups existed.
+   */
+  modifiers: Array<{ name: string; price: number; quantity?: number; depth?: number }>;
   notes?: string | null;
 }
 

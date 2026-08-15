@@ -15,6 +15,7 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 import { PluService, randomPlu } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
+import { resolveNestedModifierGroups } from "./nested-modifier-groups";
 import {
   QUEUES,
   MENU_JOBS,
@@ -1530,7 +1531,8 @@ export class MenusService {
       },
       orderBy: { name: "asc" },
     });
-    return this.mergeArrayAttachedOptions(groups, user.tenantId);
+    const merged = await this.mergeArrayAttachedOptions(groups, user.tenantId);
+    return this.attachNestedGroups(merged, user.tenantId);
   }
 
   /**
@@ -1653,7 +1655,29 @@ export class MenusService {
     // another brand of the same tenant, and those were dropped, so a group
     // listed here showed fewer modifiers than the very same group opened in
     // the editor (findModifierGroupById is tenant-scoped and always was).
-    return this.mergeArrayAttachedOptions(groups, user.tenantId);
+    const merged = await this.mergeArrayAttachedOptions(groups, user.tenantId);
+    return this.attachNestedGroups(merged, user.tenantId);
+  }
+
+  /**
+   * Phase BN — annotate each option with the groups it opens when chosen, and
+   * append any of those groups the caller's own query didn't already return.
+   *
+   * The pickers index this list by id, so a nested group that's missing from
+   * it renders as a dead step: the option is selectable and asks for nothing.
+   * That happens whenever a nested group belongs to a sibling brand of the
+   * same tenant, which a brand-scoped list can't see.
+   */
+  private async attachNestedGroups<T extends { id: string; options: any[] }>(
+    groups: T[],
+    tenantId: string,
+  ): Promise<T[]> {
+    const nested = await resolveNestedModifierGroups(this.prisma, groups, {
+      tenantId,
+    });
+    if (nested.length === 0) return groups;
+    const have = new Set(groups.map((g) => g.id));
+    return [...groups, ...(nested.filter((g) => !have.has(g.id)) as T[])];
   }
 
   /**

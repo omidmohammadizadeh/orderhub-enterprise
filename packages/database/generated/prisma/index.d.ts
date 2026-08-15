@@ -149,6 +149,11 @@ export type ModifierGroup = $Result.DefaultSelection<Prisma.$ModifierGroupPayloa
  */
 export type ModifierOption = $Result.DefaultSelection<Prisma.$ModifierOptionPayload>
 /**
+ * Model ModifierOptionNestedGroup
+ * 
+ */
+export type ModifierOptionNestedGroup = $Result.DefaultSelection<Prisma.$ModifierOptionNestedGroupPayload>
+/**
  * Model ModifierGroupOnItem
  * 
  */
@@ -1857,6 +1862,16 @@ export class PrismaClient<
   get modifierOption(): Prisma.ModifierOptionDelegate<ExtArgs>;
 
   /**
+   * `prisma.modifierOptionNestedGroup`: Exposes CRUD operations for the **ModifierOptionNestedGroup** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ModifierOptionNestedGroups
+    * const modifierOptionNestedGroups = await prisma.modifierOptionNestedGroup.findMany()
+    * ```
+    */
+  get modifierOptionNestedGroup(): Prisma.ModifierOptionNestedGroupDelegate<ExtArgs>;
+
+  /**
    * `prisma.modifierGroupOnItem`: Exposes CRUD operations for the **ModifierGroupOnItem** model.
     * Example usage:
     * ```ts
@@ -3322,6 +3337,7 @@ export namespace Prisma {
     MenuItemOnCategory: 'MenuItemOnCategory',
     ModifierGroup: 'ModifierGroup',
     ModifierOption: 'ModifierOption',
+    ModifierOptionNestedGroup: 'ModifierOptionNestedGroup',
     ModifierGroupOnItem: 'ModifierGroupOnItem',
     MenuItemVariant: 'MenuItemVariant',
     MealDeal: 'MealDeal',
@@ -3437,7 +3453,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5258,6 +5274,76 @@ export namespace Prisma {
           count: {
             args: Prisma.ModifierOptionCountArgs<ExtArgs>
             result: $Utils.Optional<ModifierOptionCountAggregateOutputType> | number
+          }
+        }
+      }
+      ModifierOptionNestedGroup: {
+        payload: Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>
+        fields: Prisma.ModifierOptionNestedGroupFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ModifierOptionNestedGroupFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ModifierOptionNestedGroupFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>
+          }
+          findFirst: {
+            args: Prisma.ModifierOptionNestedGroupFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ModifierOptionNestedGroupFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>
+          }
+          findMany: {
+            args: Prisma.ModifierOptionNestedGroupFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>[]
+          }
+          create: {
+            args: Prisma.ModifierOptionNestedGroupCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>
+          }
+          createMany: {
+            args: Prisma.ModifierOptionNestedGroupCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ModifierOptionNestedGroupCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>[]
+          }
+          delete: {
+            args: Prisma.ModifierOptionNestedGroupDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>
+          }
+          update: {
+            args: Prisma.ModifierOptionNestedGroupUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>
+          }
+          deleteMany: {
+            args: Prisma.ModifierOptionNestedGroupDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ModifierOptionNestedGroupUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ModifierOptionNestedGroupUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierOptionNestedGroupPayload>
+          }
+          aggregate: {
+            args: Prisma.ModifierOptionNestedGroupAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateModifierOptionNestedGroup>
+          }
+          groupBy: {
+            args: Prisma.ModifierOptionNestedGroupGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ModifierOptionNestedGroupGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ModifierOptionNestedGroupCountArgs<ExtArgs>
+            result: $Utils.Optional<ModifierOptionNestedGroupCountAggregateOutputType> | number
           }
         }
       }
@@ -13240,6 +13326,7 @@ export namespace Prisma {
     options: number
     itemLinks: number
     nestedUnderOptions: number
+    parentOptionLinks: number
     stationRoutes: number
   }
 
@@ -13247,6 +13334,7 @@ export namespace Prisma {
     options?: boolean | ModifierGroupCountOutputTypeCountOptionsArgs
     itemLinks?: boolean | ModifierGroupCountOutputTypeCountItemLinksArgs
     nestedUnderOptions?: boolean | ModifierGroupCountOutputTypeCountNestedUnderOptionsArgs
+    parentOptionLinks?: boolean | ModifierGroupCountOutputTypeCountParentOptionLinksArgs
     stationRoutes?: boolean | ModifierGroupCountOutputTypeCountStationRoutesArgs
   }
 
@@ -13285,8 +13373,46 @@ export namespace Prisma {
   /**
    * ModifierGroupCountOutputType without action
    */
+  export type ModifierGroupCountOutputTypeCountParentOptionLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ModifierOptionNestedGroupWhereInput
+  }
+
+  /**
+   * ModifierGroupCountOutputType without action
+   */
   export type ModifierGroupCountOutputTypeCountStationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ModifierGroupStationWhereInput
+  }
+
+
+  /**
+   * Count Type ModifierOptionCountOutputType
+   */
+
+  export type ModifierOptionCountOutputType = {
+    nestedGroupLinks: number
+  }
+
+  export type ModifierOptionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    nestedGroupLinks?: boolean | ModifierOptionCountOutputTypeCountNestedGroupLinksArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ModifierOptionCountOutputType without action
+   */
+  export type ModifierOptionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionCountOutputType
+     */
+    select?: ModifierOptionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ModifierOptionCountOutputType without action
+   */
+  export type ModifierOptionCountOutputTypeCountNestedGroupLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ModifierOptionNestedGroupWhereInput
   }
 
 
@@ -42536,6 +42662,7 @@ export namespace Prisma {
     options?: boolean | ModifierGroup$optionsArgs<ExtArgs>
     itemLinks?: boolean | ModifierGroup$itemLinksArgs<ExtArgs>
     nestedUnderOptions?: boolean | ModifierGroup$nestedUnderOptionsArgs<ExtArgs>
+    parentOptionLinks?: boolean | ModifierGroup$parentOptionLinksArgs<ExtArgs>
     stationRoutes?: boolean | ModifierGroup$stationRoutesArgs<ExtArgs>
     _count?: boolean | ModifierGroupCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["modifierGroup"]>
@@ -42600,6 +42727,7 @@ export namespace Prisma {
     options?: boolean | ModifierGroup$optionsArgs<ExtArgs>
     itemLinks?: boolean | ModifierGroup$itemLinksArgs<ExtArgs>
     nestedUnderOptions?: boolean | ModifierGroup$nestedUnderOptionsArgs<ExtArgs>
+    parentOptionLinks?: boolean | ModifierGroup$parentOptionLinksArgs<ExtArgs>
     stationRoutes?: boolean | ModifierGroup$stationRoutesArgs<ExtArgs>
     _count?: boolean | ModifierGroupCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -42614,6 +42742,7 @@ export namespace Prisma {
       options: Prisma.$ModifierOptionPayload<ExtArgs>[]
       itemLinks: Prisma.$ModifierGroupOnItemPayload<ExtArgs>[]
       nestedUnderOptions: Prisma.$ModifierOptionPayload<ExtArgs>[]
+      parentOptionLinks: Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>[]
       stationRoutes: Prisma.$ModifierGroupStationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -43009,6 +43138,7 @@ export namespace Prisma {
     options<T extends ModifierGroup$optionsArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$optionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionPayload<ExtArgs>, T, "findMany"> | Null>
     itemLinks<T extends ModifierGroup$itemLinksArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$itemLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupOnItemPayload<ExtArgs>, T, "findMany"> | Null>
     nestedUnderOptions<T extends ModifierGroup$nestedUnderOptionsArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$nestedUnderOptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionPayload<ExtArgs>, T, "findMany"> | Null>
+    parentOptionLinks<T extends ModifierGroup$parentOptionLinksArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$parentOptionLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "findMany"> | Null>
     stationRoutes<T extends ModifierGroup$stationRoutesArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$stationRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -43438,6 +43568,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ModifierOptionScalarFieldEnum | ModifierOptionScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierGroup.parentOptionLinks
+   */
+  export type ModifierGroup$parentOptionLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    where?: ModifierOptionNestedGroupWhereInput
+    orderBy?: ModifierOptionNestedGroupOrderByWithRelationInput | ModifierOptionNestedGroupOrderByWithRelationInput[]
+    cursor?: ModifierOptionNestedGroupWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ModifierOptionNestedGroupScalarFieldEnum | ModifierOptionNestedGroupScalarFieldEnum[]
   }
 
   /**
@@ -43871,6 +44021,8 @@ export namespace Prisma {
     updatedAt?: boolean
     group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
     nestedGroup?: boolean | ModifierOption$nestedGroupArgs<ExtArgs>
+    nestedGroupLinks?: boolean | ModifierOption$nestedGroupLinksArgs<ExtArgs>
+    _count?: boolean | ModifierOptionCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["modifierOption"]>
 
   export type ModifierOptionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -43946,6 +44098,8 @@ export namespace Prisma {
   export type ModifierOptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
     nestedGroup?: boolean | ModifierOption$nestedGroupArgs<ExtArgs>
+    nestedGroupLinks?: boolean | ModifierOption$nestedGroupLinksArgs<ExtArgs>
+    _count?: boolean | ModifierOptionCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ModifierOptionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
@@ -43957,6 +44111,7 @@ export namespace Prisma {
     objects: {
       group: Prisma.$ModifierGroupPayload<ExtArgs>
       nestedGroup: Prisma.$ModifierGroupPayload<ExtArgs> | null
+      nestedGroupLinks: Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -44356,6 +44511,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     group<T extends ModifierGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroupDefaultArgs<ExtArgs>>): Prisma__ModifierGroupClient<$Result.GetResult<Prisma.$ModifierGroupPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     nestedGroup<T extends ModifierOption$nestedGroupArgs<ExtArgs> = {}>(args?: Subset<T, ModifierOption$nestedGroupArgs<ExtArgs>>): Prisma__ModifierGroupClient<$Result.GetResult<Prisma.$ModifierGroupPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    nestedGroupLinks<T extends ModifierOption$nestedGroupLinksArgs<ExtArgs> = {}>(args?: Subset<T, ModifierOption$nestedGroupLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -44749,6 +44905,26 @@ export namespace Prisma {
   }
 
   /**
+   * ModifierOption.nestedGroupLinks
+   */
+  export type ModifierOption$nestedGroupLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    where?: ModifierOptionNestedGroupWhereInput
+    orderBy?: ModifierOptionNestedGroupOrderByWithRelationInput | ModifierOptionNestedGroupOrderByWithRelationInput[]
+    cursor?: ModifierOptionNestedGroupWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ModifierOptionNestedGroupScalarFieldEnum | ModifierOptionNestedGroupScalarFieldEnum[]
+  }
+
+  /**
    * ModifierOption without action
    */
   export type ModifierOptionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -44760,6 +44936,967 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ModifierOptionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ModifierOptionNestedGroup
+   */
+
+  export type AggregateModifierOptionNestedGroup = {
+    _count: ModifierOptionNestedGroupCountAggregateOutputType | null
+    _avg: ModifierOptionNestedGroupAvgAggregateOutputType | null
+    _sum: ModifierOptionNestedGroupSumAggregateOutputType | null
+    _min: ModifierOptionNestedGroupMinAggregateOutputType | null
+    _max: ModifierOptionNestedGroupMaxAggregateOutputType | null
+  }
+
+  export type ModifierOptionNestedGroupAvgAggregateOutputType = {
+    sortOrder: number | null
+  }
+
+  export type ModifierOptionNestedGroupSumAggregateOutputType = {
+    sortOrder: number | null
+  }
+
+  export type ModifierOptionNestedGroupMinAggregateOutputType = {
+    optionId: string | null
+    groupId: string | null
+    sortOrder: number | null
+    createdAt: Date | null
+  }
+
+  export type ModifierOptionNestedGroupMaxAggregateOutputType = {
+    optionId: string | null
+    groupId: string | null
+    sortOrder: number | null
+    createdAt: Date | null
+  }
+
+  export type ModifierOptionNestedGroupCountAggregateOutputType = {
+    optionId: number
+    groupId: number
+    sortOrder: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ModifierOptionNestedGroupAvgAggregateInputType = {
+    sortOrder?: true
+  }
+
+  export type ModifierOptionNestedGroupSumAggregateInputType = {
+    sortOrder?: true
+  }
+
+  export type ModifierOptionNestedGroupMinAggregateInputType = {
+    optionId?: true
+    groupId?: true
+    sortOrder?: true
+    createdAt?: true
+  }
+
+  export type ModifierOptionNestedGroupMaxAggregateInputType = {
+    optionId?: true
+    groupId?: true
+    sortOrder?: true
+    createdAt?: true
+  }
+
+  export type ModifierOptionNestedGroupCountAggregateInputType = {
+    optionId?: true
+    groupId?: true
+    sortOrder?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ModifierOptionNestedGroupAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ModifierOptionNestedGroup to aggregate.
+     */
+    where?: ModifierOptionNestedGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierOptionNestedGroups to fetch.
+     */
+    orderBy?: ModifierOptionNestedGroupOrderByWithRelationInput | ModifierOptionNestedGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ModifierOptionNestedGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierOptionNestedGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierOptionNestedGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ModifierOptionNestedGroups
+    **/
+    _count?: true | ModifierOptionNestedGroupCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ModifierOptionNestedGroupAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ModifierOptionNestedGroupSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ModifierOptionNestedGroupMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ModifierOptionNestedGroupMaxAggregateInputType
+  }
+
+  export type GetModifierOptionNestedGroupAggregateType<T extends ModifierOptionNestedGroupAggregateArgs> = {
+        [P in keyof T & keyof AggregateModifierOptionNestedGroup]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateModifierOptionNestedGroup[P]>
+      : GetScalarType<T[P], AggregateModifierOptionNestedGroup[P]>
+  }
+
+
+
+
+  export type ModifierOptionNestedGroupGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ModifierOptionNestedGroupWhereInput
+    orderBy?: ModifierOptionNestedGroupOrderByWithAggregationInput | ModifierOptionNestedGroupOrderByWithAggregationInput[]
+    by: ModifierOptionNestedGroupScalarFieldEnum[] | ModifierOptionNestedGroupScalarFieldEnum
+    having?: ModifierOptionNestedGroupScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ModifierOptionNestedGroupCountAggregateInputType | true
+    _avg?: ModifierOptionNestedGroupAvgAggregateInputType
+    _sum?: ModifierOptionNestedGroupSumAggregateInputType
+    _min?: ModifierOptionNestedGroupMinAggregateInputType
+    _max?: ModifierOptionNestedGroupMaxAggregateInputType
+  }
+
+  export type ModifierOptionNestedGroupGroupByOutputType = {
+    optionId: string
+    groupId: string
+    sortOrder: number
+    createdAt: Date
+    _count: ModifierOptionNestedGroupCountAggregateOutputType | null
+    _avg: ModifierOptionNestedGroupAvgAggregateOutputType | null
+    _sum: ModifierOptionNestedGroupSumAggregateOutputType | null
+    _min: ModifierOptionNestedGroupMinAggregateOutputType | null
+    _max: ModifierOptionNestedGroupMaxAggregateOutputType | null
+  }
+
+  type GetModifierOptionNestedGroupGroupByPayload<T extends ModifierOptionNestedGroupGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ModifierOptionNestedGroupGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ModifierOptionNestedGroupGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ModifierOptionNestedGroupGroupByOutputType[P]>
+            : GetScalarType<T[P], ModifierOptionNestedGroupGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ModifierOptionNestedGroupSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    optionId?: boolean
+    groupId?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    option?: boolean | ModifierOptionDefaultArgs<ExtArgs>
+    group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["modifierOptionNestedGroup"]>
+
+  export type ModifierOptionNestedGroupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    optionId?: boolean
+    groupId?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    option?: boolean | ModifierOptionDefaultArgs<ExtArgs>
+    group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["modifierOptionNestedGroup"]>
+
+  export type ModifierOptionNestedGroupSelectScalar = {
+    optionId?: boolean
+    groupId?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+  }
+
+  export type ModifierOptionNestedGroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    option?: boolean | ModifierOptionDefaultArgs<ExtArgs>
+    group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+  }
+  export type ModifierOptionNestedGroupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    option?: boolean | ModifierOptionDefaultArgs<ExtArgs>
+    group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+  }
+
+  export type $ModifierOptionNestedGroupPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ModifierOptionNestedGroup"
+    objects: {
+      option: Prisma.$ModifierOptionPayload<ExtArgs>
+      group: Prisma.$ModifierGroupPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      optionId: string
+      groupId: string
+      sortOrder: number
+      createdAt: Date
+    }, ExtArgs["result"]["modifierOptionNestedGroup"]>
+    composites: {}
+  }
+
+  type ModifierOptionNestedGroupGetPayload<S extends boolean | null | undefined | ModifierOptionNestedGroupDefaultArgs> = $Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload, S>
+
+  type ModifierOptionNestedGroupCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ModifierOptionNestedGroupFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ModifierOptionNestedGroupCountAggregateInputType | true
+    }
+
+  export interface ModifierOptionNestedGroupDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ModifierOptionNestedGroup'], meta: { name: 'ModifierOptionNestedGroup' } }
+    /**
+     * Find zero or one ModifierOptionNestedGroup that matches the filter.
+     * @param {ModifierOptionNestedGroupFindUniqueArgs} args - Arguments to find a ModifierOptionNestedGroup
+     * @example
+     * // Get one ModifierOptionNestedGroup
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ModifierOptionNestedGroupFindUniqueArgs>(args: SelectSubset<T, ModifierOptionNestedGroupFindUniqueArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ModifierOptionNestedGroup that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ModifierOptionNestedGroupFindUniqueOrThrowArgs} args - Arguments to find a ModifierOptionNestedGroup
+     * @example
+     * // Get one ModifierOptionNestedGroup
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ModifierOptionNestedGroupFindUniqueOrThrowArgs>(args: SelectSubset<T, ModifierOptionNestedGroupFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ModifierOptionNestedGroup that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierOptionNestedGroupFindFirstArgs} args - Arguments to find a ModifierOptionNestedGroup
+     * @example
+     * // Get one ModifierOptionNestedGroup
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ModifierOptionNestedGroupFindFirstArgs>(args?: SelectSubset<T, ModifierOptionNestedGroupFindFirstArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ModifierOptionNestedGroup that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierOptionNestedGroupFindFirstOrThrowArgs} args - Arguments to find a ModifierOptionNestedGroup
+     * @example
+     * // Get one ModifierOptionNestedGroup
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ModifierOptionNestedGroupFindFirstOrThrowArgs>(args?: SelectSubset<T, ModifierOptionNestedGroupFindFirstOrThrowArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ModifierOptionNestedGroups that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierOptionNestedGroupFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ModifierOptionNestedGroups
+     * const modifierOptionNestedGroups = await prisma.modifierOptionNestedGroup.findMany()
+     * 
+     * // Get first 10 ModifierOptionNestedGroups
+     * const modifierOptionNestedGroups = await prisma.modifierOptionNestedGroup.findMany({ take: 10 })
+     * 
+     * // Only select the `optionId`
+     * const modifierOptionNestedGroupWithOptionIdOnly = await prisma.modifierOptionNestedGroup.findMany({ select: { optionId: true } })
+     * 
+     */
+    findMany<T extends ModifierOptionNestedGroupFindManyArgs>(args?: SelectSubset<T, ModifierOptionNestedGroupFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ModifierOptionNestedGroup.
+     * @param {ModifierOptionNestedGroupCreateArgs} args - Arguments to create a ModifierOptionNestedGroup.
+     * @example
+     * // Create one ModifierOptionNestedGroup
+     * const ModifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.create({
+     *   data: {
+     *     // ... data to create a ModifierOptionNestedGroup
+     *   }
+     * })
+     * 
+     */
+    create<T extends ModifierOptionNestedGroupCreateArgs>(args: SelectSubset<T, ModifierOptionNestedGroupCreateArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ModifierOptionNestedGroups.
+     * @param {ModifierOptionNestedGroupCreateManyArgs} args - Arguments to create many ModifierOptionNestedGroups.
+     * @example
+     * // Create many ModifierOptionNestedGroups
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ModifierOptionNestedGroupCreateManyArgs>(args?: SelectSubset<T, ModifierOptionNestedGroupCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ModifierOptionNestedGroups and returns the data saved in the database.
+     * @param {ModifierOptionNestedGroupCreateManyAndReturnArgs} args - Arguments to create many ModifierOptionNestedGroups.
+     * @example
+     * // Create many ModifierOptionNestedGroups
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ModifierOptionNestedGroups and only return the `optionId`
+     * const modifierOptionNestedGroupWithOptionIdOnly = await prisma.modifierOptionNestedGroup.createManyAndReturn({ 
+     *   select: { optionId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ModifierOptionNestedGroupCreateManyAndReturnArgs>(args?: SelectSubset<T, ModifierOptionNestedGroupCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ModifierOptionNestedGroup.
+     * @param {ModifierOptionNestedGroupDeleteArgs} args - Arguments to delete one ModifierOptionNestedGroup.
+     * @example
+     * // Delete one ModifierOptionNestedGroup
+     * const ModifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.delete({
+     *   where: {
+     *     // ... filter to delete one ModifierOptionNestedGroup
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ModifierOptionNestedGroupDeleteArgs>(args: SelectSubset<T, ModifierOptionNestedGroupDeleteArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ModifierOptionNestedGroup.
+     * @param {ModifierOptionNestedGroupUpdateArgs} args - Arguments to update one ModifierOptionNestedGroup.
+     * @example
+     * // Update one ModifierOptionNestedGroup
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ModifierOptionNestedGroupUpdateArgs>(args: SelectSubset<T, ModifierOptionNestedGroupUpdateArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ModifierOptionNestedGroups.
+     * @param {ModifierOptionNestedGroupDeleteManyArgs} args - Arguments to filter ModifierOptionNestedGroups to delete.
+     * @example
+     * // Delete a few ModifierOptionNestedGroups
+     * const { count } = await prisma.modifierOptionNestedGroup.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ModifierOptionNestedGroupDeleteManyArgs>(args?: SelectSubset<T, ModifierOptionNestedGroupDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ModifierOptionNestedGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierOptionNestedGroupUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ModifierOptionNestedGroups
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ModifierOptionNestedGroupUpdateManyArgs>(args: SelectSubset<T, ModifierOptionNestedGroupUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ModifierOptionNestedGroup.
+     * @param {ModifierOptionNestedGroupUpsertArgs} args - Arguments to update or create a ModifierOptionNestedGroup.
+     * @example
+     * // Update or create a ModifierOptionNestedGroup
+     * const modifierOptionNestedGroup = await prisma.modifierOptionNestedGroup.upsert({
+     *   create: {
+     *     // ... data to create a ModifierOptionNestedGroup
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ModifierOptionNestedGroup we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ModifierOptionNestedGroupUpsertArgs>(args: SelectSubset<T, ModifierOptionNestedGroupUpsertArgs<ExtArgs>>): Prisma__ModifierOptionNestedGroupClient<$Result.GetResult<Prisma.$ModifierOptionNestedGroupPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ModifierOptionNestedGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierOptionNestedGroupCountArgs} args - Arguments to filter ModifierOptionNestedGroups to count.
+     * @example
+     * // Count the number of ModifierOptionNestedGroups
+     * const count = await prisma.modifierOptionNestedGroup.count({
+     *   where: {
+     *     // ... the filter for the ModifierOptionNestedGroups we want to count
+     *   }
+     * })
+    **/
+    count<T extends ModifierOptionNestedGroupCountArgs>(
+      args?: Subset<T, ModifierOptionNestedGroupCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ModifierOptionNestedGroupCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ModifierOptionNestedGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierOptionNestedGroupAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ModifierOptionNestedGroupAggregateArgs>(args: Subset<T, ModifierOptionNestedGroupAggregateArgs>): Prisma.PrismaPromise<GetModifierOptionNestedGroupAggregateType<T>>
+
+    /**
+     * Group by ModifierOptionNestedGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierOptionNestedGroupGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ModifierOptionNestedGroupGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ModifierOptionNestedGroupGroupByArgs['orderBy'] }
+        : { orderBy?: ModifierOptionNestedGroupGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ModifierOptionNestedGroupGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetModifierOptionNestedGroupGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ModifierOptionNestedGroup model
+   */
+  readonly fields: ModifierOptionNestedGroupFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ModifierOptionNestedGroup.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ModifierOptionNestedGroupClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    option<T extends ModifierOptionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ModifierOptionDefaultArgs<ExtArgs>>): Prisma__ModifierOptionClient<$Result.GetResult<Prisma.$ModifierOptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    group<T extends ModifierGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroupDefaultArgs<ExtArgs>>): Prisma__ModifierGroupClient<$Result.GetResult<Prisma.$ModifierGroupPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ModifierOptionNestedGroup model
+   */ 
+  interface ModifierOptionNestedGroupFieldRefs {
+    readonly optionId: FieldRef<"ModifierOptionNestedGroup", 'String'>
+    readonly groupId: FieldRef<"ModifierOptionNestedGroup", 'String'>
+    readonly sortOrder: FieldRef<"ModifierOptionNestedGroup", 'Int'>
+    readonly createdAt: FieldRef<"ModifierOptionNestedGroup", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ModifierOptionNestedGroup findUnique
+   */
+  export type ModifierOptionNestedGroupFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierOptionNestedGroup to fetch.
+     */
+    where: ModifierOptionNestedGroupWhereUniqueInput
+  }
+
+  /**
+   * ModifierOptionNestedGroup findUniqueOrThrow
+   */
+  export type ModifierOptionNestedGroupFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierOptionNestedGroup to fetch.
+     */
+    where: ModifierOptionNestedGroupWhereUniqueInput
+  }
+
+  /**
+   * ModifierOptionNestedGroup findFirst
+   */
+  export type ModifierOptionNestedGroupFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierOptionNestedGroup to fetch.
+     */
+    where?: ModifierOptionNestedGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierOptionNestedGroups to fetch.
+     */
+    orderBy?: ModifierOptionNestedGroupOrderByWithRelationInput | ModifierOptionNestedGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ModifierOptionNestedGroups.
+     */
+    cursor?: ModifierOptionNestedGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierOptionNestedGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierOptionNestedGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ModifierOptionNestedGroups.
+     */
+    distinct?: ModifierOptionNestedGroupScalarFieldEnum | ModifierOptionNestedGroupScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierOptionNestedGroup findFirstOrThrow
+   */
+  export type ModifierOptionNestedGroupFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierOptionNestedGroup to fetch.
+     */
+    where?: ModifierOptionNestedGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierOptionNestedGroups to fetch.
+     */
+    orderBy?: ModifierOptionNestedGroupOrderByWithRelationInput | ModifierOptionNestedGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ModifierOptionNestedGroups.
+     */
+    cursor?: ModifierOptionNestedGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierOptionNestedGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierOptionNestedGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ModifierOptionNestedGroups.
+     */
+    distinct?: ModifierOptionNestedGroupScalarFieldEnum | ModifierOptionNestedGroupScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierOptionNestedGroup findMany
+   */
+  export type ModifierOptionNestedGroupFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierOptionNestedGroups to fetch.
+     */
+    where?: ModifierOptionNestedGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierOptionNestedGroups to fetch.
+     */
+    orderBy?: ModifierOptionNestedGroupOrderByWithRelationInput | ModifierOptionNestedGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ModifierOptionNestedGroups.
+     */
+    cursor?: ModifierOptionNestedGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierOptionNestedGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierOptionNestedGroups.
+     */
+    skip?: number
+    distinct?: ModifierOptionNestedGroupScalarFieldEnum | ModifierOptionNestedGroupScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierOptionNestedGroup create
+   */
+  export type ModifierOptionNestedGroupCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ModifierOptionNestedGroup.
+     */
+    data: XOR<ModifierOptionNestedGroupCreateInput, ModifierOptionNestedGroupUncheckedCreateInput>
+  }
+
+  /**
+   * ModifierOptionNestedGroup createMany
+   */
+  export type ModifierOptionNestedGroupCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ModifierOptionNestedGroups.
+     */
+    data: ModifierOptionNestedGroupCreateManyInput | ModifierOptionNestedGroupCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ModifierOptionNestedGroup createManyAndReturn
+   */
+  export type ModifierOptionNestedGroupCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ModifierOptionNestedGroups.
+     */
+    data: ModifierOptionNestedGroupCreateManyInput | ModifierOptionNestedGroupCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ModifierOptionNestedGroup update
+   */
+  export type ModifierOptionNestedGroupUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ModifierOptionNestedGroup.
+     */
+    data: XOR<ModifierOptionNestedGroupUpdateInput, ModifierOptionNestedGroupUncheckedUpdateInput>
+    /**
+     * Choose, which ModifierOptionNestedGroup to update.
+     */
+    where: ModifierOptionNestedGroupWhereUniqueInput
+  }
+
+  /**
+   * ModifierOptionNestedGroup updateMany
+   */
+  export type ModifierOptionNestedGroupUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ModifierOptionNestedGroups.
+     */
+    data: XOR<ModifierOptionNestedGroupUpdateManyMutationInput, ModifierOptionNestedGroupUncheckedUpdateManyInput>
+    /**
+     * Filter which ModifierOptionNestedGroups to update
+     */
+    where?: ModifierOptionNestedGroupWhereInput
+  }
+
+  /**
+   * ModifierOptionNestedGroup upsert
+   */
+  export type ModifierOptionNestedGroupUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ModifierOptionNestedGroup to update in case it exists.
+     */
+    where: ModifierOptionNestedGroupWhereUniqueInput
+    /**
+     * In case the ModifierOptionNestedGroup found by the `where` argument doesn't exist, create a new ModifierOptionNestedGroup with this data.
+     */
+    create: XOR<ModifierOptionNestedGroupCreateInput, ModifierOptionNestedGroupUncheckedCreateInput>
+    /**
+     * In case the ModifierOptionNestedGroup was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ModifierOptionNestedGroupUpdateInput, ModifierOptionNestedGroupUncheckedUpdateInput>
+  }
+
+  /**
+   * ModifierOptionNestedGroup delete
+   */
+  export type ModifierOptionNestedGroupDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
+    /**
+     * Filter which ModifierOptionNestedGroup to delete.
+     */
+    where: ModifierOptionNestedGroupWhereUniqueInput
+  }
+
+  /**
+   * ModifierOptionNestedGroup deleteMany
+   */
+  export type ModifierOptionNestedGroupDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ModifierOptionNestedGroups to delete
+     */
+    where?: ModifierOptionNestedGroupWhereInput
+  }
+
+  /**
+   * ModifierOptionNestedGroup without action
+   */
+  export type ModifierOptionNestedGroupDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierOptionNestedGroup
+     */
+    select?: ModifierOptionNestedGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierOptionNestedGroupInclude<ExtArgs> | null
   }
 
 
@@ -150902,6 +152039,16 @@ export namespace Prisma {
   export type ModifierOptionScalarFieldEnum = (typeof ModifierOptionScalarFieldEnum)[keyof typeof ModifierOptionScalarFieldEnum]
 
 
+  export const ModifierOptionNestedGroupScalarFieldEnum: {
+    optionId: 'optionId',
+    groupId: 'groupId',
+    sortOrder: 'sortOrder',
+    createdAt: 'createdAt'
+  };
+
+  export type ModifierOptionNestedGroupScalarFieldEnum = (typeof ModifierOptionNestedGroupScalarFieldEnum)[keyof typeof ModifierOptionNestedGroupScalarFieldEnum]
+
+
   export const ModifierGroupOnItemScalarFieldEnum: {
     itemId: 'itemId',
     groupId: 'groupId',
@@ -153251,6 +154398,14 @@ export namespace Prisma {
   };
 
   export type ModifierOptionOrderByRelevanceFieldEnum = (typeof ModifierOptionOrderByRelevanceFieldEnum)[keyof typeof ModifierOptionOrderByRelevanceFieldEnum]
+
+
+  export const ModifierOptionNestedGroupOrderByRelevanceFieldEnum: {
+    optionId: 'optionId',
+    groupId: 'groupId'
+  };
+
+  export type ModifierOptionNestedGroupOrderByRelevanceFieldEnum = (typeof ModifierOptionNestedGroupOrderByRelevanceFieldEnum)[keyof typeof ModifierOptionNestedGroupOrderByRelevanceFieldEnum]
 
 
   export const ModifierGroupOnItemOrderByRelevanceFieldEnum: {
@@ -158386,6 +159541,7 @@ export namespace Prisma {
     options?: ModifierOptionListRelationFilter
     itemLinks?: ModifierGroupOnItemListRelationFilter
     nestedUnderOptions?: ModifierOptionListRelationFilter
+    parentOptionLinks?: ModifierOptionNestedGroupListRelationFilter
     stationRoutes?: ModifierGroupStationListRelationFilter
   }
 
@@ -158418,6 +159574,7 @@ export namespace Prisma {
     options?: ModifierOptionOrderByRelationAggregateInput
     itemLinks?: ModifierGroupOnItemOrderByRelationAggregateInput
     nestedUnderOptions?: ModifierOptionOrderByRelationAggregateInput
+    parentOptionLinks?: ModifierOptionNestedGroupOrderByRelationAggregateInput
     stationRoutes?: ModifierGroupStationOrderByRelationAggregateInput
     _relevance?: ModifierGroupOrderByRelevanceInput
   }
@@ -158454,6 +159611,7 @@ export namespace Prisma {
     options?: ModifierOptionListRelationFilter
     itemLinks?: ModifierGroupOnItemListRelationFilter
     nestedUnderOptions?: ModifierOptionListRelationFilter
+    parentOptionLinks?: ModifierOptionNestedGroupListRelationFilter
     stationRoutes?: ModifierGroupStationListRelationFilter
   }, "id">
 
@@ -158556,6 +159714,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ModifierOption"> | Date | string
     group?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
     nestedGroup?: XOR<ModifierGroupNullableRelationFilter, ModifierGroupWhereInput> | null
+    nestedGroupLinks?: ModifierOptionNestedGroupListRelationFilter
   }
 
   export type ModifierOptionOrderByWithRelationInput = {
@@ -158592,6 +159751,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     group?: ModifierGroupOrderByWithRelationInput
     nestedGroup?: ModifierGroupOrderByWithRelationInput
+    nestedGroupLinks?: ModifierOptionNestedGroupOrderByRelationAggregateInput
     _relevance?: ModifierOptionOrderByRelevanceInput
   }
 
@@ -158632,6 +159792,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ModifierOption"> | Date | string
     group?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
     nestedGroup?: XOR<ModifierGroupNullableRelationFilter, ModifierGroupWhereInput> | null
+    nestedGroupLinks?: ModifierOptionNestedGroupListRelationFilter
   }, "id">
 
   export type ModifierOptionOrderByWithAggregationInput = {
@@ -158708,6 +159869,63 @@ export namespace Prisma {
     metadata?: JsonWithAggregatesFilter<"ModifierOption">
     createdAt?: DateTimeWithAggregatesFilter<"ModifierOption"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ModifierOption"> | Date | string
+  }
+
+  export type ModifierOptionNestedGroupWhereInput = {
+    AND?: ModifierOptionNestedGroupWhereInput | ModifierOptionNestedGroupWhereInput[]
+    OR?: ModifierOptionNestedGroupWhereInput[]
+    NOT?: ModifierOptionNestedGroupWhereInput | ModifierOptionNestedGroupWhereInput[]
+    optionId?: StringFilter<"ModifierOptionNestedGroup"> | string
+    groupId?: StringFilter<"ModifierOptionNestedGroup"> | string
+    sortOrder?: IntFilter<"ModifierOptionNestedGroup"> | number
+    createdAt?: DateTimeFilter<"ModifierOptionNestedGroup"> | Date | string
+    option?: XOR<ModifierOptionRelationFilter, ModifierOptionWhereInput>
+    group?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
+  }
+
+  export type ModifierOptionNestedGroupOrderByWithRelationInput = {
+    optionId?: SortOrder
+    groupId?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    option?: ModifierOptionOrderByWithRelationInput
+    group?: ModifierGroupOrderByWithRelationInput
+    _relevance?: ModifierOptionNestedGroupOrderByRelevanceInput
+  }
+
+  export type ModifierOptionNestedGroupWhereUniqueInput = Prisma.AtLeast<{
+    optionId_groupId?: ModifierOptionNestedGroupOptionIdGroupIdCompoundUniqueInput
+    AND?: ModifierOptionNestedGroupWhereInput | ModifierOptionNestedGroupWhereInput[]
+    OR?: ModifierOptionNestedGroupWhereInput[]
+    NOT?: ModifierOptionNestedGroupWhereInput | ModifierOptionNestedGroupWhereInput[]
+    optionId?: StringFilter<"ModifierOptionNestedGroup"> | string
+    groupId?: StringFilter<"ModifierOptionNestedGroup"> | string
+    sortOrder?: IntFilter<"ModifierOptionNestedGroup"> | number
+    createdAt?: DateTimeFilter<"ModifierOptionNestedGroup"> | Date | string
+    option?: XOR<ModifierOptionRelationFilter, ModifierOptionWhereInput>
+    group?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
+  }, "optionId_groupId">
+
+  export type ModifierOptionNestedGroupOrderByWithAggregationInput = {
+    optionId?: SortOrder
+    groupId?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    _count?: ModifierOptionNestedGroupCountOrderByAggregateInput
+    _avg?: ModifierOptionNestedGroupAvgOrderByAggregateInput
+    _max?: ModifierOptionNestedGroupMaxOrderByAggregateInput
+    _min?: ModifierOptionNestedGroupMinOrderByAggregateInput
+    _sum?: ModifierOptionNestedGroupSumOrderByAggregateInput
+  }
+
+  export type ModifierOptionNestedGroupScalarWhereWithAggregatesInput = {
+    AND?: ModifierOptionNestedGroupScalarWhereWithAggregatesInput | ModifierOptionNestedGroupScalarWhereWithAggregatesInput[]
+    OR?: ModifierOptionNestedGroupScalarWhereWithAggregatesInput[]
+    NOT?: ModifierOptionNestedGroupScalarWhereWithAggregatesInput | ModifierOptionNestedGroupScalarWhereWithAggregatesInput[]
+    optionId?: StringWithAggregatesFilter<"ModifierOptionNestedGroup"> | string
+    groupId?: StringWithAggregatesFilter<"ModifierOptionNestedGroup"> | string
+    sortOrder?: IntWithAggregatesFilter<"ModifierOptionNestedGroup"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"ModifierOptionNestedGroup"> | Date | string
   }
 
   export type ModifierGroupOnItemWhereInput = {
@@ -172206,6 +173424,7 @@ export namespace Prisma {
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -172237,6 +173456,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -172268,6 +173488,7 @@ export namespace Prisma {
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -172299,6 +173520,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -172414,6 +173636,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     group: ModifierGroupCreateNestedOneWithoutOptionsInput
     nestedGroup?: ModifierGroupCreateNestedOneWithoutNestedUnderOptionsInput
+    nestedGroupLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutOptionInput
   }
 
   export type ModifierOptionUncheckedCreateInput = {
@@ -172448,6 +173671,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+    nestedGroupLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type ModifierOptionUpdateInput = {
@@ -172482,6 +173706,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     group?: ModifierGroupUpdateOneRequiredWithoutOptionsNestedInput
     nestedGroup?: ModifierGroupUpdateOneWithoutNestedUnderOptionsNestedInput
+    nestedGroupLinks?: ModifierOptionNestedGroupUpdateManyWithoutOptionNestedInput
   }
 
   export type ModifierOptionUncheckedUpdateInput = {
@@ -172516,6 +173741,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    nestedGroupLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type ModifierOptionCreateManyInput = {
@@ -172616,6 +173842,53 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierOptionNestedGroupCreateInput = {
+    sortOrder?: number
+    createdAt?: Date | string
+    option: ModifierOptionCreateNestedOneWithoutNestedGroupLinksInput
+    group: ModifierGroupCreateNestedOneWithoutParentOptionLinksInput
+  }
+
+  export type ModifierOptionNestedGroupUncheckedCreateInput = {
+    optionId: string
+    groupId: string
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ModifierOptionNestedGroupUpdateInput = {
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    option?: ModifierOptionUpdateOneRequiredWithoutNestedGroupLinksNestedInput
+    group?: ModifierGroupUpdateOneRequiredWithoutParentOptionLinksNestedInput
+  }
+
+  export type ModifierOptionNestedGroupUncheckedUpdateInput = {
+    optionId?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierOptionNestedGroupCreateManyInput = {
+    optionId: string
+    groupId: string
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ModifierOptionNestedGroupUpdateManyMutationInput = {
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierOptionNestedGroupUncheckedUpdateManyInput = {
+    optionId?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ModifierGroupOnItemCreateInput = {
@@ -186791,6 +188064,12 @@ export namespace Prisma {
     none?: ModifierOptionWhereInput
   }
 
+  export type ModifierOptionNestedGroupListRelationFilter = {
+    every?: ModifierOptionNestedGroupWhereInput
+    some?: ModifierOptionNestedGroupWhereInput
+    none?: ModifierOptionNestedGroupWhereInput
+  }
+
   export type ModifierGroupStationListRelationFilter = {
     every?: ModifierGroupStationWhereInput
     some?: ModifierGroupStationWhereInput
@@ -186798,6 +188077,10 @@ export namespace Prisma {
   }
 
   export type ModifierOptionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ModifierOptionNestedGroupOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -187026,6 +188309,51 @@ export namespace Prisma {
     deliveryTax?: SortOrder
     takeawayTax?: SortOrder
     eatInTax?: SortOrder
+  }
+
+  export type ModifierOptionRelationFilter = {
+    is?: ModifierOptionWhereInput
+    isNot?: ModifierOptionWhereInput
+  }
+
+  export type ModifierOptionNestedGroupOrderByRelevanceInput = {
+    fields: ModifierOptionNestedGroupOrderByRelevanceFieldEnum | ModifierOptionNestedGroupOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ModifierOptionNestedGroupOptionIdGroupIdCompoundUniqueInput = {
+    optionId: string
+    groupId: string
+  }
+
+  export type ModifierOptionNestedGroupCountOrderByAggregateInput = {
+    optionId?: SortOrder
+    groupId?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ModifierOptionNestedGroupAvgOrderByAggregateInput = {
+    sortOrder?: SortOrder
+  }
+
+  export type ModifierOptionNestedGroupMaxOrderByAggregateInput = {
+    optionId?: SortOrder
+    groupId?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ModifierOptionNestedGroupMinOrderByAggregateInput = {
+    optionId?: SortOrder
+    groupId?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ModifierOptionNestedGroupSumOrderByAggregateInput = {
+    sortOrder?: SortOrder
   }
 
   export type ModifierGroupOnItemOrderByRelevanceInput = {
@@ -198295,6 +199623,13 @@ export namespace Prisma {
     connect?: ModifierOptionWhereUniqueInput | ModifierOptionWhereUniqueInput[]
   }
 
+  export type ModifierOptionNestedGroupCreateNestedManyWithoutGroupInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutGroupInput, ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput> | ModifierOptionNestedGroupCreateWithoutGroupInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput | ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyGroupInputEnvelope
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+  }
+
   export type ModifierGroupStationCreateNestedManyWithoutModifierGroupInput = {
     create?: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput> | ModifierGroupStationCreateWithoutModifierGroupInput[] | ModifierGroupStationUncheckedCreateWithoutModifierGroupInput[]
     connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutModifierGroupInput | ModifierGroupStationCreateOrConnectWithoutModifierGroupInput[]
@@ -198321,6 +199656,13 @@ export namespace Prisma {
     connectOrCreate?: ModifierOptionCreateOrConnectWithoutNestedGroupInput | ModifierOptionCreateOrConnectWithoutNestedGroupInput[]
     createMany?: ModifierOptionCreateManyNestedGroupInputEnvelope
     connect?: ModifierOptionWhereUniqueInput | ModifierOptionWhereUniqueInput[]
+  }
+
+  export type ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutGroupInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutGroupInput, ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput> | ModifierOptionNestedGroupCreateWithoutGroupInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput | ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyGroupInputEnvelope
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
   }
 
   export type ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput = {
@@ -198389,6 +199731,20 @@ export namespace Prisma {
     deleteMany?: ModifierOptionScalarWhereInput | ModifierOptionScalarWhereInput[]
   }
 
+  export type ModifierOptionNestedGroupUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutGroupInput, ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput> | ModifierOptionNestedGroupCreateWithoutGroupInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput | ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput[]
+    upsert?: ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutGroupInput | ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyGroupInputEnvelope
+    set?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    disconnect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    delete?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    update?: ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutGroupInput | ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: ModifierOptionNestedGroupUpdateManyWithWhereWithoutGroupInput | ModifierOptionNestedGroupUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: ModifierOptionNestedGroupScalarWhereInput | ModifierOptionNestedGroupScalarWhereInput[]
+  }
+
   export type ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput = {
     create?: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput> | ModifierGroupStationCreateWithoutModifierGroupInput[] | ModifierGroupStationUncheckedCreateWithoutModifierGroupInput[]
     connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutModifierGroupInput | ModifierGroupStationCreateOrConnectWithoutModifierGroupInput[]
@@ -198445,6 +199801,20 @@ export namespace Prisma {
     deleteMany?: ModifierOptionScalarWhereInput | ModifierOptionScalarWhereInput[]
   }
 
+  export type ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutGroupInput, ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput> | ModifierOptionNestedGroupCreateWithoutGroupInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput | ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput[]
+    upsert?: ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutGroupInput | ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyGroupInputEnvelope
+    set?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    disconnect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    delete?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    update?: ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutGroupInput | ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: ModifierOptionNestedGroupUpdateManyWithWhereWithoutGroupInput | ModifierOptionNestedGroupUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: ModifierOptionNestedGroupScalarWhereInput | ModifierOptionNestedGroupScalarWhereInput[]
+  }
+
   export type ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput = {
     create?: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput> | ModifierGroupStationCreateWithoutModifierGroupInput[] | ModifierGroupStationUncheckedCreateWithoutModifierGroupInput[]
     connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutModifierGroupInput | ModifierGroupStationCreateOrConnectWithoutModifierGroupInput[]
@@ -198483,6 +199853,20 @@ export namespace Prisma {
     connect?: ModifierGroupWhereUniqueInput
   }
 
+  export type ModifierOptionNestedGroupCreateNestedManyWithoutOptionInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutOptionInput, ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput> | ModifierOptionNestedGroupCreateWithoutOptionInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput | ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyOptionInputEnvelope
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+  }
+
+  export type ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutOptionInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutOptionInput, ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput> | ModifierOptionNestedGroupCreateWithoutOptionInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput | ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyOptionInputEnvelope
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+  }
+
   export type ModifierOptionUpdatemodifierGroupIdsInput = {
     set?: string[]
     push?: string | string[]
@@ -198514,6 +199898,62 @@ export namespace Prisma {
     delete?: ModifierGroupWhereInput | boolean
     connect?: ModifierGroupWhereUniqueInput
     update?: XOR<XOR<ModifierGroupUpdateToOneWithWhereWithoutNestedUnderOptionsInput, ModifierGroupUpdateWithoutNestedUnderOptionsInput>, ModifierGroupUncheckedUpdateWithoutNestedUnderOptionsInput>
+  }
+
+  export type ModifierOptionNestedGroupUpdateManyWithoutOptionNestedInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutOptionInput, ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput> | ModifierOptionNestedGroupCreateWithoutOptionInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput | ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput[]
+    upsert?: ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutOptionInput | ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutOptionInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyOptionInputEnvelope
+    set?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    disconnect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    delete?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    update?: ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutOptionInput | ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutOptionInput[]
+    updateMany?: ModifierOptionNestedGroupUpdateManyWithWhereWithoutOptionInput | ModifierOptionNestedGroupUpdateManyWithWhereWithoutOptionInput[]
+    deleteMany?: ModifierOptionNestedGroupScalarWhereInput | ModifierOptionNestedGroupScalarWhereInput[]
+  }
+
+  export type ModifierOptionNestedGroupUncheckedUpdateManyWithoutOptionNestedInput = {
+    create?: XOR<ModifierOptionNestedGroupCreateWithoutOptionInput, ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput> | ModifierOptionNestedGroupCreateWithoutOptionInput[] | ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput | ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput[]
+    upsert?: ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutOptionInput | ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutOptionInput[]
+    createMany?: ModifierOptionNestedGroupCreateManyOptionInputEnvelope
+    set?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    disconnect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    delete?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    connect?: ModifierOptionNestedGroupWhereUniqueInput | ModifierOptionNestedGroupWhereUniqueInput[]
+    update?: ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutOptionInput | ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutOptionInput[]
+    updateMany?: ModifierOptionNestedGroupUpdateManyWithWhereWithoutOptionInput | ModifierOptionNestedGroupUpdateManyWithWhereWithoutOptionInput[]
+    deleteMany?: ModifierOptionNestedGroupScalarWhereInput | ModifierOptionNestedGroupScalarWhereInput[]
+  }
+
+  export type ModifierOptionCreateNestedOneWithoutNestedGroupLinksInput = {
+    create?: XOR<ModifierOptionCreateWithoutNestedGroupLinksInput, ModifierOptionUncheckedCreateWithoutNestedGroupLinksInput>
+    connectOrCreate?: ModifierOptionCreateOrConnectWithoutNestedGroupLinksInput
+    connect?: ModifierOptionWhereUniqueInput
+  }
+
+  export type ModifierGroupCreateNestedOneWithoutParentOptionLinksInput = {
+    create?: XOR<ModifierGroupCreateWithoutParentOptionLinksInput, ModifierGroupUncheckedCreateWithoutParentOptionLinksInput>
+    connectOrCreate?: ModifierGroupCreateOrConnectWithoutParentOptionLinksInput
+    connect?: ModifierGroupWhereUniqueInput
+  }
+
+  export type ModifierOptionUpdateOneRequiredWithoutNestedGroupLinksNestedInput = {
+    create?: XOR<ModifierOptionCreateWithoutNestedGroupLinksInput, ModifierOptionUncheckedCreateWithoutNestedGroupLinksInput>
+    connectOrCreate?: ModifierOptionCreateOrConnectWithoutNestedGroupLinksInput
+    upsert?: ModifierOptionUpsertWithoutNestedGroupLinksInput
+    connect?: ModifierOptionWhereUniqueInput
+    update?: XOR<XOR<ModifierOptionUpdateToOneWithWhereWithoutNestedGroupLinksInput, ModifierOptionUpdateWithoutNestedGroupLinksInput>, ModifierOptionUncheckedUpdateWithoutNestedGroupLinksInput>
+  }
+
+  export type ModifierGroupUpdateOneRequiredWithoutParentOptionLinksNestedInput = {
+    create?: XOR<ModifierGroupCreateWithoutParentOptionLinksInput, ModifierGroupUncheckedCreateWithoutParentOptionLinksInput>
+    connectOrCreate?: ModifierGroupCreateOrConnectWithoutParentOptionLinksInput
+    upsert?: ModifierGroupUpsertWithoutParentOptionLinksInput
+    connect?: ModifierGroupWhereUniqueInput
+    update?: XOR<XOR<ModifierGroupUpdateToOneWithWhereWithoutParentOptionLinksInput, ModifierGroupUpdateWithoutParentOptionLinksInput>, ModifierGroupUncheckedUpdateWithoutParentOptionLinksInput>
   }
 
   export type MenuItemCreateNestedOneWithoutModifierGroupLinksInput = {
@@ -209148,6 +210588,7 @@ export namespace Prisma {
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -209178,6 +210619,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -217152,6 +218594,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     nestedGroup?: ModifierGroupCreateNestedOneWithoutNestedUnderOptionsInput
+    nestedGroupLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutOptionInput
   }
 
   export type ModifierOptionUncheckedCreateWithoutGroupInput = {
@@ -217185,6 +218628,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+    nestedGroupLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type ModifierOptionCreateOrConnectWithoutGroupInput = {
@@ -217248,6 +218692,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     group: ModifierGroupCreateNestedOneWithoutOptionsInput
+    nestedGroupLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutOptionInput
   }
 
   export type ModifierOptionUncheckedCreateWithoutNestedGroupInput = {
@@ -217281,6 +218726,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+    nestedGroupLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type ModifierOptionCreateOrConnectWithoutNestedGroupInput = {
@@ -217290,6 +218736,28 @@ export namespace Prisma {
 
   export type ModifierOptionCreateManyNestedGroupInputEnvelope = {
     data: ModifierOptionCreateManyNestedGroupInput | ModifierOptionCreateManyNestedGroupInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ModifierOptionNestedGroupCreateWithoutGroupInput = {
+    sortOrder?: number
+    createdAt?: Date | string
+    option: ModifierOptionCreateNestedOneWithoutNestedGroupLinksInput
+  }
+
+  export type ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput = {
+    optionId: string
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ModifierOptionNestedGroupCreateOrConnectWithoutGroupInput = {
+    where: ModifierOptionNestedGroupWhereUniqueInput
+    create: XOR<ModifierOptionNestedGroupCreateWithoutGroupInput, ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput>
+  }
+
+  export type ModifierOptionNestedGroupCreateManyGroupInputEnvelope = {
+    data: ModifierOptionNestedGroupCreateManyGroupInput | ModifierOptionNestedGroupCreateManyGroupInput[]
     skipDuplicates?: boolean
   }
 
@@ -217511,6 +218979,32 @@ export namespace Prisma {
     data: XOR<ModifierOptionUpdateManyMutationInput, ModifierOptionUncheckedUpdateManyWithoutNestedGroupInput>
   }
 
+  export type ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutGroupInput = {
+    where: ModifierOptionNestedGroupWhereUniqueInput
+    update: XOR<ModifierOptionNestedGroupUpdateWithoutGroupInput, ModifierOptionNestedGroupUncheckedUpdateWithoutGroupInput>
+    create: XOR<ModifierOptionNestedGroupCreateWithoutGroupInput, ModifierOptionNestedGroupUncheckedCreateWithoutGroupInput>
+  }
+
+  export type ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutGroupInput = {
+    where: ModifierOptionNestedGroupWhereUniqueInput
+    data: XOR<ModifierOptionNestedGroupUpdateWithoutGroupInput, ModifierOptionNestedGroupUncheckedUpdateWithoutGroupInput>
+  }
+
+  export type ModifierOptionNestedGroupUpdateManyWithWhereWithoutGroupInput = {
+    where: ModifierOptionNestedGroupScalarWhereInput
+    data: XOR<ModifierOptionNestedGroupUpdateManyMutationInput, ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupInput>
+  }
+
+  export type ModifierOptionNestedGroupScalarWhereInput = {
+    AND?: ModifierOptionNestedGroupScalarWhereInput | ModifierOptionNestedGroupScalarWhereInput[]
+    OR?: ModifierOptionNestedGroupScalarWhereInput[]
+    NOT?: ModifierOptionNestedGroupScalarWhereInput | ModifierOptionNestedGroupScalarWhereInput[]
+    optionId?: StringFilter<"ModifierOptionNestedGroup"> | string
+    groupId?: StringFilter<"ModifierOptionNestedGroup"> | string
+    sortOrder?: IntFilter<"ModifierOptionNestedGroup"> | number
+    createdAt?: DateTimeFilter<"ModifierOptionNestedGroup"> | Date | string
+  }
+
   export type ModifierGroupStationUpsertWithWhereUniqueWithoutModifierGroupInput = {
     where: ModifierGroupStationWhereUniqueInput
     update: XOR<ModifierGroupStationUpdateWithoutModifierGroupInput, ModifierGroupStationUncheckedUpdateWithoutModifierGroupInput>
@@ -217564,6 +219058,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -217594,6 +219089,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -217629,6 +219125,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -217659,12 +219156,35 @@ export namespace Prisma {
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupCreateOrConnectWithoutNestedUnderOptionsInput = {
     where: ModifierGroupWhereUniqueInput
     create: XOR<ModifierGroupCreateWithoutNestedUnderOptionsInput, ModifierGroupUncheckedCreateWithoutNestedUnderOptionsInput>
+  }
+
+  export type ModifierOptionNestedGroupCreateWithoutOptionInput = {
+    sortOrder?: number
+    createdAt?: Date | string
+    group: ModifierGroupCreateNestedOneWithoutParentOptionLinksInput
+  }
+
+  export type ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput = {
+    groupId: string
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ModifierOptionNestedGroupCreateOrConnectWithoutOptionInput = {
+    where: ModifierOptionNestedGroupWhereUniqueInput
+    create: XOR<ModifierOptionNestedGroupCreateWithoutOptionInput, ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput>
+  }
+
+  export type ModifierOptionNestedGroupCreateManyOptionInputEnvelope = {
+    data: ModifierOptionNestedGroupCreateManyOptionInput | ModifierOptionNestedGroupCreateManyOptionInput[]
+    skipDuplicates?: boolean
   }
 
   export type ModifierGroupUpsertWithoutOptionsInput = {
@@ -217705,6 +219225,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -217735,6 +219256,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -217776,6 +219298,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -217806,6 +219329,315 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupNestedInput
+    stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
+  }
+
+  export type ModifierOptionNestedGroupUpsertWithWhereUniqueWithoutOptionInput = {
+    where: ModifierOptionNestedGroupWhereUniqueInput
+    update: XOR<ModifierOptionNestedGroupUpdateWithoutOptionInput, ModifierOptionNestedGroupUncheckedUpdateWithoutOptionInput>
+    create: XOR<ModifierOptionNestedGroupCreateWithoutOptionInput, ModifierOptionNestedGroupUncheckedCreateWithoutOptionInput>
+  }
+
+  export type ModifierOptionNestedGroupUpdateWithWhereUniqueWithoutOptionInput = {
+    where: ModifierOptionNestedGroupWhereUniqueInput
+    data: XOR<ModifierOptionNestedGroupUpdateWithoutOptionInput, ModifierOptionNestedGroupUncheckedUpdateWithoutOptionInput>
+  }
+
+  export type ModifierOptionNestedGroupUpdateManyWithWhereWithoutOptionInput = {
+    where: ModifierOptionNestedGroupScalarWhereInput
+    data: XOR<ModifierOptionNestedGroupUpdateManyMutationInput, ModifierOptionNestedGroupUncheckedUpdateManyWithoutOptionInput>
+  }
+
+  export type ModifierOptionCreateWithoutNestedGroupLinksInput = {
+    id?: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
+    name: string
+    description?: string | null
+    priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    imageUrl?: string | null
+    allergens?: ModifierOptionCreateallergensInput | string[]
+    isDefault?: boolean
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
+    sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    group: ModifierGroupCreateNestedOneWithoutOptionsInput
+    nestedGroup?: ModifierGroupCreateNestedOneWithoutNestedUnderOptionsInput
+  }
+
+  export type ModifierOptionUncheckedCreateWithoutNestedGroupLinksInput = {
+    id?: string
+    groupId: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
+    name: string
+    description?: string | null
+    priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    imageUrl?: string | null
+    allergens?: ModifierOptionCreateallergensInput | string[]
+    isDefault?: boolean
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
+    sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    nestedGroupId?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ModifierOptionCreateOrConnectWithoutNestedGroupLinksInput = {
+    where: ModifierOptionWhereUniqueInput
+    create: XOR<ModifierOptionCreateWithoutNestedGroupLinksInput, ModifierOptionUncheckedCreateWithoutNestedGroupLinksInput>
+  }
+
+  export type ModifierGroupCreateWithoutParentOptionLinksInput = {
+    id?: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    plu?: string | null
+    minSelections?: number
+    maxSelections?: number | null
+    isRequired?: boolean
+    sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutModifierGroupsInput
+    options?: ModifierOptionCreateNestedManyWithoutGroupInput
+    itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
+    nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
+  }
+
+  export type ModifierGroupUncheckedCreateWithoutParentOptionLinksInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    plu?: string | null
+    minSelections?: number
+    maxSelections?: number | null
+    isRequired?: boolean
+    sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
+    itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
+    nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
+  }
+
+  export type ModifierGroupCreateOrConnectWithoutParentOptionLinksInput = {
+    where: ModifierGroupWhereUniqueInput
+    create: XOR<ModifierGroupCreateWithoutParentOptionLinksInput, ModifierGroupUncheckedCreateWithoutParentOptionLinksInput>
+  }
+
+  export type ModifierOptionUpsertWithoutNestedGroupLinksInput = {
+    update: XOR<ModifierOptionUpdateWithoutNestedGroupLinksInput, ModifierOptionUncheckedUpdateWithoutNestedGroupLinksInput>
+    create: XOR<ModifierOptionCreateWithoutNestedGroupLinksInput, ModifierOptionUncheckedCreateWithoutNestedGroupLinksInput>
+    where?: ModifierOptionWhereInput
+  }
+
+  export type ModifierOptionUpdateToOneWithWhereWithoutNestedGroupLinksInput = {
+    where?: ModifierOptionWhereInput
+    data: XOR<ModifierOptionUpdateWithoutNestedGroupLinksInput, ModifierOptionUncheckedUpdateWithoutNestedGroupLinksInput>
+  }
+
+  export type ModifierOptionUpdateWithoutNestedGroupLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    allergens?: ModifierOptionUpdateallergensInput | string[]
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    group?: ModifierGroupUpdateOneRequiredWithoutOptionsNestedInput
+    nestedGroup?: ModifierGroupUpdateOneWithoutNestedUnderOptionsNestedInput
+  }
+
+  export type ModifierOptionUncheckedUpdateWithoutNestedGroupLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    allergens?: ModifierOptionUpdateallergensInput | string[]
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    nestedGroupId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupUpsertWithoutParentOptionLinksInput = {
+    update: XOR<ModifierGroupUpdateWithoutParentOptionLinksInput, ModifierGroupUncheckedUpdateWithoutParentOptionLinksInput>
+    create: XOR<ModifierGroupCreateWithoutParentOptionLinksInput, ModifierGroupUncheckedCreateWithoutParentOptionLinksInput>
+    where?: ModifierGroupWhereInput
+  }
+
+  export type ModifierGroupUpdateToOneWithWhereWithoutParentOptionLinksInput = {
+    where?: ModifierGroupWhereInput
+    data: XOR<ModifierGroupUpdateWithoutParentOptionLinksInput, ModifierGroupUncheckedUpdateWithoutParentOptionLinksInput>
+  }
+
+  export type ModifierGroupUpdateWithoutParentOptionLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    minSelections?: IntFieldUpdateOperationsInput | number
+    maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
+    isRequired?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
+    options?: ModifierOptionUpdateManyWithoutGroupNestedInput
+    itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
+    nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
+  }
+
+  export type ModifierGroupUncheckedUpdateWithoutParentOptionLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    minSelections?: IntFieldUpdateOperationsInput | number
+    maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
+    isRequired?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
+    itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
+    nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
     stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -217935,6 +219767,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -217965,6 +219798,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutGroupInput
     stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
@@ -218116,6 +219950,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -218146,6 +219981,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -231141,6 +232977,7 @@ export namespace Prisma {
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupCreateNestedManyWithoutGroupInput
   }
 
   export type ModifierGroupUncheckedCreateWithoutStationRoutesInput = {
@@ -231171,6 +233008,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedCreateNestedManyWithoutGroupInput
   }
 
   export type ModifierGroupCreateOrConnectWithoutStationRoutesInput = {
@@ -231258,6 +233096,7 @@ export namespace Prisma {
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUpdateManyWithoutGroupNestedInput
   }
 
   export type ModifierGroupUncheckedUpdateWithoutStationRoutesInput = {
@@ -231288,6 +233127,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupNestedInput
   }
 
   export type PrinterStationUpsertWithoutModifierGroupRoutesInput = {
@@ -243771,6 +245611,7 @@ export namespace Prisma {
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -243801,6 +245642,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    parentOptionLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupNestedInput
     stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
@@ -246519,6 +248361,12 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ModifierOptionNestedGroupCreateManyGroupInput = {
+    optionId: string
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
   export type ModifierGroupStationCreateManyModifierGroupInput = {
     id?: string
     stationId: string
@@ -246556,6 +248404,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     nestedGroup?: ModifierGroupUpdateOneWithoutNestedUnderOptionsNestedInput
+    nestedGroupLinks?: ModifierOptionNestedGroupUpdateManyWithoutOptionNestedInput
   }
 
   export type ModifierOptionUncheckedUpdateWithoutGroupInput = {
@@ -246589,6 +248438,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    nestedGroupLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type ModifierOptionUncheckedUpdateManyWithoutGroupInput = {
@@ -246670,6 +248520,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     group?: ModifierGroupUpdateOneRequiredWithoutOptionsNestedInput
+    nestedGroupLinks?: ModifierOptionNestedGroupUpdateManyWithoutOptionNestedInput
   }
 
   export type ModifierOptionUncheckedUpdateWithoutNestedGroupInput = {
@@ -246703,6 +248554,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    nestedGroupLinks?: ModifierOptionNestedGroupUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type ModifierOptionUncheckedUpdateManyWithoutNestedGroupInput = {
@@ -246738,6 +248590,24 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ModifierOptionNestedGroupUpdateWithoutGroupInput = {
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    option?: ModifierOptionUpdateOneRequiredWithoutNestedGroupLinksNestedInput
+  }
+
+  export type ModifierOptionNestedGroupUncheckedUpdateWithoutGroupInput = {
+    optionId?: StringFieldUpdateOperationsInput | string
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierOptionNestedGroupUncheckedUpdateManyWithoutGroupInput = {
+    optionId?: StringFieldUpdateOperationsInput | string
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ModifierGroupStationUpdateWithoutModifierGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -246753,6 +248623,30 @@ export namespace Prisma {
   export type ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierOptionNestedGroupCreateManyOptionInput = {
+    groupId: string
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ModifierOptionNestedGroupUpdateWithoutOptionInput = {
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    group?: ModifierGroupUpdateOneRequiredWithoutParentOptionLinksNestedInput
+  }
+
+  export type ModifierOptionNestedGroupUncheckedUpdateWithoutOptionInput = {
+    groupId?: StringFieldUpdateOperationsInput | string
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierOptionNestedGroupUncheckedUpdateManyWithoutOptionInput = {
+    groupId?: StringFieldUpdateOperationsInput | string
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -250878,6 +252772,10 @@ export namespace Prisma {
      */
     export type ModifierGroupCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ModifierGroupCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use ModifierOptionCountOutputTypeDefaultArgs instead
+     */
+    export type ModifierOptionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ModifierOptionCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use CustomerCountOutputTypeDefaultArgs instead
      */
     export type CustomerCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerCountOutputTypeDefaultArgs<ExtArgs>
@@ -251085,6 +252983,10 @@ export namespace Prisma {
      * @deprecated Use ModifierOptionDefaultArgs instead
      */
     export type ModifierOptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ModifierOptionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ModifierOptionNestedGroupDefaultArgs instead
+     */
+    export type ModifierOptionNestedGroupArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ModifierOptionNestedGroupDefaultArgs<ExtArgs>
     /**
      * @deprecated Use ModifierGroupOnItemDefaultArgs instead
      */

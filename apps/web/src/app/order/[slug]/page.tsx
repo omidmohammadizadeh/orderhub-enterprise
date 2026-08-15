@@ -90,7 +90,7 @@ import type {
   MenuItem,
   MenuCategory,
 } from "@/lib/api/menus.client";
-import { round2 } from "@orderhub/shared";
+import { round2, toOrderLineModifier } from "@orderhub/shared";
 import { displayPrice } from "@/lib/menu/display-price";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
@@ -980,10 +980,7 @@ function OrderPage() {
           menuItemId: line.menuItemId,
           notes: line.notes || undefined,
           // Same shape the ordinary checkout sends: name + price only.
-          modifiers: line.modifiers.map((m) => ({
-            name: m.name,
-            price: m.price,
-          })),
+          modifiers: line.modifiers.map(toOrderLineModifier),
         },
         quantity: line.quantity,
         // unitPrice is already modifier-inclusive — the same rule the local
@@ -1113,7 +1110,7 @@ function OrderPage() {
         name: l.displayName,
         quantity: l.quantity,
         unitPrice: l.unitPrice,
-        modifiers: l.modifiers.map((m) => ({ name: m.name, price: m.price })),
+        modifiers: l.modifiers.map(toOrderLineModifier),
         notes: l.notes,
       }));
       const payload: any = {

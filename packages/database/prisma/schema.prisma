@@ -1208,6 +1208,9 @@ model ModifierGroup {
   options            ModifierOption[]
   itemLinks          ModifierGroupOnItem[]
   nestedUnderOptions ModifierOption[]       @relation("NestedModifier")
+  // Phase BN — the groups this group hangs off, when it is a nested
+  // (second-level) group opened by choosing a particular option.
+  parentOptionLinks  ModifierOptionNestedGroup[]
   stationRoutes      ModifierGroupStation[]
 
   metadata  Json     @default("{}")
@@ -1280,8 +1283,20 @@ model ModifierOption {
   syncStatus       String?
   syncHash         String?
 
+  // Phase E added this single-FK nesting link but nothing ever read it.
+  // It can only hold ONE group, and the real shape needs more than one —
+  // "Make It a Meal" opens a sides picker AND a drinks picker. Superseded
+  // by nestedGroupLinks below. Left in place rather than dropped: this is
+  // a live catalog, and removing a column buys nothing.
   nestedGroupId String?
   nestedGroup   ModifierGroup? @relation("NestedModifier", fields: [nestedGroupId], references: [id], onDelete: SetNull)
+
+  // Phase BN — modifier groups that open when THIS option is chosen.
+  // Recursion falls out of the model: a nested group's own options can
+  // carry their own nested groups (Make It a Meal → Fries → Garlic Mayo).
+  // Readers must cap depth and guard against cycles — nothing in the
+  // schema prevents a group from nesting under its own descendant.
+  nestedGroupLinks ModifierOptionNestedGroup[]
 
   metadata  Json     @default("{}")
   createdAt DateTime @default(now())
@@ -1291,6 +1306,37 @@ model ModifierOption {
   @@index([plu])
   @@index([platformSource, externalId])
   @@map("modifier_options")
+}
+
+// ── Phase BN — nested modifier groups ─────────────────────────────────────────
+// Deliveroo (and Uber, and any menu with a meal deal) nests modifier groups
+// under an option rather than under a product:
+//
+//   Big Boss Burger
+//   └── Make It a Meal (group)
+//       └── Make It a Meal +£3.99 (option)
+//           ├── Choose Side (group)   ← a row here
+//           │   └── Fries (option)
+//           │       └── Dip (group)   ← and here, one level deeper
+//           └── Choose Drink (group)  ← and here
+//
+// Deliberately a join table rather than an array of ids on the option:
+// sortOrder decides that "Choose Side" is asked before "Choose Drink", and
+// the FK means deleting a group can't leave an option pointing at nothing.
+// Same shape as ModifierGroupOnItem, which does the same job one level up.
+model ModifierOptionNestedGroup {
+  optionId  String
+  option    ModifierOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     ModifierGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sortOrder Int            @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@id([optionId, groupId])
+  @@index([optionId])
+  @@index([groupId])
+  @@map("modifier_option_nested_groups")
 }
 
 model ModifierGroupOnItem {

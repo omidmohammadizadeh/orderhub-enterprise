@@ -4,11 +4,15 @@ import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import {
   extractSizeKey,
-  getModifierPrice,
-  getModifierPlu,
-  isModifierAvailable,
   calculateCartItem,
   buildCartItemName,
+  buildModifierTree,
+  collectSelectedModifiers,
+  findUnmetRequirements,
+  toggleModifierSelection,
+  indexGroups,
+  type ModifierTreeNode,
+  type NestableGroup,
   type ProductSku,
   type SelectedModifier,
 } from "@orderhub/shared";
@@ -133,30 +137,39 @@ export function ModifierSelectionModal({
     allModifierGroups,
   ]);
 
-  // Flattened "selected modifiers with their group" view for pricing.
-  const selectedModifiers = useMemo<SelectedModifier[]>(() => {
-    const out: SelectedModifier[] = [];
-    for (const link of activeGroups) {
-      const picked = selections[link.group.id] ?? [];
-      for (const optId of picked) {
-        const opt = link.group.options.find((o: any) => o.id === optId);
-        if (!opt) continue;
-        const priceableModifier = {
-          ...opt,
-          priceAdjustment: opt.priceAdjustment,
-        };
-        out.push({
-          id: opt.id,
-          name: opt.name,
-          groupId: link.group.id,
-          groupName: link.group.name,
-          price: getModifierPrice(priceableModifier, sizeKey),
-          plu: getModifierPlu(priceableModifier as any, sizeKey),
-        });
-      }
-    }
-    return out;
-  }, [activeGroups, selections, sizeKey]);
+  // Every group the picker can reach by id, nested ones included. The API
+  // returns nested groups in the same brand catalogue (they hang off an
+  // option, so they never appear in the item's own group links).
+  const groupsById = useMemo(
+    () =>
+      indexGroups(
+        activeGroups.map((l) => l.group as NestableGroup),
+        allModifierGroups as unknown as NestableGroup[],
+      ),
+    [activeGroups, allModifierGroups],
+  );
+
+  // The tree only descends into options that are actually selected, so
+  // "Choose Side" appears the moment "Make It a Meal" is ticked and the whole
+  // branch — including its £3.99 — disappears again when it's unticked.
+  const nodes = useMemo(
+    () =>
+      buildModifierTree({
+        rootGroups: activeGroups.map((l) => l.group as NestableGroup),
+        groupsById,
+        selections,
+        sizeKey,
+        audience: isSheet ? "customer" : "pos",
+      }),
+    [activeGroups, groupsById, selections, sizeKey, isSheet],
+  );
+
+  // Flat list, every level included — the cart, the server's line total, the
+  // kitchen ticket and station routing all consume this same array.
+  const selectedModifiers = useMemo<SelectedModifier[]>(
+    () => collectSelectedModifiers(nodes),
+    [nodes],
+  );
 
   const basePrice = selectedSku ? Number(selectedSku.price) : Number(item.basePrice);
   const breakdown = useMemo(
@@ -171,32 +184,25 @@ export function ModifierSelectionModal({
 
   if (!open) return null;
 
-  const toggleSelection = (
-    groupId: string,
-    optionId: string,
-    selectionType: "VARIANT" | "ADDON",
-    maxSelections: number | null | undefined,
-  ) => {
-    setSelections((prev) => {
-      const current = prev[groupId] ?? [];
-      if (selectionType === "VARIANT") {
-        return { ...prev, [groupId]: [optionId] };
-      }
-      // ADDON
-      if (current.includes(optionId)) {
-        return { ...prev, [groupId]: current.filter((id) => id !== optionId) };
-      }
-      const max = maxSelections ?? Infinity;
-      if (current.length >= max) return prev; // capacity reached
-      return { ...prev, [groupId]: [...current, optionId] };
-    });
+  // Keyed by the whole branch, not by group id: the same "Dip" group can hang
+  // off both Fries and Waffle Fries, and keyed by id alone one tick would
+  // answer for both.
+  const toggle = (node: ModifierTreeNode, optionId: string) => {
+    setSelections((prev) =>
+      toggleModifierSelection(prev, {
+        key: node.key,
+        optionId,
+        selectionType: node.group.selectionType ?? "VARIANT",
+        maxSelections: node.group.maxSelections,
+        minSelections: node.group.minSelections,
+      }),
+    );
   };
 
-  const canSubmit = activeGroups.every((link) => {
-    const min = link.group.minSelections ?? 0;
-    const picked = selections[link.group.id]?.length ?? 0;
-    return picked >= min;
-  });
+  // A nested group is only a question once its parent option is chosen, which
+  // the tree already encodes — an unselected option has no children.
+  const unmet = findUnmetRequirements(nodes);
+  const canSubmit = unmet.length === 0;
 
   const handleSubmit = () => {
     const displayName = buildCartItemName({
@@ -364,65 +370,9 @@ export function ModifierSelectionModal({
             </Section>
           )}
 
-          {activeGroups.map((link) => {
-            const group = link.group;
-            const selectionType = group.selectionType ?? "VARIANT";
-            return (
-              <Section
-                key={group.id}
-                title={group.name}
-                meta={
-                  selectionType === "VARIANT"
-                    ? "Pick one"
-                    : `Choose up to ${group.maxSelections ?? "any"}`
-                }
-              >
-                <div className="grid grid-cols-1 gap-2">
-                  {group.options
-                    .filter((opt: any) => {
-                      const m = {
-                        ...opt,
-                        priceAdjustment: opt.priceAdjustment,
-                      };
-                      return isModifierAvailable(m as any, sizeKey, { audience: "pos" });
-                    })
-                    .map((opt: any) => {
-                      const m = { ...opt, priceAdjustment: opt.priceAdjustment };
-                      const price = getModifierPrice(m as any, sizeKey);
-                      const checked = (selections[group.id] ?? []).includes(opt.id);
-                      return (
-                        <label
-                          key={opt.id}
-                          className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 ${
-                            checked ? "border-zinc-900 bg-zinc-50" : "border-zinc-200 hover:border-zinc-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <input
-                              type={selectionType === "VARIANT" ? "radio" : "checkbox"}
-                              name={`group-${group.id}`}
-                              checked={checked}
-                              onChange={() =>
-                                toggleSelection(
-                                  group.id,
-                                  opt.id,
-                                  selectionType,
-                                  group.maxSelections,
-                                )
-                              }
-                            />
-                            <span className="text-sm text-zinc-900">{opt.name}</span>
-                          </div>
-                          <span className="text-xs text-zinc-500">
-                            {price > 0 ? `+£${price.toFixed(2)}` : ""}
-                          </span>
-                        </label>
-                      );
-                    })}
-                </div>
-              </Section>
-            );
-          })}
+          {nodes.map((node) => (
+            <GroupNode key={node.key} node={node} onToggle={toggle} />
+          ))}
 
           <Section title="Notes (optional)">
             <textarea
@@ -469,7 +419,10 @@ export function ModifierSelectionModal({
             >
               {canSubmit
                 ? `Add ${quantity} for £${breakdown.lineTotal.toFixed(2)}`
-                : "Choose the required options"}
+                : // Name the question that's still open. With a meal deal the
+                  // outstanding choice can be three levels down the page, and
+                  // "choose the required options" doesn't say which.
+                  `Choose ${unmet[0]?.groupName ?? "the required options"}`}
             </button>
           ) : (
             <>
@@ -498,6 +451,85 @@ export function ModifierSelectionModal({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * One modifier group and, beneath any option the customer has chosen, the
+ * groups that option opens.
+ *
+ * Nested groups render inline and indented rather than as a pushed panel: the
+ * running total stays on screen the whole way down, which is what stops a
+ * "Make It a Meal" costing more than the customer expected.
+ */
+function GroupNode({
+  node,
+  onToggle,
+}: {
+  node: ModifierTreeNode;
+  onToggle: (node: ModifierTreeNode, optionId: string) => void;
+}) {
+  const selectionType = node.group.selectionType ?? "VARIANT";
+  const min = node.group.minSelections ?? 0;
+  const nested = node.depth > 0;
+
+  return (
+    <div
+      className={
+        nested
+          ? "mt-2 border-l-2 border-zinc-200 pl-3"
+          : ""
+      }
+    >
+      <Section
+        title={node.group.name}
+        meta={
+          selectionType === "VARIANT"
+            ? min > 0
+              ? "Pick one"
+              : "Pick one (optional)"
+            : `Choose up to ${node.group.maxSelections ?? "any"}`
+        }
+      >
+        <div className="grid grid-cols-1 gap-2">
+          {node.options.map((entry) => (
+            <div key={entry.option.id}>
+              <label
+                className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 ${
+                  entry.selected
+                    ? "border-zinc-900 bg-zinc-50"
+                    : "border-zinc-200 hover:border-zinc-300"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type={selectionType === "VARIANT" ? "radio" : "checkbox"}
+                    // Radio grouping must use the branch key, not the group
+                    // id — the same group can be open twice under different
+                    // parents, and a shared name would link the two.
+                    name={`group-${node.key}`}
+                    checked={entry.selected}
+                    onChange={() => onToggle(node, entry.option.id)}
+                  />
+                  <span className="text-sm text-zinc-900">{entry.option.name}</span>
+                </div>
+                <span className="text-xs text-zinc-500">
+                  {entry.price > 0 ? `+£${entry.price.toFixed(2)}` : ""}
+                </span>
+              </label>
+
+              {entry.children.length > 0 && (
+                <div className="mt-1 pl-3">
+                  {entry.children.map((child) => (
+                    <GroupNode key={child.key} node={child} onToggle={onToggle} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </Section>
     </div>
   );
 }

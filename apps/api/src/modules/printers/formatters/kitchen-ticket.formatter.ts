@@ -11,7 +11,7 @@ export interface KitchenTicketPayload {
   items: Array<{
     name: string;
     quantity: number;
-    modifiers: Array<{ name: string }>;
+    modifiers: Array<{ name: string; depth?: number }>;
     notes?: string | null;
   }>;
   // Kitchen needs to know at a glance whether to expect cash at
@@ -46,7 +46,13 @@ export function buildKitchenTicketPayload(
     items: (order.items ?? []).map((item: any) => ({
       name: item.name,
       quantity: item.quantity,
-      modifiers: (item.modifiers ?? []).map((m: any) => ({ name: m.name })),
+      // depth carries the nesting level so the ticket can indent
+      // "Make It a Meal / Fries / Garlic Mayo" instead of printing three
+      // sibling lines that read as three separate things the kitchen owes.
+      modifiers: (item.modifiers ?? []).map((m: any) => ({
+        name: m.name,
+        depth: m.depth ?? 0,
+      })),
       notes: item.notes ?? null,
     })),
     paymentMethod: order.paymentMethod ?? null,

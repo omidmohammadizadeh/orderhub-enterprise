@@ -7,5 +7,6 @@ export * from "./constants/permissions";
 export * from "./constants/branding";
 export * from "./events/worker-events";
 export * from "./lib/menu-pricing";
+export * from "./lib/nested-modifiers";
 export * from "./lib/pricing-variants";
 export * from "./lib/text";
