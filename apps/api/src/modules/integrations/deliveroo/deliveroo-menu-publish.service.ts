@@ -293,6 +293,19 @@ export class DeliverooMenuPublishService {
         ),
     }));
 
+    // Name the brand that excluded them — "a pricing variant restricts this"
+    // still leaves the operator hunting for which one.
+    const restrictedTo = variantMap?.restrictedBrandId ?? null;
+    const restrictedBrand = restrictedTo
+      ? await this.prisma.brand.findUnique({
+          where: { id: restrictedTo },
+          select: { name: true },
+        })
+      : null;
+    const brandLabel = restrictedTo
+      ? `${restrictedBrand?.name ?? "unknown brand"} (${restrictedTo})`
+      : "";
+
     const links = cats.reduce((n, c) => n + c.items.length, 0);
     const kept = result.reduce((n, c) => n + c.products.length, 0);
     this.logger.log(
@@ -300,14 +313,15 @@ export class DeliverooMenuPublishService {
         `${links} item links → kept ${kept} ` +
         `(dropped hidden=${dropped.hidden} missing=${dropped.missing} ` +
         `variant-brand=${dropped.variant})` +
-        (variantMap ? " [pricing variant active]" : ""),
+        (restrictedTo ? ` [variant restricts to brand ${brandLabel}]` : ""),
     );
     if (links > 0 && kept === 0) {
       throw new BadRequestException(
         dropped.variant > 0
-          ? `All ${links} items were excluded by the pricing variant configured for DELIVEROO — ` +
-            "it restricts this publish to one brand's items and none of this menu's items belong to it. " +
-            "Check Channels → Deliveroo, or the items' brands."
+          ? `All ${links} items were excluded by the pricing variant configured for DELIVEROO. ` +
+            `It restricts this publish to ${brandLabel}, and none of this menu's items belong to that brand. ` +
+            "Either clear the source menu/variant under Channels → Deliveroo, point the variant at this menu's brand, " +
+            "or add that brand to these items."
           : `This menu's ${links} item links are all hidden or point at deleted products, ` +
             "so there is nothing to publish.",
       );

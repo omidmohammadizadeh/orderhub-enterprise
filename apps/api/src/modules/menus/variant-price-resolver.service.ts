@@ -42,6 +42,15 @@ export class VariantPriceMap {
     private readonly restrictToBrandId: string | null,
   ) {}
 
+  /**
+   * The brand this variant restricts the publish to, or null when it only
+   * changes prices. Exposed so a publisher can say WHICH brand excluded the
+   * items rather than just that something did.
+   */
+  get restrictedBrandId(): string | null {
+    return this.restrictToBrandId;
+  }
+
   /** Whether this item should be published at all under this variant. */
   appliesToItem(item: { brandId?: string | null; brandIds?: string[] | null }): boolean {
     if (!this.restrictToBrandId) return true;
