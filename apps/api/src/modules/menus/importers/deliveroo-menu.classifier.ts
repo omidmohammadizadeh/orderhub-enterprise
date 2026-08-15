@@ -138,6 +138,31 @@ function imageFrom(item: any): string | null {
   return null;
 }
 
+/**
+ * Words that mark a single-choice group as a SIZE rather than a topping.
+ *
+ * Deliveroo has no size concept: a 9"/12"/14" pizza is a modifier group with
+ * min 1 / max 1 whose choices carry the prices. Structure alone can't tell
+ * that apart from "Choose your sauce", which is also pick-exactly-one — and
+ * turning sauces into sizes would wreck a menu far more visibly than missing
+ * a size group. So the name has to agree as well.
+ */
+// Deliberately narrow. An earlier draft also matched base/crust/small/medium/
+// large and immediately converted a "Crust" group (Thin / Deep pan) into
+// sizes — a crust is a style, not a size, and the existing classifier tests
+// caught it. Erring narrow means an oddly-named size group imports as a
+// modifier group and someone fixes it in a minute; erring wide silently
+// rewrites real choice groups into sizes across a whole menu.
+const SIZE_WORDS = /\b(size|sizes|inch|inches)\b|["\u201d]/i;
+
+function isSizeGroup(mg: DeliverooModifierGroup): boolean {
+  const min = Number(mg.min_selection ?? 0);
+  const max = Number(mg.max_selection ?? 1);
+  // Exactly one choice, required. A size you can skip isn't a size.
+  if (min !== 1 || max !== 1) return false;
+  return SIZE_WORDS.test(localized(mg.name) || "");
+}
+
 function extractModifierGroupIds(item: DeliverooItem): string[] {
   return (
     item.modifier_ids ??
@@ -167,11 +192,34 @@ export function classifyDeliverooMenu(
     for (const id of mg.item_ids ?? []) modifierItemIds.add(id);
   }
 
+  // Which groups are really sizes, and the choices inside them.
+  const groupsById = new Map(modifierGroups.map((mg) => [mg.id, mg]));
+  const sizeGroupIds = new Set(
+    modifierGroups.filter(isSizeGroup).map((mg) => mg.id),
+  );
+  // A choice only stops being a modifier if EVERY group holding it is a size
+  // group. Shared options — a "Large" that is also a drink upgrade elsewhere —
+  // must still exist as a modifier or that other group loses an option.
+  const sizeChoiceIds = new Set<string>();
+  for (const id of sizeGroupIds) {
+    for (const optId of groupsById.get(id)?.item_ids ?? []) {
+      const inNonSizeGroup = modifierGroups.some(
+        (mg) => !sizeGroupIds.has(mg.id) && (mg.item_ids ?? []).includes(optId),
+      );
+      if (!inNonSizeGroup) sizeChoiceIds.add(optId);
+    }
+  }
+  const itemsById = new Map(items.map((i) => [i.id, i]));
+
   // Step 2: classify each item.
   const products: NormalizedProduct[] = [];
   const modifiers: NormalizedModifier[] = [];
   const productGroupLinks: NormalizedMenu["productModifierGroupLinks"] = [];
   let itemsWithoutModifierIdsCount = 0;
+  /** Size groups actually converted, so they aren't also written as groups. */
+  const sizeGroupsUsed = new Set<string>();
+  /** Choices that own their own groups — not importable yet, see below. */
+  const modifiersWithNestedGroups: string[] = [];
 
   for (const item of items) {
     const isChoiceType = item.type === "CHOICE";
@@ -185,32 +233,76 @@ export function classifyDeliverooMenu(
       if (groupIds.length === 0) itemsWithoutModifierIdsCount++;
 
       const image = imageFrom(item);
+
+      // Sizes come in as a required single-choice group. Lift the first one
+      // into productSkus and drop it from the modifier list, so a 12" pizza
+      // is a SIZE on the product rather than a topping the operator has to
+      // pick before they can price anything.
+      const sizeGroupId = groupIds.find((g) => sizeGroupIds.has(g));
+      const skus = sizeGroupId
+        ? (groupsById.get(sizeGroupId)?.item_ids ?? []).map((optId) => {
+            const opt = itemsById.get(optId);
+            return {
+              name: localized(opt?.name) || optId,
+              plu: (opt?.plu ?? optId).toString(),
+              price: opt ? priceFrom(opt) : 0,
+              modifierGroups: [] as string[],
+            };
+          })
+        : [];
+      // Everything else stays a normal modifier group on the product.
+      const normalGroupIds = groupIds.filter((g) => g !== sizeGroupId);
+      if (sizeGroupId && skus.length) {
+        sizeGroupsUsed.add(sizeGroupId);
+      }
+      // Deliveroo prices the product at 0 when the size carries the price.
+      // Show the cheapest size so the tile isn't "£0.00".
+      const basePrice =
+        skus.length && price === 0
+          ? Math.min(...skus.map((s) => s.price))
+          : price;
+
       products.push({
         externalId: item.id,
         name: localized(item.name) || item.id,
         description: localized(item.description) || null,
-        price,
+        price: basePrice,
         imageUrl: image,
         plu,
         isAvailable: item.available !== false,
         outOfStock: false,
         visibleToCustomers: true,
-        hasMultipleSkus: false,
-        productSkus: [],
-        modifierGroupExternalIds: groupIds,
+        hasMultipleSkus: skus.length > 0,
+        productSkus: skus,
+        modifierGroupExternalIds: normalGroupIds,
         // image is part of the hash so an image change (or a URL-form fix,
         // e.g. absolute→relative) updates the existing item on re-import
         // instead of being skipped as "unchanged".
-        syncHash: sha(JSON.stringify({ name: item.name, plu, price, groupIds, available: item.available, image })),
+        // Sizes ride the hash so a price change on one re-imports the item
+        // instead of being skipped as unchanged.
+        syncHash: sha(JSON.stringify({ name: item.name, plu, price: basePrice, groupIds: normalGroupIds, skus, available: item.available, image })),
       });
 
-      for (const grpExt of groupIds) {
+      for (const grpExt of normalGroupIds) {
         productGroupLinks.push({
           productExternalId: item.id,
           modifierGroupExternalId: grpExt,
         });
       }
     } else if (isModifier) {
+      // Already lifted into a product's sizes — emitting it again would show
+      // "12 inch" as a topping as well as a size.
+      if (sizeChoiceIds.has(item.id)) continue;
+      // A choice can itself carry modifier groups — "Make it a meal" opening
+      // a drinks and a sides picker. Our model is product → group → modifier
+      // with no modifier → group link, so these can't be imported yet. They
+      // were being read off the payload and dropped without a word, which is
+      // why a meal deal arrives looking complete and behaves as if empty.
+      // Name them so the operator knows what to rebuild by hand.
+      const nested = extractModifierGroupIds(item);
+      if (nested.length) {
+        modifiersWithNestedGroups.push(localized(item.name) || item.id);
+      }
       const price = priceFrom(item);
       const plu = (item.plu ?? item.id).toString();
       modifiers.push({
@@ -245,7 +337,9 @@ export function classifyDeliverooMenu(
 
   // Step 4: normalize modifier groups + group-to-modifier links.
   const groupModifierLinks: NormalizedMenu["modifierGroupModifierLinks"] = [];
-  const normalizedGroups: NormalizedModifierGroup[] = modifierGroups.map((mg) => {
+  const normalizedGroups: NormalizedModifierGroup[] = modifierGroups
+    .filter((mg) => !sizeGroupsUsed.has(mg.id))
+    .map((mg) => {
     const min = Number(mg.min_selection ?? 0);
     const max = Number(mg.max_selection ?? 1);
     const selectionType: "VARIANT" | "ADDON" = max > 1 ? "ADDON" : "VARIANT";
@@ -278,6 +372,29 @@ export function classifyDeliverooMenu(
           "Deliveroo may be using a different link field — modifier groups will not be attached.",
       );
     }
+  }
+
+  if (sizeGroupsUsed.size) {
+    const names = [...sizeGroupsUsed]
+      .map((id) => localized(groupsById.get(id)?.name) || id)
+      .join(", ");
+    warnings.push(
+      `Imported as product sizes rather than modifier groups: ${names}. ` +
+        "If any of those are really a choice of topping, edit the product and move them back.",
+    );
+  }
+
+  if (modifiersWithNestedGroups.length) {
+    const shown = modifiersWithNestedGroups.slice(0, 8).join(", ");
+    const more =
+      modifiersWithNestedGroups.length > 8
+        ? ` (+${modifiersWithNestedGroups.length - 8} more)`
+        : "";
+    warnings.push(
+      `${modifiersWithNestedGroups.length} option(s) have their own modifier groups on Deliveroo ` +
+        `— e.g. ${shown}${more}. Nested groups can't be imported yet, so those options ` +
+        "arrive without their follow-on choices and need building by hand.",
+    );
   }
 
   const fullHash = sha(JSON.stringify(payload));
