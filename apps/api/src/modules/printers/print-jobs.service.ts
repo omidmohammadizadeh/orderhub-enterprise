@@ -528,6 +528,10 @@ export class PrintJobsService {
     });
     if (!printer) throw new NotFoundException("Printer not found");
 
+    const paperWidth = printer.paperWidth === 58 ? 58 : 80;
+    const qrUrl = `https://orderhubsolutions.com/printers/${printer.id}`;
+    const qrRaster = qrRasterBase64(qrUrl, { paperWidth });
+
     const row = await (this.prisma as any).printJob.create({
       data: {
         tenantId: args.tenantId,
@@ -558,17 +562,22 @@ export class PrintJobsService {
           // successful test print now also proves the receipt QR will work on
           // this device. Left as null when it can't be built; the renderer
           // then falls back to the command, which is right for an Epson.
-          qrCode: `https://orderhubsolutions.com/printers/${printer.id}`,
-          qrRaster: qrRasterBase64(
-            `https://orderhubsolutions.com/printers/${printer.id}`,
-            { paperWidth: printer.paperWidth === 58 ? 58 : 80 },
-          ),
+          qrCode: qrUrl,
+          qrRaster,
           openCashDrawer: !!printer.supportsCashDrawer,
           paperWidth: printer.paperWidth ?? 80,
         },
       },
     });
-    this.logger.log(`Test print queued for printer ${printer.id}`);
+    // Say whether the raster made it into the payload. "No QR printed" has
+    // three different causes — payload, transport, firmware — and without
+    // this line the log can't tell them apart, which has already cost a
+    // round of guessing.
+    this.logger.log(
+      `Test print queued for printer ${printer.id} ` +
+        `(${paperWidth}mm, connection=${printer.connectionType ?? "?"}, ` +
+        `qrRaster=${qrRaster ? `${qrRaster.length}b` : "NONE"})`,
+    );
     return row.id;
   }
 
