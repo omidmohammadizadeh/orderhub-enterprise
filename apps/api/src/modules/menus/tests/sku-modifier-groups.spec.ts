@@ -1,4 +1,7 @@
-import { resolveSkuModifierGroups } from "../importers/menu-writer.service";
+import {
+  resolveSkuModifierGroups,
+  collectOptionGroupOwners,
+} from "../importers/menu-writer.service";
 
 // A multi-SKU product routes its modifier groups through the SELECTED SKU:
 // the picker reads `selectedSku.modifierGroups` and never looks at the
@@ -82,5 +85,78 @@ describe("resolveSkuModifierGroups", () => {
   it("handles a flat product with no SKUs at all", () => {
     expect(resolveSkuModifierGroups([], ["local-extras"], EXT_TO_LOCAL)).toEqual([]);
     expect(resolveSkuModifierGroups(undefined as any, [], EXT_TO_LOCAL)).toEqual([]);
+  });
+});
+
+// ── Option → group membership ────────────────────────────────────────────────
+//
+// One modifier can belong to several groups, and Deliveroo shares them freely.
+// The reparenting pass used to run inside the group loop and `set` the array
+// to the single group being processed, so each pass overwrote the last: an
+// option in two groups ended up listed only under whichever group came last,
+// and the others rendered as "(0 modifiers)" with their options apparently
+// gone from the dashboard.
+
+const G = new Map([
+  ["g-flavour", "local-flavour"],
+  ["g-addons", "local-addons"],
+  ["g-side", "local-side"],
+]);
+const M = new Map([
+  ["o-cheese", "local-cheese"],
+  ["o-fries", "local-fries"],
+]);
+
+const group = (externalId: string, modifierExternalIds: string[]) => ({
+  externalId,
+  modifierExternalIds,
+});
+
+describe("collectOptionGroupOwners", () => {
+  it("keeps an option in every group that holds it", () => {
+    const owners = collectOptionGroupOwners(
+      [group("g-flavour", ["o-cheese"]), group("g-addons", ["o-cheese"])],
+      G,
+      M,
+    );
+    expect(owners.get("local-cheese")).toEqual(["local-flavour", "local-addons"]);
+  });
+
+  it("makes the first group to claim an option its primary", () => {
+    // owners[0] becomes ModifierOption.groupId.
+    const owners = collectOptionGroupOwners(
+      [group("g-addons", ["o-cheese"]), group("g-flavour", ["o-cheese"])],
+      G,
+      M,
+    );
+    expect(owners.get("local-cheese")![0]).toBe("local-addons");
+  });
+
+  it("doesn't list the same group twice", () => {
+    const owners = collectOptionGroupOwners(
+      [group("g-side", ["o-fries", "o-fries"])],
+      G,
+      M,
+    );
+    expect(owners.get("local-fries")).toEqual(["local-side"]);
+  });
+
+  it("skips groups and options that never got local ids", () => {
+    const owners = collectOptionGroupOwners(
+      [group("g-ghost", ["o-cheese"]), group("g-side", ["o-ghost"])],
+      G,
+      M,
+    );
+    expect(owners.size).toBe(0);
+  });
+
+  it("handles a flat menu with one group per option", () => {
+    const owners = collectOptionGroupOwners(
+      [group("g-flavour", ["o-cheese"]), group("g-side", ["o-fries"])],
+      G,
+      M,
+    );
+    expect(owners.get("local-cheese")).toEqual(["local-flavour"]);
+    expect(owners.get("local-fries")).toEqual(["local-side"]);
   });
 });

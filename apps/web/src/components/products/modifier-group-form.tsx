@@ -434,6 +434,23 @@ export function ModifierGroupForm({
                                     : `(shared from ${m.groupName})`}
                                 </span>
                               </p>
+                              {/* Phase BN — picking this modifier can open
+                                  further groups ("Make It a Meal" asking for
+                                  a side and a drink). Without this line the
+                                  meal upgrade looked like a plain £3.99
+                                  option and the structure was invisible. */}
+                              {(m.nestedGroupIds?.length ?? 0) > 0 && (
+                                <p className="mt-0.5 text-[11px] text-zinc-500 truncate">
+                                  ↳ then asks:{" "}
+                                  {m.nestedGroupIds!
+                                    .map(
+                                      (id) =>
+                                        otherGroups.find((g) => g.id === id)
+                                          ?.name ?? "a group",
+                                    )
+                                    .join(", ")}
+                                </p>
+                              )}
                             </button>
                             <div className="flex items-center gap-3 flex-shrink-0">
                               <span className="text-xs text-zinc-500 tabular-nums">

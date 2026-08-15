@@ -80,14 +80,20 @@ interface DeliverooModifierGroup {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Bumped whenever this classifier's OUTPUT changes shape, so an unchanged
- * Deliveroo payload still re-imports. See the fullHash comment at the bottom.
+ * Bumped whenever a code change alters what an import WRITES — this
+ * classifier's output shape, or the writer's behaviour. The menu-level hash
+ * short-circuits the entire import body when it matches, so without a bump
+ * the operator re-imports an unchanged Deliveroo menu, gets "unchanged", and
+ * the fix never lands. See the fullHash comment at the bottom.
  *
  *   2 — sized products carry their modifier groups on each SKU (they were
  *       emitted empty, so a product with sizes offered no options at all),
  *       and options carry their nested groups.
+ *   3 — the writer keeps an option in EVERY group that holds it. It used to
+ *       overwrite, so a shared option survived only in the last group and the
+ *       others showed "(0 modifiers)".
  */
-const CLASSIFIER_VERSION = 2;
+const CLASSIFIER_VERSION = 3;
 
 const sha = (s: string): string =>
   createHash("sha256").update(s).digest("hex").slice(0, 32);

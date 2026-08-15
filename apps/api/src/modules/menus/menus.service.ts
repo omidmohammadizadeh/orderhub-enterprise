@@ -1604,25 +1604,93 @@ export class MenusService {
       },
       orderBy: { sortOrder: "asc" },
     });
-    if (arrayMatched.length === 0) return group;
-    const seen = new Set(group.options.map((o) => o.id));
-    return {
-      ...group,
-      options: [
-        ...group.options,
-        ...arrayMatched.filter((o) => !seen.has(o.id)),
-      ],
-    };
+    const merged =
+      arrayMatched.length === 0
+        ? group
+        : {
+            ...group,
+            options: [
+              ...group.options,
+              ...arrayMatched.filter(
+                (o) => !new Set(group.options.map((x) => x.id)).has(o.id),
+              ),
+            ],
+          };
+
+    // Phase BN — annotate each option with the groups it opens, so the group
+    // editor can say "Make It a Meal → opens Choose Side, Choose Drink"
+    // instead of showing it as an ordinary £3.99 option.
+    await resolveNestedModifierGroups(this.prisma, [merged as any], { tenantId });
+    return merged;
   }
 
   async findModifierOptionById(optionId: string, tenantId: string) {
     const option = await this.prisma.modifierOption.findUnique({
       where: { id: optionId },
-      include: { group: { select: { brandId: true, name: true } } },
+      include: {
+        group: { select: { brandId: true, name: true } },
+        // Phase BN — the groups choosing this option opens ("Make It a Meal"
+        // → a sides picker and a drinks picker). The editor can't show what
+        // it can't see, so an imported meal deal looked identical to a plain
+        // £3.99 option.
+        nestedGroupLinks: {
+          orderBy: { sortOrder: "asc" },
+          include: { group: { select: { id: true, name: true } } },
+        },
+      },
     });
     if (!option) throw new NotFoundException(`Modifier ${optionId} not found`);
     await this.assertBrandAccess(option.group.brandId, tenantId);
-    return option;
+    return {
+      ...option,
+      nestedGroupIds: option.nestedGroupLinks.map((l) => l.groupId),
+    };
+  }
+
+  /**
+   * Replace the set of groups this option opens.
+   *
+   * Rewritten wholesale rather than diffed: the editor sends the list it
+   * wants, and order in that list is the order the picker asks the questions.
+   */
+  async setNestedModifierGroups(
+    optionId: string,
+    tenantId: string,
+    groupIds: string[],
+  ) {
+    const option = await this.prisma.modifierOption.findUnique({
+      where: { id: optionId },
+      select: { id: true, groupId: true, group: { select: { brandId: true } } },
+    });
+    if (!option) throw new NotFoundException(`Modifier ${optionId} not found`);
+    await this.assertBrandAccess(option.group.brandId, tenantId);
+
+    // Every target group must belong to this tenant — these ids come off the
+    // request body, so they're not trusted. An option can't open the group it
+    // already lives in either: that's a picker that reopens itself forever.
+    const wanted = Array.from(new Set(groupIds)).filter(
+      (id) => id !== option.groupId,
+    );
+    const allowed = wanted.length
+      ? await this.prisma.modifierGroup.findMany({
+          where: { id: { in: wanted }, brand: { tenantId } },
+          select: { id: true },
+        })
+      : [];
+    const allowedIds = new Set(allowed.map((g) => g.id));
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.modifierOptionNestedGroup.deleteMany({ where: { optionId } });
+      let sortOrder = 0;
+      for (const id of wanted) {
+        if (!allowedIds.has(id)) continue;
+        await tx.modifierOptionNestedGroup.create({
+          data: { optionId, groupId: id, sortOrder: sortOrder++ },
+        });
+      }
+    });
+
+    return this.findModifierOptionById(optionId, tenantId);
   }
 
   async findModifierGroupsByBrand(brandId: string, user: AuthenticatedUser) {
@@ -2016,12 +2084,21 @@ export class MenusService {
       takeawayTax?: number;
       eatInTax?: number;
       menuIds?: string[];
+      /**
+       * Phase BN — the groups choosing this option opens, in the order the
+       * picker should ask for them. Handled separately from the column
+       * updates below because it's join rows, not a field.
+       */
+      nestedGroupIds?: string[];
     },
   ) {
     const option = await this.prisma.modifierOption.findFirst({
       where: { id: optionId, group: { brand: { tenantId } } },
     });
     if (!option) throw new NotFoundException("Option not found");
+    if (dto.nestedGroupIds !== undefined) {
+      await this.setNestedModifierGroups(optionId, tenantId, dto.nestedGroupIds);
+    }
     return this.prisma.modifierOption.update({
       where: { id: optionId },
       data: {

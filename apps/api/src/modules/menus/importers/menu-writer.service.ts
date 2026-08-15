@@ -81,6 +81,42 @@ export function resolveSkuModifierGroups(
   });
 }
 
+/**
+ * Which groups own each modifier option, keyed by LOCAL option id.
+ *
+ * One modifier can belong to several groups — the schema exists for exactly
+ * that ("Extra cheese" on both Toppings and Sides), and Deliveroo shares
+ * options freely between groups.
+ *
+ * This used to be done inside the group loop, writing
+ * `modifierGroupIds: { set: [thisGroup] }` on each pass, so every pass
+ * overwrote the previous one: an option in two groups ended up listed only
+ * under whichever group was processed last, and the other group rendered as
+ * "(0 modifiers)" in the dashboard with its options apparently gone.
+ *
+ * Order is preserved so the first group to claim an option becomes its
+ * `groupId` — the "primary" group the rest of the app reads.
+ */
+export function collectOptionGroupOwners(
+  groups: Array<{ externalId: string; modifierExternalIds: string[] }>,
+  groupExtToLocal: Map<string, string>,
+  modifierExtToLocal: Map<string, string>,
+): Map<string, string[]> {
+  const owners = new Map<string, string[]>();
+  for (const g of groups) {
+    const localGroupId = groupExtToLocal.get(g.externalId);
+    if (!localGroupId) continue;
+    for (const optExt of g.modifierExternalIds) {
+      const localOptId = modifierExtToLocal.get(optExt);
+      if (!localOptId) continue;
+      const list = owners.get(localOptId) ?? [];
+      if (!list.includes(localGroupId)) list.push(localGroupId);
+      owners.set(localOptId, list);
+    }
+  }
+  return owners;
+}
+
 @Injectable()
 export class MenuWriterService {
   private readonly logger = new Logger(MenuWriterService.name);
@@ -252,23 +288,35 @@ export class MenuWriterService {
             created.groups++;
           }
 
-          // Reparent any options that belong to this group: move the
-          // primary groupId to this group, and append it to the
-          // modifierGroupIds[] array for the M2M view.
-          for (const optExt of g.modifierExternalIds) {
-            const localOptId = modifierExtToLocal.get(optExt);
-            const localGroupId = groupExtToLocal.get(g.externalId);
-            if (localOptId && localGroupId) {
-              await tx.modifierOption.update({
-                where: { id: localOptId },
-                data: {
-                  groupId: localGroupId,
-                  modifierGroupIds: { set: Array.from(new Set([localGroupId])) },
-                  menuIds: { set: Array.from(new Set([menuId])) },
-                },
-              });
-            }
-          }
+        }
+
+        // --- Reparent options to their groups ---
+        //
+        // One modifier can belong to several groups — the schema exists for
+        // exactly that ("Extra cheese" on both Toppings and Sides), and
+        // Deliveroo shares options freely. This used to run inside the group
+        // loop above and `set` the array to the single group being processed,
+        // so each pass overwrote the last: an option in two groups ended up
+        // listed in whichever group happened to be processed last, and every
+        // other group holding it rendered as "(0 modifiers)".
+        //
+        // groupId stays the FIRST group that claimed it — that's the
+        // "primary" group the rest of the app reads — and the array carries
+        // the full membership.
+        const optionGroupOwners = collectOptionGroupOwners(
+          normalized.modifierGroups,
+          groupExtToLocal,
+          modifierExtToLocal,
+        );
+        for (const [localOptId, owners] of optionGroupOwners) {
+          await tx.modifierOption.update({
+            where: { id: localOptId },
+            data: {
+              groupId: owners[0],
+              modifierGroupIds: { set: owners },
+              menuIds: { set: Array.from(new Set([menuId])) },
+            },
+          });
         }
 
         // --- Products ---

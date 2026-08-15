@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Plus, X } from "lucide-react";
 import {
@@ -67,6 +67,12 @@ export function ModifierForm({
   const [sizeRows, setSizeRows] = useState<
     Array<{ size: string; price: string; plu: string }>
   >([]);
+  // Phase BN — groups this option opens when chosen, in ask order.
+  const [nestedGroupIds, setNestedGroupIds] = useState<string[]>([]);
+  const groupsById = useMemo(
+    () => new Map(groups.map((g) => [g.id, g])),
+    [groups],
+  );
 
   useEffect(() => {
     if (!existing) return;
@@ -91,6 +97,7 @@ export function ModifierForm({
         plu: String((existing.skuPlus as any)?.[s] ?? ""),
       })),
     );
+    setNestedGroupIds((existing as any).nestedGroupIds ?? []);
   }, [existing]);
 
   const saveMutation = useMutation({
@@ -114,6 +121,9 @@ export function ModifierForm({
         deliveryTax: Number(deliveryTax) || 0,
         takeawayTax: Number(takeawayTax) || 0,
         eatInTax: Number(eatInTax) || 0,
+        // Sent on every save, including empty — that's how the last
+        // follow-on group gets removed.
+        nestedGroupIds,
       };
       if (isEdit && modifierId) {
         return modifiersClient.update(modifierId, payload);
@@ -267,6 +277,88 @@ export function ModifierForm({
                 Add size row
               </Button>
             </div>
+          </div>
+
+          {/* Phase BN — the groups this option opens when it's chosen.
+              "Make It a Meal +£3.99" asks for a side and a drink; picking
+              "Fries" in that side group then asks for a dip. Without this
+              section an imported meal deal was indistinguishable in the
+              editor from a plain £3.99 option. */}
+          <div className="pt-3 border-t border-zinc-100">
+            <h4 className="text-xs font-semibold text-zinc-800 mb-1">
+              Follow-on choices
+            </h4>
+            <p className="text-[11px] text-zinc-500 mb-3">
+              Groups to ask for when someone picks this modifier — a meal
+              upgrade asking for a side and a drink. They&apos;re asked in the
+              order below, and only once this modifier is selected.
+            </p>
+
+            {nestedGroupIds.length === 0 ? (
+              <p className="text-[11px] text-zinc-400 mb-2">
+                None — picking this modifier asks nothing further.
+              </p>
+            ) : (
+              <div className="space-y-1.5 mb-2">
+                {nestedGroupIds.map((id, i) => {
+                  const g = groupsById.get(id);
+                  return (
+                    <div
+                      key={id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 px-3 py-2"
+                    >
+                      <span className="text-xs text-zinc-900">
+                        <span className="text-zinc-400 tabular-nums mr-2">
+                          {i + 1}.
+                        </span>
+                        {g?.name ?? "Unknown group"}
+                        {g && (
+                          <span className="text-zinc-400 ml-1.5">
+                            ({g.options?.length ?? 0} modifier
+                            {g.options?.length === 1 ? "" : "s"})
+                          </span>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNestedGroupIds(
+                            nestedGroupIds.filter((x) => x !== id),
+                          )
+                        }
+                        className="text-zinc-400 hover:text-red-600"
+                        title="Remove"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <select
+              value=""
+              onChange={(e) => {
+                if (!e.target.value) return;
+                setNestedGroupIds([...nestedGroupIds, e.target.value]);
+              }}
+              className="w-full h-8 rounded-lg border border-zinc-200 px-2 text-xs text-zinc-700"
+            >
+              <option value="">Add a follow-on group…</option>
+              {groups
+                // A group can't open itself — that's a picker that reopens
+                // forever — and adding the same one twice asks it twice.
+                .filter(
+                  (g) =>
+                    g.id !== existing?.groupId && !nestedGroupIds.includes(g.id),
+                )
+                .map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+            </select>
           </div>
         </Card>
 
