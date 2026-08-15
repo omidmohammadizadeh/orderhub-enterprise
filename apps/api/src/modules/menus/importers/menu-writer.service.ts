@@ -560,8 +560,18 @@ export class MenuWriterService {
         writeResult.updated.groups +
         writeResult.updated.cats;
 
+      // Broken down by entity, because the totals hid the failure that
+      // mattered: "created=16 updated=0" looked like a successful import of a
+      // 16-category menu and actually meant every product, group and option
+      // was skipped as unchanged — leaving the wrong data from an earlier run
+      // in place. A per-entity zero is the thing worth seeing.
+      const c = writeResult.created;
+      const u = writeResult.updated;
       this.logger.log(
-        `Menu ${menuId} import (${source}): created=${createdCount} updated=${updatedCount} warnings=${normalized.warnings.length}`,
+        `Menu ${menuId} import (${source}): created=${createdCount} updated=${updatedCount} ` +
+          `(cats ${c.cats}/${u.cats}, products ${c.products}/${u.products}, ` +
+          `groups ${c.groups}/${u.groups}, options ${c.mods}/${u.mods} created/updated) ` +
+          `warnings=${normalized.warnings.length}`,
       );
       // Print the warnings themselves, not just how many there were. They
       // name the size groups that were converted and the options whose nested

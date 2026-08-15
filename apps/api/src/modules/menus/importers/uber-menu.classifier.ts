@@ -67,8 +67,11 @@ import type {
  *       with pricesBySize. Before this an Uber import dropped all three.
  *   3 — group links are read from `bundled_items`, which is where Uber's Get
  *       Menu actually puts them. Nothing was attached to anything before.
+ *   4 — the version now rides EVERY entity hash, not just the menu's. It
+ *       didn't, so a fix cleared the menu-level check and was then skipped
+ *       row by row: `created=16 updated=0`, 16 being the categories.
  */
-const CLASSIFIER_VERSION = 3;
+const CLASSIFIER_VERSION = 4;
 
 // ── Public ──────────────────────────────────────────────────────────────────
 
@@ -169,6 +172,21 @@ const penceToPounds = (p: number | undefined): number =>
 
 const sha = (s: string): string =>
   createHash("sha256").update(s).digest("hex").slice(0, 32);
+
+/**
+ * Per-entity sync hash. The writer skips any row whose stored hash matches,
+ * so the VERSION has to ride along here as well as on the menu — otherwise a
+ * classifier fix passes the menu-level check, the import runs, and every
+ * single row is then skipped individually as "unchanged". That is exactly how
+ * a corrected `productSkus[].modifierGroups` failed to reach items that
+ * already existed: `created=16 updated=0`, 16 being the categories.
+ *
+ * Deleting the menu first doesn't help — items, groups and options are
+ * brand-scoped and keyed by platformSource + externalId, so they outlive it.
+ */
+const entityHash = (value: unknown): string =>
+  sha(`${CLASSIFIER_VERSION}:${JSON.stringify(value)}`);
+
 
 /**
  * Ids out of whatever container Uber used. Accepts `["id"]`,
@@ -482,7 +500,7 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
         skuPlus: pricing?.skuPlus ?? {},
         isAvailable: !isSuspended,
         visibleToCustomers: true,
-        syncHash: sha(JSON.stringify({ name, price, plu, isSuspended, nested, pricing: pricing ?? null })),
+        syncHash: entityHash({ name, price, plu, isSuspended, nested, pricing: pricing ?? null }),
       });
     }
     // Items in neither list are silently skipped — Uber occasionally
@@ -505,7 +523,7 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
       skuPlus: pricing?.skuPlus ?? {},
       isAvailable: opt.isAvailable,
       visibleToCustomers: true,
-      syncHash: sha(JSON.stringify({ name: opt.name, plu: opt.plu, price: opt.price, pricing: pricing ?? null })),
+      syncHash: entityHash({ name: opt.name, plu: opt.plu, price: opt.price, pricing: pricing ?? null }),
     });
   }
 
@@ -521,7 +539,7 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
       sortOrder: idx,
       available: true,
       visibleToCustomers: true,
-      syncHash: sha(JSON.stringify({ name, productExternalIds })),
+      syncHash: entityHash({ name, productExternalIds }),
       productExternalIds,
     };
   });
@@ -558,7 +576,7 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
       maxSelections: max,
       allowDuplicateSelections: max > 1, // Uber doesn't expose this; assume true for addons
       modifierExternalIds: optionIds,
-      syncHash: sha(JSON.stringify({ name, min, max, selectionType, optionIds })),
+      syncHash: entityHash({ name, min, max, selectionType, optionIds }),
     };
   });
 

@@ -103,13 +103,31 @@ interface DeliverooModifierGroup {
  *       importing at the difference (a £11.99 12-inch arriving as £3.00), and
  *       the groups hanging off a size choice are that size's own — they were
  *       dropped entirely. See importers/import-sizes.ts.
+ *   5 — the version now rides EVERY entity hash, not just the menu's. It
+ *       didn't, so a fix cleared the menu-level check and was then skipped
+ *       row by row: `created=16 updated=0`, 16 being the categories.
  */
-const CLASSIFIER_VERSION = 4;
+const CLASSIFIER_VERSION = 5;
 
 const sha = (s: string): string =>
   createHash("sha256").update(s).digest("hex").slice(0, 32);
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * Per-entity sync hash. The writer skips any row whose stored hash matches,
+ * so the VERSION has to ride along here as well as on the menu — otherwise a
+ * classifier fix passes the menu-level check, the import runs, and every
+ * single row is then skipped individually as "unchanged". That is exactly how
+ * a corrected `productSkus[].modifierGroups` failed to reach items that
+ * already existed: `created=16 updated=0`, 16 being the categories.
+ *
+ * Deleting the menu first doesn't help — items, groups and options are
+ * brand-scoped and keyed by platformSource + externalId, so they outlive it.
+ */
+const entityHash = (value: unknown): string =>
+  sha(`${CLASSIFIER_VERSION}:${JSON.stringify(value)}`);
+
 
 /**
  * Deliveroo's Menu API returns `name`/`description` as localised objects
@@ -384,7 +402,7 @@ export function classifyDeliverooMenu(
         // instead of being skipped as "unchanged".
         // Sizes ride the hash so a price change on one re-imports the item
         // instead of being skipped as unchanged.
-        syncHash: sha(JSON.stringify({ name: item.name, plu, price: basePrice, groupIds: normalGroupIds, skus, available: item.available, image })),
+        syncHash: entityHash({ name: item.name, plu, price: basePrice, groupIds: normalGroupIds, skus, available: item.available, image }),
       });
 
       for (const grpExt of normalGroupIds) {
@@ -441,7 +459,7 @@ export function classifyDeliverooMenu(
         skuPlus: pricing?.skuPlus ?? {},
         isAvailable: item.available !== false,
         visibleToCustomers: true,
-        syncHash: sha(JSON.stringify({ name: item.name, plu, price, available: item.available, pricing: pricing ?? null })),
+        syncHash: entityHash({ name: item.name, plu, price, available: item.available, pricing: pricing ?? null }),
       });
     }
   }
@@ -462,7 +480,7 @@ export function classifyDeliverooMenu(
       skuPlus: pricing?.skuPlus ?? {},
       isAvailable: opt.isAvailable,
       visibleToCustomers: true,
-      syncHash: sha(JSON.stringify({ name: opt.name, plu: opt.plu, price: opt.price, pricing: pricing ?? null })),
+      syncHash: entityHash({ name: opt.name, plu: opt.plu, price: opt.price, pricing: pricing ?? null }),
     });
   }
 
@@ -477,7 +495,7 @@ export function classifyDeliverooMenu(
       sortOrder: idx,
       available: true,
       visibleToCustomers: true,
-      syncHash: sha(JSON.stringify({ name: cat.name, productExternalIds })),
+      syncHash: entityHash({ name: cat.name, productExternalIds }),
       productExternalIds,
     };
   });
@@ -510,7 +528,7 @@ export function classifyDeliverooMenu(
       maxSelections: max,
       allowDuplicateSelections: !!mg.repeatable,
       modifierExternalIds: optionIds,
-      syncHash: sha(JSON.stringify({ name: mg.name, min, max, optionIds, repeatable: mg.repeatable })),
+      syncHash: entityHash({ name: mg.name, min, max, optionIds, repeatable: mg.repeatable }),
     };
   });
 
