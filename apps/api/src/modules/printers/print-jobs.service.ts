@@ -547,7 +547,22 @@ export class PrintJobsService {
           datetime: new Date().toISOString(),
           message:
             "Order Hub test print — if you can read this, your printer is wired correctly.",
+          // Two forms of the same QR, and the renderer prefers the raster.
+          //
+          // `qrCode` is the ESC/POS `GS ( k` symbol, which Sunmi accepts and
+          // silently prints nothing for — so the test print, the one thing an
+          // operator uses to check a printer is wired correctly, came out
+          // with no QR on exactly the hardware most likely to need checking.
+          //
+          // The raster is the same pixels the customer receipt uses, so a
+          // successful test print now also proves the receipt QR will work on
+          // this device. Left as null when it can't be built; the renderer
+          // then falls back to the command, which is right for an Epson.
           qrCode: `https://orderhubsolutions.com/printers/${printer.id}`,
+          qrRaster: qrRasterBase64(
+            `https://orderhubsolutions.com/printers/${printer.id}`,
+            { paperWidth: printer.paperWidth === 58 ? 58 : 80 },
+          ),
           openCashDrawer: !!printer.supportsCashDrawer,
           paperWidth: printer.paperWidth ?? 80,
         },

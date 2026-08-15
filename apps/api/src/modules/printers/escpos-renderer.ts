@@ -374,7 +374,21 @@ function renderTestPrint(payload: any, opts: RenderOptions): Buffer {
     newline();
     hr();
   }
-  if (payload.qrCode) {
+  // Prefer the pre-rasterised pixels over the ESC/POS QR command. Sunmi
+  // implements no QR command — it accepts `GS ( k` and prints nothing — so
+  // the command form is kept only as the fallback for printers that do.
+  if (payload.qrRaster) {
+    try {
+      const raster = Buffer.from(String(payload.qrRaster), "base64");
+      if (raster.length > 8) {
+        out.push(...alignCenter(), ...Array.from(raster));
+        newline();
+        out.push(...alignLeft());
+      }
+    } catch {
+      // A malformed raster must never cost the test print.
+    }
+  } else if (payload.qrCode) {
     out.push(...alignCenter(), ...qrCode(payload.qrCode));
     newline();
     out.push(...alignLeft());

@@ -203,3 +203,65 @@ describe("receipt QR url — shared by both print paths", () => {
     expect(isMarketplaceSource(null, null)).toBe(false);
   });
 });
+
+describe("test print — the QR an operator uses to check a printer", () => {
+  function makeTestPrintService(printer: any) {
+    const created: any[] = [];
+    const prisma: any = {
+      printer: { findFirst: async () => printer },
+      printJob: {
+        create: async ({ data }: any) => {
+          created.push(data);
+          return { id: "job-1" };
+        },
+      },
+    };
+    const svc = new PrintJobsService(
+      prisma, {} as any, {} as any, {} as any, {} as any, {} as any,
+    );
+    return { svc, created };
+  }
+
+  const PRINTER = {
+    id: "p-sunmi",
+    name: "Sunmi",
+    locationId: "loc-1",
+    paperWidth: 80,
+    supportsCashDrawer: false,
+    location: { id: "loc-1", name: "The Grill Stop", addressLine1: "1 High St" },
+  };
+
+  it("carries a raster so a Sunmi shows a QR on its test print", async () => {
+    // The whole point of a test print is checking a printer is wired up, and
+    // it printed no QR on exactly the hardware most likely to need checking.
+    const { svc, created } = makeTestPrintService(PRINTER);
+    await svc.createTestPrint({ tenantId: "t1", printerId: "p-sunmi" });
+
+    const bytes = Buffer.from(created[0].payload.qrRaster, "base64");
+    expect(Array.from(bytes.subarray(0, 4))).toEqual([0x1d, 0x76, 0x30, 0x00]);
+  });
+
+  it("keeps the command form as a fallback for printers that support it", async () => {
+    const { svc, created } = makeTestPrintService(PRINTER);
+    await svc.createTestPrint({ tenantId: "t1", printerId: "p-sunmi" });
+    expect(created[0].payload.qrCode).toContain("/printers/p-sunmi");
+  });
+
+  it("sizes the raster to the printer's paper", async () => {
+    const { svc: wide, created: w } = makeTestPrintService(PRINTER);
+    await wide.createTestPrint({ tenantId: "t1", printerId: "p-sunmi" });
+    const { svc: narrow, created: n } = makeTestPrintService({
+      ...PRINTER,
+      paperWidth: 58,
+    });
+    await narrow.createTestPrint({ tenantId: "t1", printerId: "p-sunmi" });
+
+    const height = (b64: string) => {
+      const b = Buffer.from(b64, "base64");
+      return b[6]! | (b[7]! << 8);
+    };
+    expect(height(w[0].payload.qrRaster)).toBeGreaterThan(
+      height(n[0].payload.qrRaster),
+    );
+  });
+});
