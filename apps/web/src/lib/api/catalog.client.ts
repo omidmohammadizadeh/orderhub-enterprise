@@ -98,6 +98,13 @@ export interface CatalogModifier {
    * hang off an option and so never appear in an item's own group links.
    */
   nestedGroupIds?: string[];
+  /**
+   * The same groups with their names, resolved server-side. Render these
+   * rather than looking the ids up in a modifier-group list: those lists are
+   * brand-scoped, so a menu imported under a sibling brand showed every
+   * follow-on group as "Unknown group".
+   */
+  nestedGroups?: Array<{ id: string; name: string }>;
 }
 
 export interface MealDeal {

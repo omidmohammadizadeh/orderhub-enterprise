@@ -29,7 +29,12 @@ export const MAX_NESTING_DEPTH = 3;
 
 interface ResolvableGroup {
   id: string;
-  options?: Array<{ id: string; nestedGroupIds?: string[] }> | null;
+  name?: string;
+  options?: Array<{
+    id: string;
+    nestedGroupIds?: string[];
+    nestedGroups?: Array<{ id: string; name: string }>;
+  }> | null;
 }
 
 /**
@@ -58,6 +63,12 @@ export async function resolveNestedModifierGroups(
 
   let frontierOptionIds = optionIds;
   let annotate: ResolvableGroup[] = rootGroups;
+  // Names are filled in at the end, once every reachable group has been seen:
+  // a nested group can be one we fetched OR one that was already in the list.
+  const pendingNames: Array<{
+    opt: { nestedGroups?: Array<{ id: string; name: string }> };
+    ids: string[];
+  }> = [];
 
   for (let depth = 0; depth < MAX_NESTING_DEPTH; depth++) {
     const links = await prisma.modifierOptionNestedGroup.findMany({
@@ -78,7 +89,10 @@ export async function resolveNestedModifierGroups(
     for (const g of annotate) {
       for (const opt of g.options ?? []) {
         const ids = byOption.get(opt.id);
-        if (ids?.length) opt.nestedGroupIds = ids;
+        if (ids?.length) {
+          opt.nestedGroupIds = ids;
+          pendingNames.push({ opt, ids });
+        }
       }
     }
 
@@ -109,6 +123,20 @@ export async function resolveNestedModifierGroups(
     annotate = groups as unknown as ResolvableGroup[];
     frontierOptionIds = collectOptionIds(annotate);
     if (frontierOptionIds.length === 0) break;
+  }
+
+  // Attach the names. Callers render these directly rather than joining the
+  // ids against a separately-fetched group list — that list is brand-scoped
+  // in the dashboard, so a cross-brand nested group came out as "Unknown".
+  const nameById = new Map<string, string>();
+  for (const g of [...rootGroups, ...collected]) {
+    if (g.name) nameById.set(g.id, g.name);
+  }
+  for (const { opt, ids } of pendingNames) {
+    opt.nestedGroups = ids.map((id) => ({
+      id,
+      name: nameById.get(id) ?? "",
+    }));
   }
 
   return collected;

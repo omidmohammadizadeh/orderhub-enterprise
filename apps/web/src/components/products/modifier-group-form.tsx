@@ -439,14 +439,16 @@ export function ModifierGroupForm({
                                   a side and a drink). Without this line the
                                   meal upgrade looked like a plain £3.99
                                   option and the structure was invisible. */}
-                              {(m.nestedGroupIds?.length ?? 0) > 0 && (
+                              {(m.nestedGroups?.length ?? 0) > 0 && (
                                 <p className="mt-0.5 text-[11px] text-zinc-500 truncate">
                                   ↳ then asks:{" "}
-                                  {m.nestedGroupIds!
+                                  {m.nestedGroups!
                                     .map(
-                                      (id) =>
-                                        otherGroups.find((g) => g.id === id)
-                                          ?.name ?? "a group",
+                                      (n) =>
+                                        n.name ||
+                                        otherGroups.find((g) => g.id === n.id)
+                                          ?.name ||
+                                        "a group",
                                     )
                                     .join(", ")}
                                 </p>

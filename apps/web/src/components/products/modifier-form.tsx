@@ -69,10 +69,16 @@ export function ModifierForm({
   >([]);
   // Phase BN — groups this option opens when chosen, in ask order.
   const [nestedGroupIds, setNestedGroupIds] = useState<string[]>([]);
-  const groupsById = useMemo(
-    () => new Map(groups.map((g) => [g.id, g])),
-    [groups],
-  );
+  // Names come from the option itself. The brand-scoped `groups` list is only
+  // a fallback for a group the operator just added in this session.
+  const nestedNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const g of groups) m.set(g.id, g.name);
+    for (const n of existing?.nestedGroups ?? []) {
+      if (n.name) m.set(n.id, n.name);
+    }
+    return m;
+  }, [groups, existing]);
 
   useEffect(() => {
     if (!existing) return;
@@ -301,7 +307,9 @@ export function ModifierForm({
             ) : (
               <div className="space-y-1.5 mb-2">
                 {nestedGroupIds.map((id, i) => {
-                  const g = groupsById.get(id);
+                  const groupName = nestedNameById.get(id);
+                  const optionCount = groups.find((g) => g.id === id)?.options
+                    ?.length;
                   return (
                     <div
                       key={id}
@@ -311,11 +319,11 @@ export function ModifierForm({
                         <span className="text-zinc-400 tabular-nums mr-2">
                           {i + 1}.
                         </span>
-                        {g?.name ?? "Unknown group"}
-                        {g && (
+                        {groupName || "Unknown group"}
+                        {optionCount !== undefined && (
                           <span className="text-zinc-400 ml-1.5">
-                            ({g.options?.length ?? 0} modifier
-                            {g.options?.length === 1 ? "" : "s"})
+                            ({optionCount} modifier
+                            {optionCount === 1 ? "" : "s"})
                           </span>
                         )}
                       </span>

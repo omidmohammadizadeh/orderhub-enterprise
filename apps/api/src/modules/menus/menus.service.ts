@@ -1644,6 +1644,14 @@ export class MenusService {
     return {
       ...option,
       nestedGroupIds: option.nestedGroupLinks.map((l) => l.groupId),
+      // Names travel WITH the option. The editor used to look them up in the
+      // separately-fetched group list, which is brand-scoped — so a menu
+      // imported under a different brand of the same tenant rendered every
+      // follow-on group as "Unknown group" even though the link was right.
+      nestedGroups: option.nestedGroupLinks.map((l) => ({
+        id: l.groupId,
+        name: l.group.name,
+      })),
     };
   }
 
