@@ -564,25 +564,30 @@ export default function MenuEditorPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {filteredProducts.map((p: any, idx: number) => {
-                    // Distinct groups this product can actually offer, from
-                    // BOTH places they attach. A sized product routes its
-                    // groups through the selected SKU, so a pizza with a
-                    // per-size crust list has NO product-level links — this
-                    // counted only those and so read "no modifier groups" on
-                    // a product that opens three of them.
-                    const modCount = (() => {
-                      const ids = new Set<string>();
-                      for (const l of p.modifierGroupLinks ?? []) {
-                        if (l?.groupId) ids.add(l.groupId);
+                    // How many groups this product will actually ask about.
+                    //
+                    // Which place they attach depends on whether it has
+                    // sizes, and the two are NOT additive: the multi-SKU
+                    // picker reads `selectedSku.modifierGroups` and ignores
+                    // the product's own links entirely. So a sized product
+                    // counts what its SKUs offer — counting both showed 2 on
+                    // a pizza that asks one question, because the item link
+                    // and the SKU list pointed at different rows.
+                    //
+                    // (An item-level link on a sized product is therefore
+                    // dead weight at order time — worth surfacing separately,
+                    // but it is not something to count here.)
+                    const skuGroupIds = new Set<string>();
+                    for (const sku of p.productSkus ?? []) {
+                      for (const gid of sku?.modifierGroups ?? []) {
+                        if (typeof gid === "string" && gid) skuGroupIds.add(gid);
                       }
-                      for (const sku of p.productSkus ?? []) {
-                        for (const gid of sku?.modifierGroups ?? []) {
-                          if (typeof gid === "string" && gid) ids.add(gid);
-                        }
-                      }
-                      // Links may arrive as a count instead of an array.
-                      return ids.size || p._count?.modifierGroupLinks || 0;
-                    })();
+                    }
+                    const modCount = skuGroupIds.size
+                      ? skuGroupIds.size
+                      : (p.modifierGroupLinks?.length ??
+                        p._count?.modifierGroupLinks ??
+                        0);
                     return (
                       <Card
                         key={p.id}
