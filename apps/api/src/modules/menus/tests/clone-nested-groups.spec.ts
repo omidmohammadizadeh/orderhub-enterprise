@@ -67,6 +67,9 @@ const GROUPS: Record<string, any> = {
   },
 };
 
+/** groupId → options that belong to it via modifierGroupIds[], not the FK. */
+const SHARED: Record<string, any[]> = {};
+
 /** optionId → the groups it opens, in ask order. */
 const NESTED: Record<string, Array<{ groupId: string; sortOrder: number }>> = {
   "o-meal": [
@@ -97,6 +100,11 @@ function makeHarness() {
       },
     },
     modifierOption: {
+      // Options attached via modifierGroupIds[] ("shared from …").
+      findMany: async ({ where }: any) =>
+        where?.brand?.tenantId === undefined && where?.group?.brand?.tenantId !== TENANT
+          ? []
+          : (SHARED[where.modifierGroupIds.has] ?? []),
       create: async ({ data }: any) => {
         const row = { id: `newopt-${data.name}-${++seq}`, ...data };
         createdOptions.push(row);
@@ -279,5 +287,82 @@ describe("clone — per-size modifier groups", () => {
       productSkus: [],
     });
     expect(h.createdItems[0].productSkus).toEqual([]);
+  });
+});
+
+describe("clone — options shared through modifierGroupIds[]", () => {
+  // The Grill Stop case: the group's own `options` relation is EMPTY because
+  // every modifier belongs to it through the array (the editor shows them as
+  // "shared from …"). Copying only the relation produced a cloned group
+  // reading "No modifiers attached" while the original showed two.
+  const SHARED_GROUP = {
+    id: "g-meal-shared",
+    brandId: "b1",
+    name: "Make It a Meal",
+    selectionType: "VARIANT",
+    minSelections: 1,
+    maxSelections: 1,
+    options: [], // FK-primary set is empty
+  };
+
+  beforeEach(() => {
+    for (const k of Object.keys(SHARED)) delete SHARED[k];
+    SHARED["g-meal-shared"] = [
+      { id: "o-own", name: "On Its Own", priceAdjustment: 0 },
+      { id: "o-meal", name: "Make It a Meal", priceAdjustment: 3.99 },
+    ];
+  });
+
+  /** Options parented to the copy of the group we asked for, in order. */
+  const ownOptions = (h: any) => {
+    const id = newIdFor(h, "Make It a Meal");
+    return h.createdOptions.filter((o: any) => o.groupId === id);
+  };
+
+  it("copies the shared modifiers rather than producing an empty group", async () => {
+    const h = makeHarness();
+    await copyGroup(h, SHARED_GROUP);
+
+    expect(ownOptions(h).map((o: any) => o.name)).toEqual([
+      "On Its Own",
+      "Make It a Meal",
+    ]);
+  });
+
+  it("gives the copies fresh PLUs and parents them to the new group", async () => {
+    const h = makeHarness();
+    await copyGroup(h, SHARED_GROUP);
+    const own = ownOptions(h);
+    expect(own).toHaveLength(2);
+    for (const o of own) {
+      expect(o.plu).toMatch(/^MOD-/);
+      // The copy belongs to its new group only — never a second reference to
+      // the source's sharing.
+      expect(o.modifierGroupIds).toEqual([]);
+    }
+  });
+
+  it("follows the nested groups hanging off a shared option", async () => {
+    // "Make It a Meal" is array-attached AND opens Choose Side / Choose Drink.
+    const h = makeHarness();
+    await copyGroup(h, SHARED_GROUP);
+
+    const meal = h.createdOptions.find((o: any) => o.name === "Make It a Meal");
+    expect(
+      h.createdNested
+        .filter((l: any) => l.optionId === meal.id)
+        .map((l: any) => newIdFor(h, "Choose Side") === l.groupId),
+    ).toContain(true);
+  });
+
+  it("doesn't double-copy an option that is both FK-owned and array-attached", async () => {
+    const h = makeHarness();
+    SHARED["g-toppings"] = [
+      { id: "o-cheese", name: "Extra cheese", priceAdjustment: 1 },
+    ];
+    await copyGroup(h, GROUPS["g-toppings"]);
+    expect(
+      h.createdOptions.filter((o: any) => o.name === "Extra cheese"),
+    ).toHaveLength(1);
   });
 });

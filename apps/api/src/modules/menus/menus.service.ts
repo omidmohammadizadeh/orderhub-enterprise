@@ -708,7 +708,30 @@ export class MenusService {
     // up its own branch resolves to the copy already in flight instead of
     // recursing forever.
     caches.groupBySrc.set(srcGroup.id, newGroup.id);
-    for (const opt of srcGroup.options ?? []) {
+
+    // A group's `options` relation is the FK-PRIMARY set only. A modifier can
+    // also belong through the modifierGroupIds[] array — that's what "Add
+    // Existing" does, and what the importer does for every group after the
+    // first when an option is shared between several ("shared from …" in the
+    // editor). Copying only the relation produced a clone whose group came out
+    // reading "No modifiers attached" while the original showed two.
+    //
+    // Same union mergeArrayAttachedOptions does on the read path, tenant-
+    // scoped so a cross-brand attach within the tenant still comes along.
+    const arrayAttached = await tx.modifierOption.findMany({
+      where: {
+        modifierGroupIds: { has: srcGroup.id },
+        group: { brand: { tenantId } },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+    const ownIds = new Set((srcGroup.options ?? []).map((o: any) => o.id));
+    const srcOptions = [
+      ...(srcGroup.options ?? []),
+      ...arrayAttached.filter((o: any) => !ownIds.has(o.id)),
+    ];
+
+    for (const opt of srcOptions) {
       const oPlu = this.freshPlu("modifier", caches.usedPlus);
       const newOption = await tx.modifierOption.create({
         data: {
