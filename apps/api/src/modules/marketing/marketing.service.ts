@@ -17,6 +17,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { UberEatsPromotionsService } from "../integrations/ubereats/ubereats-promotions.service";
+import { buildStorefrontQrUrl } from "./receipt-qr-url";
 import type {
   CreateCampaignDto,
   UpdateCampaignDto,
@@ -237,36 +238,22 @@ export class MarketingService {
     // null, which silently dropped the QR off every marketplace receipt: the
     // Uber ticket printed fine and just had no "order direct next time" code,
     // with nothing anywhere saying why.
-    const locSlug = loc?.onlineOrderingSlug ?? loc?.slug ?? loc?.id ?? null;
+    const { url, storefrontBrandId, reason } = buildStorefrontQrUrl({
+      brandId,
+      brand,
+      loc,
+      base,
+    });
 
-    // Whose storefront the QR opens.
-    //
-    // The order's brand is whatever the channel mapped it to, and for a
-    // HubRise connection relaying Uber Eats that is routinely a plumbing
-    // brand with no storefront of its own ("Order Hub"). Pointing the QR at
-    // it would land the customer on a storefront wearing the wrong name —
-    // worse than printing nothing. When the order's brand has no storefront
-    // identity, use the location's own brand, which is the one whose sign is
-    // above the door the customer is standing in.
-    const storefrontBrandId = brand?.onlineOrderingSlug
-      ? brandId
-      : (loc?.brandId ?? brandId);
-    const url =
-      brand?.directOrderingEnabled && brand?.onlineOrderingSlug
-        ? `${base}/brand/${brand.onlineOrderingSlug}`
-        : locSlug
-          ? `${base}/order/${locSlug}?brand=${encodeURIComponent(storefrontBrandId)}`
-          : null;
-
-    // Whether a marketplace ticket gets its QR is decided in the BROWSER, and
-    // the browser caches this response for the session — so a support question
-    // of "why was there no QR?" left no trace anywhere at all. One line here
-    // is the only durable record of the decision.
+    // Whether a marketplace ticket gets its QR is decided in the BROWSER for
+    // Bluetooth printers, and the browser caches this response for the whole
+    // session — so a support question of "why was there no QR?" left no trace
+    // anywhere at all. One line here is the only durable record.
     this.logger.log(
       `receiptOffer brand=${brandId} location=${locationId} → ` +
         (url
           ? `url=${url}${storefrontBrandId !== brandId ? " (storefront brand from location)" : ""}`
-          : "NO URL — no brand slug and no location slug/id, so no QR will print"),
+          : `NO URL — ${reason}, so no QR will print`),
     );
 
     const now = new Date();
