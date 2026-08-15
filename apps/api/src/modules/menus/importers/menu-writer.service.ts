@@ -423,6 +423,14 @@ export class MenuWriterService {
       this.logger.log(
         `Menu ${menuId} import (${source}): created=${createdCount} updated=${updatedCount} warnings=${normalized.warnings.length}`,
       );
+      // Print the warnings themselves, not just how many there were. They
+      // name the size groups that were converted and the options whose nested
+      // groups couldn't be imported — the only place that detail exists.
+      // "warnings=2" told an operator something happened and nothing at all
+      // about what.
+      for (const w of normalized.warnings) {
+        this.logger.warn(`Menu ${menuId} import (${source}): ${w}`);
+      }
       return {
         createdCount,
         updatedCount,
