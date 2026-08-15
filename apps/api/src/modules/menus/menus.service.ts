@@ -704,10 +704,13 @@ export class MenusService {
         metadata: srcGroup.metadata ?? {},
       },
     });
+    // Cached BEFORE the options are copied, so a nested group that points back
+    // up its own branch resolves to the copy already in flight instead of
+    // recursing forever.
     caches.groupBySrc.set(srcGroup.id, newGroup.id);
     for (const opt of srcGroup.options ?? []) {
       const oPlu = this.freshPlu("modifier", caches.usedPlus);
-      await tx.modifierOption.create({
+      const newOption = await tx.modifierOption.create({
         data: {
           groupId: newGroup.id,
           modifierGroupIds: [], // fresh copy belongs to its new group only
@@ -730,6 +733,37 @@ export class MenusService {
           metadata: opt.metadata ?? {},
         },
       });
+
+      // Phase BN — the groups this option opens. A deep copy that skipped
+      // these produced a clone whose "Make It a Meal" was selectable and
+      // asked for nothing: the links pointed at the SOURCE menu's groups, or
+      // at nothing at all. Copied recursively so the clone stays completely
+      // independent, which is the whole point of the deep copy.
+      const nestedLinks = await tx.modifierOptionNestedGroup.findMany({
+        where: { optionId: opt.id },
+        orderBy: { sortOrder: "asc" },
+      });
+      for (const link of nestedLinks) {
+        const srcNested = await tx.modifierGroup.findFirst({
+          where: { id: link.groupId, brand: { tenantId } },
+          include: { options: { orderBy: { sortOrder: "asc" } } },
+        });
+        if (!srcNested) continue;
+        const newNestedGroupId = await this.copyModifierGroupTx(
+          tx,
+          srcNested,
+          tenantId,
+          targetLocationId,
+          caches,
+        );
+        await tx.modifierOptionNestedGroup.create({
+          data: {
+            optionId: newOption.id,
+            groupId: newNestedGroupId,
+            sortOrder: link.sortOrder,
+          },
+        });
+      }
     }
     return newGroup.id;
   }
@@ -746,8 +780,45 @@ export class MenusService {
     const cached = caches.itemBySrc.get(src.id);
     if (cached) return cached;
     const iPlu = this.freshPlu("product", caches.usedPlus);
+
+    // A sized product routes its modifier groups through productSkus[], which
+    // holds bare group ids with no FK. Copied verbatim, the clone's sizes
+    // pointed at the SOURCE menu's groups — so editing the clone changed
+    // nothing the clone actually served, and deleting the original emptied it.
+    // Copy those groups too (deduped via the cache) and remap the ids.
+    const srcSkus = Array.isArray(src.productSkus) ? src.productSkus : [];
+    const skuGroupMap = new Map<string, string>();
+    for (const gid of new Set(
+      srcSkus.flatMap((sku: any) =>
+        (sku?.modifierGroups ?? []).filter(
+          (id: unknown): id is string => typeof id === "string" && !!id,
+        ),
+      ),
+    )) {
+      const srcGroup = await tx.modifierGroup.findFirst({
+        where: { id: gid as string, brand: { tenantId } },
+        include: { options: { orderBy: { sortOrder: "asc" } } },
+      });
+      if (!srcGroup) continue;
+      skuGroupMap.set(
+        gid as string,
+        await this.copyModifierGroupTx(
+          tx,
+          srcGroup,
+          tenantId,
+          targetLocationId,
+          caches,
+        ),
+      );
+    }
     const skus = Array.isArray(src.productSkus)
-      ? src.productSkus.map((s: any) => ({ ...s, plu: null }))
+      ? srcSkus.map((sku: any) => ({
+          ...sku,
+          plu: null,
+          modifierGroups: (sku?.modifierGroups ?? []).map(
+            (id: string) => skuGroupMap.get(id) ?? id,
+          ),
+        }))
       : (src.productSkus ?? []);
     const created = await tx.menuItem.create({
       data: {
@@ -2302,9 +2373,50 @@ export class MenusService {
       // only — anything added through "Add Existing" was missing from the
       // till, so a group holding a dozen toppings offered four.
       await this.foldItemLinkedGroupOptions(full, tenantId);
+
+      // Phase BN — groups that hang off an OPTION ("Make It a Meal" opening a
+      // sides and a drinks picker). Unreachable from item.modifierGroupLinks
+      // at any include depth, so the till had the meal option but nothing to
+      // open — online ordering drilled down and the POS didn't, because
+      // OrderingService.getStorefrontBySlug resolves these and this didn't.
+      //
+      // Runs AFTER the folds above so array-attached options are present and
+      // their own nested groups get followed too.
+      (full as any).nestedModifierGroups = await this.resolveNestedForMenu(
+        full,
+        tenantId,
+      );
     }
 
     return full;
+  }
+
+  /**
+   * Every group reachable from a menu's options, at any nesting depth.
+   *
+   * Returned as a flat list the till indexes by id, alongside
+   * skuModifierGroups — same mechanism, because a nested group is invisible
+   * to the menu's own includes for the same reason a per-size group is.
+   */
+  private async resolveNestedForMenu(menu: any, tenantId: string) {
+    const roots: any[] = [...((menu as any).skuModifierGroups ?? [])];
+    for (const cat of menu?.categories ?? []) {
+      for (const link of cat?.items ?? []) {
+        for (const gl of link?.item?.modifierGroupLinks ?? []) {
+          if (gl?.group?.options) roots.push(gl.group);
+        }
+      }
+    }
+    if (roots.length === 0) return [];
+    const nested = await resolveNestedModifierGroups(this.prisma, roots, {
+      tenantId,
+    });
+    if (nested.length === 0) return [];
+    // Nested groups have the same FK-only blind spot as any other group.
+    const merged = await this.mergeArrayAttachedOptions(nested as any, tenantId);
+    // Re-resolve so options folded in above also carry their own nesting.
+    await resolveNestedModifierGroups(this.prisma, merged as any, { tenantId });
+    return merged;
   }
 
   /**

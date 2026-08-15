@@ -352,10 +352,19 @@ export default function PosPage() {
   // the offline cache too.
   const allGroups = useMemo(() => {
     const skuGroups = ((menuData as any)?.skuModifierGroups ?? []) as typeof brandGroups;
-    if (skuGroups.length === 0) return brandGroups;
+    // Phase BN — groups opened by choosing an option ("Make It a Meal" asking
+    // for a side and a drink). Same reason as the SKU groups above: they can't
+    // be reached from the item's own group links, so they ride along on the
+    // menu payload and get merged in by id here. Without this the till showed
+    // the meal option and opened nothing.
+    const nestedGroups = ((menuData as any)?.nestedModifierGroups ??
+      []) as typeof brandGroups;
+    if (skuGroups.length === 0 && nestedGroups.length === 0) return brandGroups;
     const byId = new Map<string, (typeof brandGroups)[number]>();
     for (const g of brandGroups) byId.set(g.id, g);
-    for (const g of skuGroups) if (!byId.has(g.id)) byId.set(g.id, g);
+    for (const g of [...skuGroups, ...nestedGroups]) {
+      if (!byId.has(g.id)) byId.set(g.id, g);
+    }
     return Array.from(byId.values());
   }, [brandGroups, menuData]);
 

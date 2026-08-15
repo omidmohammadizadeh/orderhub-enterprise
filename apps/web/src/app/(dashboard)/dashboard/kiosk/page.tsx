@@ -77,10 +77,15 @@ export default function KioskPage() {
   const allGroups = useMemo(() => {
     const brandGroups = (groupsQuery.data ?? []) as any[];
     const skuGroups = (menu?.skuModifierGroups ?? []) as any[];
-    if (skuGroups.length === 0) return brandGroups;
+    // Phase BN — groups a chosen option opens. Same merge, same reason as the
+    // per-size groups: unreachable from the item's own links.
+    const nestedGroups = (menu?.nestedModifierGroups ?? []) as any[];
+    if (skuGroups.length === 0 && nestedGroups.length === 0) return brandGroups;
     const byId = new Map<string, any>();
     for (const g of brandGroups) byId.set(g.id, g);
-    for (const g of skuGroups) if (!byId.has(g.id)) byId.set(g.id, g);
+    for (const g of [...skuGroups, ...nestedGroups]) {
+      if (!byId.has(g.id)) byId.set(g.id, g);
+    }
     return Array.from(byId.values());
   }, [groupsQuery.data, menu]);
 

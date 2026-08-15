@@ -345,13 +345,16 @@ export function ModifierForm({
               </div>
             )}
 
+            {/* Dashed and muted so it reads as an action, not as another
+                follow-on group. Flush against the rows above it, an empty
+                select looked like a third entry with no name. */}
             <select
               value=""
               onChange={(e) => {
                 if (!e.target.value) return;
                 setNestedGroupIds([...nestedGroupIds, e.target.value]);
               }}
-              className="w-full h-8 rounded-lg border border-zinc-200 px-2 text-xs text-zinc-700"
+              className="mt-2 w-full h-8 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-2 text-xs text-zinc-500"
             >
               <option value="">Add a follow-on group…</option>
               {groups
