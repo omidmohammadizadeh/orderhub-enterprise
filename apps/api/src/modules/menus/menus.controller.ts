@@ -40,7 +40,7 @@ import {
   ApplyItemConfigDto,
 } from "./dto/menu.dto";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { Roles } from "../../common/decorators/roles.decorator";
+import { Roles, TILL_ROLES } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 /**
@@ -658,7 +658,7 @@ export class MenusController {
   }
 
   @Post("items/:itemId/toggle-availability")
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...TILL_ROLES)
   @ApiOperation({ summary: "Toggle item availability on/off" })
   toggleAvailability(
     @Param("itemId") itemId: string,

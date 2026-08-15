@@ -20,7 +20,7 @@ import {
   GetLedgerOpts,
 } from "./payments.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { Roles } from "../../common/decorators/roles.decorator";
+import { Roles, TILL_ROLES } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { ReceiptEmailService } from "./receipt-email.service";
@@ -76,7 +76,7 @@ export class PaymentsController {
 
   // POST /v1/payments/orders/:orderId/payment-link
   @Post("orders/:orderId/payment-link")
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...TILL_ROLES)
   @ApiOperation({
     summary: "POS Payment Link — hosted Stripe checkout URL for an unpaid order",
   })
@@ -105,7 +105,7 @@ export class PaymentsController {
 
   // POST /v1/payments/orders/:orderId/payment-link/sms
   @Post("orders/:orderId/payment-link/sms")
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...TILL_ROLES)
   @ApiOperation({
     summary: "Text the order's hosted payment link to the customer (billable SMS)",
   })
@@ -130,7 +130,7 @@ export class PaymentsController {
   // Staff key in the address at the counter (Order has no customerEmail for
   // walk-ins). Free to send, unlike the billable SMS route above.
   @Post("orders/:orderId/receipt/email")
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...TILL_ROLES)
   @ApiOperation({ summary: "Email the customer a receipt for this order" })
   emailOrderReceipt(
     @Param("orderId") orderId: string,

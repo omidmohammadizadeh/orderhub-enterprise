@@ -11,7 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { TerminalService } from "./terminal.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { Roles } from "../../common/decorators/roles.decorator";
+import { Roles, TILL_ROLES } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 // Stripe Terminal (S700 / WisePOS E) — server-driven card-present payments.
@@ -93,7 +93,7 @@ export class TerminalController {
   }
 
   @Post("charge")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @Roles(...TILL_ROLES)
   @ApiOperation({
     summary: "Charge an order to a card reader — the reader prompts the customer",
   })
@@ -115,7 +115,7 @@ export class TerminalController {
   // ── SDK-driven mobile readers (BBPOS WisePad 3 / Tap to Pay) ──────────────
 
   @Post("connection-token")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @Roles(...TILL_ROLES)
   @ApiOperation({
     summary:
       "Short-lived Stripe Terminal connection token for the on-device SDK (WisePad 3 / Tap to Pay)",
@@ -135,7 +135,7 @@ export class TerminalController {
   }
 
   @Post("charge/mobile")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @Roles(...TILL_ROLES)
   @ApiOperation({
     summary:
       "Prepare an on-device card-present charge — returns a client secret the SDK collects + confirms on the reader",
@@ -161,7 +161,7 @@ export class TerminalController {
   }
 
   @Get("charge/status")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @Roles(...TILL_ROLES)
   @ApiOperation({ summary: "Poll a terminal charge; settles the order when paid" })
   status(
     @Query("paymentIntentId") paymentIntentId: string,

@@ -190,8 +190,10 @@ export class MarketingService {
    * direct-online-ordering URL (so a scan opens the storefront) plus a
    * "Scan me to get …" caption derived from the brand's live marketing.
    *
-   *   url     — null when the brand/location has no online ordering set
-   *             up (slug missing); the caller then prints no QR.
+   *   url     — the storefront to scan. Falls back through the location's
+   *             slug to its id, both of which getStorefrontBySlug resolves,
+   *             so a store that never had a slug typed in still gets a QR.
+   *             Only null when there is no location at all.
    *   caption — based on the best ACTIVE in-window campaign, preferring
    *             ones that run on the ONLINE channel (the QR drives online
    *             orders). Generic fallback when nothing is live.
@@ -200,7 +202,8 @@ export class MarketingService {
     const [loc, brand] = await Promise.all([
       (this.prisma as any).location.findFirst({
         where: { id: locationId, brand: { tenantId } },
-        select: { onlineOrderingSlug: true, logoUrl: true },
+        // `slug` and `id` are fallbacks for the QR target — see below.
+        select: { id: true, slug: true, onlineOrderingSlug: true, logoUrl: true },
       }),
       (this.prisma as any).brand.findFirst({
         where: { id: brandId, tenantId },
@@ -219,11 +222,20 @@ export class MarketingService {
     // The storefront QR points at the brand's own direct-ordering page
     // (/brand/<slug>). Fall back to a location-level /order/<slug> link
     // for legacy setups that only configured ordering at the location.
+    //
+    // Last resort is the location's own id. getStorefrontBySlug resolves
+    // `OR: [onlineOrderingSlug, slug, id]`, so /order/<id> is a working
+    // storefront link — it's how these stores are browsed today. Without this
+    // fallback a location that never had a slug typed into it produced url =
+    // null, which silently dropped the QR off every marketplace receipt: the
+    // Uber ticket printed fine and just had no "order direct next time" code,
+    // with nothing anywhere saying why.
+    const locSlug = loc?.onlineOrderingSlug ?? loc?.slug ?? loc?.id ?? null;
     const url =
       brand?.directOrderingEnabled && brand?.onlineOrderingSlug
         ? `${base}/brand/${brand.onlineOrderingSlug}`
-        : loc?.onlineOrderingSlug
-          ? `${base}/order/${loc.onlineOrderingSlug}?brand=${encodeURIComponent(brandId)}`
+        : locSlug
+          ? `${base}/order/${locSlug}?brand=${encodeURIComponent(brandId)}`
           : null;
 
     const now = new Date();
