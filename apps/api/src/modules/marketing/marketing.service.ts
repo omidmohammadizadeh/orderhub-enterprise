@@ -202,8 +202,15 @@ export class MarketingService {
     const [loc, brand] = await Promise.all([
       (this.prisma as any).location.findFirst({
         where: { id: locationId, brand: { tenantId } },
-        // `slug` and `id` are fallbacks for the QR target — see below.
-        select: { id: true, slug: true, onlineOrderingSlug: true, logoUrl: true },
+        // `slug`/`id` are fallbacks for the QR target, `brandId` decides
+        // whose storefront it opens — see below.
+        select: {
+          id: true,
+          slug: true,
+          brandId: true,
+          onlineOrderingSlug: true,
+          logoUrl: true,
+        },
       }),
       (this.prisma as any).brand.findFirst({
         where: { id: brandId, tenantId },
@@ -231,12 +238,36 @@ export class MarketingService {
     // Uber ticket printed fine and just had no "order direct next time" code,
     // with nothing anywhere saying why.
     const locSlug = loc?.onlineOrderingSlug ?? loc?.slug ?? loc?.id ?? null;
+
+    // Whose storefront the QR opens.
+    //
+    // The order's brand is whatever the channel mapped it to, and for a
+    // HubRise connection relaying Uber Eats that is routinely a plumbing
+    // brand with no storefront of its own ("Order Hub"). Pointing the QR at
+    // it would land the customer on a storefront wearing the wrong name —
+    // worse than printing nothing. When the order's brand has no storefront
+    // identity, use the location's own brand, which is the one whose sign is
+    // above the door the customer is standing in.
+    const storefrontBrandId = brand?.onlineOrderingSlug
+      ? brandId
+      : (loc?.brandId ?? brandId);
     const url =
       brand?.directOrderingEnabled && brand?.onlineOrderingSlug
         ? `${base}/brand/${brand.onlineOrderingSlug}`
         : locSlug
-          ? `${base}/order/${locSlug}?brand=${encodeURIComponent(brandId)}`
+          ? `${base}/order/${locSlug}?brand=${encodeURIComponent(storefrontBrandId)}`
           : null;
+
+    // Whether a marketplace ticket gets its QR is decided in the BROWSER, and
+    // the browser caches this response for the session — so a support question
+    // of "why was there no QR?" left no trace anywhere at all. One line here
+    // is the only durable record of the decision.
+    this.logger.log(
+      `receiptOffer brand=${brandId} location=${locationId} → ` +
+        (url
+          ? `url=${url}${storefrontBrandId !== brandId ? " (storefront brand from location)" : ""}`
+          : "NO URL — no brand slug and no location slug/id, so no QR will print"),
+    );
 
     const now = new Date();
     const campaigns = await (this.prisma as any).marketingCampaign.findMany({
