@@ -262,6 +262,15 @@ export async function printOrderViaBridge(
         printer: (p as any)?.name ?? p.ipAddress ?? "?",
         qrEnabled: !!renderOpts.qrCode,
         dialect: renderOpts.qrDialect,
+        // marketplace=false has two very different causes: the order really
+        // is one of our own channels (POS/online never get the QR — that
+        // customer already orders direct), or the offer lookup bailed. These
+        // three fields separate them without another round of guessing.
+        src: String(
+          (order as any)?.orderSource ?? (order as any)?.platform ?? "?",
+        ),
+        offer: offer ? "ok" : "NULL",
+        orderBrand: (order as any)?.brandId ? "yes" : "NONE",
         marketplace: !!offer?.isMarketplace,
         offerUrl: offer?.url ? "yes" : "NONE",
         qrData: (payload as any)?.qrData ? "yes" : "NONE",
