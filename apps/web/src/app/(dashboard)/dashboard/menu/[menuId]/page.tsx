@@ -564,10 +564,25 @@ export default function MenuEditorPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {filteredProducts.map((p: any, idx: number) => {
-                    const modCount =
-                      p.modifierGroupLinks?.length ??
-                      p._count?.modifierGroupLinks ??
-                      0;
+                    // Distinct groups this product can actually offer, from
+                    // BOTH places they attach. A sized product routes its
+                    // groups through the selected SKU, so a pizza with a
+                    // per-size crust list has NO product-level links — this
+                    // counted only those and so read "no modifier groups" on
+                    // a product that opens three of them.
+                    const modCount = (() => {
+                      const ids = new Set<string>();
+                      for (const l of p.modifierGroupLinks ?? []) {
+                        if (l?.groupId) ids.add(l.groupId);
+                      }
+                      for (const sku of p.productSkus ?? []) {
+                        for (const gid of sku?.modifierGroups ?? []) {
+                          if (typeof gid === "string" && gid) ids.add(gid);
+                        }
+                      }
+                      // Links may arrive as a count instead of an array.
+                      return ids.size || p._count?.modifierGroupLinks || 0;
+                    })();
                     return (
                       <Card
                         key={p.id}
