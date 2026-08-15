@@ -26,6 +26,13 @@
 //      This matches Base44's observed behaviour.
 
 import { createHash } from "crypto";
+import {
+  foldSizedProduct,
+  type FoldedProduct,
+  type OptionPricing,
+  type RawGroup,
+  type RawOption,
+} from "./import-sizes";
 import type {
   NormalizedCategory,
   NormalizedMenu,
@@ -92,8 +99,12 @@ interface DeliverooModifierGroup {
  *   3 — the writer keeps an option in EVERY group that holds it. It used to
  *       overwrite, so a shared option survived only in the last group and the
  *       others showed "(0 modifiers)".
+ *   4 — a size choice's price is a DELTA above the product's, so sizes were
+ *       importing at the difference (a £11.99 12-inch arriving as £3.00), and
+ *       the groups hanging off a size choice are that size's own — they were
+ *       dropped entirely. See importers/import-sizes.ts.
  */
-const CLASSIFIER_VERSION = 3;
+const CLASSIFIER_VERSION = 4;
 
 const sha = (s: string): string =>
   createHash("sha256").update(s).digest("hex").slice(0, 32);
@@ -227,6 +238,89 @@ export function classifyDeliverooMenu(
   }
   const itemsById = new Map(items.map((i) => [i.id, i]));
 
+  // Step 1b: fold every sized product back off the wire BEFORE classifying,
+  // because the fold decides which option and group rows are per-size copies
+  // that must not also be written standalone — and products and choices are
+  // interleaved in items[], so a copy can be reached before its product is.
+  const payloadGroupIds = new Set(modifierGroups.map((mg) => mg.id));
+  const toRawGroup = (mg: DeliverooModifierGroup): RawGroup => ({
+    externalId: mg.id,
+    name: localized(mg.name) || mg.id,
+    minSelections: Number(mg.min_selection ?? 0),
+    maxSelections: Number(mg.max_selection ?? 1),
+    allowDuplicateSelections: !!mg.repeatable,
+    optionExternalIds: mg.item_ids ?? [],
+  });
+  const toRawOption = (item: DeliverooItem): RawOption => ({
+    externalId: item.id,
+    name: localized(item.name) || item.id,
+    price: priceFrom(item),
+    plu: (item.plu ?? item.id).toString(),
+    isAvailable: item.available !== false,
+  });
+
+  const foldByProductId = new Map<string, FoldedProduct>();
+  /** Per-size copies folded away — never written as rows of their own. */
+  const consumedGroupIds = new Set<string>();
+  const consumedOptionIds = new Set<string>();
+  /** Canonical option id → per-size prices recovered from the copies. */
+  const optionPricing = new Map<string, OptionPricing>();
+  const rebuiltGroups = new Map<string, RawGroup>();
+  const rebuiltOptions = new Map<string, RawOption>();
+
+  for (const item of items) {
+    if (!productItemIds.has(item.id) || item.type === "CHOICE") continue;
+    const groupIds = extractModifierGroupIds(item);
+    const sizeGroupId = groupIds.find((g) => sizeGroupIds.has(g));
+    if (!sizeGroupId) continue;
+    const sizeGroup = groupsById.get(sizeGroupId);
+    if (!sizeGroup?.item_ids?.length) continue;
+
+    const fold = foldSizedProduct({
+      // Deliveroo adds a choice's price to the item's, so a size choice reads
+      // back as the difference. Menus that put the whole price on the choice
+      // leave the item at £0.00, and this addition is then a no-op.
+      productPrice: priceFrom(item),
+      sizes: sizeGroup.item_ids.map((optId) => {
+        const opt = itemsById.get(optId);
+        return {
+          externalId: optId,
+          name: localized(opt?.name) || optId,
+          price: opt ? priceFrom(opt) : 0,
+          plu: (opt?.plu ?? optId).toString(),
+          nestedGroupIds: opt ? extractModifierGroupIds(opt) : [],
+        };
+      }),
+      productGroupIds: groupIds.filter((g) => g !== sizeGroupId),
+      groupById: (id) => {
+        const mg = groupsById.get(id);
+        return mg ? toRawGroup(mg) : undefined;
+      },
+      optionById: (id) => {
+        const it = itemsById.get(id);
+        return it ? toRawOption(it) : undefined;
+      },
+      payloadGroupIds,
+    });
+
+    foldByProductId.set(item.id, fold);
+    for (const id of fold.consumedGroupIds) consumedGroupIds.add(id);
+    for (const id of fold.consumedOptionIds) consumedOptionIds.add(id);
+    for (const g of fold.rebuiltGroups) rebuiltGroups.set(g.externalId, g);
+    for (const o of fold.rebuiltOptions) rebuiltOptions.set(o.externalId, o);
+    for (const [optId, pricing] of fold.pricing) {
+      const existing = optionPricing.get(optId);
+      if (!existing) {
+        optionPricing.set(optId, pricing);
+        continue;
+      }
+      // Two sized products sharing a group agree on its per-size prices —
+      // they came from the same option row before publishing split it.
+      Object.assign(existing.pricesBySize, pricing.pricesBySize);
+      Object.assign(existing.skuPlus, pricing.skuPlus);
+    }
+  }
+
   // Step 2: classify each item.
   const products: NormalizedProduct[] = [];
   const modifiers: NormalizedModifier[] = [];
@@ -253,42 +347,24 @@ export function classifyDeliverooMenu(
 
       const image = imageFrom(item);
 
-      // Sizes come in as a required single-choice group. Lift the first one
-      // into productSkus and drop it from the modifier list, so a 12" pizza
-      // is a SIZE on the product rather than a topping the operator has to
-      // pick before they can price anything.
+      // Sizes come in as a required single-choice group. Lift it into
+      // productSkus and drop it from the modifier list, so a 12" pizza is a
+      // SIZE on the product rather than a topping the operator has to pick
+      // before they can price anything. The fold (Step 1b) also turns each
+      // size choice's own groups into that SKU's groups and recovers the
+      // per-size prices — see importers/import-sizes.ts.
       const sizeGroupId = groupIds.find((g) => sizeGroupIds.has(g));
       // Everything else stays a normal modifier group on the product.
       const normalGroupIds = groupIds.filter((g) => g !== sizeGroupId);
-      const skus = sizeGroupId
-        ? (groupsById.get(sizeGroupId)?.item_ids ?? []).map((optId) => {
-            const opt = itemsById.get(optId);
-            return {
-              name: localized(opt?.name) || optId,
-              plu: (opt?.plu ?? optId).toString(),
-              price: opt ? priceFrom(opt) : 0,
-              // A sized product routes its groups through the SELECTED SKU —
-              // the picker reads selectedSku.modifierGroups and ignores the
-              // product's own links. Emitting [] here is why every product
-              // that got sizes lost all of its toppings.
-              //
-              // Deliveroo has no per-size group concept: the product's other
-              // groups apply whichever size you pick, so every SKU gets the
-              // same list. These are EXTERNAL ids; the writer translates them
-              // to local ids once the groups have been upserted.
-              modifierGroups: [...normalGroupIds],
-            };
-          })
-        : [];
+      const skus = foldByProductId.get(item.id)?.skus ?? [];
       if (sizeGroupId && skus.length) {
         sizeGroupsUsed.add(sizeGroupId);
       }
-      // Deliveroo prices the product at 0 when the size carries the price.
-      // Show the cheapest size so the tile isn't "£0.00".
-      const basePrice =
-        skus.length && price === 0
-          ? Math.min(...skus.map((s) => s.price))
-          : price;
+      // Every SKU price is already absolute. The tile shows the cheapest, so
+      // a product whose sizes carry the whole price isn't listed at "£0.00".
+      const basePrice = skus.length
+        ? Math.min(...skus.map((s) => s.price))
+        : price;
 
       products.push({
         externalId: item.id,
@@ -321,6 +397,11 @@ export function classifyDeliverooMenu(
       // Already lifted into a product's sizes — emitting it again would show
       // "12 inch" as a topping as well as a size.
       if (sizeChoiceIds.has(item.id)) continue;
+      // One of the per-size copies publishing splits an option into. Its
+      // price has been folded back onto the canonical option as a
+      // pricesBySize entry; writing it too would put "Stuffed crust" on the
+      // menu once per size.
+      if (consumedOptionIds.has(item.id)) continue;
       // A choice can itself carry modifier groups — "Make it a meal" opening
       // a sides and a drinks picker. Those groups and their options are
       // already in menu.modifiers[] / menu.items[], so they import as normal
@@ -348,18 +429,41 @@ export function classifyDeliverooMenu(
       }
       const price = priceFrom(item);
       const plu = (item.plu ?? item.id).toString();
+      // Per-size prices recovered from the copies, when this option is one
+      // publishing had split. Empty for every ordinary modifier.
+      const pricing = optionPricing.get(item.id);
       modifiers.push({
         externalId: item.id,
         name: localized(item.name) || item.id,
         plu,
         priceAdjustment: price,
-        pricesBySize: {},
-        skuPlus: {},
+        pricesBySize: pricing?.pricesBySize ?? {},
+        skuPlus: pricing?.skuPlus ?? {},
         isAvailable: item.available !== false,
         visibleToCustomers: true,
-        syncHash: sha(JSON.stringify({ name: item.name, plu, price, available: item.available })),
+        syncHash: sha(JSON.stringify({ name: item.name, plu, price, available: item.available, pricing: pricing ?? null })),
       });
     }
+  }
+
+  // Options that existed ONLY as per-size copies — publishing a sized product
+  // emits `Stuffed__10` and `Stuffed__12` but never a plain `Stuffed`, so the
+  // canonical row has to be recreated from them.
+  const emittedModifierIds = new Set(modifiers.map((m) => m.externalId));
+  for (const opt of rebuiltOptions.values()) {
+    if (emittedModifierIds.has(opt.externalId)) continue;
+    const pricing = optionPricing.get(opt.externalId);
+    modifiers.push({
+      externalId: opt.externalId,
+      name: opt.name,
+      plu: opt.plu,
+      priceAdjustment: opt.price,
+      pricesBySize: pricing?.pricesBySize ?? {},
+      skuPlus: pricing?.skuPlus ?? {},
+      isAvailable: opt.isAvailable,
+      visibleToCustomers: true,
+      syncHash: sha(JSON.stringify({ name: opt.name, plu: opt.plu, price: opt.price, pricing: pricing ?? null })),
+    });
   }
 
   // Step 3: normalize categories.
@@ -382,6 +486,10 @@ export function classifyDeliverooMenu(
   const groupModifierLinks: NormalizedMenu["modifierGroupModifierLinks"] = [];
   const normalizedGroups: NormalizedModifierGroup[] = modifierGroups
     .filter((mg) => !sizeGroupsUsed.has(mg.id))
+    // Per-size copies of one authored group. They've been folded back into a
+    // single group whose options carry pricesBySize; keeping them too would
+    // show the operator one "Base" group per size.
+    .filter((mg) => !consumedGroupIds.has(mg.id))
     .map((mg) => {
     const min = Number(mg.min_selection ?? 0);
     const max = Number(mg.max_selection ?? 1);
@@ -405,6 +513,38 @@ export function classifyDeliverooMenu(
       syncHash: sha(JSON.stringify({ name: mg.name, min, max, optionIds, repeatable: mg.repeatable })),
     };
   });
+
+  // The canonical groups behind those copies. A sized product's groups exist
+  // on the wire ONLY as per-size copies, so without this the SKUs would point
+  // at ids nothing ever wrote.
+  const emittedGroupIds = new Set(normalizedGroups.map((g) => g.externalId));
+  for (const g of rebuiltGroups.values()) {
+    if (emittedGroupIds.has(g.externalId)) continue;
+    for (const optId of g.optionExternalIds) {
+      groupModifierLinks.push({
+        modifierGroupExternalId: g.externalId,
+        modifierExternalId: optId,
+      });
+    }
+    normalizedGroups.push({
+      externalId: g.externalId,
+      name: g.name,
+      plu: g.externalId,
+      selectionType: g.maxSelections > 1 ? "ADDON" : "VARIANT",
+      minSelections: g.minSelections,
+      maxSelections: g.maxSelections,
+      allowDuplicateSelections: g.allowDuplicateSelections,
+      modifierExternalIds: g.optionExternalIds,
+      syncHash: sha(
+        JSON.stringify({
+          name: g.name,
+          min: g.minSelections,
+          max: g.maxSelections,
+          optionIds: g.optionExternalIds,
+        }),
+      ),
+    });
+  }
 
   // Step 5: surface fragility warnings (Base44 audit calls these out).
   if (itemsWithoutModifierIdsCount > 0 && products.length > 0 && modifierGroups.length > 0) {

@@ -96,9 +96,64 @@ describe("Deliveroo import — sizes", () => {
     expect(r.products.find((p) => p.externalId === "pizza")!.price).toBe(8.99);
   });
 
-  it("leaves a real product price alone", () => {
+  it("adds the product price to each size, because Deliveroo does", () => {
+    // A choice's price is what the marketplace ADDS to the item's, so an item
+    // at £10 with a "9 inch +£8.99" charges the customer £18.99. Reading the
+    // choice price as the size price undercharges by the item price on every
+    // order — and it's how we publish sizes ourselves (base + delta), so a
+    // round trip used to come back with a £0.00 smallest size.
     const r = classifyDeliverooMenu(payload({ productPrice: 1000 }) as any);
-    expect(r.products.find((p) => p.externalId === "pizza")!.price).toBe(10);
+    const pizza = r.products.find((p) => p.externalId === "pizza")!;
+    expect(pizza.productSkus.map((s) => s.price)).toEqual([18.99, 21.99]);
+    // The tile shows the cheapest size, which is what the customer sees first.
+    expect(pizza.price).toBe(18.99);
+  });
+
+  it("reads our own published shape back at the prices we published", () => {
+    // The round trip that matters: publish prices the item at its cheapest
+    // size and each size at the difference. Importing that must give back the
+    // sizes we started with, not the differences.
+    const r = classifyDeliverooMenu({
+      menu: {
+        categories: [{ id: "c", name: L("Pizzas"), item_ids: ["pizza"] }],
+        modifiers: [
+          {
+            id: "pizza__sizes",
+            name: L("Size"),
+            item_ids: ["pizza__size0", "pizza__size1"],
+            min_selection: 1,
+            max_selection: 1,
+          },
+        ],
+        items: [
+          {
+            id: "pizza",
+            type: "ITEM",
+            name: L("Margherita"),
+            plu: "MARG",
+            price_info: { price: 899 },
+            modifier_ids: ["pizza__sizes"],
+          },
+          {
+            id: "pizza__size0",
+            type: "CHOICE",
+            name: L("9 inch"),
+            plu: "S9",
+            price_info: { price: 0 },
+          },
+          {
+            id: "pizza__size1",
+            type: "CHOICE",
+            name: L("12 inch"),
+            plu: "S12",
+            price_info: { price: 300 },
+          },
+        ],
+      },
+    } as any);
+
+    const pizza = r.products.find((p) => p.externalId === "pizza")!;
+    expect(pizza.productSkus.map((s) => s.price)).toEqual([8.99, 11.99]);
   });
 
   it("keeps non-size groups attached as modifier groups", () => {

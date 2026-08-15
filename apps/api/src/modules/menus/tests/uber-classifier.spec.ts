@@ -151,3 +151,166 @@ describe("classifyUberMenu", () => {
     expect(result.warnings.length).toBeGreaterThan(0);
   });
 });
+
+// ── Nested modifier groups ──────────────────────────────────────────────────
+//
+// An Uber option can carry modifier groups of its own — "Make It a Meal"
+// opening a sides picker and a drinks picker. The classifier used to read
+// options for name and price only, so a meal deal imported looking complete
+// and behaved as if empty: the customer picked "Make It a Meal +£3.99" and
+// was never asked which side.
+
+const mealFixture = (): any => ({
+  categories: [
+    {
+      id: "cat1",
+      title: { translations: { en_us: "Burgers" } },
+      entities: [{ id: "burger" }],
+    },
+  ],
+  items: [
+    {
+      id: "burger",
+      title: { translations: { en_us: "Big Boss Burger" } },
+      price_info: { price: 899 },
+      modifier_group_ids: { ids: ["mg_meal"] },
+    },
+    {
+      id: "opt_meal",
+      title: { translations: { en_us: "Make It a Meal" } },
+      price_info: { price: 399 },
+      // The nesting: choosing this opens two more groups.
+      modifier_group_ids: { ids: ["mg_side", "mg_drink"] },
+    },
+    { id: "opt_fries", title: { translations: { en_us: "Fries" } }, price_info: { price: 0 } },
+    { id: "opt_coke", title: { translations: { en_us: "Coke" } }, price_info: { price: 0 } },
+  ],
+  modifier_groups: [
+    {
+      id: "mg_meal",
+      title: { translations: { en_us: "Make It a Meal" } },
+      quantity_info: { quantity: { min_permitted: 0, max_permitted: 1 } },
+      modifier_options: [{ id: "opt_meal" }],
+    },
+    {
+      id: "mg_side",
+      title: { translations: { en_us: "Choose Side" } },
+      quantity_info: { quantity: { min_permitted: 1, max_permitted: 1 } },
+      modifier_options: [{ id: "opt_fries" }],
+    },
+    {
+      id: "mg_drink",
+      title: { translations: { en_us: "Choose Drink" } },
+      quantity_info: { quantity: { min_permitted: 1, max_permitted: 1 } },
+      modifier_options: [{ id: "opt_coke" }],
+    },
+  ],
+});
+
+describe("Uber classifier — nested modifier groups", () => {
+  it("links an option to every group it opens, in payload order", () => {
+    const r = classifyUberMenu(mealFixture());
+    expect(r.optionNestedGroupLinks).toEqual([
+      { modifierExternalId: "opt_meal", modifierGroupExternalId: "mg_side", sortOrder: 0 },
+      { modifierExternalId: "opt_meal", modifierGroupExternalId: "mg_drink", sortOrder: 1 },
+    ]);
+  });
+
+  it("still writes the nested groups and their options as normal rows", () => {
+    // They're ordinary groups — only the option → group edge is extra.
+    const r = classifyUberMenu(mealFixture());
+    expect(r.modifierGroups.map((g) => g.externalId)).toEqual(
+      expect.arrayContaining(["mg_meal", "mg_side", "mg_drink"]),
+    );
+    expect(r.modifiers.map((m) => m.externalId)).toEqual(
+      expect.arrayContaining(["opt_meal", "opt_fries", "opt_coke"]),
+    );
+  });
+
+  it("leaves the product linked only to its own top-level group", () => {
+    const r = classifyUberMenu(mealFixture());
+    expect(r.products[0]!.modifierGroupExternalIds).toEqual(["mg_meal"]);
+  });
+
+  it("skips a nested link whose group is missing from the payload", () => {
+    const payload = mealFixture();
+    payload.items[1].modifier_group_ids = { ids: ["mg_side", "mg_ghost"] };
+    const r = classifyUberMenu(payload);
+    expect(r.optionNestedGroupLinks.map((l) => l.modifierGroupExternalId)).toEqual(
+      ["mg_side"],
+    );
+    expect(r.warnings.join(" ")).toContain("missing from the menu payload");
+  });
+
+  it("emits no nested links for a flat menu", () => {
+    expect(classifyUberMenu(fixture()).optionNestedGroupLinks).toEqual([]);
+  });
+
+  it("says in the warnings which options open their own groups", () => {
+    expect(classifyUberMenu(mealFixture()).warnings.join(" ")).toContain(
+      "Make It a Meal",
+    );
+  });
+});
+
+// ── Sizes ───────────────────────────────────────────────────────────────────
+
+describe("Uber classifier — sizes", () => {
+  const sized = (groupName = "Size"): any => ({
+    categories: [
+      { id: "c", title: { translations: { en_us: "Pizzas" } }, entities: [{ id: "pizza" }] },
+    ],
+    items: [
+      {
+        id: "pizza",
+        title: { translations: { en_us: "Margherita" } },
+        price_info: { price: 800 },
+        modifier_group_ids: { ids: ["mg_size"] },
+      },
+      { id: "s10", title: { translations: { en_us: "10 inch" } }, external_data: "M10", price_info: { price: 0 } },
+      { id: "s12", title: { translations: { en_us: "12 inch" } }, external_data: "M12", price_info: { price: 200 } },
+    ],
+    modifier_groups: [
+      {
+        id: "mg_size",
+        title: { translations: { en_us: groupName } },
+        quantity_info: { quantity: { min_permitted: 1, max_permitted: 1 } },
+        modifier_options: [{ id: "s10" }, { id: "s12" }],
+      },
+    ],
+  });
+
+  it("lifts a required single-choice size group into product SKUs", () => {
+    const r = classifyUberMenu(sized());
+    const pizza = r.products[0]!;
+    expect(pizza.hasMultipleSkus).toBe(true);
+    expect(pizza.productSkus.map((s) => s.name)).toEqual(["10 inch", "12 inch"]);
+    expect(pizza.productSkus.map((s) => s.plu)).toEqual(["M10", "M12"]);
+  });
+
+  it("adds the item price to each size, because Uber does", () => {
+    // Uber ADDS a modifier's price to the item's, so a "12 inch +£2.00" on an
+    // £8.00 item charges £10.00. Reading the choice price as the size price
+    // would undercharge by the item price on every order.
+    const r = classifyUberMenu(sized());
+    expect(r.products[0]!.productSkus.map((s) => s.price)).toEqual([8, 10]);
+  });
+
+  it("doesn't leave the size group as a modifier group as well", () => {
+    const r = classifyUberMenu(sized());
+    expect(r.modifierGroups).toHaveLength(0);
+    expect(r.products[0]!.modifierGroupExternalIds).toEqual([]);
+  });
+
+  it("doesn't list the sizes as modifiers as well", () => {
+    expect(classifyUberMenu(sized()).modifiers).toHaveLength(0);
+  });
+
+  it("leaves a single-choice group alone when the name isn't size-like", () => {
+    // "Choose your sauce" is also pick-exactly-one. Turning sauces into sizes
+    // would wreck a menu far more visibly than missing a size group.
+    const r = classifyUberMenu(sized("Choose your sauce"));
+    expect(r.products[0]!.hasMultipleSkus).toBe(false);
+    expect(r.modifierGroups.map((g) => g.externalId)).toEqual(["mg_size"]);
+  });
+});
