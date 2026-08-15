@@ -267,7 +267,12 @@ export class DeliverooMenuPublishService {
     );
     const groupsById = await this.loadGroupsById(Array.from(skuGroupIds));
 
-    return cats.map((c) => ({
+    // Why items get dropped, counted rather than guessed at. Deliveroo's own
+    // rejection for an empty menu is "mealtimes: cannot be blank", which says
+    // nothing about the items — so without this the log named every category
+    // as empty and gave no clue which filter emptied it.
+    const dropped = { hidden: 0, missing: 0, variant: 0 };
+    const result = cats.map((c) => ({
       id: c.id,
       name: c.name,
       description: c.description ?? null,
@@ -275,11 +280,39 @@ export class DeliverooMenuPublishService {
         // A configured variant restricts this store to ONLY that
         // variant's own brand's items — everything else is dropped from
         // the publish entirely, not merely left at its own price.
-        .filter((l) => l.isVisible && l.item && (variantMap?.appliesToItem(l.item) ?? true))
+        .filter((l) => {
+          if (!l.isVisible) return (dropped.hidden++, false);
+          if (!l.item) return (dropped.missing++, false);
+          if (!(variantMap?.appliesToItem(l.item) ?? true)) {
+            return (dropped.variant++, false);
+          }
+          return true;
+        })
         .flatMap((l) =>
           this.toSrcProducts(l, skusByItem, groupsByItem, groupsById, variantMap),
         ),
     }));
+
+    const links = cats.reduce((n, c) => n + c.items.length, 0);
+    const kept = result.reduce((n, c) => n + c.products.length, 0);
+    this.logger.log(
+      `Deliveroo publish menu=${menuId}: ${cats.length} categories, ` +
+        `${links} item links → kept ${kept} ` +
+        `(dropped hidden=${dropped.hidden} missing=${dropped.missing} ` +
+        `variant-brand=${dropped.variant})` +
+        (variantMap ? " [pricing variant active]" : ""),
+    );
+    if (links > 0 && kept === 0) {
+      throw new BadRequestException(
+        dropped.variant > 0
+          ? `All ${links} items were excluded by the pricing variant configured for DELIVEROO — ` +
+            "it restricts this publish to one brand's items and none of this menu's items belong to it. " +
+            "Check Channels → Deliveroo, or the items' brands."
+          : `This menu's ${links} item links are all hidden or point at deleted products, ` +
+            "so there is nothing to publish.",
+      );
+    }
+    return result;
   }
 
   /** Parse the productSkus JSON into typed rows (only for multi-SKU items). */
