@@ -17,7 +17,10 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Percent, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { CHANNEL_VARIANT_PRESETS } from "@orderhub/shared";
+import {
+  CHANNEL_VARIANT_PRESETS,
+  slugifyChannelKey,
+} from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
 
@@ -47,20 +50,22 @@ export function ChannelPricingModal({
   onClose,
 }: Props) {
   const qc = useQueryClient();
-  // channelKey → uplift %. A channel absent from this map is simply not sold
-  // on, and is left completely alone.
-  const [picked, setPicked] = useState<Record<string, number>>({});
+  // channelKey → { display name, uplift % }. A channel absent from this map is
+  // simply not sold on, and is left completely alone. The name is carried
+  // because a custom channel has no preset to look it up in.
+  const [picked, setPicked] = useState<
+    Record<string, { name: string; percent: number }>
+  >({});
+  const [customName, setCustomName] = useState("");
 
   const apply = useMutation({
     mutationFn: () =>
       menusClient.applyChannelPricing(menuId, {
         brandId,
-        channels: Object.entries(picked).map(([channelKey, percent]) => ({
+        channels: Object.entries(picked).map(([channelKey, v]) => ({
           channelKey,
-          name:
-            CHANNEL_VARIANT_PRESETS.find((p) => p.channelKey === channelKey)
-              ?.name ?? channelKey,
-          percent,
+          name: v.name,
+          percent: v.percent,
         })),
       }),
     onSuccess: (r: any) => {
@@ -78,13 +83,26 @@ export function ChannelPricingModal({
 
   if (!open) return null;
 
-  const toggle = (key: string) =>
+  const toggle = (key: string, name: string) =>
     setPicked((p) => {
       const next = { ...p };
       if (key in next) delete next[key];
-      else next[key] = 20; // the commission most marketplaces actually charge
+      // 20% is roughly what the marketplaces actually charge, so it's the
+      // least surprising starting point.
+      else next[key] = { name, percent: 20 };
       return next;
     });
+
+  const addCustom = () => {
+    const name = customName.trim();
+    const key = slugifyChannelKey(name);
+    // slugify strips everything non-alphanumeric, so a name of only symbols
+    // yields an empty key — refuse rather than write a variant nothing can
+    // ever be matched against.
+    if (!name || !key) return;
+    setPicked((p) => ({ ...p, [key]: { name, percent: 20 } }));
+    setCustomName("");
+  };
 
   const chosen = Object.keys(picked);
 
@@ -119,7 +137,7 @@ export function ChannelPricingModal({
               {CHANNEL_VARIANT_PRESETS.map((p) => (
                 <button
                   key={p.channelKey}
-                  onClick={() => toggle(p.channelKey)}
+                  onClick={() => toggle(p.channelKey, p.name)}
                   className={`rounded-lg border px-3 py-1.5 text-sm ${
                     p.channelKey in picked
                       ? "border-orange-500 bg-orange-50 text-orange-800"
@@ -131,28 +149,58 @@ export function ChannelPricingModal({
                 </button>
               ))}
             </div>
+            {/* Anything beyond the presets — Careem, Talabat, a new
+                marketplace next year. Same free-text pattern the per-product
+                modal already uses, and the same slugified key, so a channel
+                added in either place is the same channel. */}
+            <div className="mt-2 flex gap-2">
+              <input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustom();
+                  }
+                }}
+                placeholder="Other channel (Careem, Talabat, Just Eat Pay…)"
+                className="flex-1 rounded-lg border border-dashed border-zinc-300 px-3 py-1.5 text-sm placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addCustom}
+                disabled={!customName.trim()}
+              >
+                + Add
+              </Button>
+            </div>
           </div>
 
           {chosen.length > 0 && (
             <div className="space-y-3 rounded-xl border border-zinc-200 p-4">
               {chosen.map((key) => {
-                const preset = CHANNEL_VARIANT_PRESETS.find(
-                  (p) => p.channelKey === key,
-                );
                 return (
                   <div key={key} className="flex items-center justify-between gap-4">
-                    <span className="text-sm font-medium text-zinc-900">
-                      {preset?.name ?? key}
-                    </span>
+                    <button
+                      onClick={() => toggle(key, picked[key]!.name)}
+                      title="Remove this channel"
+                      className="text-sm font-medium text-zinc-900 hover:text-zinc-500"
+                    >
+                      {picked[key]!.name} <span className="text-zinc-300">×</span>
+                    </button>
                     <div className="flex flex-wrap gap-1.5">
                       {PERCENT_CHOICES.map((pct) => (
                         <button
                           key={pct}
                           onClick={() =>
-                            setPicked((p) => ({ ...p, [key]: pct }))
+                            setPicked((p) => ({
+                              ...p,
+                              [key]: { ...p[key]!, percent: pct },
+                            }))
                           }
                           className={`min-w-[3.25rem] rounded-lg border px-2 py-1 text-xs font-medium ${
-                            picked[key] === pct
+                            picked[key]?.percent === pct
                               ? "border-zinc-900 bg-zinc-900 text-white"
                               : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
                           }`}

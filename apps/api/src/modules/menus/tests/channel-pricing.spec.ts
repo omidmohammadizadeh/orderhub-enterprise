@@ -286,3 +286,44 @@ describe("channel pricing — brand resolution", () => {
     expect(refs).toContain(OTHER_UBER);
   });
 });
+
+// ── Custom channels ─────────────────────────────────────────────────────────
+//
+// The presets won't be the whole list forever — Careem, Talabat, whatever
+// launches next. A typed name becomes a slugified key, the same one the
+// per-product modal produces, so a channel added in either place is the same
+// channel rather than two that look alike.
+
+describe("channel pricing — custom channels", () => {
+  it("accepts a channel that isn't a preset", async () => {
+    const { svc, updatedItems, variants } = makeService([flatItem("i1", 10)]);
+    await svc.applyChannelPricing("m1", "t1", {
+      brandId: BRAND,
+      channels: [{ channelKey: "CAREEM", name: "Careem", percent: 15 }],
+    });
+    const ref = brandChannelRef(BRAND, "CAREEM");
+    expect(updatedItems[0].data.platformPricingOverrides[ref]).toBe(11.5);
+    expect(variants()).toEqual([
+      {
+        ref,
+        name: "Pizza Uno — Careem",
+        channelKey: "CAREEM",
+        brandId: BRAND,
+      },
+    ]);
+  });
+
+  it("keeps presets and custom channels apart in one pass", async () => {
+    const { svc, updatedItems } = makeService([flatItem("i1", 10)]);
+    await svc.applyChannelPricing("m1", "t1", {
+      brandId: BRAND,
+      channels: [
+        { channelKey: "UBER_EATS", name: "Uber Eats", percent: 20 },
+        { channelKey: "TALABAT", name: "Talabat", percent: 30 },
+      ],
+    });
+    const o = updatedItems[0].data.platformPricingOverrides;
+    expect(o[UBER]).toBe(12);
+    expect(o[brandChannelRef(BRAND, "TALABAT")]).toBe(13);
+  });
+});
