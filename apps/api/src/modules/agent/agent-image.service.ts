@@ -4,24 +4,43 @@ import sharp from "sharp";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { MenusService } from "../menus/menus.service";
 import { ReplicateProvider } from "../video-studio/replicate.provider";
+import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 
 // ── AI product-image generation for the admin agent ─────────────────────────
 //
-// Generates a realistic food photo for a menu item from its name/description
-// via Replicate (default flux-schnell), downscales it to a compact webp, and
-// stores it on the item as a data: URL through the validated MenusService.
+// Generates a realistic food photo for a menu item from its name and
+// DESCRIPTION, crops it to the exact size the menu card expects, hosts it,
+// and sets it on the item through the validated MenusService.
+//
+// Provider: Gemini when GEMINI_API_KEY is set (about a tenth of the cost per
+// image, and the key is already on the API), otherwise Replicate. Force the
+// old path with AGENT_IMAGE_PROVIDER=replicate.
+//
+// Two decisions worth keeping:
+//  - COVER-crop to 1064x768, not "fit inside". Fitting leaves whatever aspect
+//    the model returned, so a square generation renders letterboxed in the
+//    card.
+//  - Upload to storage and store the URL. A data: URL rides in every payload
+//    carrying that item — menu load, POS catalogue, kiosk — so a 100-item
+//    menu would drag ~10MB of base64 around on every request.
 //
 // Rate-limit / cost safety:
-//  - Single-item generation runs inline (one Replicate call, seconds).
-//  - Bulk (a whole menu) runs as a THROTTLED background job — at most
-//    IMAGE_CONCURRENCY in flight — so a 180-item menu never fires 180
-//    simultaneous Replicate calls. The agent gets an immediate "started"
-//    and the photos appear over the following minutes.
-//  - Needs REPLICATE_API_TOKEN. Without it, generation reports a clear error
-//    instead of failing obscurely.
+//  - Single-item generation runs inline (one call, seconds).
+//  - Bulk runs as a THROTTLED background job — at most IMAGE_CONCURRENCY in
+//    flight — so a 180-item menu never fires 180 simultaneous calls. Scope it
+//    with categoryId; a whole menu is rarely what's wanted and always costs
+//    the most.
 
 const DEFAULT_IMAGE_MODEL = "black-forest-labs/flux-schnell";
+// Gemini is roughly a tenth of Replicate's cost per image and its key is
+// already on the API for other features, so it's preferred when present.
+// AGENT_IMAGE_PROVIDER=replicate forces the old path back.
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-image";
 const IMAGE_CONCURRENCY = 2;
+// The menu card, the storefront tile and the POS grid are all built for this.
+// Anything else gets letterboxed or cropped by the browser instead.
+const IMAGE_W = 1064;
+const IMAGE_H = 768;
 const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 90_000;
 
@@ -44,12 +63,27 @@ export class AgentImageService {
     private readonly prisma: PrismaService,
     private readonly menus: MenusService,
     private readonly replicate: ReplicateProvider,
+    private readonly storage: SupabaseStorageService,
   ) {
     this.model = this.config.get<string>("AGENT_IMAGE_MODEL") ?? DEFAULT_IMAGE_MODEL;
   }
 
+  /** Gemini unless it's absent or explicitly overridden. */
+  private get useGemini(): boolean {
+    if (this.config.get<string>("AGENT_IMAGE_PROVIDER") === "replicate") return false;
+    return !!this.config.get<string>("GEMINI_API_KEY");
+  }
+
   get configured(): boolean {
-    return !!this.config.get<string>("REPLICATE_API_TOKEN");
+    return this.useGemini || !!this.config.get<string>("REPLICATE_API_TOKEN");
+  }
+
+  /** Named so the operator is told which key to set, not just "not configured". */
+  private get notConfiguredMessage(): string {
+    return (
+      "Image generation needs GEMINI_API_KEY (preferred) or REPLICATE_API_TOKEN " +
+      "set in the API environment."
+    );
   }
 
   // MenuItem has only a scalar brandId (no `brand` relation), so item queries
@@ -69,7 +103,7 @@ export class AgentImageService {
     styleHint?: string,
   ): Promise<{ ok: boolean; itemId: string; error?: string }> {
     if (!this.configured) {
-      return { ok: false, itemId, error: "Image generation needs REPLICATE_API_TOKEN set in the environment." };
+      return { ok: false, itemId, error: this.notConfiguredMessage };
     }
     const brandIds = await this.tenantBrandIds(tenantId);
     const item = await (this.prisma as any).menuItem.findFirst({
@@ -78,8 +112,8 @@ export class AgentImageService {
     });
     if (!item) return { ok: false, itemId, error: "Item not found for this business." };
 
-    const dataUrl = await this.renderImage(item.name, item.description, styleHint);
-    await this.menus.updateItem(itemId, tenantId, { imageUrl: dataUrl } as any);
+    const imageUrl = await this.renderImage(item.name, item.description, styleHint);
+    await this.menus.updateItem(itemId, tenantId, { imageUrl } as any);
     return { ok: true, itemId };
   }
 
@@ -89,14 +123,16 @@ export class AgentImageService {
     menuId: string,
     onlyMissing: boolean,
     styleHint?: string,
+    /** Photograph one category only — "just the wraps" is the common ask. */
+    categoryId?: string,
   ): { jobId: string } | { error: string } {
     if (!this.configured) {
-      return { error: "Image generation needs REPLICATE_API_TOKEN set in the environment." };
+      return { error: this.notConfiguredMessage };
     }
     const jobId = `img_${menuId}_${this.bulkJobs.size}`;
     const job: BulkJob = { status: "running", total: 0, done: 0, failed: 0, startedAt: 0 };
     this.bulkJobs.set(jobId, job);
-    void this.runBulk(tenantId, menuId, onlyMissing, styleHint, job).catch((e) =>
+    void this.runBulk(tenantId, menuId, onlyMissing, styleHint, job, categoryId).catch((e) =>
       this.logger.error(`bulk image job ${jobId} crashed: ${(e as Error).message}`),
     );
     return { jobId };
@@ -112,11 +148,26 @@ export class AgentImageService {
     onlyMissing: boolean,
     styleHint: string | undefined,
     job: BulkJob,
+    categoryId?: string,
   ) {
     const brandIds = await this.tenantBrandIds(tenantId);
+    // Scoping by category goes through the category link, not menuIds[] — an
+    // item can sit in several categories of the same menu, and only the link
+    // says which.
+    const categoryItemIds = categoryId
+      ? (
+          await (this.prisma as any).menuItemOnCategory.findMany({
+            where: { categoryId, category: { menuId } },
+            select: { itemId: true },
+          })
+        ).map((r: any) => r.itemId)
+      : null;
+
     const items = await (this.prisma as any).menuItem.findMany({
       where: {
-        menuIds: { has: menuId },
+        ...(categoryItemIds
+          ? { id: { in: categoryItemIds } }
+          : { menuIds: { has: menuId } }),
         brandId: { in: brandIds },
         ...(onlyMissing ? { OR: [{ imageUrl: null }, { imageUrl: "" }] } : {}),
       },
@@ -134,8 +185,8 @@ export class AgentImageService {
         if (idx >= items.length) return;
         const it = items[idx];
         try {
-          const dataUrl = await this.renderImage(it.name, it.description, styleHint);
-          await this.menus.updateItem(it.id, tenantId, { imageUrl: dataUrl } as any);
+          const imageUrl = await this.renderImage(it.name, it.description, styleHint);
+          await this.menus.updateItem(it.id, tenantId, { imageUrl } as any);
           job.done++;
         } catch (e) {
           job.failed++;
@@ -149,20 +200,103 @@ export class AgentImageService {
     job.status = "done";
   }
 
-  /** Replicate call → poll → download → downscale to a compact webp data URL. */
+  /**
+   * The prompt.
+   *
+   * The DESCRIPTION does the work. A name is a label and often a brand —
+   * "Filthy Box" describes nothing — while the description lists what's
+   * actually in the dish ("chicken, doner, pitta and garlic sauce in a 14
+   * inch box with a coke"). Prompting from the name alone invents a
+   * different meal that happens to share a title.
+   */
+  private buildPrompt(
+    name: string,
+    description: string | null | undefined,
+    styleHint?: string,
+  ): string {
+    return (
+      `Professional studio food photography of "${name}"` +
+      (description ? `, ${description}` : "") +
+      (styleHint ? `. ${styleHint}` : "") +
+      `. Appetising, freshly served, soft directional studio lighting, shallow ` +
+      `depth of field, clean seamless background, three-quarter angle, high ` +
+      `detail, realistic, restaurant menu quality. No text, no watermark, ` +
+      `no hands, no people.`
+    );
+  }
+
+  /** Generate, crop to the exact menu-card size, and host it. Returns a URL. */
   private async renderImage(
     name: string,
     description: string | null | undefined,
     styleHint?: string,
   ): Promise<string> {
-    const prompt =
-      `Professional food photography of "${name}"` +
-      (description ? `, ${description}` : "") +
-      (styleHint ? `. ${styleHint}` : "") +
-      `. Appetising, freshly served, natural soft lighting, shallow depth of field, ` +
-      `clean neutral background, 45-degree angle, high detail, realistic, ` +
-      `restaurant menu quality. No text, no watermark.`;
+    const prompt = this.buildPrompt(name, description, styleHint);
+    const raw = this.useGemini
+      ? await this.renderWithGemini(prompt)
+      : await this.renderWithReplicate(prompt);
 
+    // COVER, not "fit inside". `fit: inside` leaves whatever aspect the model
+    // returned, so a square generation renders letterboxed in a 4:3 card;
+    // cover fills the box and crops the overflow, which is what a menu tile
+    // actually wants.
+    const jpeg = await sharp(raw)
+      .resize(IMAGE_W, IMAGE_H, { fit: "cover", position: "centre" })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+    const dataUrl = `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+
+    // Host it rather than storing the bytes on the row. A data URL rides in
+    // every payload that carries the item — menu load, POS catalogue, kiosk —
+    // so a 100-item menu drags ~10MB of base64 around on every request.
+    try {
+      return await this.storage.uploadDataUrl(dataUrl, "agent-images");
+    } catch (e) {
+      // Storage down or unconfigured shouldn't lose a paid-for generation.
+      this.logger.warn(
+        `storage upload failed, storing inline instead: ${(e as Error).message}`,
+      );
+      return dataUrl;
+    }
+  }
+
+  /** Gemini: one call, image comes back inline as base64. */
+  private async renderWithGemini(prompt: string): Promise<Buffer> {
+    const key = this.config.get<string>("GEMINI_API_KEY");
+    const model =
+      this.config.get<string>("AGENT_GEMINI_IMAGE_MODEL") ?? DEFAULT_GEMINI_MODEL;
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key ?? "")}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ["IMAGE"],
+            imageConfig: { aspectRatio: "4:3" },
+          },
+        }),
+      },
+    );
+    if (!res.ok) {
+      throw new Error(
+        `Gemini ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`,
+      );
+    }
+    const json: any = await res.json();
+    const parts = json?.candidates?.[0]?.content?.parts ?? [];
+    const inline = parts.find((p: any) => p?.inlineData?.data);
+    if (!inline) {
+      // A refusal comes back as text. Say what it said rather than "no image".
+      const text = parts.map((p: any) => p?.text).filter(Boolean).join(" ");
+      throw new Error(`no image returned${text ? `: ${text.slice(0, 160)}` : ""}`);
+    }
+    return Buffer.from(inline.inlineData.data, "base64");
+  }
+
+  /** Replicate: create → poll → download. */
+  private async renderWithReplicate(prompt: string): Promise<Buffer> {
     const started = await this.replicate.createPrediction({
       prompt,
       model: this.model,
@@ -190,12 +324,8 @@ export class AgentImageService {
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`could not download image (${res.status})`);
-    const raw = Buffer.from(await res.arrayBuffer());
-    // Downscale + webp so the data URL stored on the item stays small.
-    const webp = await sharp(raw)
-      .resize(1024, 768, { fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 74 })
-      .toBuffer();
-    return `data:image/webp;base64,${webp.toString("base64")}`;
+    // Sizing and hosting are the caller's job now — both providers hand back
+    // raw bytes so there is exactly one place that decides the output shape.
+    return Buffer.from(await res.arrayBuffer());
   }
 }

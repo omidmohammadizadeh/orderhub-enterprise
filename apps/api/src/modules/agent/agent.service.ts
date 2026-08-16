@@ -617,10 +617,12 @@ export class AgentService {
           input.menuId,
           input.onlyMissing !== false,
           input.styleHint,
+          input.categoryId,
         );
         if ("jobId" in res) {
           await this.record(user, "agent.menu.images", "menu", input.menuId, {
             onlyMissing: input.onlyMissing !== false,
+            categoryId: input.categoryId ?? null,
           });
           return {
             started: true,

@@ -354,13 +354,22 @@ export const WRITE_TOOL_DEFS = [
   {
     name: "generate_menu_images",
     description:
-      "Generate AI food photos for a WHOLE menu's items as a throttled background job (returns immediately; photos appear over a few minutes). By default only items missing a photo. This costs per image — always tell the operator roughly how many will be generated and get confirmation, then confirmed=true.",
+      "Generate AI food photos for a menu's items as a throttled background job (returns immediately; photos appear over a few minutes). Pass categoryId to do ONE category — 'just the wraps' is the usual ask and is far cheaper than a whole menu. By default only items missing a photo. This costs per image — always tell the operator roughly how many will be generated and get confirmation, then confirmed=true.",
     input_schema: {
       type: "object",
       properties: {
         menuId: { type: "string" },
+        categoryId: {
+          type: "string",
+          description:
+            "Optional — photograph only this category of the menu. Use get_menu to find it. Omit for the whole menu.",
+        },
         onlyMissing: { type: "boolean", description: "Default true — skip items that already have a photo." },
-        styleHint: { type: "string" },
+        styleHint: {
+          type: "string",
+          description:
+            "Optional look, passed into the prompt verbatim, e.g. 'pure black seamless background, single dramatic overhead key light, no props'.",
+        },
         confirmed: { type: "boolean" },
       },
       required: ["menuId"],
