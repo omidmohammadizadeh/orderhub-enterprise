@@ -2772,15 +2772,8 @@ export class MenusService {
       ? (menu.pricingVariants as any)
       : [];
     const byRef = new Map(existing.map((v) => [v.ref, v]));
-    for (const ch of dto.channels) {
-      const ref = brandChannelRef(brand.id, ch.channelKey);
-      byRef.set(ref, {
-        ref,
-        name: `${brand.name} — ${ch.name ?? ch.channelKey}`,
-        channelKey: ch.channelKey,
-        brandId: brand.id,
-      });
-    }
+    // Registration happens AFTER the sweep, once every brand the menu's
+    // products actually belong to is known — see seenBrands.
 
     // Everything this menu serves. Items carry the base price, SKUs carry
     // per-size prices, and modifier options carry their own — a 20% uplift
@@ -2796,6 +2789,13 @@ export class MenusService {
                 basePrice: true,
                 productSkus: true,
                 platformPricingOverrides: true,
+                // The brand is a property of the PRODUCT, not the menu. A menu
+                // can carry products from a different brand than its own — and
+                // when it does, keying the uplift to the menu's brand writes
+                // refs no publisher will ever resolve, because variants are
+                // matched against the product's brand.
+                brandId: true,
+                brandIds: true,
               },
             },
           },
@@ -2805,9 +2805,24 @@ export class MenusService {
     const items = new Map<string, any>();
     for (const c of cats) for (const l of c.items) items.set(l.item.id, l.item);
 
+    // Brands actually encountered, so every one gets its variant registered.
+    const seenBrands = new Set<string>([brand.id]);
+    /** The brands to key this row's overrides by, never an empty list. */
+    const brandsFor = (row: { brandId?: string | null; brandIds?: string[] }) => {
+      const out = new Set<string>();
+      if (row.brandId) out.add(row.brandId);
+      for (const b of row.brandIds ?? []) if (b) out.add(b);
+      // Nothing on the row — fall back to the menu's brand rather than
+      // skipping, so a product with no brand still gets its uplift.
+      if (out.size === 0) out.add(brand.id);
+      for (const b of out) seenBrands.add(b);
+      return [...out];
+    };
+
     let itemsUpdated = 0;
     let skusUpdated = 0;
     for (const item of items.values()) {
+      const itemBrands = brandsFor(item);
       const overrides: Record<string, any> = {
         ...((item.platformPricingOverrides as any) ?? {}),
       };
@@ -2815,16 +2830,18 @@ export class MenusService {
       let touched = false;
 
       for (const ch of dto.channels) {
-        const ref = brandChannelRef(brand.id, ch.channelKey);
-        // 0% means "same as base". Blank is what the per-product modal calls
-        // a default price, so clear the key rather than writing base twice —
-        // otherwise changing the base later silently stops applying here.
-        if (ch.percent === 0) {
-          if (ref in overrides) { delete overrides[ref]; touched = true; }
-          continue;
+        for (const b of itemBrands) {
+          const ref = brandChannelRef(b, ch.channelKey);
+          // 0% means "same as base". Blank is what the per-product modal calls
+          // a default price, so clear the key rather than writing base twice —
+          // otherwise changing the base later silently stops applying here.
+          if (ch.percent === 0) {
+            if (ref in overrides) { delete overrides[ref]; touched = true; }
+            continue;
+          }
+          overrides[ref] = uplift(base, ch.percent);
+          touched = true;
         }
-        overrides[ref] = uplift(base, ch.percent);
-        touched = true;
       }
 
       const skus = Array.isArray(item.productSkus) ? [...item.productSkus] : [];
@@ -2832,13 +2849,15 @@ export class MenusService {
       const nextSkus = skus.map((sku: any) => {
         const po: Record<string, any> = { ...(sku.priceOverrides ?? {}) };
         for (const ch of dto.channels) {
-          const ref = brandChannelRef(brand.id, ch.channelKey);
-          if (ch.percent === 0) {
-            if (ref in po) { delete po[ref]; skusTouched = true; }
-            continue;
+          for (const b of itemBrands) {
+            const ref = brandChannelRef(b, ch.channelKey);
+            if (ch.percent === 0) {
+              if (ref in po) { delete po[ref]; skusTouched = true; }
+              continue;
+            }
+            po[ref] = uplift(Number(sku.price) || 0, ch.percent);
+            skusTouched = true;
           }
-          po[ref] = uplift(Number(sku.price) || 0, ch.percent);
-          skusTouched = true;
         }
         return { ...sku, priceOverrides: po };
       });
@@ -2863,21 +2882,31 @@ export class MenusService {
     if (groupIds.length) {
       const options = await this.prisma.modifierOption.findMany({
         where: { groupId: { in: groupIds } },
-        select: { id: true, priceAdjustment: true, platformPricingOverrides: true },
+        select: {
+          id: true,
+          priceAdjustment: true,
+          platformPricingOverrides: true,
+          // Same rule as items: the option's price belongs to its group's
+          // brand, which need not be the menu's.
+          group: { select: { brandId: true } },
+        },
       });
       for (const o of options) {
         const po: Record<string, any> = {
           ...((o.platformPricingOverrides as any) ?? {}),
         };
         let touched = false;
+        const optBrands = brandsFor({ brandId: (o as any).group?.brandId });
         for (const ch of dto.channels) {
-          const ref = brandChannelRef(brand.id, ch.channelKey);
-          if (ch.percent === 0) {
-            if (ref in po) { delete po[ref]; touched = true; }
-            continue;
+          for (const b of optBrands) {
+            const ref = brandChannelRef(b, ch.channelKey);
+            if (ch.percent === 0) {
+              if (ref in po) { delete po[ref]; touched = true; }
+              continue;
+            }
+            po[ref] = uplift(Number(o.priceAdjustment) || 0, ch.percent);
+            touched = true;
           }
-          po[ref] = uplift(Number(o.priceAdjustment) || 0, ch.percent);
-          touched = true;
         }
         if (touched) {
           await this.prisma.modifierOption.update({
@@ -2889,13 +2918,33 @@ export class MenusService {
       }
     }
 
+    const brandNames = new Map(
+      (
+        await this.prisma.brand.findMany({
+          where: { id: { in: [...seenBrands] }, tenantId },
+          select: { id: true, name: true },
+        })
+      ).map((b) => [b.id, b.name]),
+    );
+    for (const b of seenBrands) {
+      for (const ch of dto.channels) {
+        const ref = brandChannelRef(b, ch.channelKey);
+        byRef.set(ref, {
+          ref,
+          name: `${brandNames.get(b) ?? brand.name} — ${ch.name ?? ch.channelKey}`,
+          channelKey: ch.channelKey,
+          brandId: b,
+        });
+      }
+    }
+
     await this.prisma.menu.update({
       where: { id: menuId },
       data: { pricingVariants: [...byRef.values()] as any },
     });
 
     this.logger.log(
-      `Channel pricing on menu ${menuId} for ${brand.name}: ` +
+      `Channel pricing on menu ${menuId} across ${seenBrands.size} brand(s): ` +
         dto.channels.map((c) => `${c.channelKey} +${c.percent}%`).join(", ") +
         ` → ${itemsUpdated} items, ${skusUpdated} sizes, ${optionsUpdated} options`,
     );

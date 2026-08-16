@@ -32,6 +32,12 @@ function makeService(items: any[], options: any[] = [], groupIds: string[] = [])
     },
     brand: {
       findFirst: jest.fn().mockResolvedValue({ id: BRAND, name: "Pizza Uno" }),
+      findMany: jest.fn(async ({ where }: any) =>
+        (where.id.in as string[]).map((id) => ({
+          id,
+          name: id === BRAND ? "Pizza Uno" : id,
+        })),
+      ),
     },
     menuCategory: {
       findMany: jest.fn().mockResolvedValue([
@@ -214,5 +220,69 @@ describe("channel pricing — variants", () => {
         brandId: BRAND,
       },
     ]);
+  });
+});
+
+// ── Which brand the override is keyed to ────────────────────────────────────
+//
+// The bug this pins, found in production: the uplift was keyed to the MENU's
+// brand. A menu can carry products belonging to a different brand — Grill
+// Stop — Pelton is a "pizza yoyo-test" menu holding "monster burgerzz-pelton"
+// products — and publishers resolve a variant against the PRODUCT's brand.
+// So 944 overrides were written under a ref nothing would ever look up: the
+// call reported success, and not one price would have changed on any channel.
+
+describe("channel pricing — brand resolution", () => {
+  const OTHER = "brand-other";
+  const OTHER_UBER = brandChannelRef(OTHER, "UBER_EATS");
+
+  it("keys the override to the PRODUCT's brand, not the menu's", async () => {
+    const { svc, updatedItems } = makeService([
+      { ...flatItem("i1", 10), brandId: OTHER },
+    ]);
+    await svc.applyChannelPricing("m1", "t1", {
+      brandId: BRAND, // the menu's brand — deliberately not the product's
+      channels: [{ channelKey: "UBER_EATS", percent: 20 }],
+    });
+    const o = updatedItems[0].data.platformPricingOverrides;
+    expect(o[OTHER_UBER]).toBe(12);
+    expect(o).not.toHaveProperty(UBER);
+  });
+
+  it("covers a product sold under several brands", async () => {
+    const { svc, updatedItems } = makeService([
+      { ...flatItem("i1", 10), brandId: OTHER, brandIds: [OTHER, BRAND] },
+    ]);
+    await svc.applyChannelPricing("m1", "t1", {
+      brandId: BRAND,
+      channels: [{ channelKey: "UBER_EATS", percent: 20 }],
+    });
+    const o = updatedItems[0].data.platformPricingOverrides;
+    expect(o[OTHER_UBER]).toBe(12);
+    expect(o[UBER]).toBe(12);
+  });
+
+  it("falls back to the menu's brand when the product names none", async () => {
+    // Skipping would leave that product silently un-uplifted.
+    const { svc, updatedItems } = makeService([flatItem("i1", 10)]);
+    await svc.applyChannelPricing("m1", "t1", {
+      brandId: BRAND,
+      channels: [{ channelKey: "UBER_EATS", percent: 20 }],
+    });
+    expect(updatedItems[0].data.platformPricingOverrides[UBER]).toBe(12);
+  });
+
+  it("registers a variant for every brand it actually touched", async () => {
+    // Without the variant, the ref exists on the product and the publisher
+    // still has nothing to match it against.
+    const { svc, variants } = makeService([
+      { ...flatItem("i1", 10), brandId: OTHER },
+    ]);
+    await svc.applyChannelPricing("m1", "t1", {
+      brandId: BRAND,
+      channels: [{ channelKey: "UBER_EATS", name: "Uber Eats", percent: 20 }],
+    });
+    const refs = (variants() ?? []).map((v: any) => v.ref);
+    expect(refs).toContain(OTHER_UBER);
   });
 });
