@@ -48,6 +48,11 @@ export const appConfig = registerAs("app", () => ({
       authUrl:
         process.env.DELIVEROO_AUTH_URL ??
         "https://auth.developers.deliveroo.com/oauth2/token",
+      // Deliveroo never reports a delivery to the merchant, so platform-
+      // courier orders are closed by polling GET /order/v1/orders/{id}
+      // (DeliverooOrderPollService). On by default; set
+      // DELIVEROO_ORDER_POLL_ENABLED=false to stop it without a deploy.
+      orderPollEnabled: process.env.DELIVEROO_ORDER_POLL_ENABLED !== "false",
     },
     justEat: {
       apiKey: process.env.JUST_EAT_API_KEY ?? "",
