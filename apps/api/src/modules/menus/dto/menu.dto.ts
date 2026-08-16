@@ -8,6 +8,7 @@ import {
   IsObject,
   ValidateNested,
   Min,
+  Max,
   IsPositive,
   MaxLength,
   ArrayMaxSize,
@@ -287,4 +288,26 @@ export class ApplyItemConfigDto {
   @IsOptional()
   @IsBoolean()
   includeSkus?: boolean;
+}
+
+/**
+ * One percentage per channel, applied to every price in a menu.
+ *
+ * Percent is an UPLIFT on the base price, not the resulting price: 20 means
+ * "list 20% higher on this channel". 0 means "same as base" and clears any
+ * override, so the channel simply follows the base price from then on.
+ */
+export class ChannelPricingChannelDto {
+  @ApiProperty() @IsString() channelKey!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
+  @ApiProperty() @IsNumber() @Min(0) @Max(200) percent!: number;
+}
+
+export class ApplyChannelPricingDto {
+  @ApiProperty() @IsString() brandId!: string;
+  @ApiProperty({ type: [ChannelPricingChannelDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ChannelPricingChannelDto)
+  channels!: ChannelPricingChannelDto[];
 }

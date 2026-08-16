@@ -41,6 +41,7 @@ import {
   Settings,
   Tag,
   SlidersHorizontal,
+  Percent,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -56,6 +57,7 @@ import { cn } from "@/lib/utils";
 import { AttachModal } from "@/components/products/attach-modal";
 import { ProductEditorModal } from "@/components/products/product-editor-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
+import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 
 export default function MenuEditorPage() {
   const { menuId } = useParams<{ menuId: string }>();
@@ -89,6 +91,7 @@ export default function MenuEditorPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Phase AZ — pricing variants manager + per-product channel pricing.
   const [variantsOpen, setVariantsOpen] = useState(false);
+  const [channelPricingOpen, setChannelPricingOpen] = useState(false);
   const [pricingTarget, setPricingTarget] = useState<any | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [productSearch, setProductSearch] = useState("");
@@ -296,6 +299,15 @@ export default function MenuEditorPage() {
             variant="outline"
             size="sm"
             className="h-9 gap-1.5"
+            onClick={() => setChannelPricingOpen(true)}
+          >
+            <Percent className="h-4 w-4" />
+            Channels pricing
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5"
             onClick={() => setSettingsOpen(true)}
           >
             <Settings className="h-4 w-4" />
@@ -332,6 +344,11 @@ export default function MenuEditorPage() {
         menuId={menuId}
         variants={(menu as any)?.pricingVariants ?? []}
         onClose={() => setVariantsOpen(false)}
+      />
+      <ChannelPricingModal
+        open={channelPricingOpen}
+        menuId={menuId}
+        onClose={() => setChannelPricingOpen(false)}
       />
       <ProductVariantPricingModal
         open={pricingTarget !== null}

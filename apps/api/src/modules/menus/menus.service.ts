@@ -2728,4 +2728,235 @@ export class MenusService {
 
     throw new NotFoundException("No usable cover image for this menu");
   }
+
+  // ── Channel pricing: one percentage per channel, applied menu-wide ────────
+  //
+  // Marketplaces charge commission, so the same dish has to list higher on
+  // Uber than it does on your own site. Doing that per product is the job
+  // this replaces: an operator setting a 20% Uber uplift across 600 products
+  // one modal at a time will not finish, and a menu imported FROM a
+  // marketplace arrives with the uplift baked into its base prices, where
+  // nobody can see it or take it back out. (That is exactly how De Salt's
+  // menu ended up 20% high on POS and its own website.)
+  //
+  // The uplift is stored as a per-channel OVERRIDE, never folded into
+  // basePrice, so the base menu stays true and the markup stays visible,
+  // adjustable, and reversible.
+  async applyChannelPricing(
+    menuId: string,
+    tenantId: string,
+    dto: {
+      brandId: string;
+      channels: Array<{ channelKey: string; name?: string; percent: number }>;
+    },
+  ) {
+    const menu = await this.prisma.menu.findFirst({
+      where: { id: menuId, brand: { tenantId } },
+      select: { id: true, pricingVariants: true },
+    });
+    if (!menu) throw new NotFoundException("Menu not found");
+
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: dto.brandId, tenantId },
+      select: { id: true, name: true },
+    });
+    if (!brand) throw new BadRequestException("Brand not found");
+
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+    const uplift = (base: number, pct: number) => round2(base * (1 + pct / 100));
+
+    // Register each channel as a brand×channel variant, so the existing
+    // per-product modal, the HubRise catalog and every publisher see these
+    // exactly as they'd see a hand-made one. Same refs, no parallel concept.
+    const existing: PricingVariant[] = Array.isArray(menu.pricingVariants)
+      ? (menu.pricingVariants as any)
+      : [];
+    const byRef = new Map(existing.map((v) => [v.ref, v]));
+    for (const ch of dto.channels) {
+      const ref = brandChannelRef(brand.id, ch.channelKey);
+      byRef.set(ref, {
+        ref,
+        name: `${brand.name} — ${ch.name ?? ch.channelKey}`,
+        channelKey: ch.channelKey,
+        brandId: brand.id,
+      });
+    }
+
+    // Everything this menu serves. Items carry the base price, SKUs carry
+    // per-size prices, and modifier options carry their own — a 20% uplift
+    // that missed the modifiers would undercharge every meal upgrade.
+    const cats = await this.prisma.menuCategory.findMany({
+      where: { menuId },
+      select: {
+        items: {
+          select: {
+            item: {
+              select: {
+                id: true,
+                basePrice: true,
+                productSkus: true,
+                platformPricingOverrides: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    const items = new Map<string, any>();
+    for (const c of cats) for (const l of c.items) items.set(l.item.id, l.item);
+
+    let itemsUpdated = 0;
+    let skusUpdated = 0;
+    for (const item of items.values()) {
+      const overrides: Record<string, any> = {
+        ...((item.platformPricingOverrides as any) ?? {}),
+      };
+      const base = Number(item.basePrice) || 0;
+      let touched = false;
+
+      for (const ch of dto.channels) {
+        const ref = brandChannelRef(brand.id, ch.channelKey);
+        // 0% means "same as base". Blank is what the per-product modal calls
+        // a default price, so clear the key rather than writing base twice —
+        // otherwise changing the base later silently stops applying here.
+        if (ch.percent === 0) {
+          if (ref in overrides) { delete overrides[ref]; touched = true; }
+          continue;
+        }
+        overrides[ref] = uplift(base, ch.percent);
+        touched = true;
+      }
+
+      const skus = Array.isArray(item.productSkus) ? [...item.productSkus] : [];
+      let skusTouched = false;
+      const nextSkus = skus.map((sku: any) => {
+        const po: Record<string, any> = { ...(sku.priceOverrides ?? {}) };
+        for (const ch of dto.channels) {
+          const ref = brandChannelRef(brand.id, ch.channelKey);
+          if (ch.percent === 0) {
+            if (ref in po) { delete po[ref]; skusTouched = true; }
+            continue;
+          }
+          po[ref] = uplift(Number(sku.price) || 0, ch.percent);
+          skusTouched = true;
+        }
+        return { ...sku, priceOverrides: po };
+      });
+      if (skusTouched) skusUpdated += nextSkus.length;
+
+      if (touched || skusTouched) {
+        await this.prisma.menuItem.update({
+          where: { id: item.id },
+          data: {
+            ...(touched ? { platformPricingOverrides: overrides as any } : {}),
+            ...(skusTouched ? { productSkus: nextSkus as any } : {}),
+          },
+        });
+        itemsUpdated++;
+      }
+    }
+
+    // Modifier options reachable from this menu — including nested ones, which
+    // hang off an option and so never appear in an item's own group links.
+    const groupIds = await this.reachableGroupIdsForMenu(menuId, tenantId);
+    let optionsUpdated = 0;
+    if (groupIds.length) {
+      const options = await this.prisma.modifierOption.findMany({
+        where: { groupId: { in: groupIds } },
+        select: { id: true, priceAdjustment: true, platformPricingOverrides: true },
+      });
+      for (const o of options) {
+        const po: Record<string, any> = {
+          ...((o.platformPricingOverrides as any) ?? {}),
+        };
+        let touched = false;
+        for (const ch of dto.channels) {
+          const ref = brandChannelRef(brand.id, ch.channelKey);
+          if (ch.percent === 0) {
+            if (ref in po) { delete po[ref]; touched = true; }
+            continue;
+          }
+          po[ref] = uplift(Number(o.priceAdjustment) || 0, ch.percent);
+          touched = true;
+        }
+        if (touched) {
+          await this.prisma.modifierOption.update({
+            where: { id: o.id },
+            data: { platformPricingOverrides: po as any },
+          });
+          optionsUpdated++;
+        }
+      }
+    }
+
+    await this.prisma.menu.update({
+      where: { id: menuId },
+      data: { pricingVariants: [...byRef.values()] as any },
+    });
+
+    this.logger.log(
+      `Channel pricing on menu ${menuId} for ${brand.name}: ` +
+        dto.channels.map((c) => `${c.channelKey} +${c.percent}%`).join(", ") +
+        ` → ${itemsUpdated} items, ${skusUpdated} sizes, ${optionsUpdated} options`,
+    );
+
+    return {
+      brandId: brand.id,
+      channels: dto.channels,
+      itemsUpdated,
+      skusUpdated,
+      optionsUpdated,
+    };
+  }
+
+  /** Every modifier group this menu can reach, nested ones included. */
+  private async reachableGroupIdsForMenu(
+    menuId: string,
+    tenantId: string,
+  ): Promise<string[]> {
+    const cats = await this.prisma.menuCategory.findMany({
+      where: { menuId },
+      select: {
+        items: {
+          select: {
+            item: {
+              select: {
+                productSkus: true,
+                modifierGroupLinks: { select: { groupId: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+    const ids = new Set<string>();
+    for (const c of cats) {
+      for (const l of c.items) {
+        for (const g of l.item.modifierGroupLinks ?? []) ids.add(g.groupId);
+        // A sized product routes its groups through the SKU, where they are
+        // bare ids with no FK — miss these and every pizza's crust list keeps
+        // its old price. See [[feedback-sku-modifier-groups-no-fk]].
+        for (const sku of (l.item.productSkus as any[]) ?? []) {
+          for (const gid of sku?.modifierGroups ?? []) {
+            if (typeof gid === "string" && gid) ids.add(gid);
+          }
+        }
+      }
+    }
+    if (ids.size === 0) return [];
+    const resolved = await resolveNestedModifierGroups(
+      this.prisma,
+      await this.prisma.modifierGroup.findMany({
+        where: { id: { in: [...ids] }, brand: { tenantId } },
+        include: { options: true },
+      }),
+      { tenantId },
+    );
+    for (const g of resolved) {
+      ids.add(g.id);
+      for (const n of (g as any).nestedGroups ?? []) ids.add(n.id);
+    }
+    return [...ids];
+  }
+
 }

@@ -28,6 +28,7 @@ import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.s
 import { DeliverooMenuPublishService } from "../integrations/deliveroo/deliveroo-menu-publish.service";
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import {
+  ApplyChannelPricingDto,
   CreateMenuDto,
   UpdateMenuDto,
   CreateMasterMenuDto,
@@ -987,4 +988,17 @@ export class MenusController {
   ) {
     return this.menus.unlinkModifierGroupFromItem(itemId, groupId, user.tenantId);
   }
+  @Post(":menuId/channel-pricing")
+  @ApiOperation({
+    summary:
+      "Apply one percentage uplift per channel across every price in a menu",
+  })
+  applyChannelPricing(
+    @Param("menuId") menuId: string,
+    @Body() dto: ApplyChannelPricingDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.applyChannelPricing(menuId, user.tenantId, dto);
+  }
+
 }

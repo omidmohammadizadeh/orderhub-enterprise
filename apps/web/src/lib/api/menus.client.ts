@@ -231,6 +231,26 @@ export const menusClient = {
   getMenu: (menuId: string) =>
     apiClient.get<MenuWithCategories>(`/v1/menus/${menuId}`).then((r) => r.data),
 
+  /**
+   * One percentage uplift per channel, applied to every price in a menu.
+   * Stored as per-channel overrides — base prices are never touched, so POS
+   * and the operator's own site keep charging the real price.
+   */
+  applyChannelPricing: (
+    menuId: string,
+    body: {
+      brandId: string;
+      channels: Array<{ channelKey: string; name?: string; percent: number }>;
+    },
+  ) =>
+    apiClient
+      .post<{
+        itemsUpdated: number;
+        skusUpdated: number;
+        optionsUpdated: number;
+      }>(`/v1/menus/${menuId}/channel-pricing`, body)
+      .then((r) => r.data),
+
   createMenu: (
     brandId: string,
     data: {
