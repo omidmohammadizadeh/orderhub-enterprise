@@ -27,24 +27,47 @@ const PERCENT_CHOICES = [0, 10, 15, 20, 25, 30] as const;
 interface Props {
   open: boolean;
   menuId: string;
+  /**
+   * The brands THIS menu sells under — the menu's own brand plus any carried
+   * by its products. Not the tenant's whole brand list: a multi-site operator
+   * has thirty of those and only one or two are relevant here, so showing all
+   * of them makes the operator hunt for the right one and invites applying an
+   * uplift to a brand this menu has nothing to do with.
+   */
+  brandIds: string[];
   onClose: () => void;
 }
 
-export function ChannelPricingModal({ open, menuId, onClose }: Props) {
+export function ChannelPricingModal({
+  open,
+  menuId,
+  brandIds,
+  onClose,
+}: Props) {
   const qc = useQueryClient();
   const [brandId, setBrandId] = useState<string>("");
   // channelKey → uplift %. A channel absent from this map is simply not sold
   // on, and is left completely alone.
   const [picked, setPicked] = useState<Record<string, number>>({});
 
-  const { data: brands = [] } = useQuery({
+  const { data: allBrands = [] } = useQuery({
     queryKey: ["brands"],
     queryFn: () => brandsClient.list(),
     enabled: open,
   });
+  // Names come from the tenant list; WHICH brands are offered comes from the
+  // menu. Fall back to the full list only if the menu named none, so the
+  // modal is never empty and unusable.
+  const scoped = allBrands.filter((b: any) => brandIds.includes(b.id));
+  const brands = scoped.length ? scoped : allBrands;
 
   useEffect(() => {
-    if (open && brands.length && !brandId) setBrandId(brands[0]!.id);
+    if (!open) return;
+    // Re-pick when the scope changes, not just when nothing is chosen — a
+    // stale id from another menu would apply the uplift to the wrong brand.
+    if (brands.length && !brands.some((b: any) => b.id === brandId)) {
+      setBrandId(brands[0]!.id);
+    }
   }, [open, brands, brandId]);
 
   const apply = useMutation({
@@ -103,6 +126,18 @@ export function ChannelPricingModal({ open, menuId, onClose }: Props) {
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+          {brands.length === 1 && (
+            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
+              <Store className="h-3.5 w-3.5 text-zinc-400" />
+              <span className="text-sm font-medium text-zinc-900">
+                {brands[0]!.name}
+              </span>
+              <span className="text-xs text-zinc-500">
+                — the brand this menu sells under
+              </span>
+            </div>
+          )}
+
           {brands.length > 1 && (
             <div>
               <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">

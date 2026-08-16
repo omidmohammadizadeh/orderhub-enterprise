@@ -112,6 +112,24 @@ export default function MenuEditorPage() {
   const categories = (menu?.categories ?? []) as any[];
   const effectiveCatId =
     activeCatId ?? categories[0]?.id ?? null;
+  // Which brands THIS menu actually sells under — its own brand plus any
+  // carried by its products. The tenant has thirty; showing all of them in the
+  // channel-pricing modal makes the operator hunt, and invites uplifting a
+  // brand this menu has nothing to do with.
+  const menuBrandIds = useMemo(() => {
+    const ids = new Set<string>();
+    const own = (menu as any)?.brandId;
+    if (own) ids.add(own);
+    for (const c of categories) {
+      for (const link of (c as any).items ?? []) {
+        const it = link?.item;
+        if (it?.brandId) ids.add(it.brandId);
+        for (const b of it?.brandIds ?? []) if (b) ids.add(b);
+      }
+    }
+    return [...ids];
+  }, [menu, categories]);
+
   const activeCat = useMemo(
     () => categories.find((c) => c.id === effectiveCatId) ?? null,
     [categories, effectiveCatId],
@@ -348,6 +366,7 @@ export default function MenuEditorPage() {
       <ChannelPricingModal
         open={channelPricingOpen}
         menuId={menuId}
+        brandIds={menuBrandIds}
         onClose={() => setChannelPricingOpen(false)}
       />
       <ProductVariantPricingModal
