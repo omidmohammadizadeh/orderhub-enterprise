@@ -33,14 +33,15 @@ const ORDER_5116 = [
 ];
 
 describe("riderCollectedFromLog", () => {
-  it("reads the unassign after a restaurant stage as collection (#5049)", () => {
-    expect(riderCollectedFromLog(ORDER_5049)).toBe(true);
+  // An unassign is an ABANDONMENT, not a pickup. #5049 and #5116 are both
+  // riders who dropped the job; #4952 shows a real collection sends a proper
+  // forward stage. Treating the unassign as a pickup would mark a live order
+  // Out for delivery while its food is still on the pass with no rider.
+  it("does NOT infer collection from an unassign after arrival (#5049)", () => {
+    expect(riderCollectedFromLog(ORDER_5049)).toBe(false);
   });
 
-  it("does NOT read an unassign before arrival as collection (#5116)", () => {
-    // The rider cancelled and Deliveroo re-assigned. Calling that a pickup
-    // would push the order to Out for delivery while the food is still on
-    // the pass.
+  it("does NOT infer collection from an unassign before arrival (#5116)", () => {
     expect(riderCollectedFromLog(ORDER_5116)).toBe(false);
   });
 
@@ -49,7 +50,7 @@ describe("riderCollectedFromLog", () => {
     expect(riderCollectedFromLog(["rider_assigned", "rider_arrived"])).toBe(false);
   });
 
-  it("is true once a genuine in-transit or delivered stage arrives", () => {
+  it("is true only on a genuine in-transit or delivered stage", () => {
     expect(riderCollectedFromLog(["rider_assigned", "rider_in_transit"])).toBe(true);
     expect(
       riderCollectedFromLog(["rider_assigned", "rider_arrived", "rider_delivered"]),
@@ -61,9 +62,9 @@ describe("riderCollectedFromLog", () => {
     expect(riderCollectedFromLog([undefined, null])).toBe(false);
   });
 
-  it("re-assignment after a real collection still reads as collected", () => {
+  it("a later unassign can't undo a real collection", () => {
     expect(
-      riderCollectedFromLog([...ORDER_5049, "rider_assigned", "rider_unassigned"]),
+      riderCollectedFromLog(["rider_arrived", "rider_in_transit", "rider_unassigned"]),
     ).toBe(true);
   });
 });

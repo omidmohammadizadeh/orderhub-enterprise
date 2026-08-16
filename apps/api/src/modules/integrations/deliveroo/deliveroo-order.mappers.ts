@@ -124,40 +124,32 @@ export function furthestRiderRawStatus(
   return best;
 }
 
-/** Stages that mean the rider is physically at the restaurant. */
-const AT_RESTAURANT = new Set(["RIDER_ARRIVED"]);
-
 /**
  * Did the rider collect the food and leave?
  *
- * Deliveroo NEVER sends `rider_in_transit` or `rider_delivered` to the
- * merchant. Confirmed against production orders #5049 and #5116 (40 rider
- * events, zero `rider_delivered`): the log runs
+ * ONLY an explicit forward stage counts. This deliberately does NOT infer
+ * collection from `rider_unassigned`.
  *
- *   rider_assigned → rider_arrived → rider_confirmed_at_restaurant →
- *   rider_unassigned
+ * An earlier version did, on the evidence of orders #5049 and #5116, whose
+ * logs both ran `rider_assigned → rider_arrived →
+ * rider_confirmed_at_restaurant → rider_unassigned` and then stopped with
+ * lat/lon pinned to 0,0. That looked like Deliveroo cutting the merchant's
+ * view of the rider at pickup. It isn't: order #4952 progressed straight
+ * past the restaurant on the same day and moved itself to OUT_FOR_DELIVERY
+ * off a real forward stage. Both #5049 and #5116 were riders who DROPPED the
+ * job — #5116 unassigned six seconds after being assigned — so the tail of
+ * those two logs is an abandonment, not a collection.
  *
- * and then repeats unchanged, with `lat`/`lon` pinned to 0,0, until the
- * events stop. Deliveroo cuts the restaurant's visibility of the rider at
- * pickup — the leg to the customer is simply not exposed to the merchant.
- *
- * So `rider_unassigned` AFTER an at-restaurant stage is the collection
- * signal, and the only one we get. Order matters: an unassign BEFORE the
- * rider ever arrived is a genuine drop (the rider cancelled and Deliveroo
- * re-assigns), which must not read as a pickup — #5116 does exactly that,
- * unassigning 6 seconds after being assigned and then re-assigning 10
- * minutes later.
+ * Reading an unassign as a pickup would mark a live order "Out for delivery"
+ * while its food is still on the pass and no rider is holding it, which is
+ * worse than leaving it where it is. Completion comes from the poller
+ * (DeliverooOrderPollService) instead.
  */
 export function riderCollectedFromLog(
   statuses: Array<string | undefined | null>,
 ): boolean {
-  let reachedRestaurant = false;
   for (const s of statuses) {
-    const raw = (s ?? "").toLowerCase();
-    if (raw === "rider_unassigned" && reachedRestaurant) return true;
     const m = mapDeliverooRiderStatus(s ?? undefined);
-    if (m && AT_RESTAURANT.has(m)) reachedRestaurant = true;
-    // A later stage already implies collection; nothing to infer.
     if (m === "OUT_FOR_DELIVERY" || m === "COMPLETED") return true;
   }
   return false;

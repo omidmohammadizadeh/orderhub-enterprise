@@ -385,23 +385,8 @@ export class DeliverooOrderService {
       if (at) updates.courierAssignedAt = at;
     }
     if (!o.courierPickedUpAt) {
-      // When collection is inferred, the unassign that follows the restaurant
-      // stage carries the real moment — use it rather than now(), so a
-      // replayed webhook doesn't drift the pickup time.
-      const collectedAt = (): Date | null => {
-        let seenRestaurant = false;
-        for (const e of statusLog) {
-          const s = String(e?.status ?? "").toLowerCase();
-          if (s === "rider_unassigned" && seenRestaurant) {
-            return e?.at ? new Date(e.at) : null;
-          }
-          if (mapDeliverooRiderStatus(s) === "RIDER_ARRIVED") seenRestaurant = true;
-        }
-        return null;
-      };
       const at =
-        stageAt("rider_in_transit") ??
-        (collected ? collectedAt() : null) ??
+        stageAt("rider_in_transit", "collected", "picked_up") ??
         (mapped === "OUT_FOR_DELIVERY" ? new Date() : null);
       if (at) updates.courierPickedUpAt = at;
     }
