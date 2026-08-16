@@ -1040,11 +1040,25 @@ export class PrintJobsService {
     order: any,
   ): Promise<void> {
     try {
+      // Every gate below is a way to end up with no QR, and all but the last
+      // used to return in silence — so "why was there no QR?" on a LAN
+      // printer could only be answered by reading this function. One line per
+      // order, naming the gate it stopped at.
+      const say = (reason: string) =>
+        this.logger.log(`order ${order.id}: no server-side receipt QR — ${reason}`);
+
       const receiptTargets = targets.filter(
         (t) => t.type === "CUSTOMER_RECEIPT" && t.printerId,
       );
-      if (!receiptTargets.length) return;
-      if (!isMarketplaceSource(order.orderSource, order.platform)) return;
+      if (!receiptTargets.length) {
+        return say("no CUSTOMER_RECEIPT target on this order");
+      }
+      if (!isMarketplaceSource(order.orderSource, order.platform)) {
+        // Our own channels never get it — that customer already orders direct.
+        return say(
+          `not a marketplace order (source=${order.orderSource ?? "?"} platform=${order.platform ?? "?"})`,
+        );
+      }
 
       const printers = await (this.prisma as any).printer.findMany({
         where: {
@@ -1054,12 +1068,24 @@ export class PrintJobsService {
         },
         select: { id: true, paperWidth: true, defaults: true },
       });
+      if (printers.length === 0) {
+        // Either the printer is driven by a tablet (agentId set — that path
+        // does its own QR) or it isn't LAN/EPOS at all.
+        return say(
+          "no server-driven LAN printer among this order's receipt targets " +
+            "(a tablet-driven printer renders its own QR instead)",
+        );
+      }
       const eligible = new Map<string, any>(
         printers
           .filter((p: any) => p?.defaults?.qrCode)
           .map((p: any) => [p.id, p]),
       );
-      if (eligible.size === 0) return;
+      if (eligible.size === 0) {
+        return say(
+          `QR is switched off on ${printers.length === 1 ? "the printer" : "all " + printers.length + " printers"} — turn on "Print QR code" in the printer's settings`,
+        );
+      }
 
       const [loc, brand] = await Promise.all([
         (this.prisma as any).location.findUnique({
@@ -1094,6 +1120,7 @@ export class PrintJobsService {
         return;
       }
 
+      let baked = 0;
       for (const t of receiptTargets) {
         const printer = eligible.get(t.printerId);
         if (!printer) continue;
@@ -1108,10 +1135,11 @@ export class PrintJobsService {
           qrRaster: raster,
           qrCaption: t.payload?.qrCaption ?? "Scan to order direct next time",
         };
-        this.logger.log(
-          `order ${order.id}: baked receipt QR for LAN printer ${t.printerId} (${paperWidth}mm) → ${url}`,
-        );
+        baked++;
       }
+      this.logger.log(
+        `order ${order.id}: receipt QR baked onto ${baked} LAN printer(s) → ${url}`,
+      );
     } catch (err: any) {
       // Never let the marketing QR cost anyone a ticket.
       this.logger.warn(
