@@ -22,39 +22,40 @@ const svc = (env: Record<string, string | undefined>) =>
   );
 
 describe("agent images — provider choice", () => {
-  it("prefers Gemini when its key is present", () => {
-    const s: any = svc({ GEMINI_API_KEY: "k", REPLICATE_API_TOKEN: "r" });
-    expect(s.useGemini).toBe(true);
+  it("defaults to Gemini, the cheapest of the three per photo", () => {
+    const s: any = svc({ GEMINI_API_KEY: "k", OPENAI_API_KEY: "o", REPLICATE_API_TOKEN: "r" });
+    expect(s.provider).toBe("gemini");
   });
 
-  it("falls back to Replicate when Gemini has no key", () => {
-    const s: any = svc({ REPLICATE_API_TOKEN: "r" });
-    expect(s.useGemini).toBe(false);
+  it("switches provider by env alone, so comparing quality needs no deploy", () => {
+    const s: any = svc({
+      GEMINI_API_KEY: "k",
+      OPENAI_API_KEY: "o",
+      AGENT_IMAGE_PROVIDER: "openai",
+    });
+    expect(s.provider).toBe("openai");
     expect(s.configured).toBe(true);
   });
 
-  it("can be forced back to Replicate", () => {
-    // An escape hatch that doesn't need a deploy to reach.
-    const s: any = svc({
-      GEMINI_API_KEY: "k",
-      REPLICATE_API_TOKEN: "r",
-      AGENT_IMAGE_PROVIDER: "replicate",
-    });
-    expect(s.useGemini).toBe(false);
+  it("falls back through the keys that are actually present", () => {
+    expect((svc({ OPENAI_API_KEY: "o" }) as any).provider).toBe("openai");
+    expect((svc({ REPLICATE_API_TOKEN: "r" }) as any).provider).toBe("replicate");
   });
 
-  it("reports not-configured when neither key is set", () => {
-    const s: any = svc({});
+  it("reports not-configured when the chosen provider has no key", () => {
+    // The dangerous case: forced to openai, but only Gemini's key is set. It
+    // must not quietly generate on the other provider — that's a different
+    // look and a different bill than the operator asked for.
+    const s: any = svc({ GEMINI_API_KEY: "k", AGENT_IMAGE_PROVIDER: "openai" });
     expect(s.configured).toBe(false);
   });
 
-  it("names BOTH keys when it can't generate", async () => {
-    // "not configured" sends the operator hunting. Say which env var to set.
-    const s = svc({});
+  it("names the provider AND the missing key when it can't generate", async () => {
+    const s = svc({ AGENT_IMAGE_PROVIDER: "openai" });
     const res = await s.generateForItem("t1", "i1");
     expect(res.ok).toBe(false);
-    expect(res.error).toContain("GEMINI_API_KEY");
-    expect(res.error).toContain("REPLICATE_API_TOKEN");
+    expect(res.error).toContain("openai");
+    expect(res.error).toContain("OPENAI_API_KEY");
   });
 });
 

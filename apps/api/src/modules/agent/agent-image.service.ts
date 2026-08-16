@@ -36,6 +36,11 @@ const DEFAULT_IMAGE_MODEL = "black-forest-labs/flux-schnell";
 // already on the API for other features, so it's preferred when present.
 // AGENT_IMAGE_PROVIDER=replicate forces the old path back.
 const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-image";
+const DEFAULT_OPENAI_MODEL = "gpt-image-2";
+// 3:2 is the closest landscape size OpenAI offers to the 1064x768 card
+// (1.385). Everything is cover-cropped afterwards, so the only cost of the
+// mismatch is a trimmed sliver rather than a distorted plate.
+const OPENAI_SIZE = "1536x1024";
 const IMAGE_CONCURRENCY = 2;
 // The menu card, the storefront tile and the POS grid are all built for this.
 // Anything else gets letterboxed or cropped by the browser instead.
@@ -68,21 +73,43 @@ export class AgentImageService {
     this.model = this.config.get<string>("AGENT_IMAGE_MODEL") ?? DEFAULT_IMAGE_MODEL;
   }
 
-  /** Gemini unless it's absent or explicitly overridden. */
-  private get useGemini(): boolean {
-    if (this.config.get<string>("AGENT_IMAGE_PROVIDER") === "replicate") return false;
-    return !!this.config.get<string>("GEMINI_API_KEY");
+  /**
+   * Which generator to use.
+   *
+   * AGENT_IMAGE_PROVIDER wins when set, so switching to compare quality is an
+   * env change rather than a deploy. Otherwise Gemini, which at 2.5 Flash
+   * Image is the cheapest of the three per photo.
+   */
+  private get provider(): "openai" | "gemini" | "replicate" {
+    const forced = this.config.get<string>("AGENT_IMAGE_PROVIDER");
+    if (forced === "openai" || forced === "gemini" || forced === "replicate") {
+      return forced;
+    }
+    if (this.config.get<string>("GEMINI_API_KEY")) return "gemini";
+    if (this.config.get<string>("OPENAI_API_KEY")) return "openai";
+    return "replicate";
   }
 
   get configured(): boolean {
-    return this.useGemini || !!this.config.get<string>("REPLICATE_API_TOKEN");
+    const p = this.provider;
+    if (p === "gemini") return !!this.config.get<string>("GEMINI_API_KEY");
+    if (p === "openai") return !!this.config.get<string>("OPENAI_API_KEY");
+    return !!this.config.get<string>("REPLICATE_API_TOKEN");
   }
 
   /** Named so the operator is told which key to set, not just "not configured". */
   private get notConfiguredMessage(): string {
+    const p = this.provider;
+    const key =
+      p === "gemini"
+        ? "GEMINI_API_KEY"
+        : p === "openai"
+          ? "OPENAI_API_KEY"
+          : "REPLICATE_API_TOKEN";
     return (
-      "Image generation needs GEMINI_API_KEY (preferred) or REPLICATE_API_TOKEN " +
-      "set in the API environment."
+      `Image generation is set to ${p} but ${key} is not set in the API ` +
+      `environment. Set it, or change AGENT_IMAGE_PROVIDER to a provider ` +
+      `whose key is present.`
     );
   }
 
@@ -232,9 +259,13 @@ export class AgentImageService {
     styleHint?: string,
   ): Promise<string> {
     const prompt = this.buildPrompt(name, description, styleHint);
-    const raw = this.useGemini
-      ? await this.renderWithGemini(prompt)
-      : await this.renderWithReplicate(prompt);
+    const p = this.provider;
+    const raw =
+      p === "gemini"
+        ? await this.renderWithGemini(prompt)
+        : p === "openai"
+          ? await this.renderWithOpenAI(prompt)
+          : await this.renderWithReplicate(prompt);
 
     // COVER, not "fit inside". `fit: inside` leaves whatever aspect the model
     // returned, so a square generation renders letterboxed in a 4:3 card;
@@ -293,6 +324,46 @@ export class AgentImageService {
       throw new Error(`no image returned${text ? `: ${text.slice(0, 160)}` : ""}`);
     }
     return Buffer.from(inline.inlineData.data, "base64");
+  }
+
+  /** OpenAI: one call, image comes back base64 in data[0].b64_json. */
+  private async renderWithOpenAI(prompt: string): Promise<Buffer> {
+    const res = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY") ?? ""}`,
+      },
+      body: JSON.stringify({
+        model:
+          this.config.get<string>("AGENT_OPENAI_IMAGE_MODEL") ?? DEFAULT_OPENAI_MODEL,
+        prompt,
+        size: OPENAI_SIZE,
+        // Quality drives both the look and the bill, so it's tunable without
+        // a deploy. Medium is the sensible middle for a menu tile.
+        quality: this.config.get<string>("AGENT_OPENAI_IMAGE_QUALITY") ?? "medium",
+        n: 1,
+      }),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `OpenAI ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`,
+      );
+    }
+    const json: any = await res.json();
+    const b64 = json?.data?.[0]?.b64_json;
+    if (!b64) {
+      // Some models return a URL instead of inline base64 — follow it rather
+      // than failing on a response that did contain an image.
+      const url = json?.data?.[0]?.url;
+      if (url) {
+        const img = await fetch(url);
+        if (!img.ok) throw new Error(`could not download image (${img.status})`);
+        return Buffer.from(await img.arrayBuffer());
+      }
+      throw new Error("no image returned");
+    }
+    return Buffer.from(b64, "base64");
   }
 
   /** Replicate: create → poll → download. */
