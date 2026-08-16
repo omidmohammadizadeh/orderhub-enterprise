@@ -13,13 +13,13 @@
 // OVERRIDE, never folded into the base price. Base stays true for POS and the
 // operator's own site; the markup stays visible and reversible.
 
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, Percent, Store, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { X, Percent, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { CHANNEL_VARIANT_PRESETS } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
-import { brandsClient, menusClient } from "@/lib/api/menus.client";
+import { menusClient } from "@/lib/api/menus.client";
 
 /** The uplifts an operator actually uses. 0 = list at the base price. */
 const PERCENT_CHOICES = [0, 10, 15, 20, 25, 30] as const;
@@ -27,48 +27,29 @@ const PERCENT_CHOICES = [0, 10, 15, 20, 25, 30] as const;
 interface Props {
   open: boolean;
   menuId: string;
+  /** Shown in the header — this is a menu-level setting, so name the menu. */
+  menuName: string;
   /**
-   * The brands THIS menu sells under — the menu's own brand plus any carried
-   * by its products. Not the tenant's whole brand list: a multi-site operator
-   * has thirty of those and only one or two are relevant here, so showing all
-   * of them makes the operator hunt for the right one and invites applying an
-   * uplift to a brand this menu has nothing to do with.
+   * The menu's own brand. Not a choice the operator makes: channel prices are
+   * stored against brand×channel refs (the same ones the per-product modal and
+   * every publisher already use), so the brand is a consequence of which menu
+   * you opened, not a decision.
    */
-  brandIds: string[];
+  brandId: string;
   onClose: () => void;
 }
 
 export function ChannelPricingModal({
   open,
   menuId,
-  brandIds,
+  menuName,
+  brandId,
   onClose,
 }: Props) {
   const qc = useQueryClient();
-  const [brandId, setBrandId] = useState<string>("");
   // channelKey → uplift %. A channel absent from this map is simply not sold
   // on, and is left completely alone.
   const [picked, setPicked] = useState<Record<string, number>>({});
-
-  const { data: allBrands = [] } = useQuery({
-    queryKey: ["brands"],
-    queryFn: () => brandsClient.list(),
-    enabled: open,
-  });
-  // Names come from the tenant list; WHICH brands are offered comes from the
-  // menu. Fall back to the full list only if the menu named none, so the
-  // modal is never empty and unusable.
-  const scoped = allBrands.filter((b: any) => brandIds.includes(b.id));
-  const brands = scoped.length ? scoped : allBrands;
-
-  useEffect(() => {
-    if (!open) return;
-    // Re-pick when the scope changes, not just when nothing is chosen — a
-    // stale id from another menu would apply the uplift to the wrong brand.
-    if (brands.length && !brands.some((b: any) => b.id === brandId)) {
-      setBrandId(brands[0]!.id);
-    }
-  }, [open, brands, brandId]);
 
   const apply = useMutation({
     mutationFn: () =>
@@ -113,7 +94,7 @@ export function ChannelPricingModal({
         <div className="flex items-start justify-between border-b border-zinc-200 px-6 py-4">
           <div>
             <h2 className="text-base font-semibold text-zinc-900">
-              Channels pricing
+              Channels pricing — {menuName}
             </h2>
             <p className="mt-0.5 text-xs text-zinc-500">
               Set one uplift per channel and it applies to every product, size
@@ -126,42 +107,6 @@ export function ChannelPricingModal({
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-          {brands.length === 1 && (
-            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
-              <Store className="h-3.5 w-3.5 text-zinc-400" />
-              <span className="text-sm font-medium text-zinc-900">
-                {brands[0]!.name}
-              </span>
-              <span className="text-xs text-zinc-500">
-                — the brand this menu sells under
-              </span>
-            </div>
-          )}
-
-          {brands.length > 1 && (
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                Brand
-              </label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {brands.map((b: any) => (
-                  <button
-                    key={b.id}
-                    onClick={() => setBrandId(b.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm ${
-                      brandId === b.id
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
-                    }`}
-                  >
-                    <Store className="h-3.5 w-3.5" />
-                    {b.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div>
             <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
               Channels
