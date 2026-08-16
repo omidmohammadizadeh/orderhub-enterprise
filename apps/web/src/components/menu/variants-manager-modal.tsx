@@ -23,6 +23,13 @@ interface Props {
   open: boolean;
   menuId: string;
   variants: PricingVariant[];
+  /**
+   * Brands tagged on THIS menu's products. Variants for any other brand are
+   * hidden: a tenant accumulates them across every menu, and a list of four
+   * brands' worth of channels — most with no product here to price — buries
+   * the two that matter.
+   */
+  brandIds?: string[];
   onClose: () => void;
 }
 
@@ -31,7 +38,13 @@ interface BrandGroup {
   brandName: string;
 }
 
-export function VariantsManagerModal({ open, menuId, variants, onClose }: Props) {
+export function VariantsManagerModal({
+  open,
+  menuId,
+  variants,
+  brandIds,
+  onClose,
+}: Props) {
   const qc = useQueryClient();
   const [leaves, setLeaves] = useState<PricingVariant[]>([]);
   const [groups, setGroups] = useState<BrandGroup[]>([]);
@@ -48,18 +61,39 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
 
   useEffect(() => {
     if (!open) return;
-    const ls = variants ?? [];
+    // Only this menu's brands. Leaves for other brands stay in `variants` and
+    // are merged back on save — hiding them must not delete them.
+    const inScope = (id?: string) =>
+      !brandIds?.length || (id ? brandIds.includes(id) : false);
+    const ls = (variants ?? []).filter((v) => inScope(v.brandId));
     setLeaves(ls);
-    // Seed brand groups from the brands that already have leaves.
+    // Seed brand groups from the brands that already have leaves. The name
+    // comes from the brand list — a variant carries no brandName, so this
+    // used to fall back to the raw cuid and every group header read as
+    // "cmpu3txr400092kdnh8vagd45".
     const seen = new Map<string, string>();
-    for (const v of ls) if (v.brandId) seen.set(v.brandId, v.brandName ?? v.brandId);
+    for (const v of ls) {
+      if (!v.brandId) continue;
+      seen.set(
+        v.brandId,
+        brands.find((b: any) => b.id === v.brandId)?.name ??
+          (v as any).brandName ??
+          v.brandId,
+      );
+    }
     setGroups(Array.from(seen, ([brandId, brandName]) => ({ brandId, brandName })));
-  }, [open, variants]);
+  }, [open, variants, brands, brandIds]);
 
   const save = useMutation({
-    mutationFn: () =>
-      menusClient.updateMenu(menuId, {
-        pricingVariants: leaves
+    mutationFn: () => {
+      // Variants for brands NOT on this menu are hidden above, so they aren't
+      // in `leaves`. Saving `leaves` alone would delete them — another menu's
+      // channel prices, silently wiped by opening this modal and pressing
+      // Save. Merge them back untouched.
+      const shownRefs = new Set(leaves.map((l) => l.ref));
+      const hidden = (variants ?? []).filter((v) => !shownRefs.has(v.ref));
+      return menusClient.updateMenu(menuId, {
+        pricingVariants: [...hidden, ...leaves]
           .filter((v) => v.ref && v.name.trim())
           .map((v) => ({
             ref: v.ref,
@@ -68,7 +102,8 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
             ...(v.brandId ? { brandId: v.brandId } : {}),
             ...(v.brandName ? { brandName: v.brandName } : {}),
           })),
-      }),
+      });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["menu", menuId] });
       qc.invalidateQueries({ queryKey: ["menus"] });

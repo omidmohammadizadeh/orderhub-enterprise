@@ -361,6 +361,7 @@ export default function MenuEditorPage() {
         open={variantsOpen}
         menuId={menuId}
         variants={(menu as any)?.pricingVariants ?? []}
+        brandIds={menuBrandIds}
         onClose={() => setVariantsOpen(false)}
       />
       <ChannelPricingModal

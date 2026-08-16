@@ -2805,8 +2805,12 @@ export class MenusService {
     const items = new Map<string, any>();
     for (const c of cats) for (const l of c.items) items.set(l.item.id, l.item);
 
-    // Brands actually encountered, so every one gets its variant registered.
-    const seenBrands = new Set<string>([brand.id]);
+    // Brands actually encountered on the menu's ROWS. Deliberately not seeded
+    // with the menu's own brand: a menu whose products all belong to another
+    // brand would otherwise get a full set of variants for a brand with
+    // nothing to price, which is what filled the Pricing variants list with
+    // groups the operator had no use for.
+    const seenBrands = new Set<string>();
     /** The brands to key this row's overrides by, never an empty list. */
     const brandsFor = (row: { brandId?: string | null; brandIds?: string[] }) => {
       const out = new Set<string>();
