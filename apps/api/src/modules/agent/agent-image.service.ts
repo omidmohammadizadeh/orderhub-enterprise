@@ -55,7 +55,17 @@ export const PREMIUM_STYLE = "premium";
 const OPENAI_PREMIUM_SIZE = "1072x768";
 /** The look is the point of Premium, so it doesn't economise on quality. */
 const OPENAI_PREMIUM_QUALITY = "high";
-const IMAGE_CONCURRENCY = 2;
+// How many generations run at once. Wall-clock for a category is roughly
+// (items / concurrency) x seconds-per-image, and a high-quality gpt-image-2
+// render is slow — so 2 turned a 16-item category into a ten-minute wait.
+//
+// 4 is a compromise, not a maximum: image endpoints are rate-limited per
+// minute, and the punishment for guessing high is a wave of 429s. The
+// backoff below handles those, and AGENT_IMAGE_CONCURRENCY raises or lowers
+// it without a deploy once we know what this account actually tolerates.
+const IMAGE_CONCURRENCY = 4;
+/** Attempts per image when the provider says "too many requests". */
+const RATE_LIMIT_RETRIES = 3;
 // The menu card, the storefront tile and the POS grid are all built for this.
 // Anything else gets letterboxed or cropped by the browser instead.
 const IMAGE_W = 1064;
@@ -234,14 +244,26 @@ export class AgentImageService {
     });
     job.total = items.length;
 
-    // Concurrency-limited worker pool — never more than IMAGE_CONCURRENCY
-    // Replicate calls at once.
+    // Concurrency-limited worker pool — never more than `concurrency`
+    // generations in flight at once.
+    const concurrency = Math.max(
+      1,
+      Number(this.config.get<string>("AGENT_IMAGE_CONCURRENCY")) ||
+        IMAGE_CONCURRENCY,
+    );
+    const startedAt = Date.now();
+    this.logger.log(
+      `image job: ${items.length} item(s), provider=${this.provider}, ` +
+        `style=${style ?? "standard"}, concurrency=${concurrency}`,
+    );
+
     let cursor = 0;
     const worker = async () => {
       for (;;) {
         const idx = cursor++;
         if (idx >= items.length) return;
         const it = items[idx];
+        const t0 = Date.now();
         try {
           const imageUrl = await this.renderImage(
             it.name,
@@ -251,6 +273,12 @@ export class AgentImageService {
           );
           await this.menus.updateItem(it.id, tenantId, { imageUrl } as any);
           job.done++;
+          // Per-image timing: "it's slow" is unactionable, "38s each at
+          // concurrency 4" says exactly which knob to turn.
+          this.logger.log(
+            `image ${job.done + job.failed}/${items.length} "${it.name}" ` +
+              `in ${Math.round((Date.now() - t0) / 1000)}s`,
+          );
         } catch (e) {
           job.failed++;
           this.logger.warn(`image gen failed for ${it.id}: ${(e as Error).message}`);
@@ -258,9 +286,15 @@ export class AgentImageService {
       }
     };
     await Promise.all(
-      Array.from({ length: Math.min(IMAGE_CONCURRENCY, items.length) }, () => worker()),
+      Array.from({ length: Math.min(concurrency, items.length) }, () => worker()),
     );
     job.status = "done";
+
+    const secs = Math.round((Date.now() - startedAt) / 1000);
+    this.logger.log(
+      `image job finished: ${job.done} done, ${job.failed} failed, ${secs}s ` +
+        (job.done ? `(~${Math.round(secs / job.done)}s per image)` : ""),
+    );
   }
 
   /**
@@ -441,7 +475,9 @@ export class AgentImageService {
         // a deploy. Medium is the sensible middle for a menu tile.
         (this.config.get<string>("AGENT_OPENAI_IMAGE_QUALITY") ?? "medium");
 
-    let res = await this.openAiImageCall(prompt, size, quality);
+    let res = await this.rateLimited(() =>
+      this.openAiImageCall(prompt, size, quality),
+    );
 
     // The flexible sizes are documented but unverified on this account. A
     // rejected size must cost a retry, not the whole generation — and it must
@@ -454,7 +490,9 @@ export class AgentImageService {
           `OpenAI rejected size ${size} (${detail}) — retrying at ${OPENAI_SIZE}. ` +
             `Set AGENT_OPENAI_PREMIUM_SIZE to a supported size to stop this.`,
         );
-        res = await this.openAiImageCall(prompt, OPENAI_SIZE, quality);
+        res = await this.rateLimited(() =>
+          this.openAiImageCall(prompt, OPENAI_SIZE, quality),
+        );
       } else {
         throw new Error(`OpenAI ${res.status}: ${detail}`);
       }
@@ -479,6 +517,34 @@ export class AgentImageService {
       throw new Error("no image returned");
     }
     return Buffer.from(b64, "base64");
+  }
+
+  /**
+   * Retry a call that came back 429.
+   *
+   * Raising concurrency without this would just trade a slow job for a
+   * half-failed one: image endpoints are limited per minute, and the whole
+   * point of running four at once is to sit closer to that ceiling. Honours
+   * Retry-After when the provider sends it, otherwise backs off 5s, 10s,
+   * 20s. A rate limit is a WAIT, not a failure — the operator has already
+   * been told the photo is coming.
+   */
+  private async rateLimited(call: () => Promise<Response>): Promise<Response> {
+    let res = await call();
+    for (let attempt = 1; res.status === 429 && attempt <= RATE_LIMIT_RETRIES; attempt++) {
+      const header = Number(res.headers.get("retry-after"));
+      const waitMs = Number.isFinite(header) && header > 0
+        ? header * 1000
+        : 5000 * 2 ** (attempt - 1);
+      this.logger.warn(
+        `rate limited — waiting ${Math.round(waitMs / 1000)}s ` +
+          `(attempt ${attempt}/${RATE_LIMIT_RETRIES}). Lower ` +
+          `AGENT_IMAGE_CONCURRENCY if this keeps happening.`,
+      );
+      await new Promise((r) => setTimeout(r, waitMs));
+      res = await call();
+    }
+    return res;
   }
 
   /** One images/generations POST. Split out so the size retry can reuse it. */

@@ -93,6 +93,46 @@ describe("agent images — the prompt", () => {
   });
 });
 
+describe("agent images — rate limiting", () => {
+  // Retry-After is in SECONDS, so a fractional value keeps these fast while
+  // still exercising the real "honour the header" path.
+  const reply = (status: number, retryAfter = "0.001") =>
+    ({ status, headers: { get: () => retryAfter } }) as any;
+
+  it("waits and retries a 429 instead of failing the photo", async () => {
+    // Running four at once is the whole point of the concurrency bump, which
+    // means sitting near the per-minute ceiling. A limit is a WAIT, not a
+    // failure — the operator has already been promised the image.
+    const s: any = svc({ OPENAI_API_KEY: "k" });
+    const call = jest
+      .fn()
+      .mockResolvedValueOnce(reply(429))
+      .mockResolvedValueOnce(reply(200));
+
+    const res = await s.rateLimited(call);
+    expect(res.status).toBe(200);
+    expect(call).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up rather than retrying forever", async () => {
+    const s: any = svc({ OPENAI_API_KEY: "k" });
+    const call = jest.fn().mockResolvedValue(reply(429));
+
+    const res = await s.rateLimited(call);
+    expect(res.status).toBe(429);
+    // The first call plus a bounded number of retries — never unbounded.
+    expect(call.mock.calls.length).toBeGreaterThan(1);
+    expect(call.mock.calls.length).toBeLessThanOrEqual(5);
+  });
+
+  it("doesn't retry a response that isn't rate limited", async () => {
+    const s: any = svc({ OPENAI_API_KEY: "k" });
+    const call = jest.fn().mockResolvedValue(reply(400));
+    await s.rateLimited(call);
+    expect(call).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("agent images — the Premium dark-slate template", () => {
   const prompt = (name: string, desc?: string | null, hint?: string) =>
     (svc({ OPENAI_API_KEY: "k" }) as any).buildPrompt(name, desc, hint, "premium");
