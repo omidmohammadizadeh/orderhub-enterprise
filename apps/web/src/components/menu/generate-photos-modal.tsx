@@ -25,6 +25,14 @@ import { menusClient } from "@/lib/api/menus.client";
  */
 const BACKGROUNDS = [
   {
+    // No background instruction at all. Worth having: a model left to its own
+    // devices sometimes produces a better plate than one told where to put
+    // it, and there's no way to find that out if every run is steered.
+    key: "none",
+    label: "No preference",
+    hint: "",
+  },
+  {
     key: "black",
     label: "Black studio",
     hint:
@@ -49,13 +57,17 @@ interface Props {
 
 export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) {
   const qc = useQueryClient();
-  const [bg, setBg] = useState<string>(BACKGROUNDS[0].hint);
+  const [bgKey, setBgKey] = useState<string>("black");
   const [extra, setExtra] = useState("");
   const [onlyMissing, setOnlyMissing] = useState(true);
   const [job, setJob] = useState<{ done: number; total: number; failed: number } | null>(
     null,
   );
   const [lost, setLost] = useState(false);
+  // Only a job still in flight should block another run. Keeping the button
+  // disabled once a batch finished meant a page refresh to start the next
+  // one.
+  const [running, setRunning] = useState(false);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Stop polling when the modal closes, or the interval outlives the screen
@@ -72,7 +84,12 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
       menusClient.generateMenuImages({
         menuId,
         categoryId: category?.id,
-        styleHint: [bg, extra.trim()].filter(Boolean).join(". "),
+        styleHint: [
+          BACKGROUNDS.find((b) => b.key === bgKey)?.hint ?? "",
+          extra.trim(),
+        ]
+          .filter(Boolean)
+          .join(". "),
         onlyMissing,
       }),
     onSuccess: (r) => {
@@ -80,11 +97,14 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
         toast.error(r.error ?? "Could not start");
         return;
       }
+      setRunning(true);
       toast.success("Generating — photos will appear as they finish");
       poll.current = setInterval(async () => {
         try {
           const s = await menusClient.getMenuImageJob(r.jobId!);
-          setJob({ done: s.done, total: s.total, failed: s.failed });
+          if (Number.isFinite(s.total)) {
+            setJob({ done: s.done ?? 0, total: s.total, failed: s.failed ?? 0 });
+          }
           // Refresh the grid as they land, so the operator sees progress on
           // the cards rather than only in this dialog.
           qc.invalidateQueries({ queryKey: ["menu", menuId] });
@@ -96,11 +116,13 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
           if (s.status === "unknown") {
             if (poll.current) clearInterval(poll.current);
             setLost(true);
+            setRunning(false);
             toast.error("The API restarted and the job was lost — run it again");
             return;
           }
           if (s.status !== "running") {
             if (poll.current) clearInterval(poll.current);
+            setRunning(false);
             toast.success(
               `Done — ${s.done} photo${s.done === 1 ? "" : "s"}` +
                 (s.failed ? `, ${s.failed} failed` : ""),
@@ -143,9 +165,9 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
               {BACKGROUNDS.map((b) => (
                 <button
                   key={b.key}
-                  onClick={() => setBg(b.hint)}
+                  onClick={() => setBgKey(b.key)}
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
-                    bg === b.hint
+                    bgKey === b.key
                       ? "border-zinc-900 bg-zinc-900 text-white"
                       : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
                   }`}
@@ -184,10 +206,11 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
             </span>
           </label>
 
-          {job && !lost && (
+          {job && !lost && Number.isFinite(job.total) && (
             <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
-              {job.done} of {job.total} done
+              {job.done ?? 0} of {job.total} done
               {job.failed ? ` · ${job.failed} failed` : ""}
+              {!running && " — run again for another batch"}
             </div>
           )}
 
@@ -211,7 +234,7 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
             </Button>
             <Button
               size="sm"
-              disabled={start.isPending || (!!job && !lost)}
+              disabled={start.isPending || running}
               onClick={() => {
                 setLost(false);
                 setJob(null);
