@@ -66,6 +66,7 @@ export default function MenuEditorPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === "PLATFORM_ADMIN";
 
   // ── Queries ─────────────────────────────────────────────────────────
   const { data: menu, isLoading } = useQuery({
@@ -370,7 +371,7 @@ export default function MenuEditorPage() {
         onClose={() => setVariantsOpen(false)}
       />
       <GeneratePhotosModal
-        open={photosOpen}
+        open={photosOpen && isAdmin}
         menuId={menuId}
         category={
           activeCat
@@ -589,16 +590,23 @@ export default function MenuEditorPage() {
                   <Plus className="h-4 w-4 mr-1.5" />
                   Add Existing
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPhotosOpen(true)}
-                  className="h-9"
-                  title="Generate AI photos for the items in this category"
-                >
-                  <Camera className="h-4 w-4 mr-1.5" />
-                  Generate photos
-                </Button>
+                {/* Admin only while this is being trialled: it spends real
+                    money per photo and replaces customer-facing images, so
+                    it isn't something to leave in front of every operator
+                    yet. The endpoint is @Roles("PLATFORM_ADMIN") regardless —
+                    this only stops the button appearing. */}
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPhotosOpen(true)}
+                    className="h-9"
+                    title="Generate AI photos for the items in this category"
+                  >
+                    <Camera className="h-4 w-4 mr-1.5" />
+                    Generate photos
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   onClick={() => setProductEditorTarget("new")}
