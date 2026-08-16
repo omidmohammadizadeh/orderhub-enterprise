@@ -112,14 +112,16 @@ export default function MenuEditorPage() {
   const categories = (menu?.categories ?? []) as any[];
   const effectiveCatId =
     activeCatId ?? categories[0]?.id ?? null;
-  // Which brands THIS menu actually sells under — its own brand plus any
-  // carried by its products. The tenant has thirty; showing all of them in the
-  // channel-pricing modal makes the operator hunt, and invites uplifting a
-  // brand this menu has nothing to do with.
+  // Which brands this menu prices for — read from the PRODUCTS' brand tags,
+  // not the menu's own brandId.
+  //
+  // A menu row carries a brand for ownership reasons; it says nothing about
+  // who sells the food on it. Grill Stop — Pelton is a "pizza yoyo-test" menu
+  // holding "monster burgerzz-pelton" products, and seeding from the menu gave
+  // a second brand group with no product in this menu to price. Tag the
+  // products and the groups follow: one brand, one group; three brands, three.
   const menuBrandIds = useMemo(() => {
     const ids = new Set<string>();
-    const own = (menu as any)?.brandId;
-    if (own) ids.add(own);
     for (const c of categories) {
       for (const link of (c as any).items ?? []) {
         const it = link?.item;
