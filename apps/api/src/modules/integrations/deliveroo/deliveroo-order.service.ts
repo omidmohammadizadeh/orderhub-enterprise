@@ -24,6 +24,8 @@ import {
   mapDeliverooOrderStatus,
   mapDeliverooRiderStatus,
   furthestRiderStage,
+  furthestRiderRawStatus,
+  riderCollectedFromLog,
   deliverooSiteIdFrom,
   deliverooOrderIdFrom,
 } from "./deliveroo-order.mappers";
@@ -336,10 +338,18 @@ export class DeliverooOrderService {
     // rider_unassigned) AFTER rider_delivered, which would otherwise leave a
     // delivered order stuck at "out for delivery". See furthestRiderStage.
     // `courierStatus` still shows the latest raw value for the UI.
-    const mapped = furthestRiderStage([
-      rawStatus,
-      ...statusLog.map((e) => e?.status),
-    ]);
+    const allStatuses = [rawStatus, ...statusLog.map((e) => e?.status)];
+
+    // Deliveroo never sends rider_in_transit or rider_delivered to the
+    // merchant — tracking is cut at pickup and the log ends with
+    // rider_unassigned. That unassign, once the rider has been at the
+    // restaurant, IS the collection signal. See riderCollectedFromLog.
+    const collected = riderCollectedFromLog(statusLog.map((e) => e?.status));
+    const stage = furthestRiderStage(allStatuses);
+    const mapped =
+      collected && (stage === null || stage === "ASSIGNED_DRIVER" || stage === "RIDER_ARRIVED")
+        ? "OUT_FOR_DELIVERY"
+        : stage;
 
     // Write courier-tracking columns. Timestamps are set once (first event
     // wins) so a re-delivered event can't clobber the original pickup time.
@@ -353,7 +363,12 @@ export class DeliverooOrderService {
       rider?.phone_number;
     if (riderName) updates.courierName = riderName;
     if (riderPhone) updates.courierPhone = riderPhone;
-    if (rawStatus) updates.courierStatus = String(rawStatus);
+    // The last MEANINGFUL stage, not the last line. Deliveroo appends
+    // rider_unassigned once it stops sharing the rider, so writing the bare
+    // latest value showed a rider who was standing in the shop as "not
+    // assigned" on the board.
+    const displayStatus = furthestRiderRawStatus(allStatuses) ?? rawStatus;
+    if (displayStatus) updates.courierStatus = String(displayStatus);
 
     // The payload carries the full stage history every time, so timestamp each
     // milestone from the log's own `at` (exact + idempotent), falling back to
@@ -370,8 +385,23 @@ export class DeliverooOrderService {
       if (at) updates.courierAssignedAt = at;
     }
     if (!o.courierPickedUpAt) {
+      // When collection is inferred, the unassign that follows the restaurant
+      // stage carries the real moment — use it rather than now(), so a
+      // replayed webhook doesn't drift the pickup time.
+      const collectedAt = (): Date | null => {
+        let seenRestaurant = false;
+        for (const e of statusLog) {
+          const s = String(e?.status ?? "").toLowerCase();
+          if (s === "rider_unassigned" && seenRestaurant) {
+            return e?.at ? new Date(e.at) : null;
+          }
+          if (mapDeliverooRiderStatus(s) === "RIDER_ARRIVED") seenRestaurant = true;
+        }
+        return null;
+      };
       const at =
         stageAt("rider_in_transit") ??
+        (collected ? collectedAt() : null) ??
         (mapped === "OUT_FOR_DELIVERY" ? new Date() : null);
       if (at) updates.courierPickedUpAt = at;
     }
@@ -417,6 +447,7 @@ export class DeliverooOrderService {
     const history = statusLog.map((e) => e?.status).filter(Boolean).join(" → ");
     this.logger.log(
       `Deliveroo rider ${externalId}: status=${rawStatus ?? "?"} ` +
+        `shown=${displayStatus ?? "?"} collected=${collected} ` +
         `order_status=${mapped ?? "(unchanged)"} fields=${Object.keys(updates).length}` +
         (history ? ` | log: ${history}` : " | log: (none)"),
     );

@@ -96,6 +96,73 @@ export function furthestRiderStage(
   return best;
 }
 
+/**
+ * The furthest-progressed RAW status, for display.
+ *
+ * `Order.courierStatus` is shown to staff verbatim, and the last line of the
+ * log is routinely `rider_unassigned` — so a rider standing in the shop was
+ * being rendered as "not assigned". Statuses that map to no stage
+ * (rider_unassigned, pending) never win, so the column keeps the last
+ * MEANINGFUL thing the rider did. Returns null when nothing in the list maps.
+ */
+export function furthestRiderRawStatus(
+  statuses: Array<string | undefined | null>,
+): string | null {
+  let best: string | null = null;
+  let bestRank = 0;
+  for (const s of statuses) {
+    const m = mapDeliverooRiderStatus(s ?? undefined);
+    if (!m) continue;
+    const rank = RIDER_STAGE_RANK[m] ?? 0;
+    // >= so that within one stage the LATER entry wins (rider_confirmed_at
+    // _restaurant reads better than the rider_arrived that preceded it).
+    if (best === null || rank >= bestRank) {
+      best = String(s);
+      bestRank = rank;
+    }
+  }
+  return best;
+}
+
+/** Stages that mean the rider is physically at the restaurant. */
+const AT_RESTAURANT = new Set(["RIDER_ARRIVED"]);
+
+/**
+ * Did the rider collect the food and leave?
+ *
+ * Deliveroo NEVER sends `rider_in_transit` or `rider_delivered` to the
+ * merchant. Confirmed against production orders #5049 and #5116 (40 rider
+ * events, zero `rider_delivered`): the log runs
+ *
+ *   rider_assigned → rider_arrived → rider_confirmed_at_restaurant →
+ *   rider_unassigned
+ *
+ * and then repeats unchanged, with `lat`/`lon` pinned to 0,0, until the
+ * events stop. Deliveroo cuts the restaurant's visibility of the rider at
+ * pickup — the leg to the customer is simply not exposed to the merchant.
+ *
+ * So `rider_unassigned` AFTER an at-restaurant stage is the collection
+ * signal, and the only one we get. Order matters: an unassign BEFORE the
+ * rider ever arrived is a genuine drop (the rider cancelled and Deliveroo
+ * re-assigns), which must not read as a pickup — #5116 does exactly that,
+ * unassigning 6 seconds after being assigned and then re-assigning 10
+ * minutes later.
+ */
+export function riderCollectedFromLog(
+  statuses: Array<string | undefined | null>,
+): boolean {
+  let reachedRestaurant = false;
+  for (const s of statuses) {
+    const raw = (s ?? "").toLowerCase();
+    if (raw === "rider_unassigned" && reachedRestaurant) return true;
+    const m = mapDeliverooRiderStatus(s ?? undefined);
+    if (m && AT_RESTAURANT.has(m)) reachedRestaurant = true;
+    // A later stage already implies collection; nothing to infer.
+    if (m === "OUT_FOR_DELIVERY" || m === "COMPLETED") return true;
+  }
+  return false;
+}
+
 export function mapDeliverooRiderStatus(status?: string): string | null {
   switch ((status ?? "").toLowerCase()) {
     case "rider_assigned":
