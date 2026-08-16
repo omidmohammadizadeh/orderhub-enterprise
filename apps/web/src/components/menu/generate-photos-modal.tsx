@@ -55,6 +55,7 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
   const [job, setJob] = useState<{ done: number; total: number; failed: number } | null>(
     null,
   );
+  const [lost, setLost] = useState(false);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Stop polling when the modal closes, or the interval outlives the screen
@@ -87,6 +88,17 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
           // Refresh the grid as they land, so the operator sees progress on
           // the cards rather than only in this dialog.
           qc.invalidateQueries({ queryKey: ["menu", menuId] });
+          // "unknown" means the server no longer has this job: the API
+          // restarted (a deploy, or Render cycling the instance) and the job
+          // map lives in process memory. Reporting that as "done" claims a
+          // success that didn't happen — the first run of this lost 3 of 5
+          // photos to a deploy and said it had finished.
+          if (s.status === "unknown") {
+            if (poll.current) clearInterval(poll.current);
+            setLost(true);
+            toast.error("The API restarted and the job was lost — run it again");
+            return;
+          }
           if (s.status !== "running") {
             if (poll.current) clearInterval(poll.current);
             toast.success(
@@ -172,10 +184,18 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
             </span>
           </label>
 
-          {job && (
+          {job && !lost && (
             <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
               {job.done} of {job.total} done
               {job.failed ? ` · ${job.failed} failed` : ""}
+            </div>
+          )}
+
+          {lost && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              The API restarted while this was running, so the job was lost.
+              Anything already generated has been saved — run it again with
+              &ldquo;only items without a photo&rdquo; ticked to finish the rest.
             </div>
           )}
         </div>
@@ -191,8 +211,12 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
             </Button>
             <Button
               size="sm"
-              disabled={start.isPending || !!job}
-              onClick={() => start.mutate()}
+              disabled={start.isPending || (!!job && !lost)}
+              onClick={() => {
+                setLost(false);
+                setJob(null);
+                start.mutate();
+              }}
               className="gap-1.5 bg-zinc-900 text-white hover:bg-zinc-800"
             >
               {start.isPending ? (
