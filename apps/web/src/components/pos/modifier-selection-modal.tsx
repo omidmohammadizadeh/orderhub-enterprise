@@ -9,6 +9,9 @@ import {
   buildModifierTree,
   collectSelectedModifiers,
   findUnmetRequirements,
+  flattenModifierSteps,
+  isStepSatisfied,
+  shouldAutoAdvance,
   toggleModifierSelection,
   indexGroups,
   type ModifierTreeNode,
@@ -74,6 +77,13 @@ interface Props {
    * maths is how a storefront and a till start disagreeing about a total.
    */
   presentation?: "modal" | "sheet";
+  /**
+   * "scroll" shows every group at once (the storefront: browsing).
+   * "stepped" asks one at a time with Back/Next (till, kiosk, table service:
+   * a task). Stepping only engages from the second question onward — a single
+   * group is faster as a plain list.
+   */
+  flow?: "scroll" | "stepped";
   /** Drawn fallback for an item with no usable photo (storefront only). */
   heroFallback?: React.ReactNode;
 }
@@ -82,6 +92,7 @@ export function ModifierSelectionModal({
   item,
   allModifierGroups = [],
   presentation = "modal",
+  flow = "scroll",
   heroFallback,
   open,
   onClose,
@@ -99,6 +110,10 @@ export function ModifierSelectionModal({
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
+  // Which question the stepped picker is on. Deliberately NOT clamped here —
+  // the step list grows and shrinks as nested groups open and close, so the
+  // index is clamped at render against the current length instead.
+  const [stepIndex, setStepIndex] = useState(0);
 
   // Size key = "10" extracted from "10 inch", used for pricesBySize lookups.
   const sizeKey = useMemo(
@@ -203,6 +218,57 @@ export function ModifierSelectionModal({
   // the tree already encodes — an unselected option has no children.
   const unmet = findUnmetRequirements(nodes);
   const canSubmit = unmet.length === 0;
+
+  // ── Stepped picker ────────────────────────────────────────────────────
+  //
+  // One question per screen for the till, the kiosk and table service.
+  // Scrolling is a browsing pattern; taking an order is a task, and a
+  // required group three screens down a scroller is a required group that
+  // gets missed.
+  //
+  // Both views render the SAME tree and write the same branch-keyed
+  // selections, so a choice made in one is a choice made in the other and
+  // the price can never diverge between them.
+  const groupSteps = flattenModifierSteps(nodes);
+  // A single question is faster as a plain list: a wizard would turn one tap
+  // into three. Stepping earns its keep from the second question onward.
+  const questionCount = groupSteps.length + (isMultiSku ? 1 : 0);
+  const stepped = flow === "stepped" && questionCount >= 2;
+
+  // size? → one per group → review. Rebuilt every render because ticking
+  // "Make It a Meal" inserts its side and drink questions right here.
+  const steps: Array<
+    { kind: "size" } | { kind: "group"; node: ModifierTreeNode } | { kind: "review" }
+  > = stepped
+    ? [
+        ...(isMultiSku ? [{ kind: "size" as const }] : []),
+        ...groupSteps.map((node) => ({ kind: "group" as const, node })),
+        { kind: "review" as const },
+      ]
+    : [];
+  // Clamp rather than remember: going back and unticking a meal deletes the
+  // three questions underneath it, and a held index would point past the end.
+  const at = stepped ? Math.min(stepIndex, steps.length - 1) : 0;
+  const current = steps[at];
+  const isLast = at === steps.length - 1;
+
+  // Next is blocked only by THIS question. The Add button still answers for
+  // the whole order — see canSubmit — so a group skipped by going straight to
+  // review can't slip through.
+  const stepBlocked =
+    current?.kind === "group" ? !isStepSatisfied(current.node) : false;
+
+  const goNext = () => setStepIndex(Math.min(at + 1, steps.length - 1));
+  const goBack = () => setStepIndex(Math.max(at - 1, 0));
+
+  // Choosing on a pick-exactly-one group moves on by itself. Making the
+  // operator confirm a choice the system already knows is final is the
+  // difference between a picker that feels fast and one that feels like
+  // paperwork. Multi-select waits: only the operator knows when they're done.
+  const toggleStepped = (node: ModifierTreeNode, optionId: string) => {
+    toggle(node, optionId);
+    if (stepped && shouldAutoAdvance(node)) goNext();
+  };
 
   const handleSubmit = () => {
     const displayName = buildCartItemName({
@@ -339,6 +405,31 @@ export function ModifierSelectionModal({
 
           <div className={isSheet ? "space-y-6 px-5 pb-6 pt-6" : ""}>
 
+          {stepped ? (
+            <SteppedBody
+              step={current!}
+              index={at}
+              total={steps.length}
+              item={item}
+              selectedSku={selectedSku}
+              productSkus={item.productSkus ?? []}
+              onPickSku={(sku) => {
+                setSelectedSku(sku);
+                // Groups differ per size, so the answers below are no longer
+                // about the same question.
+                setSelections({});
+                goNext();
+              }}
+              onToggle={toggleStepped}
+              selectedModifiers={selectedModifiers}
+              quantity={quantity}
+              setQuantity={setQuantity}
+              notes={notes}
+              setNotes={setNotes}
+              lineTotal={breakdown.lineTotal}
+            />
+          ) : (
+          <>
           {isMultiSku && (
             <Section title="Size">
               <div className="grid grid-cols-1 gap-2">
@@ -403,12 +494,55 @@ export function ModifierSelectionModal({
               </button>
             </div>
           </Section>
+          </>
+          )}
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-zinc-200 px-5 py-4 bg-zinc-50">
-          {isSheet ? (
+          {stepped ? (
+            /* Back is always available; forward is gated by THIS question.
+               The running total sits between them so nobody discovers what a
+               meal deal costs only after adding it. */
+            <>
+              <button
+                onClick={at === 0 ? onClose : goBack}
+                className="rounded-xl border border-zinc-200 px-5 py-3 text-[15px] font-medium text-zinc-700 active:bg-zinc-100"
+              >
+                {at === 0 ? "Cancel" : "Back"}
+              </button>
+              <div className="text-center">
+                <div className="text-[11px] uppercase tracking-wide text-zinc-400">
+                  Step {at + 1} of {steps.length}
+                </div>
+                <div className="text-base font-semibold text-zinc-900">
+                  £{breakdown.lineTotal.toFixed(2)}
+                </div>
+              </div>
+              {isLast ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit}
+                  className="rounded-xl bg-zinc-900 px-6 py-3 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40"
+                >
+                  {canSubmit
+                    ? `Add ${quantity}`
+                    : `Choose ${unmet[0]?.groupName ?? "options"}`}
+                </button>
+              ) : (
+                <button
+                  onClick={goNext}
+                  disabled={stepBlocked}
+                  className="rounded-xl bg-zinc-900 px-6 py-3 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40"
+                >
+                  {stepBlocked && current?.kind === "group"
+                    ? `Choose ${current.node.group.name}`
+                    : "Next"}
+                </button>
+              )}
+            </>
+          ) : isSheet ? (
             /* One button, priced live. The customer never has to work out what
                tapping Add will cost — the number on the button is the number
                that lands in the basket. */
@@ -552,6 +686,168 @@ function Section({
         {meta && <span className="text-xs text-zinc-400">{meta}</span>}
       </div>
       {children}
+    </div>
+  );
+}
+
+
+/**
+ * One question, filling the screen.
+ *
+ * Deliberately reuses GroupNode so a step renders exactly what the scrolling
+ * view renders for the same group — prices, per-size availability and nested
+ * indentation included. Two renderers for one group is how the till and the
+ * storefront end up disagreeing about what something costs.
+ */
+function SteppedBody({
+  step,
+  index,
+  total,
+  item,
+  selectedSku,
+  productSkus,
+  onPickSku,
+  onToggle,
+  selectedModifiers,
+  quantity,
+  setQuantity,
+  notes,
+  setNotes,
+  lineTotal,
+}: {
+  step: { kind: "size" } | { kind: "group"; node: ModifierTreeNode } | { kind: "review" };
+  index: number;
+  total: number;
+  item: { name: string };
+  selectedSku: ProductSku | null;
+  productSkus: ProductSku[];
+  onPickSku: (sku: ProductSku) => void;
+  onToggle: (node: ModifierTreeNode, optionId: string) => void;
+  selectedModifiers: SelectedModifier[];
+  quantity: number;
+  setQuantity: (fn: (q: number) => number) => void;
+  notes: string;
+  setNotes: (v: string) => void;
+  lineTotal: number;
+}) {
+  return (
+    <div className="space-y-4">
+      {/* Where the operator is, and in what. A bare list of options with no
+          heading is disorienting when the screen changes under you. */}
+      <div>
+        <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+          {item.name} · {index + 1} of {total}
+        </div>
+        <h3 className="mt-0.5 text-lg font-semibold text-zinc-900">
+          {step.kind === "size"
+            ? "Choose a size"
+            : step.kind === "group"
+              ? step.node.group.name
+              : "Anything else?"}
+        </h3>
+        {step.kind === "group" && step.node.ancestorNames.length > 0 && (
+          /* "Make It a Meal › Fries" — without it, a dip question three
+             levels down looks like it belongs to the burger. */
+          <p className="mt-0.5 text-xs text-zinc-500">
+            {step.node.ancestorNames.join(" › ")}
+          </p>
+        )}
+      </div>
+
+      {step.kind === "size" && (
+        <div className="grid grid-cols-1 gap-2">
+          {productSkus.map((sku) => (
+            <button
+              key={sku.name}
+              onClick={() => onPickSku(sku)}
+              className={`flex items-center justify-between rounded-xl border px-4 py-4 text-left active:bg-zinc-50 ${
+                selectedSku?.name === sku.name
+                  ? "border-zinc-900 bg-zinc-50"
+                  : "border-zinc-200"
+              }`}
+            >
+              <span className="text-[15px] font-medium text-zinc-900">
+                {sku.name}
+              </span>
+              <span className="text-[15px] text-zinc-700">
+                £{Number(sku.price).toFixed(2)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {step.kind === "group" && (
+        <GroupNode node={step.node} onToggle={onToggle} />
+      )}
+
+      {step.kind === "review" && (
+        <div className="space-y-4">
+          {/* Everything chosen, before it goes in. On a meal deal the
+              operator has answered four questions across four screens and
+              can no longer see any of them. */}
+          {selectedModifiers.length > 0 && (
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+              <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                Chosen
+              </div>
+              <ul className="mt-1.5 space-y-1">
+                {selectedModifiers.map((m, i) => (
+                  <li
+                    key={`${m.groupId}-${m.id}-${i}`}
+                    className="flex justify-between text-sm text-zinc-700"
+                  >
+                    <span style={{ paddingLeft: (m.depth ?? 0) * 12 }}>
+                      {(m.depth ?? 0) > 0 ? "↳ " : ""}
+                      {m.name}
+                    </span>
+                    {m.price > 0 && <span>+£{m.price.toFixed(2)}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div>
+            <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+              Quantity
+            </div>
+            <div className="mt-1.5 flex items-center gap-4">
+              <button
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                className="h-12 w-12 rounded-xl border border-zinc-200 text-xl active:bg-zinc-100"
+              >
+                −
+              </button>
+              <span className="min-w-[2ch] text-center text-xl font-semibold text-zinc-900">
+                {quantity}
+              </span>
+              <button
+                onClick={() => setQuantity((q) => q + 1)}
+                className="h-12 w-12 rounded-xl border border-zinc-200 text-xl active:bg-zinc-100"
+              >
+                +
+              </button>
+              <span className="ml-auto text-lg font-semibold text-zinc-900">
+                £{lineTotal.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+              Notes (optional)
+            </div>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. no salt, extra crispy"
+              rows={2}
+              className="mt-1.5 w-full resize-none rounded-xl border border-zinc-200 px-3 py-2 text-[15px] focus:border-zinc-900 focus:outline-none"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

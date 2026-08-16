@@ -420,6 +420,9 @@ export default function TableQrPage() {
         <ModifierSelectionModal
           item={modalItem}
           allModifierGroups={store?.brandModifierGroups ?? []}
+          // One question per screen: staff and customers at a till are
+          // completing a task, not browsing. The storefront stays on scroll.
+          flow="stepped"
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => {

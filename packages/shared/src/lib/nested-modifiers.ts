@@ -377,3 +377,62 @@ export function hasNestedGroups(groups: NestableGroup[]): boolean {
     (g.options ?? []).some((o) => (o.nestedGroupIds?.length ?? 0) > 0),
   );
 }
+
+// ── Stepped picker ──────────────────────────────────────────────────────────
+//
+// The till and the kiosk ask one question per screen rather than presenting
+// every group in a scroller. Scrolling is a browsing pattern; taking an order
+// is a task, and a required group three screens down a scroll is a required
+// group that gets missed.
+//
+// The step list is derived from the SAME tree the scrolling view renders, so
+// the two can never disagree about what is being asked or what it costs.
+
+/**
+ * Every group to ask about, in the order to ask, depth-first.
+ *
+ * A nested group is only a question once its parent option is chosen, so the
+ * list GROWS as the operator works: ticking "Make It a Meal" inserts "Choose
+ * Side" and "Choose Drink" directly after it, and unticking removes them
+ * again. Callers must therefore clamp their step index against the current
+ * length rather than holding an index across changes.
+ */
+export function flattenModifierSteps(
+  nodes: ModifierTreeNode[],
+): ModifierTreeNode[] {
+  const out: ModifierTreeNode[] = [];
+  const walk = (list: ModifierTreeNode[]) => {
+    for (const node of list) {
+      out.push(node);
+      for (const entry of node.options) {
+        // Children are populated only while the option is selected, so this
+        // naturally skips branches the operator hasn't opened.
+        if (entry.selected && entry.children.length) walk(entry.children);
+      }
+    }
+  };
+  walk(nodes);
+  return out;
+}
+
+/** Has this group had its minimum answered? Drives whether Next is allowed. */
+export function isStepSatisfied(node: ModifierTreeNode): boolean {
+  const min = node.group.minSelections ?? 0;
+  if (min <= 0) return true;
+  return node.options.filter((o) => o.selected).length >= min;
+}
+
+/**
+ * Should choosing an option here move straight on to the next question?
+ *
+ * Only for a pick-exactly-one group. Making the operator confirm a choice the
+ * system already knows is final is the difference between a picker that feels
+ * fast and one that feels like paperwork — but a multi-select group can't
+ * auto-advance, because only the operator knows when they've finished adding
+ * toppings.
+ */
+export function shouldAutoAdvance(node: ModifierTreeNode): boolean {
+  const max = node.group.maxSelections ?? 1;
+  const min = node.group.minSelections ?? 0;
+  return max === 1 && min === 1;
+}

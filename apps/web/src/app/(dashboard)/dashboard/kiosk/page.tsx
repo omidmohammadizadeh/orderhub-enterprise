@@ -556,6 +556,9 @@ export default function KioskPage() {
         <ModifierSelectionModal
           item={modalItem}
           allModifierGroups={allGroups}
+          // One question per screen: staff and customers at a till are
+          // completing a task, not browsing. The storefront stays on scroll.
+          flow="stepped"
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => {

@@ -10,6 +10,9 @@ import {
   modifierIndent,
   formatModifierPath,
   calculateCartItem,
+  flattenModifierSteps,
+  isStepSatisfied,
+  shouldAutoAdvance,
   type NestableGroup,
 } from "@orderhub/shared";
 
@@ -458,5 +461,136 @@ describe("nested modifiers — flat menus are untouched", () => {
       sizeKey: "12",
     });
     expect(nodes[0].options.map((o) => o.option.id)).toEqual(["o-2"]);
+  });
+});
+
+// ── Stepped picker ──────────────────────────────────────────────────────────
+//
+// The till and the kiosk ask one group per screen instead of presenting a
+// scroller. The step list is derived from the SAME tree the scrolling view
+// renders, so the two can never disagree about what is being asked.
+//
+// The hard part is that the list is not fixed: a nested group only becomes a
+// question once its parent is chosen, so steps appear and vanish underneath
+// the operator while they work.
+
+describe("stepped picker — the step list", () => {
+  it("asks only the top-level group until the meal is ticked", () => {
+    expect(flattenModifierSteps(tree({})).map((n) => n.group.id)).toEqual([
+      "g-meal",
+    ]);
+  });
+
+  it("inserts the nested groups directly after the option that opens them", () => {
+    // Side and drink must be asked NEXT, not appended after unrelated groups
+    // — the operator is standing in front of the customer who just said yes
+    // to a meal.
+    const steps = flattenModifierSteps(
+      tree({ [selectionKey([], "g-meal")]: ["o-meal"] }),
+    );
+    expect(steps.map((n) => n.group.id)).toEqual([
+      "g-meal",
+      "g-side",
+      "g-drink",
+    ]);
+  });
+
+  it("goes a level deeper as the side is chosen", () => {
+    // Fries opens a dip, so the dip becomes step 3 of 4 mid-flow.
+    const steps = flattenModifierSteps(tree(FULL_MEAL));
+    expect(steps.map((n) => n.group.id)).toEqual([
+      "g-meal",
+      "g-side",
+      "g-dip",
+      "g-drink",
+    ]);
+  });
+
+  it("removes the steps again when the meal is unticked", () => {
+    // The operator goes Back and changes their mind. Three questions vanish,
+    // and a step index held across that change would point past the end —
+    // which is why callers clamp instead of remembering.
+    const steps = flattenModifierSteps(
+      tree({ ...FULL_MEAL, [selectionKey([], "g-meal")]: [] }),
+    );
+    expect(steps.map((n) => n.group.id)).toEqual(["g-meal"]);
+  });
+
+  it("keeps the same branch keys the scrolling view uses", () => {
+    // Both views drive one selections object. If the step list invented its
+    // own keys, a choice made in one would be invisible to the other.
+    const steps = flattenModifierSteps(tree(FULL_MEAL));
+    expect(steps.map((n) => n.key)).toEqual([
+      selectionKey([], "g-meal"),
+      selectionKey(["o-meal"], "g-side"),
+      selectionKey(["o-meal", "o-fries"], "g-dip"),
+      selectionKey(["o-meal"], "g-drink"),
+    ]);
+  });
+});
+
+describe("stepped picker — when Next is allowed", () => {
+  it("blocks a required group with nothing chosen", () => {
+    const steps = flattenModifierSteps(
+      tree({ [selectionKey([], "g-meal")]: ["o-meal"] }),
+    );
+    const side = steps.find((n) => n.group.id === "g-side")!;
+    expect(isStepSatisfied(side)).toBe(false);
+  });
+
+  it("allows it once the minimum is met", () => {
+    const steps = flattenModifierSteps(tree(FULL_MEAL));
+    const side = steps.find((n) => n.group.id === "g-side")!;
+    expect(isStepSatisfied(side)).toBe(true);
+  });
+
+  it("lets an optional group through untouched", () => {
+    // "Make It a Meal" is min 0 — declining it must not trap the operator.
+    const meal = flattenModifierSteps(tree({}))[0]!;
+    expect(isStepSatisfied(meal)).toBe(true);
+  });
+
+  it("agrees with findUnmetRequirements, which gates the Add button", () => {
+    // Two different checks over one tree. If they ever disagree, Next is
+    // enabled on a step that still blocks the order.
+    const steps = flattenModifierSteps(
+      tree({ [selectionKey([], "g-meal")]: ["o-meal"] }),
+    );
+    const blocked = steps.filter((n) => !isStepSatisfied(n)).map((n) => n.group.id);
+    const unmet = findUnmetRequirements(
+      tree({ [selectionKey([], "g-meal")]: ["o-meal"] }),
+    ).map((u) => u.groupId);
+    expect(blocked.sort()).toEqual(unmet.sort());
+  });
+});
+
+describe("stepped picker — auto-advance", () => {
+  it("advances on a pick-exactly-one group", () => {
+    const side = flattenModifierSteps(tree(FULL_MEAL)).find(
+      (n) => n.group.id === "g-side",
+    )!;
+    expect(shouldAutoAdvance(side)).toBe(true);
+  });
+
+  it("waits on an optional group — declining is a real answer", () => {
+    // "Make It a Meal" is min 0 / max 1. Auto-advancing on the tick would be
+    // fine, but the operator also has to be able to move on WITHOUT ticking,
+    // so this step keeps its Next button.
+    const meal = flattenModifierSteps(tree({}))[0]!;
+    expect(shouldAutoAdvance(meal)).toBe(false);
+  });
+
+  it("waits on a multi-select — only the operator knows when they're done", () => {
+    const all = catalog();
+    const side = all.find((g) => g.id === "g-side")!;
+    side.selectionType = "ADDON";
+    side.minSelections = 0;
+    side.maxSelections = 3;
+    const nodes = buildModifierTree({
+      rootGroups: all.filter((g) => g.id === "g-side"),
+      groupsById: indexGroups(all),
+      selections: {},
+    });
+    expect(shouldAutoAdvance(nodes[0]!)).toBe(false);
   });
 });
