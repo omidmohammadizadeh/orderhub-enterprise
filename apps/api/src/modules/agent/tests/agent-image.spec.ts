@@ -92,3 +92,64 @@ describe("agent images — the prompt", () => {
     expect(p).toContain("no people");
   });
 });
+
+describe("agent images — the Premium dark-slate template", () => {
+  const prompt = (name: string, desc?: string | null, hint?: string) =>
+    (svc({ OPENAI_API_KEY: "k" }) as any).buildPrompt(name, desc, hint, "premium");
+
+  it("REPLACES the standard template rather than adding to it", () => {
+    // The two disagree about the background — "clean seamless" vs "dark
+    // charcoal, smoky gradient". A prompt carrying both gets neither.
+    const p = prompt("Wrap", "chicken wrap");
+    expect(p).toContain("dark charcoal-grey");
+    expect(p).not.toContain("clean seamless background");
+    expect(p).not.toContain("Professional studio food photography of");
+  });
+
+  it("still leads with the item and its description", () => {
+    const p = prompt("Filthy Box", "chicken, doner, pitta and garlic sauce");
+    expect(p).toContain("Filthy Box");
+    expect(p).toContain("garlic sauce");
+  });
+
+  it("omits the details line entirely when there's no description", () => {
+    // An empty "Food details:" invites the model to invent the contents.
+    expect(prompt("Ribeye Steak", null)).not.toContain("Food details:");
+  });
+
+  it("pins every variable that would otherwise drift between images", () => {
+    // Consistency across a category is the whole reason this preset exists.
+    const p = prompt("Wrap", "chicken wrap");
+    for (const pinned of [
+      "matte black slate",
+      "three-quarter camera angle",
+      "upper left",
+      "Maintain the same background",
+    ]) {
+      expect(p).toContain(pinned);
+    }
+  });
+
+  it("keeps the operator's note, but not at the cost of the exclusions", () => {
+    // A note like "on a wooden board" must not be able to cancel "no hands".
+    const p = prompt("Wrap", "chicken wrap", "served in a takeaway box");
+    expect(p).toContain("served in a takeaway box");
+    expect(p.indexOf("served in a takeaway box")).toBeLessThan(
+      p.indexOf("No writing, labels, logos"),
+    );
+  });
+
+  it("forbids the things that ruin a menu photo", () => {
+    const p = prompt("Wrap", "chicken wrap");
+    expect(p).toContain("packaging, hands, people");
+    expect(p).toContain("Do not add ingredients that are not listed");
+  });
+
+  it("is unaffected for the other presets", () => {
+    const s: any = svc({ OPENAI_API_KEY: "k" });
+    expect(s.buildPrompt("Wrap", "chicken wrap", "", "black")).toContain(
+      "Professional studio food photography of",
+    );
+    expect(s.buildPrompt("Wrap", "chicken wrap")).not.toContain("matte black slate");
+  });
+});

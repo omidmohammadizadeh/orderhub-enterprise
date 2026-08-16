@@ -41,6 +41,20 @@ const DEFAULT_OPENAI_MODEL = "gpt-image-2";
 // (1.385). Everything is cover-cropped afterwards, so the only cost of the
 // mismatch is a trimmed sliver rather than a distorted plate.
 const OPENAI_SIZE = "1536x1024";
+/** Style key for the dark-slate look. Anything else uses the plain template. */
+export const PREMIUM_STYLE = "premium";
+/**
+ * Premium generates at 1072x768 so the cover-crop to 1064x768 trims exactly
+ * four pixels a side — no rescaling of the plate at all. Both edges are
+ * multiples of 16, which is the constraint the flexible-size models impose.
+ *
+ * NOT VERIFIED against the live API: the fixed sizes are the only ones we
+ * have actually seen accepted, so renderWithOpenAI falls back to OPENAI_SIZE
+ * on a size-related rejection rather than failing the generation.
+ */
+const OPENAI_PREMIUM_SIZE = "1072x768";
+/** The look is the point of Premium, so it doesn't economise on quality. */
+const OPENAI_PREMIUM_QUALITY = "high";
 const IMAGE_CONCURRENCY = 2;
 // The menu card, the storefront tile and the POS grid are all built for this.
 // Anything else gets letterboxed or cropped by the browser instead.
@@ -128,6 +142,7 @@ export class AgentImageService {
     tenantId: string,
     itemId: string,
     styleHint?: string,
+    style?: string,
   ): Promise<{ ok: boolean; itemId: string; error?: string }> {
     if (!this.configured) {
       return { ok: false, itemId, error: this.notConfiguredMessage };
@@ -139,7 +154,12 @@ export class AgentImageService {
     });
     if (!item) return { ok: false, itemId, error: "Item not found for this business." };
 
-    const imageUrl = await this.renderImage(item.name, item.description, styleHint);
+    const imageUrl = await this.renderImage(
+      item.name,
+      item.description,
+      styleHint,
+      style,
+    );
     await this.menus.updateItem(itemId, tenantId, { imageUrl } as any);
     return { ok: true, itemId };
   }
@@ -152,6 +172,8 @@ export class AgentImageService {
     styleHint?: string,
     /** Photograph one category only — "just the wraps" is the common ask. */
     categoryId?: string,
+    /** PREMIUM_STYLE for the dark-slate look; omit for the plain template. */
+    style?: string,
   ): { jobId: string } | { error: string } {
     if (!this.configured) {
       return { error: this.notConfiguredMessage };
@@ -159,7 +181,15 @@ export class AgentImageService {
     const jobId = `img_${menuId}_${this.bulkJobs.size}`;
     const job: BulkJob = { status: "running", total: 0, done: 0, failed: 0, startedAt: 0 };
     this.bulkJobs.set(jobId, job);
-    void this.runBulk(tenantId, menuId, onlyMissing, styleHint, job, categoryId).catch((e) =>
+    void this.runBulk(
+      tenantId,
+      menuId,
+      onlyMissing,
+      styleHint,
+      job,
+      categoryId,
+      style,
+    ).catch((e) =>
       this.logger.error(`bulk image job ${jobId} crashed: ${(e as Error).message}`),
     );
     return { jobId };
@@ -176,6 +206,7 @@ export class AgentImageService {
     styleHint: string | undefined,
     job: BulkJob,
     categoryId?: string,
+    style?: string,
   ) {
     const brandIds = await this.tenantBrandIds(tenantId);
     // Scoping by category goes through the category link, not menuIds[] — an
@@ -212,7 +243,12 @@ export class AgentImageService {
         if (idx >= items.length) return;
         const it = items[idx];
         try {
-          const imageUrl = await this.renderImage(it.name, it.description, styleHint);
+          const imageUrl = await this.renderImage(
+            it.name,
+            it.description,
+            styleHint,
+            style,
+          );
           await this.menus.updateItem(it.id, tenantId, { imageUrl } as any);
           job.done++;
         } catch (e) {
@@ -235,12 +271,21 @@ export class AgentImageService {
    * actually in the dish ("chicken, doner, pitta and garlic sauce in a 14
    * inch box with a coke"). Prompting from the name alone invents a
    * different meal that happens to share a title.
+   *
+   * `style` picks the template. PREMIUM_STYLE replaces this one outright
+   * rather than appending to it — the two disagree about the background
+   * ("clean seamless" vs "dark charcoal, smoky gradient"), and a prompt that
+   * asks for both gets neither.
    */
   private buildPrompt(
     name: string,
     description: string | null | undefined,
     styleHint?: string,
+    style?: string,
   ): string {
+    if (style === PREMIUM_STYLE) {
+      return this.buildPremiumPrompt(name, description, styleHint);
+    }
     return (
       `Professional studio food photography of "${name}"` +
       (description ? `, ${description}` : "") +
@@ -252,19 +297,73 @@ export class AgentImageService {
     );
   }
 
+  /**
+   * The "Premium dark slate" template.
+   *
+   * The point of it is CONSISTENCY, not just quality: it pins the background,
+   * camera angle, plate, lighting and colour grading, so a whole category
+   * comes back looking like one photo shoot rather than twelve. That's why it
+   * reads as a full brief instead of a few adjectives — every variable it
+   * leaves open is one the model will answer differently per image.
+   *
+   * The operator's free-text note is appended LAST so it can override, but
+   * the negative constraints come after it: "no hands, no logos" must not be
+   * something an offhand note quietly cancels.
+   */
+  private buildPremiumPrompt(
+    name: string,
+    description: string | null | undefined,
+    styleHint?: string,
+  ): string {
+    return [
+      `Create a premium, photorealistic restaurant menu photograph of: ${name}.`,
+      description ? `Food details: ${description}.` : "",
+      `Present one complete, generous serving centred on a matte black slate ` +
+        `plate or dark charcoal serving surface. Use a dark charcoal-grey ` +
+        `textured studio background with a subtle smoky gradient and soft ` +
+        `background blur.`,
+      `Camera and composition: professional commercial food photography, ` +
+        `landscape orientation, close three-quarter camera angle, entire meal ` +
+        `clearly visible, centred composition, appetising portion size, ` +
+        `realistic proportions, shallow depth of field, sharp focus on the ` +
+        `front and centre of the food.`,
+      `Lighting: warm soft key light from the upper left, subtle golden ` +
+        `highlights, gentle rim light from behind, controlled natural shadows, ` +
+        `rich contrast, soft cinematic falloff and a faint warm glow. Keep the ` +
+        `food bright and colourful against the dark background.`,
+      `Food styling: freshly prepared, realistic natural textures, crisp ` +
+        `edges, juicy meat, glossy sauces, gently melted cheese, visible fresh ` +
+        `toppings and subtle steam only when appropriate. Make every stated ` +
+        `ingredient clearly recognisable, evenly distributed and consistent ` +
+        `with the item description.`,
+      `Maintain the same background, camera angle, plate style, lighting, ` +
+        `colour grading and photographic treatment for every menu image.`,
+      styleHint ? `${styleHint}.` : "",
+      `No writing, labels, logos, branding, watermark, packaging, hands, ` +
+        `people, cutlery, drinks or unrelated ingredients. Do not add ` +
+        `ingredients that are not listed. Avoid artificial CGI appearance, ` +
+        `excessive shine, extreme saturation, floating ingredients, distorted ` +
+        `food, duplicate items, cropped plates and untidy backgrounds.`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
   /** Generate, crop to the exact menu-card size, and host it. Returns a URL. */
   private async renderImage(
     name: string,
     description: string | null | undefined,
     styleHint?: string,
+    style?: string,
   ): Promise<string> {
-    const prompt = this.buildPrompt(name, description, styleHint);
+    const prompt = this.buildPrompt(name, description, styleHint, style);
+    const premium = style === PREMIUM_STYLE;
     const p = this.provider;
     const raw =
       p === "gemini"
         ? await this.renderWithGemini(prompt)
         : p === "openai"
-          ? await this.renderWithOpenAI(prompt)
+          ? await this.renderWithOpenAI(prompt, premium)
           : await this.renderWithReplicate(prompt);
 
     // COVER, not "fit inside". `fit: inside` leaves whatever aspect the model
@@ -327,24 +426,40 @@ export class AgentImageService {
   }
 
   /** OpenAI: one call, image comes back base64 in data[0].b64_json. */
-  private async renderWithOpenAI(prompt: string): Promise<Buffer> {
-    const res = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY") ?? ""}`,
-      },
-      body: JSON.stringify({
-        model:
-          this.config.get<string>("AGENT_OPENAI_IMAGE_MODEL") ?? DEFAULT_OPENAI_MODEL,
-        prompt,
-        size: OPENAI_SIZE,
-        // Quality drives both the look and the bill, so it's tunable without
+  private async renderWithOpenAI(
+    prompt: string,
+    premium = false,
+  ): Promise<Buffer> {
+    const size = premium
+      ? (this.config.get<string>("AGENT_OPENAI_PREMIUM_SIZE") ??
+        OPENAI_PREMIUM_SIZE)
+      : OPENAI_SIZE;
+    const quality = premium
+      ? (this.config.get<string>("AGENT_OPENAI_PREMIUM_QUALITY") ??
+        OPENAI_PREMIUM_QUALITY)
+      : // Quality drives both the look and the bill, so it's tunable without
         // a deploy. Medium is the sensible middle for a menu tile.
-        quality: this.config.get<string>("AGENT_OPENAI_IMAGE_QUALITY") ?? "medium",
-        n: 1,
-      }),
-    });
+        (this.config.get<string>("AGENT_OPENAI_IMAGE_QUALITY") ?? "medium");
+
+    let res = await this.openAiImageCall(prompt, size, quality);
+
+    // The flexible sizes are documented but unverified on this account. A
+    // rejected size must cost a retry, not the whole generation — and it must
+    // SAY so, or we'd be silently paying for a different crop than the one
+    // configured.
+    if (!res.ok && size !== OPENAI_SIZE) {
+      const detail = (await res.text().catch(() => "")).slice(0, 200);
+      if (res.status === 400 && /size|dimension|width|height/i.test(detail)) {
+        this.logger.warn(
+          `OpenAI rejected size ${size} (${detail}) — retrying at ${OPENAI_SIZE}. ` +
+            `Set AGENT_OPENAI_PREMIUM_SIZE to a supported size to stop this.`,
+        );
+        res = await this.openAiImageCall(prompt, OPENAI_SIZE, quality);
+      } else {
+        throw new Error(`OpenAI ${res.status}: ${detail}`);
+      }
+    }
+
     if (!res.ok) {
       throw new Error(
         `OpenAI ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`,
@@ -364,6 +479,29 @@ export class AgentImageService {
       throw new Error("no image returned");
     }
     return Buffer.from(b64, "base64");
+  }
+
+  /** One images/generations POST. Split out so the size retry can reuse it. */
+  private openAiImageCall(
+    prompt: string,
+    size: string,
+    quality: string,
+  ): Promise<Response> {
+    return fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY") ?? ""}`,
+      },
+      body: JSON.stringify({
+        model:
+          this.config.get<string>("AGENT_OPENAI_IMAGE_MODEL") ?? DEFAULT_OPENAI_MODEL,
+        prompt,
+        size,
+        quality,
+        n: 1,
+      }),
+    });
   }
 
   /** Replicate: create → poll → download. */

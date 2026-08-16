@@ -69,6 +69,8 @@ export class AgentController {
       categoryId?: string;
       styleHint?: string;
       onlyMissing?: boolean;
+      /** "premium" for the dark-slate look; omit for the plain template. */
+      style?: string;
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
@@ -78,6 +80,7 @@ export class AgentController {
       body.onlyMissing !== false,
       body.styleHint,
       body.categoryId,
+      body.style,
     );
   }
 

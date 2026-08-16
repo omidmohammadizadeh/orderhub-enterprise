@@ -19,9 +19,16 @@ import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
 
 /**
- * Two looks that actually suit a menu tile, worded the way the model responds
+ * The looks that actually suit a menu tile, worded the way the model responds
  * to. Free text is still allowed — an operator who knows what they want
  * shouldn't be limited to a preset.
+ *
+ * "Premium" is different in kind from the other three: instead of a hint
+ * appended to the standard prompt, it swaps in a full brief server-side that
+ * pins background, camera angle, plate, lighting and grading. That
+ * consistency is the point — it's what makes a category look like one photo
+ * shoot instead of twelve. It costs more per image (OpenAI at high quality),
+ * so it isn't the default.
  */
 const BACKGROUNDS = [
   {
@@ -31,6 +38,7 @@ const BACKGROUNDS = [
     key: "none",
     label: "No preference",
     hint: "",
+    style: undefined as string | undefined,
   },
   {
     key: "black",
@@ -38,6 +46,7 @@ const BACKGROUNDS = [
     hint:
       "pure black seamless background, single dramatic key light from above, " +
       "soft shadow beneath the food, no props, no background clutter",
+    style: undefined as string | undefined,
   },
   {
     key: "white",
@@ -45,6 +54,13 @@ const BACKGROUNDS = [
     hint:
       "pure white seamless background, soft even studio lighting, clean and " +
       "bright, minimal soft shadow, no props, no background clutter",
+    style: undefined as string | undefined,
+  },
+  {
+    key: "premium",
+    label: "Premium dark slate",
+    hint: "",
+    style: "premium",
   },
 ] as const;
 
@@ -90,6 +106,7 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
         ]
           .filter(Boolean)
           .join(". "),
+        style: BACKGROUNDS.find((b) => b.key === bgKey)?.style,
         onlyMissing,
       }),
     onSuccess: (r) => {
@@ -161,12 +178,14 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
             <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
               Background
             </label>
-            <div className="mt-2 flex gap-2">
+            {/* A 2x2 grid rather than one row — four labels this long get
+                unreadably narrow side by side on a laptop. */}
+            <div className="mt-2 grid grid-cols-2 gap-2">
               {BACKGROUNDS.map((b) => (
                 <button
                   key={b.key}
                   onClick={() => setBgKey(b.key)}
-                  className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
+                  className={`rounded-lg border px-3 py-2 text-sm ${
                     bgKey === b.key
                       ? "border-zinc-900 bg-zinc-900 text-white"
                       : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
@@ -176,6 +195,14 @@ export function GeneratePhotosModal({ open, menuId, category, onClose }: Props) 
                 </button>
               ))}
             </div>
+            {bgKey === "premium" && (
+              <p className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs leading-relaxed text-zinc-600">
+                Dark slate plate, smoky charcoal background, warm key light
+                from the upper left — the same setup on every photo, so a
+                category comes back looking like one shoot. Uses the highest
+                quality setting, so it costs more per image than the others.
+              </p>
+            )}
           </div>
 
           <div>

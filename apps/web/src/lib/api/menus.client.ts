@@ -245,6 +245,8 @@ export const menusClient = {
     categoryId?: string;
     styleHint?: string;
     onlyMissing?: boolean;
+    /** "premium" for the dark-slate look; omit for the plain template. */
+    style?: string;
   }) =>
     apiClient
       .post<{ jobId?: string; error?: string }>("/v1/agent/menu-images", body)
