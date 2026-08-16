@@ -988,7 +988,8 @@ export class MenusController {
   ) {
     return this.menus.unlinkModifierGroupFromItem(itemId, groupId, user.tenantId);
   }
-  @Post(":menuId/channel-pricing")
+
+  @Post("menus/:menuId/channel-pricing")
   @ApiOperation({
     summary:
       "Apply one percentage uplift per channel across every price in a menu",
