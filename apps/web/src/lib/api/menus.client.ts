@@ -236,6 +236,27 @@ export const menusClient = {
    * Stored as per-channel overrides — base prices are never touched, so POS
    * and the operator's own site keep charging the real price.
    */
+  /**
+   * Photograph a menu, or one category of it. Returns a jobId immediately —
+   * the work is throttled server-side and takes minutes, not seconds.
+   */
+  generateMenuImages: (body: {
+    menuId: string;
+    categoryId?: string;
+    styleHint?: string;
+    onlyMissing?: boolean;
+  }) =>
+    apiClient
+      .post<{ jobId?: string; error?: string }>("/v1/agent/menu-images", body)
+      .then((r) => r.data),
+
+  getMenuImageJob: (jobId: string) =>
+    apiClient
+      .get<{ status: string; total: number; done: number; failed: number }>(
+        `/v1/agent/menu-images/${jobId}`,
+      )
+      .then((r) => r.data),
+
   applyChannelPricing: (
     menuId: string,
     body: {

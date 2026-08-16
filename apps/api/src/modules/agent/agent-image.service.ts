@@ -44,7 +44,7 @@ const IMAGE_H = 768;
 const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 90_000;
 
-interface BulkJob {
+export interface BulkJob {
   status: "running" | "done";
   total: number;
   done: number;

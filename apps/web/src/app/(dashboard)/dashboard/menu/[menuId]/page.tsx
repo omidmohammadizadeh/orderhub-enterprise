@@ -42,6 +42,7 @@ import {
   Tag,
   SlidersHorizontal,
   Percent,
+  Camera,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -58,6 +59,7 @@ import { AttachModal } from "@/components/products/attach-modal";
 import { ProductEditorModal } from "@/components/products/product-editor-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
+import { GeneratePhotosModal } from "@/components/menu/generate-photos-modal";
 
 export default function MenuEditorPage() {
   const { menuId } = useParams<{ menuId: string }>();
@@ -92,6 +94,7 @@ export default function MenuEditorPage() {
   // Phase AZ — pricing variants manager + per-product channel pricing.
   const [variantsOpen, setVariantsOpen] = useState(false);
   const [channelPricingOpen, setChannelPricingOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
   const [pricingTarget, setPricingTarget] = useState<any | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [productSearch, setProductSearch] = useState("");
@@ -366,6 +369,20 @@ export default function MenuEditorPage() {
         brandIds={menuBrandIds}
         onClose={() => setVariantsOpen(false)}
       />
+      <GeneratePhotosModal
+        open={photosOpen}
+        menuId={menuId}
+        category={
+          activeCat
+            ? {
+                id: activeCat.id,
+                name: activeCat.name,
+                count: (activeCat.items ?? []).length,
+              }
+            : null
+        }
+        onClose={() => setPhotosOpen(false)}
+      />
       <ChannelPricingModal
         open={channelPricingOpen}
         menuId={menuId}
@@ -571,6 +588,16 @@ export default function MenuEditorPage() {
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
                   Add Existing
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPhotosOpen(true)}
+                  className="h-9"
+                  title="Generate AI photos for the items in this category"
+                >
+                  <Camera className="h-4 w-4 mr-1.5" />
+                  Generate photos
                 </Button>
                 <Button
                   size="sm"

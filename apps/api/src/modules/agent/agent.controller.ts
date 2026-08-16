@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { AgentService, type AgentChatTurn } from "./agent.service";
+import { AgentImageService, type BulkJob } from "./agent-image.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
@@ -12,7 +13,10 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 @Controller({ path: "agent", version: "1" })
 @Roles("PLATFORM_ADMIN")
 export class AgentController {
-  constructor(private readonly agent: AgentService) {}
+  constructor(
+    private readonly agent: AgentService,
+    private readonly images: AgentImageService,
+  ) {}
 
   @Get("status")
   @ApiOperation({ summary: "Whether the admin assistant is configured" })
@@ -45,4 +49,44 @@ export class AgentController {
     }
     return { status: job.status, reply: job.reply, toolsUsed: job.toolsUsed, error: job.error };
   }
+  // ── Menu photos ──────────────────────────────────────────────────────────
+  //
+  // The same generation the assistant can trigger, as a plain endpoint, so
+  // the menu screen can offer a button. Asking a chat to photograph a
+  // category works but is a strange way to run a routine job — and it's the
+  // only reason an operator had to describe what they wanted in prose.
+  //
+  // Returns immediately with a jobId; the work is throttled in the
+  // background. Poll the GET below for progress.
+  @Post("menu-images")
+  @ApiOperation({
+    summary: "Generate photos for a menu, or one category of it",
+  })
+  startMenuImages(
+    @Body()
+    body: {
+      menuId: string;
+      categoryId?: string;
+      styleHint?: string;
+      onlyMissing?: boolean;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.images.startBulkForMenu(
+      user.tenantId,
+      body.menuId,
+      body.onlyMissing !== false,
+      body.styleHint,
+      body.categoryId,
+    );
+  }
+
+  @Get("menu-images/:jobId")
+  @ApiOperation({ summary: "Progress of a menu photo job" })
+  menuImagesJob(
+    @Param("jobId") jobId: string,
+  ): BulkJob | { status: "unknown" } {
+    return this.images.getBulkJob(jobId) ?? { status: "unknown" };
+  }
+
 }
