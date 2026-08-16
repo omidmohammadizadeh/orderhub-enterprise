@@ -407,8 +407,18 @@ export class DeliverooOrderService {
       }
     }
 
+    // The WHOLE history, not just the latest line.
+    //
+    // furthestRiderStage reads every entry, so "why is this order still Out
+    // for delivery?" is really "did rider_delivered ever arrive?" — and the
+    // latest status alone can't answer it. Deliveroo appends
+    // rider_unassigned after a delivery, so the last line is routinely NOT
+    // the furthest stage.
+    const history = statusLog.map((e) => e?.status).filter(Boolean).join(" → ");
     this.logger.log(
-      `Deliveroo rider ${externalId}: status=${rawStatus ?? "?"} order_status=${mapped ?? "(unchanged)"} fields=${Object.keys(updates).length}`,
+      `Deliveroo rider ${externalId}: status=${rawStatus ?? "?"} ` +
+        `order_status=${mapped ?? "(unchanged)"} fields=${Object.keys(updates).length}` +
+        (history ? ` | log: ${history}` : " | log: (none)"),
     );
     return {
       handled: Object.keys(updates).length > 0 || statusChanged,
