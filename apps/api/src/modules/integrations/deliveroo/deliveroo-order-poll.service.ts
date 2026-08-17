@@ -72,6 +72,9 @@ export class DeliverooOrderPollService {
   private readonly logger = new Logger(DeliverooOrderPollService.name);
   /** Guards against a slow tick overlapping the next one. */
   private running = false;
+  /** Orders whose payload we couldn't read, so the warning fires once rather
+   *  than every two minutes for the whole six-hour window. */
+  private readonly unreadable = new Set<string>();
 
   constructor(
     private readonly config: ConfigService,
@@ -187,22 +190,43 @@ export class DeliverooOrderPollService {
       return false;
     }
 
-    const raw = this.statusFrom(payload);
-    if (!raw) {
+    const statuses = this.statusesFrom(payload);
+    const sync = this.syncSummary(payload);
+
+    if (statuses.length === 0) {
       // Don't guess the field — show what actually came back so one deploy
       // fixes it. Docs have been wrong three times on this integration.
-      this.logger.warn(
-        `Deliveroo poll ${label}: no status in response — top-level keys: ` +
-          `${Object.keys(payload ?? {}).join(", ") || "(none)"}`,
-      );
+      // ONCE per order: this used to warn every 2 minutes for six hours.
+      if (!this.unreadable.has(row.id)) {
+        this.unreadable.add(row.id);
+        const sample = (payload?.order_events ?? [])[0];
+        this.logger.warn(
+          `Deliveroo poll ${label}: no status in response — keys: ` +
+            `${Object.keys(payload ?? {}).join(", ") || "(none)"}` +
+            (sample
+              ? ` | first order_event: ${JSON.stringify(sample).slice(0, 300)}`
+              : " | order_events is empty"),
+        );
+      }
       return false;
     }
 
-    const mapped = mapDeliverooOrderStatus(raw);
-    if (!mapped || !TERMINAL.has(mapped)) {
+    // The furthest terminal status anywhere in the trail, not the last entry
+    // — ordering is Deliveroo's business and a terminal event that isn't last
+    // must still close the order.
+    let mapped: string | null = null;
+    for (const s of statuses) {
+      const m = mapDeliverooOrderStatus(s);
+      if (m && TERMINAL.has(m)) {
+        mapped = m;
+        break;
+      }
+    }
+
+    if (!mapped) {
       this.logger.log(
-        `Deliveroo poll ${label}: still ${raw}` +
-          (mapped ? ` (${mapped}) — not terminal, leaving alone` : " — no mapping"),
+        `Deliveroo poll ${label}: ${statuses.join(" → ")} — nothing terminal, ` +
+          `leaving alone | ${sync}`,
       );
       return false;
     }
@@ -219,7 +243,8 @@ export class DeliverooOrderPollService {
         "WEBHOOK",
       );
       this.logger.log(
-        `Deliveroo poll ${label}: ${raw} → ${mapped} (was ${row.status})`,
+        `Deliveroo poll ${label}: ${statuses.join(" → ")} ⇒ ${mapped} ` +
+          `(was ${row.status}) | ${sync}`,
       );
       return true;
     } catch (err: any) {
@@ -231,24 +256,63 @@ export class DeliverooOrderPollService {
   }
 
   /**
-   * Pull the order status out of whatever shape came back.
+   * The statuses Deliveroo reports for an order.
    *
-   * The webhook nests the order under `body.order`; the REST read is expected
-   * to return it at the top level. Both are tried, plus the wrappers seen
-   * elsewhere on this API, and a miss is logged with the real keys rather
-   * than silently returning null.
+   * CONFIRMED from production (2026-08-17): `GET /order/v1/orders/{id}` does
+   * NOT return an order object with a status on it. It returns an AUDIT
+   * TRAIL:
+   *
+   *   { order_id, created_at, order_events[], order_sync_statuses[],
+   *     order_prep_stages[] }
+   *
+   * The lifecycle lives in `order_events[]`. We return every status in it
+   * rather than just the last, for the same reason furthestRiderStage reads
+   * the whole rider log: ordering is Deliveroo's business, not ours, and a
+   * terminal event that isn't last must still count. The caller only ever
+   * acts on terminal statuses, so scanning all of them is safe.
+   *
+   * Field names inside an event are still probed — that layer is unverified,
+   * and unreadableShape() logs a real sample if none match.
    */
-  private statusFrom(payload: any): string | null {
-    const candidates = [
+  private statusesFrom(payload: any): string[] {
+    const events = Array.isArray(payload?.order_events) ? payload.order_events : [];
+    const out: string[] = [];
+    for (const e of events) {
+      const s =
+        e?.status ?? e?.event ?? e?.event_type ?? e?.type ?? e?.name ?? e?.state;
+      if (typeof s === "string" && s.trim()) out.push(s.trim());
+    }
+    if (out.length) return out;
+
+    // Older/simpler shapes, kept so a future API change doesn't strand us.
+    for (const c of [
       payload?.status,
       payload?.order?.status,
       payload?.body?.order?.status,
       payload?.data?.status,
       payload?.order_status,
-    ];
-    for (const c of candidates) {
-      if (typeof c === "string" && c.trim()) return c.trim();
+    ]) {
+      if (typeof c === "string" && c.trim()) return [c.trim()];
     }
-    return null;
+    return [];
+  }
+
+  /**
+   * What Deliveroo thinks of our sync_status calls, from the same response.
+   *
+   * The partner dashboard's "Injection Success Rate" is the ratio of orders
+   * for which Deliveroo received a successful sync_status — and ours reads
+   * 0%. This array is their record of those calls, so the poll we already
+   * make answers it for free. Logged, never acted on.
+   */
+  private syncSummary(payload: any): string {
+    const syncs = Array.isArray(payload?.order_sync_statuses)
+      ? payload.order_sync_statuses
+      : [];
+    if (!syncs.length) return "sync_statuses=NONE (Deliveroo has no record)";
+    const seen = syncs
+      .map((s: any) => s?.status ?? s?.state ?? s?.result ?? "?")
+      .join(",");
+    return `sync_statuses=${syncs.length} [${seen}]`;
   }
 }

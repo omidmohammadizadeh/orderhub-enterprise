@@ -6,6 +6,20 @@
 
 import { DeliverooOrderPollService } from "../deliveroo-order-poll.service";
 
+/**
+ * The REAL shape of GET /order/v1/orders/{id}, captured from production on
+ * 2026-08-17. It is an AUDIT TRAIL, not an order — there is no top-level
+ * `status`, which is exactly why the first cut of the poller read nothing
+ * and warned every two minutes for six hours.
+ */
+const trail = (...statuses: string[]) => ({
+  order_id: "gb:f9c1378c",
+  created_at: "2026-08-16T21:27:08Z",
+  order_events: statuses.map((status) => ({ status })),
+  order_sync_statuses: [],
+  order_prep_stages: [],
+});
+
 const ORDER = {
   id: "o1",
   tenantId: "t1",
@@ -23,7 +37,8 @@ function build(opts: {
 }) {
   const findMany = jest.fn().mockResolvedValue(opts.rows ?? [ORDER]);
   const update = opts.update ?? jest.fn().mockResolvedValue(undefined);
-  const request = opts.get ?? jest.fn().mockResolvedValue({ status: "delivered" });
+  const request =
+    opts.get ?? jest.fn().mockResolvedValue(trail("placed", "accepted", "delivered"));
   const svc = new DeliverooOrderPollService(
     { get: jest.fn().mockReturnValue(opts.flag) } as any,
     { order: { findMany } } as any,
@@ -57,7 +72,7 @@ describe("DeliverooOrderPollService — closing the order", () => {
       ["rejected", "REJECTED"],
     ]) {
       const { svc, update } = build({
-        get: jest.fn().mockResolvedValue({ status: raw }),
+        get: jest.fn().mockResolvedValue(trail("placed", "accepted", raw)),
       });
       await svc.pollOnce();
       expect(update).toHaveBeenCalledWith(
@@ -77,7 +92,7 @@ describe("DeliverooOrderPollService — what it must not do", () => {
     // the board two sources of truth.
     for (const raw of ["in_kitchen", "ready_for_collection", "collected", "accepted"]) {
       const { svc, update } = build({
-        get: jest.fn().mockResolvedValue({ status: raw }),
+        get: jest.fn().mockResolvedValue(trail("placed", raw)),
       });
       const res = await svc.pollOnce();
       expect(update).not.toHaveBeenCalled();
@@ -121,7 +136,7 @@ describe("DeliverooOrderPollService — what it must not do", () => {
   it("does not re-write a status the order already has", async () => {
     const { svc, update } = build({
       rows: [{ ...ORDER, status: "COMPLETED" }],
-      get: jest.fn().mockResolvedValue({ status: "delivered" }),
+      get: jest.fn().mockResolvedValue(trail("accepted", "delivered")),
     });
     await svc.pollOnce();
     expect(update).not.toHaveBeenCalled();
@@ -135,9 +150,46 @@ describe("DeliverooOrderPollService — what it must not do", () => {
 });
 
 describe("DeliverooOrderPollService — reading the response", () => {
-  it("finds the status wherever Deliveroo puts it", async () => {
-    // The webhook nests under body.order; the REST read is expected at the
-    // top level. Docs have been wrong three times, so both are tried.
+  it("reads the real audit-trail shape (order_events)", async () => {
+    // The shape that broke the first cut: no top-level status at all.
+    const { svc, update } = build({
+      get: jest.fn().mockResolvedValue(trail("placed", "accepted", "delivered")),
+    });
+    await svc.pollOnce();
+    expect(update).toHaveBeenCalled();
+  });
+
+  it("finds a terminal event even when it isn't the last one", async () => {
+    // Same lesson as furthestRiderStage: ordering is Deliveroo's business.
+    // Trusting the last entry is what left delivered orders stuck before.
+    const { svc, update } = build({
+      get: jest.fn().mockResolvedValue(trail("accepted", "delivered", "collected")),
+    });
+    await svc.pollOnce();
+    expect(update).toHaveBeenCalledWith(
+      "o1",
+      "t1",
+      { status: "COMPLETED" },
+      "deliveroo-poll",
+      "WEBHOOK",
+    );
+  });
+
+  it("probes the field name inside an event", async () => {
+    // The array is confirmed; the key inside each entry is not.
+    for (const key of ["status", "event", "event_type", "type", "name", "state"]) {
+      const { svc, update } = build({
+        get: jest.fn().mockResolvedValue({
+          order_id: "gb:1",
+          order_events: [{ [key]: "delivered" }],
+        }),
+      });
+      await svc.pollOnce();
+      expect(update).toHaveBeenCalled();
+    }
+  });
+
+  it("still falls back to the older flat shapes", async () => {
     for (const payload of [
       { status: "delivered" },
       { order: { status: "delivered" } },
@@ -149,6 +201,23 @@ describe("DeliverooOrderPollService — reading the response", () => {
       await svc.pollOnce();
       expect(update).toHaveBeenCalled();
     }
+  });
+
+  it("warns ONCE per order, not every tick", async () => {
+    // This warned every 2 minutes for six hours on order #4952 and buried
+    // the log. An unreadable payload is one fact, not 180 of them.
+    const { svc } = build({
+      get: jest.fn().mockResolvedValue({ order_id: "gb:1", order_events: [] }),
+    });
+    const warn = jest.spyOn((svc as any).logger, "warn").mockImplementation();
+
+    await svc.pollOnce();
+    await svc.pollOnce();
+    await svc.pollOnce();
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    // And it must carry the evidence needed to fix it next time.
+    expect(warn.mock.calls[0]![0]).toContain("order_events");
   });
 
   it("does nothing on an unreadable payload rather than guessing", async () => {
