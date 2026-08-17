@@ -101,11 +101,7 @@ export class DeliverooOrderSyncService {
         );
         // Confirm the order reached the POS. Required by Deliveroo's flow;
         // only sent after the accept PATCH succeeded (2xx) or 409'd.
-        await this.client.request("POST", `/order/v1/orders/${id}/sync_status`, {
-          status: "succeeded",
-          occurred_at,
-        });
-        this.logger.log(`Deliveroo order ${deliverooOrderId} accepted + synced`);
+        await this.syncStatus(id, deliverooOrderId, occurred_at);
         return;
       }
       case "REJECTED": {
@@ -165,6 +161,74 @@ export class DeliverooOrderSyncService {
       }
       default:
         return; // courier-side + intermediate states are inbound-only
+    }
+  }
+
+  /**
+   * Confirm to Deliveroo that the order reached the POS.
+   *
+   * THE ACCEPT IS ASYNCHRONOUS. `PATCH {status:"accepted"}` returns 204
+   * before the order is actually in the accepted state on Deliveroo's side,
+   * so a sync_status fired immediately after gets
+   *
+   *   404 not_found — "order not found or hasn't been accepted"
+   *
+   * Confirmed in production on gb:58a8cc1b: accept 204 at 17:28:52.671,
+   * sync_status 404 at 17:28:52.742 — seventy-one milliseconds later. It
+   * happened on every order, which is exactly why the partner dashboard's
+   * Injection Success Rate read 0% across 43 orders: the one call Deliveroo
+   * counts never landed.
+   *
+   * So that specific 404 is a WAIT, not a failure. The ladder below totals
+   * about 15 seconds against Deliveroo's 3-minute deadline, leaving plenty
+   * of headroom. `occurred_at` deliberately keeps its original value — it
+   * records when WE accepted, not when the retry happened.
+   */
+  private async syncStatus(
+    idEncoded: string,
+    deliverooOrderId: string,
+    occurred_at: string,
+  ): Promise<void> {
+    const backoffMs = [500, 1000, 2000, 4000, 8000];
+
+    for (let attempt = 0; ; attempt++) {
+      try {
+        await this.client.request(
+          "POST",
+          `/order/v1/orders/${idEncoded}/sync_status`,
+          { status: "succeeded", occurred_at },
+        );
+        this.logger.log(
+          `Deliveroo order ${deliverooOrderId} accepted + synced` +
+            (attempt ? ` (sync_status succeeded on attempt ${attempt + 1})` : ""),
+        );
+        return;
+      } catch (err: any) {
+        const msg = String(err?.message ?? "");
+        const notAcceptedYet =
+          msg.includes("→ 404") && /hasn't been accepted|not_found/i.test(msg);
+        const delay = backoffMs[attempt];
+
+        // Any other failure is a real one — don't sit in a loop on it.
+        if (!notAcceptedYet || delay === undefined) {
+          if (notAcceptedYet) {
+            this.logger.error(
+              `Deliveroo sync_status for ${deliverooOrderId} never landed — ` +
+                `Deliveroo still reports the order as not accepted after ` +
+                `${backoffMs.reduce((a, b) => a + b, 0) / 1000}s. This order ` +
+                `will count against the partner injection rate.`,
+            );
+          }
+          throw err;
+        }
+
+        this.logger.warn(
+          `Deliveroo sync_status for ${deliverooOrderId}: not accepted on ` +
+            `their side yet — retrying in ${delay}ms ` +
+            `(attempt ${attempt + 1}/${backoffMs.length + 1})`,
+        );
+        await new Promise((r) => setTimeout(r, delay));
+      }
     }
   }
 
