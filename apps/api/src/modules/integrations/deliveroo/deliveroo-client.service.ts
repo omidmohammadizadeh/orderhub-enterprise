@@ -16,6 +16,10 @@ import * as crypto from "crypto";
 //   Webhook: HMAC-SHA256(secret, `${sequenceGuid} ${rawBody}`) hex
 //            (legacy new_order/cancel_order use `${sequenceGuid} \n ${rawBody}`)
 
+/** Attempts after a 429 before giving up. Deliveroo tells us how long to
+ *  wait, so a handful is plenty. */
+const RATE_LIMIT_RETRIES = 3;
+
 interface CachedToken {
   token: string;
   expiresAt: number; // epoch ms
@@ -98,16 +102,47 @@ export class DeliverooClientService {
     body?: unknown,
   ): Promise<T> {
     const token = await this.getToken();
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-      },
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    });
-    const text = await res.text();
+    const call = () =>
+      fetch(`${this.baseUrl}${path}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      });
+
+    let res = await call();
+    let text = await res.text();
+
+    // ── Rate limiting ────────────────────────────────────────────────────
+    // Deliveroo enforces an RPS limit and tells us how long to wait:
+    //   429 {"code":"too_many_requests","message":"api calls have exceeded
+    //        the RPS limit, try again later in 10s"}
+    // Handled HERE rather than per-caller so every Deliveroo call benefits.
+    // It cost a sync_status on a live order: the 404-accept retry fired
+    // correctly, tripped the limiter 500ms later, and the 429 fell straight
+    // through as a failure. A rate limit is a WAIT — the request was never
+    // actually made.
+    for (
+      let attempt = 1;
+      res.status === 429 && attempt <= RATE_LIMIT_RETRIES;
+      attempt++
+    ) {
+      const suggested = /try again later in (\d+)\s*s/i.exec(text)?.[1];
+      // Honour their number plus a second of slack. They say exactly how
+      // long, so guessing shorter just burns another request.
+      const waitMs = (suggested ? Number(suggested) + 1 : 5 * attempt) * 1000;
+      this.logger.warn(
+        `Deliveroo ${method} ${path} → 429, waiting ${waitMs / 1000}s ` +
+          `(attempt ${attempt}/${RATE_LIMIT_RETRIES})`,
+      );
+      await new Promise((r) => setTimeout(r, waitMs));
+      res = await call();
+      text = await res.text();
+    }
+
     if (!res.ok) {
       this.logger.warn(
         `Deliveroo ${method} ${path} → ${res.status}: ${text.slice(0, 200)}`,

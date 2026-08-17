@@ -124,3 +124,45 @@ describe("sync_status — what it must NOT retry", () => {
     expect(request).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("sync_status — the 429 that broke the first fix", () => {
+  // Live sequence, 18:17:12 on gb:e609a9b1:
+  //   sync_status → 404 "hasn't been accepted"
+  //   retrying in 500ms                      ← the retry worked
+  //   sync_status → 429 "exceeded the RPS limit, try again later in 10s"
+  //   push failed                            ← and then gave up
+  // A rate limit is a WAIT: the request was never made. The client now
+  // absorbs it, and the ladder starts slower so it's less likely at all.
+  const RATE_LIMITED = new Error(
+    "Deliveroo POST /x/sync_status → 429: " +
+      '{"error":{"code":"too_many_requests","message":"api calls have ' +
+      'exceeded the RPS limit, try again later in 10s"}}',
+  );
+
+  it("does not treat a rate limit as a permanent failure of the order", async () => {
+    // The client absorbs 429s, so one reaching here means it exhausted its
+    // own retries — the order must still surface as failed, not silently
+    // succeed.
+    const request = jest.fn().mockRejectedValue(RATE_LIMITED);
+    await expect(sync(build(request))).rejects.toThrow(/429/);
+  });
+
+  it("starts the ladder slowly enough not to provoke the limiter", async () => {
+    // 500ms was what tripped it. The first wait must be seconds, not
+    // milliseconds.
+    const waits: number[] = [];
+    jest.spyOn(global, "setTimeout").mockImplementation(((fn: any, ms: any) => {
+      waits.push(ms);
+      fn();
+      return 0 as any;
+    }) as any);
+
+    const request = jest.fn().mockRejectedValue(NOT_ACCEPTED);
+    const svc = new DeliverooOrderSyncService({} as any, { request } as any);
+    await expect(sync(svc)).rejects.toThrow();
+
+    expect(waits[0]).toBeGreaterThanOrEqual(2000);
+    // And the whole ladder stays inside Deliveroo's 3-minute deadline.
+    expect(waits.reduce((a, b) => a + b, 0)).toBeLessThan(180_000);
+  });
+});

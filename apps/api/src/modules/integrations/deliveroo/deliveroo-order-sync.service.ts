@@ -189,7 +189,13 @@ export class DeliverooOrderSyncService {
     deliverooOrderId: string,
     occurred_at: string,
   ): Promise<void> {
-    const backoffMs = [500, 1000, 2000, 4000, 8000];
+    // Starts at 2s, not 500ms. The first cut retried after half a second,
+    // which tripped Deliveroo's RPS limit and turned the retry into a 429 —
+    // the client now waits that out, but not provoking it is better than
+    // recovering from it. Deliveroo's accept takes seconds to settle
+    // anyway, and this ladder still totals ~67s against their 3-minute
+    // sync_status deadline.
+    const backoffMs = [2000, 5000, 10_000, 20_000, 30_000];
 
     for (let attempt = 0; ; attempt++) {
       try {
