@@ -74,3 +74,64 @@ export function hoursConfigured(openingHours: any): boolean {
   if (typeof openingHours === "object") return Object.keys(openingHours).length > 0;
   return false;
 }
+
+export const WEEK_DAYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+
+export type WeekHours = Record<string, Array<{ from: string; to: string }>>;
+
+/**
+ * Normalise either stored shape into the day→slots map the brand editor uses.
+ *
+ * Location.openingHours is the LEGACY ARRAY (`[{day: 0-6, open, close}]`,
+ * day 0 = Sunday) while Brand.openingHours is the map
+ * (`{monday: {enabled, slots:[{from,to}]} | [{from,to}]}`). They are two
+ * different shapes for the same fact, which is exactly why a brand couldn't
+ * simply reuse its location's hours — copying the raw value across would
+ * store an array where every reader expects a map.
+ *
+ * Always returns all seven days; a closed day is an empty array.
+ */
+export function toWeekHours(openingHours: any): WeekHours {
+  const empty: WeekHours = Object.fromEntries(
+    WEEK_DAYS.map((d) => [d, [] as Array<{ from: string; to: string }>]),
+  );
+  if (!hoursConfigured(openingHours)) return empty;
+
+  if (Array.isArray(openingHours)) {
+    for (const row of openingHours) {
+      // Array rows are indexed 0 = Sunday (JS getDay), but WEEK_DAYS starts
+      // on Monday — off-by-one here would silently shift the whole week.
+      const idx = Number(row?.day);
+      if (!Number.isInteger(idx) || idx < 0 || idx > 6) continue;
+      const key = WEEK_DAYS[(idx + 6) % 7]!;
+      const from = row?.open ?? row?.from;
+      const to = row?.close ?? row?.to;
+      if (typeof from === "string" && typeof to === "string") {
+        empty[key]!.push({ from, to });
+      }
+    }
+    return empty;
+  }
+
+  for (const key of WEEK_DAYS) {
+    const d = (openingHours as any)[key];
+    if (!d) continue;
+    const slots = Array.isArray(d) ? d : d.enabled === false ? [] : (d.slots ?? []);
+    for (const s of slots) {
+      const from = s?.from ?? s?.open;
+      const to = s?.to ?? s?.close;
+      if (typeof from === "string" && typeof to === "string") {
+        empty[key]!.push({ from, to });
+      }
+    }
+  }
+  return empty;
+}

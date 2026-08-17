@@ -14,7 +14,10 @@ import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-me
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
-import { hoursConfigured } from "../../common/opening-hours.util";
+import {
+  hoursConfigured,
+  toWeekHours,
+} from "../../common/opening-hours.util";
 import { normalizePricingVariants } from "@orderhub/shared";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
@@ -587,6 +590,122 @@ export class BrandsService {
         postcode: brand.postcode ?? fallbackLocation.postcode,
         country: brand.country ?? fallbackLocation.country,
         phone: brand.phone ?? fallbackLocation.phone,
+      },
+    };
+  }
+
+  /**
+   * What a brand INHERITS from its location: address, phone, opening hours,
+   * prep time and timezone.
+   *
+   * The operator was having to type all of this twice — once on the Location
+   * tab and again on the brand — and the two then drifted. Every brand field
+   * here is an OPTIONAL OVERRIDE: leave it blank and the location's value is
+   * used. That's already how address and phone resolve on the storefront
+   * (see resolveStorefront); this exposes the same values to the settings
+   * screen so the operator can see what they'd inherit and stop retyping it.
+   *
+   * Overrides are kept rather than removed because they're load-bearing for
+   * virtual brands: three brands sharing one kitchen need one address but
+   * three different phone numbers and trading hours.
+   *
+   * WHICH location: the pinned `primaryLocationId` if there is one, else the
+   * brand's only location. A multi-site brand has no single address, so we
+   * return nothing and say why rather than pick one arbitrarily.
+   */
+  async getInheritedDefaults(brandId: string, tenantId: string) {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, tenantId },
+      select: {
+        id: true,
+        primaryLocationId: true,
+        phone: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        country: true,
+        openingHours: true,
+        prepTime: true,
+        locations: { select: { id: true }, where: { deletedAt: null } },
+      },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+
+    const locationId =
+      brand.primaryLocationId ??
+      (brand.locations.length === 1 ? brand.locations[0]!.id : null);
+
+    if (!locationId) {
+      return {
+        locationId: null,
+        locationName: null,
+        // Nothing to inherit — say which case it is so the UI can explain
+        // it instead of just showing empty fields.
+        reason:
+          brand.locations.length === 0
+            ? "This brand has no location yet."
+            : `This brand covers ${brand.locations.length} locations, so there's no single address to inherit. Set a primary location to inherit from one of them.`,
+        inherited: null,
+        usingInherited: {},
+      };
+    }
+
+    const location = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: {
+        id: true,
+        name: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        country: true,
+        phone: true,
+        openingHours: true,
+        prepTime: true,
+        timezone: true,
+      },
+    });
+    if (!location) {
+      return {
+        locationId: null,
+        locationName: null,
+        reason: "The linked location no longer exists.",
+        inherited: null,
+        usingInherited: {},
+      };
+    }
+
+    const loc = location as any;
+    return {
+      locationId: loc.id,
+      locationName: loc.name,
+      reason: null,
+      inherited: {
+        addressLine1: loc.addressLine1 ?? null,
+        addressLine2: loc.addressLine2 ?? null,
+        city: loc.city ?? null,
+        postcode: loc.postcode ?? null,
+        country: loc.country ?? null,
+        phone: loc.phone ?? null,
+        prepTime: loc.prepTime ?? null,
+        timezone: loc.timezone ?? null,
+        // Normalised: the location stores the legacy ARRAY shape and the
+        // brand editor speaks the day→slots MAP. Handing back the raw value
+        // would write an array into a field every reader treats as a map.
+        openingHours: toWeekHours(loc.openingHours),
+      },
+      // Which fields are currently falling through to the location, so the
+      // screen can label them "from <location>" rather than look blank.
+      usingInherited: {
+        addressLine1: !brand.addressLine1,
+        addressLine2: !brand.addressLine2,
+        city: !brand.city,
+        postcode: !brand.postcode,
+        phone: !brand.phone,
+        prepTime: brand.prepTime == null,
+        openingHours: !hoursConfigured(brand.openingHours),
       },
     };
   }

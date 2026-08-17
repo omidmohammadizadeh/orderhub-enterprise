@@ -65,6 +65,20 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
   const [orderingSlug, setOrderingSlug] = useState(brand.onlineOrderingSlug ?? "");
   const [slugErr, setSlugErr] = useState<string | null>(null);
 
+  // What this brand falls back to when a field is left blank. Shown as
+  // placeholders so the operator can see the location's address/phone are
+  // already covering it, rather than typing the same details in twice and
+  // letting the two drift apart.
+  const { data: inherit } = useQuery({
+    queryKey: ["brand-inherited", brand.id],
+    queryFn: () => brandsClient.inherited(brand.id),
+    staleTime: 60_000,
+  });
+  const from = inherit?.inherited;
+  /** Placeholder that names where the value comes from. */
+  const inheritPh = (v?: string | null) =>
+    v ? `${v}  (from ${inherit?.locationName ?? "location"})` : undefined;
+
   // ── Contact + address ─────────────────────────────────────────────
   const [phone, setPhone] = useState(brand.phone ?? "");
   const [addressLine1, setAddressLine1] = useState(brand.addressLine1 ?? "");
@@ -427,12 +441,19 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
 
           {/* ── Contact + address ────────────────────────────────── */}
           <Section title="Contact">
+            <p className="mb-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-[11px] leading-relaxed text-zinc-600">
+              {inherit?.reason
+                ? inherit.reason
+                : from
+                  ? `Leave a field blank and it uses ${inherit?.locationName}'s details from the Locations tab. Fill one in only when this brand needs something different.`
+                  : "Loading the location's details…"}
+            </p>
             <Field label="Phone">
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 disabled={!canEdit}
-                placeholder="+44 …"
+                placeholder={inheritPh(from?.phone) ?? "+44 …"}
                 className="input"
               />
             </Field>
@@ -441,6 +462,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
                 disabled={!canEdit}
+                placeholder={inheritPh(from?.addressLine1)}
                 className="input"
               />
             </Field>
@@ -449,6 +471,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 value={addressLine2}
                 onChange={(e) => setAddressLine2(e.target.value)}
                 disabled={!canEdit}
+                placeholder={inheritPh(from?.addressLine2)}
                 className="input"
               />
             </Field>
@@ -458,6 +481,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   disabled={!canEdit}
+                  placeholder={inheritPh(from?.city)}
                   className="input"
                 />
               </Field>
@@ -466,6 +490,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                   value={postcode}
                   onChange={(e) => setPostcode(e.target.value)}
                   disabled={!canEdit}
+                  placeholder={inheritPh(from?.postcode)}
                   className="input"
                 />
               </Field>
@@ -637,6 +662,29 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
 
           {/* ── Opening hours + base prep time (Phase AW-16) ─────── */}
           <Section title="Opening hours + prep time">
+            {/* Hours are the one field that can't be a placeholder — the
+                editor needs real values in it. So instead of making the
+                operator retype the week, offer to copy it across. The API
+                hands these back already converted: the location stores the
+                legacy array shape and this editor speaks the day→slots map. */}
+            {from && inherit?.locationName && (
+              <div className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
+                <p className="text-[11px] leading-relaxed text-zinc-600">
+                  {inherit.usingInherited?.openingHours
+                    ? `No hours set here, so this brand trades on ${inherit.locationName}'s hours.`
+                    : `These hours override ${inherit.locationName}'s.`}
+                </p>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setOpeningHours(structuredClone(from.openingHours) as any)}
+                    className="shrink-0 rounded-md border border-zinc-300 px-2 py-1 text-[11px] font-medium text-zinc-700 hover:bg-white"
+                  >
+                    Copy from location
+                  </button>
+                )}
+              </div>
+            )}
             <p className="text-[11px] text-zinc-500 mb-3">
               Per-brand schedule. Published to HubRise via the
               &ldquo;Publish hours&rdquo; button on the Menu page.

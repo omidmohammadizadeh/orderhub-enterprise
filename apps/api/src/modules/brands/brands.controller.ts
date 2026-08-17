@@ -123,6 +123,19 @@ export class BrandsController {
     });
   }
 
+  // What this brand would inherit from its location — address, phone, hours,
+  // prep time. The settings screen shows these as placeholders so a blank
+  // brand field reads as "using the location's value" rather than as missing
+  // data the operator has to type in again.
+  @Get(":brandId/inherited")
+  @ApiOperation({ summary: "Address/phone/hours this brand inherits from its location" })
+  inheritedDefaults(
+    @Param("brandId") brandId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.getInheritedDefaults(brandId, user.tenantId);
+  }
+
   @Post(":brandId/publish-hours")
   @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)

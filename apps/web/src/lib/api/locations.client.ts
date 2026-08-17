@@ -184,6 +184,28 @@ export interface FeeApplyResult {
   applied: boolean;
 }
 
+/** What a brand falls back to when its own fields are blank. */
+export interface BrandInherited {
+  locationId: string | null;
+  locationName: string | null;
+  /** Why there's nothing to inherit (no location, or several of them). */
+  reason: string | null;
+  inherited: {
+    addressLine1: string | null;
+    addressLine2: string | null;
+    city: string | null;
+    postcode: string | null;
+    country: string | null;
+    phone: string | null;
+    prepTime: number | null;
+    timezone: string | null;
+    /** Already normalised to the day→slots map the brand editor uses. */
+    openingHours: Record<string, Array<{ from: string; to: string }>>;
+  } | null;
+  /** Per-field: is this one currently falling through to the location? */
+  usingInherited: Record<string, boolean>;
+}
+
 export const brandsClient = {
   list: (locationId?: string) =>
     apiClient
@@ -191,6 +213,17 @@ export const brandsClient = {
       .then((r) => r.data),
   get: (id: string) =>
     apiClient.get<Brand>(`/v1/brands/${id}`).then((r) => r.data),
+  /**
+   * Address / phone / hours this brand inherits from its location.
+   *
+   * A blank brand field isn't missing data — it means "use the location's
+   * value". This is what lets the settings screen say so, instead of showing
+   * an empty box the operator fills in a second time.
+   */
+  inherited: (id: string) =>
+    apiClient
+      .get<BrandInherited>(`/v1/brands/${id}/inherited`)
+      .then((r) => r.data),
   /** Copy this brand's application fee onto every other brand in the tenant.
    *  Call with dryRun first — same shape back, nothing written. */
   applyFeeToAll: (brandId: string, dryRun = false) =>
