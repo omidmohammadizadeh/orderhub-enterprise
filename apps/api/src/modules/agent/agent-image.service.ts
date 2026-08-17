@@ -55,6 +55,20 @@ export const PREMIUM_STYLE = "premium";
 const OPENAI_PREMIUM_SIZE = "1072x768";
 /** The look is the point of Premium, so it doesn't economise on quality. */
 const OPENAI_PREMIUM_QUALITY = "high";
+
+// ── Storefront banner ───────────────────────────────────────────────────────
+// The size the Menu Settings drawer already specifies for Menu.bannerImage.
+const BANNER_W = 1920;
+const BANNER_H = 1080;
+// 1080 isn't a multiple of 16, so ask for 1088 and let the cover-crop take
+// the 8 rows back. Same unverified-flexible-size caveat as Premium: a
+// rejection falls back to OPENAI_SIZE and says so.
+const OPENAI_BANNER_SIZE = "1920x1088";
+/** A banner is the first thing a customer sees. It doesn't economise either. */
+const OPENAI_BANNER_QUALITY = "high";
+/** Dish names sampled into the banner prompt. Enough to characterise the
+ *  shop, few enough that the model doesn't try to plate all of them. */
+const BANNER_DISH_SAMPLE = 8;
 // How many generations run at once. Wall-clock for a category is roughly
 // (items / concurrency) x seconds-per-image, and a high-quality gpt-image-2
 // render is slow — so 2 turned a 16-item category into a ten-minute wait.
@@ -81,11 +95,22 @@ export interface BulkJob {
   startedAt: number;
 }
 
+export interface BannerJob {
+  status: "running" | "done" | "failed";
+  url?: string;
+  error?: string;
+  /** The real dishes the prompt was built from — shown back to the operator
+   *  so a wrong-looking banner can be traced to a wrong-looking menu. */
+  basedOn?: string[];
+}
+
 @Injectable()
 export class AgentImageService {
   private readonly logger = new Logger(AgentImageService.name);
   private readonly model: string;
   private readonly bulkJobs = new Map<string, BulkJob>();
+  private readonly bannerJobs = new Map<string, BannerJob>();
+  private bannerSeq = 0;
 
   constructor(
     private readonly config: ConfigService,
@@ -172,6 +197,187 @@ export class AgentImageService {
     );
     await this.menus.updateItem(itemId, tenantId, { imageUrl } as any);
     return { ok: true, itemId };
+  }
+
+  /**
+   * Generate a 1920x1080 storefront banner for a menu.
+   *
+   * Runs INLINE (one image, ~40s) and returns the hosted URL without saving
+   * it. The Menu Settings drawer drops it into the Banner field so the
+   * operator previews it and presses Save — a banner is the first thing a
+   * customer sees, and it shouldn't change under them because someone
+   * pressed a button to have a look.
+   *
+   * The prompt is built from the menu's ACTUAL categories and dish names,
+   * not from what anyone assumes the shop sells. That matters: this feature
+   * was written after a request for a "Chinese cafe" hero for a shop whose
+   * live menu is a Scottish breakfast counter — haggis, tattie scones,
+   * Irn-Bru. Reading the menu makes that class of mistake impossible.
+   */
+  startMenuBanner(
+    tenantId: string,
+    menuId: string,
+    brief?: string,
+  ): { jobId: string } {
+    // A job, not an inline response. A 1920x1088 render at high quality runs
+    // well past the proxy timeout this controller already works around for
+    // chat turns; holding the request open would fail at the edge with the
+    // image still generating and still billable.
+    const jobId = `banner_${menuId}_${this.bannerSeq++}`;
+    this.bannerJobs.set(jobId, { status: "running" });
+    void this.generateMenuBanner(tenantId, menuId, brief)
+      .then((r) =>
+        this.bannerJobs.set(jobId, {
+          status: r.ok ? "done" : "failed",
+          url: r.url,
+          error: r.error,
+          basedOn: r.basedOn,
+        }),
+      )
+      .catch((e) => {
+        this.logger.error(`banner job ${jobId} failed: ${(e as Error).message}`);
+        this.bannerJobs.set(jobId, {
+          status: "failed",
+          error: (e as Error).message,
+        });
+      });
+    return { jobId };
+  }
+
+  getBannerJob(jobId: string): BannerJob | null {
+    return this.bannerJobs.get(jobId) ?? null;
+  }
+
+  async generateMenuBanner(
+    tenantId: string,
+    menuId: string,
+    /** Operator's optional steer — mood, palette, a dish to feature. */
+    brief?: string,
+  ): Promise<{ ok: boolean; url?: string; error?: string; basedOn?: string[] }> {
+    if (!this.configured) return { ok: false, error: this.notConfiguredMessage };
+
+    const brandIds = await this.tenantBrandIds(tenantId);
+    const menu = await (this.prisma as any).menu.findFirst({
+      where: { id: menuId, brandId: { in: brandIds } },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        brand: { select: { name: true } },
+      },
+    });
+    if (!menu) return { ok: false, error: "Menu not found for this business." };
+
+    // Categories in menu order, with a few dishes from each. Order matters —
+    // the first categories are the ones the operator leads with, so they're
+    // the ones the banner should show.
+    const links = await (this.prisma as any).menuItemOnCategory.findMany({
+      where: { category: { menuId } },
+      select: {
+        item: { select: { name: true, description: true } },
+        category: { select: { name: true, sortOrder: true } },
+      },
+      orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
+      take: 300,
+    });
+    if (links.length === 0) {
+      return {
+        ok: false,
+        error:
+          "This menu has no products yet. Add some first — the banner is " +
+          "built from what the menu actually sells.",
+      };
+    }
+
+    const categories: string[] = [];
+    for (const l of links) {
+      const c = l.category?.name;
+      if (c && !categories.includes(c)) categories.push(c);
+    }
+    // Spread the sample across categories rather than taking the first N,
+    // which would be eight breakfast items and nothing else.
+    const dishes: string[] = [];
+    for (const cat of categories) {
+      const first = links.find(
+        (l: any) => l.category?.name === cat && l.item?.name,
+      );
+      if (first) dishes.push(first.item.name);
+      if (dishes.length >= BANNER_DISH_SAMPLE) break;
+    }
+
+    const shopName = menu.brand?.name || menu.name;
+    const prompt = this.buildBannerPrompt(
+      shopName,
+      categories,
+      dishes,
+      menu.description,
+      brief,
+    );
+    this.logger.log(
+      `banner for menu ${menuId} (${shopName}): ${categories.length} categories, ` +
+        `featuring ${dishes.join(", ")}`,
+    );
+
+    const url = await this.renderAndStore(prompt, {
+      width: BANNER_W,
+      height: BANNER_H,
+      aspect: "16:9",
+      openAiSize:
+        this.config.get<string>("AGENT_OPENAI_BANNER_SIZE") ??
+        OPENAI_BANNER_SIZE,
+      openAiQuality:
+        this.config.get<string>("AGENT_OPENAI_BANNER_QUALITY") ??
+        OPENAI_BANNER_QUALITY,
+    });
+    return { ok: true, url, basedOn: dishes };
+  }
+
+  /**
+   * The banner brief.
+   *
+   * Two things make a banner different from a menu tile:
+   *
+   *  - It carries a HEADLINE. A full-bleed food shot leaves nowhere to put
+   *    the shop name and the order button, so the left third is reserved as
+   *    quiet space on purpose.
+   *  - It represents the whole shop, not one dish. So it names the real
+   *    categories and a spread of real dishes and lets the model compose a
+   *    counter from them, rather than inventing a cuisine from the trading
+   *    name.
+   */
+  private buildBannerPrompt(
+    shopName: string,
+    categories: string[],
+    dishes: string[],
+    description?: string | null,
+    brief?: string,
+  ): string {
+    return [
+      `Wide cinematic hero banner photograph for a food business called ` +
+        `"${shopName}".`,
+      description ? `About the business: ${description}.` : "",
+      `This shop sells: ${categories.slice(0, 10).join(", ")}.`,
+      `Compose the shot around these real dishes from its menu: ` +
+        `${dishes.join(", ")}. Show the food this shop actually serves — do ` +
+        `not substitute a different cuisine or invent dishes it doesn't sell.`,
+      `Arrange the food on the RIGHT side of the frame on a warm wooden ` +
+        `counter or rustic plates, the hero dish sharp and in front, the rest ` +
+        `receding softly behind it.`,
+      `Keep the LEFT THIRD of the frame deliberately quiet — soft-focus, ` +
+        `low-detail background with generous empty space, so a headline and ` +
+        `an order button can sit over it and stay readable.`,
+      `Warm natural window light from the left, gentle steam, soft shadows, ` +
+        `inviting neighbourhood atmosphere, rich but natural colour.`,
+      `Photorealistic commercial food photography, wide 16:9 composition, ` +
+        `shallow depth of field, appetising and generous portions.`,
+      brief ? `${brief}.` : "",
+      `No text, no lettering, no signage, no logos, no watermarks, no hands, ` +
+        `no people, no packaging with branding. Avoid clutter in the left ` +
+        `third, artificial CGI appearance, extreme saturation and distorted ` +
+        `or duplicated food.`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
   }
 
   /** Start a THROTTLED background job to photograph a whole menu's items. */
@@ -391,21 +597,56 @@ export class AgentImageService {
     style?: string,
   ): Promise<string> {
     const prompt = this.buildPrompt(name, description, styleHint, style);
-    const premium = style === PREMIUM_STYLE;
+    return this.renderAndStore(prompt, {
+      width: IMAGE_W,
+      height: IMAGE_H,
+      aspect: "4:3",
+      openAiSize:
+        style === PREMIUM_STYLE
+          ? (this.config.get<string>("AGENT_OPENAI_PREMIUM_SIZE") ??
+            OPENAI_PREMIUM_SIZE)
+          : undefined,
+      openAiQuality:
+        style === PREMIUM_STYLE
+          ? (this.config.get<string>("AGENT_OPENAI_PREMIUM_QUALITY") ??
+            OPENAI_PREMIUM_QUALITY)
+          : undefined,
+    });
+  }
+
+  /**
+   * Generate at whatever shape the provider offers, crop to an EXACT pixel
+   * size, and host it. Returns a URL.
+   *
+   * Everything that generates an image goes through here, so there is one
+   * place that decides output dimensions, encoding and hosting — a menu tile
+   * and a 1920x1080 storefront banner differ only in the numbers passed in.
+   */
+  private async renderAndStore(
+    prompt: string,
+    opts: {
+      width: number;
+      height: number;
+      /** Asked of Gemini, which takes a ratio rather than a pixel size. */
+      aspect: string;
+      openAiSize?: string;
+      openAiQuality?: string;
+    },
+  ): Promise<string> {
     const p = this.provider;
     const raw =
       p === "gemini"
-        ? await this.renderWithGemini(prompt)
+        ? await this.renderWithGemini(prompt, opts.aspect)
         : p === "openai"
-          ? await this.renderWithOpenAI(prompt, premium)
-          : await this.renderWithReplicate(prompt);
+          ? await this.renderWithOpenAI(prompt, opts.openAiSize, opts.openAiQuality)
+          : await this.renderWithReplicate(prompt, opts.aspect);
 
     // COVER, not "fit inside". `fit: inside` leaves whatever aspect the model
     // returned, so a square generation renders letterboxed in a 4:3 card;
     // cover fills the box and crops the overflow, which is what a menu tile
     // actually wants.
     const jpeg = await sharp(raw)
-      .resize(IMAGE_W, IMAGE_H, { fit: "cover", position: "centre" })
+      .resize(opts.width, opts.height, { fit: "cover", position: "centre" })
       .jpeg({ quality: 82 })
       .toBuffer();
     const dataUrl = `data:image/jpeg;base64,${jpeg.toString("base64")}`;
@@ -425,7 +666,7 @@ export class AgentImageService {
   }
 
   /** Gemini: one call, image comes back inline as base64. */
-  private async renderWithGemini(prompt: string): Promise<Buffer> {
+  private async renderWithGemini(prompt: string, aspect = "4:3"): Promise<Buffer> {
     const key = this.config.get<string>("GEMINI_API_KEY");
     const model =
       this.config.get<string>("AGENT_GEMINI_IMAGE_MODEL") ?? DEFAULT_GEMINI_MODEL;
@@ -438,7 +679,7 @@ export class AgentImageService {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             responseModalities: ["IMAGE"],
-            imageConfig: { aspectRatio: "4:3" },
+            imageConfig: { aspectRatio: aspect },
           },
         }),
       },
@@ -462,18 +703,16 @@ export class AgentImageService {
   /** OpenAI: one call, image comes back base64 in data[0].b64_json. */
   private async renderWithOpenAI(
     prompt: string,
-    premium = false,
+    preferredSize?: string,
+    preferredQuality?: string,
   ): Promise<Buffer> {
-    const size = premium
-      ? (this.config.get<string>("AGENT_OPENAI_PREMIUM_SIZE") ??
-        OPENAI_PREMIUM_SIZE)
-      : OPENAI_SIZE;
-    const quality = premium
-      ? (this.config.get<string>("AGENT_OPENAI_PREMIUM_QUALITY") ??
-        OPENAI_PREMIUM_QUALITY)
-      : // Quality drives both the look and the bill, so it's tunable without
-        // a deploy. Medium is the sensible middle for a menu tile.
-        (this.config.get<string>("AGENT_OPENAI_IMAGE_QUALITY") ?? "medium");
+    const size = preferredSize ?? OPENAI_SIZE;
+    const quality =
+      preferredQuality ??
+      // Quality drives both the look and the bill, so it's tunable without
+      // a deploy. Medium is the sensible middle for a menu tile.
+      this.config.get<string>("AGENT_OPENAI_IMAGE_QUALITY") ??
+      "medium";
 
     let res = await this.rateLimited(() =>
       this.openAiImageCall(prompt, size, quality),
@@ -571,12 +810,15 @@ export class AgentImageService {
   }
 
   /** Replicate: create → poll → download. */
-  private async renderWithReplicate(prompt: string): Promise<Buffer> {
+  private async renderWithReplicate(
+    prompt: string,
+    aspect = "4:3",
+  ): Promise<Buffer> {
     const started = await this.replicate.createPrediction({
       prompt,
       model: this.model,
       imageKey: "", // text-to-image: no start image
-      extra: { aspect_ratio: "4:3", output_format: "webp", num_outputs: 1 },
+      extra: { aspect_ratio: aspect, output_format: "webp", num_outputs: 1 },
     });
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;

@@ -17,20 +17,22 @@
 // dedicated panels in the editor — this drawer only handles the menu
 // row itself.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, X } from "lucide-react";
+import { Loader2, Sparkles, X } from "lucide-react";
 import { menusClient, type Menu } from "@/lib/api/menus.client";
 import { ImageUploader } from "@/components/products/image-uploader";
 
 interface Props {
   menu: Menu;
+  /** Banner generation is admin-only while it's being trialled. */
+  canGenerate?: boolean;
   onClose: () => void;
 }
 
 type MenuType = "DELIVERY" | "DELIVERY_AND_PICKUP";
 
-export function MenuSettingsDrawer({ menu, onClose }: Props) {
+export function MenuSettingsDrawer({ menu, canGenerate, onClose }: Props) {
   const qc = useQueryClient();
 
   const [name, setName] = useState(menu.name);
@@ -48,6 +50,64 @@ export function MenuSettingsDrawer({ menu, onClose }: Props) {
     menu.heroImage ?? null,
   );
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  // ── AI banner ────────────────────────────────────────────────────────────
+  // Generates into the Banner field but does NOT save. The operator looks at
+  // it and presses Save, or closes the drawer and nothing changed.
+  const [brief, setBrief] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [basedOn, setBasedOn] = useState<string[] | null>(null);
+  const poll = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // An interval that outlives the drawer keeps polling from a component
+  // nobody is looking at.
+  useEffect(
+    () => () => {
+      if (poll.current) clearInterval(poll.current);
+    },
+    [],
+  );
+
+  const generate = async () => {
+    setGenerating(true);
+    setBasedOn(null);
+    setFeedback("Generating — about a minute.");
+    try {
+      const started = await menusClient.generateMenuBanner({
+        menuId: menu.id,
+        brief: brief.trim() || undefined,
+      });
+      if (!started.jobId) {
+        setFeedback(started.error ?? "Could not start");
+        setGenerating(false);
+        return;
+      }
+      poll.current = setInterval(async () => {
+        try {
+          const s = await menusClient.getMenuBannerJob(started.jobId!);
+          if (s.status === "running") return;
+          if (poll.current) clearInterval(poll.current);
+          setGenerating(false);
+          if (s.status === "done" && s.url) {
+            setBannerImage(s.url);
+            setBasedOn(s.basedOn ?? null);
+            setFeedback("Generated — press Save to keep it.");
+          } else if (s.status === "unknown") {
+            // The job map lives in process memory, so a deploy loses it.
+            // Saying "done" here would be a lie about a paid render.
+            setFeedback("The API restarted and the job was lost — try again.");
+          } else {
+            setFeedback(s.error ?? "Generation failed");
+          }
+        } catch {
+          /* transient poll failure — the next tick retries */
+        }
+      }, 3000);
+    } catch (e: any) {
+      setGenerating(false);
+      setFeedback(e?.response?.data?.message ?? e.message ?? "Could not start");
+    }
+  };
 
   // Resync if the parent re-opens with a different menu (rare, but
   // keeps the form honest under StrictMode double-mounts).
@@ -147,6 +207,54 @@ export function MenuSettingsDrawer({ menu, onClose }: Props) {
               targetWidth={1920}
               targetHeight={1080}
             />
+            {canGenerate && (
+              <div className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-zinc-500" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                    Generate with AI
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+                  Built from this menu&apos;s own categories and dishes, at
+                  1920×1080, with the left third kept clear for a headline.
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    value={brief}
+                    onChange={(e) => setBrief(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !generating) {
+                        e.preventDefault();
+                        void generate();
+                      }
+                    }}
+                    placeholder="Optional steer — e.g. brighter, feature the breakfast"
+                    disabled={generating}
+                    className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-sm placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none disabled:bg-zinc-100"
+                  />
+                  <button
+                    onClick={() => void generate()}
+                    disabled={generating}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                  >
+                    {generating ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    Generate
+                  </button>
+                </div>
+                {basedOn && basedOn.length > 0 && (
+                  // Show what it read. If the banner looks like the wrong
+                  // shop, this says whether the prompt or the menu is wrong.
+                  <p className="mt-2 text-[11px] text-zinc-500">
+                    Based on: {basedOn.join(", ")}
+                  </p>
+                )}
+              </div>
+            )}
           </Field>
 
           <Field

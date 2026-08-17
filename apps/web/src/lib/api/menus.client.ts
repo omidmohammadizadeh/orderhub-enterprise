@@ -252,6 +252,25 @@ export const menusClient = {
       .post<{ jobId?: string; error?: string }>("/v1/agent/menu-images", body)
       .then((r) => r.data),
 
+  /**
+   * Generate a 1920x1080 storefront banner from the menu's real dishes.
+   * Returns a jobId — a wide high-quality render outlives the proxy timeout.
+   */
+  generateMenuBanner: (body: { menuId: string; brief?: string }) =>
+    apiClient
+      .post<{ jobId?: string; error?: string }>("/v1/agent/menu-banner", body)
+      .then((r) => r.data),
+
+  getMenuBannerJob: (jobId: string) =>
+    apiClient
+      .get<{
+        status: "running" | "done" | "failed" | "unknown";
+        url?: string;
+        error?: string;
+        basedOn?: string[];
+      }>(`/v1/agent/menu-banner/${jobId}`)
+      .then((r) => r.data),
+
   getMenuImageJob: (jobId: string) =>
     apiClient
       .get<{ status: string; total: number; done: number; failed: number }>(

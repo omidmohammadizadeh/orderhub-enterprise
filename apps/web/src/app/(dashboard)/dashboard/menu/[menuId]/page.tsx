@@ -402,6 +402,7 @@ export default function MenuEditorPage() {
       {settingsOpen && (
         <MenuSettingsDrawer
           menu={menu as any}
+          canGenerate={isAdmin}
           onClose={() => setSettingsOpen(false)}
         />
       )}

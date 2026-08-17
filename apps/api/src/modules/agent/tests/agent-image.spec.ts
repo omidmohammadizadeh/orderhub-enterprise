@@ -93,6 +93,67 @@ describe("agent images — the prompt", () => {
   });
 });
 
+describe("agent images — the storefront banner prompt", () => {
+  // Jinty's, a real menu: a Scottish breakfast counter in Grangemouth. It was
+  // described to us as a Chinese takeaway, and the banner would have been
+  // wrong in a way nobody would notice until customers did. Reading the menu
+  // is what makes that impossible, so these tests pin that behaviour.
+  const JINTYS_CATEGORIES = ["Breakfast", "Lunch", "Loaded Fries", "Burger Bar"];
+  const JINTYS_DISHES = [
+    "Granny Jintys Big Scottish Breakfast",
+    "Filled Morning Roll",
+    "Salt and Chilli Chicken Fries",
+    "Beef Burger",
+  ];
+
+  const banner = (brief?: string, description?: string | null) =>
+    (svc({ OPENAI_API_KEY: "k" }) as any).buildBannerPrompt(
+      "JINTY'S",
+      JINTYS_CATEGORIES,
+      JINTYS_DISHES,
+      description,
+      brief,
+    );
+
+  it("names the shop's real dishes, not a guessed cuisine", () => {
+    const p = banner();
+    expect(p).toContain("Granny Jintys Big Scottish Breakfast");
+    expect(p).toContain("Salt and Chilli Chicken Fries");
+    expect(p).toContain("JINTY'S");
+  });
+
+  it("tells the model not to substitute a different cuisine", () => {
+    expect(banner()).toContain("do not substitute a different cuisine");
+  });
+
+  it("reserves the left third for the headline", () => {
+    // A hero carries a shop name and an order button. A full-bleed food shot
+    // leaves nowhere to put them.
+    const p = banner();
+    expect(p).toContain("LEFT THIRD");
+    expect(p).toContain("empty space");
+  });
+
+  it("forbids text and logos — the banner is a backdrop, not artwork", () => {
+    const p = banner();
+    expect(p).toContain("No text");
+    expect(p).toContain("no logos");
+  });
+
+  it("carries the operator's steer, but not past the exclusions", () => {
+    const p = banner("brighter, feature the breakfast");
+    expect(p).toContain("brighter, feature the breakfast");
+    expect(p.indexOf("brighter")).toBeLessThan(p.indexOf("No text"));
+  });
+
+  it("uses the menu description when there is one, and omits it when not", () => {
+    expect(banner(undefined, "Cafe, takeaway and sensory space")).toContain(
+      "Cafe, takeaway and sensory space",
+    );
+    expect(banner()).not.toContain("About the business:");
+  });
+});
+
 describe("agent images — rate limiting", () => {
   // Retry-After is in SECONDS, so a fractional value keeps these fast while
   // still exercising the real "honour the header" path.

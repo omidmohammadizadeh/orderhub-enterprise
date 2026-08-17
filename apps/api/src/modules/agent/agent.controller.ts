@@ -1,7 +1,11 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { AgentService, type AgentChatTurn } from "./agent.service";
-import { AgentImageService, type BulkJob } from "./agent-image.service";
+import {
+  AgentImageService,
+  type BulkJob,
+  type BannerJob,
+} from "./agent-image.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
@@ -82,6 +86,30 @@ export class AgentController {
       body.categoryId,
       body.style,
     );
+  }
+
+  // ── Storefront banner ────────────────────────────────────────────────────
+  //
+  // A 1920x1080 hero for Menu.bannerImage, generated from the menu's real
+  // categories and dishes. Returns a jobId for the same reason chat does:
+  // a high-quality wide render outlives the proxy timeout.
+  //
+  // The URL is returned, NOT saved — the Menu Settings drawer previews it and
+  // the operator presses Save. A banner is the first thing a customer sees;
+  // it shouldn't change because someone pressed a button to have a look.
+  @Post("menu-banner")
+  @ApiOperation({ summary: "Generate a storefront banner for a menu" })
+  startMenuBanner(
+    @Body() body: { menuId: string; brief?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.images.startMenuBanner(user.tenantId, body.menuId, body.brief);
+  }
+
+  @Get("menu-banner/:jobId")
+  @ApiOperation({ summary: "Poll a banner job for its image" })
+  menuBannerJob(@Param("jobId") jobId: string): BannerJob | { status: "unknown" } {
+    return this.images.getBannerJob(jobId) ?? { status: "unknown" };
   }
 
   @Get("menu-images/:jobId")
