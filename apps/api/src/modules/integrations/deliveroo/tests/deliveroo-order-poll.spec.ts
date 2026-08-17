@@ -282,3 +282,112 @@ describe("DeliverooOrderPollService — the off switch", () => {
     await first;
   });
 });
+
+describe("DeliverooOrderPollService — completing on the rider's ETA", () => {
+  // Deliveroo never reports a delivery: no rider_delivered across 1,755
+  // events, no terminal order status in six weeks, and order_events still
+  // held ACCEPTED alone 30 minutes after a rider had left. Their ETA is the
+  // only per-order signal there is.
+  const inTransit = (over: Record<string, any> = {}) => ({
+    ...ORDER,
+    status: "OUT_FOR_DELIVERY",
+    ...over,
+  });
+  const minsFromNow = (m: number) => new Date(Date.now() + m * 60_000);
+  /** Deliveroo has nothing terminal — the normal case for a live delivery. */
+  const noTerminal = () => jest.fn().mockResolvedValue(trail("placed", "accepted"));
+
+  it("completes once the ETA plus its grace period has passed", async () => {
+    const { svc, update } = build({
+      rows: [inTransit({ courierEtaAt: minsFromNow(-15) })],
+      get: noTerminal(),
+    });
+    const res = await svc.pollOnce();
+
+    expect(res.closed).toBe(1);
+    expect(update).toHaveBeenCalledWith(
+      "o1",
+      "t1",
+      { status: "COMPLETED" },
+      "deliveroo-eta",
+      // SYSTEM, not WEBHOOK — this is our estimate, not Deliveroo's word.
+      "SYSTEM",
+    );
+  });
+
+  it("waits while the order is still inside the grace period", async () => {
+    // ETA passed 2 minutes ago; the 10-minute buffer hasn't elapsed.
+    const { svc, update } = build({
+      rows: [inTransit({ courierEtaAt: minsFromNow(-2) })],
+      get: noTerminal(),
+    });
+    await svc.pollOnce();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("waits while the rider is still on the way", async () => {
+    const { svc, update } = build({
+      rows: [inTransit({ courierEtaAt: minsFromNow(20) })],
+      get: noTerminal(),
+    });
+    await svc.pollOnce();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("NEVER completes an order the rider hasn't collected", async () => {
+    // The dangerous case: completing food still sitting on the pass.
+    for (const status of [
+      "ACCEPTED",
+      "PREPARING",
+      "READY",
+      "ASSIGNED_DRIVER",
+      "RIDER_ARRIVED",
+    ]) {
+      const { svc, update } = build({
+        rows: [inTransit({ status, courierEtaAt: minsFromNow(-120) })],
+        get: noTerminal(),
+      });
+      await svc.pollOnce();
+      expect(update).not.toHaveBeenCalled();
+    }
+  });
+
+  it("falls back to pickup time when Deliveroo sent no ETA", async () => {
+    const { svc, update } = build({
+      rows: [
+        inTransit({ courierEtaAt: null, courierPickedUpAt: minsFromNow(-60) }),
+      ],
+      get: noTerminal(),
+    });
+    await svc.pollOnce();
+    expect(update).toHaveBeenCalled();
+  });
+
+  it("does nothing with neither an ETA nor a pickup time", async () => {
+    // Nothing trustworthy to count from — leave it for the 05:00 rollover
+    // rather than invent a delivery moment.
+    const { svc, update } = build({
+      rows: [inTransit({ courierEtaAt: null, courierPickedUpAt: null })],
+      get: noTerminal(),
+    });
+    await svc.pollOnce();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("still prefers a real terminal status from Deliveroo over the estimate", async () => {
+    // A cancellation must win — completing a cancelled order would be worse
+    // than leaving it open.
+    const { svc, update } = build({
+      rows: [inTransit({ courierEtaAt: minsFromNow(-120) })],
+      get: jest.fn().mockResolvedValue(trail("placed", "accepted", "canceled")),
+    });
+    await svc.pollOnce();
+    expect(update).toHaveBeenCalledWith(
+      "o1",
+      "t1",
+      { status: "CANCELLED" },
+      "deliveroo-poll",
+      "WEBHOOK",
+    );
+  });
+});

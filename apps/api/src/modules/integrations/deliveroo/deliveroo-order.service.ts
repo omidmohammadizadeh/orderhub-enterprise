@@ -363,6 +363,17 @@ export class DeliverooOrderService {
       rider?.phone_number;
     if (riderName) updates.courierName = riderName;
     if (riderPhone) updates.courierPhone = riderPhone;
+    // Deliveroo's own arrival estimate, refreshed on every rider event.
+    // It is the ONLY per-order basis we have for completing a platform
+    // -courier order: they never report the delivery itself. Always take
+    // the latest value — the rider's ETA moves as they travel.
+    const rawEta =
+      rider?.estimated_arrival_time ?? rider?.estimated_delivery_time;
+    if (rawEta) {
+      const eta = new Date(rawEta);
+      if (!Number.isNaN(eta.getTime())) updates.courierEtaAt = eta;
+    }
+
     // The last MEANINGFUL stage, not the last line. Deliveroo appends
     // rider_unassigned once it stops sharing the rider, so writing the bare
     // latest value showed a rider who was standing in the shop as "not

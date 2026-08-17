@@ -61,6 +61,27 @@ const IN_FLIGHT: readonly string[] = [
 const TERMINAL = new Set(["COMPLETED", "CANCELLED", "REJECTED", "FAILED"]);
 
 const MAX_AGE_HOURS = 6;
+
+// ── Closing on the rider's ETA ──────────────────────────────────────────────
+//
+// Deliveroo never reports a delivery to the merchant. Confirmed three ways:
+// 1,755 rider webhook events contain no `rider_delivered`; the order webhook
+// has only ever carried placed/accepted/rejected; and the order audit trail's
+// `order_events[]` still held ACCEPTED alone thirty minutes after a rider had
+// left with the food.
+//
+// So there is nothing to wait for. The last real signal is `rider_in_transit`
+// — the rider has the food and has gone — and their payload carries
+// `estimated_arrival_time`, which is Deliveroo's own per-order number and
+// moves as the rider travels. We complete a little after it.
+//
+// This is an ESTIMATE, and the log says so on every order it closes. The
+// 05:00 rollover was already completing these far more bluntly, so the
+// question is only whether the board clears in the evening or the morning.
+/** Grace after the courier's ETA before the order is treated as delivered. */
+const ETA_BUFFER_MIN = 10;
+/** Used when Deliveroo sent no ETA — measured from pickup instead. */
+const FALLBACK_AFTER_PICKUP_MIN = 45;
 /** Orders examined per tick. A very busy Friday is nowhere near this. */
 const BATCH_LIMIT = 60;
 /** Simultaneous calls to Deliveroo. Their order API is not documented as
@@ -136,6 +157,8 @@ export class DeliverooOrderPollService {
         externalId: true,
         status: true,
         displayId: true,
+        courierEtaAt: true,
+        courierPickedUpAt: true,
       },
       orderBy: { createdAt: "asc" },
       take: BATCH_LIMIT,
@@ -171,6 +194,8 @@ export class DeliverooOrderPollService {
     externalId: string | null;
     status: string;
     displayId: string | null;
+    courierEtaAt?: Date | null;
+    courierPickedUpAt?: Date | null;
   }): Promise<boolean> {
     const externalId = row.externalId!;
     const label = row.displayId ? `#${row.displayId}` : row.id;
@@ -224,9 +249,17 @@ export class DeliverooOrderPollService {
     }
 
     if (!mapped) {
+      // Deliveroo has nothing terminal and never will for a delivery, so
+      // fall back to the rider's own ETA.
+      const due = this.deliveryDueAt(row);
+      if (due && Date.now() >= due.getTime()) {
+        return this.completeOnEta(row, label, due, sync);
+      }
       this.logger.log(
         `Deliveroo poll ${label}: ${statuses.join(" → ")} — nothing terminal, ` +
-          `leaving alone | ${sync}`,
+          `leaving alone` +
+          (due ? ` (eta-close at ${due.toISOString()})` : "") +
+          ` | ${sync}`,
       );
       return false;
     }
@@ -250,6 +283,64 @@ export class DeliverooOrderPollService {
     } catch (err: any) {
       this.logger.warn(
         `Deliveroo poll ${label}: ${row.status} → ${mapped} rejected — ${err?.message ?? err}`,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * When this order should be treated as delivered, or null if it's too
+   * early to say.
+   *
+   * ONLY for orders already OUT_FOR_DELIVERY — i.e. the rider webhook has
+   * reported `rider_in_transit` and the food has physically left. Applying
+   * this any earlier would complete an order still sitting on the pass.
+   */
+  private deliveryDueAt(row: {
+    status: string;
+    courierEtaAt?: Date | null;
+    courierPickedUpAt?: Date | null;
+  }): Date | null {
+    if (row.status !== "OUT_FOR_DELIVERY" && row.status !== "DISPATCHED") {
+      return null;
+    }
+    if (row.courierEtaAt) {
+      return new Date(row.courierEtaAt.getTime() + ETA_BUFFER_MIN * 60_000);
+    }
+    if (row.courierPickedUpAt) {
+      return new Date(
+        row.courierPickedUpAt.getTime() + FALLBACK_AFTER_PICKUP_MIN * 60_000,
+      );
+    }
+    // No ETA and no pickup time: nothing trustworthy to count from, so leave
+    // it for the 05:00 rollover rather than invent a moment.
+    return null;
+  }
+
+  /** Complete an order on the estimate, saying plainly that's what it is. */
+  private async completeOnEta(
+    row: { id: string; tenantId: string; status: string },
+    label: string,
+    due: Date,
+    sync: string,
+  ): Promise<boolean> {
+    try {
+      await this.orders.updateStatus(
+        row.id,
+        row.tenantId,
+        { status: "COMPLETED" } as any,
+        "deliveroo-eta",
+        "SYSTEM",
+      );
+      this.logger.log(
+        `Deliveroo poll ${label}: completed on the rider's ETA (due ` +
+          `${due.toISOString()}) — Deliveroo never reports the delivery ` +
+          `itself. ESTIMATE, not a confirmed drop-off. | ${sync}`,
+      );
+      return true;
+    } catch (err: any) {
+      this.logger.warn(
+        `Deliveroo poll ${label}: eta-complete rejected — ${err?.message ?? err}`,
       );
       return false;
     }

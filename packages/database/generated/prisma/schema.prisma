@@ -1880,6 +1880,13 @@ model Order {
   courierAssignedAt      DateTime?
   courierPickedUpAt      DateTime?
   courierDeliveredAt     DateTime?
+  // The courier network's own estimated arrival time, when it gives one
+  // (Deliveroo sends `estimated_arrival_time` on every rider event).
+  // Deliveroo NEVER reports a delivery to the merchant — not on the rider
+  // webhook, not on the order webhook, not in the order audit trail — so
+  // this estimate is the only basis for closing a platform-courier order
+  // before the 05:00 rollover. See DeliverooOrderPollService.
+  courierEtaAt           DateTime?
   // Which courier network fulfils this order + its job id there. Set when an
   // operator dispatches to a fleet provider (STUART). courierJobId is the
   // provider's delivery/job id — the webhook resolves the order by it.

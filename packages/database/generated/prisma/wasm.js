@@ -897,6 +897,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   courierAssignedAt: 'courierAssignedAt',
   courierPickedUpAt: 'courierPickedUpAt',
   courierDeliveredAt: 'courierDeliveredAt',
+  courierEtaAt: 'courierEtaAt',
   courierProvider: 'courierProvider',
   courierJobId: 'courierJobId',
   status: 'status',

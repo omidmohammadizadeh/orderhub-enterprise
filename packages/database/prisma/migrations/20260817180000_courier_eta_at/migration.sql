@@ -1,0 +1,14 @@
+-- Courier ETA, for closing platform-courier orders that never get a
+-- delivery signal.
+--
+-- Deliveroo does not tell the merchant an order was delivered — confirmed
+-- across 1,755 rider webhook events (no rider_delivered), the order webhook
+-- (only placed/accepted/rejected) and the order audit trail (order_events
+-- holds ACCEPTED only, even 30 minutes after the rider left). Their rider
+-- payload does carry `estimated_arrival_time`, which is the only per-order
+-- basis we have for completing the order before the 05:00 rollover.
+--
+-- Nullable and unindexed on purpose: it's read only by the 2-minute
+-- Deliveroo poll, which is already filtered down to a handful of in-flight
+-- rows by platform + status + createdAt.
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "courierEtaAt" TIMESTAMP(3);
