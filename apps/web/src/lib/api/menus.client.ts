@@ -19,6 +19,18 @@ export const brandsClient = {
     apiClient.post<Brand>(`/v1/brands`, data).then((r) => r.data),
 };
 
+/** A menu at a location, with whether it's part of that location's single
+ *  composed HubRise catalog. */
+export interface HubRiseCatalogMenu {
+  id: string;
+  name: string;
+  brandId: string;
+  brandName: string | null;
+  lastPublishedAt: string | null;
+  productCount: number;
+  inHubRiseCatalog: boolean;
+}
+
 export interface Menu {
   id: string;
   brandId: string;
@@ -476,6 +488,21 @@ export const menusClient = {
   ) =>
     apiClient
       .post<Menu>(`/v1/locations/${locationId}/menus/master`, data)
+      .then((r) => r.data),
+
+  // HubRise composed catalog — the set of brand menus that make up this
+  // location's single HubRise catalog. Publishing any member menu republishes
+  // all of them together, so no brand ever drops out of the catalog.
+  listHubRiseCatalogMenus: (locationId: string) =>
+    apiClient
+      .get<HubRiseCatalogMenu[]>(`/v1/locations/${locationId}/hubrise-catalog`)
+      .then((r) => r.data),
+
+  setHubRiseCatalogMenus: (locationId: string, menuIds: string[]) =>
+    apiClient
+      .put<HubRiseCatalogMenu[]>(`/v1/locations/${locationId}/hubrise-catalog`, {
+        menuIds,
+      })
       .then((r) => r.data),
 
   deleteMenu: (menuId: string) =>

@@ -17,6 +17,10 @@ import { MenuAssignmentsService } from "./menu-assignments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { resolveNestedModifierGroups } from "./nested-modifier-groups";
 import {
+  isAutoMasterMember,
+  withAutoMasterFlag,
+} from "../integrations/hubrise/hubrise-auto-master.composer";
+import {
   QUEUES,
   MENU_JOBS,
   normalizePricingVariants,
@@ -1075,6 +1079,107 @@ export class MenusService {
       // interactive-transaction budget is not enough.
       { timeout: 120_000, maxWait: 20_000 },
     );
+  }
+
+  // ── HubRise composed catalog membership ────────────────────────────────────
+  //
+  // HubRise allows ONE catalog per location, so several brands trading out of
+  // one kitchen share it. Rather than hand-building and maintaining a merged
+  // Master Menu, the operator names the menus that make up that catalog here;
+  // publishing any of them then composes all of them (see
+  // hubrise-auto-master.composer.ts). Membership is what makes the publish
+  // payload complete — sending one brand alone would wipe the others.
+
+  /** The location's menus, flagged with whether they're in the composed
+   *  HubRise catalog, plus their product count so the operator can see that a
+   *  menu is empty BEFORE the publish guard refuses it. */
+  async listHubRiseCatalogMenus(locationId: string, tenantId: string) {
+    await this.assertLocationAccess(locationId, tenantId);
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        deletedAt: null,
+        brand: { tenantId },
+        OR: [{ locationId }, { assignments: { some: { locationId } } }],
+      },
+      select: {
+        id: true,
+        name: true,
+        brandId: true,
+        metadata: true,
+        lastPublishedAt: true,
+        brand: { select: { name: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+    const counts = await Promise.all(
+      menus.map((m) =>
+        this.prisma.menuItemOnCategory.count({
+          where: { category: { menuId: m.id } },
+        }),
+      ),
+    );
+    return menus.map((m, i) => ({
+      id: m.id,
+      name: m.name,
+      brandId: m.brandId,
+      brandName: m.brand?.name ?? null,
+      lastPublishedAt: m.lastPublishedAt,
+      productCount: counts[i],
+      inHubRiseCatalog: isAutoMasterMember(m),
+    }));
+  }
+
+  /** Replace the set of menus that make up this location's HubRise catalog.
+   *  Menus not listed are removed from it; an empty list turns the composed
+   *  catalog off entirely and every publish reverts to the single-menu path. */
+  async setHubRiseCatalogMenus(
+    locationId: string,
+    tenantId: string,
+    menuIds: string[],
+  ) {
+    await this.assertLocationAccess(locationId, tenantId);
+    const wanted = new Set(menuIds ?? []);
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        deletedAt: null,
+        brand: { tenantId },
+        OR: [{ locationId }, { assignments: { some: { locationId } } }],
+      },
+      select: { id: true, metadata: true },
+    });
+    const known = new Set(menus.map((m) => m.id));
+    for (const id of wanted) {
+      if (!known.has(id)) {
+        throw new BadRequestException(
+          "One of the selected menus does not belong to this location.",
+        );
+      }
+    }
+
+    // Read-modify-write per row: metadata is a shared JSON blob and we must
+    // not clobber keys other features put there.
+    const changed = menus.filter(
+      (m) => isAutoMasterMember(m) !== wanted.has(m.id),
+    );
+    if (changed.length) {
+      await this.prisma.$transaction(
+        changed.map((m) =>
+          this.prisma.menu.update({
+            where: { id: m.id },
+            data: {
+              metadata: withAutoMasterFlag(
+                m.metadata,
+                wanted.has(m.id),
+              ) as any,
+            },
+          }),
+        ),
+      );
+    }
+    this.logger.log(
+      `HubRise composed catalog at location=${locationId} now holds ${wanted.size} menus [${[...wanted].join(", ")}]`,
+    );
+    return this.listHubRiseCatalogMenus(locationId, tenantId);
   }
 
   // ── Menu Versioning ────────────────────────────────────────────────────────

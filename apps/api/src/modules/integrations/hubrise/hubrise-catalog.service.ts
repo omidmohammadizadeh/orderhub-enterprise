@@ -22,7 +22,14 @@ import { createHash } from "crypto";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
-import { resolveHubRiseTarget } from "./hubrise-target.resolver";
+import { resolveHubRiseTarget, type HubRiseTarget } from "./hubrise-target.resolver";
+import {
+  composeAutoMaster,
+  findDuplicateRefs,
+  isAutoMasterMember,
+  type AutoMasterMember,
+  type ComposedAutoMaster,
+} from "./hubrise-auto-master.composer";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import {
   normalizePricingVariants,
@@ -1130,6 +1137,24 @@ export class HubRiseCatalogService {
         `catalog=${target.hubriseCatalogId ?? "(new)"}`,
     );
 
+    // ── Auto-composed master menu ──────────────────────────────────────
+    // When this location's menus opted into a composed catalog, the payload
+    // we push is EVERY member brand's menu merged in memory — never just the
+    // one the operator clicked. See hubrise-auto-master.composer.ts for why
+    // sending only the clicked brand is the one thing this feature must never
+    // do. With no members (the state of every location today) `composition`
+    // stays null and everything below runs on the single menu exactly as it
+    // always has, including the hand-built master-menu path.
+    const composition = await this.composeAutoMasterIfMember({
+      tenantId: args.tenantId,
+      menuId: args.menuId,
+      menuName: menu.name,
+      target,
+    });
+    const sourceMenu: any = composition?.menu ?? menu;
+    const catalogName: string = composition ? composition.menu.name : menu.name;
+    const publishedMenuIds: string[] = composition?.memberIds ?? [args.menuId];
+
     // Phase AW-11.4 — collect every modifier group referenced by ANY
     // product in this menu, from both the link table (single-SKU
     // products) AND the productSkus JSON (multi-SKU products). Then
@@ -1137,7 +1162,7 @@ export class HubRiseCatalogService {
     // a complete option_lists array AND resolve every SKU's group ids
     // to a real ref.
     const referencedGroupIds = new Set<string>();
-    for (const cat of menu.categories ?? []) {
+    for (const cat of sourceMenu.categories ?? []) {
       for (const link of cat.items ?? []) {
         const item = link.item;
         for (const l of item.modifierGroupLinks ?? []) {
@@ -1164,10 +1189,49 @@ export class HubRiseCatalogService {
 
     const { categories, products, optionLists, variants } =
       transformMenuToCatalog(
-        menu,
+        sourceMenu,
         groupById,
         location.hubriseCatalogId ?? undefined,
       );
+
+    if (composition) {
+      // The payload must be COMPLETE. A member that contributed no products
+      // means that brand's storefront would go dark on this publish, so the
+      // whole publish is refused rather than shipping a partial catalog.
+      const starved = composition.memberIds.filter(
+        (id) => (composition.productCounts.get(id) ?? 0) === 0,
+      );
+      if (starved.length) {
+        const names = starved
+          .map((id) => composition.memberNames.get(id) ?? id)
+          .map((n) => `"${n}"`)
+          .join(", ");
+        throw new BadRequestException(
+          `${names} ${starved.length === 1 ? "is" : "are"} part of this ` +
+            `location's HubRise catalog but ${starved.length === 1 ? "has" : "have"} ` +
+            `no products, so publishing would take that brand's storefront down. ` +
+            `Add products to it, or remove it from the HubRise catalog.`,
+        );
+      }
+
+      // Two brands' menus can carry the same PLU or the same imported
+      // externalId; the hand-built master menu couldn't, because it deep-copies
+      // with fresh PLUs. A duplicate ref silently merges or drops a product in
+      // HubRise, so refuse and name both rows.
+      const duplicates = findDuplicateRefs({ categories, products, optionLists });
+      if (duplicates.length) {
+        this.logger.error(
+          `HubRise auto-master: duplicate refs across member menus — ${duplicates.join("; ")}`,
+        );
+        throw new BadRequestException(
+          `The brands sharing this location's HubRise catalog use the same ` +
+            `reference for different things, which HubRise can't store: ` +
+            `${duplicates.slice(0, 3).join("; ")}` +
+            `${duplicates.length > 3 ? ` (and ${duplicates.length - 3} more)` : ""}. ` +
+            `Give one of each pair a different PLU and publish again.`,
+        );
+      }
+    }
 
     // ── Empty-catalog guard ────────────────────────────────────────────
     // Publishing an empty menu REPLACES the live catalog with nothing, which
@@ -1199,7 +1263,12 @@ export class HubRiseCatalogService {
         `categories=${categories.length} ` +
         `products=${products.length} optionLists=${optionLists.length} ` +
         `variants=${variants.length} skusWithPriceOverrides=${skuOverrideCount} ` +
-        `referencedGroups=${referencedGroupIds.size}`,
+        `referencedGroups=${referencedGroupIds.size}` +
+        (composition
+          ? ` autoMaster=[${composition.memberIds.join(",")}]` +
+            ` sharedItems=${composition.sharedItemCount}` +
+            ` seededVariantBrands=[${composition.seededBrandIds.join(",")}]`
+          : ""),
     );
 
     // Sample the first product + its SKUs so we can verify the
@@ -1254,18 +1323,18 @@ export class HubRiseCatalogService {
         `PUT`,
         `/catalogs/${location.hubriseCatalogId}`,
         location.hubriseCredentials,
-        { name: menu.name, data },
+        { name: catalogName, data },
       );
       if (hubriseToken && imageJobs.length) {
         const catId = location.hubriseCatalogId;
         const creds = location.hubriseCredentials;
         setImmediate(() =>
-          this.uploadImagesThenRepublish(catId, hubriseToken, creds, imageJobs, menu.name, data, args.tenantId).catch(
+          this.uploadImagesThenRepublish(catId, hubriseToken, creds, imageJobs, catalogName, data, args.tenantId).catch(
             (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
           ),
         );
       }
-      await this.markPublished(args.menuId, location.hubriseCatalogId);
+      await this.markPublished(publishedMenuIds, location.hubriseCatalogId);
       this.activity?.record({
         tenantId: args.tenantId,
         brandId: menu.brandId ?? null,
@@ -1274,8 +1343,14 @@ export class HubRiseCatalogService {
         channel: "HUBRISE",
         action: "menu.publish",
         status: "SUCCESS",
-        message: `Menu "${menu.name}" published to HubRise (catalog updated)`,
-        details: { catalogId: location.hubriseCatalogId, products: products.length },
+        message: composition
+          ? `${composition.memberIds.length} brand menus published to HubRise as one catalog (triggered by "${menu.name}")`
+          : `Menu "${menu.name}" published to HubRise (catalog updated)`,
+        details: {
+          catalogId: location.hubriseCatalogId,
+          products: products.length,
+          ...(composition ? { autoMasterMenuIds: composition.memberIds } : {}),
+        },
       });
       return { catalogId: location.hubriseCatalogId, created: false };
     }
@@ -1284,7 +1359,7 @@ export class HubRiseCatalogService {
       "POST",
       `/locations/${location.hubriseLocationId.toLowerCase()}/catalogs`,
       location.hubriseCredentials,
-      { name: menu.name, data },
+      { name: catalogName, data },
     )) as { id: string };
 
     await (this.prisma as any).location.update({
@@ -1297,12 +1372,12 @@ export class HubRiseCatalogService {
     if (hubriseToken && imageJobs.length) {
       const creds = location.hubriseCredentials;
       setImmediate(() =>
-        this.uploadImagesThenRepublish(created.id, hubriseToken, creds, imageJobs, menu.name, data, args.tenantId).catch(
+        this.uploadImagesThenRepublish(created.id, hubriseToken, creds, imageJobs, catalogName, data, args.tenantId).catch(
           (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
         ),
       );
     }
-    await this.markPublished(args.menuId, created.id);
+    await this.markPublished(publishedMenuIds, created.id);
     this.activity?.record({
       tenantId: args.tenantId,
       brandId: menu.brandId ?? null,
@@ -1311,10 +1386,109 @@ export class HubRiseCatalogService {
       channel: "HUBRISE",
       action: "menu.publish",
       status: "SUCCESS",
-      message: `Menu "${menu.name}" published to HubRise (new catalog)`,
-      details: { catalogId: created.id, products: products.length },
+      message: composition
+        ? `${composition.memberIds.length} brand menus published to HubRise as one new catalog (triggered by "${menu.name}")`
+        : `Menu "${menu.name}" published to HubRise (new catalog)`,
+      details: {
+        catalogId: created.id,
+        products: products.length,
+        ...(composition ? { autoMasterMenuIds: composition.memberIds } : {}),
+      },
     });
     return { catalogId: created.id, created: true };
+  }
+
+  /**
+   * Load this location's auto-composed HubRise catalog and merge it, when the
+   * menu being published belongs to one.
+   *
+   * Returns null — leaving the caller on the untouched single-menu path — when
+   * the location has no member menus (every location today) or when the target
+   * is a per-brand HubRise connection, which already has a catalog to itself
+   * and must not be handed every other brand's products.
+   *
+   * Throws when a NON-member menu is published into a composed catalog: that
+   * PUT would replace all the member brands with one brand's items and strip
+   * the variants every operator selected in HubRise. It is exactly the
+   * accident this feature exists to prevent, so it is refused rather than
+   * quietly published.
+   */
+  private async composeAutoMasterIfMember(args: {
+    tenantId: string;
+    menuId: string;
+    menuName: string;
+    target: HubRiseTarget;
+  }): Promise<ComposedAutoMaster | null> {
+    const { target } = args;
+    if (target.source !== "location" || !target.locationId) return null;
+    const locationId = target.locationId;
+
+    // Same "belongs to this location" rule the Menu tab lists by (homed here,
+    // or serving here via an assignment row), so what the operator ticked in
+    // the picker is what composes.
+    const atLocation = { OR: [{ locationId }, { assignments: { some: { locationId } } }] };
+
+    // Cheap pass first: only the flag matters, and most locations have none.
+    const candidates = await (this.prisma as any).menu.findMany({
+      where: { deletedAt: null, brand: { tenantId: args.tenantId }, ...atLocation },
+      select: { id: true, metadata: true },
+    });
+    const memberIds: string[] = candidates
+      .filter((m: any) => isAutoMasterMember(m))
+      .map((m: any) => m.id as string);
+    if (memberIds.length === 0) return null;
+
+    if (!memberIds.includes(args.menuId)) {
+      throw new BadRequestException(
+        `"${args.menuName}" is not part of this location's HubRise catalog, ` +
+          `and publishing it would replace every brand already in that ` +
+          `catalog with just this menu. Publish one of the brand menus in the ` +
+          `catalog instead, or add this menu to it first.`,
+      );
+    }
+
+    const members: AutoMasterMember[] = await (this.prisma as any).menu.findMany({
+      where: { id: { in: memberIds } },
+      include: {
+        categories: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            items: {
+              orderBy: { sortOrder: "asc" },
+              include: {
+                item: {
+                  include: {
+                    modifierGroupLinks: {
+                      include: { group: { include: { options: true } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        brand: { select: { id: true, name: true } },
+      },
+    });
+
+    // The catalog name must not depend on which brand pressed publish, or the
+    // HubRise catalog would be renamed on every publish. The location's own
+    // name is the one label that is true for all of them.
+    const location = await (this.prisma as any).location.findUnique({
+      where: { id: locationId },
+      select: { name: true },
+    });
+
+    const composed = composeAutoMaster(members, {
+      name: location?.name || args.menuName,
+    });
+    this.logger.log(
+      `HubRise auto-master: composing ${composed.memberIds.length} menus at ` +
+        `location=${locationId} for publish of menu=${args.menuId} ` +
+        `(${composed.menu.categories.length} categories, ` +
+        `${composed.menu.pricingVariants.length} variants)`,
+    );
+    return composed;
   }
 
   // ─────────────────────────────────────────────────────────────────────
@@ -1355,9 +1529,14 @@ export class HubRiseCatalogService {
     );
   }
 
-  private async markPublished(menuId: string, hubriseCatalogId: string) {
-    await (this.prisma as any).menu.update({
-      where: { id: menuId },
+  // Every menu whose products just went into the catalog gets stamped, not
+  // only the one the operator clicked. MenuAvailabilityService resolves which
+  // HubRise catalog to 86 against from Menu.externalId + lastPublishedAt, so a
+  // member menu left unstamped would send its 86s to the wrong catalog — or
+  // nowhere at all.
+  private async markPublished(menuIds: string[], hubriseCatalogId: string) {
+    await (this.prisma as any).menu.updateMany({
+      where: { id: { in: menuIds } },
       data: {
         lastPublishedAt: new Date(),
         platformSource: "HUBRISE",

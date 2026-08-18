@@ -27,11 +27,12 @@ import { CreateMenuModal } from "@/components/menu/create-menu-modal";
 import { AiImportMenuModal } from "@/components/menu/ai-import-menu-modal";
 import { ImportMenuModal } from "@/components/menu/import-menu-modal";
 import { MasterMenuModal } from "@/components/menu/master-menu-modal";
+import { HubRiseCatalogModal } from "@/components/menu/hubrise-catalog-modal";
 import { CloneFromLocationModal } from "@/components/menu/clone-from-location-modal";
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
 import { PublishHoursModal } from "@/components/menu/publish-hours-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
-import { Send, CheckCircle2, Clock, Tag } from "lucide-react";
+import { Send, CheckCircle2, Clock, Tag, Layers } from "lucide-react";
 import { TagBrandModal } from "@/components/menu/tag-brand-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { locationsClient } from "@/lib/api/locations.client";
@@ -289,6 +290,10 @@ export default function MenuPage() {
 
   // Phase AM — opens the Deliverect-style 3-card chooser.
   const openAddMenu = () => setAddStep("chooser");
+  // Which brand menus compose this location's single HubRise catalog. Set it
+  // once and each brand then publishes its own menu; every member republishes
+  // together so no brand drops out of the shared catalog.
+  const [hubriseCatalogOpen, setHubriseCatalogOpen] = useState(false);
 
   if (brandsLoading) {
     return (
@@ -416,6 +421,16 @@ export default function MenuPage() {
           <Button
             size="sm"
             variant="outline"
+            onClick={() => setHubriseCatalogOpen(true)}
+            disabled={!selectedLocationId}
+            title="Choose which brand menus make up this location's single HubRise catalog"
+          >
+            <Layers className="h-4 w-4 mr-1.5" />
+            HubRise catalog
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setPublishHoursOpen(true)}
             disabled={!selectedLocationId}
             title="Push the brand's opening hours + prep time to a channel"
@@ -434,6 +449,14 @@ export default function MenuPage() {
           </Button>
         </div>
       </div>
+
+      {selectedLocationId && (
+        <HubRiseCatalogModal
+          open={hubriseCatalogOpen}
+          locationId={selectedLocationId}
+          onClose={() => setHubriseCatalogOpen(false)}
+        />
+      )}
 
       {/* Phase AM — modal chain */}
       <AddMenuModal

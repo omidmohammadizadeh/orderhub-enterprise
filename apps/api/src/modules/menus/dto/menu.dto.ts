@@ -85,6 +85,16 @@ export class CreateMasterMenuDto {
   sourceMenuIds!: string[];
 }
 
+/** The menus composing a location's single HubRise catalog. Replace
+ *  semantics — whatever is sent becomes the complete set. */
+export class SetHubRiseCatalogMenusDto {
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsString({ each: true })
+  menuIds!: string[];
+}
+
 export class UpdateMenuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;

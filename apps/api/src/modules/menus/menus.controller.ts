@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Put,
   Delete,
   Body,
   Param,
@@ -32,6 +33,7 @@ import {
   CreateMenuDto,
   UpdateMenuDto,
   CreateMasterMenuDto,
+  SetHubRiseCatalogMenusDto,
   CreateCategoryDto,
   UpdateCategoryDto,
   CreateMenuItemDto,
@@ -468,6 +470,34 @@ export class MenusController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.createMasterMenu(locationId, user.tenantId, dto);
+  }
+
+  // Which of this location's menus make up its single HubRise catalog.
+  // HubRise allows one catalog per location; naming the member menus here
+  // replaces hand-building a Master Menu — publishing any member composes
+  // them all, so every brand stays in the catalog whoever pressed publish.
+  @Get("locations/:locationId/hubrise-catalog")
+  @ApiOperation({ summary: "List this location's menus with their HubRise catalog membership" })
+  listHubRiseCatalogMenus(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.listHubRiseCatalogMenus(locationId, user.tenantId);
+  }
+
+  @Put("locations/:locationId/hubrise-catalog")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Replace the set of menus composing this location's HubRise catalog" })
+  setHubRiseCatalogMenus(
+    @Param("locationId") locationId: string,
+    @Body() dto: SetHubRiseCatalogMenusDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.setHubRiseCatalogMenus(
+      locationId,
+      user.tenantId,
+      dto.menuIds ?? [],
+    );
   }
 
   @Patch("menus/:menuId")
