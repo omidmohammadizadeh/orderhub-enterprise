@@ -1169,6 +1169,25 @@ export class HubRiseCatalogService {
         location.hubriseCatalogId ?? undefined,
       );
 
+    // ── Empty-catalog guard ────────────────────────────────────────────
+    // Publishing an empty menu REPLACES the live catalog with nothing, which
+    // takes down every storefront fed by it. This is not hypothetical: on
+    // 17 Jul 2026 two different zero-item menus were published into Clifton's
+    // catalog 622ex within two hours, and six near-identically named menus at
+    // that one location still all target it. A menu with no products is
+    // always an operator picking the wrong row from a list of duplicates —
+    // never a real intention to clear a shop's menu.
+    //
+    // Refuse it. Emptying a catalog deliberately is a HubRise-side action,
+    // not something a POS publish button should be able to do by accident.
+    if (products.length === 0) {
+      throw new BadRequestException(
+        `"${menu.name}" has no products, so publishing it would empty the ` +
+          `live HubRise catalog and take the storefronts down. Check you ` +
+          `picked the right menu — this location has more than one.`,
+      );
+    }
+
     const skuOverrideCount = products.reduce(
       (n, p) => n + (p.skus ?? []).filter((s: any) => s.price_overrides?.length).length,
       0,
