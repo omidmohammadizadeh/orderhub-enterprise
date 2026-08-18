@@ -629,7 +629,9 @@ export default function MenuPage() {
                       `product in this menu a new PLU, so it stops colliding with the ` +
                       `other menu.\n\nProducts shared with another menu are left alone. ` +
                       `This cannot be undone, and HubRise will see these as new products ` +
-                      `on the next publish.`,
+                      `on the next publish — so any photo HubRise was holding against the ` +
+                      `old reference is not carried over. Products whose picture only ` +
+                      `exists in HubRise will need it re-uploaded.`,
                   )
                 ) {
                   detachMutation.mutate(menu.id);
