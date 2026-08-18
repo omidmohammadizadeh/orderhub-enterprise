@@ -8,6 +8,7 @@ import {
   Globe,
   Archive,
   Copy,
+  Unlink,
   Trash2,
   UtensilsCrossed,
   ChevronRight,
@@ -160,6 +161,27 @@ export default function MenuPage() {
   const deleteMutation = useMutation({
     mutationFn: (menuId: string) => menusClient.deleteMenu(menuId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["menus"] }),
+  });
+
+  // A menu imported from HubRise carries HubRise's own product ids. Import the
+  // same catalog twice — one menu per brand — and both claim the same ids, so
+  // the composed HubRise publish refuses them. This gives one menu's products
+  // refs of their own.
+  const detachMutation = useMutation({
+    mutationFn: (menuId: string) => menusClient.detachFromImport(menuId),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["menus"] });
+      toast.success(
+        `${r.detached} product${r.detached === 1 ? "" : "s"} now have their own references.` +
+          (r.skippedShared > 0
+            ? ` ${r.skippedShared} shared with another menu were left alone.`
+            : ""),
+      );
+    },
+    onError: (err: any) =>
+      toast.error(
+        `Couldn't detach: ${err?.response?.data?.message ?? err?.message ?? "unknown error"}`,
+      ),
   });
 
   // Phase AW-11 — HubRise catalog import. Pulls the location's
@@ -597,6 +619,22 @@ export default function MenuPage() {
               onArchive={() => { archiveMutation.mutate(menu.id); setOpenMenuId(null); }}
               onClone={() => { cloneMutation.mutate({ menuId: menu.id, name: `${menu.name} (copy)` }); setOpenMenuId(null); }}
               onDelete={() => { deleteMutation.mutate(menu.id); setOpenMenuId(null); }}
+              onDetach={() => {
+                setOpenMenuId(null);
+                if (
+                  window.confirm(
+                    `Give "${menu.name}"'s products their own references?\n\n` +
+                      `Use this when two menus imported from the same HubRise catalog ` +
+                      `clash on publish. It clears the imported ids and gives every ` +
+                      `product in this menu a new PLU, so it stops colliding with the ` +
+                      `other menu.\n\nProducts shared with another menu are left alone. ` +
+                      `This cannot be undone, and HubRise will see these as new products ` +
+                      `on the next publish.`,
+                  )
+                ) {
+                  detachMutation.mutate(menu.id);
+                }
+              }}
               onTag={() => { setTaggingMenu(menu); setOpenMenuId(null); }}
             />
           ))}
@@ -710,10 +748,11 @@ interface MenuCardProps {
   onArchive: () => void;
   onClone: () => void;
   onDelete: () => void;
+  onDetach: () => void;
   onTag: () => void;
 }
 
-function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete, onTag }: MenuCardProps) {
+function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete, onDetach, onTag }: MenuCardProps) {
   // Phase AM — show the Live badge only when the menu is actually
   // published to at least one target. status=PUBLISHED alone isn't
   // enough; an operator might toggle every target off and that needs
@@ -851,6 +890,7 @@ function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, on
                 <DropItem icon={Archive} label="Archive" onClick={onArchive} />
               )}
               <DropItem icon={Copy} label="Clone" onClick={onClone} />
+              <DropItem icon={Unlink} label="Detach from import" onClick={onDetach} />
               <div className="my-1 h-px bg-zinc-100" />
               <DropItem icon={Trash2} label="Delete" onClick={onDelete} danger />
             </div>

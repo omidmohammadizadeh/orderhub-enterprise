@@ -545,6 +545,21 @@ export class MenusController {
     return this.menus.tagAllItemsBrand(menuId, user.tenantId, body.brandId);
   }
 
+  // Give an imported menu's products refs of their own, so two brands whose
+  // menus came out of the same HubRise catalog stop claiming the same ids.
+  @Post("menus/:menuId/detach-from-import")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Clear imported platform refs on this menu's products and mint fresh PLUs, so they no longer collide with another menu imported from the same catalog",
+  })
+  detachFromImport(
+    @Param("menuId") menuId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.detachMenuFromImport(menuId, user.tenantId);
+  }
+
   @Post("menus/:menuId/clone")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Clone a menu to a new draft (optionally into another location)" })

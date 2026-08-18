@@ -471,6 +471,15 @@ export const menusClient = {
       .post<{ updated: number }>(`/v1/menus/${menuId}/tag-brand`, { brandId })
       .then((r) => r.data),
 
+  // Break an imported menu's products off HubRise's ids so they stop colliding
+  // with another menu imported from the same catalog.
+  detachFromImport: (menuId: string) =>
+    apiClient
+      .post<{ detached: number; skippedShared: number; alreadyIndependent: number }>(
+        `/v1/menus/${menuId}/detach-from-import`,
+      )
+      .then((r) => r.data),
+
   cloneMenu: (menuId: string, name: string, targetLocationId?: string) =>
     apiClient
       .post<MenuWithCategories>(`/v1/menus/${menuId}/clone`, {

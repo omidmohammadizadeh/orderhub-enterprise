@@ -1092,6 +1092,102 @@ export class MenusService {
     );
   }
 
+  /**
+   * Give this menu's products references of their own.
+   *
+   * A menu imported from HubRise carries HubRise's OWN product ids in
+   * MenuItem.externalId, and those become the catalog refs on publish
+   * (transformMenuToCatalog: `item.externalId ?? prod_<id>`). Import the same
+   * HubRise catalog twice — once per brand, which is exactly how Clifton ended
+   * up with "CLIFTON BURGERS" and "smashing burger" — and both menus' products
+   * claim ids like `95m3488`. One catalog cannot hold two products under one
+   * ref, so the composed publish refuses; see findDuplicateRefs.
+   *
+   * Detaching clears externalId and mints a fresh PLU, so the product's refs
+   * become its own (`prod_<cuid>` and a new PLU) and stop colliding. Permanent
+   * on purpose: the 86 → out-of-stock push keys on these same refs, so
+   * disambiguating only at publish time would send 86s to refs HubRise doesn't
+   * have.
+   *
+   * SHARED PRODUCTS ARE SKIPPED. An item also linked into another menu is that
+   * menu's product too, and re-reffing it would silently change what the other
+   * menu publishes. Those are reported back rather than touched.
+   */
+  async detachMenuFromImport(menuId: string, tenantId: string) {
+    await this.assertMenuAccess(menuId, tenantId);
+
+    const links = await this.prisma.menuItemOnCategory.findMany({
+      where: { category: { menuId } },
+      select: { itemId: true },
+    });
+    const itemIds = Array.from(new Set(links.map((l) => l.itemId)));
+    if (!itemIds.length) {
+      return { detached: 0, skippedShared: 0, alreadyIndependent: 0 };
+    }
+
+    // Anything linked into a DIFFERENT live menu belongs to that menu too.
+    const elsewhere = await this.prisma.menuItemOnCategory.findMany({
+      where: {
+        itemId: { in: itemIds },
+        category: { menuId: { not: menuId }, menu: { deletedAt: null } },
+      },
+      select: { itemId: true },
+    });
+    const shared = new Set(elsewhere.map((l) => l.itemId));
+    const detachable = itemIds.filter((id) => !shared.has(id));
+
+    const items = await this.prisma.menuItem.findMany({
+      where: { id: { in: detachable } },
+      select: {
+        id: true,
+        externalId: true,
+        plu: true,
+        hasMultipleSkus: true,
+        productSkus: true,
+      },
+    });
+
+    // Seed every PLU in the tenant once so the new ones are minted in memory —
+    // no per-PLU round trip (the same reason createMasterMenu does it).
+    const usedPlus = new Set<string>();
+    await this.seedUsedPlus(tenantId, usedPlus);
+
+    let detached = 0;
+    let alreadyIndependent = 0;
+    for (const item of items) {
+      // Nothing imported and nothing to collide on — leave it exactly as it is
+      // rather than churning a ref that is already the item's own.
+      if (!item.externalId && !item.plu) {
+        alreadyIndependent++;
+        continue;
+      }
+
+      const skus = Array.isArray(item.productSkus)
+        ? (item.productSkus as any[]).map((sku) => ({
+            ...sku,
+            plu: this.freshPlu("product", usedPlus),
+          }))
+        : item.productSkus;
+
+      await this.prisma.menuItem.update({
+        where: { id: item.id },
+        data: {
+          externalId: null,
+          plu: this.freshPlu("product", usedPlus),
+          ...(Array.isArray(item.productSkus) ? { productSkus: skus as any } : {}),
+        },
+      });
+      detached++;
+    }
+
+    this.logger.log(
+      `Detached menu ${menuId} from its import: ${detached} products re-reffed, ` +
+        `${shared.size} shared with another menu left alone, ` +
+        `${alreadyIndependent} already independent`,
+    );
+    return { detached, skippedShared: shared.size, alreadyIndependent };
+  }
+
   // ── HubRise composed catalog membership ────────────────────────────────────
   //
   // HubRise allows ONE catalog per location, so several brands trading out of
