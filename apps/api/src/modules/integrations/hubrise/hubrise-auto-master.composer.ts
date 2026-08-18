@@ -134,14 +134,23 @@ function compareMembers(a: AutoMasterMember, b: AutoMasterMember): number {
 }
 
 /**
- * Every brand a product should be visible to inside the composed catalog.
+ * Every brand a product should be visible to inside the composed catalog:
+ * the item's own tags UNION the brand of the menu it sits in.
  *
- * The item's OWN tags win. Only when a product carries no brand at all do we
- * fall back to the menu it sits in, so an untagged product still reaches the
- * shop that sells it rather than vanishing. We deliberately do NOT add the
- * menu's brand on top of real tags: a menu imported under one brand and then
- * tagged to another (the "imported as Order Hub, tagged Smashing Burger" case)
- * must show its products under the brand they were tagged to, and nowhere else.
+ * Both halves are intent. Tagging a product to a brand says "this brand sells
+ * it"; putting it in a menu says the same thing. Dropping either one makes
+ * products vanish from a live storefront.
+ *
+ * I briefly made the item's tags win outright, to stop a menu imported under
+ * "Order Hub" leaking its products into Order Hub's variant. That was the wrong
+ * lever: it took Clifton Burgers' categories off its own Uber Eats store,
+ * because those products carry another brand's tag. Restricting a variant only
+ * ever HIDES products, so the failure is silent and customer-facing — whereas
+ * an extra variant ref shows a product in one shop too many, which the operator
+ * can see and fix by correcting the tag. Widen; never narrow.
+ *
+ * The import-artefact case is fixed where it actually belongs: tagAllItemsBrand
+ * now re-homes Menu.brandId too, so the menu's brand is the right one.
  */
 function brandsForItem(item: any, memberBrandId: string): string[] {
   const out: string[] = [];
@@ -150,7 +159,7 @@ function brandsForItem(item: any, memberBrandId: string): string[] {
   };
   add(item?.brandId);
   for (const b of Array.isArray(item?.brandIds) ? item.brandIds : []) add(b);
-  if (out.length === 0) add(memberBrandId);
+  add(memberBrandId);
   return out;
 }
 

@@ -104,10 +104,31 @@ describe("composeAutoMaster", () => {
     expect(betaRefs.every((r) => r.startsWith("brandB__"))).toBe(true);
   });
 
-  it("falls back to the menu's brand only for a product with no brand at all", () => {
-    // Composing must never make an untagged product vanish from the shop that
-    // sells it — but a product that IS tagged must not also leak into the
-    // brand that merely owns the menu row.
+  it("keeps a product in its own menu's brand even when tagged to another", () => {
+    // Clifton Burgers' products carry another brand's tag. Letting the tag win
+    // outright took whole categories off its live Uber Eats store — a variant
+    // restriction only ever HIDES things, so getting it wrong is silent and
+    // customer-facing. The menu's brand is always added.
+    const misTagged: AutoMasterMember = {
+      ...beta,
+      categories: [
+        {
+          id: "catB",
+          name: "Burgers",
+          items: [{ item: item({ id: "iB", name: "Beta Burger", plu: "B1", brandId: "brandA" }) }],
+        },
+      ],
+    };
+    const composed = composeAutoMaster([alpha, misTagged], { name: "Clifton" });
+    const data = transformMenuToCatalog(composed.menu, new Map());
+    const refs: string[] = (data.products.find((p) => p.name === "Beta Burger")!.skus![0] as any)
+      .restrictions.variant_refs;
+
+    expect(refs).toContain("brandB__UBER_EATS");
+    expect(refs).toContain("brandA__UBER_EATS");
+  });
+
+  it("keeps an untagged product in its menu's brand", () => {
     const untagged: AutoMasterMember = {
       ...beta,
       categories: [
@@ -154,14 +175,17 @@ describe("composeAutoMaster", () => {
 
     const refs = composed.menu.pricingVariants.map((v) => v.ref);
     expect(refs).toContain("brandSmash__UBER_EATS");
-    expect(refs.some((r) => r.startsWith("brandOrderHub__"))).toBe(false);
     expect(
       composed.menu.pricingVariants.find((v) => v.ref === "brandSmash__UBER_EATS")!.name,
     ).toBe("Smashing Burger — Uber Eats");
 
+    // The product reaches Smashing Burger's storefront, which is what the
+    // operator expressed by tagging it. The menu's own brand rides along —
+    // brandsForItem never narrows — and the cure for a wrong one is
+    // tagAllItemsBrand re-homing Menu.brandId, not hiding products.
     const data = transformMenuToCatalog(composed.menu, new Map());
     const restricted: string[] = (data.products[0].skus![0] as any).restrictions.variant_refs;
-    expect(restricted.every((r) => r.startsWith("brandSmash__"))).toBe(true);
+    expect(restricted).toContain("brandSmash__UBER_EATS");
   });
 
   it("folds a MenuItem shared by two menus into one product carrying both brands", () => {
