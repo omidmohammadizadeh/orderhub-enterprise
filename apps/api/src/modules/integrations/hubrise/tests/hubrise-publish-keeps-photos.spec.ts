@@ -36,6 +36,7 @@ function harness(opts: {
   readable?: string[];
 }) {
   const sent: Array<{ method: string; path: string; body: any }> = [];
+  const itemUpdates: any[] = [];
   const readable = new Set(opts.readable ?? []);
 
   const menu = {
@@ -82,7 +83,10 @@ function harness(opts: {
     menuItem: {
       findUnique: async () => ({ id: "iA", name: "Cheeseburger" }),
       findMany: async () => opts.twins ?? [],
-      update: async () => ({}),
+      update: async (call: any) => {
+        itemUpdates.push(call);
+        return {};
+      },
     },
     location: {
       findFirst: async () => ({
@@ -142,7 +146,7 @@ function harness(opts: {
     };
   }) as any;
 
-  return { service, sent };
+  return { service, sent, itemUpdates };
 }
 
 const putBody = (sent: any[]) => sent.find((r) => r.method === "PUT")!.body;
@@ -160,27 +164,31 @@ describe("publishing when the source image is unreadable", () => {
     expect(product.image_ids).toEqual(["img_live"]);
   });
 
-  it("recovers the bytes from a twin item whose image still resolves", async () => {
-    const goodSrc = "/api/v1/menus/hubrise-image/622ex/live99";
-    const { service, sent } = harness({
-      // Catalog has nothing to carry over — recovery is the only route.
+  it("never borrows another product's photo, even one with the same name", async () => {
+    // A twin-borrowing fallback used to live here and matched on name ACROSS
+    // BRANDS: Smashing Burger's "Fries" took Greek Gyros' "Fries" photo, and
+    // the borrowed URL was written back onto the product. Two brands in one
+    // kitchen sell identically-named items with different pictures — a name is
+    // not an identity. An unreachable source must publish no photo, never
+    // someone else's.
+    const otherBrandsPhoto = "/api/v1/menus/hubrise-image/622ex/greekgyros99";
+    const { service, sent, itemUpdates } = harness({
       catalogProducts: [],
-      twins: [{ id: "iTwin", name: "Cheeseburger", imageUrl: goodSrc }],
-      readable: [goodSrc],
+      twins: [{ id: "iGreekGyros", name: "Cheeseburger", imageUrl: otherBrandsPhoto }],
+      readable: [otherBrandsPhoto],
     });
 
     await service.publishMenu({ tenantId: "t1", menuId: "menuA" });
-    // The upload + republish happen in the background after the first PUT.
     await new Promise((r) => setImmediate(r));
     await new Promise((r) => setTimeout(r, 20));
 
-    const uploaded = sent.find((r) => r.method === "POST" && r.path.includes("/images"));
-    expect(uploaded).toBeDefined();
-    const republished = sent.filter((r) => r.method === "PUT").pop();
-    expect(republished!.body.data.products[0].image_ids).toEqual(["img_new"]);
+    expect(putBody(sent).data.products[0].image_ids).toBeUndefined();
+    // Nothing uploaded, and the product's own imageUrl left alone.
+    expect(sent.some((r) => r.method === "POST" && r.path.includes("/images"))).toBe(false);
+    expect(itemUpdates).toHaveLength(0);
   });
 
-  it("does not invent a photo when neither the catalog nor any twin has one", async () => {
+  it("does not invent a photo when the catalog has none either", async () => {
     const { service, sent } = harness({ catalogProducts: [], twins: [] });
     await service.publishMenu({ tenantId: "t1", menuId: "menuA" });
     expect(putBody(sent).data.products[0].image_ids).toBeUndefined();

@@ -714,13 +714,7 @@ export class HubRiseCatalogService {
       let newId = cache.get(src);
       if (newId === undefined) {
         try {
-          const bytes =
-            (await this.resolveImageBytes(src, accessToken, tenantId).catch(
-              () => null,
-            )) ??
-            (itemId && tenantId
-              ? await this.resolveImageViaTwin(itemId, src, accessToken, tenantId)
-              : null);
+          const bytes = await this.resolveImageBytes(src, accessToken, tenantId);
           // Stable ref so HubRise dedupes if the same image is re-uploaded.
           const privateRef = createHash("md5").update(src).digest("hex").slice(0, 24);
           newId = bytes
@@ -1634,73 +1628,20 @@ export class HubRiseCatalogService {
     return carried;
   }
 
-  /**
-   * Last chance at a product photo: borrow it from a TWIN.
-   *
-   * The same product exists as several MenuItem rows — clone() and
-   * createMasterMenu() both deep-copy — and those copies carry whatever
-   * imageUrl the original had at the time. When a location's copies point at a
-   * catalog that no longer exists, a twin elsewhere in the tenant usually
-   * points at a live one, because attachProductImages re-points an item's
-   * imageUrl every time it successfully uploads.
-   *
-   * Matched on tenant + brand-agnostic name (case-insensitive), the same twin
-   * rule the 86 → inventory push already relies on. It only ever runs when the
-   * item's OWN image failed, so the worst case is the plain product we would
-   * have published anyway. Every hit is logged with both item ids so a wrong
-   * match is traceable.
-   */
-  private async resolveImageViaTwin(
-    itemId: string,
-    deadSrc: string,
-    accessToken: string | undefined,
-    tenantId: string,
-  ): Promise<{ buffer: Buffer; contentType: string } | null> {
-    const item = await (this.prisma as any).menuItem
-      .findUnique({ where: { id: itemId }, select: { id: true, name: true } })
-      .catch(() => null);
-    if (!item?.name) return null;
-
-    const brandIds = (this.tenantBrandIdCache ??= new Map<string, string[]>());
-    let ids = brandIds.get(tenantId);
-    if (!ids) {
-      const brands = await (this.prisma as any).brand.findMany({
-        where: { tenantId },
-        select: { id: true },
-      });
-      ids = brands.map((b: any) => b.id as string);
-      brandIds.set(tenantId, ids as string[]);
-    }
-    if (!ids?.length) return null;
-
-    const twins = await (this.prisma as any).menuItem.findMany({
-      where: {
-        brandId: { in: ids },
-        name: { equals: item.name, mode: "insensitive" },
-        id: { not: itemId },
-        imageUrl: { not: null },
-      },
-      select: { id: true, imageUrl: true },
-      take: 10,
-    });
-
-    for (const twin of twins) {
-      const src = twin.imageUrl as string;
-      if (!src || src === deadSrc) continue;
-      const bytes = await this.resolveImageBytes(src, accessToken, tenantId).catch(
-        () => null,
-      );
-      if (bytes) {
-        this.logger.log(
-          `HubRise image: "${item.name}" (${itemId}) recovered from twin ${twin.id} — its own source ${deadSrc} is unreadable`,
-        );
-        return bytes;
-      }
-    }
-    return null;
-  }
-
-  private tenantBrandIdCache?: Map<string, string[]>;
+  // A twin-borrowing fallback used to live here: when an item's own image
+  // source was unreadable it fetched the photo from another MenuItem with the
+  // same name in the tenant. It matched on NAME ACROSS BRANDS, so Smashing
+  // Burger's "Fries" — whose source catalog is gone — took Greek Gyros' "Fries"
+  // photo, and attachProductImages then wrote that URL back onto the product,
+  // making the wrong photo permanent. Removed 2026-08-18 after it did exactly
+  // that on live Clifton menus.
+  //
+  // Do not reintroduce it without a match key that cannot cross brands AND
+  // without persisting the borrowed URL onto the item. Two brands in one
+  // kitchen legitimately sell items with identical names and different photos;
+  // a name is not an identity. carryOverCatalogImages below is the safe half —
+  // it only ever reuses the photo HubRise already holds for THAT SAME product
+  // ref, so it cannot attach someone else's picture.
 
   private async markPublished(menuIds: string[], hubriseCatalogId: string) {
     await (this.prisma as any).menu.updateMany({
