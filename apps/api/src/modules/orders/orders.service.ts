@@ -2161,10 +2161,23 @@ export class OrdersService {
 
     const or: Prisma.OrderWhereInput[] = [];
     if (scope.directLocationIds.length) {
+      // A directly-assigned location: the whole board there, every brand.
       or.push({ locationId: { in: scope.directLocationIds } });
     }
-    if (scope.brandIds) {
-      or.push({ brandId: { in: scope.brandIds } });
+    if (scope.brandIds && scope.allowedLocationIds.length) {
+      // A brand assignment shows that brand's orders — but ONLY at locations
+      // the user may see at all. The bound matters: this clause used to be a
+      // bare `brandId IN (...)` with no location constraint, so any order
+      // carrying an assigned brand was visible WHEREVER it was placed. A
+      // brand that trades at several sites (or a shared marketplace brand
+      // such as "Order Hub", which orders at unrelated locations are homed
+      // to) therefore exposed other operators' boards to a location owner.
+      or.push({
+        AND: [
+          { brandId: { in: scope.brandIds } },
+          { locationId: { in: scope.allowedLocationIds } },
+        ],
+      });
     }
     if (!or.length) return null; // no assignments → nothing
     where.OR = or;
