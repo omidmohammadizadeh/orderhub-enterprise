@@ -22,6 +22,7 @@ import { createHash } from "crypto";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
+import { resolveHubRiseTarget } from "./hubrise-target.resolver";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import {
   normalizePricingVariants,
@@ -1098,43 +1099,36 @@ export class HubRiseCatalogService {
     });
     if (!menu) throw new NotFoundException("Menu not found");
 
-    // Resolve the HubRise-connected location to publish INTO. Two hard rules,
-    // both learned from a live bug where publishes 200'd against an orphaned
-    // catalog on a DELETED location while the real (order-receiving) connection
-    // sat on another location and never updated:
-    //   1. Never a deleted location (deletedAt must be null).
-    //   2. Prefer the menu's OWN location; only fall back to a same-brand
-    //      HubRise-connected location when the menu's location isn't connected.
-    const locationSelect = {
-      id: true,
-      hubriseCredentials: true,
-      hubriseCatalogId: true,
-      hubriseLocationId: true,
-    };
-    let location = menu.locationId
-      ? await (this.prisma as any).location.findFirst({
-          where: { id: menu.locationId, deletedAt: null },
-          select: locationSelect,
-        })
-      : null;
-    // Fall back to a live, HubRise-connected location for the menu's brand only
-    // when the menu's own location isn't itself connected.
-    if (!location?.hubriseLocationId) {
-      location = await (this.prisma as any).location.findFirst({
-        where: {
-          brandId: menu.brandId,
-          hubriseLocationId: { not: null },
-          deletedAt: null,
-        },
-        orderBy: { updatedAt: "desc" },
-        select: locationSelect,
-      });
-    }
-    if (!location || !location.hubriseLocationId) {
+    // Resolve WHERE to publish. resolveHubRiseTarget prefers a per-brand
+    // HUBRISE BrandPlatformConnection (one HubRise location per brand, so a
+    // virtual brand gets its own catalog instead of sharing a merged master
+    // menu) and otherwise falls back to the legacy Location columns with the
+    // exact rules they always had — never a deleted location, and the menu's
+    // own location before any same-brand connected one. Both learned from a
+    // live bug where publishes 200'd against an orphaned catalog.
+    const target = await resolveHubRiseTarget(this.prisma, {
+      tenantId: args.tenantId,
+      brandId: menu.brandId,
+      locationId: menu.locationId ?? null,
+    });
+    if (!target) {
       throw new BadRequestException(
         "No HubRise-connected location for this menu's brand. Connect HubRise on a location first.",
       );
     }
+    // Shaped like the row this function used to select, so everything below
+    // is unchanged.
+    const location = {
+      id: target.locationId,
+      hubriseCredentials: target.hubriseCredentials,
+      hubriseCatalogId: target.hubriseCatalogId,
+      hubriseLocationId: target.hubriseLocationId,
+    };
+    this.logger.log(
+      `HubRise publish menu=${args.menuId} brand=${menu.brandId} ` +
+        `via ${target.source} → hubriseLocation=${target.hubriseLocationId} ` +
+        `catalog=${target.hubriseCatalogId ?? "(new)"}`,
+    );
 
     // Phase AW-11.4 — collect every modifier group referenced by ANY
     // product in this menu, from both the link table (single-SKU
