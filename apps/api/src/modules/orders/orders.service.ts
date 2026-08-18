@@ -2153,6 +2153,18 @@ export class OrdersService {
     const scope = await this.resolveOrderScope(user);
     const where: Prisma.OrderWhereInput = { tenantId: user.tenantId };
 
+    // Temporary diagnostic: a location owner reported seeing orders from
+    // locations they are not assigned to, and the stored assignments prove
+    // the filter below cannot match those rows. Log what the scope actually
+    // resolved to so the gap between the code and the behaviour is visible
+    // rather than guessed at.
+    this.logger.log(
+      `order-scope user=${user.userId} role=${user.role} admin=${scope.admin} ` +
+        `locations=[${scope.directLocationIds.join(",")}] ` +
+        `brands=[${(scope.brandIds ?? []).join(",")}] ` +
+        `requested=${requestedLocationId ?? "(all)"}`,
+    );
+
     if (scope.admin) {
       // Admin — whole tenant; honour an explicit location filter if given.
       if (requestedLocationId) where.locationId = requestedLocationId;
