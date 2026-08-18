@@ -714,7 +714,13 @@ export class HubRiseCatalogService {
       let newId = cache.get(src);
       if (newId === undefined) {
         try {
-          const bytes = await this.resolveImageBytes(src, accessToken, tenantId);
+          const bytes =
+            (await this.resolveImageBytes(src, accessToken, tenantId).catch(
+              () => null,
+            )) ??
+            (itemId && tenantId
+              ? await this.resolveImageViaTwin(itemId, src, accessToken, tenantId)
+              : null);
           // Stable ref so HubRise dedupes if the same image is re-uploaded.
           const privateRef = createHash("md5").update(src).digest("hex").slice(0, 24);
           newId = bytes
@@ -1307,6 +1313,32 @@ export class HubRiseCatalogService {
       delete p._itemId;
     }
 
+    // ── A republish must never turn a photo into plain text ────────────
+    // The catalog PUT replaces everything, so a product we send without
+    // `image_ids` LOSES the photo HubRise is already showing. That happens
+    // whenever an item's imageUrl points at a catalog we can no longer read
+    // (deleted, recreated, or on an account whose token we don't hold) — the
+    // upload below fails and the product would go out bare.
+    //
+    // So before sending, read the live catalog and carry its existing image
+    // ids onto any product that hasn't got one. The background upload still
+    // runs and replaces them with a fresh id when it can; when it can't, the
+    // photo simply stays as it was instead of disappearing.
+    const imagesCarried = location.hubriseCatalogId
+      ? await this.carryOverCatalogImages(
+          location.hubriseCatalogId,
+          location.hubriseCredentials,
+          products,
+        )
+      : 0;
+    const withPhoto = products.filter((p) => p.image_ids?.length).length;
+    this.logger.log(
+      `HubRise publish images: products=${products.length} ` +
+        `withPhoto=${withPhoto} carriedFromCatalog=${imagesCarried} ` +
+        `uploadsQueued=${imageJobs.length} ` +
+        `stillPlain=${products.length - withPhoto - imageJobs.filter((j) => !j.product.image_ids?.length).length}`,
+    );
+
     const data: HubRiseCatalogData = {
       // Only send variants[] when the menu actually defines some — an
       // empty array is harmless but noise in HubRise's UI.
@@ -1534,6 +1566,112 @@ export class HubRiseCatalogService {
   // HubRise catalog to 86 against from Menu.externalId + lastPublishedAt, so a
   // member menu left unstamped would send its 86s to the wrong catalog — or
   // nowhere at all.
+  /**
+   * Copy the image ids the live catalog already holds onto any product we're
+   * about to publish without one. Keyed by product ref, which is stable across
+   * publishes, so a product keeps its photo even when its source image has
+   * become unreadable.
+   *
+   * Never fatal: if the catalog can't be read we publish as we would have
+   * anyway. Costs one GET per publish.
+   */
+  private async carryOverCatalogImages(
+    catalogId: string,
+    credentials: unknown,
+    products: HubRiseProduct[],
+  ): Promise<number> {
+    let existing: Map<string, string[]>;
+    try {
+      const catalog = await this.fetchCatalog(catalogId, credentials);
+      existing = imageIdsByProductRef(catalog?.data);
+    } catch (err: any) {
+      this.logger.warn(
+        `HubRise: couldn't read catalog ${catalogId} to preserve existing photos — ${err?.message ?? err}`,
+      );
+      return 0;
+    }
+    if (existing.size === 0) return 0;
+
+    let carried = 0;
+    for (const product of products) {
+      if (product.image_ids?.length) continue;
+      const ids = product.ref ? existing.get(product.ref) : undefined;
+      if (ids?.length) {
+        product.image_ids = ids;
+        carried++;
+      }
+    }
+    return carried;
+  }
+
+  /**
+   * Last chance at a product photo: borrow it from a TWIN.
+   *
+   * The same product exists as several MenuItem rows — clone() and
+   * createMasterMenu() both deep-copy — and those copies carry whatever
+   * imageUrl the original had at the time. When a location's copies point at a
+   * catalog that no longer exists, a twin elsewhere in the tenant usually
+   * points at a live one, because attachProductImages re-points an item's
+   * imageUrl every time it successfully uploads.
+   *
+   * Matched on tenant + brand-agnostic name (case-insensitive), the same twin
+   * rule the 86 → inventory push already relies on. It only ever runs when the
+   * item's OWN image failed, so the worst case is the plain product we would
+   * have published anyway. Every hit is logged with both item ids so a wrong
+   * match is traceable.
+   */
+  private async resolveImageViaTwin(
+    itemId: string,
+    deadSrc: string,
+    accessToken: string | undefined,
+    tenantId: string,
+  ): Promise<{ buffer: Buffer; contentType: string } | null> {
+    const item = await (this.prisma as any).menuItem
+      .findUnique({ where: { id: itemId }, select: { id: true, name: true } })
+      .catch(() => null);
+    if (!item?.name) return null;
+
+    const brandIds = (this.tenantBrandIdCache ??= new Map<string, string[]>());
+    let ids = brandIds.get(tenantId);
+    if (!ids) {
+      const brands = await (this.prisma as any).brand.findMany({
+        where: { tenantId },
+        select: { id: true },
+      });
+      ids = brands.map((b: any) => b.id as string);
+      brandIds.set(tenantId, ids as string[]);
+    }
+    if (!ids?.length) return null;
+
+    const twins = await (this.prisma as any).menuItem.findMany({
+      where: {
+        brandId: { in: ids },
+        name: { equals: item.name, mode: "insensitive" },
+        id: { not: itemId },
+        imageUrl: { not: null },
+      },
+      select: { id: true, imageUrl: true },
+      take: 10,
+    });
+
+    for (const twin of twins) {
+      const src = twin.imageUrl as string;
+      if (!src || src === deadSrc) continue;
+      const bytes = await this.resolveImageBytes(src, accessToken, tenantId).catch(
+        () => null,
+      );
+      if (bytes) {
+        this.logger.log(
+          `HubRise image: "${item.name}" (${itemId}) recovered from twin ${twin.id} — its own source ${deadSrc} is unreadable`,
+        );
+        return bytes;
+      }
+    }
+    return null;
+  }
+
+  private tenantBrandIdCache?: Map<string, string[]>;
+
   private async markPublished(menuIds: string[], hubriseCatalogId: string) {
     await (this.prisma as any).menu.updateMany({
       where: { id: { in: menuIds } },
@@ -1620,6 +1758,29 @@ export interface ImportCounts {
   products: number;
   modifierGroups: number;
   modifierOptions: number;
+}
+
+/**
+ * Every product image already stored in a live HubRise catalog, keyed by
+ * product ref. Products live either at `data.products` or nested under
+ * `data.categories[].products` depending on how the catalog was written, so
+ * read both.
+ */
+export function imageIdsByProductRef(
+  data: {
+    products?: Array<{ ref?: string | null; image_ids?: string[] }>;
+    categories?: Array<{ products?: Array<{ ref?: string | null; image_ids?: string[] }> }>;
+  } | null | undefined,
+): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  const take = (list?: Array<{ ref?: string | null; image_ids?: string[] }>) => {
+    for (const p of list ?? []) {
+      if (p?.ref && p.image_ids?.length) out.set(p.ref, p.image_ids);
+    }
+  };
+  take(data?.products);
+  for (const c of data?.categories ?? []) take(c?.products);
+  return out;
 }
 
 /** HubRise prices arrive as "10.30 GBP" — strip the currency suffix. */
