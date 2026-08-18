@@ -2153,18 +2153,6 @@ export class OrdersService {
     const scope = await this.resolveOrderScope(user);
     const where: Prisma.OrderWhereInput = { tenantId: user.tenantId };
 
-    // Temporary diagnostic: a location owner reported seeing orders from
-    // locations they are not assigned to, and the stored assignments prove
-    // the filter below cannot match those rows. Log what the scope actually
-    // resolved to so the gap between the code and the behaviour is visible
-    // rather than guessed at.
-    this.logger.log(
-      `order-scope user=${user.userId} role=${user.role} admin=${scope.admin} ` +
-        `locations=[${scope.directLocationIds.join(",")}] ` +
-        `brands=[${(scope.brandIds ?? []).join(",")}] ` +
-        `requested=${requestedLocationId ?? "(all)"}`,
-    );
-
     if (scope.admin) {
       // Admin — whole tenant; honour an explicit location filter if given.
       if (requestedLocationId) where.locationId = requestedLocationId;
@@ -2398,7 +2386,17 @@ export class OrdersService {
     const since24h = this.computeBusinessDayCutoff(timezone, 5);
     const rows = await this.prisma.order.findMany({
       where: {
-        ...access,
+        // AND, not a spread. `access` carries the location/brand scoping in
+        // its own `OR` key, and this literal needs an `OR` of its own for the
+        // live-status filter. Spreading access and then declaring `OR:` here
+        // silently OVERWROTE the scoping — the later key wins in an object
+        // literal — leaving `tenantId` as the only constraint, so every user
+        // saw every order in the tenant on the live board. Composing with AND
+        // means neither clause can clobber the other, whatever gets added
+        // later.
+        AND: [
+          access,
+          {
         // Phase AP-8 — card orders aren't real to the kitchen until the
         // customer's authorization webhook lands and we flip paymentStatus
         // to AUTHORIZED. Hide PENDING+CARD from the board so staff don't
@@ -2464,6 +2462,8 @@ export class OrdersService {
             // (by staff or the 5am rollover) still drops off at the reset,
             // rather than lingering because its updatedAt got bumped.
             createdAt: { gte: since24h },
+          },
+        ],
           },
         ],
       },

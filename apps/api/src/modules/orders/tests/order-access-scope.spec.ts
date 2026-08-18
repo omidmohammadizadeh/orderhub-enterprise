@@ -223,3 +223,60 @@ describe("orders access — brand assignments must not cross locations", () => {
     expect(await build(svc, user("OWNER"))).toBeNull();
   });
 });
+
+// ── The live board ignored scoping entirely (reported live 2026-08-18) ─────
+//
+// findLiveOrders spread `access` (which carries the location/brand scoping in
+// an `OR` key) and then declared its own `OR:` for the live-status filter.
+// In an object literal the later key wins, so the scoping was silently
+// discarded and `tenantId` was the only surviving constraint — every user saw
+// every order in the tenant.
+//
+// These assert the SHAPE of the query the service builds, because that is
+// where the bug lived: the scope resolved perfectly and was then thrown away.
+describe("live orders — scoping must survive the query build", () => {
+  function liveWhere(svc: any): any {
+    let captured: any;
+    svc.prisma.order = {
+      findMany: jest.fn(async (args: any) => {
+        captured = args.where;
+        return [];
+      }),
+    };
+    svc.prisma.location = { findUnique: jest.fn(async () => ({ timezone: "Europe/London" })) };
+    svc.attachCustomerVisitCounts = jest.fn(async (r: any) => r);
+    return { run: () => svc.findLiveOrders(user("OWNER")), get: () => captured };
+  }
+
+  it("does not let the status filter overwrite the access scoping", async () => {
+    const svc: any = makeService({ userLocations: ["l1"] });
+    const h = liveWhere(svc);
+    await h.run();
+    const where = h.get();
+
+    // The scoping must still be reachable somewhere in the built query.
+    const asText = JSON.stringify(where);
+    expect(asText).toContain("l1");
+    // And tenantId alone must never be the whole constraint.
+    expect(Object.keys(where)).not.toEqual(["tenantId"]);
+  });
+
+  it("still applies the live-status filter", async () => {
+    const svc: any = makeService({ userLocations: ["l1"] });
+    const h = liveWhere(svc);
+    await h.run();
+
+    // Both concerns present: scoping AND the status window.
+    const asText = JSON.stringify(h.get());
+    expect(asText).toContain("PREPARING");
+    expect(asText).toContain("l1");
+  });
+
+  it("returns nothing for a user with no assignments", async () => {
+    const svc: any = makeService({ userLocations: [], userBrands: [] });
+    svc.prisma.order = { findMany: jest.fn(async () => []) };
+    await expect(svc.findLiveOrders(user("OWNER"))).resolves.toEqual([]);
+    // Must short-circuit — never run an unscoped query.
+    expect(svc.prisma.order.findMany).not.toHaveBeenCalled();
+  });
+});
