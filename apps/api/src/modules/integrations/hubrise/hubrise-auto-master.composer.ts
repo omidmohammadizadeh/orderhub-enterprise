@@ -115,6 +115,9 @@ export interface ComposedAutoMaster {
   /** MenuItem rows linked from more than one member menu, folded into one
    *  product tagged with both brands. */
   sharedItemCount: number;
+  /** itemId → the member menu it came from, so a duplicate-ref refusal can
+   *  name the two menus that collided instead of just the product twice. */
+  itemOrigin: Map<string, string>;
 }
 
 /** Deterministic member order: brand name, then menu name, then id. Composition
@@ -130,7 +133,16 @@ function compareMembers(a: AutoMasterMember, b: AutoMasterMember): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 }
 
-/** Every brand a product should be visible to inside the composed catalog. */
+/**
+ * Every brand a product should be visible to inside the composed catalog.
+ *
+ * The item's OWN tags win. Only when a product carries no brand at all do we
+ * fall back to the menu it sits in, so an untagged product still reaches the
+ * shop that sells it rather than vanishing. We deliberately do NOT add the
+ * menu's brand on top of real tags: a menu imported under one brand and then
+ * tagged to another (the "imported as Order Hub, tagged Smashing Burger" case)
+ * must show its products under the brand they were tagged to, and nowhere else.
+ */
 function brandsForItem(item: any, memberBrandId: string): string[] {
   const out: string[] = [];
   const add = (b: unknown) => {
@@ -138,12 +150,7 @@ function brandsForItem(item: any, memberBrandId: string): string[] {
   };
   add(item?.brandId);
   for (const b of Array.isArray(item?.brandIds) ? item.brandIds : []) add(b);
-  // The member menu's own brand always counts. A product sitting in Brand A's
-  // menu must appear in Brand A's storefront even if someone mis-tagged it to
-  // Brand B — otherwise composing would silently delete it from the shop that
-  // sells it. Widening is safe (restrictions only ever ADD a variant); losing
-  // the item is not.
-  add(memberBrandId);
+  if (out.length === 0) add(memberBrandId);
   return out;
 }
 
@@ -155,9 +162,15 @@ function brandsForItem(item: any, memberBrandId: string): string[] {
  */
 export function composeAutoMaster(
   members: ReadonlyArray<AutoMasterMember>,
-  opts: { name: string },
+  opts: {
+    name: string;
+    /** Display names for every brand found on a member's ITEMS, used to label
+     *  seeded variants. Missing entries fall back to the brand id. */
+    brandNames?: ReadonlyMap<string, string>;
+  },
 ): ComposedAutoMaster {
   const ordered = [...members].sort(compareMembers);
+  const brandNames = opts.brandNames ?? new Map<string, string>();
 
   // ── Variants ────────────────────────────────────────────────────────
   // Union of every member's own variants, first-write-wins on ref so a
@@ -173,33 +186,6 @@ export function composeAutoMaster(
     }
   }
 
-  // A member whose menu defines no variant for its own brand would publish
-  // its products unrestricted — visible in EVERY brand's storefront. Seed the
-  // same brand×channel leaves createMasterMenu seeds, using the same helper so
-  // the refs match what the hand-built path produced.
-  const brandsWithVariants = new Set(
-    variants.filter((v) => v.brandId).map((v) => v.brandId as string),
-  );
-  const seededBrandIds: string[] = [];
-  for (const member of ordered) {
-    if (!member.brandId || brandsWithVariants.has(member.brandId)) continue;
-    brandsWithVariants.add(member.brandId);
-    seededBrandIds.push(member.brandId);
-    const brandName = member.brand?.name ?? member.name;
-    for (const preset of CHANNEL_VARIANT_PRESETS) {
-      const ref = brandChannelRef(member.brandId, preset.channelKey);
-      if (takenRefs.has(ref)) continue;
-      takenRefs.add(ref);
-      variants.push({
-        ref,
-        name: `${brandName} — ${preset.name}`,
-        channelKey: preset.channelKey,
-        brandId: member.brandId,
-        brandName,
-      });
-    }
-  }
-
   // ── Categories + products ───────────────────────────────────────────
   const categories: any[] = [];
   const productCounts = new Map<string, number>();
@@ -211,6 +197,12 @@ export function composeAutoMaster(
   // item set) must become ONE product carrying both brands, not two products
   // with the same ref.
   const composedItemById = new Map<string, any>();
+  const itemOrigin = new Map<string, string>();
+  // itemId → the brands of every member menu that links it. A row linked from
+  // two brands' menus is a deliberate cross-brand share and must show in both,
+  // whatever its own tags say. A row linked from ONE menu is not: its tags
+  // stand alone (see brandsForItem).
+  const linkingBrands = new Map<string, string[]>();
   let sharedItemCount = 0;
 
   for (const member of ordered) {
@@ -230,14 +222,16 @@ export function composeAutoMaster(
         if (!item?.id) continue;
         contributed += 1;
 
-        const existing = composedItemById.get(item.id);
-        if (existing) {
-          // Already placed by an earlier member — widen its brand tags so the
-          // single product shows in this brand's storefront too.
+        const linking = linkingBrands.get(item.id) ?? [];
+        if (member.brandId && !linking.includes(member.brandId)) {
+          linking.push(member.brandId);
+        }
+        linkingBrands.set(item.id, linking);
+
+        if (composedItemById.has(item.id)) {
+          // Already placed by an earlier member — one product, not two with
+          // the same ref. Its brand set is widened after the loop.
           sharedItemCount += 1;
-          for (const b of brandsForItem(item, member.brandId)) {
-            if (!existing.brandIds.includes(b)) existing.brandIds.push(b);
-          }
           continue;
         }
 
@@ -246,6 +240,7 @@ export function composeAutoMaster(
           brandIds: brandsForItem(item, member.brandId),
         };
         composedItemById.set(item.id, composedItem);
+        itemOrigin.set(item.id, member.name);
         links.push({ ...link, item: composedItem });
       }
 
@@ -258,6 +253,67 @@ export function composeAutoMaster(
     productCounts.set(member.id, contributed);
   }
 
+  // Cross-brand shares: a MenuItem linked from more than one member menu
+  // belongs to all of those brands, so it appears in each of their storefronts
+  // rather than only the first one that claimed it.
+  for (const [itemId, brands] of linkingBrands) {
+    if (brands.length < 2) continue;
+    const composedItem = composedItemById.get(itemId);
+    if (!composedItem) continue;
+    for (const b of brands) {
+      if (!composedItem.brandIds.includes(b)) composedItem.brandIds.push(b);
+    }
+  }
+
+  // ── Seed the variants each brand needs ─────────────────────────────
+  // Read off the composed items' FINAL brand sets, not the menu rows' owning
+  // brand. A HubRise import stamps Menu.brandId with whichever brand was
+  // selected in the dashboard at the time, which is routinely not the brand
+  // whose food it is; the operator expresses the truth by tagging the products.
+  // A brand with no variant of its own would publish its products unrestricted
+  // — visible in EVERY brand's storefront — so every brand that sells anything
+  // gets the same preset leaves createMasterMenu seeds, with the same refs.
+  const brandsWithVariants = new Set(
+    variants.filter((v) => v.brandId).map((v) => v.brandId as string),
+  );
+  const brandsSelling: string[] = [];
+  for (const composedItem of composedItemById.values()) {
+    for (const b of composedItem.brandIds as string[]) {
+      if (!brandsSelling.includes(b)) brandsSelling.push(b);
+    }
+  }
+  // A member with no products at all still needs its own leaf — the starved
+  // guard refuses that publish anyway, but the variant keeps its HubRise
+  // selection alive rather than silently dropping it.
+  for (const member of ordered) {
+    if (member.brandId && !brandsSelling.includes(member.brandId)) {
+      if ((productCounts.get(member.id) ?? 0) === 0) brandsSelling.push(member.brandId);
+    }
+  }
+
+  const seededBrandIds: string[] = [];
+  for (const brandId of brandsSelling) {
+    if (brandsWithVariants.has(brandId)) continue;
+    brandsWithVariants.add(brandId);
+    seededBrandIds.push(brandId);
+    const brandName =
+      brandNames.get(brandId) ??
+      ordered.find((m) => m.brandId === brandId)?.brand?.name ??
+      brandId;
+    for (const preset of CHANNEL_VARIANT_PRESETS) {
+      const ref = brandChannelRef(brandId, preset.channelKey);
+      if (takenRefs.has(ref)) continue;
+      takenRefs.add(ref);
+      variants.push({
+        ref,
+        name: `${brandName} — ${preset.name}`,
+        channelKey: preset.channelKey,
+        brandId,
+        brandName,
+      });
+    }
+  }
+
   return {
     menu: { name: opts.name, pricingVariants: variants, categories },
     memberIds: ordered.map((m) => m.id),
@@ -265,6 +321,7 @@ export function composeAutoMaster(
     productCounts,
     seededBrandIds,
     sharedItemCount,
+    itemOrigin,
   };
 }
 
@@ -279,16 +336,27 @@ export function composeAutoMaster(
  * instead and tell the operator exactly which two rows to fix. Composed path
  * only — the single-menu path is left exactly as it was.
  */
-export function findDuplicateRefs(data: {
-  categories: Array<{ ref?: string | null; name: string }>;
-  products: Array<{
-    ref?: string | null;
-    name: string;
-    skus?: Array<{ ref?: string | null; name?: string | null }>;
-  }>;
-  optionLists: Array<{ ref?: string | null; name: string }>;
-}): string[] {
+export function findDuplicateRefs(
+  data: {
+    categories: Array<{ ref?: string | null; name: string }>;
+    products: Array<{
+      ref?: string | null;
+      name: string;
+      _itemId?: string;
+      skus?: Array<{ ref?: string | null; name?: string | null }>;
+    }>;
+    optionLists: Array<{ ref?: string | null; name: string }>;
+  },
+  /** itemId → member menu name (ComposedAutoMaster.itemOrigin). Without it the
+   *  message reads `"Fries" and "Fries"`, which says nothing about WHICH two
+   *  menus have to be reconciled. */
+  itemOrigin?: ReadonlyMap<string, string>,
+): string[] {
   const problems: string[] = [];
+  const label = (name: string, itemId?: string) => {
+    const menu = itemId ? itemOrigin?.get(itemId) : undefined;
+    return menu ? `${name}" in "${menu}` : name;
+  };
   const check = (
     kind: string,
     entries: Array<{ ref?: string | null; label: string }>,
@@ -312,14 +380,14 @@ export function findDuplicateRefs(data: {
   );
   check(
     "product",
-    data.products.map((p) => ({ ref: p.ref, label: p.name })),
+    data.products.map((p) => ({ ref: p.ref, label: label(p.name, p._itemId) })),
   );
   check(
     "product size",
     data.products.flatMap((p) =>
       (p.skus ?? []).map((s) => ({
         ref: s.ref,
-        label: s.name ? `${p.name} — ${s.name}` : p.name,
+        label: label(s.name ? `${p.name} — ${s.name}` : p.name, p._itemId),
       })),
     ),
   );

@@ -481,13 +481,24 @@ export class MenusService {
       select: { itemId: true },
     });
     const itemIds = Array.from(new Set(links.map((l) => l.itemId)));
-    if (!itemIds.length) return { updated: 0 };
+
+    // Re-home the MENU too, not only its products.
+    //
+    // An operator who taps "Tag brand" on a menu means "this menu is Smashing
+    // Burger's". Tagging only the items left Menu.brandId pointing at whichever
+    // brand happened to be selected in the dashboard when the menu was created
+    // or imported — the HubRise import stamps it that way — so the menu still
+    // showed the wrong brand everywhere the row's own brand is displayed, and
+    // there was no other UI to correct it.
+    await this.prisma.menu.update({ where: { id: menuId }, data: { brandId } });
+
+    if (!itemIds.length) return { updated: 0, menuRebranded: true };
 
     await this.prisma.menuItem.updateMany({
       where: { id: { in: itemIds } },
       data: { brandId, brandIds: [brandId] },
     });
-    return { updated: itemIds.length };
+    return { updated: itemIds.length, menuRebranded: true };
   }
 
   async clone(

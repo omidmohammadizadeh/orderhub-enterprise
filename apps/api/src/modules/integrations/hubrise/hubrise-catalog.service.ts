@@ -1224,7 +1224,10 @@ export class HubRiseCatalogService {
       // externalId; the hand-built master menu couldn't, because it deep-copies
       // with fresh PLUs. A duplicate ref silently merges or drops a product in
       // HubRise, so refuse and name both rows.
-      const duplicates = findDuplicateRefs({ categories, products, optionLists });
+      const duplicates = findDuplicateRefs(
+        { categories, products, optionLists },
+        composition.itemOrigin,
+      );
       if (duplicates.length) {
         this.logger.error(
           `HubRise auto-master: duplicate refs across member menus — ${duplicates.join("; ")}`,
@@ -1511,8 +1514,35 @@ export class HubRiseCatalogService {
       select: { name: true },
     });
 
+    // Variants are seeded from the brands TAGGED ON THE PRODUCTS, which can
+    // differ from the menu row's owning brand — a HubRise import stamps the
+    // menu with whichever brand was selected in the dashboard at the time.
+    // Fetch those brands' names so the seeded variants read "Smashing Burger —
+    // Uber Eats" rather than a raw id.
+    const taggedBrandIds = new Set<string>();
+    for (const member of members) {
+      if (member.brandId) taggedBrandIds.add(member.brandId);
+      for (const category of member.categories ?? []) {
+        for (const link of category.items ?? []) {
+          if (link?.item?.brandId) taggedBrandIds.add(link.item.brandId);
+          for (const b of link?.item?.brandIds ?? []) {
+            if (typeof b === "string" && b) taggedBrandIds.add(b);
+          }
+        }
+      }
+    }
+    const brandRows = taggedBrandIds.size
+      ? await (this.prisma as any).brand.findMany({
+          where: { id: { in: Array.from(taggedBrandIds) }, tenantId: args.tenantId },
+          select: { id: true, name: true },
+        })
+      : [];
+
     const composed = composeAutoMaster(members, {
       name: location?.name || args.menuName,
+      brandNames: new Map<string, string>(
+        brandRows.map((b: any) => [b.id as string, b.name as string]),
+      ),
     });
     this.logger.log(
       `HubRise auto-master: composing ${composed.memberIds.length} menus at ` +
@@ -2014,8 +2044,13 @@ export function transformMenuToCatalog(
         description: item.description ?? null,
         ...(directId ? { image_ids: [directId] } : {}),
         ...(!directId && item.imageUrl
-          ? { _srcImageUrl: item.imageUrl as string, _itemId: item.id as string }
+          ? { _srcImageUrl: item.imageUrl as string }
           : {}),
+        // Internal-only, stripped before the payload is sent. Carries the row
+        // this product came from so the composed-publish duplicate-ref report
+        // can name the member menu, and so a background image upload can
+        // re-point the item's imageUrl.
+        _itemId: item.id as string,
         skus,
       });
     }

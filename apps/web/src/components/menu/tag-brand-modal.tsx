@@ -55,7 +55,8 @@ export function TagBrandModal({
           <p className="text-sm text-zinc-500">
             Assign <span className="font-medium text-zinc-800">every item</span> in{" "}
             <span className="font-medium text-zinc-800">“{menuName}”</span> to one
-            brand. This replaces any brand already set on those items.
+            brand, and set the menu itself to that brand. This replaces any brand
+            already set on those items.
           </p>
 
           <div className="mt-3 max-h-72 space-y-1.5 overflow-y-auto">

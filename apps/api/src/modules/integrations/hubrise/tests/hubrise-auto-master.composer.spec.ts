@@ -104,24 +104,64 @@ describe("composeAutoMaster", () => {
     expect(betaRefs.every((r) => r.startsWith("brandB__"))).toBe(true);
   });
 
-  it("tags a product with its menu's brand even when the item is mis-tagged", () => {
-    // Composing must never make a product vanish from the shop that sells it.
-    const mislabelled: AutoMasterMember = {
+  it("falls back to the menu's brand only for a product with no brand at all", () => {
+    // Composing must never make an untagged product vanish from the shop that
+    // sells it — but a product that IS tagged must not also leak into the
+    // brand that merely owns the menu row.
+    const untagged: AutoMasterMember = {
       ...beta,
       categories: [
         {
           id: "catB",
           name: "Burgers",
-          items: [{ item: item({ id: "iB", name: "Beta Burger", plu: "B1", brandId: "brandA" }) }],
+          items: [{ item: item({ id: "iB", name: "Beta Burger", plu: "B1" }) }],
         },
       ],
     };
-    const composed = composeAutoMaster([alpha, mislabelled], { name: "Clifton" });
+    const composed = composeAutoMaster([alpha, untagged], { name: "Clifton" });
     const data = transformMenuToCatalog(composed.menu, new Map());
     const refs: string[] = (data.products.find((p) => p.name === "Beta Burger")!.skus![0] as any)
       .restrictions.variant_refs;
 
     expect(refs).toContain("brandB__UBER_EATS");
+  });
+
+  it("seeds variants from the brand TAGGED ON THE PRODUCTS, not the menu's owner", () => {
+    // The live Clifton case: a menu imported under "Order Hub" (which is what
+    // Menu.brandId ends up as) but whose products were tagged to Smashing
+    // Burger. The variants — and therefore the HubRise storefront — must
+    // follow the tag, not the import artefact.
+    const imported: AutoMasterMember = {
+      id: "menuImported",
+      name: "smashing burger",
+      brandId: "brandOrderHub",
+      brand: { id: "brandOrderHub", name: "Order Hub" },
+      pricingVariants: [],
+      categories: [
+        {
+          id: "catI",
+          name: "Smash",
+          items: [
+            { item: item({ id: "iS", name: "Smash Burger", plu: "S1", brandId: "brandSmash" }) },
+          ],
+        },
+      ],
+    };
+    const composed = composeAutoMaster([imported], {
+      name: "Clifton",
+      brandNames: new Map([["brandSmash", "Smashing Burger"]]),
+    });
+
+    const refs = composed.menu.pricingVariants.map((v) => v.ref);
+    expect(refs).toContain("brandSmash__UBER_EATS");
+    expect(refs.some((r) => r.startsWith("brandOrderHub__"))).toBe(false);
+    expect(
+      composed.menu.pricingVariants.find((v) => v.ref === "brandSmash__UBER_EATS")!.name,
+    ).toBe("Smashing Burger — Uber Eats");
+
+    const data = transformMenuToCatalog(composed.menu, new Map());
+    const restricted: string[] = (data.products[0].skus![0] as any).restrictions.variant_refs;
+    expect(restricted.every((r) => r.startsWith("brandSmash__"))).toBe(true);
   });
 
   it("folds a MenuItem shared by two menus into one product carrying both brands", () => {
@@ -181,6 +221,40 @@ describe("findDuplicateRefs", () => {
     expect(problems[0]).toContain("A1");
     expect(problems[0]).toContain("Alpha Burger");
     expect(problems[0]).toContain("Beta Burger");
+  });
+
+  it("names the two MENUS that collided, not just the product twice", () => {
+    // "product ref X used by both \"Fries\" and \"Fries\"" is unactionable —
+    // the operator needs to know which two menus to reconcile.
+    const clash: AutoMasterMember = {
+      ...beta,
+      categories: [
+        {
+          id: "catB",
+          name: "Burgers",
+          items: [{ item: item({ id: "iB", name: "Fries", plu: "FRIES", brandId: "brandB" }) }],
+        },
+      ],
+    };
+    const withFries: AutoMasterMember = {
+      ...alpha,
+      categories: [
+        {
+          id: "catA",
+          name: "Sides",
+          items: [{ item: item({ id: "iA2", name: "Fries", plu: "FRIES", brandId: "brandA" }) }],
+        },
+      ],
+    };
+    const composed = composeAutoMaster([withFries, clash], { name: "Clifton" });
+    const problems = findDuplicateRefs(
+      transformMenuToCatalog(composed.menu, new Map()),
+      composed.itemOrigin,
+    );
+
+    expect(problems.length).toBeGreaterThan(0);
+    expect(problems[0]).toContain("Alpha Menu");
+    expect(problems[0]).toContain("Beta Menu");
   });
 
   it("passes a clean composition", () => {

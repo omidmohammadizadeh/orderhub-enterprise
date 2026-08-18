@@ -108,6 +108,12 @@ function harness(menus: any[]) {
       update: async () => ({}),
     },
     brandPlatformConnection: { findFirst: async () => null },
+    brand: {
+      findMany: async () => [
+        { id: "brandA", name: "Alpha" },
+        { id: "brandB", name: "Beta" },
+      ],
+    },
     location: {
       findFirst: async () => ({
         id: "loc1",
