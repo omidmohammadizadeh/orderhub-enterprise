@@ -90,6 +90,11 @@ const STAFF_TIER = [...MANAGER_TIER, "MANAGER", "STAFF"];
 // STAFF_TIER so the boundary is visible in one place instead of inferred from
 // a dozen scattered role arrays.
 const MANAGER_TIER_PLUS = [...MANAGER_TIER, "MANAGER"];
+// The shop floor: everything a person on shift needs to run service, whatever
+// their title. Kept as its own list because "can a staff member open this?" is
+// a different question from "does this shape the business?", and answering it
+// by adding "STAFF" to a dozen separate arrays is how the two drift apart.
+const SHOP_FLOOR = [...MANAGER_TIER_PLUS, "STAFF"];
 const DRIVER_TIER = [...STAFF_TIER, "DRIVER"];
 // Money features — SMS Marketing, Wallet, Payments, Subscription. Visible only
 // to platform admin, tenant/location owners, and financial agents. NOT managers
@@ -141,7 +146,7 @@ const primaryNav: NavItem[] = [
   // builder that attaches items from this catalog — it does not create
   // duplicate products.
   { href: "/dashboard/products", label: "Products", icon: Layers, roles: MANAGER_TIER },
-  { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER },
+  { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/signage", label: "Digital Signage", icon: Monitor, roles: MANAGER_TIER },
   // Admin-only business co-pilot (read-only, Phase 1).
   { href: "/dashboard/assistant", label: "AI Assistant", icon: Bot, roles: ["PLATFORM_ADMIN"] },
@@ -153,15 +158,15 @@ const primaryNav: NavItem[] = [
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/reviews", label: "Reviews", icon: Star, roles: MANAGER_TIER },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER_PLUS },
-  { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: SHOP_FLOOR },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
   // Managers keep Printers: a jammed or offline printer is a mid-service
   // problem, and the person on shift is the one who has to clear it.
-  { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: SHOP_FLOOR },
   { href: "/dashboard/card-readers", label: "Card Readers", icon: Smartphone, roles: MANAGER_TIER },
   // Diagnostics for the Comet USB box. Lives next to Printers because it is
   // the same job: "is the hardware on this counter actually working?"
-  { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: SHOP_FLOOR },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin, roles: MANAGER_TIER },
   // Phase LG — activity feed: menu publishes, order pushes, stock changes,
   // store status — the HubRise-style "what did the system do" timeline.
@@ -201,7 +206,7 @@ const operationsNav: NavItem[] = [
     icon: ChefHat,
     roles: [...MANAGER_TIER, "KITCHEN_DISPLAY"],
   },
-  { href: "/dashboard/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/dispatch", label: "Dispatch", icon: Truck, roles: SHOP_FLOOR },
   { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag, roles: MANAGER_TIER },
 ];
 

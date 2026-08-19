@@ -5,6 +5,7 @@
  */
 import { Test, TestingModule } from "@nestjs/testing";
 import { PrintersController } from "../printers.controller";
+import { LocationAccessService } from "../../../common/access/location-access.service";
 import { PrintersService } from "../printers.service";
 import { PrintQueueService } from "../print-queue.service";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
@@ -61,6 +62,10 @@ async function buildController(prismaMock: any) {
       { provide: PrismaService, useValue: prismaMock },
       { provide: PrintersService, useValue: {} },
       { provide: PrintQueueService, useValue: {} },
+      // The controller now refuses a location the caller isn't assigned to.
+      // These tests drive the Flutter shopCode route, which carries no user at
+      // all, so the guard never runs — but DI still needs the provider.
+      { provide: LocationAccessService, useValue: { assertAccess: async () => {} } },
     ],
   }).compile();
 

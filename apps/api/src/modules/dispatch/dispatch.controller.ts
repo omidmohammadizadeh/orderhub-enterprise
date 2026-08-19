@@ -19,12 +19,17 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
+// Dispatch is shop-floor work — whoever is on shift hands orders to drivers.
+// STAFF included deliberately; DispatchService already constrains every query
+// to the caller's UserLocation (see its listOrders comment), so widening the
+// role does not widen which shops they can see.
 const DISPATCH_ROLES = [
   "MANAGER",
   "TENANT_OWNER",
   "PLATFORM_ADMIN",
   "OWNER",
   "DARK_KITCHEN_MANAGER",
+  "STAFF",
 ] as const;
 
 @ApiTags("dispatch")
@@ -37,7 +42,7 @@ export class DispatchController {
   ) {}
 
   @Get("feed")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @Roles(...DISPATCH_ROLES)
   @ApiOperation({
     summary:
       "Location-scoped dispatch feed: location pins, live order pins (with countdown deadline) and online driver dots. ?location=all or a specific locationId.",
@@ -50,7 +55,7 @@ export class DispatchController {
   }
 
   @Get("operator")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @Roles(...DISPATCH_ROLES)
   @ApiOperation({
     summary:
       "Operator dashboard: delivery analytics, out-for-delivery, overdue attention, online/busy drivers, per-driver active jobs + cash-up, recent failed/cancelled. ?location=all or a locationId.",
@@ -63,7 +68,7 @@ export class DispatchController {
   }
 
   @Get("online-drivers")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @Roles(...DISPATCH_ROLES)
   @ApiOperation({
     summary:
       "Online own-fleet drivers for the dispatch modal (?locationId= to scope).",
@@ -77,7 +82,7 @@ export class DispatchController {
 
   @Post("assign")
   @HttpCode(HttpStatus.OK)
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @Roles(...DISPATCH_ROLES)
   @ApiOperation({ summary: "Own-fleet: assign ordered orders to a driver (multi-drop)" })
   assign(
     @CurrentUser() user: AuthenticatedUser,
@@ -88,7 +93,7 @@ export class DispatchController {
 
   @Post("unassign")
   @HttpCode(HttpStatus.OK)
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @Roles(...DISPATCH_ROLES)
   @ApiOperation({ summary: "Remove an order from its driver and return it to the board" })
   unassign(@CurrentUser() user: AuthenticatedUser, @Body() body: { orderId: string }) {
     return this.dispatch.unassign(user, body.orderId);

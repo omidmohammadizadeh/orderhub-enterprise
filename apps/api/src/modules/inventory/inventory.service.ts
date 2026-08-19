@@ -208,8 +208,13 @@ export class InventoryService {
     });
   }
 
-  async updateIngredient(ingredientId: string, tenantId: string, dto: UpdateIngredientDto) {
-    await this.assertIngredientAccess(ingredientId, tenantId);
+  async updateIngredient(
+    ingredientId: string,
+    tenantId: string,
+    dto: UpdateIngredientDto,
+    allowedLocationIds?: string[] | null,
+  ) {
+    await this.assertIngredientAccess(ingredientId, tenantId, allowedLocationIds);
     return (this.prisma as any).ingredient.update({
       where: { id: ingredientId },
       data: {
@@ -244,8 +249,13 @@ export class InventoryService {
     locationId: string,
     ingredientId: string,
     dto: AdjustStockDto,
+    allowedLocationIds?: string[] | null,
   ) {
-    const ingredient = await this.assertIngredientAccess(ingredientId, tenantId);
+    const ingredient = await this.assertIngredientAccess(
+      ingredientId,
+      tenantId,
+      allowedLocationIds,
+    );
 
     const isDeduction = [
       StockMovementType.SALE_DEDUCTION,
@@ -496,8 +506,12 @@ export class InventoryService {
     });
   }
 
-  async submitPurchaseOrder(poId: string, tenantId: string) {
-    const po = await this.assertPurchaseOrderAccess(poId, tenantId);
+  async submitPurchaseOrder(
+    poId: string,
+    tenantId: string,
+    allowedLocationIds?: string[] | null,
+  ) {
+    const po = await this.assertPurchaseOrderAccess(poId, tenantId, allowedLocationIds);
 
     if ((po as any).status !== PurchaseOrderStatus.DRAFT) {
       throw new BadRequestException("Only DRAFT purchase orders can be submitted");
@@ -517,9 +531,14 @@ export class InventoryService {
     poId: string,
     tenantId: string,
     dto: ReceivePurchaseOrderDto,
+    allowedLocationIds?: string[] | null,
   ) {
     const po = await (this.prisma as any).purchaseOrder.findFirst({
-      where: { id: poId, tenantId },
+      where: {
+        id: poId,
+        tenantId,
+        ...(allowedLocationIds ? { locationId: { in: allowedLocationIds } } : {}),
+      },
       include: { lines: true },
     });
     if (!po) throw new NotFoundException("Purchase order not found");
@@ -682,17 +701,39 @@ export class InventoryService {
     return supplier;
   }
 
-  private async assertIngredientAccess(ingredientId: string, tenantId: string) {
+  /**
+   * `allowedLocationIds` is the caller's location allowlist, or null/undefined
+   * for a tenant-wide role. Applying it here covers every id-addressed
+   * ingredient route at once — otherwise a staff member who can no longer SEE
+   * another shop's ingredients in a list could still PATCH one by reusing an id.
+   */
+  private async assertIngredientAccess(
+    ingredientId: string,
+    tenantId: string,
+    allowedLocationIds?: string[] | null,
+  ) {
     const ingredient = await (this.prisma as any).ingredient.findFirst({
-      where: { id: ingredientId, tenantId },
+      where: {
+        id: ingredientId,
+        tenantId,
+        ...(allowedLocationIds ? { locationId: { in: allowedLocationIds } } : {}),
+      },
     });
     if (!ingredient) throw new NotFoundException("Ingredient not found");
     return ingredient;
   }
 
-  private async assertPurchaseOrderAccess(poId: string, tenantId: string) {
+  private async assertPurchaseOrderAccess(
+    poId: string,
+    tenantId: string,
+    allowedLocationIds?: string[] | null,
+  ) {
     const po = await (this.prisma as any).purchaseOrder.findFirst({
-      where: { id: poId, tenantId },
+      where: {
+        id: poId,
+        tenantId,
+        ...(allowedLocationIds ? { locationId: { in: allowedLocationIds } } : {}),
+      },
     });
     if (!po) throw new NotFoundException("Purchase order not found");
     return po;

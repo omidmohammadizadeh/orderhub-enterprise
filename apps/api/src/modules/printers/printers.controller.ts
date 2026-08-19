@@ -22,6 +22,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { MANAGE_PRINT_ROLES } from "./print-engine.controller";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import { LocationAccessService } from "../../common/access/location-access.service";
 
 @ApiTags("printers")
 @ApiBearerAuth()
@@ -30,16 +31,22 @@ export class PrintersController {
   constructor(
     private readonly printers: PrintersService,
     private readonly printQueue: PrintQueueService,
+    // A printer belongs to one shop, and the routes below take that shop from
+    // the CLIENT. The tenant check alone let anyone on the crew list or
+    // register printers at any site in the business — which matters more here
+    // than most places, because a printer is where order tickets come out.
+    private readonly access: LocationAccessService,
     private readonly prisma: PrismaService,
   ) {}
 
   @Get()
   @BillingExempt() // Read-only: UNPAID tenants need to see printer state for support/emergency
   @ApiOperation({ summary: "List printers for a location" })
-  findAll(
+  async findAll(
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId: string,
   ) {
+    await this.access.assertAccess(user, locationId);
     return this.printers.findByLocation(locationId, user.tenantId);
   }
 
@@ -48,7 +55,7 @@ export class PrintersController {
   @Post()
   @Roles(...MANAGE_PRINT_ROLES)
   @ApiOperation({ summary: "Register a printer" })
-  create(
+  async create(
     @CurrentUser() user: AuthenticatedUser,
     // Accept locationId from EITHER the body (AS-4 web wizard) or the
     // query string (legacy Flutter app). The body wins when both are
@@ -64,6 +71,7 @@ export class PrintersController {
         "locationId is required (in body or as ?locationId= query param)",
       );
     }
+    await this.access.assertAccess(user, locationId);
     return this.printers.create(locationId, user.tenantId, rest as any);
   }
 

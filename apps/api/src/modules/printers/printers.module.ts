@@ -19,6 +19,7 @@ import { PrintAgentsService } from "./print-agents.service";
 import { PrintJobsService } from "./print-jobs.service";
 import { PrinterStationsService } from "./printer-stations.service";
 import { ServerDirectPrintCron } from "./server-direct.cron";
+import { LocationAccessService } from "../../common/access/location-access.service";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ServerDirectPrintCron } from "./server-direct.cron";
     PrintJobsController,
   ],
   providers: [
+    LocationAccessService,
     PrintersService,
     PrintQueueService,
     PrinterHeartbeatCron,

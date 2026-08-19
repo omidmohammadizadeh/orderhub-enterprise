@@ -7,6 +7,7 @@ import { SocketModule } from "../../infrastructure/socket/socket.module";
 import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 import { DeliverooModule } from "../integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
+import { LocationAccessService } from "../../common/access/location-access.service";
 
 @Module({
   // HubRise exports HubRiseCatalogService which MenuAvailabilityService
@@ -24,7 +25,7 @@ import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
     UberEatsModule,
   ],
   controllers: [InventoryController, MenuAvailabilityController],
-  providers: [InventoryService, MenuAvailabilityService],
+  providers: [InventoryService, MenuAvailabilityService, LocationAccessService],
   exports: [InventoryService, MenuAvailabilityService],
 })
 export class InventoryModule {}
