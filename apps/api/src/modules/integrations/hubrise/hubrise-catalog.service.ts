@@ -1270,6 +1270,14 @@ export class HubRiseCatalogService {
         (composition
           ? ` autoMaster=[${composition.memberIds.join(",")}]` +
             ` sharedItems=${composition.sharedItemCount}` +
+            ` sameMenuDuplicateLinks=${composition.duplicateLinkCount}` +
+            ` crossBrandProducts=${composition.crossBrandProducts.length}` +
+            (composition.crossBrandProducts.length
+              ? ` crossBrand=[${composition.crossBrandProducts
+                  .slice(0, 25)
+                  .map((p) => `"${p.name}" (in "${p.menu}") → ${p.brands.join("+")}`)
+                  .join("; ")}${composition.crossBrandProducts.length > 25 ? "; …" : ""}]`
+              : "") +
             (composition.sharedItems.length
               ? ` shared=[${composition.sharedItems
                   .map((s) => `"${s.name}" in ${s.menus.map((m) => `"${m}"`).join("+")}`)

@@ -112,9 +112,19 @@ export interface ComposedAutoMaster {
   productCounts: Map<string, number>;
   /** Brands we had to mint preset variants for (they had none of their own). */
   seededBrandIds: string[];
-  /** MenuItem rows linked from more than one member menu, folded into one
-   *  product tagged with both brands. */
+  /** MenuItem rows linked from more than one member MENU, folded into one
+   *  product tagged with every linking brand. */
   sharedItemCount: number;
+  /** The same product linked into two categories of ONE menu. HubRise stores a
+   *  product under exactly one category, so only the first placement survives.
+   *  Counted separately: this used to be lumped into sharedItemCount, which
+   *  made seven same-menu duplicates look like seven cross-brand shares. */
+  duplicateLinkCount: number;
+  /** Products whose final brand set spans more than one brand — the ones that
+   *  appear in more than one storefront. A category "belonging" to another
+   *  brand shows up in yours when one of ITS products is tagged to you, so
+   *  these are named for the publish log. */
+  crossBrandProducts: Array<{ name: string; menu: string; brands: string[] }>;
   /** The shared products by name, with the menus that link them. HubRise puts
    *  a product in exactly ONE category, so a shared row shows up in every
    *  brand's storefront but only under the category of the menu that placed
@@ -220,6 +230,7 @@ export function composeAutoMaster(
   const linkingBrands = new Map<string, string[]>();
   const linkingMenus = new Map<string, string[]>();
   let sharedItemCount = 0;
+  let duplicateLinkCount = 0;
 
   for (const member of ordered) {
     let contributed = 0;
@@ -248,9 +259,12 @@ export function composeAutoMaster(
         linkingMenus.set(item.id, linkingMenuNames);
 
         if (composedItemById.has(item.id)) {
-          // Already placed by an earlier member — one product, not two with
-          // the same ref. Its brand set is widened after the loop.
-          sharedItemCount += 1;
+          // Already placed — one product, not two with the same ref. Whether
+          // that is a genuine cross-brand share or just the same product listed
+          // under two categories of THIS menu decides what the operator has to
+          // do about it, so the two are counted apart.
+          if ((linkingMenus.get(item.id) ?? []).length > 1) sharedItemCount += 1;
+          else duplicateLinkCount += 1;
           continue;
         }
 
@@ -341,6 +355,21 @@ export function composeAutoMaster(
     }
   }
 
+  // Every product visible to more than one brand, named. This is what makes a
+  // category from one brand's menu appear inside another brand's shop: HubRise
+  // has no per-brand categories, only per-SKU variant restrictions, so a
+  // product tagged to two brands drags its category into both.
+  const crossBrandProducts: Array<{ name: string; menu: string; brands: string[] }> = [];
+  for (const [itemId, composedItem] of composedItemById) {
+    const brands = composedItem.brandIds as string[];
+    if (!brands || brands.length < 2) continue;
+    crossBrandProducts.push({
+      name: composedItem.name ?? itemId,
+      menu: itemOrigin.get(itemId) ?? "?",
+      brands: brands.map((b) => brandNames.get(b) ?? b),
+    });
+  }
+
   return {
     menu: { name: opts.name, pricingVariants: variants, categories },
     memberIds: ordered.map((m) => m.id),
@@ -348,6 +377,8 @@ export function composeAutoMaster(
     productCounts,
     seededBrandIds,
     sharedItemCount,
+    duplicateLinkCount,
+    crossBrandProducts,
     sharedItems,
     itemOrigin,
   };
