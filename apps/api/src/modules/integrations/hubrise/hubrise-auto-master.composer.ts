@@ -115,6 +115,12 @@ export interface ComposedAutoMaster {
   /** MenuItem rows linked from more than one member menu, folded into one
    *  product tagged with both brands. */
   sharedItemCount: number;
+  /** The shared products by name, with the menus that link them. HubRise puts
+   *  a product in exactly ONE category, so a shared row shows up in every
+   *  brand's storefront but only under the category of the menu that placed
+   *  it — which reads to the operator as another brand's category appearing in
+   *  their shop. Named here so that is diagnosable from one publish log. */
+  sharedItems: Array<{ name: string; menus: string[] }>;
   /** itemId → the member menu it came from, so a duplicate-ref refusal can
    *  name the two menus that collided instead of just the product twice. */
   itemOrigin: Map<string, string>;
@@ -212,6 +218,7 @@ export function composeAutoMaster(
   // whatever its own tags say. A row linked from ONE menu is not: its tags
   // stand alone (see brandsForItem).
   const linkingBrands = new Map<string, string[]>();
+  const linkingMenus = new Map<string, string[]>();
   let sharedItemCount = 0;
 
   for (const member of ordered) {
@@ -236,6 +243,9 @@ export function composeAutoMaster(
           linking.push(member.brandId);
         }
         linkingBrands.set(item.id, linking);
+        const linkingMenuNames = linkingMenus.get(item.id) ?? [];
+        if (!linkingMenuNames.includes(member.name)) linkingMenuNames.push(member.name);
+        linkingMenus.set(item.id, linkingMenuNames);
 
         if (composedItemById.has(item.id)) {
           // Already placed by an earlier member — one product, not two with
@@ -260,6 +270,14 @@ export function composeAutoMaster(
       });
     }
     productCounts.set(member.id, contributed);
+  }
+
+  // Name the shared rows for the publish log.
+  const sharedItems: Array<{ name: string; menus: string[] }> = [];
+  for (const [itemId, menus] of linkingMenus) {
+    if (menus.length < 2) continue;
+    const composedItem = composedItemById.get(itemId);
+    sharedItems.push({ name: composedItem?.name ?? itemId, menus });
   }
 
   // Cross-brand shares: a MenuItem linked from more than one member menu
@@ -330,6 +348,7 @@ export function composeAutoMaster(
     productCounts,
     seededBrandIds,
     sharedItemCount,
+    sharedItems,
     itemOrigin,
   };
 }

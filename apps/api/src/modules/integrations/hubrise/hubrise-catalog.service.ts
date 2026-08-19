@@ -1270,6 +1270,11 @@ export class HubRiseCatalogService {
         (composition
           ? ` autoMaster=[${composition.memberIds.join(",")}]` +
             ` sharedItems=${composition.sharedItemCount}` +
+            (composition.sharedItems.length
+              ? ` shared=[${composition.sharedItems
+                  .map((s) => `"${s.name}" in ${s.menus.map((m) => `"${m}"`).join("+")}`)
+                  .join("; ")}]`
+              : "") +
             ` seededVariantBrands=[${composition.seededBrandIds.join(",")}]`
           : ""),
     );
