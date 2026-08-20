@@ -162,6 +162,42 @@ export function UberEatsManageModal({
     },
     onError: err,
   });
+  // Deprovision is NOT disconnect. Disconnect unlinks our own row and leaves
+  // Uber believing the store is still integrated with us; deprovision DELETEs
+  // pos_data on Uber's side, which is what makes their store.deprovisioned
+  // webhook fire. Uber's production validation asks for exactly that round
+  // trip, and it is also the only clean way to hand a store to another POS.
+  const deprovision = useMutation({
+    mutationFn: () =>
+      apiClient.post(
+        `/v1/integrations/ubereats/${connectionId}/deprovision`,
+        {},
+      ),
+    onSuccess: (res: any) => {
+      toast.success(
+        `POS integration removed from the Uber store (HTTP ${res?.data?.httpStatus ?? 204}). ` +
+          `Waiting for Uber's store.deprovisioned webhook.`,
+        { duration: 7000 },
+      );
+      overview.refetch();
+      onChanged();
+    },
+    onError: err,
+  });
+  const patchPosData = useMutation({
+    mutationFn: () =>
+      apiClient.post(
+        `/v1/integrations/ubereats/${connectionId}/pos-data/patch`,
+        { require_manual_acceptance: false },
+      ),
+    onSuccess: (res: any) => {
+      toast.success(
+        `POS data patched — Uber responded ${res?.data?.httpStatus ?? 200} OK`,
+      );
+      overview.refetch();
+    },
+    onError: err,
+  });
   const disconnect = useMutation({
     mutationFn: () =>
       apiClient.post(
@@ -659,6 +695,53 @@ export function UberEatsManageModal({
               </Section>
             </div>
           )}
+
+          {/* Integration lifecycle — POS-data writes that change Uber's side */}
+          <section className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+            <h3 className="mb-1.5 text-xs font-semibold text-amber-900">
+              POS integration
+            </h3>
+            <p className="mb-2.5 text-[11px] text-amber-800/80">
+              These write to Uber's copy of the integration, not just ours.
+              Deprovisioning removes this store from our client ID entirely —
+              orders stop until you reconnect.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => patchPosData.mutate()}
+                disabled={patchPosData.isPending}
+                title="PATCH /v1/eats/stores/{id}/pos_data"
+                className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+              >
+                {patchPosData.isPending && (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                )}
+                Patch POS data
+              </button>
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Remove the POS integration from this Uber store?\n\n" +
+                        "Uber will stop sending orders to OrderHub for this store " +
+                        "until you reconnect it. Use this only for integration " +
+                        "testing or when handing the store to another POS.",
+                    )
+                  ) {
+                    deprovision.mutate();
+                  }
+                }}
+                disabled={deprovision.isPending}
+                title="DELETE /v1/eats/stores/{id}/pos_data — triggers store.deprovisioned"
+                className="flex items-center gap-1.5 rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+              >
+                {deprovision.isPending && (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                )}
+                Deprovision from Uber
+              </button>
+            </div>
+          </section>
 
           {/* Danger zone */}
           <section className="rounded-xl border border-red-200 bg-red-50/50 p-4">
