@@ -48,8 +48,8 @@ export class JetController {
     body: {
       brandId: string;
       locationId: string;
-      posLocationId: string;
-      restaurantReference?: string;
+      restaurantReference: string;
+      posLocationId?: string;
       brandSlug?: string;
       country?: string;
       menuKey?: string;

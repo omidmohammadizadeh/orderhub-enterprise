@@ -13,15 +13,26 @@ import { JetCredentialResolver } from "./jet-credential.resolver";
 // Phase JE-0 — per-brand Just Eat (JET Connect) connection.
 //
 // Connecting is a FORM, not an OAuth dance: JET has no merchant authorisation
-// flow, so an operator supplies the identifiers their delivery manager gave
-// them. Three fields, only the first of which is mandatory:
+// flow, so an operator supplies what their delivery manager sent them. The
+// same three things HubRise's own Just Eat Flyt Bridge asks for:
 //
-//   posLocationId       — the id WE gave JET for this restaurant. JET stamps
-//                         it on every order, so it is the routing key that
-//                         turns an inbound order into a tenant/brand/location.
-//   restaurantReference — JET's own id for the restaurant, used on /menus,
+//   restaurantReference — REQUIRED. JET's own id for the restaurant ("Restaurant
+//                         ID" in their emails). Used on /menus,
 //                         /item-availability and /restaurants/{ref}/*.
-//   brandSlug           — e.g. "je-uk-example", used on the amend endpoint.
+//   menuKey / orderKey  — OPTIONAL. Only brands JET issues their own keys to
+//                         (over 6 locations) have these; everyone else falls
+//                         through to the country/platform keys.
+//
+// Plus one JET's own bridge does not ask for, because there HubRise IS the POS
+// and its location id fills the role:
+//
+//   posLocationId       — what JET stamps on every inbound order. It is the
+//                         routing key that turns an order into a
+//                         tenant/brand/location, so without it orders arrive
+//                         and match nothing. It DEFAULTS to the restaurant
+//                         reference, which is what JET configures when a
+//                         partner does not specify one — override it only when
+//                         JET tells you they are sending something else.
 //
 // Keeping this a two-minute form matters beyond convenience: the contract is
 // 200 locations onboarded within 90 days of the pilot, which is roughly three
@@ -44,8 +55,10 @@ export class JetConnectionService {
     body: {
       brandId: string;
       locationId: string;
-      posLocationId: string;
-      restaurantReference?: string;
+      /** JET's own restaurant id — what their onboarding email calls the Restaurant ID. */
+      restaurantReference: string;
+      /** What JET stamps on inbound orders. Defaults to the restaurant reference. */
+      posLocationId?: string;
       brandSlug?: string;
       country?: string;
       /** Brand-issued keys, for brands JET gives their own (>6 locations). */
@@ -53,12 +66,16 @@ export class JetConnectionService {
       orderKey?: string;
     },
   ) {
-    const posLocationId = (body.posLocationId ?? "").trim();
-    if (!posLocationId) {
+    const restaurantReference = (body.restaurantReference ?? "").trim();
+    if (!restaurantReference) {
       throw new BadRequestException(
-        "A POS location ID is required — it is the identifier Just Eat stamps on every order.",
+        "A Restaurant ID is required — Just Eat sends it once your integration is approved.",
       );
     }
+    // The two ids are the same in the normal case, so asking twice would be
+    // noise. Only a partner JET explicitly configures differently needs the
+    // override.
+    const posLocationId = (body.posLocationId ?? "").trim() || restaurantReference;
 
     // The POS location id is how an inbound order finds its restaurant, so a
     // duplicate would route orders to whichever row was found first. Rejecting
@@ -82,16 +99,32 @@ export class JetConnectionService {
 
     const metadata: Record<string, unknown> = {
       posLocationId,
-      restaurantReference: (body.restaurantReference ?? "").trim() || null,
+      restaurantReference,
       country: (body.country ?? "").trim().toUpperCase() || null,
     };
     // Only store a credentials envelope when the brand actually has its own
     // keys; otherwise the resolver's country/platform tiers answer.
+    //
+    // A re-save with the key fields left blank KEEPS whatever is already
+    // stored. The manage panel never renders a saved key back (it is a
+    // secret), so treating blank as "clear it" would wipe a brand's keys every
+    // time someone corrected a typo in the Restaurant ID.
     if (body.menuKey?.trim() || body.orderKey?.trim()) {
       metadata.credentials = this.credentials.encryptForStorage({
         menuKey: body.menuKey,
         orderKey: body.orderKey,
       });
+    } else {
+      const existing = await this.prisma.brandPlatformConnection.findFirst({
+        where: {
+          brandId: body.brandId,
+          locationId: body.locationId,
+          platform: "JUST_EAT",
+        },
+        select: { metadata: true },
+      });
+      const kept = ((existing?.metadata as any) ?? {}).credentials;
+      if (kept) metadata.credentials = kept;
     }
 
     const connection = await this.prisma.brandPlatformConnection.upsert({
@@ -137,7 +170,9 @@ export class JetConnectionService {
     });
 
     this.logger.log(
-      `JET connected brand ${body.brandId} @ ${body.locationId} → posLocationId ${posLocationId}`,
+      `JET connected brand ${body.brandId} @ ${body.locationId} → ` +
+        `restaurant ${restaurantReference}, posLocationId ${posLocationId}` +
+        (metadata.credentials ? " (brand keys stored)" : " (shared keys)"),
     );
     return this.present(connection);
   }

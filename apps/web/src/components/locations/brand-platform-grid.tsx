@@ -29,7 +29,9 @@ import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
 import { BrandChannelPricingSources } from "./brand-channel-pricing-sources";
 import { UberEatsManageModal } from "@/components/locations/ubereats-manage-modal";
 import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-modal";
+import { JustEatManageModal } from "@/components/locations/justeat-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
+import { justEatClient } from "@/lib/api/justeat.client";
 import { apiClient } from "@/lib/api/client";
 import { StorePickerModal } from "@/components/locations/store-picker-modal";
 import toast from "react-hot-toast";
@@ -117,6 +119,22 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
           if (platform === "UBER_EATS") {
             return (
               <UberEatsRow
+                key={platform}
+                brandId={brandId}
+                locationId={locationId}
+                connection={conn ?? null}
+                onChanged={() =>
+                  qc.invalidateQueries({ queryKey: ["brand-connections", brandId] })
+                }
+              />
+            );
+          }
+          // Just Eat (JET Connect) is a real API connection too, but there is
+          // no OAuth and no id to resolve: the operator types in what their
+          // Just Eat onboarding email gave them.
+          if (platform === "JUST_EAT") {
+            return (
+              <JustEatRow
                 key={platform}
                 brandId={brandId}
                 locationId={locationId}
@@ -454,6 +472,160 @@ function DeliverooRow({
           open={manageOpen}
           onClose={() => setManageOpen(false)}
           onChanged={onChanged}
+        />
+      )}
+    </li>
+  );
+}
+
+function JustEatRow({
+  brandId,
+  locationId,
+  connection,
+  onChanged,
+}: {
+  brandId: string;
+  locationId: string;
+  connection: BrandPlatformConnection | null;
+  onChanged: () => void;
+}) {
+  const connected =
+    connection?.status === "connected" || connection?.status === "suspended";
+  const [manageOpen, setManageOpen] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
+  const [restaurantId, setRestaurantId] = useState("");
+  const [menuKey, setMenuKey] = useState("");
+  const [orderKey, setOrderKey] = useState("");
+
+  // The connection row carries the POS location id; the Restaurant ID lives in
+  // metadata, so it is read back from the JET endpoint rather than guessed.
+  const details = useQuery({
+    queryKey: ["jet-connection", connection?.id],
+    queryFn: () => justEatClient.health(connection!.id as string),
+    enabled: !!connection?.id && connected,
+  });
+
+  useEffect(() => {
+    if (!connected) setRestaurantId("");
+  }, [connected]);
+
+  const connect = useMutation({
+    mutationFn: () =>
+      justEatClient.connect({
+        brandId,
+        locationId,
+        restaurantReference: restaurantId.trim(),
+        menuKey: menuKey.trim() || undefined,
+        orderKey: orderKey.trim() || undefined,
+      }),
+    onSuccess: () => {
+      toast.success("Just Eat restaurant connected");
+      setMenuKey("");
+      setOrderKey("");
+      onChanged();
+    },
+    onError: (e: any) =>
+      toast.error(
+        e?.response?.data?.message ?? e?.message ?? "Just Eat request failed",
+      ),
+  });
+
+  return (
+    <li className="rounded-md border border-zinc-200 px-3 py-2">
+      <div className="flex items-start gap-3">
+        <PlatformLogo platform="JUST_EAT" size={44} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-900">Just Eat</span>
+            <StatusChip status={connection?.status ?? "not_connected"} />
+          </div>
+
+          {!connected ? (
+            <div className="mt-1.5 space-y-1.5">
+              <input
+                value={restaurantId}
+                onChange={(e) => setRestaurantId(e.target.value)}
+                placeholder="Restaurant ID (from Just Eat)"
+                className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+              />
+              {/* Keys are the exception, not the rule: only brands over six
+                  locations get their own. Hiding them behind a toggle keeps
+                  the common case a single field, the way Just Eat's own
+                  bridge does it. */}
+              {showKeys ? (
+                <>
+                  <input
+                    type="password"
+                    value={menuKey}
+                    onChange={(e) => setMenuKey(e.target.value)}
+                    placeholder="Menu API key (optional)"
+                    className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+                  />
+                  <input
+                    type="password"
+                    value={orderKey}
+                    onChange={(e) => setOrderKey(e.target.value)}
+                    placeholder="Order API key (optional)"
+                    className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+                  />
+                </>
+              ) : (
+                <button
+                  onClick={() => setShowKeys(true)}
+                  className="text-[10px] text-zinc-500 underline hover:text-zinc-800"
+                >
+                  This brand has its own API keys
+                </button>
+              )}
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => connect.mutate()}
+                  disabled={connect.isPending || !restaurantId.trim()}
+                  className="rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  {connect.isPending ? "Connecting…" : "Connect"}
+                </button>
+              </div>
+              <p className="text-[10px] text-zinc-400">
+                Just Eat sends the Restaurant ID once your integration is
+                approved. API keys are optional — leave them empty to use the
+                shared country keys.
+              </p>
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-500">
+              Restaurant {details.data?.restaurantReference ?? "—"}
+              {details.data?.hasBrandKeys ? " · own API keys" : ""}
+            </p>
+          )}
+        </div>
+
+        {connected && (
+          <button
+            onClick={() => setManageOpen(true)}
+            className="flex-shrink-0 rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800"
+          >
+            Manage
+          </button>
+        )}
+      </div>
+      {connected && (
+        <JustEatManageModal
+          connectionId={connection!.id as string}
+          brandId={brandId}
+          locationId={locationId}
+          restaurantReference={details.data?.restaurantReference ?? null}
+          posLocationId={
+            details.data?.posLocationId ??
+            (connection?.externalStoreId as string) ??
+            null
+          }
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+          onChanged={() => {
+            details.refetch();
+            onChanged();
+          }}
         />
       )}
     </li>
