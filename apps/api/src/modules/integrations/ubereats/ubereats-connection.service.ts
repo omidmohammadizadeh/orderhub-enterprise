@@ -383,8 +383,6 @@ export class UberEatsConnectionService {
     patch: Record<string, unknown>,
   ) {
     const c = await this.connected(tenantId, connectionId);
-    const token = await this.oauth.merchantToken(c);
-    const meta: { status?: number } = {};
     const storeId = c.externalStoreId!;
     const path = `/v1/eats/stores/${encodeURIComponent(storeId)}/pos_data`;
     const body =
@@ -394,12 +392,36 @@ export class UberEatsConnectionService {
           // re-assert the integration is enabled and we are the order manager.
           { integration_enabled: true, is_order_manager: true };
 
-    const res = await this.client.request<any>("PATCH", path, {
-      userToken: token,
-      body,
-      meta,
-      posDataVersion: true,
-    } as any);
+    // PATCH pos_data is CLIENT-CREDENTIALS, not merchant-token. Uber rejects
+    // the merchant token here with:
+    //   401 "This endpoint requires at least one of the following scopes:
+    //        eats.store"
+    // even though the POST that CREATES the same document takes the merchant
+    // token — provisioning is a merchant action, editing the record is a
+    // store-scoped one. Same client-credentials-first / merchant-fallback
+    // shape `integrationDetails` uses for the GET.
+    const meta: { status?: number } = {};
+    let res: any;
+    let via = "client-credentials";
+    try {
+      res = await this.client.request<any>("PATCH", path, {
+        scopes: STORE_SCOPES,
+        body,
+        meta,
+        posDataVersion: true,
+      } as any);
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      if (!msg.includes("401") && !msg.includes("403")) throw err;
+      const token = await this.oauth.merchantToken(c);
+      res = await this.client.request<any>("PATCH", path, {
+        userToken: token,
+        body,
+        meta,
+        posDataVersion: true,
+      } as any);
+      via = "merchant-token";
+    }
 
     this.activity?.record({
       tenantId,
@@ -410,10 +432,15 @@ export class UberEatsConnectionService {
       action: "integration.patched",
       status: "SUCCESS",
       message: `Uber Eats POS data patched — Uber responded ${meta.status ?? 200} OK`,
-      details: { storeId: c.externalStoreId, patch: body, uberHttpStatus: meta.status },
+      details: {
+        storeId,
+        patch: body,
+        uberHttpStatus: meta.status,
+        auth: via,
+      },
     });
     this.logger.log(
-      `Uber Eats PATCH pos_data store ${c.externalStoreId} → ${meta.status}`,
+      `Uber Eats PATCH pos_data store ${storeId} → ${meta.status} (${via})`,
     );
     return { ok: true, httpStatus: meta.status ?? 200, posData: res };
   }

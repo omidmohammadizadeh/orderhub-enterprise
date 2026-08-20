@@ -17,9 +17,9 @@ const CONN = {
   metadata: {},
 };
 
-function makeService(opts: { connection?: any } = {}) {
+function makeService(opts: { connection?: any; request?: jest.Mock } = {}) {
   const calls: any[] = [];
-  const request = jest.fn(async (method: string, path: string, o: any = {}) => {
+  const request = opts.request ?? jest.fn(async (method: string, path: string, o: any = {}) => {
     calls.push({ method, path, ...o });
     if (o?.meta) o.meta.status = method === "DELETE" ? 204 : 200;
     return {};
@@ -54,7 +54,7 @@ describe("UberEatsConnectionService.deprovision", () => {
     );
   });
 
-  it("uses the MERCHANT token — pos_data writes are not client-credentials", async () => {
+  it("uses the MERCHANT token — the same credential that provisioned the store", async () => {
     const { svc, calls } = makeService();
     await svc.deprovision("t1", "conn-1");
     expect(calls.find((c) => c.method === "DELETE").userToken).toBe("merchant-token");
@@ -102,6 +102,33 @@ describe("UberEatsConnectionService.patchPosData", () => {
     );
     expect(patch.body).toEqual({ require_manual_acceptance: false });
     expect(patch.posDataVersion).toBe(true);
+  });
+
+  it("uses CLIENT-CREDENTIALS with eats.store, not the merchant token", async () => {
+    // Uber rejects the merchant token here — verified live 2026-08-20:
+    // 401 "This endpoint requires at least one of the following scopes:
+    // eats.store" — even though the POST that creates the same document
+    // takes it. Provisioning is a merchant action; editing the record is
+    // store-scoped.
+    const { svc, calls } = makeService();
+    await svc.patchPosData("t1", "conn-1", {});
+    const patch = calls.find((c) => c.method === "PATCH");
+    expect(patch.scopes).toEqual(["eats.store"]);
+    expect(patch.userToken).toBeUndefined();
+  });
+
+  it("falls back to the merchant token if the scoped call 401s", async () => {
+    const request = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("Uber Eats PATCH … → 401: unauthorized"))
+      .mockImplementation(async (_m: string, _p: string, o: any = {}) => {
+        if (o?.meta) o.meta.status = 200;
+        return {};
+      });
+    const { svc } = makeService({ request });
+    const res = await svc.patchPosData("t1", "conn-1", {});
+    expect(res.httpStatus).toBe(200);
+    expect(request.mock.calls[1][2].userToken).toBe("merchant-token");
   });
 
   it("sends a meaningful body when the caller supplies none", async () => {
