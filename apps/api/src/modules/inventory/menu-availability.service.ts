@@ -18,6 +18,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import { DeliverooClientService } from "../integrations/deliveroo/deliveroo-client.service";
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
+import { JetItemAvailabilityService } from "../integrations/jet/jet-item-availability.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 // Mirrors the publish-menu modal's TARGETS. Free-form string in the DB
@@ -56,6 +57,7 @@ export class MenuAvailabilityService {
     private readonly hubrise: HubRiseCatalogService,
     private readonly deliverooClient: DeliverooClientService,
     private readonly uberEatsMenu: UberEatsMenuPublishService,
+    private readonly jetAvailability: JetItemAvailabilityService,
     @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
@@ -393,6 +395,25 @@ export class MenuAvailabilityService {
       );
     }
 
+    // Fire-and-forget direct Just Eat sync. JET has a real `nextAvailableAt`,
+    // so a TIMED snooze restores itself on their side — unlike Deliveroo,
+    // where an expiring snooze never pushes back.
+    if (args.channel === "JUST_EAT" || args.channel === "ALL") {
+      this.jetAvailability
+        .pushItemAvailability({
+          tenantId: args.tenantId,
+          itemId: args.itemId,
+          available: false,
+          until: expiresAt,
+          locationId: args.locationId,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Just Eat item-availability push failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+        );
+    }
+
     // Fire-and-forget direct Uber Eats sync (sparse Update Menu Item).
     if (args.channel === "UBER_EATS" || args.channel === "ALL") {
       this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null, false, args.locationId).catch(
@@ -481,6 +502,34 @@ export class MenuAvailabilityService {
           `Deliveroo item_unavailabilities sync failed for item ${args.itemId}: ${err?.message ?? err}`,
         ),
       );
+    }
+
+    // Restore on Just Eat. Same guard as Uber below: an "ALL" row may still
+    // 86 this item here after a JUST_EAT unsnooze (or the reverse), and
+    // telling JET the item is back while it is still suspended locally would
+    // put it on sale in the one place the operator cannot see it.
+    if (args.channel === "JUST_EAT" || args.channel === "ALL") {
+      const stillOutOnJet = (
+        await this.getSnoozedItemIdsForChannel(
+          "JUST_EAT",
+          [args.itemId],
+          args.locationId,
+        )
+      ).has(args.itemId);
+      if (!stillOutOnJet) {
+        this.jetAvailability
+          .pushItemAvailability({
+            tenantId: args.tenantId,
+            itemId: args.itemId,
+            available: true,
+            locationId: args.locationId,
+          })
+          .catch((err) =>
+            this.logger.warn(
+              `Just Eat item-availability restore failed for item ${args.itemId}: ${err?.message ?? err}`,
+            ),
+          );
+      }
     }
 
     // Restore on Uber: suspension null = back on sale. Guard: another row

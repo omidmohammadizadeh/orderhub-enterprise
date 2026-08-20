@@ -11,6 +11,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
 import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
+import { JetStoreStatusService } from "../integrations/jet/jet-store-status.service";
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
@@ -107,6 +108,7 @@ export class BrandsService {
     // service_availability, so the push republishes the store's menu.
     private readonly uberEats: UberEatsConnectionService,
     private readonly uberEatsMenu: UberEatsMenuPublishService,
+    private readonly jetStoreStatus: JetStoreStatusService,
     private readonly storage: SupabaseStorageService,
     // Apple Pay has to be told about each brand's custom domain, or its
     // button silently never renders there.
@@ -1077,7 +1079,32 @@ export class BrandsService {
         return { channel, status: "ok", pushed: true };
       }
 
-      case "JUST_EAT":
+      case "JUST_EAT": {
+        // Phase JE-5 — direct Just Eat push. Hours go out as service times for
+        // BOTH Delivery and Collection.
+        //
+        // Worth knowing when this appears not to work: Just Eat trades on the
+        // INTERSECTION of these service times, the menu's availability, and
+        // the delivery-pool hours. Widening the hours here beyond what the
+        // published menu allows changes nothing until the menu is republished.
+        const conn = await this.prisma.brandPlatformConnection.findFirst({
+          where: {
+            brandId,
+            tenantId,
+            platform: "JUST_EAT",
+            status: { in: ["connected", "suspended"] },
+          },
+          select: { id: true },
+        });
+        if (!conn) {
+          throw new BadRequestException(
+            "Just Eat isn't connected for this brand yet. Connect it under Locations → Brands → Just Eat first.",
+          );
+        }
+        const res = await this.jetStoreStatus.publishServiceTimes(tenantId, conn.id);
+        return { channel, status: "ok", pushed: true, note: (res as any)?.note };
+      }
+
       case "WHATSAPP":
         // Intent recorded; direct push lands in a future phase.
         return { channel, status: "pending_integration", pushed: false };

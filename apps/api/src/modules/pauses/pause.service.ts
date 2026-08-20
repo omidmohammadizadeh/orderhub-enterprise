@@ -18,6 +18,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
+import { JetStoreStatusService } from "../integrations/jet/jet-store-status.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 export type SupportedChannel =
@@ -69,6 +70,8 @@ export class PauseService {
     // exactly like the per-brand Open/Pause buttons on the channels grid.
     private readonly deliveroo: DeliverooConnectionService,
     private readonly uberEats: UberEatsConnectionService,
+    // Phase JE-5 — same mirror for the brand's direct Just Eat restaurant.
+    private readonly jet: JetStoreStatusService,
     @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
@@ -249,6 +252,7 @@ export class PauseService {
     // API hiccup). Reconcile picks up the row we just wrote.
     void this.reconcileDeliveroo(args.scope, args.tenantId);
     void this.reconcileUberEats(args.scope, args.tenantId);
+    void this.reconcileJustEat(args.scope, args.tenantId);
 
     return row;
   }
@@ -296,6 +300,10 @@ export class PauseService {
         { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
         args.tenantId,
       );
+      void this.reconcileJustEat(
+        { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
+        args.tenantId,
+      );
       this.activity?.record({
         tenantId: args.tenantId,
         locationId: row.locationId,
@@ -319,6 +327,7 @@ export class PauseService {
     });
     void this.reconcileDeliveroo(args.scope, args.tenantId);
     void this.reconcileUberEats(args.scope, args.tenantId);
+    void this.reconcileJustEat(args.scope, args.tenantId);
     this.activity?.record({
       tenantId: args.tenantId,
       locationId: args.scope.locationId,
@@ -416,6 +425,59 @@ export class PauseService {
       }
     } catch (e: any) {
       this.logger.warn(`Uber Eats pause reconcile failed: ${e?.message ?? e}`);
+    }
+  }
+
+  /**
+   * Mirror our pause state onto the brand's direct Just Eat restaurant.
+   *
+   * Differs from the Deliveroo and Uber reconcilers in one way that matters:
+   * JET's offline call accepts an `onlineAt`, so a TIMED pause restores itself
+   * on their side. Passing the pause's own resumeAt means a shop that pauses
+   * for an hour comes back on Just Eat by itself — where the other two rely on
+   * us remembering to push the resume.
+   */
+  private async reconcileJustEat(
+    scope: PauseScope,
+    tenantId: string,
+  ): Promise<void> {
+    try {
+      // A channel-scoped pause only touches Just Eat when it IS Just Eat.
+      if (scope.channel && scope.channel !== "JUST_EAT") return;
+
+      const conns = await this.prisma.brandPlatformConnection.findMany({
+        where: {
+          locationId: scope.locationId,
+          platform: "JUST_EAT",
+          ...(scope.brandId ? { brandId: scope.brandId } : {}),
+          status: { in: ["connected", "suspended"] },
+        },
+        select: { id: true, brandId: true, tenantId: true },
+      });
+
+      for (const c of conns) {
+        const snap = await this.isPaused({
+          locationId: scope.locationId,
+          brandId: c.brandId,
+          channel: "JUST_EAT",
+        });
+        try {
+          await this.jet.reconcile({
+            tenantId: c.tenantId ?? tenantId,
+            brandId: c.brandId,
+            locationId: scope.locationId,
+            paused: snap.paused,
+            // Only meaningful while pausing; JET ignores it on the online call.
+            until: snap.paused ? (snap.resumeAt ?? null) : null,
+          });
+        } catch (e: any) {
+          this.logger.warn(
+            `Just Eat pause reconcile failed for conn ${c.id}: ${e?.message}`,
+          );
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn(`Just Eat pause reconcile failed: ${e?.message}`);
     }
   }
 

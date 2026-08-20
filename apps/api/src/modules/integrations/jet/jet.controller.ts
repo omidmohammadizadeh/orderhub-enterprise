@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { JetConnectionService } from "./jet-connection.service";
 import { JetClientService } from "./jet-client.service";
 import { JetCredentialResolver } from "./jet-credential.resolver";
+import { JetStoreStatusService } from "./jet-store-status.service";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import { Public } from "../../../common/decorators/public.decorator";
@@ -30,6 +31,7 @@ export class JetController {
     private readonly connections: JetConnectionService,
     private readonly client: JetClientService,
     private readonly credentials: JetCredentialResolver,
+    private readonly storeStatus: JetStoreStatusService,
   ) {}
 
   @Post("connect")
@@ -82,6 +84,49 @@ export class JetController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.connections.disconnect(user.tenantId, connectionId);
+  }
+
+  @Post(":connectionId/pause")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Take the Just Eat restaurant offline. Without `onlineAt` this is INDEFINITE — the shop stays off Just Eat until it is resumed.",
+  })
+  pause(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body?: { onlineAt?: string },
+  ) {
+    const onlineAt = body?.onlineAt ? new Date(body.onlineAt) : null;
+    return this.storeStatus.setStoreOnline(user.tenantId, connectionId, false, {
+      onlineAt: onlineAt && !Number.isNaN(onlineAt.getTime()) ? onlineAt : null,
+    });
+  }
+
+  @Post(":connectionId/resume")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bring the Just Eat restaurant back online" })
+  resume(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.storeStatus.setStoreOnline(user.tenantId, connectionId, true);
+  }
+
+  @Post(":connectionId/publish-hours")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Push this location's opening hours to Just Eat as Delivery + Collection service times",
+  })
+  publishHours(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.storeStatus.publishServiceTimes(user.tenantId, connectionId);
   }
 
   /**

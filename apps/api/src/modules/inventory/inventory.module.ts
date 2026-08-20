@@ -7,6 +7,7 @@ import { SocketModule } from "../../infrastructure/socket/socket.module";
 import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 import { DeliverooModule } from "../integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
+import { JetModule } from "../integrations/jet/jet.module";
 import { LocationAccessService } from "../../common/access/location-access.service";
 
 @Module({
@@ -18,11 +19,15 @@ import { LocationAccessService } from "../../common/access/location-access.servi
   // UberEatsModule provides UberEatsMenuPublishService so an UBER_EATS 86
   // pushes a sparse per-item suspension (Update Menu Item, the Uber-correct
   // way to take items off the menu).
+  // JetModule provides JetItemAvailabilityService so a JUST_EAT 86 posts to
+  // /item-availability — the only one of the four that carries a real expiry
+  // (nextAvailableAt), so a timed snooze restores itself on their side.
   imports: [
     SocketModule,
     forwardRef(() => HubRiseModule),
     DeliverooModule,
     UberEatsModule,
+    JetModule,
   ],
   controllers: [InventoryController, MenuAvailabilityController],
   providers: [InventoryService, MenuAvailabilityService, LocationAccessService],

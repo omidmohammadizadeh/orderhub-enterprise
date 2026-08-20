@@ -10,6 +10,8 @@ import { JetOrderAckService } from "./jet-order-ack.service";
 import { JetOrderService } from "./jet-order.service";
 import { JetLifecycleService } from "./jet-lifecycle.service";
 import { JetMenuPublishService } from "./jet-menu-publish.service";
+import { JetItemAvailabilityService } from "./jet-item-availability.service";
+import { JetStoreStatusService } from "./jet-store-status.service";
 import { JetController } from "./jet.controller";
 import { JetWebhookController } from "./jet-webhook.controller";
 import { JetLifecycleController } from "./jet-lifecycle.controller";
@@ -19,7 +21,8 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
 // JE-0 foundation (client, credential resolution, per-brand connection),
 // JE-1 order intake (webhook receiver → ingestCanonical → async ack) and
 // JE-2 lifecycle webhooks (cancel, driver status, store status, failed order)
-// and JE-3 menu publish + its asynchronous ingest callback.
+// JE-3 menu publish + its asynchronous ingest callback, JE-4 item
+// availability (86) and JE-5 store status / service times.
 //
 // OrdersModule is a one-way import — nothing in Orders reaches back into JET —
 // so no forwardRef is needed, matching DeliverooModule. ActivityLogService
@@ -37,12 +40,16 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
     JetOrderAckService,
     JetLifecycleService,
     JetMenuPublishService,
+    JetItemAvailabilityService,
+    JetStoreStatusService,
   ],
   exports: [
     JetClientService,
     JetCredentialResolver,
     JetConnectionService,
     JetMenuPublishService,
+    JetItemAvailabilityService,
+    JetStoreStatusService,
   ],
 })
 export class JetModule {}
