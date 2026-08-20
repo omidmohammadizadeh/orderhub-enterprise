@@ -2146,7 +2146,19 @@ export class OrdersService {
    * brand (e.g. an Uber Eats order under the "Order Hub" brand) from the owner
    * of the location those orders physically arrive at.
    */
-  private async resolveOrderAccessWhere(
+  /**
+   * Public since Phase JE-6 — visibility only, no behaviour change.
+   *
+   * This is the canonical per-user order scope and the JET modification
+   * routes need exactly it: an operator marking items out of stock must not
+   * be able to reach an order outside their own brands and locations. Copying
+   * the rule into another module is how scoping drifts, so callers outside
+   * OrdersService use this one.
+   *
+   * Returns null when the user can see nothing — callers must treat that as
+   * "no access", never as "no filter".
+   */
+  async resolveOrderAccessWhere(
     user: AuthenticatedUser,
     requestedLocationId?: string,
   ): Promise<Prisma.OrderWhereInput | null> {

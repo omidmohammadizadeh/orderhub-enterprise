@@ -14,6 +14,7 @@ import { Public } from "../../../common/decorators/public.decorator";
 import { JetClientService } from "./jet-client.service";
 import { JetLifecycleService } from "./jet-lifecycle.service";
 import { JetMenuPublishService } from "./jet-menu-publish.service";
+import { JetOrderModificationService } from "./jet-order-modification.service";
 
 // Phase JE-2 — JET Connect lifecycle webhooks.
 //
@@ -22,6 +23,7 @@ import { JetMenuPublishService } from "./jet-menu-publish.service";
 //   POST /v1/integrations/jet/store-status    → service type went offline/online
 //   POST /v1/integrations/jet/failed-order    → JET rejected an order (backup flow)
 //   POST /v1/integrations/jet/menu-callback   → asynchronous menu ingest result
+//   POST /v1/integrations/jet/modification-callback → out-of-stock result
 //
 // TWO THINGS THESE DO DIFFERENTLY FROM THE ORDER WEBHOOK:
 //
@@ -48,6 +50,7 @@ export class JetLifecycleController {
     private readonly client: JetClientService,
     private readonly lifecycle: JetLifecycleService,
     private readonly menu: JetMenuPublishService,
+    private readonly modifications: JetOrderModificationService,
   ) {}
 
   @Public()
@@ -104,6 +107,30 @@ export class JetLifecycleController {
   async menuCallback(@Body() body: any, @Headers("authorization") auth: string) {
     await this.handle("menu-callback", body, auth, (p) =>
       this.menu.handleMenuCallback(p),
+    );
+    return { ok: true };
+  }
+
+  /**
+   * The asynchronous modification result (JE-6).
+   *
+   * Success and failure share this endpoint as two different shapes,
+   * distinguished by whether `errors` is present. Neither carries the
+   * resulting basket — the amended order arrives separately as the Final
+   * Picked Order, which the order webhook already ingests.
+   *
+   * The spec asks for 202 here, not the 200-with-echo the notification
+   * webhooks want.
+   */
+  @Public()
+  @Post("modification-callback")
+  @HttpCode(HttpStatus.ACCEPTED)
+  async modificationCallback(
+    @Body() body: any,
+    @Headers("authorization") auth: string,
+  ) {
+    await this.handle("modification-callback", body, auth, (p) =>
+      this.modifications.handleModificationCallback(p),
     );
     return { ok: true };
   }

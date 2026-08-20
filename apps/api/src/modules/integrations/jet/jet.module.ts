@@ -12,6 +12,7 @@ import { JetLifecycleService } from "./jet-lifecycle.service";
 import { JetMenuPublishService } from "./jet-menu-publish.service";
 import { JetItemAvailabilityService } from "./jet-item-availability.service";
 import { JetStoreStatusService } from "./jet-store-status.service";
+import { JetOrderModificationService } from "./jet-order-modification.service";
 import { JetController } from "./jet.controller";
 import { JetWebhookController } from "./jet-webhook.controller";
 import { JetLifecycleController } from "./jet-lifecycle.controller";
@@ -22,7 +23,8 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
 // JE-1 order intake (webhook receiver → ingestCanonical → async ack) and
 // JE-2 lifecycle webhooks (cancel, driver status, store status, failed order)
 // JE-3 menu publish + its asynchronous ingest callback, JE-4 item
-// availability (86) and JE-5 store status / service times.
+// availability (86), JE-5 store status / service times and JE-6 order
+// modification (out-of-stock + substitutions).
 //
 // OrdersModule is a one-way import — nothing in Orders reaches back into JET —
 // so no forwardRef is needed, matching DeliverooModule. ActivityLogService
@@ -42,6 +44,7 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
     JetMenuPublishService,
     JetItemAvailabilityService,
     JetStoreStatusService,
+    JetOrderModificationService,
   ],
   exports: [
     JetClientService,

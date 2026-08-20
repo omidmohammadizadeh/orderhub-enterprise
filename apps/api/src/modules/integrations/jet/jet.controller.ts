@@ -13,6 +13,10 @@ import { JetConnectionService } from "./jet-connection.service";
 import { JetClientService } from "./jet-client.service";
 import { JetCredentialResolver } from "./jet-credential.resolver";
 import { JetStoreStatusService } from "./jet-store-status.service";
+import {
+  JetOrderModificationService,
+  type JetModificationPair,
+} from "./jet-order-modification.service";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import { Public } from "../../../common/decorators/public.decorator";
@@ -32,6 +36,7 @@ export class JetController {
     private readonly client: JetClientService,
     private readonly credentials: JetCredentialResolver,
     private readonly storeStatus: JetStoreStatusService,
+    private readonly modifications: JetOrderModificationService,
   ) {}
 
   @Post("connect")
@@ -127,6 +132,52 @@ export class JetController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.storeStatus.publishServiceTimes(user.tenantId, connectionId);
+  }
+
+  // ── JE-6: out-of-stock and substitutions ─────────────────────────────
+  //
+  // Every route takes OUR order id and is scoped through
+  // OrdersService.resolveOrderAccessWhere, so an operator cannot reach an
+  // order outside their own brands and locations by guessing an id.
+
+  @Post("orders/:orderId/validate-modification")
+  @Roles("MANAGER", "OWNER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Check whether an out-of-stock / substitution change would be accepted, without applying it",
+  })
+  validateModification(
+    @Param("orderId") orderId: string,
+    @Body() body: { modifications: JetModificationPair[] },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.modifications.validate(user, orderId, body?.modifications ?? []);
+  }
+
+  @Post("orders/:orderId/modification")
+  @Roles("MANAGER", "OWNER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Mark items out of stock on a live Just Eat order, optionally substituting them",
+  })
+  submitModification(
+    @Param("orderId") orderId: string,
+    @Body() body: { modifications: JetModificationPair[] },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.modifications.submit(user, orderId, body?.modifications ?? []);
+  }
+
+  @Get("orders/:orderId/modification")
+  @Roles("MANAGER", "OWNER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Current state of a submitted modification" })
+  modificationState(
+    @Param("orderId") orderId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.modifications.getState(user, orderId);
   }
 
   /**
