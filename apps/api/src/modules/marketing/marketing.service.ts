@@ -97,13 +97,96 @@ export class MarketingService {
     } else if (allowed !== null) {
       brandFilter = { in: allowed };
     }
-    return (this.prisma as any).marketingCampaign.findMany({
+    const rows = await (this.prisma as any).marketingCampaign.findMany({
       where: {
         tenantId: args.tenantId,
         ...(brandFilter !== undefined && { brandId: brandFilter }),
       },
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      // Where does this offer actually run? A campaign is scoped to a BRAND,
+      // and a brand operates at one or more locations — so the answer has to
+      // be resolved through the brand rather than read off the campaign. On an
+      // "All locations" view the operator otherwise sees eight identical
+      // "Amount off order" rows with no way to tell them apart.
+      include: {
+        brand: {
+          select: {
+            id: true,
+            name: true,
+            primaryLocationId: true,
+            locations: {
+              where: { deletedAt: null },
+              select: { id: true, name: true },
+              orderBy: { name: "asc" },
+            },
+          },
+        },
+      },
     });
+
+    // `Brand.primaryLocationId` is a bare column, not a relation, so it cannot
+    // be included above — and for a VIRTUAL brand (the ghost-kitchen model
+    // this platform leans on) `brand.locations` is usually EMPTY, because
+    // Location.brandId points at the franchise parent rather than the virtual
+    // brand. Resolving only the relation would leave the new column blank for
+    // exactly the brands that need it most. One extra query covers the whole
+    // page rather than one per row.
+    const primaryIds = Array.from(
+      new Set(
+        rows
+          .map((r: any) => r.brand?.primaryLocationId)
+          .filter((id: string | null): id is string => !!id),
+      ),
+    );
+    const primaries = new Map<string, { id: string; name: string }>();
+    if (primaryIds.length) {
+      const locs = await (this.prisma as any).location.findMany({
+        where: { id: { in: primaryIds }, deletedAt: null },
+        select: { id: true, name: true },
+      });
+      for (const loc of locs) primaries.set(loc.id, loc);
+    }
+
+    return rows.map((row: any) => this.withLocations(row, primaries));
+  }
+
+  /**
+   * Flatten a campaign's brand into the brand name + the locations it runs at.
+   *
+   * The brand's PRIMARY location leads the list — for a single-location brand
+   * it is the only entry, and for a multi-location one it is the shop the
+   * operator thinks of as "home". It is merged in from `primaries` rather than
+   * assumed to be inside `brand.locations`, since the two describe different
+   * halves of the brand model (virtual brand vs franchise parent) and either
+   * can be empty.
+   */
+  private withLocations(
+    row: any,
+    primaries: Map<string, { id: string; name: string }>,
+  ) {
+    const brand = row.brand ?? null;
+    const byId = new Map<string, { id: string; name: string }>();
+    for (const loc of brand?.locations ?? []) byId.set(loc.id, loc);
+
+    const primaryId: string | null = brand?.primaryLocationId ?? null;
+    const ordered: Array<{ id: string; name: string }> = [];
+    const primary = primaryId
+      ? (byId.get(primaryId) ?? primaries.get(primaryId) ?? null)
+      : null;
+    if (primary) {
+      ordered.push(primary);
+      byId.delete(primary.id);
+    }
+    ordered.push(...byId.values());
+
+    // Drop the nested relation so the payload keeps the flat shape every
+    // existing consumer of this endpoint already reads.
+    const { brand: _brand, ...campaign } = row;
+    return {
+      ...campaign,
+      brandName: brand?.name ?? null,
+      locations: ordered,
+    };
   }
 
   async findOne(id: string, tenantId: string) {

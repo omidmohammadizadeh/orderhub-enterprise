@@ -377,10 +377,11 @@ function CampaignsTable({
 }) {
   return (
     <div className="rounded-xl border border-zinc-200 overflow-x-auto bg-white">
-      <table className="w-full text-sm min-w-[900px]">
+      <table className="w-full text-sm min-w-[1040px]">
         <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
           <tr>
             <th className="text-left px-4 py-3">Campaign</th>
+            <th className="text-left px-4 py-3">Location</th>
             <th className="text-left px-4 py-3">Audience</th>
             <th className="text-left px-4 py-3">Channels</th>
             <th className="text-left px-4 py-3">Window</th>
@@ -404,6 +405,9 @@ function CampaignsTable({
                     {c.percentageOff != null && ` · ${Number(c.percentageOff)}%`}
                     {c.amountOff != null && ` · £${Number(c.amountOff)}`}
                   </div>
+                </td>
+                <td className="px-4 py-3">
+                  <CampaignLocation campaign={c} />
                 </td>
                 <td className="px-4 py-3 text-zinc-600">
                   {prettyAudience(c.audience)}
@@ -529,6 +533,56 @@ function FilterBar({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Which location(s) an offer runs at.
+ *
+ * A campaign belongs to a BRAND, and the brand is what actually decides where
+ * the offer applies — so the location is resolved through it server-side. The
+ * brand name is shown underneath rather than in its own column because on this
+ * page the operator's question is "which shop is this £3 off running at?", and
+ * two brands in one kitchen make the brand the tie-breaker rather than the
+ * answer.
+ *
+ * A brand at several locations shows the primary plus a count; the full list is
+ * in the title attribute rather than wrapping the row.
+ */
+function CampaignLocation({ campaign }: { campaign: MarketingCampaign }) {
+  const locations = campaign.locations ?? [];
+  const brandName = campaign.brandName;
+
+  // No location resolved — the brand has neither a primary location nor any
+  // location pointing at it. Say so plainly instead of rendering a blank cell:
+  // it means the campaign will not apply anywhere, which is worth noticing.
+  if (locations.length === 0) {
+    return (
+      <div>
+        <div className="text-zinc-400" title="This campaign's brand has no location assigned, so the offer won't apply anywhere.">
+          No location
+        </div>
+        {brandName && (
+          <div className="text-[11px] text-zinc-400">{brandName}</div>
+        )}
+      </div>
+    );
+  }
+
+  const [first, ...rest] = locations;
+  return (
+    <div>
+      <div
+        className="text-zinc-700"
+        title={locations.map((l) => l.name).join(", ")}
+      >
+        {first!.name}
+        {rest.length > 0 && (
+          <span className="text-zinc-400"> +{rest.length}</span>
+        )}
+      </div>
+      {brandName && <div className="text-[11px] text-zinc-400">{brandName}</div>}
     </div>
   );
 }

@@ -38,6 +38,12 @@ export interface MarketingCampaign {
   redemptionCount: number;
   createdAt: string;
   updatedAt: string;
+  // Resolved server-side from the campaign's brand. A campaign is scoped to a
+  // BRAND, not a location, so "where does this offer run?" is the brand's
+  // location set — primary first. Optional because older cached responses (and
+  // the create/update endpoints) return the bare row without them.
+  brandName?: string | null;
+  locations?: Array<{ id: string; name: string }>;
 }
 
 export interface CreateCampaignInput {
