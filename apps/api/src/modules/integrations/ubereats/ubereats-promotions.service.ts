@@ -18,8 +18,14 @@
 // store of the brand; PAUSED/ENDED/deleted or channel removed → revoke.
 // Created promotion ids live in campaign.metadata.uberEats.promotions.
 
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  Optional,
+} from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 
 const WRITE_SCOPES = ["eats.store.promotion.write"];
@@ -45,7 +51,38 @@ export class UberEatsPromotionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: UberEatsClientService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
+
+  /**
+   * Record a promotion action on the operator-facing feed.
+   *
+   * Promotions previously logged to the Nest logger only, so a create or a
+   * revoke was invisible on the Logs page — including to marketplace
+   * validators, who ask for evidence the operator has to be able to EXPORT.
+   * A campaign has a brand but no single location, so these rows are
+   * brand-scoped with locationId left null.
+   */
+  private record(
+    campaign: any,
+    action: string,
+    status: "SUCCESS" | "ERROR",
+    message: string,
+    details?: Record<string, unknown>,
+  ): void {
+    if (!campaign?.tenantId) return;
+    this.activity?.record({
+      tenantId: campaign.tenantId,
+      brandId: campaign.brandId ?? null,
+      locationId: campaign.locationId ?? null,
+      category: "MENU",
+      channel: "UBER_EATS",
+      action,
+      status,
+      message,
+      details,
+    });
+  }
 
   // ── campaign → Uber promotion body ─────────────────────────────────────
 
@@ -280,6 +317,13 @@ export class UberEatsPromotionsService {
       this.logger.warn(
         `Campaign ${campaign.id} targets UBER_EATS but the brand has no connected store`,
       );
+      this.record(
+        campaign,
+        "promotion.create",
+        "ERROR",
+        `Campaign "${campaign.name ?? campaign.id}" targets Uber Eats but this brand has no connected Uber store`,
+        { campaignId: campaign.id },
+      );
       return;
     }
 
@@ -289,6 +333,13 @@ export class UberEatsPromotionsService {
     } catch (err: any) {
       this.logger.warn(
         `Campaign ${campaign.id} can't map to an Uber promotion: ${err?.message}`,
+      );
+      this.record(
+        campaign,
+        "promotion.create",
+        "ERROR",
+        `Campaign "${campaign.name ?? campaign.id}" cannot be sent to Uber Eats: ${err?.message}`,
+        { campaignId: campaign.id, type: campaign.type ?? null },
       );
       return;
     }
@@ -320,10 +371,24 @@ export class UberEatsPromotionsService {
         this.logger.log(
           `Uber Eats promotion created for campaign ${campaign.id} on store ${storeId}: ${promotionId}`,
         );
+        this.record(
+          campaign,
+          "promotion.create",
+          "SUCCESS",
+          `Promotion "${campaign.name ?? campaign.id}" created on Uber Eats store ${storeId} — Uber responded 200 OK`,
+          { storeId, promotionId, campaignId: campaign.id, type: body.promo_type ?? null },
+        );
       } catch (err: any) {
         errors.push(`${storeId}: ${err?.message}`);
         this.logger.error(
           `Uber Eats promotion create failed (campaign ${campaign.id}, store ${storeId}): ${err?.message}`,
+        );
+        this.record(
+          campaign,
+          "promotion.create",
+          "ERROR",
+          `Promotion "${campaign.name ?? campaign.id}" failed on Uber Eats store ${storeId}: ${err?.message}`,
+          { storeId, campaignId: campaign.id },
         );
       }
     }
@@ -351,6 +416,13 @@ export class UberEatsPromotionsService {
         this.logger.log(
           `Uber Eats promotion ${p.promotionId} revoked (campaign ${campaign.id})`,
         );
+        this.record(
+          campaign,
+          "promotion.revoke",
+          "SUCCESS",
+          `Promotion "${campaign.name ?? campaign.id}" removed from Uber Eats store ${p.storeId} — Uber responded 200 OK`,
+          { storeId: p.storeId, promotionId: p.promotionId, campaignId: campaign.id },
+        );
       } catch (err: any) {
         // Already revoked/expired → fine; anything else keep for retry.
         const msg = String(err?.message ?? "");
@@ -358,6 +430,13 @@ export class UberEatsPromotionsService {
           remaining.push(p);
           this.logger.error(
             `Uber Eats promotion revoke failed (${p.promotionId}): ${msg}`,
+          );
+          this.record(
+            campaign,
+            "promotion.revoke",
+            "ERROR",
+            `Could not remove promotion "${campaign.name ?? campaign.id}" from Uber Eats store ${p.storeId}: ${msg}`,
+            { storeId: p.storeId, promotionId: p.promotionId },
           );
         }
       }

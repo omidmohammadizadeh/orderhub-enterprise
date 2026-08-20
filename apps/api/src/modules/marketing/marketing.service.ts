@@ -496,7 +496,15 @@ export class MarketingService {
     );
     // Push to Uber Eats when the campaign targets that channel (UE-6).
     // Fire-and-forget: campaign CRUD never fails on a marketplace hiccup.
-    void this.uberPromotions.syncCampaign(created.id).catch(() => {});
+    void this.uberPromotions
+      .syncCampaign(created.id)
+      // Non-blocking, but no longer silent: a swallowed error here is why an
+      // operator sees "campaign live" while Uber never received it.
+      .catch((e) =>
+        this.logger.warn(
+          `Uber Eats promotion sync failed for campaign ${created.id}: ${e?.message}`,
+        ),
+      );
     return created;
   }
 
@@ -532,7 +540,13 @@ export class MarketingService {
         ...(dto.perCustomerLimit !== undefined && { perCustomerLimit: dto.perCustomerLimit }),
       },
     });
-    void this.uberPromotions.syncCampaign(id).catch(() => {});
+    void this.uberPromotions
+      .syncCampaign(id)
+      .catch((e) =>
+        this.logger.warn(
+          `Uber Eats promotion sync failed for campaign ${id}: ${e?.message}`,
+        ),
+      );
     return updated;
   }
 
