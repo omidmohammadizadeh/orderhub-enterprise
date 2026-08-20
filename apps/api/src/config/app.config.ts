@@ -59,6 +59,52 @@ export const appConfig = registerAs("app", () => ({
       webhookSecret: process.env.JUST_EAT_WEBHOOK_SECRET ?? "",
       baseUrl: process.env.JUST_EAT_BASE_URL ?? "https://uk.api.just-eat.io",
     },
+    // Phase JE — direct Just Eat Takeaway (JET Connect, formerly Flyt).
+    // Deliberately SEPARATE from the `justEat` block above, which belongs to
+    // the pre-existing (unimplemented) generic webhook adapter. Nothing here
+    // changes that path's behaviour.
+    //
+    // JET issues API KEYS, not OAuth clients, and the key you need depends on
+    // what you're calling and for whom:
+    //   - MENU key  — issued per COUNTRY, and separately for any brand over
+    //                 6 locations. Used for /menus, /item-availability and
+    //                 /restaurants/{ref}/*.
+    //   - ORDER key — used for the async acknowledgement endpoints
+    //                 (/order/{id}/sent-to-pos-success|failed).
+    // So both are resolved brand → country → platform default by
+    // JetCredentialResolver; these are the platform-default tier.
+    //
+    // JET_MENU_KEYS / JET_ORDER_KEYS hold the per-country tier as a
+    // comma-separated "CC:key" list, e.g. "GB:abc123,IE:def456".
+    jet: {
+      menuApiKey: process.env.JET_MENU_API_KEY ?? "",
+      orderApiKey: process.env.JET_ORDER_API_KEY ?? "",
+      menuKeysByCountry: process.env.JET_MENU_KEYS ?? "",
+      orderKeysByCountry: process.env.JET_ORDER_KEYS ?? "",
+      defaultCountry: process.env.JET_DEFAULT_COUNTRY ?? "GB",
+      // The shared secret JET signs inbound order webhooks with
+      // (X-JET-Connect-Hash). Distinct from the API keys.
+      webhookSecret: process.env.JET_WEBHOOK_SECRET ?? "",
+      // The API key WE gave JET, which they present back to us in the
+      // Authorization header on every inbound call. The four lifecycle
+      // webhooks carry no HMAC, so this is their only authentication.
+      inboundApiKey: process.env.JET_INBOUND_API_KEY ?? "",
+      // Per-service hosts. Most operations sit on the platform base, but the
+      // async acks and the amend/modification endpoints live on their own
+      // service hosts.
+      baseUrl: process.env.JET_API_BASE ?? "https://api.flytplatform.com",
+      orderStatusUrl:
+        process.env.JET_ORDER_STATUS_BASE ??
+        "https://order-injection-status-updater.flyt-platform.com",
+      orderingConnectorUrl:
+        process.env.JET_ORDERING_CONNECTOR_BASE ??
+        "https://ordering-universal-connector.flyt-platform.com",
+      // JET marks an un-acked async order "failed to inject" after 3 minutes,
+      // and a timeout counts against the order-injection SLA *and* skips the
+      // backup flow. We force an explicit ack well before that.
+      ackDeadlineSeconds: Number(process.env.JET_ACK_DEADLINE_SECONDS ?? 90),
+      ackWatchdogEnabled: process.env.JET_ACK_WATCHDOG_ENABLED !== "false",
+    },
     hubrise: {
       // Phase AU — HubRise OAuth client. HubRise's dashboard calls
       // these "Application ID" and "Application Secret"; the OAuth

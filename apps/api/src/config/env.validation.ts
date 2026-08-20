@@ -103,6 +103,22 @@ const envSchema = z.object({
   JUST_EAT_WEBHOOK_SECRET: z.string().optional(),
   JUST_EAT_BASE_URL: z.string().url().default("https://uk.api.just-eat.io"),
 
+  // Phase JE — direct Just Eat Takeaway (JET Connect / Flyt). All optional so
+  // deploys without JET enabled still boot. See app.config.ts `jet` for what
+  // each one is and why menu/order keys are separate.
+  JET_MENU_API_KEY: z.string().optional(),
+  JET_ORDER_API_KEY: z.string().optional(),
+  JET_MENU_KEYS: z.string().optional(),
+  JET_ORDER_KEYS: z.string().optional(),
+  JET_DEFAULT_COUNTRY: z.string().optional(),
+  JET_WEBHOOK_SECRET: z.string().optional(),
+  JET_INBOUND_API_KEY: z.string().optional(),
+  JET_API_BASE: z.string().url().optional(),
+  JET_ORDER_STATUS_BASE: z.string().url().optional(),
+  JET_ORDERING_CONNECTOR_BASE: z.string().url().optional(),
+  JET_ACK_DEADLINE_SECONDS: z.coerce.number().optional(),
+  JET_ACK_WATCHDOG_ENABLED: z.string().optional(),
+
   // Phase AU — HubRise OAuth client credentials. Either the legacy
   // HUBRISE_APP_* names or the new HUBRISE_CLIENT_* names work; the
   // app config resolves whichever is set. Optional so deploys without
