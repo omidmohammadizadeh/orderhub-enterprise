@@ -80,8 +80,9 @@ const TARGETS: Target[] = [
   {
     id: "JUST_EAT",
     title: "Just Eat",
-    description: "Direct Just Eat push (skip via HubRise).",
-    wired: false,
+    description:
+      "Direct Just Eat push (JET Connect) — sends this menu to the brand's connected restaurant, bypassing HubRise.",
+    wired: true,
   },
   {
     id: "UBER_EATS",
@@ -217,6 +218,15 @@ export function PublishMenuModal({
             .catch((e: any) =>
               pushErrors.push(
                 `Uber Eats: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
+              ),
+            );
+        }
+        if (next.includes("JUST_EAT")) {
+          await menusClient
+            .publishToJustEat(menuId, { locationId: loc || undefined })
+            .catch((e: any) =>
+              pushErrors.push(
+                `Just Eat: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
               ),
             );
         }

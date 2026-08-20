@@ -28,6 +28,7 @@ import type { AiMenuDraft } from "./importers/ai-menu.classifier";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import { DeliverooMenuPublishService } from "../integrations/deliveroo/deliveroo-menu-publish.service";
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
+import { JetMenuPublishService } from "../integrations/jet/jet-menu-publish.service";
 import {
   ApplyChannelPricingDto,
   CreateMenuDto,
@@ -92,6 +93,7 @@ export class MenusController {
     private readonly hubriseCatalog: HubRiseCatalogService,
     private readonly deliverooMenu: DeliverooMenuPublishService,
     private readonly uberEatsMenu: UberEatsMenuPublishService,
+    private readonly jetMenu: JetMenuPublishService,
   ) {}
 
   // ── Phase AK — PLU + Imports ──────────────────────────────────────────────
@@ -331,6 +333,26 @@ export class MenusController {
       menuId,
       locationId: body?.locationId,
       brandId: body?.brandId,
+    });
+  }
+
+  @Post("menus/:menuId/publish/justeat")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Push this menu directly to Just Eat (JET Connect) for the brand's connected restaurant. " +
+      "Returns pending — JET's 202 only means the structure parsed; the real result arrives on the menu callback.",
+  })
+  publishJustEat(
+    @Param("menuId") menuId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body?: { locationId?: string; serviceTypes?: ("DELIVERY" | "COLLECTION")[] },
+  ) {
+    return this.jetMenu.publishMenu({
+      tenantId: user.tenantId,
+      menuId,
+      locationId: body?.locationId,
+      serviceTypes: body?.serviceTypes,
     });
   }
 

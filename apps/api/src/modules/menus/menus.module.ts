@@ -12,6 +12,7 @@ import { AiMenuImporter } from './importers/ai-menu.importer';
 import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
 import { UberEatsModule } from '../integrations/ubereats/ubereats.module';
+import { JetModule } from '../integrations/jet/jet.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { MenuAssignmentsModule } from './menu-assignments.module';
 import { VariantPriceResolverModule } from './variant-price-resolver.module';
@@ -31,6 +32,7 @@ import { QUEUES } from '@orderhub/shared';
     HubRiseModule,
     DeliverooModule,
     UberEatsModule,
+    JetModule,
     forwardRef(() => InventoryModule),
     // Phase BA — serving-assignment resolver (cycle-free: only Prisma).
     MenuAssignmentsModule,

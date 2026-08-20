@@ -13,6 +13,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { Public } from "../../../common/decorators/public.decorator";
 import { JetClientService } from "./jet-client.service";
 import { JetLifecycleService } from "./jet-lifecycle.service";
+import { JetMenuPublishService } from "./jet-menu-publish.service";
 
 // Phase JE-2 — JET Connect lifecycle webhooks.
 //
@@ -20,6 +21,7 @@ import { JetLifecycleService } from "./jet-lifecycle.service";
 //   POST /v1/integrations/jet/driver-status   → driver moved
 //   POST /v1/integrations/jet/store-status    → service type went offline/online
 //   POST /v1/integrations/jet/failed-order    → JET rejected an order (backup flow)
+//   POST /v1/integrations/jet/menu-callback   → asynchronous menu ingest result
 //
 // TWO THINGS THESE DO DIFFERENTLY FROM THE ORDER WEBHOOK:
 //
@@ -45,6 +47,7 @@ export class JetLifecycleController {
     private readonly prisma: PrismaService,
     private readonly client: JetClientService,
     private readonly lifecycle: JetLifecycleService,
+    private readonly menu: JetMenuPublishService,
   ) {}
 
   @Public()
@@ -81,6 +84,28 @@ export class JetLifecycleController {
     return this.handle("failed-order", body, auth, (p) =>
       this.lifecycle.handleFailedOrder(p),
     );
+  }
+
+  /**
+   * The asynchronous menu-ingest result.
+   *
+   * Lives here rather than with the publish service's own routes because this
+   * is a JET-calls-us endpoint and shares the dedupe/record plumbing below.
+   *
+   * Unlike the four notification webhooks this one takes a plain 200 rather
+   * than an echo — the spec's response for the menu callback is bare `OK`.
+   * It is nevertheless the single most important inbound message for the 97%
+   * menu-injection target: `POST /menus` answering 202 only means the JSON
+   * parsed, and a structurally valid menu can still be rejected downstream.
+   */
+  @Public()
+  @Post("menu-callback")
+  @HttpCode(HttpStatus.OK)
+  async menuCallback(@Body() body: any, @Headers("authorization") auth: string) {
+    await this.handle("menu-callback", body, auth, (p) =>
+      this.menu.handleMenuCallback(p),
+    );
+    return { ok: true };
   }
 
   private async handle(

@@ -462,6 +462,28 @@ export const menusClient = {
       }>(`/v1/menus/${menuId}/publish/deliveroo`, body ?? {})
       .then((r) => r.data),
 
+  // Phase JE-3 — direct Just Eat (JET Connect) publish. `pending: true` is the
+  // honest answer: JET's 202 only means the structure parsed, and the real
+  // ingest result arrives later on our menu-callback endpoint.
+  publishToJustEat: (
+    menuId: string,
+    body?: { locationId?: string; serviceTypes?: ("DELIVERY" | "COLLECTION")[] },
+  ) =>
+    apiClient
+      .post<{
+        ok: boolean;
+        pending: boolean;
+        restaurant: string;
+        menus: number;
+        categories: number;
+        items: number;
+        portions: number;
+        groups: number;
+        options: number;
+        warnings: string[];
+      }>(`/v1/menus/${menuId}/publish/justeat`, body ?? {})
+      .then((r) => r.data),
+
   archiveMenu: (menuId: string) =>
     apiClient.post<Menu>(`/v1/menus/${menuId}/archive`, {}).then((r) => r.data),
 
