@@ -8,15 +8,18 @@
 // Connections. Auto-refreshes every 10s; "Load more" pages by cursor.
 
 import { useMemo, useState } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
+  Check,
   CheckCircle2,
+  Copy,
   CreditCard,
   ChevronDown,
   ChevronRight,
   Info,
+  MapPin,
   Loader2,
   Plug,
   Package,
@@ -27,9 +30,64 @@ import {
   UtensilsCrossed,
   XCircle,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api/client";
+import { locationsClient } from "@/lib/api/locations.client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 const REFRESH_MS = 10_000;
+
+/**
+ * Render the loaded feed as plain text for pasting into a support ticket.
+ *
+ * Written for the reader on the other end — Uber, Deliveroo and JET all ask
+ * for log evidence, and what they need is a timestamp they can match against
+ * their own records plus the HTTP result. So: **UTC ISO timestamps** (never
+ * the browser's local time, which is unmatchable to a platform's logs), and
+ * the `details` blob included verbatim because that is where the order ids,
+ * event ids and HTTP statuses live.
+ *
+ * The header states the scope explicitly. A pasted log with no scope line
+ * invites the reader to assume it covers everything, and "no activity" then
+ * reads as "the integration is dead" rather than "wrong location selected".
+ */
+export function buildLogExport(
+  entries: LogEntry[],
+  scope: {
+    locationName: string | null;
+    locationId: string | null;
+    category: string;
+    channel: string;
+    status: string;
+  },
+): string {
+  const head = [
+    "OrderHub activity log export",
+    `Scope     : ${
+      scope.locationId
+        ? `${scope.locationName ?? "location"} (${scope.locationId})`
+        : "All locations this account can access"
+    }`,
+    `Filters   : category=${scope.category || "all"} channel=${scope.channel || "all"} status=${scope.status || "any"}`,
+    `Exported  : ${new Date().toISOString()}`,
+    `Entries   : ${entries.length} (newest first)`,
+    "",
+  ];
+  const lines = entries.map((e) => {
+    const when = new Date(e.createdAt).toISOString();
+    const head =
+      `[${when}] ${e.status.padEnd(7)} ${(e.channel ?? "-").padEnd(10)} ` +
+      `${e.action} — ${e.message}`;
+    // Details carry the platform order ids and HTTP statuses — the part a
+    // support reviewer actually cross-references. Never truncate them.
+    const detail =
+      e.details && Object.keys(e.details).length
+        ? `\n    ${JSON.stringify(e.details)}`
+        : "";
+    return head + detail;
+  });
+  return head.concat(lines).join("\n");
+}
 
 type LogEntry = {
   id: string;
@@ -213,6 +271,23 @@ export default function LogsPage() {
   const [tab, setTab] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [channelFilter, setChannelFilter] = useState<string>("");
+  const [copied, setCopied] = useState(false);
+
+  // The sidebar location switcher is the single source of truth for scope, so
+  // the feed follows it exactly like Orders and Inventory do. null = "all
+  // locations", which the API reads as "everything this user may see" — it
+  // never widens to the whole tenant (see activity-log-scope.spec.ts).
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
+
+  // Name only, for the scope chip and the pasted header. The switcher already
+  // lists only accessible locations, so this is a display lookup, not a check.
+  const locationsQuery = useQuery({
+    queryKey: ["locations"],
+    queryFn: () => locationsClient.list(),
+    staleTime: 5 * 60_000,
+  });
+  const locationName =
+    locationsQuery.data?.find((l) => l.id === locationId)?.name ?? null;
 
   const {
     data,
@@ -223,12 +298,13 @@ export default function LogsPage() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery<LogsPage>({
-    queryKey: ["activity-logs", tab, statusFilter, channelFilter],
+    queryKey: ["activity-logs", tab, statusFilter, channelFilter, locationId],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams();
       if (tab) params.set("category", tab);
       if (statusFilter) params.set("status", statusFilter);
       if (channelFilter) params.set("channel", channelFilter);
+      if (locationId) params.set("locationId", locationId);
       if (pageParam) params.set("cursor", String(pageParam));
       params.set("limit", "50");
       const res = await apiClient.get(`/v1/logs?${params.toString()}`);
@@ -244,6 +320,50 @@ export default function LogsPage() {
     [data],
   );
 
+  /**
+   * Copy what is on screen — the loaded pages, with the current filters and
+   * location applied. Deliberately not a fresh unfiltered fetch: the operator
+   * filters down to the thing they are chasing, and the copy should be that,
+   * not a surprise dump of everything.
+   *
+   * "Load more" first if you need more than the last 50.
+   */
+  const copyLogs = async () => {
+    const text = buildLogExport(entries, {
+      locationName,
+      locationId,
+      category: tab,
+      channel: channelFilter,
+      status: statusFilter,
+    });
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`Copied ${entries.length} log entries`);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // navigator.clipboard is unavailable on insecure origins and in some
+      // in-app browsers. Falling back to the old execCommand path means the
+      // button still works on a shop tablet rather than silently doing
+      // nothing, which is where this gets used.
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        setCopied(true);
+        toast.success(`Copied ${entries.length} log entries`);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toast.error("Couldn't copy — select the entries and copy manually.");
+      }
+    }
+  };
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="mb-1 flex items-center justify-between">
@@ -253,7 +373,36 @@ export default function LogsPage() {
             Everything the system did — menu publishes, order pushes, stock
             changes, store status — without opening server logs.
           </p>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-zinc-500">
+            <MapPin className="h-3.5 w-3.5 text-zinc-400" />
+            {locationId ? (
+              <>
+                Showing{" "}
+                <span className="font-medium text-zinc-700">
+                  {locationName ?? "selected location"}
+                </span>{" "}
+                only — switch location in the sidebar to change this.
+              </>
+            ) : (
+              <>Showing every location you have access to.</>
+            )}
+          </p>
         </div>
+        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={copyLogs}
+          disabled={entries.length === 0}
+          title="Copy the entries currently shown, with their filters and location, as plain text"
+          className="flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+        >
+          {copied ? (
+            <Check className="h-4 w-4 text-emerald-600" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+          {copied ? "Copied" : "Copy logs"}
+        </button>
         <button
           type="button"
           onClick={() => refetch()}
@@ -264,6 +413,7 @@ export default function LogsPage() {
           />
           Refresh
         </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -325,9 +475,11 @@ export default function LogsPage() {
         ) : entries.length === 0 ? (
           <div className="py-16 text-center text-sm text-zinc-500">
             No activity yet
-            {tab ? ` in ${TABS.find((t) => t.key === tab)?.label}` : ""}. Menu
+            {tab ? ` in ${TABS.find((t) => t.key === tab)?.label}` : ""}
+            {locationId ? ` at ${locationName ?? "this location"}` : ""}. Menu
             publishes, order pushes, stock changes and store pauses will show
             up here as they happen.
+            {locationId ? " Try another location in the sidebar switcher." : ""}
           </div>
         ) : (
           entries.map((e) => <Row key={e.id} entry={e} />)
