@@ -34,74 +34,9 @@ import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api/client";
 import { locationsClient } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { buildLogExport, type LogEntry } from "@/lib/logs-export";
 
 const REFRESH_MS = 10_000;
-
-/**
- * Render the loaded feed as plain text for pasting into a support ticket.
- *
- * Written for the reader on the other end — Uber, Deliveroo and JET all ask
- * for log evidence, and what they need is a timestamp they can match against
- * their own records plus the HTTP result. So: **UTC ISO timestamps** (never
- * the browser's local time, which is unmatchable to a platform's logs), and
- * the `details` blob included verbatim because that is where the order ids,
- * event ids and HTTP statuses live.
- *
- * The header states the scope explicitly. A pasted log with no scope line
- * invites the reader to assume it covers everything, and "no activity" then
- * reads as "the integration is dead" rather than "wrong location selected".
- */
-export function buildLogExport(
-  entries: LogEntry[],
-  scope: {
-    locationName: string | null;
-    locationId: string | null;
-    category: string;
-    channel: string;
-    status: string;
-  },
-): string {
-  const head = [
-    "OrderHub activity log export",
-    `Scope     : ${
-      scope.locationId
-        ? `${scope.locationName ?? "location"} (${scope.locationId})`
-        : "All locations this account can access"
-    }`,
-    `Filters   : category=${scope.category || "all"} channel=${scope.channel || "all"} status=${scope.status || "any"}`,
-    `Exported  : ${new Date().toISOString()}`,
-    `Entries   : ${entries.length} (newest first)`,
-    "",
-  ];
-  const lines = entries.map((e) => {
-    const when = new Date(e.createdAt).toISOString();
-    const head =
-      `[${when}] ${e.status.padEnd(7)} ${(e.channel ?? "-").padEnd(10)} ` +
-      `${e.action} — ${e.message}`;
-    // Details carry the platform order ids and HTTP statuses — the part a
-    // support reviewer actually cross-references. Never truncate them.
-    const detail =
-      e.details && Object.keys(e.details).length
-        ? `\n    ${JSON.stringify(e.details)}`
-        : "";
-    return head + detail;
-  });
-  return head.concat(lines).join("\n");
-}
-
-type LogEntry = {
-  id: string;
-  category: string;
-  channel: string | null;
-  action: string;
-  status: "SUCCESS" | "ERROR" | "INFO" | "WARNING";
-  message: string;
-  details: Record<string, unknown> | null;
-  locationId: string | null;
-  brandId: string | null;
-  brandName: string | null;
-  createdAt: string;
-};
 
 type LogsPage = { entries: LogEntry[]; nextCursor: string | null };
 
