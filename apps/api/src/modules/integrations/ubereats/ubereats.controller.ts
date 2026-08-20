@@ -504,6 +504,37 @@ export class UberEatsController {
     return this.orderActions.adjustPrice(user.tenantId, orderId, body);
   }
 
+  @Post(":connectionId/pos-data/patch")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "PATCH the store's Uber POS integration data" })
+  patchPosData(
+    @Param("connectionId") connectionId: string,
+    @Body() body: Record<string, unknown>,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.patchPosData(user.tenantId, connectionId, body ?? {});
+  }
+
+  /**
+   * Remove the POS integration from the Uber store (DELETE pos_data).
+   *
+   * Distinct from :connectionId/disconnect, which only unlinks our own row.
+   * This tells Uber to deprovision, which is what makes the
+   * store.deprovisioned webhook fire and lets the store be cleanly
+   * re-activated afterwards.
+   */
+  @Post(":connectionId/deprovision")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Deprovision the Uber store from our integration" })
+  deprovision(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.deprovision(user.tenantId, connectionId);
+  }
+
   @Post("order/:orderId/ready-time")
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")

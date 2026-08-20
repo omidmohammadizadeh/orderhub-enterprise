@@ -200,6 +200,18 @@ export class UberEatsClientService {
       /** Out-param: request() writes Uber's HTTP status here so callers can
        *  surface the acknowledgment ("200 OK") in the activity log. */
       meta?: { status?: number };
+      /**
+       * Send the Integration Activation Suite's API-version header. Uber's
+       * validation asks for pos_data to be called "with the latest API
+       * version 0.1", so it rides ONLY on those calls — every other endpoint
+       * works today without it and must not have its headers changed.
+       *
+       * ⚠️ The header NAME is not stated in the email and we have not seen it
+       * confirmed against a real request. `UBER_EATS_POS_DATA_VERSION_HEADER`
+       * overrides it and `UBER_EATS_POS_DATA_VERSION` the value, so if Uber
+       * names a different one it is an env change, not a deploy.
+       */
+      posDataVersion?: boolean;
     } = {},
   ): Promise<T> {
     const token = opts.userToken ?? (await this.getToken(opts.scopes ?? []));
@@ -210,6 +222,12 @@ export class UberEatsClientService {
         Accept: "application/json",
         ...(opts.body !== undefined
           ? { "Content-Type": "application/json" }
+          : {}),
+        ...(opts.posDataVersion
+          ? {
+              [process.env.UBER_EATS_POS_DATA_VERSION_HEADER ?? "X-Uber-Version"]:
+                process.env.UBER_EATS_POS_DATA_VERSION ?? "0.1",
+            }
           : {}),
       },
       ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
