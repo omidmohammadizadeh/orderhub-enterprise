@@ -33,12 +33,39 @@ function makeService(opts: {
         })),
     },
     activityLog: {
+      // Evaluates the composed where-clause rather than reading one field.
+      // The service now builds `AND: [filters, locationClause]` where the
+      // location half is an OR (location match, or a brand-scoped row with no
+      // location) — a fake that only looked at `where.locationId` would stop
+      // filtering entirely and quietly turn this leak guard green.
       findMany: async ({ where }: any) => {
-        if (where.locationId === undefined) return rows;
-        if (typeof where.locationId === "string") {
-          return rows.filter((r) => r.locationId === where.locationId);
-        }
-        return rows.filter((r) => where.locationId.in.includes(r.locationId));
+        const matchesLocation = (row: any, clause: any): boolean => {
+          if (clause.locationId !== undefined) {
+            const want = clause.locationId;
+            if (want === null) {
+              if (row.locationId !== null) return false;
+            } else if (typeof want === "string") {
+              if (row.locationId !== want) return false;
+            } else if (want?.in && !want.in.includes(row.locationId)) {
+              return false;
+            }
+          }
+          if (clause.brandId?.in && !clause.brandId.in.includes(row.brandId)) {
+            return false;
+          }
+          return true;
+        };
+        const matches = (row: any, clause: any): boolean => {
+          if (!clause || Object.keys(clause).length === 0) return true;
+          if (Array.isArray(clause.AND)) {
+            return clause.AND.every((c: any) => matches(row, c));
+          }
+          if (Array.isArray(clause.OR)) {
+            return clause.OR.some((c: any) => matchesLocation(row, c));
+          }
+          return matchesLocation(row, clause);
+        };
+        return rows.filter((r) => matches(r, where));
       },
     },
   };

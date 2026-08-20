@@ -158,6 +158,40 @@ export class ActivityLogService {
     return Array.from(ids);
   }
 
+  /**
+   * Brands operating at the given locations — used to surface brand-scoped
+   * (null-location) activity rows under a location filter. `null` locations
+   * means "unrestricted", in which case every brand in the tenant qualifies.
+   */
+  private async brandIdsForLocations(
+    tenantId: string,
+    locationIds: string[] | null,
+  ): Promise<string[]> {
+    try {
+      const brands = await this.prisma.brand.findMany({
+        where: {
+          tenantId,
+          deletedAt: null,
+          ...(locationIds
+            ? {
+                OR: [
+                  { primaryLocationId: { in: locationIds } },
+                  { locations: { some: { id: { in: locationIds } } } },
+                  { platformConnections: { some: { locationId: { in: locationIds } } } },
+                ],
+              }
+            : {}),
+        },
+        select: { id: true },
+      });
+      return brands.map((b: { id: string }) => b.id);
+    } catch {
+      // Never let this widen or break the feed — no brands just means no
+      // brand-scoped rows are added.
+      return [];
+    }
+  }
+
   async list(
     user: { userId: string; tenantId: string; role: string },
     opts: {
@@ -185,17 +219,54 @@ export class ActivityLogService {
     } else if (allowed !== null) {
       locationFilter = { in: allowed };
     }
+
+    // Brand-scoped events have NO location.
+    //
+    // A marketing campaign belongs to a brand, not a site — MarketingCampaign
+    // has tenantId and brandId and no locationId at all — so its rows are
+    // written with locationId null. An exact locationId match therefore hid
+    // every promotion create/revoke the moment a location was selected, which
+    // is how an operator ran an Uber promotion for certification and found
+    // nothing to export.
+    //
+    // A brand-scoped event belongs to every location that brand operates at,
+    // so include null-location rows whose brand runs at the location(s) in
+    // scope. Falls back to nothing extra when the brand set can't be resolved.
+    const scopedBrandIds = await this.brandIdsForLocations(
+      user.tenantId,
+      opts.locationId ? [opts.locationId] : allowed,
+    );
+    const locationClause =
+      locationFilter === undefined
+        ? {}
+        : {
+            OR: [
+              { locationId: locationFilter },
+              ...(scopedBrandIds.length
+                ? [{ locationId: null, brandId: { in: scopedBrandIds } }]
+                : []),
+            ],
+          };
+
     const rows = await (this.prisma as any).activityLog.findMany({
+      // Composed with AND rather than spread: the location clause carries its
+      // own OR, and a sibling OR in the same literal would silently replace it
+      // — the exact shape that leaked every tenant's orders onto the live
+      // board (orders.service findLiveOrders, fix 54ab962).
       where: {
-        tenantId: user.tenantId,
-        ...(opts.category ? { category: opts.category } : {}),
-        // Comma-separated channel list — the UI's "Online ordering" filter
-        // covers both ONLINE and DIRECT platform tags with one selection.
-        ...(opts.channel
-          ? { channel: { in: opts.channel.split(",").filter(Boolean) } }
-          : {}),
-        ...(locationFilter !== undefined ? { locationId: locationFilter } : {}),
-        ...(opts.status ? { status: opts.status } : {}),
+        AND: [
+          {
+            tenantId: user.tenantId,
+            ...(opts.category ? { category: opts.category } : {}),
+            // Comma-separated channel list — the UI's "Online ordering" filter
+            // covers both ONLINE and DIRECT platform tags with one selection.
+            ...(opts.channel
+              ? { channel: { in: opts.channel.split(",").filter(Boolean) } }
+              : {}),
+            ...(opts.status ? { status: opts.status } : {}),
+          },
+          locationClause,
+        ],
       },
       orderBy: { createdAt: "desc" },
       take: limit + 1,
