@@ -72,15 +72,46 @@ export class UberEatsConnectionService {
     // signal for each. We call it purely so that signal exists; the result is
     // logged and discarded, and a failure here must never block connecting,
     // because /v1/delivery/stores is the one this flow actually depends on.
+    const eatsMeta: { status?: number } = {};
     void this.client
-      .request<any>("GET", "/v1/eats/stores", { userToken: token })
+      .request<any>("GET", "/v1/eats/stores", { userToken: token, meta: eatsMeta })
       .then((eats) => {
         const count = Array.isArray(eats?.stores) ? eats.stores.length : 0;
         this.logger.log(`Uber Eats GET /v1/eats/stores → ${count} store(s)`);
+        // Recorded as an activity row, not just a server log: the operator has
+        // to EXPORT this as evidence for Uber's validators, and a line that
+        // only reaches Render is a line they cannot paste into the ticket.
+        this.activity?.record({
+          tenantId: (row as any).tenantId,
+          brandId: (row as any).brandId ?? null,
+          locationId: (row as any).locationId ?? null,
+          category: "CONNECTION",
+          channel: "UBER_EATS",
+          action: "stores.list",
+          status: "SUCCESS",
+          message:
+            `Get All Stores — GET /v1/delivery/stores → 200, ` +
+            `GET /v1/eats/stores → ${eatsMeta.status ?? 200} (${count} store(s))`,
+          details: {
+            deliveryStores: (json?.stores ?? []).length,
+            eatsStores: count,
+            eatsHttpStatus: eatsMeta.status ?? 200,
+          },
+        });
       })
-      .catch((e: any) =>
-        this.logger.warn(`Uber Eats GET /v1/eats/stores failed: ${e?.message}`),
-      );
+      .catch((e: any) => {
+        this.logger.warn(`Uber Eats GET /v1/eats/stores failed: ${e?.message}`);
+        this.activity?.record({
+          tenantId: (row as any).tenantId,
+          brandId: (row as any).brandId ?? null,
+          locationId: (row as any).locationId ?? null,
+          category: "CONNECTION",
+          channel: "UBER_EATS",
+          action: "stores.list",
+          status: "WARNING",
+          message: `Get All Stores — GET /v1/eats/stores failed: ${e?.message}`,
+        });
+      });
 
     const stores = (json?.stores ?? []) as any[];
     return stores.map((s) => ({
