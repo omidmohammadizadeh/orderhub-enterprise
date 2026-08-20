@@ -76,6 +76,10 @@ export class UberEatsReportingService {
         tenantId,
         platform: "UBER_EATS",
         externalStoreId: { not: null },
+        // Only stores still connected. A disconnected row keeps its
+        // externalStoreId for history, and including it here poisons the
+        // whole request — see the retry below for why that matters.
+        status: "connected",
       },
       orderBy: { createdAt: "asc" },
     });
@@ -84,27 +88,58 @@ export class UberEatsReportingService {
         "No Uber Eats stores are connected for this account.",
       );
     }
-    const storeUuids =
+    let storeUuids =
       dto.storeIds?.length
         ? dto.storeIds
-        : conns.map((c) => c.externalStoreId!) ;
+        : conns.map((c) => c.externalStoreId!);
 
-    const res = await this.client.request<{ workflow_id?: string }>(
-      "POST",
-      "/v1/eats/report",
-      {
+    // Uber rejects the ENTIRE report when ANY store in store_uuids is one this
+    // application cannot access — 403 user_not_allowed, naming the offending
+    // storeUUID. One stale store from a retired app therefore takes down
+    // reporting for every good store on the account, which is exactly what
+    // happened on 2026-08-20 (store e7d0086f… under the old Menu Manager app).
+    //
+    // So: read the store id out of Uber's own message, drop it, and try again.
+    // Only once, and only for a store we actually sent — a second failure is a
+    // real problem and should surface rather than loop.
+    const post = (uuids: string[]) =>
+      this.client.request<{ workflow_id?: string }>("POST", "/v1/eats/report", {
         scopes: SCOPES,
         body: {
           report_type: dto.reportType,
-          store_uuids: storeUuids,
+          store_uuids: uuids,
           start_date: dto.startDate,
           end_date: dto.endDate,
         },
-      },
-    );
+      });
+
+    let res: { workflow_id?: string } | null = null;
+    let excluded: string | null = null;
+    try {
+      res = await post(storeUuids);
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      const bad = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i)?.[1];
+      const inaccessible =
+        msg.includes("user_not_allowed") || msg.includes("authorisation failed");
+      const remaining = bad ? storeUuids.filter((u) => u !== bad) : [];
+      if (!inaccessible || !bad || remaining.length === 0 || remaining.length === storeUuids.length) {
+        throw err;
+      }
+      this.logger.warn(
+        `Uber Eats report: store ${bad} is not accessible to this application ` +
+          `— retrying without it (${remaining.length} store(s) left). ` +
+          `Disconnect that store to stop this happening.`,
+      );
+      excluded = bad;
+      storeUuids = remaining;
+      res = await post(storeUuids);
+    }
     const workflowId = res?.workflow_id ?? "";
     this.logger.log(
-      `Uber Eats report requested: ${dto.reportType} ${dto.startDate}→${dto.endDate} stores=${storeUuids.length} workflow=${workflowId}`,
+      `Uber Eats report requested: ${dto.reportType} ${dto.startDate}→${dto.endDate} ` +
+        `stores=${storeUuids.length} workflow=${workflowId}` +
+        (excluded ? ` (excluded inaccessible store ${excluded})` : ""),
     );
 
     // Track the job on the tenant's first connection (bounded list).
