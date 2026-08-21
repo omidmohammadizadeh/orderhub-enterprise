@@ -91,11 +91,29 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
   });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Which channel's settings are open. Null = none, so the page opens as a
+  // clean grid instead of six expanded forms.
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | null>(
+    null,
+  );
 
-  return (
-    <>
-      <ul className="space-y-1.5">
-        {PLATFORMS.map((platform) => {
+  // Tile status. DIRECT_ONLINE's connected-ness lives on the Brand row
+  // itself (directOrderingEnabled + onlineOrderingSlug), not on a
+  // BrandPlatformConnection — same rule the panel below uses.
+  const statusFor = (platform: PlatformId): ConnectionStatus => {
+    if (platform === "DIRECT_ONLINE") {
+      return currentBrand.directOrderingEnabled && currentBrand.onlineOrderingSlug
+        ? "connected"
+        : "not_connected";
+    }
+    return conns.find((c) => c.platform === platform)?.status ?? "not_connected";
+  };
+
+
+  // Each channel's settings panel. Lifted out of the old list so the tiles
+  // above can decide WHEN to show one, without changing WHAT any of these
+  // rows render — the connect flows are untouched.
+  const renderPanel = (platform: PlatformId) => {
           // DIRECT_ONLINE is special: its connection state lives on the
           // Brand row itself (directOrderingEnabled + onlineOrderingSlug),
           // not on BrandPlatformConnection. Clicking Connect/Edit opens
@@ -188,8 +206,33 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
               busy={upsert.isPending || disconnect.isPending}
             />
           );
-        })}
-      </ul>
+  };
+
+  return (
+    <>
+      {/* Channels as tiles rather than full-width strips: six stacked rows
+          made a page of near-identical bars where the only thing that
+          differed was a logo and a chip. A tile grid is scannable — the
+          operator is looking for one channel, not reading a list. */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] gap-2.5">
+        {PLATFORMS.map((platform) => (
+          <ChannelTile
+            key={platform}
+            platform={platform}
+            status={statusFor(platform)}
+            selected={selectedPlatform === platform}
+            onClick={() =>
+              setSelectedPlatform((cur) => (cur === platform ? null : platform))
+            }
+          />
+        ))}
+      </div>
+
+      {/* The selected channel's settings, rendered by the SAME row component
+          the list used. Collapsed by default so the grid stays scannable. */}
+      {selectedPlatform && (
+        <ul className="mt-3">{renderPanel(selectedPlatform)}</ul>
+      )}
 
       <BrandChannelPricingSources brandId={brandId} locationId={locationId} />
 
@@ -203,6 +246,64 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
         }}
       />
     </>
+  );
+}
+
+// A single channel tile. Square, logo-led and status-chipped — enough to
+// answer "is this one live?" at a glance, with the real settings a click away
+// in the panel below rather than crammed inside the tile.
+function ChannelTile({
+  platform,
+  status,
+  selected,
+  onClick,
+}: {
+  platform: PlatformId;
+  status: ConnectionStatus;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const live = status === "connected";
+  const bad = status === "error" || status === "suspended";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={
+        "flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border p-3 text-center transition-all " +
+        (selected
+          ? "border-zinc-900 bg-white ring-2 ring-zinc-900/10"
+          : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm")
+      }
+    >
+      <PlatformLogo platform={platform} size={40} />
+      <span className="line-clamp-2 text-xs font-semibold leading-tight text-zinc-900">
+        {platformLabel(platform)}
+      </span>
+      <span
+        className={
+          "rounded-full px-2 py-0.5 text-[10px] font-semibold " +
+          (live
+            ? "bg-emerald-50 text-emerald-700"
+            : bad
+              ? "bg-red-50 text-red-700"
+              : status === "pending"
+                ? "bg-amber-50 text-amber-700"
+                : "bg-zinc-100 text-zinc-500")
+        }
+      >
+        {live
+          ? "Connected"
+          : bad
+            ? status === "error"
+              ? "Error"
+              : "Suspended"
+            : status === "pending"
+              ? "Pending"
+              : "Not connected"}
+      </span>
+    </button>
   );
 }
 

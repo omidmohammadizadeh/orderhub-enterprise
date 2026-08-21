@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader2, Pencil, Plus, Store, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import {
   brandConnectionsClient,
   brandsClient,
@@ -154,10 +154,14 @@ export default function LocationBrandsPage() {
           }
         />
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-          {/* Master — the brand list stays on screen while a channel is
-              configured, which is the whole point of leaving the drawer. */}
-          <aside className="space-y-2">
+        <div className="space-y-5">
+          {/* Brands read left-to-right along the top, the way the Inventory
+              page switches brand. Toggling one swaps the channels beneath it,
+              so the brand you are working on is always the one in view. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+              Brand
+            </span>
             {brands.map((b, i) => {
               const isActive = active?.id === b.id;
               const live = liveCount(i);
@@ -167,10 +171,10 @@ export default function LocationBrandsPage() {
                   type="button"
                   onClick={() => setSelectedBrandId(b.id)}
                   className={
-                    "flex w-full items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors " +
+                    "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
                     (isActive
                       ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-white hover:border-zinc-300")
+                      : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300")
                   }
                 >
                   {b.logoUrl ? (
@@ -178,70 +182,54 @@ export default function LocationBrandsPage() {
                     <img
                       src={b.logoUrl}
                       alt=""
-                      className="h-8 w-8 shrink-0 rounded object-cover"
+                      className="h-4 w-4 rounded object-cover"
                     />
-                  ) : (
-                    <span
-                      className={
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded " +
-                        (isActive ? "bg-white/10" : "bg-zinc-100")
-                      }
-                    >
-                      <Store
-                        className={
-                          "h-4 w-4 " +
-                          (isActive ? "text-white/70" : "text-zinc-400")
-                        }
-                      />
-                    </span>
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">
-                      {b.name}
-                    </span>
-                    <span
-                      className={
-                        "block truncate text-[11px] " +
-                        (isActive ? "text-white/60" : "text-zinc-500")
-                      }
-                    >
-                      {live > 0
-                        ? `${live} channel${live === 1 ? "" : "s"} live`
-                        : "No channels yet"}
-                    </span>
+                  ) : null}
+                  {b.name}
+                  <span
+                    className={
+                      "rounded-full px-1.5 py-0.5 text-[10px] font-semibold " +
+                      (isActive
+                        ? "bg-white/15 text-white/80"
+                        : live > 0
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-zinc-100 text-zinc-500")
+                    }
+                  >
+                    {live}
                   </span>
                 </button>
               );
             })}
-
-            {adding ? (
-              <div className="rounded-lg border border-zinc-200 bg-white p-3">
-                <AddBrandForm
-                  name={newName}
-                  cuisine={newCuisine}
-                  pending={create.isPending}
-                  onName={setNewName}
-                  onCuisine={setNewCuisine}
-                  onCancel={() => setAdding(false)}
-                  onSubmit={() => create.mutate()}
-                />
-              </div>
-            ) : (
+            {adding ? null : (
               <button
                 type="button"
                 onClick={() => {
                   setErr(null);
                   setAdding(true);
                 }}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 py-2.5 text-xs font-medium text-zinc-500 hover:border-zinc-400 hover:text-zinc-700"
+                className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-500 hover:border-zinc-400 hover:text-zinc-700"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Add brand
               </button>
             )}
-          </aside>
+          </div>
 
-          {/* Detail — the selected brand's channels and their settings. */}
+          {adding && (
+            <div className="max-w-xs rounded-lg border border-zinc-200 bg-white p-3">
+              <AddBrandForm
+                name={newName}
+                cuisine={newCuisine}
+                pending={create.isPending}
+                onName={setNewName}
+                onCuisine={setNewCuisine}
+                onCancel={() => setAdding(false)}
+                onSubmit={() => create.mutate()}
+              />
+            </div>
+          )}
+
           {active && (
             <section className="min-w-0 rounded-lg border border-zinc-200 bg-white">
               <div className="flex items-center gap-2.5 border-b border-zinc-200 px-4 py-3">
