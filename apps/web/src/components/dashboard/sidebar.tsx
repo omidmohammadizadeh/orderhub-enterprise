@@ -163,7 +163,13 @@ const primaryNav: NavItem[] = [
   // Managers keep Printers: a jammed or offline printer is a mid-service
   // problem, and the person on shift is the one who has to clear it.
   { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: SHOP_FLOOR },
-  { href: "/dashboard/card-readers", label: "Card Readers", icon: Smartphone, roles: MANAGER_TIER },
+  // Card Readers sits with Printers for the same reason: it is counter
+  // hardware, and the person on shift is the one holding it. Tap to Pay makes
+  // that literal — the reader IS the staff member's own phone, and enrolling
+  // it (accepting Apple's terms on that device) can only be done by whoever
+  // is signed in on it. Gating this to managers meant a cashier could be
+  // handed a phone they were not allowed to set up.
+  { href: "/dashboard/card-readers", label: "Card Readers", icon: Smartphone, roles: SHOP_FLOOR },
   // Diagnostics for the Comet USB box. Lives next to Printers because it is
   // the same job: "is the hardware on this counter actually working?"
   { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: SHOP_FLOOR },
