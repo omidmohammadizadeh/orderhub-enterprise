@@ -133,6 +133,10 @@ export class DeliverooMenuPublishService {
       channel: "DELIVEROO",
     });
     const categories = await this.loadCategories(menuId, variantMap);
+    // Mispriced sizes ride out with the publish result, not just into the
+    // server log — the operator publishing the menu is the person who can
+    // fix them, and they are not reading Render logs.
+    const mispriced = this.lastMispricedSizes;
     if (categories.length === 0) {
       throw new BadRequestException(
         "This menu has no categories/items to publish.",
@@ -167,6 +171,12 @@ export class DeliverooMenuPublishService {
       coverImageUrl,
     });
     for (const w of warnings) this.logger.warn(`Deliveroo menu publish: ${w}`);
+    if (mispriced.length) {
+      warnings.push(
+        `${mispriced.length} product(s) have a size priced BELOW the product's base price, so Deliveroo will ` +
+          `advertise that cheaper size. Check these are totals, not supplements: ${mispriced.join(" | ")}`,
+      );
+    }
 
     this.logger.log(
       `Deliveroo menu publish ${menuId} → brand ${conn.externalBrandId} site ${conn.externalStoreId}: ` +
@@ -235,6 +245,10 @@ export class DeliverooMenuPublishService {
    * its own item at the 12-inch price with the 12-inch modifier groups (each
    * option priced from the size-aware pricesBySize map).
    */
+  /** Set by loadCategories: "Product: Size, Size" for sizes under the base
+   *  price. Read immediately after, on the same request. */
+  private lastMispricedSizes: string[] = [];
+
   private async loadCategories(
     menuId: string,
     variantMap: VariantPriceMap | null,
@@ -259,6 +273,7 @@ export class DeliverooMenuPublishService {
     const skusByItem = new Map<string, ProductSku[]>();
     // Sizes cheaper than their product's base price — see the warn below.
     const mispricedSizes: string[] = [];
+    this.lastMispricedSizes = mispricedSizes;
     for (const c of cats) {
       for (const link of c.items) {
         const it = link.item;

@@ -199,10 +199,18 @@ export function PublishMenuModal({
         ? pickedLocations
         : [locationId ?? ""];
       const pushErrors: string[] = [];
+      // A publish can succeed and still be wrong — a size priced below its
+      // product's base price makes Deliveroo advertise the cheaper size. The
+      // result carried that warning and this modal threw it away, so the only
+      // record was a server log the operator never sees.
+      const pushWarnings: string[] = [];
       for (const loc of marketplaceLocations) {
         if (next.includes("DELIVEROO")) {
           await menusClient
             .publishToDeliveroo(menuId, { locationId: loc || undefined })
+            .then((r) => {
+              for (const w of r?.warnings ?? []) pushWarnings.push(`Deliveroo: ${w}`);
+            })
             .catch((e: any) =>
               pushErrors.push(
                 `Deliveroo: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
@@ -233,6 +241,11 @@ export function PublishMenuModal({
       }
       if (pushErrors.length > 0) {
         throw new Error(Array.from(new Set(pushErrors)).join(" · "));
+      }
+      // Warnings are not failures: the menu IS live. Surface them separately
+      // so a real problem isn't dressed up as a failed publish.
+      for (const w of Array.from(new Set(pushWarnings))) {
+        toast(w, { icon: "⚠️", duration: 12000, style: { maxWidth: 560 } });
       }
     },
     onSuccess: () => {
