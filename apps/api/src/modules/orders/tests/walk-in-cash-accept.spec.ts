@@ -96,6 +96,33 @@ describe("maybeAutoAccept — walk-in cash", () => {
   });
 });
 
+describe("isWalkIn reaches the row before the accept gate reads it", () => {
+  // The guard was defeated in production by write ordering: create() called
+  // ingestCanonical (which fires maybeAutoAccept before returning) and only
+  // THEN wrote isWalkIn in a follow-up update. The gate read the row while the
+  // column was still its `false` default, let the order through, and printed
+  // CASH NOT PAID before anyone had touched the till.
+  it("writes isWalkIn in the ingest create, not a later update", async () => {
+    const src = require("fs").readFileSync(
+      require("path").join(__dirname, "../orders.service.ts"),
+      "utf8",
+    );
+    // The create data block must carry it...
+    expect(src).toContain("isWalkIn: options.isWalkIn ?? false,");
+    // ...and nothing may set it on the follow-up posUpdate, or the race is
+    // back the moment someone edits one of the two writers.
+    expect(src).not.toContain("posUpdate.isWalkIn");
+  });
+
+  it("passes the flag through from create()", () => {
+    const src = require("fs").readFileSync(
+      require("path").join(__dirname, "../orders.service.ts"),
+      "utf8",
+    );
+    expect(src).toContain('{ isWalkIn: (dto as any).isWalkIn === true }');
+  });
+});
+
 describe("setPaymentStatus — re-opens the accept gate", () => {
   function settleService(order: Record<string, unknown>) {
     const { svc, prisma } = makeService(order);

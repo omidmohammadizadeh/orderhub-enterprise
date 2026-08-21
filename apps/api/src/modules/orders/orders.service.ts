@@ -384,7 +384,7 @@ export class OrdersService {
     canonical: CanonicalOrder,
     tenantId: string,
     locationId: string,
-    options: { isSandbox?: boolean } = {},
+    options: { isSandbox?: boolean; isWalkIn?: boolean } = {},
   ): Promise<Order> {
     // Marketplace multi-brand (HubRise etc.): when the order didn't
     // arrive pre-pinned to a brand, match the payload's brand-name hint
@@ -501,6 +501,16 @@ export class OrdersService {
             fulfillmentType: canonical.fulfillmentType,
             status: "PENDING",
             isSandbox: options.isSandbox ?? false,
+            // Written HERE, not in create()'s follow-up posUpdate.
+            //
+            // ingestCanonical fires maybeAutoAccept before it returns, and
+            // maybeAutoAccept refuses to accept an unpaid walk-in cash order.
+            // Setting isWalkIn afterwards lost that race every time: the gate
+            // read the row while the column was still its `false` default, let
+            // the order through, and printed "CASH NOT PAID" before anyone had
+            // touched the till. Same class of bug as any other column added to
+            // the update instead of the ingest write.
+            isWalkIn: options.isWalkIn ?? false,
             customerName: canonical.customerInfo.name ?? null,
             customerPhone: canonical.customerInfo.phone ?? null,
             customerInfo: canonical.customerInfo as Prisma.InputJsonValue,
@@ -998,7 +1008,14 @@ export class OrdersService {
       brandId: effectiveBrandId,
     };
 
-    const order = await this.ingestCanonical(canonical as any, tenantId, dto.locationId);
+    const order = await this.ingestCanonical(
+      canonical as any,
+      tenantId,
+      dto.locationId,
+      // Must reach the row BEFORE the accept gate runs — see the note on the
+      // create above.
+      { isWalkIn: (dto as any).isWalkIn === true },
+    );
 
     // Persist the POS-specific structured columns + payment fields. We do
     // this in a follow-up update rather than threading every field through
@@ -1033,10 +1050,9 @@ export class OrdersService {
     }
     // Table Tabs — persist the table link so addRound() can append to the tab.
     if (dto.tableId !== undefined) posUpdate.tableId = dto.tableId;
-    // Counter trade — what the walk-in revenue report counts.
-    if ((dto as any).isWalkIn !== undefined) {
-      posUpdate.isWalkIn = !!(dto as any).isWalkIn;
-    }
+    // isWalkIn is deliberately NOT set here — it goes in via the ingest
+    // options above so it exists before the accept gate reads it. Writing it
+    // in both places would reintroduce the race the moment someone edited one.
     if (dto.paymentStatus !== undefined) {
       posUpdate.paymentStatus = dto.paymentStatus as any;
     }

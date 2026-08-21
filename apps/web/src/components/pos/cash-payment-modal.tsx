@@ -16,7 +16,7 @@
 // drawer failure is reported without blocking it — refusing to record money
 // the shop has physically taken would be worse than a drawer that didn't pop.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Banknote, Delete, Loader2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,22 @@ export function CashPaymentModal({
     [tendered, amount],
   );
   const short = tendered > 0 && tendered < amount;
+
+  // Reset every time it opens, or when it is handed a different order.
+  //
+  // The component returns null while closed but stays MOUNTED, so `pence` and
+  // `done` survived between openings: after settling one sale the next order
+  // opened straight onto the previous one's "Paid in cash / Change due £0.00"
+  // screen with no keypad, and the operator could not take the money. Fixed
+  // here rather than with a `key` at the call site so the Orders-board drawer
+  // gets the same repair.
+  useEffect(() => {
+    if (open) {
+      setPence("");
+      setDone(null);
+      setSaving(false);
+    }
+  }, [open, orderId]);
 
   if (!open || !orderId) return null;
 
