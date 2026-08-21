@@ -60,12 +60,21 @@ export function useAutoAccept(locationId?: string) {
       // Automation auto-accept) is what pulled them into New before payment.
       // Mirrors the isWaitingForPayment predicate on the board.
       if (
+        (o as any).paymentStatus !== "PAID" &&
         ((o as any).paymentMethod === "PAYMENT_LINK" ||
           (o as any).paymentMethod === "QR_CODE" ||
           // Card terminal (S700 / WisePad 3) collects payment now — hold until
           // the reader charge settles, same as a payment link.
-          (o as any).paymentMethod === "CARD_TERMINAL") &&
-        (o as any).paymentStatus !== "PAID"
+          (o as any).paymentMethod === "CARD_TERMINAL" ||
+          // Walk-in cash — the customer is at the counter and the keypad has
+          // not been settled yet. This hook is the location's Automation
+          // auto-accept and runs on EVERY dashboard that has the board open,
+          // so without this it re-accepted the order about a second after the
+          // POS placed it and printed CASH NOT PAID — even with the POS's own
+          // patch suppressed and the server-side gate holding. Four auto-accept
+          // paths guard this now: two server-side, and both client hooks.
+          ((o as any).isWalkIn === true &&
+            (o as any).paymentMethod === "CASH"))
       )
         continue;
       if (acceptedRef.current.has(o.id) || inFlightRef.current.has(o.id))
