@@ -12,6 +12,7 @@ import {
   smsConfigHint,
   smsProvider,
 } from "../sms/sms-provider";
+import { toE164 } from "../sms/phone";
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
@@ -289,8 +290,17 @@ export class NotificationsService {
       );
       return;
     }
+    // This path calls the provider directly (system notifications aren't
+    // billed to a wallet), so it doesn't get SmsService's normalisation for
+    // free — apply the same rule here rather than handing the carrier a
+    // national-format number it will reject.
+    const to = toE164(phone);
+    if (!to) {
+      this.logger.warn(`Skipping SMS — unusable phone number: ${phone}`);
+      return;
+    }
     await sendSmsViaProvider({
-      to: phone,
+      to,
       from: defaultSmsFrom(),
       body: message,
     });

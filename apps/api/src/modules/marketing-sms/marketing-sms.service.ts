@@ -3,6 +3,7 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SmsService } from "../sms/sms.service";
 import { WalletService } from "../wallet/wallet.service";
+import { toE164 } from "../sms/phone";
 
 // The unsubscribe footer PECR requires on marketing texts. Appended to every
 // send (unless the body already contains a STOP instruction). Its cost is
@@ -71,24 +72,11 @@ export class MarketingSmsService {
    * all collapse to one contact.
    */
   normalizePhone(raw: string | null | undefined): string | null {
-    if (!raw) return null;
-    let s = String(raw).trim().replace(/[^\d+]/g, "");
-    if (!s) return null;
-    if (s.startsWith("+")) {
-      s = "+" + s.slice(1).replace(/\D/g, "");
-    } else if (s.startsWith("00")) {
-      s = "+" + s.slice(2);
-    } else if (s.startsWith("0")) {
-      s = "+44" + s.slice(1); // UK national → international
-    } else if (s.startsWith("44")) {
-      s = "+" + s;
-    } else {
-      // Bare local number (e.g. "7700900123") — assume UK.
-      s = "+44" + s;
-    }
-    const digits = s.slice(1);
-    if (digits.length < 8 || digits.length > 15) return null;
-    return s;
+    // Delegates to the shared rule in sms/phone.ts. This method used to carry
+    // its own copy, which meant marketing and payment-link sends could disagree
+    // about what the same number normalises to — the kind of drift where one
+    // channel texts a customer fine and the other rejects them.
+    return toE164(raw);
   }
 
   // ── Contacts ────────────────────────────────────────────────────────────────

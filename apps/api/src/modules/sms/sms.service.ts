@@ -8,6 +8,7 @@ import {
   smsConfigHint,
   smsProvider,
 } from "./sms-provider";
+import { sanitiseSenderId, toE164 } from "./phone";
 
 export type SmsPurpose = "PAYMENT_LINK" | "MARKETING" | "OTHER";
 
@@ -63,6 +64,21 @@ export class SmsService {
         `SMS isn't set up yet. Add your ${smsProvider()} credentials (${smsConfigHint()}) to enable sending.`,
       );
     }
+
+    // Normalise the recipient ONCE, here, for every send path (payment link,
+    // marketing, caller ID, voice) rather than at each call site. Operators
+    // type numbers as they're written on a ticket — "07788 187 123" — and the
+    // carrier only accepts E.164, so an un-normalised number failed the send
+    // with `Invalid 'To' Phone Number` and left a live order uncollectable.
+    const to = toE164(args.to);
+    if (!to) {
+      throw new BadRequestException(
+        `"${String(args.to ?? "").trim()}" isn't a phone number we can text. Enter it as 07700 900123 or +447700900123.`,
+      );
+    }
+    // Everything downstream — provider call, sms_messages ledger, error log —
+    // uses the normalised number, so what we recorded is what we dialled.
+    args = { ...args, to };
 
     // Prepaid-wallet gate: refuse a billable send the balance can't cover BEFORE
     // calling the provider, so we never pay for a text the tenant hasn't funded.
@@ -151,8 +167,14 @@ export class SmsService {
         `SMS sender resolve failed for location ${args.locationId}: ${e?.message ?? e}`,
       );
     }
-    if (args.purpose === "MARKETING") return number || globalFrom;
-    return name || number || globalFrom;
+    // A sender name is cosmetic; it must never be able to block collection on
+    // a live order. Both values are cleaned to what the carrier will actually
+    // accept — an 11-char alphanumeric ID, or an E.164 number — and anything
+    // unusable falls through to the next option instead of failing the send.
+    const senderId = sanitiseSenderId(name);
+    const senderNumber = toE164(number);
+    if (args.purpose === "MARKETING") return senderNumber || globalFrom;
+    return senderId || senderNumber || globalFrom;
   }
 
   private async log(
