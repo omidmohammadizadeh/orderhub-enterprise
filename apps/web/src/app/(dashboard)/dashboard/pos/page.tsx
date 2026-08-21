@@ -90,6 +90,7 @@ import {
 } from "@/lib/printing/print-order";
 import { hasNativeBridge } from "@/lib/printing/bridge";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
+import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -610,34 +611,24 @@ export default function PosPage() {
       // scheduled date/time on the ticket, so the kitchen knows when
       // it's for, rather than being parked until their slot.
       //
-      // EXCEPTION: an unpaid "Payment link" order must NOT be accepted here.
-      // It belongs in the "Waiting for payment" tab and must not print until
-      // the customer pays — the Stripe webhook then moves it to New, accepts
-      // it, and prints the ticket. Accepting it now (client-side) is what made
-      // it jump straight to New/Accepted before payment.
-      const isUnpaidPaymentLink =
-        (payload.paymentMethod === "PAYMENT_LINK" ||
-          payload.paymentMethod === "QR_CODE" ||
-          // Card terminal (S700 / WisePad 3) collects payment now — it must
-          // wait in "Waiting for payment" until the reader charge settles, then
-          // settleTerminalPi accepts + prints it. Accepting here is what jumped
-          // it straight to Accepted + printed an unpaid ticket.
-          payload.paymentMethod === "CARD_TERMINAL") &&
-        payload.paymentStatus !== "PAID";
-      // Walk-in cash: the customer is at the counter, so the money is taken
-      // before the ticket means anything. Accepting here printed
-      // "CASH NOT PAID" the moment Place order was pressed. The cash keypad
-      // opens instead (see onSuccess) and settling re-fires accept + print
-      // server-side, so the ticket prints "CASH PAID" first time.
+      // EXCEPTION: anything WE are still collecting for must not be accepted
+      // here — payment link, QR, card terminal, walk-in cash. It belongs in
+      // "Waiting for payment" until the money lands, at which point the server
+      // accepts it and prints with the correct paid status.
       //
-      // Phone COLLECTION orders are also cash-and-unpaid but the customer is
-      // not here yet — they must keep printing immediately so the kitchen can
-      // start. isWalkIn is what separates the two.
+      // A brand-new order is always PENDING, which is what the shared
+      // predicate keys off.
+      const holdForPayment = isAwaitingOurPayment({
+        status: "PENDING",
+        paymentMethod: payload.paymentMethod,
+        paymentStatus: payload.paymentStatus,
+        isWalkIn: payload.isWalkIn,
+      });
       const isUnpaidWalkInCash =
         payload.isWalkIn === true &&
         payload.paymentMethod === "CASH" &&
         payload.paymentStatus !== "PAID";
-      if (!isUnpaidPaymentLink && !isUnpaidWalkInCash) {
+      if (!holdForPayment) {
         // Best-effort: if the location has auto-accept ON, the order is already
         // ACCEPTED server-side and this PATCH would 400 with "ACCEPTED →
         // ACCEPTED". That must NOT fail the placement (it would show an error

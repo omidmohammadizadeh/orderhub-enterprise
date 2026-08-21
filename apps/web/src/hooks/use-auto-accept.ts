@@ -25,6 +25,7 @@ import { ordersClient } from "../lib/api/orders.client";
 import { locationsClient } from "../lib/api/locations.client";
 import { useLiveOrdersFeed } from "./use-live-orders-feed";
 import { queryKeys } from "../lib/api/query-keys";
+import { isAwaitingOurPayment } from "../lib/orders/awaiting-payment";
 
 export function useAutoAccept(locationId?: string) {
   const acceptedRef = useRef<Set<string>>(new Set());
@@ -53,30 +54,9 @@ export function useAutoAccept(locationId?: string) {
     if (!locationId || !autoAccept || !orders) return;
     for (const o of orders) {
       if (String(o.status ?? "").toUpperCase() !== "PENDING") continue;
-      // Unpaid POS "Payment link" orders must NOT be auto-accepted — they
-      // belong in the "Waiting for payment" tab until the customer pays.
-      // The Stripe webhook (confirmPayment → payment.authorized) flips them
-      // to PAID and re-accepts/prints then. Accepting here (the location's
-      // Automation auto-accept) is what pulled them into New before payment.
-      // Mirrors the isWaitingForPayment predicate on the board.
-      if (
-        (o as any).paymentStatus !== "PAID" &&
-        ((o as any).paymentMethod === "PAYMENT_LINK" ||
-          (o as any).paymentMethod === "QR_CODE" ||
-          // Card terminal (S700 / WisePad 3) collects payment now — hold until
-          // the reader charge settles, same as a payment link.
-          (o as any).paymentMethod === "CARD_TERMINAL" ||
-          // Walk-in cash — the customer is at the counter and the keypad has
-          // not been settled yet. This hook is the location's Automation
-          // auto-accept and runs on EVERY dashboard that has the board open,
-          // so without this it re-accepted the order about a second after the
-          // POS placed it and printed CASH NOT PAID — even with the POS's own
-          // patch suppressed and the server-side gate holding. Four auto-accept
-          // paths guard this now: two server-side, and both client hooks.
-          ((o as any).isWalkIn === true &&
-            (o as any).paymentMethod === "CASH"))
-      )
-        continue;
+      // Held until WE have been paid — see isAwaitingOurPayment for the
+      // full list and why collection cash is not in it.
+      if (isAwaitingOurPayment(o as any)) continue;
       if (acceptedRef.current.has(o.id) || inFlightRef.current.has(o.id))
         continue;
       // Scheduled orders auto-accept on arrival just like any other —

@@ -31,6 +31,7 @@ import {
   applyReceiptOffer,
   printerRenderOptions,
 } from "../lib/printing/print-order";
+import { isAwaitingOurPayment } from "../lib/orders/awaiting-payment";
 
 const CANCELLED_STATUSES = new Set(["CANCELLED", "REJECTED", "CANCELED"]);
 
@@ -179,6 +180,16 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
 
     for (const o of orders) {
       const st = String(o.status ?? "").toUpperCase();
+
+      // Never print an order we are still collecting for. This hook prints
+      // straight off the live-orders list and had NO payment check, so it
+      // printed unpaid payment-link and walk-in tickets regardless of every
+      // accept guard — accepting and printing are separate pipelines and only
+      // one of them was being held.
+      //
+      // Skipped WITHOUT recording it as printed, so the moment payment lands
+      // the next pass picks it up and prints with the correct paid status.
+      if (isAwaitingOurPayment(o as any)) continue;
 
       if (!printedNewRef.current.has(o.id)) {
         if (btPrinters.length === 0) {

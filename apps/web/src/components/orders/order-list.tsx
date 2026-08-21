@@ -39,6 +39,7 @@ import { PaymentBadge } from "./order-card";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
+import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
 
 // Bucket → matching predicate + chip tone for the status pill.
 // One-to-one with the columns the old Kanban board surfaced.
@@ -124,25 +125,15 @@ const CHANNELS: Channel[] = [
 // nothing) until the Stripe webhook flips them to PAID server-side, at which
 // point they move into New and auto-accept/print.
 const isWaitingForPayment = (o: Order): boolean =>
-  // Table Tabs — an open dine-in tab is money on the floor: it sits in
-  // "Waiting for payment" for its whole life (through every round) until
-  // Pay & close settles it, at which point it's PAID + COMPLETED.
+  // Table Tabs — an open dine-in tab is money on the floor: it sits here for
+  // its whole life (through every round) until Pay & close settles it. That is
+  // list-view-only, which is why it is not in the shared predicate.
   (o.fulfillmentType === "DINE_IN" &&
     o.paymentStatus !== "PAID" &&
     o.status !== "COMPLETED" &&
     o.status !== "CANCELLED" &&
     o.status !== "REJECTED") ||
-  (o.status === "PENDING" &&
-    o.paymentStatus !== "PAID" &&
-    (o.paymentMethod === "PAYMENT_LINK" ||
-      o.paymentMethod === "QR_CODE" ||
-      // Card terminal (S700 / WisePad 3) collects payment now — holds here
-      // until the reader charge settles, same as a payment link.
-      o.paymentMethod === "CARD_TERMINAL" ||
-      // Walk-in cash — see the board's copy of this rule. Kept in step by
-      // hand because the two views are separate components; if they drift, an
-      // order shows in New on one screen and Waiting for payment on the other.
-      (o.isWalkIn === true && o.paymentMethod === "CASH")));
+  isAwaitingOurPayment(o as any);
 
 const BUCKETS: Bucket[] = [
   {

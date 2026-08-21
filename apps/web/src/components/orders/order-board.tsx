@@ -22,6 +22,7 @@ import { StatusColumn } from "./status-column";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
+import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
 
 // ── Board column model ──────────────────────────────────────────────────────
 //
@@ -52,23 +53,10 @@ type Column = {
 // still PENDING but paymentStatus isn't PAID. It stays out of New and prints
 // nothing until the Stripe webhook flips it to PAID (server-side), at which
 // point it moves into New and auto-accepts/prints.
+// Single source of truth, shared with the list view, the Automation
+// auto-accept hook and the tablet auto-print hook.
 const isWaitingForPayment = (o: Order): boolean =>
-  o.status === "PENDING" &&
-  // Hoisted out of the method list: it applies to every one of them, and
-  // hanging it off the last branch only (as an earlier edit of this did) left
-  // a PAID-but-still-PENDING link order stuck in this column.
-  o.paymentStatus !== "PAID" &&
-  (o.paymentMethod === "PAYMENT_LINK" ||
-    o.paymentMethod === "QR_CODE" ||
-    // Card terminal (S700 / WisePad 3) collects payment now — holds here until
-    // the reader charge settles, same as a payment link.
-    o.paymentMethod === "CARD_TERMINAL" ||
-    // Walk-in cash: the customer is at the counter with their money out. Until
-    // the keypad settles it this is not a kitchen job, so it belongs here
-    // rather than in New — and it must stay VISIBLE, because an abandoned
-    // walk-in is exactly the order staff need to find again to take the cash
-    // or void it. Kept in step with the same rule in order-list.tsx.
-    (o.isWalkIn === true && o.paymentMethod === "CASH"));
+  isAwaitingOurPayment(o as any);
 
 const COLUMNS: Column[] = [
   {
