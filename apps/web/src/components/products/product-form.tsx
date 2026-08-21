@@ -429,7 +429,7 @@ export function ProductForm({
                       {
                         name: "",
                         plu: genSkuPlu(plu, 0),
-                        price: "0.00",
+                        price: String(Number(basePrice) || 0),
                         modifierGroupIds: [],
                       },
                     ]);
@@ -471,7 +471,7 @@ export function ProductForm({
                       {
                         name: "",
                         plu: genSkuPlu(plu, skus.length),
-                        price: "0.00",
+                        price: String(Number(basePrice) || 0),
                         modifierGroupIds: [],
                       },
                     ])
@@ -504,6 +504,7 @@ export function ProductForm({
                   <SkuRow
                     key={i}
                     sku={sku}
+                    basePrice={Number(basePrice) || 0}
                     allGroups={groupsForSkus}
                     onChange={(next) =>
                       setSkus(skus.map((r, idx) => (idx === i ? next : r)))
@@ -681,7 +682,23 @@ export function ProductForm({
                   type="number"
                   step="0.01"
                   value={basePrice}
-                  onChange={(e) => setBasePrice(e.target.value)}
+                  onChange={(e) => {
+                    // The base is the anchor: each SKU keeps its supplement,
+                    // so nudging the base moves every size with it instead of
+                    // making the operator retype each one. Stored prices stay
+                    // absolute; only the anchor they were derived from moved.
+                    const prev = Number(basePrice) || 0;
+                    const next = Number(e.target.value) || 0;
+                    setBasePrice(e.target.value);
+                    if (next !== prev) {
+                      setSkus((cur) =>
+                        cur.map((r) => ({
+                          ...r,
+                          price: ((Number(r.price) || 0) - prev + next).toFixed(2),
+                        })),
+                      );
+                    }
+                  }}
                   className="h-9 text-sm tabular-nums"
                 />
               </Field>
@@ -1060,6 +1077,7 @@ function SkuRow({
   onAddExisting,
   onCreateNew,
   onEditGroup,
+  basePrice,
 }: {
   sku: {
     name: string;
@@ -1067,6 +1085,13 @@ function SkuRow({
     price: string;
     modifierGroupIds: string[];
   };
+  // The product's base price. SKU prices are STORED as the true total for
+  // that size — every marketplace publishes absolute prices, and the POS
+  // charges selectedSku.price directly — but they are EDITED here as a
+  // supplement on top of the base, which is how an operator thinks about a
+  // size ("make it a meal, +£3.99"). Converting at the input keeps the
+  // familiar mental model without changing a single downstream price.
+  basePrice: number;
   allGroups: import("@/lib/api/catalog.client").CatalogModifierGroup[];
   onChange: (next: {
     name: string;
@@ -1087,6 +1112,12 @@ function SkuRow({
   // of the same tenant, so that read "the import attached nothing" when the
   // import had attached them correctly. Four rounds of debugging went to the
   // importer because of it. An id that won't resolve is now shown as an id.
+  // Stored absolute -> displayed supplement. A blank box reads as +0.00, so
+  // a size that costs the same as the base needs nothing typed.
+  const total = Number(sku.price) || 0;
+  const rawSupplement = total - basePrice;
+  const supplement = Math.abs(rawSupplement) < 0.005 ? "" : rawSupplement.toFixed(2);
+
   const byId = new Map(allGroups.map((g) => [g.id, g]));
   const attached = sku.modifierGroupIds.map(
     (id) => byId.get(id) ?? { id, name: null, options: [] },
@@ -1101,14 +1132,40 @@ function SkuRow({
           onChange={(e) => onChange({ ...sku, name: e.target.value })}
           className="col-span-3 h-9 text-sm"
         />
-        <Input
-          type="number"
-          step="0.01"
-          placeholder="Price (£)"
-          value={sku.price}
-          onChange={(e) => onChange({ ...sku, price: e.target.value })}
-          className="col-span-3 h-9 text-sm tabular-nums"
-        />
+        <div className="col-span-3">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-zinc-400">
+              +£
+            </span>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={supplement}
+              onChange={(e) => {
+                const raw = e.target.value;
+                // Empty means "same as the base price", not zero pounds
+                // total — clearing the box must not make the size free.
+                const delta = raw === "" || raw === "-" ? 0 : Number(raw);
+                onChange({
+                  ...sku,
+                  price: Number.isFinite(delta)
+                    ? (basePrice + delta).toFixed(2)
+                    : sku.price,
+                });
+              }}
+              className="h-9 pl-8 text-sm tabular-nums"
+            />
+          </div>
+          <p
+            className={
+              "mt-1 text-[11px] tabular-nums " +
+              (total < 0 ? "text-red-600" : "text-zinc-500")
+            }
+          >
+            = £{total.toFixed(2)}
+          </p>
+        </div>
         <Input
           placeholder="PLU"
           value={sku.plu}
