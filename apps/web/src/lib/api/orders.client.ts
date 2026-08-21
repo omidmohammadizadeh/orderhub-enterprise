@@ -45,6 +45,10 @@ export interface Order {
   status: string;
   /** Phase AM payment fields. */
   paymentMethod?: string | null;
+  /** Counter trade placed at the till. Separates a walk-in taking cash at the
+   *  counter (hold until paid) from a phone COLLECTION order that is also cash
+   *  and also unpaid but must reach the kitchen immediately. */
+  isWalkIn?: boolean;
   paymentStatus?: string | null;
   customerInfo: { name: string; phone?: string; email?: string };
   deliveryAddress?: {

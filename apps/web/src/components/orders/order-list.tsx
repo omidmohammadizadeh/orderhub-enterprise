@@ -133,12 +133,16 @@ const isWaitingForPayment = (o: Order): boolean =>
     o.status !== "CANCELLED" &&
     o.status !== "REJECTED") ||
   (o.status === "PENDING" &&
+    o.paymentStatus !== "PAID" &&
     (o.paymentMethod === "PAYMENT_LINK" ||
       o.paymentMethod === "QR_CODE" ||
       // Card terminal (S700 / WisePad 3) collects payment now — holds here
       // until the reader charge settles, same as a payment link.
-      o.paymentMethod === "CARD_TERMINAL") &&
-    o.paymentStatus !== "PAID");
+      o.paymentMethod === "CARD_TERMINAL" ||
+      // Walk-in cash — see the board's copy of this rule. Kept in step by
+      // hand because the two views are separate components; if they drift, an
+      // order shows in New on one screen and Waiting for payment on the other.
+      (o.isWalkIn === true && o.paymentMethod === "CASH")));
 
 const BUCKETS: Bucket[] = [
   {
