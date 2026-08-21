@@ -1289,8 +1289,12 @@ export class PaymentsService {
     // that can't take live charges).
     const loc = order.location as any;
     const posAcct = (loc?.posStripeAccountId ?? "").trim();
-    const usePosOverride =
-      params.captureMethod === "automatic" && posAcct.startsWith("acct_");
+    // Automatic capture is unique to createOrderPaymentLink — the storefront,
+    // group orders, voice and WhatsApp all leave captureMethod unset and
+    // authorise for a staff Accept. So this flag isolates the payment-link
+    // flow from every other channel.
+    const isPaymentLink = params.captureMethod === "automatic";
+    const usePosOverride = isPaymentLink && posAcct.startsWith("acct_");
 
     let connect: { id: string | null; stripeAccountId: string } | null;
     let applicationFeePence: number;
@@ -1312,11 +1316,15 @@ export class PaymentsService {
       //     (÷100 for percent and ×100 for pounds→pence cancel out).
       //     The previous code divided by 100 again, so a 5% fee on a £1.20
       //     order rounded to 0 pence — which is why no fee was applied.
-      //   • Fixed → added ON TOP of the customer's bill as a "Service
-      //     charge" line (an add-on), and kept by the platform (included in
-      //     application_fee_amount) so the restaurant doesn't absorb it.
+      //   • Fixed → ALSO taken from the restaurant's payout, as part of the
+      //     same application_fee_amount. It used to be added on top of the
+      //     customer's bill as a visible "Service charge" line, which meant
+      //     the customer paid more for choosing a payment link than for the
+      //     identical order placed any other way. Online ordering still
+      //     surcharges (see the else branch) — this is deliberate and only
+      //     the payment-link flow changed.
       const pctPence = Math.max(0, Math.round(totalGbp * pct));
-      customerSurchargePence = fixedPence;
+      customerSurchargePence = 0;
       applicationFeePence = pctPence + fixedPence;
     } else {
       connect = await this.resolveConnectAccount(
@@ -1341,6 +1349,14 @@ export class PaymentsService {
       const breakdown = this.computeFeeBreakdownPence(feeSource, totalGbp);
       applicationFeePence = breakdown.applicationFeePence;
       customerSurchargePence = breakdown.customerSurchargePence;
+      // A location with no dedicated payment-link Stripe account still lands
+      // here, sharing online ordering's fee config. The platform's cut is
+      // unchanged (applicationFeePence already includes the fixed part) — it
+      // just comes out of the payout rather than the customer's bill, so the
+      // rule "a payment link never surcharges the customer" holds on BOTH
+      // branches. Online ordering itself is untouched: it never sets
+      // captureMethod, so isPaymentLink is false for it.
+      if (isPaymentLink) customerSurchargePence = 0;
     }
 
     // One line item for the cart subtotal + one each for delivery / tax /
@@ -1413,6 +1429,22 @@ export class PaymentsService {
     // Direct charges match the operator's mental model ("money goes to
     // the restaurant's account, my cut comes out of it") and avoid the
     // brittle transfers-capability dependency we hit on first deploy.
+    // With the surcharge line gone, the fee is no longer guaranteed to fit
+    // inside the charge: a fixed fee on a very small payment link could exceed
+    // the amount collected, and Stripe rejects that outright — which would
+    // block collection at the till rather than just earning us less. Clamp to
+    // what the customer is actually charged.
+    const chargedPence = lineItems.reduce(
+      (sum: number, li: any) => sum + li.price_data.unit_amount * (li.quantity ?? 1),
+      0,
+    );
+    if (applicationFeePence > chargedPence) {
+      this.logger.warn(
+        `Application fee ${applicationFeePence}p exceeds charge ${chargedPence}p on order ${order.id} — clamping`,
+      );
+      applicationFeePence = Math.max(0, chargedPence);
+    }
+
     const sessionParams: any = {
       mode: "payment",
       // Constrain to card only. Stripe's automatic_payment_methods would

@@ -707,9 +707,10 @@ function GeneralTab({
           </Field>
         </div>
         <p className="text-[11px] text-zinc-400">
-          Platform fee per payment-link charge. The percentage comes out of the
-          restaurant&apos;s payout; the fixed amount is added to the
-          customer&apos;s bill and kept by the platform. Both optional.
+          Platform fee per payment-link charge. Both parts come out of
+          the restaurant&apos;s payout &mdash; nothing is added to the
+          customer&apos;s bill, so a payment link costs the customer exactly
+          the same as any other way of paying. Both optional.
         </p>
       </div>
 
