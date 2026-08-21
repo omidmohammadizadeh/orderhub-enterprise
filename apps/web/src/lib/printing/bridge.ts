@@ -151,6 +151,20 @@ function strBytes(s: string): number[] {
   return out;
 }
 
+/**
+ * Centre `s` in `width` columns using real spaces on both sides.
+ *
+ * ALIGN_CENTER positions the glyphs but leaves a reverse-video highlight
+ * hugging them; the solid band has to be built from padding. Over-long text is
+ * truncated rather than wrapped — a band that runs onto a second line stops
+ * reading as a band. Mirrors centreOn() in the two server renderers.
+ */
+function centreOn(s: string, width: number): string {
+  const text = s.length > width ? s.slice(0, width) : s;
+  const left = Math.floor((width - text.length) / 2);
+  return " ".repeat(left) + text + " ".repeat(width - text.length - left);
+}
+
 function line(buf: number[], text: string) {
   for (const b of strBytes(text)) buf.push(b);
   buf.push(LF);
@@ -909,9 +923,13 @@ export function buildOrderReceipt(
 
   // ── Payment ───────────────────────────────────────────────────────
   if (payload?.paymentLabel) {
-    buf.push(...ALIGN_CENTER, ...BOLD_ON);
-    for (const w of wrap(String(payload.paymentLabel), cols)) line(buf, w);
-    buf.push(...BOLD_OFF, ...ALIGN_LEFT);
+    // Full-width reverse-video band, matching the two server renderers. This
+    // is the path the POS prints through, so it is the one the counter
+    // actually sees — it printed plain bold while the server renderers were
+    // already inverting, which is why tickets looked unhighlighted.
+    buf.push(...ALIGN_LEFT, ...sizeOn(1, 2), ...reverseOn());
+    line(buf, centreOn(String(payload.paymentLabel).trim(), cols));
+    buf.push(...reverseOff(), ...DOUBLE_OFF);
   } else if (payload?.paymentMethod) {
     buf.push(...ALIGN_CENTER, ...BOLD_ON);
     line(
@@ -975,6 +993,10 @@ const STAR_BOLD_OFF = [ESC, 0x46];
 const STAR_EXPAND_ON = [ESC, 0x69, 0x01, 0x01]; // ESC i 1 1 — double height+width
 const STAR_EXPAND_OFF = [ESC, 0x69, 0x00, 0x00];
 const STAR_CUT = [ESC, 0x64, 0x03]; // ESC d 3 — partial cut with feed
+// Star Line Mode inverse (white on black) — ESC 4 / ESC 5. The counterpart of
+// ESC/POS `GS B`, which Star firmware does not implement.
+const STAR_REVERSE_ON = [ESC, 0x34];
+const STAR_REVERSE_OFF = [ESC, 0x35];
 
 export function buildOrderReceiptStar(
   payload: any,
@@ -1163,9 +1185,11 @@ export function buildOrderReceiptStar(
 
   // ── Payment ───────────────────────────────────────────────────────
   if (payload?.paymentLabel) {
-    buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON);
-    for (const w of wrap(String(payload.paymentLabel), cols)) line(buf, w);
-    buf.push(...STAR_BOLD_OFF, ...STAR_ALIGN_LEFT);
+    // Same band on Star hardware. Star Line Mode has no `GS B`, so this uses
+    // ESC 4 / ESC 5 — the ESC/POS bytes would print as stray characters.
+    buf.push(...STAR_ALIGN_LEFT, ...STAR_REVERSE_ON);
+    line(buf, centreOn(String(payload.paymentLabel).trim(), cols));
+    buf.push(...STAR_REVERSE_OFF);
   } else if (payload?.paymentMethod) {
     buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON);
     line(
