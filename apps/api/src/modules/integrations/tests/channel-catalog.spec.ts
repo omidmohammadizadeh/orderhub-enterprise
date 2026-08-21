@@ -3,6 +3,7 @@ import {
   isChannelAvailableIn,
   CHANNELS,
   CHANNEL_COUNTRIES,
+  visibleChannelIds,
 } from "@orderhub/shared";
 
 // The country filter on the Brands page is a correctness guard, not a
@@ -93,5 +94,46 @@ describe("catalog integrity", () => {
         channelsForCountry(code).filter((c) => c.kind !== "direct").length,
       ).toBeGreaterThan(0);
     }
+  });
+});
+
+// The country filter is a page-level control, so it must never be able to
+// conceal a channel that is currently taking orders. Nothing is written when
+// it changes — but an invisible connection is an unmanageable one, and reads
+// to the operator as a lost connection.
+describe("visibleChannelIds — the filter can add, never hide", () => {
+  it("shows a live UK connection while viewing UAE channels", () => {
+    const ids = visibleChannelIds("AE", ["UBER_EATS"]);
+    expect(ids).toContain("UBER_EATS");
+    // ...without dropping what the country legitimately offers.
+    expect(ids).toEqual(expect.arrayContaining(["CAREEM", "TALABAT"]));
+  });
+
+  it("does not duplicate a connection the country already offers", () => {
+    const ids = visibleChannelIds("GB", ["UBER_EATS", "DELIVEROO"]);
+    expect(ids.filter((i) => i === "UBER_EATS")).toHaveLength(1);
+    expect(ids.filter((i) => i === "DELIVEROO")).toHaveLength(1);
+  });
+
+  it("matches the plain country list when nothing is connected", () => {
+    expect(visibleChannelIds("GB", [])).toEqual(
+      channelsForCountry("GB").map((c) => c.id),
+    );
+  });
+
+  it("keeps the country's channels first, with carried-over ones after", () => {
+    const ids = visibleChannelIds("GB", ["CAREEM"]);
+    expect(ids[0]).toBe("DIRECT_ONLINE");
+    expect(ids[ids.length - 1]).toBe("CAREEM");
+  });
+
+  it("still keeps location-level HubRise out, even when connected", () => {
+    expect(visibleChannelIds("GB", ["HUBRISE"])).not.toContain("HUBRISE");
+  });
+
+  it("ignores a platform the catalog has never heard of", () => {
+    expect(visibleChannelIds("GB", ["WOLT", ""])).toEqual(
+      channelsForCountry("GB").map((c) => c.id),
+    );
   });
 });

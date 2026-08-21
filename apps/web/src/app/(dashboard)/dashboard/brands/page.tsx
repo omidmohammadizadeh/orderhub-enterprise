@@ -26,7 +26,6 @@ import {
   locationsClient,
   type Brand,
   type Location,
-  type PlatformId,
 } from "@/lib/api/locations.client";
 import { BrandPlatformGrid } from "@/components/locations/brand-platform-grid";
 import { PlatformLogo } from "@/components/ui/platform-logo";
@@ -68,10 +67,6 @@ export default function BrandsPage() {
 
   const activeCountry = country ?? "GB";
   const channels = useMemo(() => channelsForCountry(activeCountry), [activeCountry]);
-  const platformIds = useMemo(
-    () => channels.map((c) => c.id as PlatformId),
-    [channels],
-  );
 
   return (
     <div className="space-y-6">
@@ -114,7 +109,6 @@ export default function BrandsPage() {
             key={b.id}
             brand={b}
             locations={locations}
-            platformIds={platformIds}
             country={activeCountry}
           />
         ))}
@@ -195,12 +189,10 @@ function AvailableChannels({
 function BrandCard({
   brand,
   locations,
-  platformIds,
   country,
 }: {
   brand: Brand;
   locations: Location[];
-  platformIds: PlatformId[];
   country: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -298,7 +290,7 @@ function BrandCard({
             <BrandPlatformGrid
               brand={brand}
               locationId={locationId}
-              platforms={platformIds}
+              country={country}
             />
           ) : (
             <p className="text-sm text-zinc-500">

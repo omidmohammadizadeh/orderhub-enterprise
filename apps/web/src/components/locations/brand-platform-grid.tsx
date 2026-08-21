@@ -13,7 +13,7 @@
 // ship in a later phase. The data flows through the
 // /v1/brand-connections backend.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, RefreshCw, Settings, Trash2 } from "lucide-react";
 import {
@@ -35,6 +35,7 @@ import { justEatClient } from "@/lib/api/justeat.client";
 import { apiClient } from "@/lib/api/client";
 import { StorePickerModal } from "@/components/locations/store-picker-modal";
 import toast from "react-hot-toast";
+import { visibleChannelIds } from "@orderhub/shared";
 
 // Phase AU — HubRise lives on Location (not Brand) because the access
 // token is generated against a HubRise location, not a brand. It's
@@ -59,24 +60,39 @@ interface Props {
   brand: Brand;
   locationId: string;
   /**
-   * Which channels to offer, in display order. The Brands page passes the
-   * set for the selected country so a UK brand is never shown Careem — every
-   * channel here needs credentials and a store id, so an unavailable one is
-   * an invitation to misconfigure rather than harmless clutter.
+   * Country whose channels to offer. The Brands page passes the selected
+   * country so a UK brand is never shown Careem — every channel here needs
+   * credentials and a store id, so an unavailable one invites a
+   * misconfiguration rather than being harmless clutter.
    *
-   * Omitted (the legacy call sites) keeps the original hardcoded list.
+   * Omitted (the legacy Locations drawer) keeps the original hardcoded list.
    */
-  platforms?: PlatformId[];
+  country?: string | null;
 }
 
-export function BrandPlatformGrid({ brand, locationId, platforms }: Props) {
-  const platformList = platforms ?? PLATFORMS;
+export function BrandPlatformGrid({ brand, locationId, country }: Props) {
   const qc = useQueryClient();
   const brandId = brand.id;
   const connsQuery = useQuery({
     queryKey: ["brand-connections", brandId],
     queryFn: () => brandConnectionsClient.listForBrand(brandId),
   });
+
+  // A country filter must never conceal a channel that is currently taking
+  // orders. Changing it writes nothing — the connection keeps working — but an
+  // invisible connection is an unmanageable one, and reads to the operator as
+  // a lost connection. Resolved here rather than at the call site so every
+  // caller gets the guarantee.
+  const platformList = useMemo(() => {
+    if (country === undefined) return PLATFORMS; // legacy callers, unfiltered
+    const connected = (connsQuery.data ?? [])
+      .filter(
+        (c) =>
+          c.locationId === locationId && c.status && c.status !== "not_connected",
+      )
+      .map((c) => c.platform as string);
+    return visibleChannelIds(country, connected) as PlatformId[];
+  }, [country, connsQuery.data, locationId]);
 
   // Phase AW — keep a live brand snapshot so the DIRECT_ONLINE row's
   // status (connected ↔ not_connected) updates immediately after the

@@ -126,3 +126,34 @@ export function isChannelAvailableIn(
 ): boolean {
   return channelsForCountry(country).some((c) => c.id === channel);
 }
+
+/**
+ * Channels to SHOW for a brand: everything available in the selected country,
+ * plus anything already connected that the country filter would otherwise hide.
+ *
+ * The filter is a page-level control, so an operator exploring UAE channels
+ * would otherwise watch a live Uber Eats connection disappear from a UK
+ * brand's grid. Nothing is written either way — the connection keeps taking
+ * orders — but it becomes unmanageable and looks deleted. Making the filter
+ * purely additive means it can offer more, never conceal something live.
+ *
+ * Location-level channels stay excluded even when connected (HubRise is
+ * configured in Location settings; showing it here is the duplicate-setup
+ * foot-gun the brand grid has always avoided).
+ */
+export function visibleChannelIds(
+  country: string | null | undefined,
+  connectedPlatforms: readonly string[],
+): ChannelId[] {
+  const base = channelsForCountry(country).map((c) => c.id);
+  const seen = new Set<string>(base);
+  const extra: ChannelId[] = [];
+  for (const platform of connectedPlatforms) {
+    if (seen.has(platform)) continue;
+    const def = channelById(platform);
+    if (!def || def.locationLevel) continue;
+    seen.add(def.id);
+    extra.push(def.id);
+  }
+  return [...base, ...extra];
+}
