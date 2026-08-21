@@ -26,7 +26,6 @@ import {
 } from "@/lib/api/locations.client";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
-import { BrandChannelPricingSources } from "./brand-channel-pricing-sources";
 import { UberEatsManageModal } from "@/components/locations/ubereats-manage-modal";
 import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-modal";
 import { JustEatManageModal } from "@/components/locations/justeat-manage-modal";
@@ -234,10 +233,10 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
         <ul className="mt-3">{renderPanel(selectedPlatform)}</ul>
       )}
 
-      <BrandChannelPricingSources brandId={brandId} locationId={locationId} />
 
       <BrandSettingsDrawer
         brand={currentBrand}
+        locationId={locationId}
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onSaved={() => {

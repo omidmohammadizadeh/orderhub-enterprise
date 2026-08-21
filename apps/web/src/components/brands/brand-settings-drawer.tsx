@@ -31,6 +31,7 @@ import {
   type DeliveryZone,
 } from "@/lib/api/pos.client";
 import { ImageUploader } from "@/components/products/image-uploader";
+import { ChannelVariantMenuPanel } from "@/components/locations/channel-variant-menu-panel";
 import { BrandCustomDomainPanel } from "./brand-custom-domain-panel";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -44,13 +45,23 @@ const STOREFRONT_EDIT_ROLES = new Set([...ADMIN_ROLES, "OWNER"]);
 
 interface Props {
   brand: Brand;
+  // Needed by the channel variant-menu picker: a menu is assigned per
+  // (brand, location, channel), so the storefront's menu source can't be
+  // resolved from the brand alone.
+  locationId?: string;
   open: boolean;
   onClose: () => void;
   // Hook for parent so it can refetch its brand list after save.
   onSaved?: (updated: Brand) => void;
 }
 
-export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
+export function BrandSettingsDrawer({
+  brand,
+  locationId,
+  open,
+  onClose,
+  onSaved,
+}: Props) {
   const user = useAuthStore((s) => s.user);
   const isAdmin = !!user && ADMIN_ROLES.has(user.role as string);
   const canEdit = !!user && STOREFRONT_EDIT_ROLES.has(user.role as string);
@@ -832,6 +843,22 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
               </Field>
             </div>
           </Section>
+
+          {/* The storefront's menu source. Lives here, in this channel's own
+              settings, for the same reason Uber Eats, Deliveroo and Just Eat
+              each keep theirs inside their Manage modal — per-channel
+              settings belong with the channel, not in a shared list at the
+              bottom of the page that gives no clue which channel it drives. */}
+          {locationId && (
+            <Section title="Menu published online">
+              <ChannelVariantMenuPanel
+                brandId={brand.id}
+                locationId={locationId}
+                channel="ONLINE"
+                variant="compact"
+              />
+            </Section>
+          )}
 
           {/* ── Storefront behaviour (moved from sidebar tab) ───── */}
           <Section title="Prep times advertised to customers">
