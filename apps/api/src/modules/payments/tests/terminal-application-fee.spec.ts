@@ -16,6 +16,7 @@ function makeService(locationRow: any) {
   // wants Stripe, sockets, the wallet…) and attach only what's under test.
   const svc = Object.create(PaymentsService.prototype) as any;
   svc.prisma = prisma;
+  svc.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
   svc.applicationFeePenceForBasket = jest.fn().mockResolvedValue(777);
   return { svc, prisma };
 }
@@ -84,5 +85,38 @@ describe("PaymentsService.terminalApplicationFeePence", () => {
       posTerminalApplicationFeeFixedMinor: -100,
     });
     await expect(svc.terminalApplicationFeePence("loc-1", 24.5)).resolves.toBe(0);
+  });
+});
+
+// Card-present takes the whole fee from the payout and never adds it to the
+// customer's bill, so a small charge is the edge case: Stripe rejects a fee
+// larger than the charge, which fails the tap at the counter rather than just
+// earning us less. Most reachable on a SPLIT part-payment, where the fixed
+// portion applies to each part rather than once per bill.
+describe("PaymentsService.terminalApplicationFeePence — fee cannot exceed the charge", () => {
+  it("clamps a fixed fee larger than a small counter sale", async () => {
+    const { svc } = makeService({
+      posTerminalApplicationFeePercent: 0,
+      posTerminalApplicationFeeFixedMinor: 30,
+    });
+    // A 10p sale can't carry a 30p fee.
+    await expect(svc.terminalApplicationFeePence("loc-1", 0.1)).resolves.toBe(10);
+  });
+
+  it("clamps the inherited online-ordering fee too", async () => {
+    const { svc } = makeService({
+      posTerminalApplicationFeePercent: null,
+      posTerminalApplicationFeeFixedMinor: null,
+    });
+    svc.applicationFeePenceForBasket = jest.fn().mockResolvedValue(500);
+    await expect(svc.terminalApplicationFeePence("loc-1", 1)).resolves.toBe(100);
+  });
+
+  it("leaves a fee that fits inside the charge alone", async () => {
+    const { svc } = makeService({
+      posTerminalApplicationFeePercent: 2,
+      posTerminalApplicationFeeFixedMinor: 10,
+    });
+    await expect(svc.terminalApplicationFeePence("loc-1", 24.5)).resolves.toBe(59);
   });
 });

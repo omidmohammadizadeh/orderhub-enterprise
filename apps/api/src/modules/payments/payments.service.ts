@@ -881,16 +881,32 @@ export class PaymentsService {
     })) as any;
     const pct = loc?.posTerminalApplicationFeePercent;
     const fixed = loc?.posTerminalApplicationFeeFixedMinor;
-    if (pct == null && fixed == null) {
-      return this.applicationFeePenceForBasket(locationId, basketGbp);
-    }
     // basketGbp is pounds and pct is whole-percent, so pounds×percent already
     // yields pence — the ÷100 for percent and ×100 for pounds→pence cancel.
     // Getting this wrong is what made a 5% fee round to 0p on small orders
     // before (see the payment-link branch).
     const pctPence = Math.max(0, Math.round(Number(basketGbp) * Number(pct ?? 0)));
     const fixedPence = Math.max(0, Math.round(Number(fixed ?? 0)));
-    return pctPence + fixedPence;
+    const feePence =
+      pct == null && fixed == null
+        ? await this.applicationFeePenceForBasket(locationId, basketGbp)
+        : pctPence + fixedPence;
+
+    // Card-present never adds the fee to the customer's bill — the reader is
+    // charged the order total and the whole fee comes out of the payout, same
+    // rule as payment links. That makes a small charge the edge case: a fixed
+    // fee can exceed what's collected (most easily on a SPLIT part-payment,
+    // where the fixed portion applies to each part), and Stripe rejects a fee
+    // larger than the charge — which would fail the tap at the counter rather
+    // than just earning us less.
+    const chargePence = Math.max(0, Math.round(Number(basketGbp) * 100));
+    if (feePence > chargePence) {
+      this.logger.warn(
+        `Terminal fee ${feePence}p exceeds charge ${chargePence}p at location ${locationId} — clamping`,
+      );
+      return chargePence;
+    }
+    return feePence;
   }
 
   /**
