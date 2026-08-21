@@ -58,9 +58,19 @@ const PLATFORMS: PlatformId[] = [
 interface Props {
   brand: Brand;
   locationId: string;
+  /**
+   * Which channels to offer, in display order. The Brands page passes the
+   * set for the selected country so a UK brand is never shown Careem — every
+   * channel here needs credentials and a store id, so an unavailable one is
+   * an invitation to misconfigure rather than harmless clutter.
+   *
+   * Omitted (the legacy call sites) keeps the original hardcoded list.
+   */
+  platforms?: PlatformId[];
 }
 
-export function BrandPlatformGrid({ brand, locationId }: Props) {
+export function BrandPlatformGrid({ brand, locationId, platforms }: Props) {
+  const platformList = platforms ?? PLATFORMS;
   const qc = useQueryClient();
   const brandId = brand.id;
   const connsQuery = useQuery({
@@ -95,7 +105,7 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
   return (
     <>
       <ul className="space-y-1.5">
-        {PLATFORMS.map((platform) => {
+        {platformList.map((platform) => {
           // DIRECT_ONLINE is special: its connection state lives on the
           // Brand row itself (directOrderingEnabled + onlineOrderingSlug),
           // not on BrandPlatformConnection. Clicking Connect/Edit opens

@@ -203,7 +203,41 @@ const PLATFORM_META: Record<
   // DIRECT/POS so the Order Hub identity stays consistent across the
   // three sister channels.
   DIRECT_ONLINE: { slug: "orderhub", bg: "#7c3aed", svg: (p) => <OrderHubLogo {...p} /> },
+  CAREEM:      { slug: "careem",     bg: "#05473c", svg: (p) => <CareemLogo {...p} /> },
+  TALABAT:     { slug: "talabat",    bg: "#ff5a00", svg: (p) => <TalabatLogo {...p} /> },
 };
+
+function CareemLogo({ size, rounded = true }: LogoProps) {
+  // Careem fallback — forest-green tile with the winking face reduced to its
+  // two recognisable strokes.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Careem">
+      <rect width="100" height="100" fill="#05473c" />
+      <circle cx="36" cy="30" r="10" fill="white" />
+      <path
+        d="M 62 20 A 26 26 0 0 1 84 32 L 72 41 A 14 14 0 0 0 62 34 Z"
+        fill="white"
+      />
+      <path
+        d="M 20 52 A 32 32 0 0 0 84 52 L 70 52 A 18 18 0 0 1 34 52 Z"
+        fill="white"
+      />
+    </svg>
+  );
+}
+
+function TalabatLogo({ size, rounded = true }: LogoProps) {
+  // talabat fallback — orange tile with the lowercase "t" mark.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="talabat">
+      <rect width="100" height="100" fill="#ff5a00" />
+      <path
+        d="M 45 18 L 45 38 L 60 38 L 62 48 L 45 48 L 45 66 Q 45 74 55 72 L 62 70 L 62 82 Q 40 90 33 70 L 33 48 L 24 48 Q 30 40 30 38 L 33 38 L 33 24 Q 36 19 45 18 Z"
+        fill="white"
+      />
+    </svg>
+  );
+}
 
 const LABELS: Record<string, string> = {
   JUST_EAT: "Just Eat",
@@ -217,6 +251,9 @@ const LABELS: Record<string, string> = {
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
   DIRECT_ONLINE: "Direct online ordering",
+  CAREEM: "Careem",
+  // Lowercase is their wordmark, not a typo.
+  TALABAT: "talabat",
 };
 
 interface Props {

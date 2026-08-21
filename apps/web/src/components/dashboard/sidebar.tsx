@@ -43,7 +43,8 @@ import {
   CalendarDays,
   MonitorSmartphone,
   Bot,
-  Star } from "lucide-react";
+  Star,
+  Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -174,6 +175,9 @@ const primaryNav: NavItem[] = [
   // the same job: "is the hardware on this counter actually working?"
   { href: "/dashboard/caller-id", label: "Caller ID", icon: PhoneCall, roles: SHOP_FLOOR },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin, roles: MANAGER_TIER },
+  // Brands own their channels, payout account and storefront identity, so they
+  // get a page of their own rather than living inside a location's edit modal.
+  { href: "/dashboard/brands", label: "Brands", icon: Store, roles: MANAGER_TIER },
   // Phase LG — activity feed: menu publishes, order pushes, stock changes,
   // store status — the HubRise-style "what did the system do" timeline.
   { href: "/dashboard/logs", label: "Logs", icon: ScrollText, roles: MANAGER_TIER },
