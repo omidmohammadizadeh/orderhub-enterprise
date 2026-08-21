@@ -229,9 +229,9 @@ export async function printOrderViaBridge(
   // shouts TO PAY so a check can never be mistaken for a paid receipt.
   if (opts?.billMode) {
     (payload as any).isBill = true;
-    (payload as any).paymentLabel = `*** BILL - TO PAY £${Number(
+    (payload as any).paymentLabel = `BILL - TO PAY £${Number(
       order?.total ?? 0,
-    ).toFixed(2)} ***`;
+    ).toFixed(2)}`;
   }
   const offer = await resolveReceiptOffer(order);
   applyReceiptOffer(payload, offer);

@@ -76,6 +76,22 @@ function padRight(s: string, width: number): string {
   return " ".repeat(width - s.length) + s;
 }
 
+/**
+ * Centre `s` inside `width` columns, padded with spaces on BOTH sides.
+ *
+ * Used for the reverse-video payment band: `alignCenter` would centre the
+ * printed glyphs but leave the highlight hugging them, so the band has to be
+ * built out of real spaces instead. Over-long labels are truncated rather
+ * than wrapped — a band that spills onto a second line stops reading as a
+ * band.
+ */
+function centreOn(s: string, width: number): string {
+  const text = s.length > width ? s.slice(0, width) : s;
+  const left = Math.floor((width - text.length) / 2);
+  const right = width - text.length - left;
+  return " ".repeat(left) + text + " ".repeat(right);
+}
+
 function colsForWidth(paperWidth: number): number {
   // 80mm ≈ 42 cols at font A, 58mm ≈ 32 cols.
   return paperWidth === 58 ? 32 : 42;
@@ -395,11 +411,27 @@ export function renderToEscPos(
   // Payment banner. Server pre-renders this as `paymentLabel` so every
   // client gets identical wording (PAID/CASH ON HANDOVER/etc).
   if (payload.paymentLabel) {
+    // Payment state as a solid black band, the full width of the paper.
+    //
+    // It used to print as centred bold text wrapped in asterisks, which on a
+    // busy pass reads as just more text — and "is this one paid?" is the one
+    // question a driver or counter cashier must not get wrong. Padding the
+    // label out to the full column count is what makes the inverted region
+    // span the paper instead of hugging the words.
+    //
+    // Double height, not double width: at double width a 32-column 58mm roll
+    // fits 16 characters, and "CASH NOT PAID" plus padding does not.
+    const label = String(payload.paymentLabel).trim();
+    const banner = centreOn(label, width);
     hr();
-    out.push(...alignCenter(), ...boldOn());
-    write(String(payload.paymentLabel));
+    out.push(...alignLeft(), ...textScale("LARGE"), ...reverseOn());
+    write(banner);
+    // Close the highlight BEFORE the line feed. A LF emitted while reverse
+    // video is on feeds an inverted line on some firmware, which prints as a
+    // ragged black tail hanging off the band.
+    out.push(...reverseOff());
     newline();
-    out.push(...boldOff(), ...alignLeft());
+    out.push(...textScale("NORMAL"));
   } else if (payload.paymentMethod) {
     hr();
     write(`Payment: ${payload.paymentMethod} (${payload.paymentStatus ?? ""})`);

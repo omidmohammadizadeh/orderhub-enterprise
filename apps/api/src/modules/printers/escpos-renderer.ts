@@ -20,6 +20,11 @@ const boldOn = () => [ESC, 0x45, 0x01];
 const boldOff = () => [ESC, 0x45, 0x00];
 const doubleSizeOn = () => [GS, 0x21, 0x11];
 const doubleSizeOff = () => [GS, 0x21, 0x00];
+// Reverse video (white on black). `GS B n` — the only way to get a solid
+// highlight band out of a thermal printer; bold alone is a weight change the
+// eye skates over on a busy pass.
+const reverseOn = () => [GS, 0x42, 0x01];
+const reverseOff = () => [GS, 0x42, 0x00];
 const cut = () => [GS, 0x56, 0x42, 0x00];
 const openCashDrawer = () => [ESC, 0x70, 0x00, 0x40, 0xc8];
 
@@ -62,6 +67,22 @@ function pad(s: string, width: number): string {
 function padRight(s: string, width: number): string {
   if (s.length >= width) return s.slice(0, width);
   return " ".repeat(width - s.length) + s;
+}
+
+/**
+ * Centre `s` inside `width` columns, padded with spaces on BOTH sides.
+ *
+ * Used for the reverse-video payment band: `alignCenter` would centre the
+ * printed glyphs but leave the highlight hugging them, so the band has to be
+ * built out of real spaces instead. Over-long labels are truncated rather
+ * than wrapped — a band that spills onto a second line stops reading as a
+ * band.
+ */
+function centreOn(s: string, width: number): string {
+  const text = s.length > width ? s.slice(0, width) : s;
+  const left = Math.floor((width - text.length) / 2);
+  const right = width - text.length - left;
+  return " ".repeat(left) + text + " ".repeat(right);
 }
 
 function colsForWidth(paperWidth: number): number {
@@ -325,11 +346,27 @@ export function renderToEscPos(
   }
 
   if (payload.paymentLabel) {
+    // Payment state as a solid black band, the full width of the paper.
+    //
+    // It used to print as centred bold text wrapped in asterisks, which on a
+    // busy pass reads as just more text — and "is this one paid?" is the one
+    // question a driver or counter cashier must not get wrong. Padding the
+    // label out to the full column count is what makes the inverted region
+    // span the paper instead of hugging the words.
+    //
+    // Double height, not double width: at double width a 32-column 58mm roll
+    // fits 16 characters, and "CASH NOT PAID" plus padding does not.
+    const label = String(payload.paymentLabel).trim();
+    const banner = centreOn(label, width);
     hr();
-    out.push(...alignCenter(), ...boldOn());
-    write(String(payload.paymentLabel));
+    out.push(...alignLeft(), ...textScale("LARGE"), ...reverseOn());
+    write(banner);
+    // Close the highlight BEFORE the line feed. A LF emitted while reverse
+    // video is on feeds an inverted line on some firmware, which prints as a
+    // ragged black tail hanging off the band.
+    out.push(...reverseOff());
     newline();
-    out.push(...boldOff(), ...alignLeft());
+    out.push(...textScale("NORMAL"));
   } else if (payload.paymentMethod) {
     hr();
     write(`Payment: ${payload.paymentMethod} (${payload.paymentStatus ?? ""})`);

@@ -23,18 +23,26 @@ export function paymentLabelFor(
   method: string | null | undefined,
   status: string | null | undefined,
 ): string {
+  // No asterisks: the renderers print this as a full-width reverse-video
+  // band (white on black), so decoration in the string would sit INSIDE the
+  // highlight and just eat characters. Wording is deliberately two words —
+  // "<METHOD> PAID" / "<METHOD> NOT PAID" — so the state is readable across
+  // the counter at a glance rather than parsed.
   if (method === "CARD") {
-    if (status === "PAID" || status === "AUTHORIZED") return "*** PAID (CARD) ***";
+    if (status === "PAID" || status === "AUTHORIZED") return "CARD PAID";
     if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
-      return "*** REFUNDED ***";
-    return "*** CARD NOT PAID ***";
+      return "REFUNDED";
+    return "CARD NOT PAID";
   }
   if (method === "CASH") {
-    if (status === "PAID") return "*** PAID (CASH) ***";
-    return "*** CASH ON HANDOVER ***";
+    if (status === "PAID") return "CASH PAID";
+    // Covers collection AND delivery: cash is owed until someone takes it.
+    // Marking the order paid on the POS flips this to "CASH PAID" on the
+    // next print and on the order card.
+    return "CASH NOT PAID";
   }
-  if (status === "PAID") return "*** PAID ***";
-  return "*** UNPAID ***";
+  if (status === "PAID") return "PAID";
+  return "NOT PAID";
 }
 
 /**

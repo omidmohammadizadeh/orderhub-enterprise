@@ -126,18 +126,21 @@ function paymentBannerFor(
   method: string | null | undefined,
   status: string | null | undefined,
 ): string {
+  // Kept in step with paymentLabelFor() in receipt.formatter.ts — four copies
+  // of this wording exist and they must agree, or the same order reads
+  // differently depending on which path printed it.
   if (method === "CARD") {
-    if (status === "PAID" || status === "AUTHORIZED") return "*** PAID (CARD) ***";
+    if (status === "PAID" || status === "AUTHORIZED") return "CARD PAID";
     if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
-      return "*** REFUNDED ***";
-    return "*** CARD NOT PAID ***";
+      return "REFUNDED";
+    return "CARD NOT PAID";
   }
   if (method === "CASH") {
-    if (status === "PAID") return "*** PAID (CASH) ***";
-    return "*** CASH ON HANDOVER ***";
+    if (status === "PAID") return "CASH PAID";
+    return "CASH NOT PAID";
   }
-  if (status === "PAID") return "*** PAID ***";
-  return "*** UNPAID ***";
+  if (status === "PAID") return "PAID";
+  return "NOT PAID";
 }
 
 export function buildReceiptDocument(order: OrderPrintData): PrintDocument {
