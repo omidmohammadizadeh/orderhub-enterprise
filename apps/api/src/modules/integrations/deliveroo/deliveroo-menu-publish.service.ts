@@ -33,6 +33,7 @@ import {
   buildSizeGroup,
   needsPerSizeExpansion,
   sizeBasePrice,
+  sizesUnderBase,
 } from "../shared/publish-sizes";
 
 // Publish a per-size-priced product as one item whose Size options open
@@ -256,6 +257,8 @@ export class DeliverooMenuPublishService {
     const singleItemIds = new Set<string>();
     const skuGroupIds = new Set<string>();
     const skusByItem = new Map<string, ProductSku[]>();
+    // Sizes cheaper than their product's base price — see the warn below.
+    const mispricedSizes: string[] = [];
     for (const c of cats) {
       for (const link of c.items) {
         const it = link.item;
@@ -263,6 +266,8 @@ export class DeliverooMenuPublishService {
         const skus = this.readSkus(it);
         if (skus.length > 0) {
           skusByItem.set(it.id, skus);
+          const under = sizesUnderBase(skus, Number((it as any).basePrice));
+          if (under.length) mispricedSizes.push(`${it.name}: ${under.join(", ")}`);
           for (const s of skus)
             for (const gid of s.modifierGroups ?? []) skuGroupIds.add(gid);
         } else {
@@ -348,6 +353,19 @@ export class DeliverooMenuPublishService {
           : "") +
         (restrictedTo ? ` [variant restricts to brand ${brandLabel}]` : ""),
     );
+    if (mispricedSizes.length) {
+      // The publish is still correct arithmetic — the item goes out at its
+      // cheapest size and each size adds the difference — but that cheapest
+      // size is now the advertised price. A size below the base price is
+      // almost always a supplement typed into a field that stores the total,
+      // and it reaches the customer as the headline price of the item.
+      this.logger.warn(
+        `Deliveroo publish menu=${menuId}: ${mispricedSizes.length} product(s) have a size priced BELOW the product's base price, ` +
+          `so the item will advertise that cheaper size — check these are meant to be totals, not supplements: ` +
+          mispricedSizes.join(" | "),
+      );
+    }
+
     if (links > 0 && kept === 0) {
       throw new BadRequestException(
         dropped.variant > 0

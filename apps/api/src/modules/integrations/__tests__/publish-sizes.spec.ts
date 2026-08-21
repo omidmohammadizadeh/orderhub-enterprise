@@ -2,6 +2,7 @@ import {
   needsPerSizeExpansion,
   buildSizeGroup,
   sizeBasePrice,
+  sizesUnderBase,
   SIZE_GROUP_NAME,
 } from "../shared/publish-sizes";
 import { buildDeliverooMenu } from "../deliveroo/deliveroo-menu.transformer";
@@ -314,5 +315,47 @@ describe("nested sizes reach the wire", () => {
     expect(groups.map((g: any) => g.id)).toEqual(
       expect.arrayContaining(["item1__sizes", "crust__10", "crust__12"]),
     );
+  });
+});
+
+// A size priced below the product's base price means someone typed a
+// supplement into a field that stores the total. The publish still succeeds —
+// the maths is self-consistent — so without this nothing flags that a live
+// marketplace is now advertising the wrong price.
+describe("sizesUnderBase", () => {
+  const priced = (rows: Array<[string, number]>) =>
+    rows.map(([name, price]) => ({ name, price, modifierGroups: [] }));
+
+  it("names a size that undercuts the base price", () => {
+    // Quarter Chicken: £6.49, "Make it meal" stored as £3.99.
+    expect(
+      sizesUnderBase(priced([["On its own", 6.49], ["Make it meal", 3.99]]), 6.49),
+    ).toEqual(["Make it meal"]);
+  });
+
+  it("says nothing when every size is at or above the base", () => {
+    expect(
+      sizesUnderBase(priced([["On its own", 6.49], ["Make it meal", 10.48]]), 6.49),
+    ).toEqual([]);
+  });
+
+  it("treats a size equal to the base as fine", () => {
+    expect(sizesUnderBase(priced([["On its own", 6.49]]), 6.49)).toEqual([]);
+  });
+
+  it("ignores a penny of float noise rather than crying wolf", () => {
+    expect(sizesUnderBase(priced([["9 inch", 8.99 - 0.001]]), 8.99)).toEqual([]);
+  });
+
+  it("stays quiet for a sized product with no base price of its own", () => {
+    // A 10"/12"/14" pizza prices only its sizes — the cheapest IS the truth.
+    expect(sizesUnderBase(priced([["9 inch", 8.99], ["12 inch", 11.99]]), 0)).toEqual([]);
+    expect(sizesUnderBase(priced([["9 inch", 8.99]]), null)).toEqual([]);
+  });
+
+  it("names every offender, not just the first", () => {
+    expect(
+      sizesUnderBase(priced([["a", 1], ["b", 9], ["c", 2]]), 6),
+    ).toEqual(["a", "c"]);
   });
 });

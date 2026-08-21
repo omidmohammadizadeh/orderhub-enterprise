@@ -129,3 +129,33 @@ export function buildSizeGroup(
     options,
   };
 }
+
+/**
+ * Sizes priced BELOW the product's own base price.
+ *
+ * A marketplace item is published at its cheapest size, with each size priced
+ * as the difference from it — so one size mistyped as a supplement rather than
+ * a total silently becomes the item's advertised price. THE GRILL STOP's
+ * Quarter Chicken went out on Deliveroo at £3.99 because a "Make it meal"
+ * size was set to £3.99 instead of £10.48, and nothing said so: the publish
+ * succeeded, the maths was self-consistent, and the wrong price sat on a live
+ * marketplace.
+ *
+ * Under the supplement model a well-formed sized product always has one size
+ * AT the base price and the rest above it, so anything below is a data error
+ * worth naming. Returns the offending size names; empty when all is well.
+ *
+ * Reporting only — deliberately does NOT alter what is published. Re-anchoring
+ * on the base price would push the mistyped size to a negative option price,
+ * which marketplaces reject, taking the whole menu down over one bad field.
+ */
+export function sizesUnderBase(
+  skus: PublishSku[],
+  basePrice: number | null | undefined,
+): string[] {
+  const base = Number(basePrice) || 0;
+  if (base <= 0) return []; // no base set — the cheapest size is the only truth
+  return skus
+    .filter((s) => (Number(s.price) || 0) < base - 0.005)
+    .map((s) => s.name);
+}
