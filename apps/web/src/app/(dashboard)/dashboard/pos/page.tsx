@@ -390,24 +390,45 @@ export default function PosPage() {
   }, [selectedLocationId, menuQuery.data, menuQuery.isError, online]);
 
   const categories = menuData?.categories ?? [];
+  // No fall-back to the first category: null means "no category chosen yet",
+  // which is what puts the category tiles on screen. Falling back to
+  // categories[0] would drop staff straight into Grilled Meats and leave every
+  // other category behind a horizontal scroll.
   const activeCategory = useMemo(
-    () => categories.find((c) => c.id === activeCategoryId) ?? categories[0] ?? null,
+    () => categories.find((c) => c.id === activeCategoryId) ?? null,
     [categories, activeCategoryId],
   );
 
+  // Searching looks across the WHOLE menu, not just the open category. With a
+  // category step in front of the items, a search scoped to one category would
+  // find nothing until you had already guessed where the item lived — which is
+  // the opposite of what someone types a search for. Each hit carries its own
+  // category so its tile colour still resolves.
+  const searchResults = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return [];
+    const out: Array<{ item: MenuItem; categoryId: string; categoryName: string }> = [];
+    for (const c of categories) {
+      for (const link of c.items ?? []) {
+        const it = link.item;
+        if (!it || !it.isAvailable) continue;
+        if (
+          it.name.toLowerCase().includes(q) ||
+          (it.description ?? "").toLowerCase().includes(q)
+        ) {
+          out.push({ item: it, categoryId: c.id, categoryName: c.name });
+        }
+      }
+    }
+    return out;
+  }, [categories, search]);
+
   const products: MenuItem[] = useMemo(() => {
     if (!activeCategory) return [];
-    const items = (activeCategory.items ?? [])
+    return (activeCategory.items ?? [])
       .map((link) => link.item)
       .filter((it) => it && it.isAvailable);
-    const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
-      (it) =>
-        it.name.toLowerCase().includes(q) ||
-        (it.description ?? "").toLowerCase().includes(q),
-    );
-  }, [activeCategory, search]);
+  }, [activeCategory]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const submitMutation = useMutation({
@@ -1328,33 +1349,96 @@ export default function PosPage() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search items in this category…"
+                  placeholder="Search the whole menu…"
                   className="w-full rounded-lg border border-zinc-200 bg-white px-9 py-2 text-sm focus:border-zinc-900 focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {categories.map((cat) => (
+            {/* Where in the menu we are. Only once a category is open — the
+                category grid is its own signpost. */}
+            {activeCategory && !search.trim() && (
+              <div className="flex items-center gap-2">
                 <button
-                  key={cat.id}
                   type="button"
-                  onClick={() => setActiveCategoryId(cat.id)}
-                  className={`flex-shrink-0 rounded-lg border font-medium ${sizing.chip} ${
-                    activeCategory?.id === cat.id
-                      ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300"
-                  }`}
+                  onClick={() => setActiveCategoryId(null)}
+                  className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white font-medium text-zinc-700 hover:border-zinc-300 ${sizing.chip}`}
                 >
-                  {cat.name}
+                  <ChevronLeft className="h-4 w-4" />
+                  All categories
                 </button>
-              ))}
-            </div>
+                <span className="truncate text-sm font-semibold text-zinc-900">
+                  {activeCategory.name}
+                </span>
+              </div>
+            )}
 
             {/* Extra bottom padding on a phone so the last row of products
                 isn't sitting under the fixed cart bar. */}
             <div className="flex-1 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-3 pb-24">
-              {products.length === 0 ? (
+              {search.trim() ? (
+                // Searching jumps straight to items, wherever they live.
+                searchResults.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <Search className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
+                    <p className="text-sm text-zinc-400">
+                      Nothing on the menu matches &ldquo;{search.trim()}&rdquo;.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={`grid gap-2 ${sizing.grid}`}>
+                    {searchResults.map((hit) => (
+                      <ProductCard
+                        key={`${hit.categoryId}:${hit.item.id}`}
+                        product={hit.item}
+                        colour={resolveTileColour(
+                          tileColours,
+                          hit.item.id,
+                          hit.categoryId,
+                        )}
+                        onClick={() => onProductClick(hit.item)}
+                        sizing={sizing}
+                      />
+                    ))}
+                  </div>
+                )
+              ) : !activeCategory ? (
+                // Step one: pick a category. Every category is on screen at
+                // once instead of hidden behind a horizontal scroll, which is
+                // what made the old strip slow to work during a rush.
+                categories.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
+                    <p className="text-sm text-zinc-400">This menu has no categories.</p>
+                  </div>
+                ) : (
+                  <div className={`grid gap-2 ${sizing.grid}`}>
+                    {categories.map((cat) => {
+                      const count = (cat.items ?? []).filter(
+                        (l: any) => l.item && l.item.isAvailable,
+                      ).length;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setActiveCategoryId(cat.id)}
+                          className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-zinc-200 bg-white text-center transition-colors hover:border-zinc-900 hover:bg-zinc-50 ${sizing.pad}`}
+                          style={{ minHeight: "5.5rem" }}
+                        >
+                          <span
+                            className={`font-semibold leading-tight text-zinc-900 ${sizing.name}`}
+                          >
+                            {cat.name}
+                          </span>
+                          <span className={`text-zinc-400 ${sizing.price}`}>
+                            {count} item{count === 1 ? "" : "s"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )
+              ) : products.length === 0 ? (
                 <div className="py-12 text-center">
                   <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
                   <p className="text-sm text-zinc-400">No items in this category.</p>
