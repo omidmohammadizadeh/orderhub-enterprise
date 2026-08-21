@@ -69,6 +69,11 @@ const CAN_ENABLE_ROLES = new Set([
   "OWNER",
   "DARK_KITCHEN_MANAGER",
   "MANAGER",
+  // STAFF reaches Card Readers too — Tap to Pay turns the cashier's own phone
+  // into the reader, and enrolment can only be done by whoever is signed in on
+  // that device. Apple asks that EVERY eligible user sees the announcement at
+  // least once, and a cashier who can enable the feature is eligible.
+  "STAFF",
 ]);
 
 export function TapToPaySplash() {
