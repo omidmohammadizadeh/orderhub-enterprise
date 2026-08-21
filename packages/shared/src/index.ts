@@ -10,4 +10,3 @@ export * from "./lib/menu-pricing";
 export * from "./lib/nested-modifiers";
 export * from "./lib/pricing-variants";
 export * from "./lib/text";
-export * from "./constants/channels";

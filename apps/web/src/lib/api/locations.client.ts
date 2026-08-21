@@ -311,8 +311,6 @@ export type PlatformId =
   | "JUST_EAT"
   | "UBER_EATS"
   | "DELIVEROO"
-  | "CAREEM"
-  | "TALABAT"
   | "HUBRISE"
   | "STUART"
   | "UBER_DIRECT"
