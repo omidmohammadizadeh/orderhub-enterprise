@@ -280,6 +280,8 @@ export class OrdersService {
           metadata: true,
           paymentMethod: true,
           paymentStatus: true,
+          isWalkIn: true,
+          locationId: true,
         },
       });
       if (!fresh) return;
@@ -320,7 +322,26 @@ export class OrdersService {
         payMethod === "CARD" &&
         payStatus !== "PAID" &&
         payStatus !== "AUTHORIZED";
-      if (unpaidPaymentLink || unpaidCardTerminal || unpaidDirectCard) {
+      // Walk-in cash: the customer is AT THE COUNTER, so the money is taken
+      // before the ticket is worth printing. Accepting at placement printed
+      // "CASH NOT PAID" the instant the operator hit Place order, which is
+      // both wrong and unhelpful — the kitchen copy then contradicts the till.
+      // The POS opens the cash keypad instead and setPaymentStatus re-fires
+      // this once the cash is in, so the ticket prints "CASH PAID" first time.
+      //
+      // Scoped to isWalkIn deliberately: a phone COLLECTION order is also
+      // cash-and-unpaid, but the customer is not in the shop yet, so it must
+      // keep printing immediately for the kitchen to start cooking.
+      const unpaidWalkInCash =
+        (fresh as any).isWalkIn === true &&
+        payMethod === "CASH" &&
+        payStatus !== "PAID";
+      if (
+        unpaidPaymentLink ||
+        unpaidCardTerminal ||
+        unpaidDirectCard ||
+        unpaidWalkInCash
+      ) {
         this.logger.log(
           `Auto-accept skipped order ${orderId} — awaiting payment (${payMethod}/${payStatus})`,
         );
@@ -2108,6 +2129,18 @@ export class OrdersService {
       scheduledFor: updated.scheduledFor?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     });
+    // Money just landed — re-run the accept gate.
+    //
+    // maybeAutoAccept holds an order PENDING while WE are the ones collecting
+    // (payment link, QR, card terminal, direct card, walk-in cash). Every one
+    // of those needs something to knock on the door once payment succeeds:
+    // the Stripe paths have the payment.authorized listener, and the terminal
+    // has settleTerminalPi. Cash taken at the counter had nothing, so a
+    // guarded walk-in order would have sat PENDING for ever and never
+    // printed — the guard is only safe BECAUSE of this call.
+    if (paymentStatus === "PAID" && updated.status === "PENDING") {
+      void this.maybeAutoAccept(orderId, tenantId, order.locationId);
+    }
     return updated;
   }
 

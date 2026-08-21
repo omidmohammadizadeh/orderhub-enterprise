@@ -52,6 +52,7 @@ import {
   type TileSize,
 } from "@/lib/pos/tile-colours";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
+import { CashPaymentModal } from "@/components/pos/cash-payment-modal";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
 import { PaymentLinkModal } from "@/components/pos/payment-link-modal";
 import { PromosModal } from "@/components/pos/promos-modal";
@@ -216,6 +217,9 @@ export default function PosPage() {
     "DARK_KITCHEN_MANAGER",
   ].includes(String(posRole));
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
+  // Walk-in cash keypad. Held separately from chargeOrder so a card charge and
+  // a cash settle can never share a modal state and pop the wrong one.
+  const [cashOrder, setCashOrder] = useState<{ id: string; amount: number } | null>(null);
   // Table Tabs — true while the charge modal is settling a tab (so its close
   // handler completes the order + frees the table when paid).
   const [closingTab, setClosingTab] = useState(false);
@@ -620,7 +624,20 @@ export default function PosPage() {
           // it straight to Accepted + printed an unpaid ticket.
           payload.paymentMethod === "CARD_TERMINAL") &&
         payload.paymentStatus !== "PAID";
-      if (!isUnpaidPaymentLink) {
+      // Walk-in cash: the customer is at the counter, so the money is taken
+      // before the ticket means anything. Accepting here printed
+      // "CASH NOT PAID" the moment Place order was pressed. The cash keypad
+      // opens instead (see onSuccess) and settling re-fires accept + print
+      // server-side, so the ticket prints "CASH PAID" first time.
+      //
+      // Phone COLLECTION orders are also cash-and-unpaid but the customer is
+      // not here yet — they must keep printing immediately so the kitchen can
+      // start. isWalkIn is what separates the two.
+      const isUnpaidWalkInCash =
+        payload.isWalkIn === true &&
+        payload.paymentMethod === "CASH" &&
+        payload.paymentStatus !== "PAID";
+      if (!isUnpaidPaymentLink && !isUnpaidWalkInCash) {
         // Best-effort: if the location has auto-accept ON, the order is already
         // ACCEPTED server-side and this PATCH would 400 with "ACCEPTED →
         // ACCEPTED". That must NOT fail the placement (it would show an error
@@ -648,6 +665,7 @@ export default function PosPage() {
         total: payload.total,
         offline: false,
         dineIn: null,
+        walkInCash: isUnpaidWalkInCash,
       };
     },
     onSuccess: (
@@ -659,6 +677,7 @@ export default function PosPage() {
         total,
         offline: wasOffline,
         dineIn,
+        walkInCash,
       },
       variables,
     ) => {
@@ -698,6 +717,12 @@ export default function PosPage() {
       // Card-terminal orders: pop the reader charge modal for the new order.
       if (!edited && paymentMethod === "CARD_TERMINAL" && id) {
         setChargeOrder({ id, amount: Number(total ?? 0) });
+      }
+      // Walk-in cash: take the money now. The order is deliberately still
+      // PENDING and unprinted; settling in this modal flips it to PAID, which
+      // re-fires accept + print server-side with the band reading CASH PAID.
+      if (!edited && walkInCash && id) {
+        setCashOrder({ id, amount: Number(total ?? 0) });
       }
       // Payment-link AND QR-code orders: pop the QR / copy-link modal for the
       // customer to pay remotely (order stays pending until the webhook flips
@@ -1489,6 +1514,38 @@ export default function PosPage() {
           }}
         />
       )}
+
+      {/* Walk-in cash keypad — opens after a walk-in cash order is placed.
+          The order is intentionally PENDING and unprinted until this settles:
+          the server holds the accept gate, and marking it PAID re-opens it so
+          the ticket prints CASH PAID rather than CASH NOT PAID. */}
+      <CashPaymentModal
+        open={!!cashOrder}
+        orderId={cashOrder?.id ?? null}
+        locationId={selectedLocationId ?? null}
+        amount={cashOrder?.amount ?? 0}
+        onClose={() => {
+          // Closing WITHOUT taking the money leaves the order PENDING and
+          // unprinted on purpose — it is genuinely unpaid, and the Orders
+          // board still offers "Take cash". Say so rather than letting it
+          // look like the order vanished.
+          const pending = cashOrder;
+          setCashOrder(null);
+          if (pending) {
+            setSubmitFeedback(
+              "Order saved but not paid — take the cash from the Orders board to print the ticket.",
+            );
+            window.setTimeout(() => setSubmitFeedback(null), 8000);
+          }
+        }}
+        onPaid={() => {
+          // No cache to invalidate here — this page is the till, not the
+          // board, and the board has its own socket subscription.
+          setCashOrder(null);
+          setSubmitFeedback("Cash taken — ticket printing.");
+          window.setTimeout(() => setSubmitFeedback(null), 4000);
+        }}
+      />
 
       {/* Stripe Terminal charge modal — opens after a "Card terminal" order
           is placed; charges it to the S700/WisePOS reader. */}
