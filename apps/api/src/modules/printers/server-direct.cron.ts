@@ -110,6 +110,12 @@ export class ServerDirectPrintCron {
             !!printer.supportsCashDrawer &&
             !!(job.payload?.openCashDrawer ?? printer.defaults?.openCashDrawer),
           printLogo: !!printer.defaults?.printLogo,
+          // Item block sizing + weight, straight off the printer's own
+          // settings. These were saved by the settings drawer and read by
+          // nothing until now, so "Large" printed identically to "Standard".
+          fontScale: printer.defaults?.fontScale,
+          modifierScale: printer.defaults?.modifierScale,
+          boldItems: printer.defaults?.boldItems,
         });
 
         for (let copy = 0; copy < (job.copies || 1); copy++) {

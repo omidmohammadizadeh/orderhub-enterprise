@@ -744,6 +744,9 @@ function PrinterSettingsDrawer({
   const [modifierScale, setModifierScale] = useState<TextScale>(
     (d.modifierScale as any) ?? "NORMAL",
   );
+  // Item headlines have always printed bold. Kept opt-OUT so no existing
+  // printer changes behaviour on save; shops that want a flat ticket untick it.
+  const [boldItems, setBoldItems] = useState<boolean>(d.boldItems !== false);
   const [openDrawer, setOpenDrawer] = useState<boolean>(!!d.openCashDrawer);
   const [autoCut, setAutoCut] = useState<boolean>(printer.supportsCut);
   // Command language. Star printers speak Star Line Mode; Epson/Sunmi/other
@@ -773,6 +776,7 @@ function PrinterSettingsDrawer({
           fontScale,
           printFont,
           modifierScale,
+          boldItems,
           // Keep the legacy flag consistent for any older reader.
           largeFont: fontScale !== "NORMAL",
           openCashDrawer: openDrawer,
@@ -937,6 +941,11 @@ function PrinterSettingsDrawer({
                 label="Print logo"
                 value={printLogo}
                 onChange={setPrintLogo}
+              />
+              <Toggle
+                label="Bold item names"
+                value={boldItems}
+                onChange={setBoldItems}
               />
               <Toggle
                 label="Print QR code"

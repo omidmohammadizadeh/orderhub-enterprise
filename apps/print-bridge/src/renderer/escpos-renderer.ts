@@ -81,10 +81,51 @@ function colsForWidth(paperWidth: number): number {
   return paperWidth === 58 ? 32 : 42;
 }
 
+/**
+ * Thermal text sizing for the item block.
+ *
+ * `GS ! n` packs two multipliers into one byte: the low nibble is height,
+ * the high nibble is width. So double-height alone is 0x01 and
+ * double-height-plus-width is 0x11 — which is exactly what the operator
+ * picks between in the printer settings ("Twice the height" vs "Tall +
+ * wide").
+ *
+ * Width doubling halves the usable columns, so a long product name wraps
+ * sooner. That is the operator's trade to make: they chose the size because
+ * a name they cannot read from arm's length is worse than one that wraps.
+ */
+export type TextScale = "NORMAL" | "LARGE" | "XLARGE";
+
+const SCALE_BYTE: Record<TextScale, number> = {
+  NORMAL: 0x00,
+  LARGE: 0x01, // double height
+  XLARGE: 0x11, // double height + double width
+};
+
+const textScale = (scale: TextScale | undefined) => [
+  GS,
+  0x21,
+  SCALE_BYTE[scale ?? "NORMAL"] ?? 0x00,
+];
+
+/** Normalise whatever is stored on the printer's defaults JSON. */
+function asScale(v: unknown): TextScale {
+  return v === "LARGE" || v === "XLARGE" ? v : "NORMAL";
+}
+
 export interface RenderOptions {
   paperWidth: 58 | 80;
   openCashDrawer?: boolean;
   printLogo?: boolean;
+  /** Size of the "2x Cheeseburger" headline. Default NORMAL. */
+  fontScale?: TextScale;
+  /** Size of the "+ Extra cheese" lines under it. Default NORMAL — a
+   *  twelve-option meal deal at double height runs a lot of paper, so
+   *  shops opt into big options rather than getting them by default. */
+  modifierScale?: TextScale;
+  /** Item headlines print bold. Default true (long-standing behaviour);
+   *  shops that want a flat ticket can turn it off. */
+  boldItems?: boolean;
 }
 
 import { renderLogo } from "./escpos-image";
@@ -233,18 +274,32 @@ export function renderToEscPos(
   hr();
 
   // Items.
+  // Item block sizing/weight is per printer. Both scales reset to NORMAL
+  // after each block so nothing downstream (totals, address, footer) inherits
+  // a double-size state — an unreset `GS !` is how one large item turns the
+  // rest of the ticket into a poster.
+  const itemScale = asScale(opts.fontScale);
+  const modScale = asScale(opts.modifierScale);
+  const boldItems = opts.boldItems !== false;
+
   for (const it of payload.items ?? []) {
-    out.push(...boldOn());
+    if (boldItems) out.push(...boldOn());
+    if (itemScale !== "NORMAL") out.push(...textScale(itemScale));
     write(`${it.quantity}x ${it.name}`);
     newline();
-    out.push(...boldOff());
+    if (itemScale !== "NORMAL") out.push(...textScale("NORMAL"));
+    if (boldItems) out.push(...boldOff());
     for (const m of it.modifiers ?? []) {
+      if (modScale !== "NORMAL") out.push(...textScale(modScale));
       write(`  ${modifierIndent(m)}+ ${m.name}`);
       newline();
+      if (modScale !== "NORMAL") out.push(...textScale("NORMAL"));
     }
     if (it.notes) {
+      if (modScale !== "NORMAL") out.push(...textScale(modScale));
       write(`  Note: ${it.notes}`);
       newline();
+      if (modScale !== "NORMAL") out.push(...textScale("NORMAL"));
     }
   }
   hr();

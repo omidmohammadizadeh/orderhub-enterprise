@@ -159,6 +159,7 @@ export class PrintJobsService {
     const targets = await this.routing.resolveForOrder(dto.orderId, {
       trigger: dto.trigger,
     });
+    await this.stampRenderOptions(targets);
     if (!targets.length) return [];
 
     // Phase AS-2 — apply each printer's autoPrintRules. A target whose
@@ -316,6 +317,7 @@ export class PrintJobsService {
       itemsOverride: args.items,
       chitNote: `ROUND ${args.roundNumber} - NEW ITEMS ONLY`,
     });
+    await this.stampRenderOptions(targets);
     if (!targets.length) {
       this.logger.warn(
         `Round chit for order ${args.orderId} (round ${args.roundNumber}): no print targets resolved — check that a kitchen station or the location has a printer`,
@@ -411,6 +413,7 @@ export class PrintJobsService {
       receiptOnly: true,
       billMode: true,
     });
+    await this.stampRenderOptions(targets);
     if (!targets.length) {
       this.logger.warn(
         `Print bill for ${orderId}: no receipt printer resolved at location ${order.locationId}`,
@@ -481,6 +484,7 @@ export class PrintJobsService {
     const targets = await this.routing.resolveForOrder(dto.orderId, {
       trigger: "MANUAL_ONLY",
     });
+    await this.stampRenderOptions(targets);
     const filtered = targets.filter((t) =>
       dto.types.includes(t.type as any),
     );
@@ -1035,6 +1039,47 @@ export class PrintJobsService {
    * Never throws: a receipt without its marketing QR is a nuisance, a receipt
    * that failed to print is a lost order.
    */
+  /**
+   * Copy each printer's item-block render settings onto its targets' payloads.
+   *
+   * Two renderers consume a job and they read their options from different
+   * places: the in-API LAN cron has the Printer row to hand, but the Print
+   * Bridge and the tablet WebView only ever see `job.payload` — their local
+   * config carries the host and paper width, not the settings drawer. So
+   * anything an operator sets per printer has to travel ON the payload or the
+   * bridge silently renders the default.
+   *
+   * That is precisely how "Font size: Large" came to save and do nothing.
+   */
+  private async stampRenderOptions(targets: PrintTarget[]): Promise<void> {
+    const ids = [...new Set(targets.map((t) => t.printerId).filter(Boolean))] as string[];
+    if (!ids.length) return;
+    try {
+      const printers = await (this.prisma as any).printer.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, defaults: true },
+      });
+      const byId = new Map<string, any>(printers.map((p: any) => [p.id, p]));
+      for (const t of targets) {
+        const d = t.printerId ? byId.get(t.printerId)?.defaults : null;
+        if (!d) continue;
+        t.payload = {
+          ...(t.payload ?? {}),
+          // Only set what the operator actually chose — leaving these
+          // undefined lets the renderer keep its own defaults rather than
+          // pinning every printer to NORMAL.
+          ...(d.fontScale ? { fontScale: d.fontScale } : {}),
+          ...(d.modifierScale ? { modifierScale: d.modifierScale } : {}),
+          ...(d.boldItems === false ? { boldItems: false } : {}),
+        };
+      }
+    } catch (err: any) {
+      // A ticket that prints at the wrong size beats a ticket that never
+      // prints. Never let this cost anyone an order.
+      this.logger.warn(`render options not stamped: ${err?.message}`);
+    }
+  }
+
   private async bakeQrForServerRenderedReceipts(
     targets: any[],
     order: any,
