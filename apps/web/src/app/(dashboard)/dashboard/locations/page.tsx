@@ -8,6 +8,7 @@
 // expanded.
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   ChevronDown,
@@ -42,18 +43,17 @@ const CAN_MANAGE_LOCATIONS = new Set([
 ]);
 import { LocationEditModal } from "@/components/locations/location-edit-modal";
 import { OpeningHoursDrawer } from "@/components/locations/opening-hours-drawer";
-import { LocationBrandsDrawer } from "@/components/locations/location-brands-drawer";
 import { DeleteLocationModal } from "@/components/locations/delete-location-modal";
 import { Trash2 } from "lucide-react";
 
 type Drawer =
   | { kind: "hours"; locationId: string }
-  | { kind: "brands"; locationId: string }
   | { kind: "edit"; locationId: string | null } // null = create
   | { kind: "delete"; locationId: string; name: string }
   | null;
 
 export default function LocationsPage() {
+  const router = useRouter();
   const qc = useQueryClient();
   const myRole = useAuthStore((s) => s.user?.role);
   const canManage = !!myRole && CAN_MANAGE_LOCATIONS.has(myRole);
@@ -185,7 +185,7 @@ export default function LocationsPage() {
               onToggleExpand={() => toggleExpanded(loc.id)}
               onEdit={() => setDrawer({ kind: "edit", locationId: loc.id })}
               onHours={() => setDrawer({ kind: "hours", locationId: loc.id })}
-              onBrands={() => setDrawer({ kind: "brands", locationId: loc.id })}
+              onBrands={() => router.push(`/dashboard/locations/${loc.id}/brands`)}
               onDelete={() =>
                 setDrawer({ kind: "delete", locationId: loc.id, name: loc.name })
               }
@@ -208,9 +208,6 @@ export default function LocationsPage() {
           allLocations={locationsQuery.data ?? []}
           onClose={closeDrawer}
         />
-      )}
-      {drawer?.kind === "brands" && (
-        <LocationBrandsDrawer locationId={drawer.locationId} onClose={closeDrawer} />
       )}
       {drawer?.kind === "delete" && (
         <DeleteLocationModal
