@@ -1657,7 +1657,7 @@ export class MenusService {
     const brandIds = brands.map((b) => b.id);
     const targets = await this.prisma.menuItem.findMany({
       where: { id: { in: targetIds }, brandId: { in: brandIds } },
-      select: { id: true, plu: true },
+      select: { id: true, plu: true, basePrice: true },
     });
     if (targets.length !== targetIds.length) {
       throw new BadRequestException("Some items not found or not accessible");
@@ -1695,13 +1695,36 @@ export class MenusService {
           "This item has no sizes to apply — add at least one first",
         );
       }
+      // Sizes carry as SUPPLEMENTS, not as prices.
+      //
+      // A size is stored as the total for that size, but it is authored as an
+      // amount ON TOP of the product's base price ("make it a meal, +£3.99").
+      // Copying the totals verbatim re-priced the target to the SOURCE's
+      // prices: applying Quarter Chicken's sizes (£6.49 base) to Half Chicken
+      // (£8.99) dropped Half Chicken to £6.49 and left its first size showing
+      // -£2.50. What the operator means by "apply these sizes" is the shape —
+      // on its own, make it a meal, +£3.99 — anchored on each item's own base.
+      //
+      // A source with no base price has no supplement to derive, so its totals
+      // carry across unchanged; that is the sized-pizza case, where the sizes
+      // ARE the prices.
+      const sourceBase = Number(source.basePrice) || 0;
       // One update per target: each gets its own PLUs, so a single updateMany
       // can't do it.
       for (const target of targets) {
-        const skus = sourceSkus.map((sku, i) => ({
-          ...sku,
-          plu: skuPluFor(target.plu, i),
-        }));
+        const targetBase = Number(target.basePrice) || 0;
+        const skus = sourceSkus.map((sku, i) => {
+          const price = Number(sku?.price) || 0;
+          const rebased =
+            sourceBase > 0 && targetBase > 0
+              ? Math.round((targetBase + (price - sourceBase)) * 100) / 100
+              : price;
+          return {
+            ...sku,
+            price: rebased,
+            plu: skuPluFor(target.plu, i),
+          };
+        });
         await this.prisma.menuItem.update({
           where: { id: target.id },
           data: { hasMultipleSkus: true, productSkus: skus as any },

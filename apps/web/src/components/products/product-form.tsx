@@ -1118,6 +1118,14 @@ function SkuRow({
   const rawSupplement = total - basePrice;
   const supplement = Math.abs(rawSupplement) < 0.005 ? "" : rawSupplement.toFixed(2);
 
+  // While the box has focus it holds exactly what was typed. Deriving the
+  // displayed value from the stored price on every keystroke re-formatted it
+  // mid-word: typing "3.99" went 3 -> "3.00" -> "3.009" -> "3.91", so each
+  // extra 9 pushed another penny onto the total and the field could not be
+  // typed into at all. The draft is dropped on blur, which re-syncs the box to
+  // the canonical two-decimal value.
+  const [draft, setDraft] = useState<string | null>(null);
+
   const byId = new Map(allGroups.map((g) => [g.id, g]));
   const attached = sku.modifierGroupIds.map(
     (id) => byId.get(id) ?? { id, name: null, options: [] },
@@ -1138,22 +1146,33 @@ function SkuRow({
               +£
             </span>
             <Input
-              type="number"
-              step="0.01"
+              // Text, not number: a number input reports "3." as an empty
+              // value, so the half-typed state of "3.99" wiped the supplement
+              // and dropped the total back to the base price. inputMode keeps
+              // the numeric keypad on a tablet, which is where this is used.
+              type="text"
+              inputMode="decimal"
               placeholder="0.00"
-              value={supplement}
+              value={draft ?? supplement}
               onChange={(e) => {
-                const raw = e.target.value;
-                // Empty means "same as the base price", not zero pounds
-                // total — clearing the box must not make the size free.
-                const delta = raw === "" || raw === "-" ? 0 : Number(raw);
+                // Accept only what can become a number, so stray characters
+                // never reach the price. One leading minus, one dot.
+                const raw = e.target.value
+                  .replace(/[^0-9.-]/g, "")
+                  .replace(/(?!^)-/g, "")
+                  .replace(/^(-?\d*\.\d*).*$/, "$1");
+                setDraft(raw);
+                // "", "-" and "." are mid-typing states, not zero: hold the
+                // box at what was typed and treat the supplement as nothing
+                // until the number is real.
+                const delta = Number(raw);
+                const usable = raw !== "" && Number.isFinite(delta);
                 onChange({
                   ...sku,
-                  price: Number.isFinite(delta)
-                    ? (basePrice + delta).toFixed(2)
-                    : sku.price,
+                  price: (basePrice + (usable ? delta : 0)).toFixed(2),
                 });
               }}
+              onBlur={() => setDraft(null)}
               className="h-9 pl-8 text-sm tabular-nums"
             />
           </div>
