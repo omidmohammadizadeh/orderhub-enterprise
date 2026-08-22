@@ -4,7 +4,8 @@
 // Selecting one routes to the matching follow-up modal (which the
 // parent renders) — we just emit the chosen kind here.
 
-import { X, BookOpen, Folder, Calculator, Sparkles, Layers, Copy } from "lucide-react";
+import { X, BookOpen, Folder, Calculator, Sparkles, Layers, Copy, FileJson } from "lucide-react";
+import { useAuthStore } from "@/stores/auth.store";
 
 type MenuKind =
   | "create"
@@ -12,7 +13,8 @@ type MenuKind =
   | "import-channel"
   | "import-pos"
   | "master"
-  | "clone-location";
+  | "clone-location"
+  | "import-json";
 
 interface Props {
   open: boolean;
@@ -21,6 +23,10 @@ interface Props {
 }
 
 export function AddMenuModal({ open, onPick, onCancel }: Props) {
+  // Hooks before the early return — React requires a stable hook order, and
+  // this component returns null while closed.
+  const role = useAuthStore((s) => s.user?.role);
+  const isAdmin = role === "PLATFORM_ADMIN";
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4">
@@ -67,6 +73,19 @@ export function AddMenuModal({ open, onPick, onCancel }: Props) {
             description="Combine several of this location's menus (one per brand) into one — for a single HubRise catalog serving every brand"
             onClick={() => onPick("master")}
           />
+          {/* Admin-only for now: the JSON is hand-built per shop, so this is
+              a tool for us rather than something to hand an operator yet. The
+              gate is on VISIBILITY only — the commit endpoint behind it is the
+              same one the AI import uses and still accepts managers. */}
+          {isAdmin && (
+            <Card
+              icon={<FileJson className="h-5 w-5" />}
+              title="Import JSON file"
+              description="Build a whole menu from a prepared JSON file — categories, items, sizes and options in one go"
+              badge="Admin"
+              onClick={() => onPick("import-json")}
+            />
+          )}
           <Card
             icon={<Copy className="h-5 w-5" />}
             title="Clone from another location"

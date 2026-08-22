@@ -25,6 +25,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 import { AddMenuModal } from "@/components/menu/add-menu-modal";
 import { CreateMenuModal } from "@/components/menu/create-menu-modal";
+import { ImportJsonMenuModal } from "@/components/menu/import-json-menu-modal";
 import { AiImportMenuModal } from "@/components/menu/ai-import-menu-modal";
 import { ImportMenuModal } from "@/components/menu/import-menu-modal";
 import { MasterMenuModal } from "@/components/menu/master-menu-modal";
@@ -65,6 +66,7 @@ export default function MenuPage() {
     | "import-pos"
     | "master"
     | "clone-location"
+    | "import-json"
   >(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   // Phase AM — publish target picker per menu card.
@@ -486,6 +488,7 @@ export default function MenuPage() {
         onPick={(kind) => {
           if (kind === "create") setAddStep("create");
           else if (kind === "import-ai") setAddStep("import-ai");
+          else if (kind === "import-json") setAddStep("import-json");
           else if (kind === "import-channel") setAddStep("import-channel");
           else if (kind === "import-pos") setAddStep("import-pos");
           else if (kind === "master") {
@@ -517,6 +520,17 @@ export default function MenuPage() {
       />
       <AiImportMenuModal
         open={addStep === "import-ai"}
+        brandId={brandId}
+        locationId={selectedLocationId}
+        onCreated={(menuId) => {
+          qc.invalidateQueries({ queryKey: ["menus"] });
+          setAddStep(null);
+          router.push(`/dashboard/menu/${menuId}`);
+        }}
+        onCancel={() => setAddStep(null)}
+      />
+      <ImportJsonMenuModal
+        open={addStep === "import-json"}
         brandId={brandId}
         locationId={selectedLocationId}
         onCreated={(menuId) => {

@@ -11,3 +11,4 @@ export * from "./lib/nested-modifiers";
 export * from "./lib/pricing-variants";
 export * from "./lib/text";
 export * from "./lib/display-price";
+export * from "./lib/validate-menu-json";
