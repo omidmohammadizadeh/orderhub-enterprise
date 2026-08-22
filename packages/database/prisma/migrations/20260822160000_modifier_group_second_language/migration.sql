@@ -1,0 +1,11 @@
+-- The fourth kitchen-language column, in its OWN migration.
+--
+-- It was originally appended to 20260822140000_second_language_name AFTER that
+-- migration had already shipped and been applied. Prisma stores a checksum of
+-- every applied migration, so editing one it has already run makes
+-- `prisma migrate deploy` fail — and because start-api.sh runs with `set -e`,
+-- the API never boots. That took the dashboard and every storefront down.
+--
+-- IF NOT EXISTS so this is safe to re-run and safe whatever state the column
+-- is in.
+ALTER TABLE "modifier_groups" ADD COLUMN IF NOT EXISTS "secondLanguageName" TEXT;

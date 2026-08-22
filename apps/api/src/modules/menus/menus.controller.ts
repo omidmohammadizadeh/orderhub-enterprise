@@ -24,6 +24,7 @@ import { UberMenuImporter } from "./importers/uber-menu.importer";
 import { DeliverooMenuImporter } from "./importers/deliveroo-menu.importer";
 import { AiMenuParseService, type AiMenuFile } from "./importers/ai-menu.service";
 import { AiMenuImporter } from "./importers/ai-menu.importer";
+import { MenuTranslationService } from "./menu-translation.service";
 import type { AiMenuDraft } from "./importers/ai-menu.classifier";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import { DeliverooMenuPublishService } from "../integrations/deliveroo/deliveroo-menu-publish.service";
@@ -90,6 +91,7 @@ export class MenusController {
     private readonly deliverooImporter: DeliverooMenuImporter,
     private readonly aiParse: AiMenuParseService,
     private readonly aiImporter: AiMenuImporter,
+    private readonly translation: MenuTranslationService,
     private readonly hubriseCatalog: HubRiseCatalogService,
     private readonly deliverooMenu: DeliverooMenuPublishService,
     private readonly uberEatsMenu: UberEatsMenuPublishService,
@@ -183,6 +185,47 @@ export class MenusController {
       locationId: body?.locationId,
       draft: body?.draft,
     });
+  }
+
+  // ── Kitchen-ticket translation ────────────────────────────────────────
+  //
+  // Background job for the same reason the AI parse is one: a few hundred
+  // names is several model calls, and a request held open that long is cut by
+  // the proxy while the work succeeds.
+  @Post("menus/:menuId/translate")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Fill kitchen-language names across this menu's items, modifier groups and options",
+  })
+  startTranslate(
+    @Param("menuId") menuId: string,
+    @Body() body: { language?: string; overwrite?: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return {
+      jobId: this.translation.start({
+        menuId,
+        tenantId: user.tenantId,
+        language: String(body?.language ?? "").trim(),
+        overwrite: body?.overwrite === true,
+      }),
+    };
+  }
+
+  @Get("menus/:menuId/translate/:jobId")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Poll a menu translation job" })
+  translateJob(@Param("jobId") jobId: string) {
+    const job = this.translation.getJob(jobId);
+    if (!job) return { status: "failed", error: "That translation expired" };
+    return {
+      status: job.status,
+      translated: job.translated ?? 0,
+      total: job.total ?? 0,
+      result: job.result ?? null,
+      error: job.error ?? null,
+    };
   }
 
   // ── Phase AW-11 — HubRise catalog import + publish ────────────────────

@@ -910,6 +910,14 @@ model MenuCategory {
   menu               Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
   name               String
   description        String?
+  // Kitchen-language name. The customer-facing menu stays in English; the
+  // kitchen ticket prints this instead when it is set. A Chinese takeaway
+  // runs an English menu for customers and a Chinese one for the wok, and
+  // was otherwise keeping the two in the chef's head.
+  //
+  // Null (the default) means "no translation" — the ticket falls back to
+  // `name`, so nothing changes for a shop that never fills this in.
+  secondLanguageName String?
   imageUrl           String?
   sortOrder          Int      @default(0)
   isVisible          Boolean  @default(true)
@@ -953,6 +961,14 @@ model MenuItem {
   locationId         String?
   name               String
   description        String?
+  // Kitchen-language name. The customer-facing menu stays in English; the
+  // kitchen ticket prints this instead when it is set. A Chinese takeaway
+  // runs an English menu for customers and a Chinese one for the wok, and
+  // was otherwise keeping the two in the chef's head.
+  //
+  // Null (the default) means "no translation" — the ticket falls back to
+  // `name`, so nothing changes for a shop that never fills this in.
+  secondLanguageName String?
   basePrice          Decimal   @db.Decimal(10, 2)
   imageUrl           String?
   // Pre-Phase-AK had `sku` as a generic product code. Base44 calls this
@@ -1169,14 +1185,18 @@ model MenuItemOnCategory {
 
 // ── Modifier Groups ───────────────────────────────────────────────────────────
 model ModifierGroup {
-  id                       String        @id @default(cuid())
-  brandId                  String
-  brand                    Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  id          String  @id @default(cuid())
+  brandId     String
+  brand       Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
   // Phase AP — Products section is location-scoped. Same backfill rule
   // as MenuItem.locationId.
-  locationId               String?
-  name                     String
-  description              String?
+  locationId  String?
+  name        String
+  description String?
+
+  // Kitchen-language name — see MenuItem.secondLanguageName. Null means the
+  // ticket prints the English one.
+  secondLanguageName       String?
   plu                      String?
   minSelections            Int           @default(0)
   maxSelections            Int?
@@ -1235,6 +1255,14 @@ model ModifierOption {
   modifierGroupIds         String[]      @default([])
   name                     String
   description              String?
+  // Kitchen-language name. The customer-facing menu stays in English; the
+  // kitchen ticket prints this instead when it is set. A Chinese takeaway
+  // runs an English menu for customers and a Chinese one for the wok, and
+  // was otherwise keeping the two in the chef's head.
+  //
+  // Null (the default) means "no translation" — the ticket falls back to
+  // `name`, so nothing changes for a shop that never fills this in.
+  secondLanguageName       String?
   // Base price for this modifier when no size key matches. Already
   // existed; renamed conceptually to "default price". pricesBySize
   // below is the authoritative per-size table.
@@ -1608,7 +1636,7 @@ model PromoCode {
   @@map("promo_codes")
 }
 
-// ── MarketingCampaign (Phase AW-19) ─────────────────────────────────────────
+// ── MarketingCampaign (Phase AW-19) ──���──────────────────────────────────────
 //
 // Generic campaign row covering all the offer types in the Marketing UI
 // picker (Percentage off, BOGO, % off items, Amount off, Free item, Free

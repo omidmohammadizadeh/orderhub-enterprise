@@ -36617,6 +36617,7 @@ export namespace Prisma {
     menuId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     imageUrl: string | null
     sortOrder: number | null
     isVisible: boolean | null
@@ -36637,6 +36638,7 @@ export namespace Prisma {
     menuId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     imageUrl: string | null
     sortOrder: number | null
     isVisible: boolean | null
@@ -36657,6 +36659,7 @@ export namespace Prisma {
     menuId: number
     name: number
     description: number
+    secondLanguageName: number
     imageUrl: number
     sortOrder: number
     isVisible: number
@@ -36688,6 +36691,7 @@ export namespace Prisma {
     menuId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     imageUrl?: true
     sortOrder?: true
     isVisible?: true
@@ -36708,6 +36712,7 @@ export namespace Prisma {
     menuId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     imageUrl?: true
     sortOrder?: true
     isVisible?: true
@@ -36728,6 +36733,7 @@ export namespace Prisma {
     menuId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     imageUrl?: true
     sortOrder?: true
     isVisible?: true
@@ -36836,6 +36842,7 @@ export namespace Prisma {
     menuId: string
     name: string
     description: string | null
+    secondLanguageName: string | null
     imageUrl: string | null
     sortOrder: number
     isVisible: boolean
@@ -36876,6 +36883,7 @@ export namespace Prisma {
     menuId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     imageUrl?: boolean
     sortOrder?: boolean
     isVisible?: boolean
@@ -36901,6 +36909,7 @@ export namespace Prisma {
     menuId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     imageUrl?: boolean
     sortOrder?: boolean
     isVisible?: boolean
@@ -36923,6 +36932,7 @@ export namespace Prisma {
     menuId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     imageUrl?: boolean
     sortOrder?: boolean
     isVisible?: boolean
@@ -36961,6 +36971,7 @@ export namespace Prisma {
       menuId: string
       name: string
       description: string | null
+      secondLanguageName: string | null
       imageUrl: string | null
       sortOrder: number
       isVisible: boolean
@@ -37375,6 +37386,7 @@ export namespace Prisma {
     readonly menuId: FieldRef<"MenuCategory", 'String'>
     readonly name: FieldRef<"MenuCategory", 'String'>
     readonly description: FieldRef<"MenuCategory", 'String'>
+    readonly secondLanguageName: FieldRef<"MenuCategory", 'String'>
     readonly imageUrl: FieldRef<"MenuCategory", 'String'>
     readonly sortOrder: FieldRef<"MenuCategory", 'Int'>
     readonly isVisible: FieldRef<"MenuCategory", 'Boolean'>
@@ -37801,6 +37813,7 @@ export namespace Prisma {
     locationId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     basePrice: Decimal | null
     imageUrl: string | null
     sku: string | null
@@ -37834,6 +37847,7 @@ export namespace Prisma {
     locationId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     basePrice: Decimal | null
     imageUrl: string | null
     sku: string | null
@@ -37867,6 +37881,7 @@ export namespace Prisma {
     locationId: number
     name: number
     description: number
+    secondLanguageName: number
     basePrice: number
     imageUrl: number
     sku: number
@@ -37933,6 +37948,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     basePrice?: true
     imageUrl?: true
     sku?: true
@@ -37966,6 +37982,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     basePrice?: true
     imageUrl?: true
     sku?: true
@@ -37999,6 +38016,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     basePrice?: true
     imageUrl?: true
     sku?: true
@@ -38128,6 +38146,7 @@ export namespace Prisma {
     locationId: string | null
     name: string
     description: string | null
+    secondLanguageName: string | null
     basePrice: Decimal
     imageUrl: string | null
     sku: string | null
@@ -38189,6 +38208,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     basePrice?: boolean
     imageUrl?: boolean
     sku?: boolean
@@ -38238,6 +38258,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     basePrice?: boolean
     imageUrl?: boolean
     sku?: boolean
@@ -38280,6 +38301,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     basePrice?: boolean
     imageUrl?: boolean
     sku?: boolean
@@ -38343,6 +38365,7 @@ export namespace Prisma {
       locationId: string | null
       name: string
       description: string | null
+      secondLanguageName: string | null
       basePrice: Prisma.Decimal
       imageUrl: string | null
       sku: string | null
@@ -38781,6 +38804,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"MenuItem", 'String'>
     readonly name: FieldRef<"MenuItem", 'String'>
     readonly description: FieldRef<"MenuItem", 'String'>
+    readonly secondLanguageName: FieldRef<"MenuItem", 'String'>
     readonly basePrice: FieldRef<"MenuItem", 'Decimal'>
     readonly imageUrl: FieldRef<"MenuItem", 'String'>
     readonly sku: FieldRef<"MenuItem", 'String'>
@@ -42342,6 +42366,7 @@ export namespace Prisma {
     locationId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     plu: string | null
     minSelections: number | null
     maxSelections: number | null
@@ -42366,6 +42391,7 @@ export namespace Prisma {
     locationId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     plu: string | null
     minSelections: number | null
     maxSelections: number | null
@@ -42390,6 +42416,7 @@ export namespace Prisma {
     locationId: number
     name: number
     description: number
+    secondLanguageName: number
     plu: number
     minSelections: number
     maxSelections: number
@@ -42431,6 +42458,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     plu?: true
     minSelections?: true
     maxSelections?: true
@@ -42455,6 +42483,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     plu?: true
     minSelections?: true
     maxSelections?: true
@@ -42479,6 +42508,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     plu?: true
     minSelections?: true
     maxSelections?: true
@@ -42593,6 +42623,7 @@ export namespace Prisma {
     locationId: string | null
     name: string
     description: string | null
+    secondLanguageName: string | null
     plu: string | null
     minSelections: number
     maxSelections: number | null
@@ -42639,6 +42670,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
@@ -42673,6 +42705,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
@@ -42701,6 +42734,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
@@ -42751,6 +42785,7 @@ export namespace Prisma {
       locationId: string | null
       name: string
       description: string | null
+      secondLanguageName: string | null
       plu: string | null
       minSelections: number
       maxSelections: number | null
@@ -43174,6 +43209,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"ModifierGroup", 'String'>
     readonly name: FieldRef<"ModifierGroup", 'String'>
     readonly description: FieldRef<"ModifierGroup", 'String'>
+    readonly secondLanguageName: FieldRef<"ModifierGroup", 'String'>
     readonly plu: FieldRef<"ModifierGroup", 'String'>
     readonly minSelections: FieldRef<"ModifierGroup", 'Int'>
     readonly maxSelections: FieldRef<"ModifierGroup", 'Int'>
@@ -43658,6 +43694,7 @@ export namespace Prisma {
     groupId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     priceAdjustment: Decimal | null
     plu: string | null
     imageUrl: string | null
@@ -43685,6 +43722,7 @@ export namespace Prisma {
     groupId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     priceAdjustment: Decimal | null
     plu: string | null
     imageUrl: string | null
@@ -43713,6 +43751,7 @@ export namespace Prisma {
     modifierGroupIds: number
     name: number
     description: number
+    secondLanguageName: number
     priceAdjustment: number
     plu: number
     pricesBySize: number
@@ -43764,6 +43803,7 @@ export namespace Prisma {
     groupId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     priceAdjustment?: true
     plu?: true
     imageUrl?: true
@@ -43791,6 +43831,7 @@ export namespace Prisma {
     groupId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     priceAdjustment?: true
     plu?: true
     imageUrl?: true
@@ -43819,6 +43860,7 @@ export namespace Prisma {
     modifierGroupIds?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     priceAdjustment?: true
     plu?: true
     pricesBySize?: true
@@ -43940,6 +43982,7 @@ export namespace Prisma {
     modifierGroupIds: string[]
     name: string
     description: string | null
+    secondLanguageName: string | null
     priceAdjustment: Decimal
     plu: string | null
     pricesBySize: JsonValue
@@ -43993,6 +44036,7 @@ export namespace Prisma {
     modifierGroupIds?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     priceAdjustment?: boolean
     plu?: boolean
     pricesBySize?: boolean
@@ -44031,6 +44075,7 @@ export namespace Prisma {
     modifierGroupIds?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     priceAdjustment?: boolean
     plu?: boolean
     pricesBySize?: boolean
@@ -44067,6 +44112,7 @@ export namespace Prisma {
     modifierGroupIds?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     priceAdjustment?: boolean
     plu?: boolean
     pricesBySize?: boolean
@@ -44119,6 +44165,7 @@ export namespace Prisma {
       modifierGroupIds: string[]
       name: string
       description: string | null
+      secondLanguageName: string | null
       priceAdjustment: Prisma.Decimal
       plu: string | null
       pricesBySize: Prisma.JsonValue
@@ -44546,6 +44593,7 @@ export namespace Prisma {
     readonly modifierGroupIds: FieldRef<"ModifierOption", 'String[]'>
     readonly name: FieldRef<"ModifierOption", 'String'>
     readonly description: FieldRef<"ModifierOption", 'String'>
+    readonly secondLanguageName: FieldRef<"ModifierOption", 'String'>
     readonly priceAdjustment: FieldRef<"ModifierOption", 'Decimal'>
     readonly plu: FieldRef<"ModifierOption", 'String'>
     readonly pricesBySize: FieldRef<"ModifierOption", 'Json'>
@@ -151874,6 +151922,7 @@ export namespace Prisma {
     menuId: 'menuId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     imageUrl: 'imageUrl',
     sortOrder: 'sortOrder',
     isVisible: 'isVisible',
@@ -151899,6 +151948,7 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     basePrice: 'basePrice',
     imageUrl: 'imageUrl',
     sku: 'sku',
@@ -151990,6 +152040,7 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     plu: 'plu',
     minSelections: 'minSelections',
     maxSelections: 'maxSelections',
@@ -152020,6 +152071,7 @@ export namespace Prisma {
     modifierGroupIds: 'modifierGroupIds',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     priceAdjustment: 'priceAdjustment',
     plu: 'plu',
     pricesBySize: 'pricesBySize',
@@ -154306,6 +154358,7 @@ export namespace Prisma {
     menuId: 'menuId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     imageUrl: 'imageUrl',
     menuIds: 'menuIds',
     platformSource: 'platformSource',
@@ -154324,6 +154377,7 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     imageUrl: 'imageUrl',
     sku: 'sku',
     plu: 'plu',
@@ -154380,6 +154434,7 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     plu: 'plu',
     menuIds: 'menuIds',
     platformSource: 'platformSource',
@@ -154398,6 +154453,7 @@ export namespace Prisma {
     modifierGroupIds: 'modifierGroupIds',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     plu: 'plu',
     imageUrl: 'imageUrl',
     allergens: 'allergens',
@@ -158913,6 +158969,7 @@ export namespace Prisma {
     menuId?: StringFilter<"MenuCategory"> | string
     name?: StringFilter<"MenuCategory"> | string
     description?: StringNullableFilter<"MenuCategory"> | string | null
+    secondLanguageName?: StringNullableFilter<"MenuCategory"> | string | null
     imageUrl?: StringNullableFilter<"MenuCategory"> | string | null
     sortOrder?: IntFilter<"MenuCategory"> | number
     isVisible?: BoolFilter<"MenuCategory"> | boolean
@@ -158937,6 +158994,7 @@ export namespace Prisma {
     menuId?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     imageUrl?: SortOrderInput | SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
@@ -158965,6 +159023,7 @@ export namespace Prisma {
     menuId?: StringFilter<"MenuCategory"> | string
     name?: StringFilter<"MenuCategory"> | string
     description?: StringNullableFilter<"MenuCategory"> | string | null
+    secondLanguageName?: StringNullableFilter<"MenuCategory"> | string | null
     imageUrl?: StringNullableFilter<"MenuCategory"> | string | null
     sortOrder?: IntFilter<"MenuCategory"> | number
     isVisible?: BoolFilter<"MenuCategory"> | boolean
@@ -158989,6 +159048,7 @@ export namespace Prisma {
     menuId?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     imageUrl?: SortOrderInput | SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
@@ -159018,6 +159078,7 @@ export namespace Prisma {
     menuId?: StringWithAggregatesFilter<"MenuCategory"> | string
     name?: StringWithAggregatesFilter<"MenuCategory"> | string
     description?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
+    secondLanguageName?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
     imageUrl?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
     sortOrder?: IntWithAggregatesFilter<"MenuCategory"> | number
     isVisible?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
@@ -159043,6 +159104,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"MenuItem"> | string | null
     name?: StringFilter<"MenuItem"> | string
     description?: StringNullableFilter<"MenuItem"> | string | null
+    secondLanguageName?: StringNullableFilter<"MenuItem"> | string | null
     basePrice?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
     imageUrl?: StringNullableFilter<"MenuItem"> | string | null
     sku?: StringNullableFilter<"MenuItem"> | string | null
@@ -159091,6 +159153,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     basePrice?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     sku?: SortOrderInput | SortOrder
@@ -159143,6 +159206,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"MenuItem"> | string | null
     name?: StringFilter<"MenuItem"> | string
     description?: StringNullableFilter<"MenuItem"> | string | null
+    secondLanguageName?: StringNullableFilter<"MenuItem"> | string | null
     basePrice?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
     imageUrl?: StringNullableFilter<"MenuItem"> | string | null
     sku?: StringNullableFilter<"MenuItem"> | string | null
@@ -159191,6 +159255,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     basePrice?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     sku?: SortOrderInput | SortOrder
@@ -159241,6 +159306,7 @@ export namespace Prisma {
     locationId?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     name?: StringWithAggregatesFilter<"MenuItem"> | string
     description?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    secondLanguageName?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     basePrice?: DecimalWithAggregatesFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
     imageUrl?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     sku?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
@@ -159531,6 +159597,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
@@ -159564,6 +159631,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     plu?: SortOrderInput | SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrderInput | SortOrder
@@ -159601,6 +159669,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
@@ -159634,6 +159703,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     plu?: SortOrderInput | SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrderInput | SortOrder
@@ -159669,6 +159739,7 @@ export namespace Prisma {
     locationId?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     name?: StringWithAggregatesFilter<"ModifierGroup"> | string
     description?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     plu?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     minSelections?: IntWithAggregatesFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableWithAggregatesFilter<"ModifierGroup"> | number | null
@@ -159699,6 +159770,7 @@ export namespace Prisma {
     modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringFilter<"ModifierOption"> | string
     description?: StringNullableFilter<"ModifierOption"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
     plu?: StringNullableFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonFilter<"ModifierOption">
@@ -159736,6 +159808,7 @@ export namespace Prisma {
     modifierGroupIds?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     priceAdjustment?: SortOrder
     plu?: SortOrderInput | SortOrder
     pricesBySize?: SortOrder
@@ -159777,6 +159850,7 @@ export namespace Prisma {
     modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringFilter<"ModifierOption"> | string
     description?: StringNullableFilter<"ModifierOption"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
     plu?: StringNullableFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonFilter<"ModifierOption">
@@ -159814,6 +159888,7 @@ export namespace Prisma {
     modifierGroupIds?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     priceAdjustment?: SortOrder
     plu?: SortOrderInput | SortOrder
     pricesBySize?: SortOrder
@@ -159856,6 +159931,7 @@ export namespace Prisma {
     modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringWithAggregatesFilter<"ModifierOption"> | string
     description?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
+    secondLanguageName?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalWithAggregatesFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
     plu?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonWithAggregatesFilter<"ModifierOption">
@@ -172692,6 +172768,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -172716,6 +172793,7 @@ export namespace Prisma {
     menuId: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -172738,6 +172816,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -172762,6 +172841,7 @@ export namespace Prisma {
     menuId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -172785,6 +172865,7 @@ export namespace Prisma {
     menuId: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -172805,6 +172886,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -172826,6 +172908,7 @@ export namespace Prisma {
     menuId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -172848,6 +172931,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -172896,6 +172980,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -172944,6 +173029,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -172992,6 +173078,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -173040,6 +173127,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -173082,6 +173170,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -173124,6 +173213,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -173419,6 +173509,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -173452,6 +173543,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -173483,6 +173575,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -173516,6 +173609,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -173548,6 +173642,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -173574,6 +173669,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -173601,6 +173697,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -173627,6 +173724,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -173663,6 +173761,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -173697,6 +173796,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -173733,6 +173833,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -173768,6 +173869,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -173801,6 +173903,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -173834,6 +173937,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -187641,6 +187745,7 @@ export namespace Prisma {
     menuId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     imageUrl?: SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
@@ -187666,6 +187771,7 @@ export namespace Prisma {
     menuId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     imageUrl?: SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
@@ -187686,6 +187792,7 @@ export namespace Prisma {
     menuId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     imageUrl?: SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
@@ -187763,6 +187870,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     basePrice?: SortOrder
     imageUrl?: SortOrder
     sku?: SortOrder
@@ -187816,6 +187924,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     basePrice?: SortOrder
     imageUrl?: SortOrder
     sku?: SortOrder
@@ -187849,6 +187958,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     basePrice?: SortOrder
     imageUrl?: SortOrder
     sku?: SortOrder
@@ -188125,6 +188235,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
@@ -188158,6 +188269,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
@@ -188182,6 +188294,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
@@ -188238,6 +188351,7 @@ export namespace Prisma {
     modifierGroupIds?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     priceAdjustment?: SortOrder
     plu?: SortOrder
     pricesBySize?: SortOrder
@@ -188279,6 +188393,7 @@ export namespace Prisma {
     groupId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     priceAdjustment?: SortOrder
     plu?: SortOrder
     imageUrl?: SortOrder
@@ -188306,6 +188421,7 @@ export namespace Prisma {
     groupId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     priceAdjustment?: SortOrder
     plu?: SortOrder
     imageUrl?: SortOrder
@@ -210599,6 +210715,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -210630,6 +210747,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -211512,6 +211630,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
@@ -215396,6 +215515,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -215418,6 +215538,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -215671,6 +215792,7 @@ export namespace Prisma {
     menuId?: StringFilter<"MenuCategory"> | string
     name?: StringFilter<"MenuCategory"> | string
     description?: StringNullableFilter<"MenuCategory"> | string | null
+    secondLanguageName?: StringNullableFilter<"MenuCategory"> | string | null
     imageUrl?: StringNullableFilter<"MenuCategory"> | string | null
     sortOrder?: IntFilter<"MenuCategory"> | number
     isVisible?: BoolFilter<"MenuCategory"> | boolean
@@ -217625,6 +217747,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -217672,6 +217795,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -217914,6 +218038,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217961,6 +218086,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218191,6 +218317,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -218214,6 +218341,7 @@ export namespace Prisma {
     menuId: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -218242,6 +218370,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -218289,6 +218418,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -218350,6 +218480,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -218373,6 +218504,7 @@ export namespace Prisma {
     menuId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -218407,6 +218539,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218454,6 +218587,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218605,6 +218739,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -218639,6 +218774,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -218703,6 +218839,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -218738,6 +218875,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -218956,6 +219094,7 @@ export namespace Prisma {
     modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringFilter<"ModifierOption"> | string
     description?: StringNullableFilter<"ModifierOption"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
     plu?: StringNullableFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonFilter<"ModifierOption">
@@ -219073,6 +219212,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219105,6 +219245,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219140,6 +219281,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219172,6 +219314,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219240,6 +219383,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219272,6 +219416,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219313,6 +219458,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219345,6 +219491,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219391,6 +219538,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -219426,6 +219574,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -219464,6 +219613,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219496,6 +219646,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219542,6 +219693,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -219577,6 +219729,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -219621,6 +219774,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219653,6 +219807,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219684,6 +219839,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -219731,6 +219887,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -219782,6 +219939,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219814,6 +219972,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219861,6 +220020,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219908,6 +220068,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219965,6 +220126,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219997,6 +220159,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -220028,6 +220191,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -220075,6 +220239,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -220138,6 +220303,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -220185,6 +220351,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232722,6 +232889,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -232769,6 +232937,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -232873,6 +233042,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232920,6 +233090,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -233013,6 +233184,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -233045,6 +233217,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -233132,6 +233305,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -233164,6 +233338,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -233240,6 +233415,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -233263,6 +233439,7 @@ export namespace Prisma {
     menuId: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -233341,6 +233518,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -233364,6 +233542,7 @@ export namespace Prisma {
     menuId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -236999,6 +237178,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -237046,6 +237226,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
@@ -237131,6 +237312,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -237178,6 +237360,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
@@ -245080,6 +245263,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -245665,6 +245849,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -245696,6 +245881,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -245727,6 +245913,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -247953,6 +248140,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
@@ -248003,6 +248191,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -248025,6 +248214,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -248047,6 +248237,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
@@ -248378,6 +248569,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -248417,6 +248609,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -248461,6 +248654,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -248495,6 +248689,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -248529,6 +248724,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -248577,6 +248773,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -248612,6 +248809,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
@@ -248646,6 +248844,7 @@ export namespace Prisma {
     modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
