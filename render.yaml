@@ -35,6 +35,18 @@ services:
         value: production
       - key: PORT
         value: 4000
+      # V8 sizes its own heap from the container and lands FAR below it on a
+      # small instance. On 2026-08-22 the API died with "Reached heap limit"
+      # at a 252MB heap while Render's own memory graph showed the container
+      # at ~31% of 512MB — roughly 300MB sitting unused that Node refused to
+      # touch. This lets it use the room that is actually there.
+      #
+      # 400 of 512 deliberately, not higher: the remainder is for native
+      # allocations, buffers and the runtime outside the JS heap. Set this too
+      # close to the limit and the CONTAINER gets OOM-killed instead, which is
+      # a harder failure than a heap error.
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=400
       # ── Required: set these in the Render dashboard or via secrets ──
       - key: DATABASE_URL
         sync: false      # Supabase pooled connection (port 6543, ?pgbouncer=true)
