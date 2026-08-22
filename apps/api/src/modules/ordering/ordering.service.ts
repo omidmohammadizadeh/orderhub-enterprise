@@ -5,6 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { currencyForCountry } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
@@ -705,6 +706,11 @@ export class OrderingService {
       city: b?.city ?? location.city,
       postcode: b?.postcode ?? location.postcode,
       country: b?.country ?? location.country,
+      // Currency is location-only on purpose — it follows the till and the
+      // bank account, not the brand, so a brand trading in two countries does
+      // not force one currency onto both shops. The storefront needs it to
+      // price anything at all outside the UK.
+      currency: (location as any).currency ?? currencyForCountry(location.country),
       // The raw `address` JSON column is location-only — no brand
       // equivalent — so we pass it through unchanged for any old
       // storefront code paths still reading from it.

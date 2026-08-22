@@ -34,6 +34,7 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { formatMoney } from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
@@ -109,6 +110,8 @@ interface Storefront {
     city?: string | null;
     postcode?: string | null;
     country?: string | null;
+    /** ISO-4217, from the location. Absent on an older cached payload. */
+    currency?: string | null;
     address?: { line1?: string; city?: string; postcode?: string } | null;
     openingHours: any;
     deliveryConfig?: { deliveryFeeFixed?: number; minimumOrder?: number };
@@ -501,6 +504,12 @@ function OrderPage() {
   });
 
   const storefront = storefrontQuery.data;
+  // Every price on this page goes through money(). A hardcoded £ here is a
+  // customer in Dubai reading AED prices as pounds — the one place where
+  // getting currency wrong reaches the person actually paying.
+  const currency = (storefront as any)?.store?.currency ?? "GBP";
+  const money = (n: number | string | null | undefined) =>
+    formatMoney(n, currency, { compact: true });
 
   // Does this location take table bookings from the web? Drives the
   // "Book a table" button. Fetched separately (and only once the store
@@ -1733,8 +1742,8 @@ function OrderPage() {
                           }.`
                         : `Everything you add goes in together · ${
                             basket.people.length
-                          } ${basket.people.length === 1 ? "person" : "people"} · £${basket.subtotal.toFixed(
-                            2,
+                          } ${basket.people.length === 1 ? "person" : "people"} · ${money(
+                            basket.subtotal,
                           )}`}
                     </p>
                   </div>
@@ -1803,9 +1812,9 @@ function OrderPage() {
                 🎉{" "}
                 {storeCampaign.percentageOff != null
                   ? `${Number(storeCampaign.percentageOff)}% off your order`
-                  : `£${Number(storeCampaign.amountOff).toFixed(2)} off your order`}
+                  : `${money(Number(storeCampaign.amountOff))} off your order`}
                 {storeCampaign.minOrder
-                  ? ` on £${Number(storeCampaign.minOrder).toFixed(2)}+`
+                  ? ` on ${money(Number(storeCampaign.minOrder))}+`
                   : ""}
               </p>
               {storeCampaign.name && (
@@ -1852,12 +1861,12 @@ function OrderPage() {
             return (
               <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
                 <p className="font-semibold">
-                  ✨ Spend £{freeItem.minOrder.toFixed(2)} and get {headline}
+                  ✨ Spend {money(freeItem.minOrder)} and get {headline}
                 </p>
                 <p className="mt-0.5 text-[11px] text-amber-800">
                   {eligible
                     ? "🎉 Unlocked! Pick your free item in the cart."
-                    : `Add £${remaining.toFixed(2)} more (eligible items only) to unlock.`}
+                    : `Add ${money(remaining)} more (eligible items only) to unlock.`}
                 </p>
               </div>
             );
@@ -1951,6 +1960,7 @@ function OrderPage() {
                     Promotions
                   </h2>
                   <ItemRail
+                    money={money}
                     items={promoItems}
                     itemPromos={itemPromos}
                     showImage={cfg?.showItemImages ?? true}
@@ -1964,6 +1974,7 @@ function OrderPage() {
                     Top sellers
                   </h2>
                   <ItemRail
+                    money={money}
                     items={topSellers}
                     itemPromos={itemPromos}
                     showImage={cfg?.showItemImages ?? true}
@@ -2000,6 +2011,7 @@ function OrderPage() {
                     <div className="flex flex-col gap-2.5 sm:hidden">
                       {items.map((item) => (
                         <StoreItemRow
+                          money={money}
                           key={item.id}
                           item={item}
                           promo={itemPromos[item.id] ?? null}
@@ -2024,6 +2036,7 @@ function OrderPage() {
                     <div className="hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
                       {items.map((item) => (
                         <ProductCard
+                          money={money}
                           key={item.id}
                           item={item}
                           promo={itemPromos[item.id] ?? null}
@@ -2141,6 +2154,7 @@ function OrderPage() {
       {/* Cart side panel */}
       {cartOpen && (
         <CartPanel
+          money={money}
           onClose={() => setCartOpen(false)}
           cart={cart}
           dispatch={dispatch}
@@ -2283,6 +2297,7 @@ function OrderPage() {
       {/* Info modal — About + opening hours + delivery fees */}
       {infoOpen && (
         <InfoModal
+          money={money}
           locationName={headerTitle}
           about={storefront.location.about ?? null}
           address={headerAddress || null}
@@ -2541,11 +2556,14 @@ function ItemRail({
   itemPromos,
   showImage,
   onPick,
+  money,
 }: {
   items: MenuItem[];
   itemPromos: Record<string, { percentageOff: number; campaignName: string }>;
   showImage?: boolean;
   onPick: (item: MenuItem) => void;
+  /** Bound to THIS store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
 }) {
   return (
     <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
@@ -2593,11 +2611,11 @@ function ItemRail({
               <span
                 className={`text-[13px] font-bold ${hasPromo ? "text-red-600" : "text-zinc-900"}`}
               >
-                £{discounted.toFixed(2)}
+                {money(discounted)}
               </span>
               {hasPromo && (
                 <span className="text-[12px] text-zinc-400 line-through">
-                  £{base.toFixed(2)}
+                  {money(base)}
                 </span>
               )}
             </div>
@@ -2620,8 +2638,11 @@ function StoreItemRow({
   onClick,
   categoryName,
   stepper,
+  money,
 }: {
   item: MenuItem;
+  /** Bound to THIS store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
   promo: { percentageOff: number; campaignName: string } | null;
   showImage?: boolean;
   onClick: () => void;
@@ -2708,12 +2729,12 @@ function StoreItemRow({
           <span
             className={`text-[15px] font-bold ${hasPromo ? "text-red-600" : "text-zinc-900"}`}
           >
-            £{discounted.toFixed(2)}
+            {money(discounted)}
           </span>
           {hasPromo && (
             <>
               <span className="text-[13px] text-zinc-400 line-through">
-                £{base.toFixed(2)}
+                {money(base)}
               </span>
               <span className="rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">
                 -{promo!.percentageOff}%
@@ -2787,8 +2808,12 @@ function ProductCard({
   bogoTrigger,
   showImage = true,
   onClick,
+  money,
 }: {
   item: MenuItem;
+  /** Bound to THIS store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
+
   promo: { percentageOff: number; campaignName: string } | null;
   bogoTrigger?: boolean;
   showImage?: boolean;
@@ -2877,13 +2902,13 @@ function ProductCard({
           {hasPromo ? (
             <div className="flex flex-col leading-tight">
               <span className="text-[11px] text-zinc-400 line-through">
-                £{basePrice.toFixed(2)}
+                {money(basePrice)}
               </span>
               <span className="text-base font-bold text-red-600">
                 {fromSize && (
                   <span className="mr-1 text-[11px] font-medium">From</span>
                 )}
-                £{discounted.toFixed(2)}
+                {money(discounted)}
               </span>
             </div>
           ) : (
@@ -2893,7 +2918,7 @@ function ProductCard({
                   From
                 </span>
               )}
-              £{basePrice.toFixed(2)}
+              {money(basePrice)}
             </span>
           )}
           <span className="inline-flex items-center gap-1 rounded-md bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white group-hover:bg-orange-600">
@@ -2908,6 +2933,8 @@ function ProductCard({
 // ── Cart Panel ─────────────────────────────────────────────────────────────
 
 interface CartPanelProps {
+  /** Bound to THIS store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
   onClose: () => void;
   cart: CartLine[];
   dispatch: React.Dispatch<CartAction>;
@@ -2992,6 +3019,7 @@ interface CartPanelProps {
 
 function CartPanel(props: CartPanelProps) {
   const {
+    money,
     onClose,
     cart,
     addrFlat,
@@ -3082,7 +3110,7 @@ function CartPanel(props: CartPanelProps) {
               </p>
               <p className="mt-0.5 text-[11px] text-amber-800">
                 {!freeItemPicker.eligible
-                  ? `Add £${freeItemPicker.remaining.toFixed(2)} more (eligible items only) to unlock.`
+                  ? `Add ${money(freeItemPicker.remaining)} more (eligible items only) to unlock.`
                   : freeItemPicker.options.length === 1
                     ? `🎉 Unlocked! Free ${freeItemPicker.options[0]?.name ?? "item"} added to your cart.`
                     : freeItemPicker.chosenId
@@ -3134,8 +3162,7 @@ function CartPanel(props: CartPanelProps) {
                       </p>
                     )}
                     <p className="mt-1 text-xs text-zinc-500">
-                      £
-                      {(l.unitPrice * l.quantity).toFixed(2)}
+                      {money(l.unitPrice * l.quantity)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -3296,15 +3323,15 @@ function CartPanel(props: CartPanelProps) {
 
               {matchedZone && (
                 <p className="text-[11px] text-emerald-700">
-                  Matched zone <strong>{matchedZone.prefix}</strong> · £
-                  {matchedZone.fee.toFixed(2)} delivery
-                  {matchedZone.minOrder ? ` · min £${matchedZone.minOrder.toFixed(2)}` : ""}
+                  Matched zone <strong>{matchedZone.prefix}</strong> ·{" "}
+                  {money(matchedZone.fee)} delivery
+                  {matchedZone.minOrder ? ` · min ${money(matchedZone.minOrder)}` : ""}
                 </p>
               )}
               {noZoneMatched && (
                 <p className="text-[11px] text-amber-600">
                   No matching delivery zone for this postcode — charging the
-                  standard £{highestZoneFee.toFixed(2)} delivery fee.
+                  standard {money(highestZoneFee)} delivery fee.
                 </p>
               )}
               {!matchedZone && !noZoneMatched && addrPostcode.length >= 3 && (
@@ -3337,7 +3364,7 @@ function CartPanel(props: CartPanelProps) {
                   <strong>{promoApplied.code}</strong>{" "}
                   {promoApplied.freeDelivery
                     ? "— Free delivery"
-                    : `— £${promoDiscount.toFixed(2)} off`}
+                    : `— ${money(promoDiscount)} off`}
                 </span>
                 <button
                   type="button"
@@ -3413,17 +3440,17 @@ function CartPanel(props: CartPanelProps) {
 
         {/* Totals + place */}
         <footer className="border-t border-zinc-200 px-4 py-3 space-y-2">
-          <Row label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
+          <Row label="Subtotal" value={`${money(subtotal)}`} />
           {campaignDiscount >= promoDiscount && campaignDiscount > 0 && (
             <Row
               label={`Discount (${campaignName ?? "Promo"})`}
-              value={`-£${campaignDiscount.toFixed(2)}`}
+              value={`-${money(campaignDiscount)}`}
             />
           )}
           {promoDiscount > campaignDiscount && promoDiscount > 0 && (
             <Row
               label={`Discount (${promoApplied?.code ?? ""})`}
-              value={`-£${promoDiscount.toFixed(2)}`}
+              value={`-${money(promoDiscount)}`}
             />
           )}
           {fulfillmentType === "DELIVERY" && (
@@ -3433,7 +3460,7 @@ function CartPanel(props: CartPanelProps) {
                 freeDelivery
                   ? "Free"
                   : deliveryFee > 0
-                    ? `£${deliveryFee.toFixed(2)}`
+                    ? `${money(deliveryFee)}`
                     : "—"
               }
             />
@@ -3441,10 +3468,10 @@ function CartPanel(props: CartPanelProps) {
           {serviceCharge > 0 && (
             <Row
               label="Service charge"
-              value={`£${serviceCharge.toFixed(2)}`}
+              value={`${money(serviceCharge)}`}
             />
           )}
-          <Row label="Total" value={`£${total.toFixed(2)}`} bold />
+          <Row label="Total" value={`${money(total)}`} bold />
           {placeError && (
             <p className="text-[11px] text-red-600">{placeError}</p>
           )}
@@ -4182,8 +4209,12 @@ function InfoModal({
   deliveryZones,
   isOpenNow,
   onClose,
+  money,
 }: {
   locationName: string;
+  /** Bound to THIS store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
+
   about: string | null;
   address: string | null;
   openingHours: any;
@@ -4281,11 +4312,11 @@ function InfoModal({
                         </span>
                         <span className="text-right">
                           <span className="text-sm font-semibold text-zinc-900">
-                            {fee > 0 ? `£${fee.toFixed(2)}` : "Free"}
+                            {fee > 0 ? `${money(fee)}` : "Free"}
                           </span>
                           {min ? (
                             <span className="block text-[10px] text-zinc-500">
-                              min £{min.toFixed(2)}
+                              min {money(min)}
                             </span>
                           ) : null}
                         </span>

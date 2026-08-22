@@ -36,6 +36,8 @@ export interface Location {
   city?: string | null;
   postcode?: string | null;
   country: string;
+  /** Trading currency (ISO-4217). Follows the till, not the brand. */
+  currency?: string;
   customDomain?: string | null;
   customDomainStatus: CustomDomainStatus;
   onlineOrderingSlug?: string | null;
