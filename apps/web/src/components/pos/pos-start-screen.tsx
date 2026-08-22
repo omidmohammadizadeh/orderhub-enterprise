@@ -31,6 +31,7 @@ import {
   MapPin,
   ArrowRight,
   Loader2,
+  X,
 } from "lucide-react";
 import {
   addressLookupClient,
@@ -38,6 +39,7 @@ import {
 } from "@/lib/api/pos.client";
 import type { PartialDraft } from "./pos-cart-panel";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api/client";
 
 export type PosOrderType = "DELIVERY" | "COLLECTION" | "WALK_IN";
 
@@ -171,6 +173,25 @@ export function PosStartScreen({
               className="w-full rounded-lg border border-zinc-300 px-3 py-3 text-base outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900"
             />
           </Field>
+
+          {/* Recognise the number as it is typed, the same way an incoming
+              call is recognised. Offered, never applied on its own. */}
+          <KnownCustomer
+            phone={draft.customerPhone ?? ""}
+            onUse={(m, address) =>
+              set({
+                customerName: m.name,
+                ...(address
+                  ? {
+                      addressLine1: address.line1,
+                      addressLine2: address.line2 ?? "",
+                      city: address.city ?? "",
+                      postcode: address.postcode ?? "",
+                    }
+                  : {}),
+              })
+            }
+          />
 
           <Field
             label="Name"
@@ -398,4 +419,121 @@ function AddressField({
       </p>
     </Field>
   );
+}
+
+/**
+ * Recognise a returning customer from a typed phone number.
+ *
+ * The landline popup already does this when a call comes IN — same endpoint,
+ * same tenant-scoped match against the last year of orders. A number typed at
+ * the counter is the same question asked a different way, so it gets the same
+ * answer rather than making staff re-key a regular's address.
+ *
+ * Never fills anything on its own. It offers what it found and waits to be
+ * tapped: silently rewriting a name or address under someone mid-order is how
+ * an order goes to last month's address.
+ */
+function KnownCustomer({
+  phone,
+  onUse,
+}: {
+  phone: string;
+  onUse: (m: LookupMatch, address: LookupMatch["addresses"][number] | null) => void;
+}) {
+  const [match, setMatch] = useState<LookupMatch | null>(null);
+  const [dismissed, setDismissed] = useState<string | null>(null);
+
+  const digits = phone.replace(/\D/g, "");
+  useEffect(() => {
+    // A UK mobile is 11 digits; below 7 every regular in the shop matches and
+    // the card would flicker through wrong people as the number is typed.
+    if (digits.length < 7) {
+      setMatch(null);
+      return;
+    }
+    let live = true;
+    // Debounced: one request when typing pauses, not one per keystroke.
+    const t = setTimeout(() => {
+      apiClient
+        .get<LookupMatch | null>("/v1/customers/lookup", { params: { phone: digits } })
+        .then((r) => {
+          if (live) setMatch(r.data ?? null);
+        })
+        // A failed lookup is not an error worth showing: the operator can
+        // always type the details, which is what they did before this existed.
+        .catch(() => {
+          if (live) setMatch(null);
+        });
+    }, 350);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+  }, [digits]);
+
+  if (!match || dismissed === digits) return null;
+  const firstName = (match.name ?? "").split(" ")[0] || "this customer";
+
+  return (
+    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-900">
+            <User className="h-3.5 w-3.5" />
+            {match.name}
+          </p>
+          <p className="text-[11px] text-emerald-700">
+            {match.orders} previous order{match.orders === 1 ? "" : "s"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDismissed(digits)}
+          className="rounded p-1 text-emerald-700/60 hover:bg-emerald-100 hover:text-emerald-900"
+          title="Not this customer"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="mt-2 space-y-1.5">
+        {match.addresses.map((a, i) => (
+          <button
+            key={`${a.line1}-${a.postcode ?? i}`}
+            type="button"
+            onClick={() => onUse(match, a)}
+            className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left text-xs hover:border-emerald-400"
+          >
+            <span className="font-medium text-zinc-900">{a.line1}</span>
+            {(a.city || a.postcode) && (
+              <span className="block text-zinc-500">
+                {[a.city, a.postcode].filter(Boolean).join(", ")}
+              </span>
+            )}
+          </button>
+        ))}
+        {/* Collection orders need the name, not an address — and a delivery
+            customer ordering to a new address still wants their name filled. */}
+        <button
+          type="button"
+          onClick={() => onUse(match, null)}
+          className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left text-xs font-medium text-emerald-800 hover:border-emerald-400"
+        >
+          Use {firstName}&rsquo;s name only
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface LookupMatch {
+  name: string;
+  orders: number;
+  email: string | null;
+  addresses: Array<{
+    line1: string;
+    line2: string | null;
+    city: string | null;
+    postcode: string | null;
+  }>;
 }

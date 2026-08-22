@@ -131,6 +131,25 @@ export class CustomersController {
     });
   }
 
+  // Same lookup the landline caller-ID popup runs, reachable on demand so the
+  // POS can offer it when an operator TYPES a number — a phone order taken at
+  // the counter should recognise a regular the same way a ringing one does.
+  //
+  // Declared above @Get(":customerId") deliberately: Nest matches in
+  // declaration order, so below it "lookup" would be read as a customer id.
+  @Get("lookup")
+  @ApiOperation({
+    summary: "Find a returning customer by phone number (name + past addresses)",
+  })
+  lookup(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("phone") phone?: string,
+  ) {
+    // Tenant-scoped through CurrentUser, exactly as caller-id/ring is — the
+    // number comes from the caller but the tenant never does.
+    return this.customers.lookupByPhone(user.tenantId, phone ?? "");
+  }
+
   @Get(":customerId")
   @ApiOperation({ summary: "Get customer profile" })
   findOne(
