@@ -11,7 +11,7 @@ function fakeTx(counters: Record<string, number>) {
       findFirst: async () => { bump("option.findFirst"); return null; },
       create: async ({ data }: any) => { bump("option.create"); return { id: `o${counters["option.create"]}`, ...data }; },
       update: async ({ data }: any) => ({ id: "o", ...data }),
-      findMany: async () => [],
+      findMany: async () => { bump("option.findMany"); return []; },
     },
     modifierGroup: {
       findFirst: async () => { bump("group.findFirst"); return null; },
@@ -91,9 +91,34 @@ describe("MenuWriterService — the holding group is resolved once per import", 
     } as any);
 
     expect(counters["option.create"]).toBe(300);
-    // One findFirst per option is the option's OWN existence check. The
-    // holding group adds exactly one more for the whole import.
+    // The holding group is resolved once for the whole import, not per option.
     expect(counters["group.findFirst"]).toBe(1);
     expect(counters["group.create"]).toBe(1);
+  });
+
+  it("checks which options already exist in a FIXED number of queries", async () => {
+    const run = async (n: number) => {
+      const counters: Record<string, number> = {};
+      await build(counters).apply({
+        menuId: "m1",
+        tenantId: "t1",
+        brandId: "b1",
+        locationId: "l1",
+        normalized: normalizedWith(n) as any,
+      } as any);
+      return counters;
+    };
+    const small = await run(50);
+    const big = await run(500);
+
+    // The per-option existence lookup is gone entirely.
+    expect(small["option.findFirst"] ?? 0).toBe(0);
+    expect(big["option.findFirst"] ?? 0).toBe(0);
+    // Reads no longer scale with the number of options — ten times the
+    // options costs the same number of lookups.
+    expect(big["option.findMany"]).toBe(small["option.findMany"]);
+    // ...while the writes obviously still do.
+    expect(big["option.create"]).toBe(500);
+    expect(small["option.create"]).toBe(50);
   });
 });

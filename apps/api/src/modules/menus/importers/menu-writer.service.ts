@@ -184,14 +184,30 @@ export class MenuWriterService {
           }
           return holdingGroupId;
         };
-        for (const m of normalized.modifiers) {
-          const existing = await tx.modifierOption.findFirst({
+        // One read for every option this import might already own, instead of
+        // a findFirst per option. A menu with 2,325 options was issuing 2,325
+        // separate lookups inside a transaction that has a time limit; the
+        // answer to all of them fits in a single query.
+        const existingOptionByExt = new Map<
+          string,
+          { id: string; syncHash: string | null }
+        >();
+        if (normalized.modifiers.length) {
+          const rows = await tx.modifierOption.findMany({
             where: {
               platformSource: source,
-              externalId: m.externalId,
+              externalId: { in: normalized.modifiers.map((m) => m.externalId) },
               group: { brand: { tenantId } },
             },
+            select: { id: true, externalId: true, syncHash: true },
           });
+          for (const r of rows) {
+            if (r.externalId) existingOptionByExt.set(r.externalId, r);
+          }
+        }
+
+        for (const m of normalized.modifiers) {
+          const existing = existingOptionByExt.get(m.externalId) ?? null;
           if (existing) {
             if (existing.syncHash !== m.syncHash) {
               const u = await tx.modifierOption.update({
