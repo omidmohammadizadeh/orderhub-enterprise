@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { locationsClient } from "@/lib/api/locations.client";
 import { ArrowLeft, Save, Trash2, Plus, X, Layers } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -56,6 +57,17 @@ export function ProductForm({
   const qc = useQueryClient();
   const isEdit = !!productId;
 
+  // Kitchen translations are per-location and off by default: most shops print
+  // English and should never see a second name box on every product.
+  const kitchenLangQuery = useQuery({
+    queryKey: ["location", locationId],
+    queryFn: () => locationsClient.get(locationId!),
+    enabled: !!locationId,
+    staleTime: 5 * 60_000,
+  });
+  const kitchenLanguageOn =
+    ((kitchenLangQuery.data as any)?.settings ?? {}).kitchenTicketSecondLanguage === true;
+
   // ── Load existing product for edit mode ─────────────────────────────
   // Phase AW-12 — direct by-id lookup. The previous list-then-find
   // pattern silently dropped products whose brandId didn't match the
@@ -104,6 +116,9 @@ export function ProductForm({
   const [plu, setPlu] = useState(genPlu());
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [basePrice, setBasePrice] = useState("0.00");
+  // Kitchen-language name. Customers always see `name`; the kitchen ticket
+  // prints this when the location has translations switched on.
+  const [secondLanguageName, setSecondLanguageName] = useState("");
   const [deliveryTax, setDeliveryTax] = useState("0");
   const [takeawayTax, setTakeawayTax] = useState("0");
   const [eatInTax, setEatInTax] = useState("0");
@@ -165,6 +180,7 @@ export function ProductForm({
     setPlu(existing.plu ?? existing.sku ?? genPlu());
     setImageUrl(existing.imageUrl);
     setBasePrice(String(existing.basePrice));
+    setSecondLanguageName((existing as any).secondLanguageName ?? "");
     setDeliveryTax(String(existing.deliveryTax ?? 0));
     setTakeawayTax(String(existing.takeawayTax ?? 0));
     setEatInTax(String(existing.eatInTax ?? 0));
@@ -215,6 +231,9 @@ export function ProductForm({
         plu: plu.trim() || null,
         imageUrl,
         basePrice: Number(basePrice) || 0,
+        // null, not "", so an emptied box clears the translation rather than
+        // storing a blank that reads as "translated to nothing".
+        secondLanguageName: secondLanguageName.trim() || null,
         deliveryTax: Number(deliveryTax) || 0,
         takeawayTax: Number(takeawayTax) || 0,
         eatInTax: Number(eatInTax) || 0,
@@ -383,6 +402,22 @@ export function ProductForm({
                   className="h-9 text-sm"
                 />
               </Field>
+              {/* Only shown once the location turns kitchen translations on —
+                  most shops print English and do not want a second name box
+                  on every product. */}
+              {kitchenLanguageOn && (
+                <Field
+                  label="Kitchen name"
+                  hint="Printed on the kitchen ticket instead of the name above. Leave blank to print the English name."
+                >
+                  <Input
+                    value={secondLanguageName}
+                    onChange={(e) => setSecondLanguageName(e.target.value)}
+                    placeholder="e.g. 玛格丽特披萨"
+                    className="h-9 text-sm"
+                  />
+                </Field>
+              )}
               <Field label="PLU" hint="Auto-generated. Edit if you have a custom code.">
                 <Input
                   value={plu}

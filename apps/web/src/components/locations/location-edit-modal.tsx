@@ -210,6 +210,12 @@ function GeneralTab({
   // Per-location telephony identity (SMS + caller ID). Stored on
   // Location.settings; the API resolves the Twilio "From" from these so each
   // shop texts from its own number/name (see sms.service resolveFrom).
+  // Kitchen tickets in a second language (e.g. an English menu with a Chinese
+  // kitchen). OFF by default — nearly every shop prints English, and the
+  // toggle is what keeps a second name box off every product for them.
+  const [kitchenSecondLanguage, setKitchenSecondLanguage] = useState<boolean>(
+    (location as any)?.settings?.kitchenTicketSecondLanguage === true,
+  );
   const [smsSenderName, setSmsSenderName] = useState<string>(
     (location as any)?.settings?.smsSenderName ?? "",
   );
@@ -353,6 +359,7 @@ function GeneralTab({
         // merged into Location.settings.
         settings: {
           posBrandId: posBrandId || null,
+          kitchenTicketSecondLanguage: kitchenSecondLanguage,
           smsSenderName: smsSenderName.trim() || null,
           smsNumber: smsNumber.trim() || null,
           callerIdNumber: callerIdNumber.trim() || null,
@@ -763,6 +770,38 @@ function GeneralTab({
           for card readers. Enter <strong>0</strong> to charge nothing on
           terminal payments — that&apos;s different from leaving it blank.
         </p>
+      </div>
+
+      {/* Kitchen-language tickets. Off unless a shop actually needs it. */}
+      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">
+            Kitchen ticket language
+          </h3>
+          <p className="text-[11px] text-zinc-500">
+            For a kitchen that reads a different language from the menu — an
+            English menu for customers, a Chinese ticket for the kitchen.
+          </p>
+        </div>
+        <label className="flex items-start gap-2.5">
+          <input
+            type="checkbox"
+            checked={kitchenSecondLanguage}
+            onChange={(e) => setKitchenSecondLanguage(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="min-w-0">
+            <span className="block text-sm text-zinc-800">
+              Print kitchen tickets in a second language
+            </span>
+            <span className="block text-[11px] text-zinc-500">
+              Adds a &ldquo;Kitchen name&rdquo; box to every product. Items
+              without one keep printing their English name, so you can
+              translate the menu a bit at a time. Customer receipts and the
+              menu itself are never affected.
+            </span>
+          </span>
+        </label>
       </div>
 
       {/* Per-location phone identity — the number/name this shop's texts and

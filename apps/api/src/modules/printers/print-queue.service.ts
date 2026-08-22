@@ -14,6 +14,56 @@ import { computeVisitCountForOrder } from "../orders/customer-visit.helper";
 export class PrintQueueService {
   private readonly logger = new Logger(PrintQueueService.name);
 
+  /**
+   * Kitchen-language names for this order's products, or an empty map.
+   *
+   * Gated on the location's own setting and returns early when it is off, so
+   * the overwhelming majority of shops — which print English — pay one cheap
+   * settings read that is already loaded, and no extra query at all.
+   */
+  private async kitchenNamesFor(order: any): Promise<Map<string, string>> {
+    const empty = new Map<string, string>();
+    if (!order?.locationId) return empty;
+    try {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: order.locationId },
+        select: { settings: true },
+      });
+      const on =
+        ((loc?.settings ?? {}) as Record<string, unknown>)
+          .kitchenTicketSecondLanguage === true;
+      if (!on) return empty;
+
+      const ids: string[] = Array.from(
+        new Set<string>(
+          (order.items ?? [])
+            .map((i: any) => i.menuItemId)
+            .filter((id: any): id is string => typeof id === "string" && !!id),
+        ),
+      );
+      if (!ids.length) return empty;
+
+      const rows = await this.prisma.menuItem.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, secondLanguageName: true },
+      });
+      for (const r of rows) {
+        // Only real translations go in the map. A blank one means "not
+        // translated yet" and the ticket keeps printing English, so a shop can
+        // translate its menu a few items at a time.
+        const n = (r.secondLanguageName ?? "").trim();
+        if (n) empty.set(r.id, n);
+      }
+      return empty;
+    } catch (e: any) {
+      // A ticket that prints in English beats a ticket that does not print.
+      this.logger.warn(
+        `kitchen-language lookup failed for order ${order?.id}: ${e?.message ?? e}`,
+      );
+      return new Map<string, string>();
+    }
+  }
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly socket: SocketService,
@@ -66,7 +116,11 @@ export class PrintQueueService {
       jobs.push({
         printerId: kitchenPrinter.id,
         type: "KITCHEN_TICKET",
-        payload: buildKitchenTicketPayload(order, visitCount),
+        payload: buildKitchenTicketPayload(
+          order,
+          visitCount,
+          await this.kitchenNamesFor(order),
+        ),
       });
     }
 

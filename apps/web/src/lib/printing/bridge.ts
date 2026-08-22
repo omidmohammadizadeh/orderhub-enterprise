@@ -894,8 +894,15 @@ export function buildOrderReceipt(
   const items = Array.isArray(payload?.items) ? payload.items : [];
   items.forEach((it: any, idx: number) => {
     const qty = String(it?.quantity ?? 1);
+    // Kitchen-language name wins when the location has translations on and
+    // this product has one. Replaces the English rather than adding a line:
+    // a kitchen reading Chinese should not scan past the English to find it.
     const name = String(
-      it?.name ?? it?.productName ?? it?.title ?? "Item",
+      it?.secondLanguageName ||
+        it?.name ||
+        it?.productName ||
+        it?.title ||
+        "Item",
     );
     const lineTotal =
       typeof it?.totalPrice === "number"
@@ -907,7 +914,19 @@ export function buildOrderReceipt(
 
     buf.push(...BOLD_ON, ...ITEM_ON);
     const head = `${qty}x ${name}`;
-    if (head.length + 1 + priceStr.length <= itemCols) {
+    // CP437 cannot represent CJK — strBytes would turn the whole name into
+    // question marks — so a translated line is drawn as pixels instead, the
+    // same way the QR code and logo already are. Falls through to normal text
+    // when there is no canvas (a headless render), which prints English.
+    const rastered = needsRaster(head)
+      // Same dot widths the QR raster uses for each paper size.
+      ? rasterTextLine(head, paperWidth === 58 ? 280 : 384, { bold: true })
+      : null;
+    if (rastered) {
+      buf.push(...ALIGN_LEFT, ...rastered);
+      // The price cannot ride on a raster row, so it gets its own aligned line.
+      if (priceStr) line(buf, padBetween("", priceStr, itemCols));
+    } else if (head.length + 1 + priceStr.length <= itemCols) {
       line(buf, padBetween(head, priceStr, itemCols));
     } else {
       // Item name too long for one line at this size — wrap the name,
