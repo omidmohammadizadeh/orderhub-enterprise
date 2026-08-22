@@ -336,11 +336,26 @@ export class MenuWriterService {
           groupExtToLocal,
           modifierExtToLocal,
         );
+        // Every option owned by the same group(s) gets byte-identical data
+        // here, so they go in one updateMany per distinct owner set rather
+        // than one update per option. On a 2,325-option menu that is ~200
+        // round trips instead of 2,325, inside a transaction where each one
+        // is paid for in wall-clock the browser is waiting on.
+        const optionsByOwnerSet = new Map<string, { owners: string[]; ids: string[] }>();
         for (const [localOptId, owners] of optionGroupOwners) {
-          await tx.modifierOption.update({
-            where: { id: localOptId },
+          const key = owners.join("|");
+          const bucket = optionsByOwnerSet.get(key);
+          if (bucket) bucket.ids.push(localOptId);
+          else optionsByOwnerSet.set(key, { owners, ids: [localOptId] });
+        }
+        for (const { owners, ids } of optionsByOwnerSet.values()) {
+          await tx.modifierOption.updateMany({
+            where: { id: { in: ids } },
             data: {
               groupId: owners[0],
+              // Same { set: … } form the per-row update used, which updateMany
+              // accepts for a scalar list — so this is the identical write,
+              // just addressed to many rows at once.
               modifierGroupIds: { set: owners },
               menuIds: { set: Array.from(new Set([menuId])) },
             },

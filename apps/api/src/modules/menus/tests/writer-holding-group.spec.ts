@@ -10,7 +10,8 @@ function fakeTx(counters: Record<string, number>) {
     modifierOption: {
       findFirst: async () => { bump("option.findFirst"); return null; },
       create: async ({ data }: any) => { bump("option.create"); return { id: `o${counters["option.create"]}`, ...data }; },
-      update: async ({ data }: any) => ({ id: "o", ...data }),
+      update: async ({ data }: any) => { bump("option.update"); return { id: "o", ...data }; },
+      updateMany: async () => { bump("option.updateMany"); return { count: 0 }; },
       findMany: async () => { bump("option.findMany"); return []; },
     },
     modifierGroup: {
@@ -34,13 +35,25 @@ function fakeTx(counters: Record<string, number>) {
   };
 }
 
-function normalizedWith(optionCount: number) {
+function normalizedWith(optionCount: number, groupCount = 0) {
+  const perGroup = groupCount ? Math.ceil(optionCount / groupCount) : 0;
   return {
     platformSource: "ai" as const,
     menuPatch: { menuData: {}, rawImportPayload: {}, syncHash: "h" },
     categories: [],
     products: [],
-    modifierGroups: [],
+    modifierGroups: Array.from({ length: groupCount }, (_, gi) => ({
+      externalId: `grp-${gi}`,
+      name: `Group ${gi}`,
+      plu: `gp${gi}`,
+      selectionType: "ADDON" as const,
+      minSelections: 0,
+      maxSelections: 5,
+      allowDuplicateSelections: true,
+      modifierExternalIds: Array.from({ length: perGroup }, (_, i) => `ext-${gi * perGroup + i}`)
+        .filter((e) => Number(e.split("-")[1]) < optionCount),
+      syncHash: `gh${gi}`,
+    })),
     modifiers: Array.from({ length: optionCount }, (_, i) => ({
       externalId: `ext-${i}`,
       name: `Option ${i}`,
@@ -120,5 +133,22 @@ describe("MenuWriterService — the holding group is resolved once per import", 
     // ...while the writes obviously still do.
     expect(big["option.create"]).toBe(500);
     expect(small["option.create"]).toBe(50);
+  });
+
+  it("assigns option owners in one query per group, not one per option", async () => {
+    // 600 options spread over 20 groups: the owner assignment is identical
+    // for every option in a group, so it is 20 writes, not 600.
+    const counters: Record<string, number> = {};
+    await build(counters).apply({
+      menuId: "m1",
+      tenantId: "t1",
+      brandId: "b1",
+      locationId: "l1",
+      normalized: normalizedWith(600, 20) as any,
+    } as any);
+
+    expect(counters["option.updateMany"]).toBeLessThanOrEqual(20);
+    // Not one update per option any more.
+    expect(counters["option.update"] ?? 0).toBe(0);
   });
 });
