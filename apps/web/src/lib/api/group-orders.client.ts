@@ -161,7 +161,13 @@ export const groupOrdersClient = {
         line1: string;
         line2?: string;
         city: string;
-        postcode: string;
+        /** Optional outside the UK — the Gulf has no everyday postcodes. */
+        postcode?: string;
+        /** The picked community. What prices the order where the shop
+         *  charges by area rather than by postcode. */
+        area?: string;
+        latitude?: number;
+        longitude?: number;
         country?: string;
       };
       deliveryFee?: number;

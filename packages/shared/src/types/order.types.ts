@@ -125,7 +125,14 @@ export const CanonicalOrderSchema = z.object({
       line1: z.string(),
       line2: z.string().optional(),
       city: z.string(),
-      postcode: z.string(),
+      // Optional: the UAE and most of the Gulf have no postal code in
+      // everyday use. Requiring one here rejected every Dubai delivery at
+      // ingest, whatever the storefront had collected.
+      postcode: z.string().optional(),
+      /** The named community — "Dubai Marina", "Business Bay". What delivery
+       *  zones price on where there is no postcode, and what a driver
+       *  navigates by. */
+      area: z.string().optional(),
       country: z.string().default("GB"),
       coordinates: z
         .object({ lat: z.number(), lng: z.number() })

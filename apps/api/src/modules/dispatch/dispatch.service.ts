@@ -281,24 +281,41 @@ export class DispatchService {
     return Array.from(ids);
   }
 
-  /** Build a free-form address string from an order's structured + JSON fields. */
-  private orderAddressString(order: {
-    addressLine1: string | null;
-    city: string | null;
-    postcode: string | null;
-    deliveryAddress: unknown;
-  }): string | null {
-    const parts = [order.addressLine1, order.city, order.postcode].filter(Boolean) as string[];
-    if (parts.length) return `${parts.join(", ")}, UK`;
-    // Fallback to the deliveryAddress JSON blob (webhook-ingested shapes).
+  /** Build a free-form address string from an order's structured + JSON fields.
+   *
+   *  The country comes from the SHOP, not a constant. This used to append a
+   *  literal ", UK" to every address, so a Dubai delivery was handed to the
+   *  geocoder as a British address and resolved to nothing — no pin on the
+   *  dispatch map, no explanation. Where the address carries an `area` (the
+   *  Gulf community) it goes in too: it is often the only locatable part. */
+  private orderAddressString(
+    order: {
+      addressLine1: string | null;
+      city: string | null;
+      postcode: string | null;
+      deliveryAddress: unknown;
+    },
+    country = "GB",
+  ): string | null {
+    const cc = String(country || "GB").trim().toUpperCase();
     const a = order.deliveryAddress as Record<string, unknown> | null;
+    const area =
+      a && typeof a === "object"
+        ? ((a.area ?? a.neighbourhood ?? a.district) as string | undefined)
+        : undefined;
+    const parts = [order.addressLine1, area, order.city, order.postcode].filter(
+      Boolean,
+    ) as string[];
+    if (parts.length) return `${parts.join(", ")}, ${cc}`;
+    // Fallback to the deliveryAddress JSON blob (webhook-ingested shapes).
     if (a && typeof a === "object") {
       const jsonParts = [
         a.line1 ?? a.addressLine1 ?? a.address1 ?? a.street,
+        area,
         a.city ?? a.town,
         a.postcode ?? a.postal_code ?? a.zip,
       ].filter(Boolean) as string[];
-      if (jsonParts.length) return `${jsonParts.join(", ")}, UK`;
+      if (jsonParts.length) return `${jsonParts.join(", ")}, ${cc}`;
     }
     return null;
   }
@@ -354,20 +371,24 @@ export class DispatchService {
       postcode: string | null;
       deliveryAddress: unknown;
     }>,
+    countryByLocation: Map<string, string> = new Map(),
   ): Promise<Map<string, { lat: number; lng: number }>> {
     const resolved = new Map<string, { lat: number; lng: number }>();
     const missing = orders.filter((o) => o.deliveryLat == null);
     await Promise.all(
       missing.map(async (o) => {
+        const country =
+          countryByLocation.get((o as { locationId?: string }).locationId ?? "") ??
+          "GB";
         const point =
           this.coordsFromAddress(o.deliveryAddress) ??
           (await (async () => {
-            const addr = this.orderAddressString(o);
+            const addr = this.orderAddressString(o, country);
             if (!addr) {
               this.logger.log(`dispatch: order ${o.id} has no geocodable address/coords — no pin`);
               return null;
             }
-            const p = await this.geocoder.geocode(addr);
+            const p = await this.geocoder.geocode(addr, country);
             if (!p) this.logger.warn(`dispatch: geocode returned nothing for order ${o.id} ("${addr}")`);
             return p;
           })());
@@ -392,11 +413,15 @@ export class DispatchService {
     addressLine1: string | null;
     city: string | null;
     postcode: string | null;
+    country?: string | null;
   }): Promise<DispatchLocationPin> {
     const cached = this.locationGeoCache.get(loc.id);
     if (cached) return { id: loc.id, name: loc.name, lat: cached.lat, lng: cached.lng };
+    const cc = String(loc.country || "GB").trim().toUpperCase();
     const parts = [loc.addressLine1, loc.city, loc.postcode].filter(Boolean) as string[];
-    const point = parts.length ? await this.geocoder.geocode(`${parts.join(", ")}, UK`) : null;
+    const point = parts.length
+      ? await this.geocoder.geocode(`${parts.join(", ")}, ${cc}`, cc)
+      : null;
     if (point) this.locationGeoCache.set(loc.id, point);
     return { id: loc.id, name: loc.name, lat: point?.lat ?? null, lng: point?.lng ?? null };
   }
@@ -453,7 +478,14 @@ export class DispatchService {
     const [locationRows, orderRows, doneRows, presenceRows] = await Promise.all([
       this.prisma.location.findMany({
         where: { id: { in: scope } },
-        select: { id: true, name: true, addressLine1: true, city: true, postcode: true },
+        select: {
+          id: true,
+          name: true,
+          addressLine1: true,
+          city: true,
+          postcode: true,
+          country: true,
+        },
       }),
       this.prisma.order.findMany({
         where: {
@@ -505,7 +537,13 @@ export class DispatchService {
       }),
     ]);
 
-    const geocoded = await this.geocodeMissing([...orderRows, ...doneRows]);
+    const countryByLocation = new Map(
+      locationRows.map((l) => [l.id, l.country ?? "GB"]),
+    );
+    const geocoded = await this.geocodeMissing(
+      [...orderRows, ...doneRows],
+      countryByLocation,
+    );
 
     const locations = await Promise.all(locationRows.map((l) => this.locationPin(l)));
 

@@ -957,8 +957,14 @@ export class OrdersService {
       fulfillmentType: dto.fulfillmentType ?? ("DELIVERY" as const),
       displayId: undefined,
       customerInfo: dto.customerInfo,
+      // Country falls back to the SHOP's, not to a constant. A Dubai POS order
+      // was being stamped "GB" on the canonical record the receipt, the
+      // dispatch map and every marketplace export all read from.
       deliveryAddress: dto.deliveryAddress
-        ? { ...dto.deliveryAddress, country: dto.deliveryAddress.country ?? "GB" }
+        ? {
+            ...dto.deliveryAddress,
+            country: dto.deliveryAddress.country ?? location?.country ?? "GB",
+          }
         : undefined,
       items: dto.items.map((i) => ({
         name: i.name,
@@ -1031,7 +1037,7 @@ export class OrdersService {
       posUpdate.addressLine1 = dto.deliveryAddress.line1;
       posUpdate.addressLine2 = dto.deliveryAddress.line2 ?? null;
       posUpdate.city = dto.deliveryAddress.city;
-      posUpdate.postcode = dto.deliveryAddress.postcode;
+      posUpdate.postcode = dto.deliveryAddress.postcode ?? null;
     }
     if (dto.customerInfo?.name) posUpdate.customerName = dto.customerInfo.name;
     if (dto.customerInfo?.phone) posUpdate.customerPhone = dto.customerInfo.phone;
@@ -1254,7 +1260,10 @@ export class OrdersService {
         line1: string;
         line2?: string;
         city: string;
-        postcode: string;
+        /** Optional — the Gulf has no everyday postal code. */
+        postcode?: string;
+        /** The named community, e.g. "Dubai Marina". */
+        area?: string;
         country?: string;
       };
       specialInstructions?: string;

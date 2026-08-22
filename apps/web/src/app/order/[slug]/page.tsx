@@ -70,6 +70,35 @@ import {
 import { GroupBasketPanel } from "@/components/storefront/group-basket-panel";
 import { StartGroupOrderModal } from "@/components/storefront/start-group-order-modal";
 import { AddressSearchField } from "@/components/storefront/address-search-field";
+import {
+  resolveZone,
+  zoneMode,
+  areaZoneNames,
+  normaliseAreaName,
+  radiusBands,
+  postcodeRequiredFor,
+  formatDistance,
+  type ZoneLike,
+} from "@orderhub/shared";
+
+/** Same community, allowing for spelling and the Arabic article — "Al Barsha"
+ *  and "Barsha" are one place. Uses the shared normaliser so the browser's idea
+ *  of "same area" is the server's. */
+const sameArea = (a: string, b: string) =>
+  normaliseAreaName(a) === normaliseAreaName(b);
+
+/** A delivery zone row as the storefront receives it. Every mode field is
+ *  nullable because a row is exactly one of the three — this used to be typed
+ *  as `postcodePrefix: string`, which was a lie the moment a brand switched to
+ *  distance bands and the cart called .toUpperCase() on a null. */
+type DeliveryZoneRow = ZoneLike & {
+  id: string;
+  postcodePrefix: string | null;
+  areaName: string | null;
+  maxDistanceMiles: string | number | null;
+  fee: string | number;
+  minOrderValue: string | number | null;
+};
 import { PwaManifestLink } from "@/components/storefront/pwa-manifest-link";
 import { OrderNotifications } from "@/components/order/order-notifications";
 import { EmbeddedPaymentSheet } from "@/components/order/embedded-payment-sheet";
@@ -160,11 +189,7 @@ interface Storefront {
     heroImageUrl: string | null;
     showItemImages?: boolean;
   };
-  deliveryZones?: Array<{
-    postcodePrefix: string;
-    fee: string | number;
-    minOrderValue: string | number | null;
-  }>;
+  deliveryZones?: DeliveryZoneRow[];
   // Only present when WhatsApp ordering is configured AND live for this
   // location. Drives the "Order on WhatsApp" button. displayPhoneNumber is
   // E.164 (e.g. "+447…"); build the wa.me link by stripping non-digits.
@@ -469,6 +494,15 @@ function OrderPage() {
   const [addrLine1, setAddrLine1] = useState("");
   const [addrCity, setAddrCity] = useState("");
   const [addrPostcode, setAddrPostcode] = useState("");
+  // The community the customer delivers to. In the Gulf this is what prices
+  // the order — there is no postcode — so it is as load-bearing there as
+  // addrPostcode is in the UK.
+  const [addrArea, setAddrArea] = useState("");
+  // Kept when the address came from a Places pick, so distance bands don't
+  // re-geocode a string the browser already resolved.
+  const [addrPoint, setAddrPoint] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD">("CASH");
   const [notes, setNotes] = useState("");
   // Phase AP fix #1 — promo code redemption from the storefront cart.
@@ -538,27 +572,41 @@ function OrderPage() {
       ? cfg?.deliveryPrepMinutes ?? 45
       : cfg?.collectionPrepMinutes ?? 20;
 
-  // Auto-derived delivery fee — longest matching postcode prefix wins.
-  const matchedZone = useMemo(() => {
+  const shopCountry = storefront?.location?.country ?? "GB";
+  const zones = useMemo(
+    () => storefront?.deliveryZones ?? [],
+    [storefront?.deliveryZones],
+  );
+  /** POSTCODE | RADIUS | AREA | NONE — decided by the rows the brand saved,
+   *  so the cart can never quote on a model the shop isn't using. */
+  const mode = useMemo(() => zoneMode(zones), [zones]);
+  /** The areas this shop delivers to. This list IS the picker below. */
+  const deliveryAreas = useMemo(() => areaZoneNames(zones), [zones]);
+  const needsPostcode = postcodeRequiredFor(shopCountry);
+
+  // Auto-derived delivery fee. Identical logic to the server's — literally the
+  // same function — so the fee shown in the cart is the fee charged at
+  // checkout. Distance is left undefined here: measuring it needs a geocoder,
+  // and the server does that half.
+  const match = useMemo(() => {
     if (fulfillmentType !== "DELIVERY") return null;
-    const pc = addrPostcode.toUpperCase().replace(/\s+/g, "");
-    if (!pc || !storefront?.deliveryZones?.length) return null;
-    let best: { prefix: string; fee: number; minOrder: number | null } | null =
-      null;
-    for (const z of storefront.deliveryZones) {
-      const zp = z.postcodePrefix.toUpperCase().replace(/\s+/g, "");
-      if (pc.startsWith(zp)) {
-        if (!best || zp.length > best.prefix.length) {
-          best = {
-            prefix: zp,
-            fee: Number(z.fee),
-            minOrder: z.minOrderValue != null ? Number(z.minOrderValue) : null,
-          };
-        }
+    if (!zones.length) return null;
+    return resolveZone(zones, {
+      postcode: addrPostcode,
+      area: addrArea,
+    });
+  }, [fulfillmentType, addrPostcode, addrArea, zones]);
+  const matchedZone = match?.matched
+    ? {
+        prefix: match.label ?? "",
+        fee: match.fee,
+        minOrder: match.minOrderValue,
       }
-    }
-    return best;
-  }, [fulfillmentType, addrPostcode, storefront?.deliveryZones]);
+    : null;
+  /** The customer picked an area this shop doesn't serve. A refusal, not a
+   *  pricing gap — the picker was built from the shop's own zone list, so
+   *  there is no mistyped-postcode case to be generous about. */
+  const areaUnserviceable = match?.unserviceable === true;
 
   // unitPrice ALREADY includes the modifiers — calculateCartItem() returns
   // basePrice + sum(modifiers), and that is what the modal shows as its
@@ -592,8 +640,12 @@ function OrderPage() {
       ),
     [storefront?.deliveryZones],
   );
+  // Postcode/radius only. In area mode an unmatched address is refused
+  // outright, so quietly charging it the top rate would be charging for a
+  // delivery we've already said we won't make.
   const noZoneMatched =
     fulfillmentType === "DELIVERY" &&
+    mode !== "AREA" &&
     !matchedZone &&
     addrPostcode.replace(/\s+/g, "").length >= 3 &&
     highestZoneFee > 0;
@@ -1042,8 +1094,14 @@ function OrderPage() {
                 line1: addrLine1,
                 line2: addrFlat || undefined,
                 city: addrCity,
-                postcode: addrPostcode,
-                country: "GB",
+                postcode: addrPostcode || undefined,
+                area: addrArea || undefined,
+                latitude: addrPoint?.lat,
+                longitude: addrPoint?.lng,
+                // The SHOP's country, not a constant. Hardcoding "GB" put a
+                // Dubai delivery in the United Kingdom on the order record,
+                // the ticket and the dispatch map.
+                country: shopCountry,
               }
             : undefined,
         deliveryFee:
@@ -1142,8 +1200,11 @@ function OrderPage() {
                 line1: addrLine1,
                 line2: addrFlat || undefined,
                 city: addrCity,
-                postcode: addrPostcode,
-                country: "GB",
+                postcode: addrPostcode || undefined,
+                area: addrArea || undefined,
+                latitude: addrPoint?.lat,
+                longitude: addrPoint?.lng,
+                country: shopCountry,
               }
             : undefined,
         items,
@@ -2099,6 +2160,27 @@ function OrderPage() {
           setAddrLine1={setAddrLine1}
           addrCity={addrCity}
           setAddrCity={setAddrCity}
+          addrArea={addrArea}
+          setAddrArea={setAddrArea}
+          deliveryAreas={deliveryAreas}
+          zoneMode={mode}
+          areaUnserviceable={areaUnserviceable}
+          shopCountry={shopCountry}
+          needsPostcode={needsPostcode}
+          onPickAddress={(a) => {
+            if (a.line1) setAddrLine1(a.line1);
+            if (a.city) setAddrCity(a.city);
+            if (a.postcode) setAddrPostcode(a.postcode.toUpperCase());
+            // Preselect the area when Places named one we actually serve.
+            // Matching is still exact — a community we don't have a zone for
+            // leaves the picker empty rather than guessing a neighbour.
+            if (a.area && deliveryAreas.some((z) => sameArea(z, a.area!))) {
+              setAddrArea(deliveryAreas.find((z) => sameArea(z, a.area!))!);
+            }
+            if (a.latitude != null && a.longitude != null) {
+              setAddrPoint({ lat: a.latitude, lng: a.longitude });
+            }
+          }}
           addrPostcode={addrPostcode}
           setAddrPostcode={(v) => {
             setAddrPostcode(v);
@@ -2184,6 +2266,27 @@ function OrderPage() {
           setAddrLine1={setAddrLine1}
           addrCity={addrCity}
           setAddrCity={setAddrCity}
+          addrArea={addrArea}
+          setAddrArea={setAddrArea}
+          deliveryAreas={deliveryAreas}
+          zoneMode={mode}
+          areaUnserviceable={areaUnserviceable}
+          shopCountry={shopCountry}
+          needsPostcode={needsPostcode}
+          onPickAddress={(a) => {
+            if (a.line1) setAddrLine1(a.line1);
+            if (a.city) setAddrCity(a.city);
+            if (a.postcode) setAddrPostcode(a.postcode.toUpperCase());
+            // Preselect the area when Places named one we actually serve.
+            // Matching is still exact — a community we don't have a zone for
+            // leaves the picker empty rather than guessing a neighbour.
+            if (a.area && deliveryAreas.some((z) => sameArea(z, a.area!))) {
+              setAddrArea(deliveryAreas.find((z) => sameArea(z, a.area!))!);
+            }
+            if (a.latitude != null && a.longitude != null) {
+              setAddrPoint({ lat: a.latitude, lng: a.longitude });
+            }
+          }}
           addrPostcode={addrPostcode}
           setAddrPostcode={(v) => {
             setAddrPostcode(v);
@@ -2305,6 +2408,7 @@ function OrderPage() {
           address={headerAddress || null}
           openingHours={storefront.location.openingHours}
           deliveryZones={storefront.deliveryZones ?? []}
+          shopCountry={shopCountry}
           isOpenNow={storefront.isOpen}
           onClose={() => setInfoOpen(false)}
         />
@@ -2968,6 +3072,22 @@ interface CartPanelProps {
   setAddrLine1: (v: string) => void;
   addrCity: string;
   setAddrCity: (v: string) => void;
+  addrArea: string;
+  setAddrArea: (v: string) => void;
+  /** The shop's own delivery areas — this list IS the picker. */
+  deliveryAreas: string[];
+  zoneMode: "AREA" | "RADIUS" | "POSTCODE" | "NONE";
+  areaUnserviceable: boolean;
+  shopCountry: string;
+  needsPostcode: boolean;
+  onPickAddress: (a: {
+    line1?: string;
+    city?: string;
+    area?: string;
+    postcode?: string;
+    latitude?: number;
+    longitude?: number;
+  }) => void;
   addrPostcode: string;
   setAddrPostcode: (v: string) => void;
   paymentMethod: "CASH" | "CARD";
@@ -3069,6 +3189,14 @@ function CartPanel(props: CartPanelProps) {
     setAddrLine1,
     addrCity,
     setAddrCity,
+    addrArea,
+    setAddrArea,
+    deliveryAreas,
+    zoneMode: mode,
+    areaUnserviceable,
+    shopCountry,
+    needsPostcode,
+    onPickAddress,
     addrPostcode,
     setAddrPostcode,
     paymentMethod,
@@ -3085,12 +3213,22 @@ function CartPanel(props: CartPanelProps) {
     placeError,
   } = props;
 
+  // What makes an address complete depends on where the shop is. The UAE has
+  // no postal codes in everyday use, so requiring one here left Place order
+  // permanently disabled for every Gulf customer — no error, no explanation,
+  // just a dead button. Where the shop prices by area, the picked area takes
+  // the postcode's place as the required field, because it is what prices the
+  // order.
+  const addressComplete =
+    !!addrLine1 &&
+    !!addrCity &&
+    (!needsPostcode || !!addrPostcode) &&
+    (mode !== "AREA" || (!!addrArea && !areaUnserviceable));
   const canPlace =
     cart.length > 0 &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
-    (fulfillmentType === "PICKUP" ||
-      (addrLine1 && addrCity && addrPostcode));
+    (fulfillmentType === "PICKUP" || addressComplete);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
@@ -3253,11 +3391,13 @@ function CartPanel(props: CartPanelProps) {
                   new-builds and flats above shops are exactly the addresses
                   Google is worst at. */}
               <AddressSearchField
-                onPick={(a) => {
-                  if (a.line1) setAddrLine1(a.line1);
-                  if (a.city) setAddrCity(a.city);
-                  if (a.postcode) setAddrPostcode(a.postcode.toUpperCase());
-                }}
+                country={shopCountry.toLowerCase()}
+                placeholder={
+                  needsPostcode
+                    ? "Search your address"
+                    : "Search building, street or community"
+                }
+                onPick={onPickAddress}
               />
               {/* Phase AP fix #3 — house/flat number gets its own row */}
               <TextField
@@ -3273,42 +3413,83 @@ function CartPanel(props: CartPanelProps) {
               {/* City + postcode + Find in one row. Inputs get min-w-0 so they
                   shrink on narrow phones instead of pushing the Find button
                   past the viewport edge (it was invisible on mobile). */}
-              <div className="grid grid-cols-[1fr,1fr,auto] gap-1.5">
+              {/* City, and — where the country actually has them — postcode
+                  plus Find. Inputs get min-w-0 so they shrink on narrow phones
+                  instead of pushing the Find button past the viewport edge (it
+                  was invisible on mobile). */}
+              <div
+                className={
+                  needsPostcode
+                    ? "grid grid-cols-[1fr,1fr,auto] gap-1.5"
+                    : "grid grid-cols-1 gap-1.5"
+                }
+              >
                 <input
                   value={addrCity}
                   onChange={(e) => setAddrCity(e.target.value)}
-                  placeholder="City"
+                  placeholder={needsPostcode ? "City" : "City / emirate"}
                   className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
                 />
-                <input
-                  value={addrPostcode}
-                  onChange={(e) => setAddrPostcode(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      onPostcodeLookup();
-                    }
-                  }}
-                  placeholder="Postcode"
-                  className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={onPostcodeLookup}
-                  disabled={postcodeLookupLoading || addrPostcode.trim().length < 5}
-                  className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-zinc-300 bg-white px-2.5 text-[11px] font-medium hover:bg-zinc-50 disabled:opacity-50"
-                >
-                  {postcodeLookupLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Search className="h-3 w-3" />
-                  )}
-                  Find
-                </button>
+                {needsPostcode && (
+                  <>
+                    <input
+                      value={addrPostcode}
+                      onChange={(e) => setAddrPostcode(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          onPostcodeLookup();
+                        }
+                      }}
+                      placeholder="Postcode"
+                      className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={onPostcodeLookup}
+                      disabled={postcodeLookupLoading || addrPostcode.trim().length < 5}
+                      className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-zinc-300 bg-white px-2.5 text-[11px] font-medium hover:bg-zinc-50 disabled:opacity-50"
+                    >
+                      {postcodeLookupLoading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Search className="h-3 w-3" />
+                      )}
+                      Find
+                    </button>
+                  </>
+                )}
               </div>
 
+              {/* The delivery area. Only where the shop prices by area — the
+                  options are the operator's own zones, so anything not on this
+                  list is somewhere they've said they don't go. That's why
+                  there's no free-text fallback: a typed area we can't price is
+                  a promise we can't keep. */}
+              {mode === "AREA" && (
+                <div className="space-y-1">
+                  <select
+                    value={addrArea}
+                    onChange={(e) => setAddrArea(e.target.value)}
+                    className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+                  >
+                    <option value="">Choose your area…</option>
+                    {deliveryAreas.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                  {!addrArea && (
+                    <p className="text-[11px] text-zinc-500">
+                      Delivery is priced by area — pick yours to see the fee.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Phase AP fix #2 — picker for the lookup results */}
-              {postcodeLookupNote && (
+              {needsPostcode && postcodeLookupNote && (
                 <p className="text-[11px] text-zinc-500">{postcodeLookupNote}</p>
               )}
               {postcodeSuggestions.length > 0 && (
@@ -3327,11 +3508,29 @@ function CartPanel(props: CartPanelProps) {
                 </ul>
               )}
 
-              {matchedZone && (
+              {matchedZone && mode !== "RADIUS" && (
                 <p className="text-[11px] text-emerald-700">
-                  Matched zone <strong>{matchedZone.prefix}</strong> ·{" "}
-                  {money(matchedZone.fee)} delivery
+                  {mode === "AREA" ? "Delivering to" : "Matched zone"}{" "}
+                  <strong>{matchedZone.prefix}</strong> · {money(matchedZone.fee)}{" "}
+                  delivery
                   {matchedZone.minOrder ? ` · min ${money(matchedZone.minOrder)}` : ""}
+                </p>
+              )}
+              {/* Distance bands can't be resolved in the browser — measuring
+                  needs a geocoder. The cart therefore shows the FURTHEST
+                  band, which is the most it can cost, and the server prices
+                  the real one at checkout. Quoting high and charging less is
+                  the only direction that can't surprise anyone. */}
+              {mode === "RADIUS" && matchedZone && (
+                <p className="text-[11px] text-zinc-600">
+                  Delivery up to <strong>{money(matchedZone.fee)}</strong> — the
+                  final fee is worked out from how far you are when you order.
+                </p>
+              )}
+              {areaUnserviceable && (
+                <p className="text-[11px] text-red-600">
+                  Sorry, we don&apos;t deliver to <strong>{addrArea}</strong>.
+                  Pick another area, or switch to collection.
                 </p>
               )}
               {noZoneMatched && (
@@ -3340,11 +3539,14 @@ function CartPanel(props: CartPanelProps) {
                   standard {money(highestZoneFee)} delivery fee.
                 </p>
               )}
-              {!matchedZone && !noZoneMatched && addrPostcode.length >= 3 && (
-                <p className="text-[11px] text-amber-600">
-                  No matching delivery zone — restaurant may not deliver here.
-                </p>
-              )}
+              {mode !== "AREA" &&
+                !matchedZone &&
+                !noZoneMatched &&
+                addrPostcode.length >= 3 && (
+                  <p className="text-[11px] text-amber-600">
+                    No matching delivery zone — restaurant may not deliver here.
+                  </p>
+                )}
             </Section>
           )}
 
@@ -4213,6 +4415,7 @@ function InfoModal({
   address,
   openingHours,
   deliveryZones,
+  shopCountry,
   isOpenNow,
   onClose,
   money,
@@ -4224,14 +4427,15 @@ function InfoModal({
   about: string | null;
   address: string | null;
   openingHours: any;
-  deliveryZones: Array<{
-    postcodePrefix: string;
-    fee: string | number;
-    minOrderValue: string | number | null;
-  }>;
+  deliveryZones: DeliveryZoneRow[];
+  /** Drives the labels and the units — postcodes, communities or km/mi. */
+  shopCountry: string;
   isOpenNow: boolean;
   onClose: () => void;
 }) {
+  // Only the outer edge of each band is stored; this fills in the lower edge
+  // from the band below so the list reads as ranges rather than ceilings.
+  const infoBands = radiusBands(deliveryZones);
   return (
     <div
       className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
@@ -4299,8 +4503,8 @@ function InfoModal({
             <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm">
               {deliveryZones.length === 0 ? (
                 <p className="text-zinc-600">
-                  Delivery fee depends on your postcode — enter it in the cart
-                  to see the price.
+                  Delivery fee depends on your address — enter it in the cart to
+                  see the price.
                 </p>
               ) : (
                 <ul className="space-y-1.5">
@@ -4308,13 +4512,28 @@ function InfoModal({
                     const fee = Number(z.fee);
                     const min =
                       z.minOrderValue != null ? Number(z.minOrderValue) : null;
+                    // One label for three modes. Distance bands read as the
+                    // range they cover, in whatever unit the country uses —
+                    // a Dubai customer should never be quoted "3 mi".
+                    const band = infoBands.find((b) => b.zone === z);
+                    const label = z.areaName
+                      ? z.areaName
+                      : band
+                        ? `${formatDistance(band.from, shopCountry).replace(/ .*/, "")}–${formatDistance(band.to, shopCountry)}`
+                        : (z.postcodePrefix ?? "");
                     return (
                       <li
-                        key={z.postcodePrefix}
+                        key={z.id}
                         className="flex items-center justify-between gap-3 border-b border-zinc-200 pb-1.5 last:border-0 last:pb-0"
                       >
-                        <span className="font-mono text-xs text-zinc-700">
-                          {z.postcodePrefix}
+                        <span
+                          className={
+                            z.areaName
+                              ? "text-xs text-zinc-700"
+                              : "font-mono text-xs text-zinc-700"
+                          }
+                        >
+                          {label}
                         </span>
                         <span className="text-right">
                           <span className="text-sm font-semibold text-zinc-900">

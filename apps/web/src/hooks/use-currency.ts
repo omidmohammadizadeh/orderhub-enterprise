@@ -32,10 +32,16 @@ export function useCurrency(locationIdOverride?: string | null) {
   });
 
   const currency = (data as any)?.currency || DEFAULT_CURRENCY;
+  // The same row already carries the country, and enough of the dashboard now
+  // needs it (delivery zones, address forms, distance units) that fetching it
+  // separately on each of those screens would be a query per screen for a
+  // field we already have in hand.
+  const country = ((data as any)?.country || "GB") as string;
 
   return useMemo(
     () => ({
       currency,
+      country,
       symbol: currencySymbol(currency),
       /** Compact — symbol + amount, for tiles, buttons and table cells. */
       money: (n: number | string | null | undefined) =>
@@ -44,6 +50,6 @@ export function useCurrency(locationIdOverride?: string | null) {
       moneyLong: (n: number | string | null | undefined) =>
         formatMoney(n, currency),
     }),
-    [currency],
+    [currency, country],
   );
 }

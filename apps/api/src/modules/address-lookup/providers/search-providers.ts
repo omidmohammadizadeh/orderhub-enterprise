@@ -128,6 +128,12 @@ function mapGooglePlaceDetails(
   const line1 = [streetNumber, route].filter(Boolean).join(" ");
   const city =
     pick("postal_town") ?? pick("locality") ?? pick("administrative_area_level_2");
+  // The community, one level below the city. In Dubai this is what a delivery
+  // zone is named after and what the customer would call their address —
+  // "Dubai Marina", not "Dubai". UK addresses rarely carry it, which is fine:
+  // nothing there prices on it.
+  const area =
+    pick("sublocality_level_1") ?? pick("sublocality") ?? pick("neighborhood");
 
   return {
     id: placeId,
@@ -137,6 +143,7 @@ function mapGooglePlaceDetails(
     line1: line1 || (result.formattedAddress ?? ""),
     line2: subpremise ? `Flat ${subpremise}` : undefined,
     city,
+    area,
     postcode: pick("postal_code"),
     country: pickShort("country"),
     latitude: result.location?.latitude,

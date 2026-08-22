@@ -14,3 +14,4 @@ export * from "./lib/display-price";
 export * from "./lib/validate-menu-json";
 export * from "./lib/currency";
 export * from "./constants/channels";
+export * from "./lib/delivery-zones";

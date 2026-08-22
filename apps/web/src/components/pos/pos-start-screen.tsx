@@ -33,10 +33,25 @@ import {
   Loader2,
   X,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import {
   addressLookupClient,
+  deliveryZonesClient,
   type AddressSuggestion,
+  type DeliveryZone,
 } from "@/lib/api/pos.client";
+import {
+  zoneMode,
+  areaZoneNames,
+  normaliseAreaName,
+  postcodeRequiredFor,
+} from "@orderhub/shared";
+import { useCurrency } from "@/hooks/use-currency";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
+
+/** Same community, allowing for spelling and the Arabic article. */
+const sameArea = (a: string, b: string) =>
+  normaliseAreaName(a) === normaliseAreaName(b);
 import type { PartialDraft } from "./pos-cart-panel";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
@@ -283,9 +298,13 @@ function Field({
 }
 
 /**
- * Address with the same lookup the cart panel uses, so a postcode typed here
- * drives the delivery fee there — the fee logic stays in one place and this
- * screen only has to capture the address.
+ * Address with the same lookup the cart panel uses, so what's typed here drives
+ * the delivery fee there — the fee logic stays in one place and this screen
+ * only has to capture the address.
+ *
+ * Which fields it asks for follows the shop. A UK shop wants a postcode; a
+ * Dubai shop wants the community, because that is what its zones price on and
+ * its customers have no postcode to give.
  */
 function AddressField({
   draft,
@@ -297,6 +316,18 @@ function AddressField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AddressSuggestion[]>([]);
   const [searching, setSearching] = useState(false);
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
+  const { country } = useCurrency();
+  const needsPostcode = postcodeRequiredFor(country);
+  const zonesQuery = useQuery<DeliveryZone[]>({
+    queryKey: ["delivery-zones", locationId],
+    queryFn: () => deliveryZonesClient.list(locationId!),
+    enabled: !!locationId,
+    staleTime: 60_000,
+  });
+  const zones = zonesQuery.data ?? [];
+  const byArea = zoneMode(zones as any) === "AREA";
+  const areas = areaZoneNames(zones as any);
 
   useEffect(() => {
     if (query.trim().length < 3) {
@@ -327,6 +358,12 @@ function AddressField({
       ...(s.line2 ? { addressLine2: s.line2 } : s.line1 ? { addressLine2: "" } : {}),
       ...(s.city ? { city: s.city } : {}),
       ...(s.postcode ? { postcode: s.postcode } : {}),
+      // Preselect the community when the lookup named one this shop serves.
+      // Exact match only — a neighbouring area we happen to know the name of
+      // is not the same as one we've agreed to deliver to.
+      ...(s.area && areas.some((a) => sameArea(a, s.area!))
+        ? { area: areas.find((a) => sameArea(a, s.area!)) }
+        : {}),
     });
 
   const pick = async (s: AddressSuggestion) => {
@@ -402,20 +439,43 @@ function AddressField({
         <input
           value={draft.city ?? ""}
           onChange={(e) => set({ city: e.target.value })}
-          placeholder="City"
+          placeholder={needsPostcode ? "City" : "City / emirate"}
           aria-label="City"
-          className="col-span-2 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+          className={
+            needsPostcode
+              ? "col-span-2 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+              : "col-span-3 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+          }
         />
-        <input
-          value={draft.postcode ?? ""}
-          onChange={(e) => set({ postcode: e.target.value.toUpperCase() })}
-          placeholder="Postcode"
-          aria-label="Postcode"
-          className="col-span-1 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm uppercase outline-none focus:border-zinc-900"
-        />
+        {needsPostcode && (
+          <input
+            value={draft.postcode ?? ""}
+            onChange={(e) => set({ postcode: e.target.value.toUpperCase() })}
+            placeholder="Postcode"
+            aria-label="Postcode"
+            className="col-span-1 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm uppercase outline-none focus:border-zinc-900"
+          />
+        )}
+        {byArea && (
+          <select
+            value={draft.area ?? ""}
+            onChange={(e) => set({ area: e.target.value })}
+            aria-label="Delivery area"
+            className="col-span-3 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+          >
+            <option value="">Choose delivery area…</option>
+            {areas.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <p className="text-[11px] text-zinc-400">
-        The postcode sets the delivery fee on the next step.
+        {byArea
+          ? "The area sets the delivery fee on the next step."
+          : "The postcode sets the delivery fee on the next step."}
       </p>
     </Field>
   );

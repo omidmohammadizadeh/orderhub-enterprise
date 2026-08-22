@@ -48,7 +48,13 @@ export class DeliveryAddressDto {
   @ApiProperty() @IsString() line1!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() line2?: string;
   @ApiProperty() @IsString() city!: string;
-  @ApiProperty() @IsString() postcode!: string;
+  /** Optional — the Gulf has no postal code in everyday use. */
+  @ApiPropertyOptional() @IsOptional() @IsString() postcode?: string;
+  /** The named community — "Dubai Marina". Prices the order where the shop
+   *  charges by area, and it is what the driver navigates by. */
+  @ApiPropertyOptional() @IsOptional() @IsString() area?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() latitude?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() longitude?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() country?: string;
 }
 

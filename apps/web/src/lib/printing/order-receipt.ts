@@ -122,9 +122,18 @@ export function buildPrintPayload(
   // showed it (it reads the JSON) while the driver's ticket had nothing.
   // Canonical first, mirror as the fallback.
   const addrJson = (order as any).deliveryAddress;
+  // `area` sits between line2 and city: in the Gulf it is the part a driver
+  // actually navigates by, and there is no postcode behind it to recover it
+  // from if it's dropped here.
   const deliveryAddress =
     (addrJson && typeof addrJson === "object"
-      ? [addrJson.line1, addrJson.line2, addrJson.city, addrJson.postcode]
+      ? [
+          addrJson.line1,
+          addrJson.line2,
+          addrJson.area,
+          addrJson.city,
+          addrJson.postcode,
+        ]
           .filter(Boolean)
           .join(", ")
       : typeof addrJson === "string"

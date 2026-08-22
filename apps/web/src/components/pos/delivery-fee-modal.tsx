@@ -3,8 +3,14 @@
 // Phase AM — Delivery Fee setup modal.
 //
 // Opened from the POS top bar. Lets a manager configure the delivery-zone
-// list for THIS location: each row = a postcode prefix + fee + optional
-// minimum order value. The cart panel's lookup hits the same zones.
+// list for THIS location: each row = a postcode prefix OR a named area, plus a
+// fee and an optional minimum order value. The cart panel's lookup hits the
+// same zones.
+//
+// Which of the two the till offers follows the shop's country, because it has
+// to: a Dubai manager typing into a postcode box is filling in a field their
+// customers have no answer to. Area zones name the community — Dubai Marina,
+// JLT, Business Bay — and the customer picks from exactly this list.
 //
 // A zone key can be any length: a broad outward prefix (NE10), a 4-char
 // outward+area code (NE108 → NE108... wait: outward "NE10" or district
@@ -19,6 +25,7 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { deliveryZonesClient, type DeliveryZone } from "@/lib/api/pos.client";
+import { zoneMode, defaultZoneModeForCountry } from "@orderhub/shared";
 
 interface Props {
   locationId: string;
@@ -35,7 +42,7 @@ function normalisePrefix(raw: string): string {
 
 export function DeliveryFeeModal({ locationId, onClose }: Props) {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money, symbol } = useCurrency();
+  const { money, symbol, country } = useCurrency(locationId);
   const qc = useQueryClient();
 
   const zonesQuery = useQuery<DeliveryZone[]>({
@@ -53,10 +60,20 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
 
   const create = useMutation({
     mutationFn: () => {
-      const prefix = normalisePrefix(newPrefix);
       const fee = Number(newFee);
-      if (!prefix) throw new Error("Postcode prefix required");
       if (!Number.isFinite(fee) || fee < 0) throw new Error("Fee must be ≥ 0");
+      if (byArea) {
+        const area = newPrefix.trim();
+        if (!area) throw new Error("Area name required");
+        return deliveryZonesClient.create({
+          locationId,
+          areaName: area,
+          fee,
+          minOrderValue: newMin ? Number(newMin) : undefined,
+        });
+      }
+      const prefix = normalisePrefix(newPrefix);
+      if (!prefix) throw new Error("Postcode prefix required");
       return deliveryZonesClient.create({
         locationId,
         postcodePrefix: prefix,
@@ -95,6 +112,12 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
   }, [error]);
 
   const zones = zonesQuery.data ?? [];
+  // Saved rows win over the country default, so a shop that has deliberately
+  // set up the other kind keeps editing what it actually uses.
+  const saved = zoneMode(zones as any);
+  const byArea =
+    saved === "AREA" ||
+    (saved === "NONE" && defaultZoneModeForCountry(country) === "AREA");
 
   return (
     <Backdrop onClose={onClose}>
@@ -106,7 +129,9 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
           <div>
             <h2 className="text-sm font-semibold text-zinc-900">Delivery fees</h2>
             <p className="text-xs text-zinc-500">
-              Postcode prefix or full postcode — e.g. NE10, NE108, NE10 8YH
+              {byArea
+                ? "Name the areas you deliver to — e.g. Dubai Marina, JLT"
+                : "Postcode prefix or full postcode — e.g. NE10, NE108, NE10 8YH"}
             </p>
           </div>
           <button
@@ -130,7 +155,9 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
             <table className="w-full text-xs">
               <thead className="border-b border-zinc-100 bg-zinc-50 text-[10px] uppercase tracking-wider text-zinc-500">
                 <tr>
-                  <th className="px-3 py-1.5 text-left">Postcode</th>
+                  <th className="px-3 py-1.5 text-left">
+                    {byArea ? "Area" : "Postcode"}
+                  </th>
                   <th className="px-3 py-1.5 text-right">Fee ({symbol.trim()})</th>
                   <th className="px-3 py-1.5 text-right">Min order ({symbol.trim()})</th>
                   <th className="px-3 py-1.5 text-center">Active</th>
@@ -140,8 +167,18 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
               <tbody>
                 {zones.map((z) => (
                   <tr key={z.id} className="border-b border-zinc-50 last:border-0">
-                    <td className="px-3 py-1.5 font-mono font-semibold">
-                      {z.postcodePrefix}
+                    <td
+                      className={
+                        z.areaName
+                          ? "px-3 py-1.5 font-semibold"
+                          : "px-3 py-1.5 font-mono font-semibold"
+                      }
+                    >
+                      {z.areaName ??
+                        z.postcodePrefix ??
+                        (z.maxDistanceMiles != null
+                          ? `${Number(z.maxDistanceMiles)} mi`
+                          : "—")}
                     </td>
                     <td className="px-3 py-1.5 text-right">
                       {money(Number(z.fee))}
@@ -163,7 +200,8 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
                       <button
                         type="button"
                         onClick={() => {
-                          if (confirm(`Delete ${z.postcodePrefix}?`)) remove.mutate(z.id);
+                          const label = z.areaName ?? z.postcodePrefix ?? "this zone";
+                          if (confirm(`Delete ${label}?`)) remove.mutate(z.id);
                         }}
                         className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
                       >
@@ -185,10 +223,16 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
           <div className="grid grid-cols-[1fr,auto,auto,auto] items-center gap-2">
             <input
               value={newPrefix}
-              onChange={(e) => setNewPrefix(e.target.value.toUpperCase())}
-              placeholder="NE10 or NE10 8YH"
-              maxLength={8}
-              className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs font-mono uppercase focus:border-zinc-900 focus:outline-none"
+              onChange={(e) =>
+                setNewPrefix(byArea ? e.target.value : e.target.value.toUpperCase())
+              }
+              placeholder={byArea ? "Dubai Marina" : "NE10 or NE10 8YH"}
+              maxLength={byArea ? 60 : 8}
+              className={
+                byArea
+                  ? "rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+                  : "rounded-md border border-zinc-200 px-2 py-1.5 text-xs font-mono uppercase focus:border-zinc-900 focus:outline-none"
+              }
             />
             <input
               value={newFee}
@@ -226,9 +270,9 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
             <p className="mt-1.5 text-[11px] text-red-600">{error}</p>
           )}
           <p className="mt-1.5 text-[10px] text-zinc-400">
-            Tip: when the cart matches multiple zones, the longest match wins —
-            so a broad "NE10" zone (£3), a narrower "NE108" district (£5) and a
-            single full postcode "NE10 8YH" (£6) can all coexist.
+            {byArea
+              ? "This list is also what online customers choose from, so an area you don't add is one they'll be told you don't deliver to. Spelling is forgiving — \u201cAl Barsha\u201d matches \u201cBarsha\u201d."
+              : 'Tip: when the cart matches multiple zones, the longest match wins — so a broad "NE10" zone, a narrower "NE108" district and a single full postcode "NE10 8YH" can all coexist.'}
           </p>
         </div>
       </div>

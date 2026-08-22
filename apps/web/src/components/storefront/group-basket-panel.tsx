@@ -70,6 +70,22 @@ export interface GroupBasketPanelProps {
   setAddrCity: (v: string) => void;
   addrPostcode: string;
   setAddrPostcode: (v: string) => void;
+  addrArea: string;
+  setAddrArea: (v: string) => void;
+  /** The shop's own delivery areas — this list IS the picker. */
+  deliveryAreas: string[];
+  zoneMode: "AREA" | "RADIUS" | "POSTCODE" | "NONE";
+  areaUnserviceable: boolean;
+  shopCountry: string;
+  needsPostcode: boolean;
+  onPickAddress: (a: {
+    line1?: string;
+    city?: string;
+    area?: string;
+    postcode?: string;
+    latitude?: number;
+    longitude?: number;
+  }) => void;
   paymentMethod: "CASH" | "CARD";
   setPaymentMethod: (v: "CASH" | "CARD") => void;
   acceptsCash: boolean;
@@ -145,7 +161,13 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
     props.customerName.trim().length > 0 &&
     props.customerPhone.trim().length > 0 &&
     (!isDelivery ||
-      (props.addrLine1.trim() && props.addrCity.trim() && props.addrPostcode.trim()));
+      (props.addrLine1.trim() &&
+        props.addrCity.trim() &&
+        // The UAE has no postcode to require, and where the shop prices by
+        // area the picked area is the field that has to be filled instead.
+        (!props.needsPostcode || props.addrPostcode.trim()) &&
+        (props.zoneMode !== "AREA" ||
+          (props.addrArea.trim() && !props.areaUnserviceable))));
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
@@ -337,12 +359,13 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                       real delivery order and shouldn't get a worse address
                       form for having used the group flow. */}
                   <AddressSearchField
-                    onPick={(a) => {
-                      if (a.line1) props.setAddrLine1(a.line1);
-                      if (a.city) props.setAddrCity(a.city);
-                      if (a.postcode)
-                        props.setAddrPostcode(a.postcode.toUpperCase());
-                    }}
+                    country={props.shopCountry.toLowerCase()}
+                    placeholder={
+                      props.needsPostcode
+                        ? "Search your address"
+                        : "Search building, street or community"
+                    }
+                    onPick={props.onPickAddress}
                   />
                   <Field
                     value={props.addrFlat}
@@ -354,45 +377,69 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                     onChange={props.setAddrLine1}
                     placeholder="Street name"
                   />
-                  <div className="grid grid-cols-[1fr,1fr,auto] gap-1.5">
+                  <div
+                    className={
+                      props.needsPostcode
+                        ? "grid grid-cols-[1fr,1fr,auto] gap-1.5"
+                        : "grid grid-cols-1 gap-1.5"
+                    }
+                  >
                     <input
                       value={props.addrCity}
                       onChange={(e) => props.setAddrCity(e.target.value)}
-                      placeholder="City"
+                      placeholder={props.needsPostcode ? "City" : "City / emirate"}
                       className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
                     />
-                    <input
-                      value={props.addrPostcode}
-                      onChange={(e) =>
-                        props.setAddrPostcode(e.target.value.toUpperCase())
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          props.onPostcodeLookup();
-                        }
-                      }}
-                      placeholder="Postcode"
-                      className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={props.onPostcodeLookup}
-                      disabled={
-                        props.postcodeLookupLoading ||
-                        props.addrPostcode.trim().length < 5
-                      }
-                      className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-zinc-300 bg-white px-2.5 text-[11px] font-medium hover:bg-zinc-50 disabled:opacity-50"
-                    >
-                      {props.postcodeLookupLoading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Search className="h-3 w-3" />
-                      )}
-                      Find
-                    </button>
+                    {props.needsPostcode && (
+                      <>
+                        <input
+                          value={props.addrPostcode}
+                          onChange={(e) =>
+                            props.setAddrPostcode(e.target.value.toUpperCase())
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              props.onPostcodeLookup();
+                            }
+                          }}
+                          placeholder="Postcode"
+                          className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={props.onPostcodeLookup}
+                          disabled={
+                            props.postcodeLookupLoading ||
+                            props.addrPostcode.trim().length < 5
+                          }
+                          className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-zinc-300 bg-white px-2.5 text-[11px] font-medium hover:bg-zinc-50 disabled:opacity-50"
+                        >
+                          {props.postcodeLookupLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Search className="h-3 w-3" />
+                          )}
+                          Find
+                        </button>
+                      </>
+                    )}
                   </div>
-                  {props.postcodeLookupNote && (
+                  {props.zoneMode === "AREA" && (
+                    <select
+                      value={props.addrArea}
+                      onChange={(e) => props.setAddrArea(e.target.value)}
+                      className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+                    >
+                      <option value="">Choose your area…</option>
+                      {props.deliveryAreas.map((a) => (
+                        <option key={a} value={a}>
+                          {a}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {props.needsPostcode && props.postcodeLookupNote && (
                     <p className="text-[11px] text-zinc-500">
                       {props.postcodeLookupNote}
                     </p>
@@ -414,16 +461,25 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                   )}
                   {props.matchedZone && (
                     <p className="text-[11px] text-emerald-700">
-                      Matched zone <strong>{props.matchedZone.prefix}</strong> ·{" "}
+                      {props.zoneMode === "AREA" ? "Delivering to" : "Matched zone"}{" "}
+                      <strong>{props.matchedZone.prefix}</strong> ·{" "}
                       {money(props.matchedZone.fee)} delivery
                     </p>
                   )}
-                  {!props.matchedZone && props.addrPostcode.length >= 3 && (
-                    <p className="text-[11px] text-amber-600">
-                      No matching delivery zone — restaurant may not deliver
-                      here.
+                  {props.areaUnserviceable && (
+                    <p className="text-[11px] text-red-600">
+                      Sorry, we don&apos;t deliver to{" "}
+                      <strong>{props.addrArea}</strong>.
                     </p>
                   )}
+                  {props.zoneMode !== "AREA" &&
+                    !props.matchedZone &&
+                    props.addrPostcode.length >= 3 && (
+                      <p className="text-[11px] text-amber-600">
+                        No matching delivery zone — restaurant may not deliver
+                        here.
+                      </p>
+                    )}
                 </Section>
               )}
 

@@ -9,6 +9,7 @@ import { MenuAssignmentsModule } from "../menus/menu-assignments.module";
 import { VariantPriceResolverModule } from "../menus/variant-price-resolver.module";
 import { PauseModule } from "../pauses/pause.module";
 import { MarketingModule } from "../marketing/marketing.module";
+import { DeliveryZonesModule } from "../delivery-zones/delivery-zones.module";
 
 @Module({
   // Phase AP-8 — PaymentsModule provides Stripe Checkout Session creation
@@ -31,6 +32,11 @@ import { MarketingModule } from "../marketing/marketing.module";
     VariantPriceResolverModule,
     PauseModule,
     MarketingModule,
+    // Radius delivery bands need the shop's coordinates and a geocoder, both
+    // of which live in DeliveryZonesService. Without this the checkout could
+    // only ever charge the top band, because it had no way to measure how far
+    // away the customer actually was.
+    DeliveryZonesModule,
   ],
   controllers: [OrderingController],
   providers: [OrderingService],

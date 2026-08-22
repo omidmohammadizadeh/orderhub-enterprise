@@ -58895,6 +58895,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     postcodePrefix: string | null
+    areaName: string | null
     maxDistanceMiles: Decimal | null
     fee: Decimal | null
     minOrderValue: Decimal | null
@@ -58909,6 +58910,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     postcodePrefix: string | null
+    areaName: string | null
     maxDistanceMiles: Decimal | null
     fee: Decimal | null
     minOrderValue: Decimal | null
@@ -58923,6 +58925,7 @@ export namespace Prisma {
     locationId: number
     brandId: number
     postcodePrefix: number
+    areaName: number
     maxDistanceMiles: number
     fee: number
     minOrderValue: number
@@ -58951,6 +58954,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     postcodePrefix?: true
+    areaName?: true
     maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
@@ -58965,6 +58969,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     postcodePrefix?: true
+    areaName?: true
     maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
@@ -58979,6 +58984,7 @@ export namespace Prisma {
     locationId?: true
     brandId?: true
     postcodePrefix?: true
+    areaName?: true
     maxDistanceMiles?: true
     fee?: true
     minOrderValue?: true
@@ -59080,6 +59086,7 @@ export namespace Prisma {
     locationId: string | null
     brandId: string | null
     postcodePrefix: string | null
+    areaName: string | null
     maxDistanceMiles: Decimal | null
     fee: Decimal
     minOrderValue: Decimal | null
@@ -59113,6 +59120,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     postcodePrefix?: boolean
+    areaName?: boolean
     maxDistanceMiles?: boolean
     fee?: boolean
     minOrderValue?: boolean
@@ -59129,6 +59137,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     postcodePrefix?: boolean
+    areaName?: boolean
     maxDistanceMiles?: boolean
     fee?: boolean
     minOrderValue?: boolean
@@ -59145,6 +59154,7 @@ export namespace Prisma {
     locationId?: boolean
     brandId?: boolean
     postcodePrefix?: boolean
+    areaName?: boolean
     maxDistanceMiles?: boolean
     fee?: boolean
     minOrderValue?: boolean
@@ -59175,9 +59185,20 @@ export namespace Prisma {
       brandId: string | null
       /**
        * Postcode mode: the prefix a customer's postcode must start with.
-       * Null on radius rows.
+       * Null on radius and area rows.
        */
       postcodePrefix: string | null
+      /**
+       * Area mode: the named community this row prices, e.g. "Dubai Marina".
+       * Null on postcode and radius rows.
+       * 
+       * The Gulf has no usable postcodes — a Dubai address is building, community,
+       * emirate — so the operator lists the areas they serve and the customer
+       * picks one. These rows ARE the customer's picker, which is why matching is
+       * exact rather than fuzzy: an area that isn't listed means the shop does not
+       * deliver there, not that someone mistyped.
+       */
+      areaName: string | null
       /**
        * Radius mode: the outer edge of this band, in miles. A row with 3.0 means
        * "up to 3 miles". Null on postcode rows.
@@ -59592,6 +59613,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"DeliveryZone", 'String'>
     readonly brandId: FieldRef<"DeliveryZone", 'String'>
     readonly postcodePrefix: FieldRef<"DeliveryZone", 'String'>
+    readonly areaName: FieldRef<"DeliveryZone", 'String'>
     readonly maxDistanceMiles: FieldRef<"DeliveryZone", 'Decimal'>
     readonly fee: FieldRef<"DeliveryZone", 'Decimal'>
     readonly minOrderValue: FieldRef<"DeliveryZone", 'Decimal'>
@@ -152363,6 +152385,7 @@ export namespace Prisma {
     locationId: 'locationId',
     brandId: 'brandId',
     postcodePrefix: 'postcodePrefix',
+    areaName: 'areaName',
     maxDistanceMiles: 'maxDistanceMiles',
     fee: 'fee',
     minOrderValue: 'minOrderValue',
@@ -154645,7 +154668,8 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     brandId: 'brandId',
-    postcodePrefix: 'postcodePrefix'
+    postcodePrefix: 'postcodePrefix',
+    areaName: 'areaName'
   };
 
   export type DeliveryZoneOrderByRelevanceFieldEnum = (typeof DeliveryZoneOrderByRelevanceFieldEnum)[keyof typeof DeliveryZoneOrderByRelevanceFieldEnum]
@@ -161265,6 +161289,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableFilter<"DeliveryZone"> | string | null
     postcodePrefix?: StringNullableFilter<"DeliveryZone"> | string | null
+    areaName?: StringNullableFilter<"DeliveryZone"> | string | null
     maxDistanceMiles?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
@@ -161281,6 +161306,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
     postcodePrefix?: SortOrderInput | SortOrder
+    areaName?: SortOrderInput | SortOrder
     maxDistanceMiles?: SortOrderInput | SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrderInput | SortOrder
@@ -161296,6 +161322,8 @@ export namespace Prisma {
     id?: string
     locationId_postcodePrefix?: DeliveryZoneLocationIdPostcodePrefixCompoundUniqueInput
     brandId_postcodePrefix?: DeliveryZoneBrandIdPostcodePrefixCompoundUniqueInput
+    locationId_areaName?: DeliveryZoneLocationIdAreaNameCompoundUniqueInput
+    brandId_areaName?: DeliveryZoneBrandIdAreaNameCompoundUniqueInput
     AND?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
     OR?: DeliveryZoneWhereInput[]
     NOT?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
@@ -161303,6 +161331,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableFilter<"DeliveryZone"> | string | null
     postcodePrefix?: StringNullableFilter<"DeliveryZone"> | string | null
+    areaName?: StringNullableFilter<"DeliveryZone"> | string | null
     maxDistanceMiles?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
@@ -161311,7 +161340,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
     location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
     brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
-  }, "id" | "locationId_postcodePrefix" | "brandId_postcodePrefix">
+  }, "id" | "locationId_postcodePrefix" | "brandId_postcodePrefix" | "locationId_areaName" | "brandId_areaName">
 
   export type DeliveryZoneOrderByWithAggregationInput = {
     id?: SortOrder
@@ -161319,6 +161348,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
     postcodePrefix?: SortOrderInput | SortOrder
+    areaName?: SortOrderInput | SortOrder
     maxDistanceMiles?: SortOrderInput | SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrderInput | SortOrder
@@ -161341,6 +161371,7 @@ export namespace Prisma {
     locationId?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
     postcodePrefix?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
+    areaName?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
     maxDistanceMiles?: DecimalNullableWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
@@ -175412,6 +175443,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -175428,6 +175460,7 @@ export namespace Prisma {
     locationId?: string | null
     brandId?: string | null
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -175440,6 +175473,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -175456,6 +175490,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -175470,6 +175505,7 @@ export namespace Prisma {
     locationId?: string | null
     brandId?: string | null
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -175482,6 +175518,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -175496,6 +175533,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -189436,12 +189474,23 @@ export namespace Prisma {
     postcodePrefix: string
   }
 
+  export type DeliveryZoneLocationIdAreaNameCompoundUniqueInput = {
+    locationId: string
+    areaName: string
+  }
+
+  export type DeliveryZoneBrandIdAreaNameCompoundUniqueInput = {
+    brandId: string
+    areaName: string
+  }
+
   export type DeliveryZoneCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
     brandId?: SortOrder
     postcodePrefix?: SortOrder
+    areaName?: SortOrder
     maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
@@ -189462,6 +189511,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     postcodePrefix?: SortOrder
+    areaName?: SortOrder
     maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
@@ -189476,6 +189526,7 @@ export namespace Prisma {
     locationId?: SortOrder
     brandId?: SortOrder
     postcodePrefix?: SortOrder
+    areaName?: SortOrder
     maxDistanceMiles?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
@@ -211237,6 +211288,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -211251,6 +211303,7 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -211879,6 +211932,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"DeliveryZone"> | string | null
     brandId?: StringNullableFilter<"DeliveryZone"> | string | null
     postcodePrefix?: StringNullableFilter<"DeliveryZone"> | string | null
+    areaName?: StringNullableFilter<"DeliveryZone"> | string | null
     maxDistanceMiles?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
@@ -212744,6 +212798,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -212758,6 +212813,7 @@ export namespace Prisma {
     tenantId: string
     brandId?: string | null
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -245590,6 +245646,7 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -246596,6 +246653,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -246610,6 +246668,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -246623,6 +246682,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -246953,6 +247013,7 @@ export namespace Prisma {
     tenantId: string
     brandId?: string | null
     postcodePrefix?: string | null
+    areaName?: string | null
     maxDistanceMiles?: Decimal | DecimalJsLike | number | string | null
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -247870,6 +247931,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -247884,6 +247946,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -247897,6 +247960,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: NullableStringFieldUpdateOperationsInput | string | null
+    areaName?: NullableStringFieldUpdateOperationsInput | string | null
     maxDistanceMiles?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null

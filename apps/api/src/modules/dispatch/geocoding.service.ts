@@ -13,7 +13,16 @@ export interface GeoPoint {
 export class GeocodingService {
   private readonly logger = new Logger(GeocodingService.name);
 
-  async geocode(address: string | null | undefined): Promise<GeoPoint | null> {
+  /**
+   * @param country ISO-2 country to bias the search to. Defaults to GB for
+   * callers that predate multi-country, but a UAE order geocoded as GB returns
+   * nothing at all — the whole address is in the wrong country — so a Dubai
+   * delivery simply never got a map pin.
+   */
+  async geocode(
+    address: string | null | undefined,
+    country: string | null | undefined = "GB",
+  ): Promise<GeoPoint | null> {
     const key = process.env.GOOGLE_MAPS_API_KEY;
     if (!key) {
       this.logger.warn("GOOGLE_MAPS_API_KEY not set — skipping geocode");
@@ -23,10 +32,12 @@ export class GeocodingService {
     if (!query) return null;
 
     try {
+      const cc = String(country ?? "GB").trim().toUpperCase() || "GB";
       const url =
         `https://maps.googleapis.com/maps/api/geocode/json` +
         `?address=${encodeURIComponent(query)}` +
-        `&region=gb&components=country:GB&key=${key}`;
+        `&region=${encodeURIComponent(cc.toLowerCase())}` +
+        `&components=country:${encodeURIComponent(cc)}&key=${key}`;
       const res = await fetch(url);
       if (!res.ok) {
         this.logger.warn(`Geocode HTTP ${res.status} for "${query}"`);

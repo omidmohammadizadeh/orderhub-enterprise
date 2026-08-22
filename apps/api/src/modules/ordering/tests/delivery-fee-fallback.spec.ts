@@ -1,4 +1,8 @@
-import { resolveDeliveryFee, deliveryZoneScope } from "../ordering.service";
+import {
+  resolveDeliveryFee,
+  deliveryZoneScope,
+  resolveZoneOutcome,
+} from "../ordering.service";
 
 // A postcode that doesn't match any of the brand's delivery zones used to
 // leave the order's delivery fee at whatever the client sent — usually 0,
@@ -118,5 +122,93 @@ describe("deliveryZoneScope", () => {
 
   it("only ever considers active zones", () => {
     expect(deliveryZoneScope({ locationId: "loc-1" }).isActive).toBe(true);
+  });
+});
+
+// Area mode inverts the rule above, and deliberately.
+//
+// "Charge the highest configured fee" exists because an unrecognised POSTCODE
+// is a config gap — the shop probably does deliver there and losing the fee is
+// worse than the customer paying the top rate. An unrecognised AREA is not a
+// gap: the customer picked from a dropdown built out of the operator's own
+// zone rows, so an area that isn't on it means the shop said it doesn't go
+// there. Charging the top rate would be taking money for a delivery already
+// ruled out.
+describe("resolveZoneOutcome", () => {
+  const areas = [
+    { id: "marina", areaName: "Dubai Marina", fee: 15 },
+    { id: "jlt", areaName: "JLT", fee: 12 },
+  ];
+
+  it("prices a matched area authoritatively", () => {
+    expect(resolveZoneOutcome(areas, { area: "JLT" })).toEqual({
+      kind: "CHARGE",
+      fee: 12,
+    });
+  });
+
+  it("refuses an area the shop does not serve", () => {
+    expect(resolveZoneOutcome(areas, { area: "Al Quoz" })).toEqual({
+      kind: "REFUSE",
+      area: "Al Quoz",
+    });
+  });
+
+  it("refuses a delivery order that never picked an area", () => {
+    // Not a silent zero: the storefront disables Place order without one, so
+    // reaching here means a client that bypassed the form.
+    expect(resolveZoneOutcome(areas, {})).toEqual({
+      kind: "REFUSE",
+      area: undefined,
+    });
+  });
+
+  it("ignores a postcode carried by a stale or tampered cart", () => {
+    expect(
+      resolveZoneOutcome(areas, { postcode: "SW1A 1AA", area: "Dubai Marina" }),
+    ).toEqual({ kind: "CHARGE", fee: 15 });
+  });
+
+  it("leaves postcode shops on the highest-fee fallback", () => {
+    expect(
+      resolveZoneOutcome([{ id: "p", postcodePrefix: "SW1", fee: 3 }], {
+        postcode: "E14 5AA",
+      }),
+    ).toEqual({ kind: "FALLBACK" });
+    expect(resolveZoneOutcome([], {})).toEqual({ kind: "FALLBACK" });
+  });
+});
+
+// Radius is authoritative too, and it did not used to be. The browser cannot
+// measure distance, so the fee it sends is a guess — accepting it meant every
+// radius shop charged its top band to everyone, including the customer across
+// the road. The server measures and prices the real band.
+describe("resolveZoneOutcome — distance bands", () => {
+  const bands = [
+    { id: "near", maxDistanceMiles: 2, fee: 2 },
+    { id: "far", maxDistanceMiles: 5, fee: 6 },
+  ];
+
+  it("charges the band the customer actually falls in", () => {
+    expect(resolveZoneOutcome(bands, { distanceMiles: 1.2 })).toEqual({
+      kind: "CHARGE",
+      fee: 2,
+    });
+  });
+
+  it("charges the top band when the address could not be located", () => {
+    // Failing expensive is the safe direction — a failed geocode read as
+    // "0 miles" would hand every unresolvable address the cheapest band.
+    expect(resolveZoneOutcome(bands, { distanceMiles: null })).toEqual({
+      kind: "CHARGE",
+      fee: 6,
+    });
+  });
+
+  it("charges the top band past the furthest edge rather than refusing", () => {
+    expect(resolveZoneOutcome(bands, { distanceMiles: 40 })).toEqual({
+      kind: "CHARGE",
+      fee: 6,
+    });
   });
 });

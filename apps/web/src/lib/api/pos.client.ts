@@ -8,10 +8,12 @@ export interface DeliveryZone {
   id: string;
   locationId: string | null;
   brandId: string | null;
-  /** Postcode mode. Null on distance bands. */
+  /** Postcode mode. Null on distance-band and area rows. */
   postcodePrefix: string | null;
-  /** Radius mode — outer edge of this band in miles. Null on postcode rows. */
+  /** Radius mode — outer edge of this band in miles. Null on the others. */
   maxDistanceMiles: string | number | null;
+  /** Area mode — the named community this row prices. Null on the others. */
+  areaName: string | null;
   fee: string | number; // Prisma serialises Decimal → string
   minOrderValue: string | number | null;
   isActive: boolean;
@@ -19,10 +21,19 @@ export interface DeliveryZone {
 
 export interface DeliveryFeeLookup {
   matched: boolean;
+  mode?: "AREA" | "RADIUS" | "POSTCODE" | "NONE";
   zoneId?: string;
   postcodePrefix?: string;
+  areaName?: string;
+  /** Human-readable zone label: "Dubai Marina", "SW1A", "0–3 mi". */
+  label?: string;
+  /** Area mode — this shop does not deliver to the area given. A refusal, not
+   *  a gap to price around. */
+  unserviceable?: boolean;
   fee: number;
   minOrderValue?: number | null;
+  distanceMiles?: number;
+  beyondLastBand?: boolean;
 }
 
 export const deliveryZonesClient = {
@@ -34,10 +45,15 @@ export const deliveryZonesClient = {
     apiClient
       .get<DeliveryZone[]>("/v1/delivery-zones", { params: { brandId } })
       .then((r) => r.data),
-  lookup: (locationId: string, postcode: string) =>
+  /** Give it whatever is known about the customer — the zone rows decide which
+   *  of postcode / area / coordinates actually prices the order. */
+  lookup: (
+    locationId: string,
+    customer: { postcode?: string; area?: string; lat?: number; lng?: number },
+  ) =>
     apiClient
       .get<DeliveryFeeLookup>("/v1/delivery-zones/lookup", {
-        params: { locationId, postcode },
+        params: { locationId, ...customer },
       })
       .then((r) => r.data),
   create: (body: {
@@ -45,6 +61,7 @@ export const deliveryZonesClient = {
     brandId?: string;
     postcodePrefix?: string;
     maxDistanceMiles?: number;
+    areaName?: string;
     fee: number;
     minOrderValue?: number;
     isActive?: boolean;
@@ -53,6 +70,8 @@ export const deliveryZonesClient = {
     id: string,
     body: Partial<{
       postcodePrefix: string;
+      areaName: string | null;
+      maxDistanceMiles: number | null;
       fee: number;
       minOrderValue: number | null;
       isActive: boolean;
@@ -203,6 +222,9 @@ export interface AddressSuggestion {
   line1: string;
   line2?: string;
   city?: string;
+  /** The named community — "Dubai Marina". What delivery zones price on in
+   *  the Gulf; usually empty for UK addresses. */
+  area?: string;
   postcode?: string;
   country?: string;
   latitude?: number;

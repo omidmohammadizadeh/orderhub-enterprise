@@ -5,7 +5,12 @@ import {
   Logger,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { currencyForCountry } from "@orderhub/shared";
+import {
+  currencyForCountry,
+  resolveZone,
+  zoneMode,
+  type ZoneLike,
+} from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
@@ -18,6 +23,7 @@ import {
 import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
+import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -44,7 +50,21 @@ export interface CheckoutDto {
   idempotencyKey: string;
   fulfillmentType: "PICKUP" | "DELIVERY" | "DINE_IN";
   customerInfo: { name: string; phone?: string; email?: string };
-  deliveryAddress?: { line1: string; line2?: string; city: string; postcode: string };
+  deliveryAddress?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    /** Optional outside the UK — the Gulf has no postcodes in everyday use. */
+    postcode?: string;
+    /** Gulf: the community the customer picked, e.g. "Dubai Marina". This is
+     *  what prices the order there, so it is as load-bearing as postcode is
+     *  in the UK. */
+    area?: string;
+    /** Carried straight through from the Places pick when there was one, so
+     *  distance bands don't have to re-geocode a string we already resolved. */
+    latitude?: number;
+    longitude?: number;
+  };
   items: CheckoutItemDto[];
   subtotal: number;
   deliveryFee?: number;
@@ -116,6 +136,51 @@ export function resolveDeliveryFee(input: {
     0,
   );
   return highestZoneFee > 0 ? highestZoneFee : requested;
+}
+
+/** What to do about delivery, given the zones that apply and what the customer
+ *  told us.
+ *
+ *  Extracted from checkout() for the same reason deliveryZoneScope was: the
+ *  earlier fix tested the max-of-fees maths but not the DECISION around it,
+ *  and the decision is where the interesting rule now lives — area mode
+ *  refuses, every other mode prices around a miss.
+ *
+ *  - REFUSE   the customer named an area this shop does not serve. The picker
+ *             is built from the operator's own rows, so this is a genuine "we
+ *             don't go there", not a typo to be generous about.
+ *  - CHARGE   an area matched; that fee is authoritative. There is no postcode
+ *             to cross-check a client-sent fee against in area mode, so the
+ *             server prices it outright rather than only patching a zero.
+ *  - FALLBACK postcode/radius: leave it to resolveDeliveryFee, which charges
+ *             the highest configured fee rather than letting an order go out
+ *             free. */
+export function resolveZoneOutcome(
+  zones: ZoneLike[],
+  customer: { postcode?: string; area?: string; distanceMiles?: number | null },
+):
+  | { kind: "REFUSE"; area?: string }
+  | { kind: "CHARGE"; fee: number }
+  | { kind: "FALLBACK" } {
+  const mode = zoneMode(zones);
+
+  if (mode === "AREA") {
+    const match = resolveZone(zones, { area: customer.area });
+    if (!match.matched) return { kind: "REFUSE", area: customer.area };
+    return { kind: "CHARGE", fee: match.fee };
+  }
+
+  if (mode === "RADIUS") {
+    // Also authoritative, and for the same reason: the browser cannot measure
+    // distance, so whatever fee it sent is a guess. It used to be accepted as
+    // given, which meant every radius shop charged its TOP band to everyone,
+    // including the customer across the road.
+    const match = resolveZone(zones, { distanceMiles: customer.distanceMiles });
+    if (!match.matched) return { kind: "FALLBACK" };
+    return { kind: "CHARGE", fee: match.fee };
+  }
+
+  return { kind: "FALLBACK" };
 }
 
 /** Every delivery zone that could apply at one shop.
@@ -198,6 +263,7 @@ export class OrderingService {
     // per-customer so a NEW customer's "first order 20% off" only
     // fires for actual newcomers.
     private readonly marketing: MarketingService,
+    private readonly deliveryZones: DeliveryZonesService,
   ) {}
 
   /**
@@ -491,7 +557,19 @@ export class OrderingService {
     const deliveryZones = zoneBrandId
       ? await this.prisma.deliveryZone.findMany({
           where: { brandId: zoneBrandId, isActive: true },
-          select: { postcodePrefix: true, fee: true, minOrderValue: true },
+          // The whole row shape, not just prefixes: the storefront runs the
+          // same shared resolver the server does, and it can't pick a mode it
+          // can't see. Sending prefixes only is what made a brand on distance
+          // bands white-screen the storefront — every row arrived with a null
+          // prefix and the client called .toUpperCase() on it.
+          select: {
+            id: true,
+            postcodePrefix: true,
+            areaName: true,
+            maxDistanceMiles: true,
+            fee: true,
+            minOrderValue: true,
+          },
         })
       : [];
 
@@ -1220,7 +1298,7 @@ export class OrderingService {
     // £0 unless a genuine FREE_DELIVERY campaign actually applied (the
     // pizza-uno-pelton #MJBYC incident was exactly this: no zone match,
     // fee silently stayed 0).
-    if (dto.fulfillmentType === "DELIVERY" && serverDeliveryFee <= 0) {
+    if (dto.fulfillmentType === "DELIVERY") {
       try {
         // Widened deliberately. DeliveryZone can be scoped to a LOCATION
         // or to a BRAND, and a location can serve several brands, so
@@ -1230,33 +1308,82 @@ export class OrderingService {
         // pinned brand, campaignBrandId fell back to the location's default
         // brand, that brand has no zones of its own, and the earlier
         // brand-only fallback therefore found nothing to charge.
-        //
-        // "Highest fee from the postcodes available at that location" is the
-        // rule the operator asked for, so gather every zone that could apply
-        // here — location-scoped, the resolved brand's, and any brand
-        // serving this location — and let resolveDeliveryFee take the max.
         const zones = await this.prisma.deliveryZone.findMany({
           where: deliveryZoneScope({
             locationId: location.id,
             brandId: campaignBrandId,
           }),
-          select: { fee: true },
+          select: {
+            id: true,
+            fee: true,
+            minOrderValue: true,
+            postcodePrefix: true,
+            areaName: true,
+            maxDistanceMiles: true,
+          },
         });
-        const fallbackFee = resolveDeliveryFee({
-          fulfillmentType: dto.fulfillmentType,
-          requestedFee: serverDeliveryFee,
-          freeDeliveryApplied: !!appliedFreeDeliveryCampaign,
-          zoneFees: zones.map((z) => Number(z.fee)),
+
+        // Measure only for distance bands — a postcode or area shop must not
+        // pay for a geocode whose answer it then ignores.
+        const distanceMiles =
+          zoneMode(zones as any) === "RADIUS"
+            ? await this.deliveryZones.distanceMilesFor(
+                location.brand.tenantId,
+                { locationId: location.id },
+                {
+                  lat: dto.deliveryAddress?.latitude,
+                  lng: dto.deliveryAddress?.longitude,
+                  postcode: dto.deliveryAddress?.postcode,
+                  area: dto.deliveryAddress?.area,
+                },
+              )
+            : null;
+        const outcome = resolveZoneOutcome(zones as any, {
+          area: dto.deliveryAddress?.area,
+          distanceMiles,
         });
-        if (fallbackFee !== serverDeliveryFee) {
-          this.logger.warn(
-            `Delivery fee fallback: no zone match for slug=${slug}, charging highest configured fee (${fallbackFee}) instead of 0`,
+        if (outcome.kind === "REFUSE") {
+          // The one case that blocks the order instead of pricing around it.
+          // Free delivery wins on the money but never on whether we deliver
+          // at all, so this sits outside the fee logic entirely.
+          throw new BadRequestException(
+            outcome.area
+              ? `Sorry, we don't deliver to ${outcome.area}.`
+              : "Please choose your delivery area.",
           );
-          serverDeliveryFee = fallbackFee;
+        }
+        if (outcome.kind === "CHARGE") {
+          if (!appliedFreeDeliveryCampaign) serverDeliveryFee = outcome.fee;
+        } else if (serverDeliveryFee <= 0) {
+          // See resolveDeliveryFee — a delivery order can never end up
+          // charged £0 unless a genuine FREE_DELIVERY campaign actually
+          // applied (the pizza-uno-pelton #MJBYC incident was exactly this:
+          // no zone match, fee silently stayed 0).
+          //
+          // "Highest fee from the postcodes available at that location" is
+          // the rule the operator asked for: a postcode we don't recognise
+          // is a config gap, and a shop losing the fee is worse than a
+          // customer paying the top rate.
+          const fallbackFee = resolveDeliveryFee({
+            fulfillmentType: dto.fulfillmentType,
+            requestedFee: serverDeliveryFee,
+            freeDeliveryApplied: !!appliedFreeDeliveryCampaign,
+            zoneFees: zones.map((z) => Number(z.fee)),
+          });
+          if (fallbackFee !== serverDeliveryFee) {
+            this.logger.warn(
+              `Delivery fee fallback: no zone match for slug=${slug}, charging highest configured fee (${fallbackFee}) instead of 0`,
+            );
+            serverDeliveryFee = fallbackFee;
+          }
         }
       } catch (err) {
+        // A refusal is a decision, not a failure — it must not be swallowed
+        // by the catch that exists to stop lookup errors from killing
+        // checkout.
+        if (err instanceof BadRequestException) throw err;
         this.logger.warn(
-          `Delivery fee fallback lookup failed for slug=${slug}: ${(err as Error).message}`,
+          `Delivery fee lookup failed for slug=${slug}: ${(err as Error).message}`,
         );
       }
     }

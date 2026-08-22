@@ -39,15 +39,30 @@ export class DeliveryZonesController {
   }
 
   @Get("lookup")
-  @ApiOperation({ summary: "Look up delivery fee for postcode at location" })
+  @ApiOperation({ summary: "Look up the delivery fee for a customer at a location" })
   @ApiQuery({ name: "locationId", required: true })
-  @ApiQuery({ name: "postcode", required: true })
+  @ApiQuery({ name: "postcode", required: false })
+  @ApiQuery({ name: "area", required: false, description: "Gulf: the picked community, e.g. Dubai Marina" })
+  @ApiQuery({ name: "lat", required: false })
+  @ApiQuery({ name: "lng", required: false })
   lookup(
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId: string,
-    @Query("postcode") postcode: string,
+    @Query("postcode") postcode?: string,
+    @Query("area") area?: string,
+    @Query("lat") lat?: string,
+    @Query("lng") lng?: string,
   ) {
-    return this.zones.lookup(user.tenantId, locationId, postcode);
+    const asNum = (v?: string) => {
+      const n = Number(v);
+      return v != null && v !== "" && Number.isFinite(n) ? n : undefined;
+    };
+    return this.zones.lookup(user.tenantId, locationId, {
+      postcode,
+      area,
+      lat: asNum(lat),
+      lng: asNum(lng),
+    });
   }
 
   @Post()
@@ -61,6 +76,7 @@ export class DeliveryZonesController {
       brandId?: string;
       postcodePrefix?: string;
       maxDistanceMiles?: number;
+      areaName?: string;
       fee: number;
       minOrderValue?: number;
       isActive?: boolean;
@@ -79,6 +95,7 @@ export class DeliveryZonesController {
     body: {
       postcodePrefix?: string;
       maxDistanceMiles?: number | null;
+      areaName?: string | null;
       fee?: number;
       minOrderValue?: number | null;
       isActive?: boolean;

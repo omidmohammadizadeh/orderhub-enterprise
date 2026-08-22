@@ -1808,8 +1808,17 @@ model DeliveryZone {
   brandId          String?
   brand            Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   /// Postcode mode: the prefix a customer's postcode must start with.
-  /// Null on radius rows.
+  /// Null on radius and area rows.
   postcodePrefix   String?
+  /// Area mode: the named community this row prices, e.g. "Dubai Marina".
+  /// Null on postcode and radius rows.
+  ///
+  /// The Gulf has no usable postcodes — a Dubai address is building, community,
+  /// emirate — so the operator lists the areas they serve and the customer
+  /// picks one. These rows ARE the customer's picker, which is why matching is
+  /// exact rather than fuzzy: an area that isn't listed means the shop does not
+  /// deliver there, not that someone mistyped.
+  areaName         String?
   /// Radius mode: the outer edge of this band, in miles. A row with 3.0 means
   /// "up to 3 miles". Null on postcode rows.
   ///
@@ -1826,6 +1835,8 @@ model DeliveryZone {
 
   @@unique([locationId, postcodePrefix])
   @@unique([brandId, postcodePrefix])
+  @@unique([locationId, areaName])
+  @@unique([brandId, areaName])
   @@index([tenantId])
   @@index([locationId])
   @@index([brandId])
@@ -3254,7 +3265,7 @@ model NotificationLog {
   @@map("notification_logs")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════���═══════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -3669,7 +3680,7 @@ model WebPushSubscription {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ═════════════════════════════════════════════════════════��════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════
 

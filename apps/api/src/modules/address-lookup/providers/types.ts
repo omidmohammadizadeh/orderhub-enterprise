@@ -42,6 +42,10 @@ export interface AddressSuggestion {
   line1: string;
   line2?: string;
   city?: string;
+  /** The named community an address sits in — "Dubai Marina", "Business Bay".
+   *  Load-bearing in the Gulf, where it is what delivery zones price on and
+   *  there is no postcode to fall back to. Usually empty for UK addresses. */
+  area?: string;
   postcode?: string;
   country?: string;
   latitude?: number;

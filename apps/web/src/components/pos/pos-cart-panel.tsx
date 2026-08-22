@@ -13,13 +13,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed } from "lucide-react";
-import { round2 } from "@orderhub/shared";
+import {
+  round2,
+  zoneMode,
+  areaZoneNames,
+  postcodeRequiredFor,
+} from "@orderhub/shared";
 import {
   deliveryZonesClient,
   promoCodesClient,
   addressLookupClient,
   type AddressSuggestion,
   type AddressProvider,
+  type DeliveryZone,
   type PromoCode,
   type PromoValidateResult,
 } from "@/lib/api/pos.client";
@@ -72,6 +78,7 @@ export interface PlaceOrderPayload {
     line2?: string;
     city: string;
     postcode: string;
+    area?: string;
   };
   preparationMinutes: number;
   scheduledFor?: string; // ISO
@@ -133,6 +140,7 @@ export interface PartialDraft {
   addressLine2?: string;
   city?: string;
   postcode?: string;
+  area?: string;
   preparationMinutes?: number;
   scheduledFor?: string;
   isScheduled?: boolean;
@@ -150,8 +158,6 @@ const PREP_PRESETS: Array<{ label: string; mins: number }> = [
 ];
 
 export function PosCartPanel(props: CartPanelProps) {
-  // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money } = useCurrency();
   const {
     locationId,
     cart,
@@ -165,6 +171,10 @@ export function PosCartPanel(props: CartPanelProps) {
     onDraftChange,
     dineIn,
   } = props;
+  // Prices follow this location's currency, not a hardcoded pound — and the
+  // same row tells us the country, which decides whether an address needs a
+  // postcode at all.
+  const { money, country } = useCurrency(locationId);
 
   // ── Cart-adjacent state ────────────────────────────────────────────────────
   const [customerName, setCustomerName] = useState(initialDraft?.customerName ?? "");
@@ -184,11 +194,27 @@ export function PosCartPanel(props: CartPanelProps) {
   const [addrLine2, setAddrLine2] = useState(initialDraft?.addressLine2 ?? "");
   const [city, setCity] = useState(initialDraft?.city ?? "");
   const [postcode, setPostcode] = useState(initialDraft?.postcode ?? "");
+  // The delivery area, where the shop prices by area rather than by postcode.
+  // Same field the storefront asks for, so a phone order and an online order
+  // to the same flat are priced the same way.
+  const [area, setArea] = useState(initialDraft?.area ?? "");
   const [addrQuery, setAddrQuery] = useState("");
   const [addrSuggestions, setAddrSuggestions] = useState<AddressSuggestion[]>([]);
   const [addrSearching, setAddrSearching] = useState(false);
   const [addrProvider, setAddrProvider] = useState<AddressProvider>("manual");
   const [postcodeProvider, setPostcodeProvider] = useState<AddressProvider>("manual");
+
+  // The location's own zones — needed here (not just in the setup modal)
+  // because in area mode they ARE the operator's picker.
+  const zonesQuery = useQuery<DeliveryZone[]>({
+    queryKey: ["delivery-zones", locationId],
+    queryFn: () => deliveryZonesClient.list(locationId),
+    staleTime: 60_000,
+  });
+  const zones = useMemo(() => zonesQuery.data ?? [], [zonesQuery.data]);
+  const mode = useMemo(() => zoneMode(zones as any), [zones]);
+  const deliveryAreas = useMemo(() => areaZoneNames(zones as any), [zones]);
+  const needsPostcode = postcodeRequiredFor(country);
 
   // Postcode lookup (UK-style: enter postcode → pick from list of houses)
   const [pcLookupResults, setPcLookupResults] = useState<AddressSuggestion[]>([]);
@@ -359,6 +385,7 @@ export function PosCartPanel(props: CartPanelProps) {
       addressLine2: addrLine2,
       city,
       postcode,
+      area,
       // NOTE: timing (preparationMinutes / scheduledFor / isScheduled) is
       // deliberately NOT persisted to the draft. Each order is its own
       // decision — carrying a schedule over meant the next order stayed
@@ -378,6 +405,7 @@ export function PosCartPanel(props: CartPanelProps) {
     addrLine2,
     city,
     postcode,
+    area,
     prepMinutes,
     isScheduled,
     scheduledDate,
@@ -439,14 +467,20 @@ export function PosCartPanel(props: CartPanelProps) {
       setDeliveryMinSpend(null);
       return;
     }
-    if (!postcode.trim() || postcode.trim().length < 2) {
+    // What identifies the customer depends on the mode. Waiting for a postcode
+    // in area mode would mean the fee never resolved at a Dubai till.
+    const key = mode === "AREA" ? area.trim() : postcode.trim();
+    if (!key || (mode !== "AREA" && key.length < 2)) {
       setDeliveryLookupNote(null);
       return;
     }
     let cancelled = false;
     const handle = window.setTimeout(async () => {
       try {
-        const lookup = await deliveryZonesClient.lookup(locationId, postcode);
+        const lookup = await deliveryZonesClient.lookup(locationId, {
+          postcode: postcode.trim() || undefined,
+          area: area.trim() || undefined,
+        });
         if (cancelled) return;
         if (lookup.matched) {
           setDeliveryFee(lookup.fee);
@@ -454,16 +488,26 @@ export function PosCartPanel(props: CartPanelProps) {
             lookup.minOrderValue != null ? Number(lookup.minOrderValue) : null,
           );
           setDeliveryLookupNote(
-            `Zone ${lookup.postcodePrefix} — ${money(lookup.fee)}` +
+            `Zone ${lookup.label ?? lookup.areaName ?? lookup.postcodePrefix ?? ""} — ${money(lookup.fee)}` +
               (lookup.minOrderValue
                 ? ` (min order ${money(Number(lookup.minOrderValue))})`
                 : ""),
+          );
+        } else if (lookup.unserviceable) {
+          // Area mode: the shop has said it doesn't go there. Charging a
+          // manual fee instead would be taking money for a delivery the
+          // operator has already ruled out — so this blocks, and the operator
+          // has to add the area if they do want it.
+          setDeliveryFee(0);
+          setDeliveryMinSpend(null);
+          setDeliveryLookupNote(
+            `${area.trim()} is outside the delivery areas. Add it in Delivery fees to serve it.`,
           );
         } else {
           setDeliveryFee(0);
           setDeliveryMinSpend(null);
           setDeliveryLookupNote(
-            `No delivery zone matches "${postcode}". Set a manual fee or add a zone.`,
+            `No delivery zone matches "${key}". Set a manual fee or add a zone.`,
           );
         }
       } catch {
@@ -474,7 +518,7 @@ export function PosCartPanel(props: CartPanelProps) {
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [postcode, fulfillmentType, locationId]);
+  }, [postcode, area, mode, fulfillmentType, locationId]);
 
   // ── Totals ────────────────────────────────────────────────────────────────
   const subtotal = useMemo(
@@ -527,7 +571,15 @@ export function PosCartPanel(props: CartPanelProps) {
   if (cart.length === 0) errors.push("Cart is empty");
   if (fulfillmentType === "DELIVERY") {
     if (!addrLine1.trim()) errors.push("Delivery address required");
-    if (!postcode.trim()) errors.push("Postcode required");
+    // The UAE has no postcode to ask for; where the shop prices by area, the
+    // area is the field that has to be filled instead.
+    if (needsPostcode && !postcode.trim()) errors.push("Postcode required");
+    if (mode === "AREA") {
+      if (!area.trim()) errors.push("Delivery area required");
+      else if (!deliveryAreas.some((a) => a === area)) {
+        errors.push(`No delivery to ${area.trim()}`);
+      }
+    }
     if (minSpendShortfall > 0) {
       errors.push(`Min order ${money(deliveryMinSpend!)} (need ${money(minSpendShortfall)} more)`);
     }
@@ -690,6 +742,7 @@ export function PosCartPanel(props: CartPanelProps) {
               line2: addrLine2.trim() || undefined,
               city: city.trim() || "Unknown",
               postcode: postcode.trim(),
+              area: area.trim() || undefined,
             }
           : undefined,
       preparationMinutes: prepMinutes,

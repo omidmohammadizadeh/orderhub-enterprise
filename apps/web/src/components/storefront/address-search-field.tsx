@@ -28,7 +28,12 @@ export interface PickedAddress {
   line1?: string;
   line2?: string;
   city?: string;
+  /** The named community — "Dubai Marina", "Business Bay". Used to preselect
+   *  the delivery area where the shop prices by area rather than by postcode. */
+  area?: string;
   postcode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface Suggestion {
@@ -37,7 +42,10 @@ interface Suggestion {
   line1?: string;
   line2?: string;
   city?: string;
+  area?: string;
   postcode?: string;
+  latitude?: number;
+  longitude?: number;
   provider: string;
 }
 
@@ -52,9 +60,15 @@ const DEBOUNCE_MS = 400;
 export function AddressSearchField({
   onPick,
   country = "gb",
+  placeholder = "Search your address",
 }: {
   onPick: (address: PickedAddress) => void;
+  /** The SHOP's country, so autocomplete looks where the shop actually is.
+   *  This defaulted to "gb" and was never passed, which meant a Dubai
+   *  customer's every keystroke was restricted to UK results and the search
+   *  box returned nothing, for ever. */
   country?: string;
+  placeholder?: string;
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -159,7 +173,7 @@ export function AddressSearchField({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search your address"
+          placeholder={placeholder}
           autoComplete="off"
           className="w-full rounded-md border border-zinc-200 py-1.5 pl-7 pr-7 text-xs focus:border-zinc-900 focus:outline-none"
         />

@@ -18,6 +18,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
+import {
+  zoneMode,
+  radiusBands,
+  distanceUnitForCountry,
+  defaultZoneModeForCountry,
+  milesToKm,
+  kmToMiles,
+} from "@orderhub/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X, ExternalLink, Trash2, Plus } from "lucide-react";
 import {
@@ -1058,7 +1066,7 @@ function DeliveryZonesEditor({
   brandId: string;
   isAdmin: boolean;
 }) {
-  const { money } = useCurrency();
+  const { money, country } = useCurrency();
   const qc = useQueryClient();
   const zonesQuery = useQuery<DeliveryZone[]>({
     queryKey: ["brand-delivery-zones", brandId],
@@ -1067,34 +1075,48 @@ function DeliveryZonesEditor({
 
   const [newPrefix, setNewPrefix] = useState("");
   const [newMiles, setNewMiles] = useState("");
+  const [newArea, setNewArea] = useState("");
   const [newFee, setNewFee] = useState("");
   const [newMin, setNewMin] = useState("");
 
   const zonesLoaded = zonesQuery.data ?? [];
-  const hasRadius = zonesLoaded.some((z) => z.maxDistanceMiles != null);
-  const hasPostcode = zonesLoaded.some((z) => z.postcodePrefix);
+  const unit = distanceUnitForCountry(country);
   // The saved rows decide the mode; the toggle only picks one for an empty
   // brand. Inferring means the editor can never disagree with what's actually
-  // quoting fees.
-  const [mode, setMode] = useState<"POSTCODE" | "RADIUS">("POSTCODE");
+  // quoting fees. An empty brand starts on whatever its country actually uses
+  // — a Dubai shop offered postcode bands first would be offered a field its
+  // customers cannot fill in.
+  const savedMode = zoneMode(zonesLoaded as any);
+  const [mode, setMode] = useState<"POSTCODE" | "RADIUS" | "AREA">(
+    defaultZoneModeForCountry(country),
+  );
   useEffect(() => {
-    if (hasRadius) setMode("RADIUS");
-    else if (hasPostcode) setMode("POSTCODE");
-  }, [hasRadius, hasPostcode]);
+    if (savedMode !== "NONE") setMode(savedMode);
+    else setMode(defaultZoneModeForCountry(country));
+  }, [savedMode, country]);
 
   const create = useMutation({
     mutationFn: () =>
       deliveryZonesClient.create({
         brandId,
         ...(mode === "RADIUS"
-          ? { maxDistanceMiles: Number(newMiles) }
-          : { postcodePrefix: newPrefix.trim().toUpperCase() }),
+          ? {
+              // Bands are STORED in miles whatever the operator types, so
+              // there is one unit in the database and no pair of columns to
+              // drift apart. The conversion happens here, at the edge.
+              maxDistanceMiles:
+                unit === "km" ? kmToMiles(Number(newMiles)) : Number(newMiles),
+            }
+          : mode === "AREA"
+            ? { areaName: newArea.trim() }
+            : { postcodePrefix: newPrefix.trim().toUpperCase() }),
         fee: Number(newFee) || 0,
         minOrderValue: newMin ? Number(newMin) : undefined,
       }),
     onSuccess: () => {
       setNewPrefix("");
       setNewMiles("");
+      setNewArea("");
       setNewFee("");
       setNewMin("");
       qc.invalidateQueries({ queryKey: ["brand-delivery-zones", brandId] });
@@ -1125,14 +1147,16 @@ function DeliveryZonesEditor({
    * four-mile customer would fall through it, or overlap them (0–3 then 2–4)
    * and two bands would claim the same customer. Neither can happen here.
    */
-  const bands = zones
-    .filter((z) => z.maxDistanceMiles != null)
-    .sort((a, b) => Number(a.maxDistanceMiles) - Number(b.maxDistanceMiles))
-    .map((z, i, arr) => ({
-      zone: z,
-      from: i === 0 ? 0 : Number(arr[i - 1]!.maxDistanceMiles),
-      to: Number(z.maxDistanceMiles),
-    }));
+  /** Edges in the unit the operator reads in — km outside the UK. Rounded to
+   *  one decimal so a 5 km band typed in reads back as "5 km" and not
+   *  "4.9999 km" after the round-trip through miles. */
+  const inUnit = (miles: number) =>
+    Math.round((unit === "km" ? milesToKm(miles) : miles) * 10) / 10;
+  const bands = radiusBands(zones as any).map((b) => ({
+    zone: b.zone as DeliveryZone,
+    from: inUnit(b.from),
+    to: inUnit(b.to),
+  }));
   /** Where the next band starts — shown beside the input so it's not a guess. */
   const nextFrom = bands.length ? bands[bands.length - 1]!.to : 0;
 
@@ -1143,7 +1167,7 @@ function DeliveryZonesEditor({
           brand, and the resolver picks radius whenever a band exists, so the
           postcodes would silently stop applying. Clear the rows to switch. */}
       <div className="flex items-center gap-2">
-        {(["POSTCODE", "RADIUS"] as const).map((m) => (
+        {(["POSTCODE", "RADIUS", "AREA"] as const).map((m) => (
           <button
             key={m}
             type="button"
@@ -1155,7 +1179,11 @@ function DeliveryZonesEditor({
                 : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300"
             }`}
           >
-            {m === "POSTCODE" ? "By postcode" : "By distance"}
+            {m === "POSTCODE"
+              ? "By postcode"
+              : m === "RADIUS"
+                ? "By distance"
+                : "By area"}
           </button>
         ))}
         <span className="text-[10px] text-zinc-400">
@@ -1163,9 +1191,22 @@ function DeliveryZonesEditor({
             ? "Remove all rows to switch mode"
             : mode === "RADIUS"
               ? "Charge by how far the customer is"
-              : "Charge by postcode prefix"}
+              : mode === "AREA"
+                ? "Charge by named area"
+                : "Charge by postcode prefix"}
         </span>
       </div>
+
+      {mode === "AREA" && (
+        <p className="rounded-md bg-zinc-50 px-2 py-1.5 text-[10px] leading-relaxed text-zinc-500">
+          Name the areas you deliver to — Dubai Marina, JLT, Business Bay. This
+          list becomes the dropdown your customers choose from, so an area you
+          don&apos;t add here is one they can&apos;t order to: they&apos;ll be
+          told you don&apos;t deliver there rather than being charged a guess.
+          Spelling is forgiving — &ldquo;Al Barsha&rdquo; matches
+          &ldquo;Barsha&rdquo;.
+        </p>
+      )}
 
       {mode === "RADIUS" && (
         <p className="rounded-md bg-zinc-50 px-2 py-1.5 text-[10px] leading-relaxed text-zinc-500">
@@ -1183,7 +1224,9 @@ function DeliveryZonesEditor({
         <p className="text-[11px] text-zinc-500">
           {mode === "RADIUS"
             ? "No distance bands yet. Add one below."
-            : "No postcodes configured yet. Add one below."}
+            : mode === "AREA"
+              ? "No delivery areas yet. Add one below."
+              : "No postcodes configured yet. Add one below."}
         </p>
       ) : (
         <ul className="divide-y divide-zinc-100 rounded border border-zinc-200">
@@ -1196,9 +1239,11 @@ function DeliveryZonesEditor({
                 {z.maxDistanceMiles != null
                   ? (() => {
                       const b = bands.find((x) => x.zone.id === z.id);
-                      return b ? `${b.from}–${b.to} mi` : `${Number(z.maxDistanceMiles)} mi`;
+                      return b
+                        ? `${b.from}–${b.to} ${unit}`
+                        : `${inUnit(Number(z.maxDistanceMiles))} ${unit}`;
                     })()
-                  : z.postcodePrefix}
+                  : (z.areaName ?? z.postcodePrefix)}
               </span>
               <span className="w-20 text-zinc-700">{money(Number(z.fee))}</span>
               <span className="flex-1 text-zinc-500">
@@ -1234,7 +1279,7 @@ function DeliveryZonesEditor({
 
       <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 pt-1">
         {mode === "RADIUS" ? (
-          <Field label={`From ${nextFrom} mi — up to`}>
+          <Field label={`From ${nextFrom} ${unit} — up to`}>
             <div className="flex items-center gap-1.5">
               <input
                 value={newMiles}
@@ -1246,8 +1291,18 @@ function DeliveryZonesEditor({
                 disabled={!isAdmin}
                 className="input"
               />
-              <span className="text-[11px] text-zinc-500">mi</span>
+              <span className="text-[11px] text-zinc-500">{unit}</span>
             </div>
+          </Field>
+        ) : mode === "AREA" ? (
+          <Field label="Area">
+            <input
+              value={newArea}
+              onChange={(e) => setNewArea(e.target.value)}
+              placeholder="Dubai Marina"
+              disabled={!isAdmin}
+              className="input"
+            />
           </Field>
         ) : (
           <Field label="Postcode">
@@ -1293,7 +1348,9 @@ function DeliveryZonesEditor({
             !newFee ||
             (mode === "RADIUS"
               ? !(Number(newMiles) > nextFrom)
-              : !newPrefix.trim())
+              : mode === "AREA"
+                ? !newArea.trim()
+                : !newPrefix.trim())
           }
           className="inline-flex h-[34px] items-center gap-1 rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
         >
@@ -1309,7 +1366,7 @@ function DeliveryZonesEditor({
       </div>
       {mode === "RADIUS" && newMiles !== "" && Number(newMiles) <= nextFrom && (
         <p className="text-[11px] text-amber-600">
-          This band has to end past {nextFrom} mi — that&apos;s where the
+          This band has to end past {nextFrom} {unit} — that&apos;s where the
           previous one finished.
         </p>
       )}
