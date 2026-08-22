@@ -18,14 +18,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
+import { tenderNotesFor } from "@orderhub/shared";
 import { Banknote, Delete, Loader2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api/client";
 import { openCashDrawerViaBridge } from "@/lib/printing/print-order";
 
-/** Notes and coins a UK counter actually reaches for. */
-const TENDER_PRESETS = [5, 10, 20, 50];
 
 export function CashPaymentModal({
   open,
@@ -44,7 +43,10 @@ export function CashPaymentModal({
   onPaid?: () => void;
 }) {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money, symbol } = useCurrency();
+  const { money, symbol, currency } = useCurrency();
+  // Notes THIS counter is handed. A UK 5/10/20/50 ladder is useless in
+  // Dubai, where the smallest note in circulation is a 10.
+  const tenderNotes = tenderNotesFor(currency);
   // Held as a digit string in PENCE so the keypad behaves like a till: every
   // press shifts a digit in from the right. Parsing a decimal on each press
   // instead makes "1", "1.", "1.0" ambiguous and mishandles leading zeros.
@@ -174,14 +176,13 @@ export function CashPaymentModal({
               >
                 Exact
               </button>
-              {TENDER_PRESETS.map((v) => (
+              {tenderNotes.map((v) => (
                 <button
                   key={v}
                   onClick={() => setPounds(v)}
                   className="rounded-md border border-zinc-300 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-50"
                 >
-                  {symbol}
-                  {v}
+                  {money(v)}
                 </button>
               ))}
             </div>

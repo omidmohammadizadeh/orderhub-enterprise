@@ -4,6 +4,7 @@ import {
   formatMoney,
   currencySymbol,
   timezoneForCountry,
+  tenderNotesFor,
 } from "@orderhub/shared";
 
 describe("currencyForCountry", () => {
@@ -96,5 +97,31 @@ describe("timezoneForCountry", () => {
     expect(timezoneForCountry("GB")).toBe("Europe/London");
     expect(timezoneForCountry("ZZ")).toBe("Europe/London");
     expect(timezoneForCountry(null)).toBe("Europe/London");
+  });
+});
+
+describe("tenderNotesFor", () => {
+  it("gives a Dubai counter the notes it is actually handed", () => {
+    // The smallest AED note in circulation is a 10, so a UK 5/10/20/50 ladder
+    // leaves the shortcut buttons unusable and staff key every amount by hand.
+    expect(tenderNotesFor("AED")).toEqual([10, 20, 50, 100]);
+  });
+
+  it("keeps the UK ladder for GBP and for anything unmapped", () => {
+    expect(tenderNotesFor("GBP")).toEqual([5, 10, 20, 50]);
+    expect(tenderNotesFor("ZZZ")).toEqual([5, 10, 20, 50]);
+    expect(tenderNotesFor(null)).toEqual([5, 10, 20, 50]);
+  });
+
+  it("includes the fractional dinar notes, which are real currency", () => {
+    // A half-dinar note exists; rounding it off the keypad would lose a note
+    // the customer actually hands over.
+    expect(tenderNotesFor("KWD")).toContain(0.5);
+  });
+
+  it("formats a half-dinar button with its third decimal", () => {
+    // The button label goes through money(), so 0.5 KWD must read 0.500 —
+    // the same trap as every other price in a three-decimal currency.
+    expect(formatMoney(0.5, "KWD", { compact: true })).toBe("KWD 0.500");
   });
 });

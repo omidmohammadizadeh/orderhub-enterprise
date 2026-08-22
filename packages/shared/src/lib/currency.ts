@@ -139,3 +139,37 @@ export function timezoneForCountry(country: string | null | undefined): string {
   const c = String(country ?? "").trim().toUpperCase();
   return TIMEZONE_BY_COUNTRY[c] ?? DEFAULT_TIMEZONE;
 }
+
+/**
+ * Notes a counter actually reaches for, per currency.
+ *
+ * The cash keypad's quick-tender buttons were 5/10/20/50 — UK notes. Showing
+ * the right SYMBOL against those was only half the fix: a Dubai counter is
+ * handed 10/20/50/100 dirham notes and never a 5, so a UK ladder makes the
+ * shortcut buttons useless and staff key every amount by hand.
+ *
+ * Deliberately the physical notes in circulation, not round numbers: the
+ * button exists so an operator can tap what the customer just handed over.
+ */
+export const TENDER_NOTES: Record<string, number[]> = {
+  GBP: [5, 10, 20, 50],
+  EUR: [5, 10, 20, 50],
+  USD: [5, 10, 20, 50],
+  AED: [10, 20, 50, 100],
+  SAR: [5, 10, 50, 100],
+  QAR: [10, 50, 100, 500],
+  // The dinars are thousandths, and their small notes are fractional — a
+  // half-dinar note is real currency, so 0.5 belongs on the keypad.
+  KWD: [0.5, 1, 5, 10],
+  BHD: [0.5, 1, 5, 10],
+  OMR: [0.5, 1, 5, 10],
+  JOD: [1, 5, 10, 20],
+  EGP: [10, 20, 50, 100],
+  PKR: [50, 100, 500, 1000],
+};
+
+/** Quick-tender buttons for this currency; falls back to the GBP ladder. */
+export function tenderNotesFor(currency: string | null | undefined): number[] {
+  const c = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
+  return TENDER_NOTES[c] ?? TENDER_NOTES.GBP!;
+}
