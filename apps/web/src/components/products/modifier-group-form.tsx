@@ -434,6 +434,17 @@ export function ModifierGroupForm({
                                     : `(shared from ${m.groupName})`}
                                 </span>
                               </p>
+                              {/* Kitchen-language name, when the shop prints
+                                  translated tickets. Shown because there was
+                                  no way to tell a translated option from an
+                                  untranslated one — the ticket printed English
+                                  and the editor gave no clue whether the name
+                                  was missing or simply not reaching the paper. */}
+                              {(m as any).secondLanguageName && (
+                                <p className="mt-0.5 truncate text-[11px] text-emerald-700">
+                                  🖨 {(m as any).secondLanguageName}
+                                </p>
+                              )}
                               {/* Phase BN — picking this modifier can open
                                   further groups ("Make It a Meal" asking for
                                   a side and a drink). Without this line the

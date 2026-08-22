@@ -309,10 +309,16 @@ export class MenuTranslationService {
     await write("modifierGroup", groups, "groups");
     await write("modifierOption", options, "options");
 
+    // Logs what it FOUND as well as what it changed. "0 options translated"
+    // means two completely different things depending on whether it found
+    // 0 options or found 300 that were already done — and the first time this
+    // reported zero I could not tell which from the log.
     this.logger.log(
-      `menu ${menu.id} translated to ${language}: ` +
-        `${written.items} items, ${written.groups} groups, ${written.options} options ` +
-        `(${written.skipped} left as-is, ${distinct.length} distinct names)`,
+      `menu ${menu.id} -> ${language}: ` +
+        `found ${items.length} items / ${groups.length} groups / ${options.length} options; ` +
+        `${pending.length} needed a name (${distinct.length} distinct); ` +
+        `wrote ${written.items} items / ${written.groups} groups / ${written.options} options; ` +
+        `${written.skipped} left as-is`,
     );
     return written;
   }

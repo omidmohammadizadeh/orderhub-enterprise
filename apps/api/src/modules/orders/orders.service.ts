@@ -2593,8 +2593,13 @@ export class OrdersService {
             .filter(Boolean),
         ),
       );
-      const brandIds = Array.from(
-        new Set(live.map((r) => r.brandId).filter((x: any): x is string => !!x)),
+      // Tenant, not brand. A modifier group is brand-wide when its locationId
+      // is null, and an imported menu routinely references groups belonging to
+      // a SIBLING brand of the same tenant — matching on the order's brandId
+      // silently found nothing for exactly those, which is how translated
+      // options still printed in English.
+      const tenantIds = Array.from(
+        new Set(live.map((r) => r.tenantId).filter((x: any): x is string => !!x)),
       );
 
       const [items, mods] = await Promise.all([
@@ -2604,11 +2609,11 @@ export class OrdersService {
               select: { id: true, secondLanguageName: true },
             })
           : Promise.resolve([]),
-        modNames.length && brandIds.length
+        modNames.length && tenantIds.length
           ? this.prisma.modifierOption.findMany({
               where: {
                 name: { in: modNames },
-                group: { brandId: { in: brandIds } },
+                group: { brand: { tenantId: { in: tenantIds } } },
                 NOT: { secondLanguageName: null },
               },
               select: { name: true, secondLanguageName: true },

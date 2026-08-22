@@ -68,11 +68,15 @@ export class PrintQueueService {
             .filter(Boolean),
         ),
       );
-      if (modNames.length && order.brandId) {
+      // Tenant, not brand: a group is brand-wide when its locationId is null,
+      // and an imported menu routinely references groups on a SIBLING brand of
+      // the same tenant. Matching on the order's brandId found nothing for
+      // those, so translated options still printed in English.
+      if (modNames.length && order.tenantId) {
         const mods = await this.prisma.modifierOption.findMany({
           where: {
             name: { in: modNames },
-            group: { brandId: order.brandId },
+            group: { brand: { tenantId: order.tenantId } },
             NOT: { secondLanguageName: null },
           },
           select: { name: true, secondLanguageName: true },

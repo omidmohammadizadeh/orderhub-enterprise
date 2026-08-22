@@ -11,6 +11,7 @@ function build(opts: {
   mods?: any[];
 }) {
   const calls: string[] = [];
+  const wheres: Record<string, any> = {};
   const prisma: any = {
     location: {
       findMany: async () => {
@@ -25,8 +26,9 @@ function build(opts: {
       },
     },
     modifierOption: {
-      findMany: async () => {
+      findMany: async (args: any) => {
         calls.push("modifierOption");
+        wheres.modifierOption = args?.where;
         return opts.mods ?? [];
       },
     },
@@ -34,13 +36,14 @@ function build(opts: {
   const svc = Object.create(OrdersService.prototype) as any;
   svc.prisma = prisma;
   svc.logger = { warn: () => {} };
-  return { svc, calls };
+  return { svc, calls, wheres };
 }
 
 const rows = () => [
   {
     locationId: "loc-1",
     brandId: "b1",
+    tenantId: "t1",
     items: [
       {
         menuItemId: "mi1",
@@ -101,5 +104,20 @@ describe("attachKitchenNames", () => {
     const out = await svc.attachKitchenNames(r);
     expect(out).toBe(r);
     expect(out[0].items[0].name).toBe("Salt & Pepper Chicken");
+  });
+
+  it("matches modifiers across the TENANT, not just the order's brand", async () => {
+    // A modifier group is brand-wide when its locationId is null, and an
+    // imported menu routinely references groups on a SIBLING brand of the same
+    // tenant. Scoping to the order's brandId found none of those — translated
+    // options still printed in English.
+    const { svc, wheres } = build({
+      settings: { kitchenTicketSecondLanguage: true },
+      mods: [{ name: "Extra spicy", secondLanguageName: "多辣" }],
+    });
+    await svc.attachKitchenNames(rows());
+    expect(wheres.modifierOption.group).toEqual({
+      brand: { tenantId: { in: ["t1"] } },
+    });
   });
 });
