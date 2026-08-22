@@ -197,15 +197,46 @@ export class MenuTranslationService {
     // to pull prices, images or JSON blobs to translate a name.
     const items = await this.prisma.menuItem.findMany({
       where: inThisMenu,
-      select: { id: true, name: true, secondLanguageName: true },
+      // productSkus comes along because a SIZED product carries its modifier
+      // groups THERE and nowhere else — see below.
+      select: {
+        id: true,
+        name: true,
+        secondLanguageName: true,
+        productSkus: true,
+      },
     });
     const itemIds = items.map((i) => i.id);
+
+    // A multi-SKU product routes its groups through the SIZE: the picker reads
+    // selectedSku.modifierGroups and ignores the item's own links, so those
+    // rows carry bare group ids in productSkus[] with NO ModifierGroupOnItem
+    // row to find them by. Looking only at itemLinks found every group on a
+    // flat product and none on a pizza — which is exactly what "item names
+    // translated, modifiers did not" looked like on the ticket.
+    const skuGroupIds = new Set<string>();
+    for (const it of items) {
+      const skus = Array.isArray(it.productSkus) ? (it.productSkus as any[]) : [];
+      for (const sku of skus) {
+        for (const g of sku?.modifierGroups ?? []) {
+          if (typeof g === "string" && g) skuGroupIds.add(g);
+        }
+      }
+    }
+
     const groups = itemIds.length
       ? await this.prisma.modifierGroup.findMany({
           where: {
+            // Tenant-scoped rather than brand-scoped: an imported menu
+            // routinely references groups belonging to a sibling brand of the
+            // same tenant, and filtering by brand would silently drop them.
+            brand: { tenantId: args.tenantId },
             OR: [
               { itemLinks: { some: { itemId: { in: itemIds } } } },
               { menuIds: { has: menu.id } },
+              ...(skuGroupIds.size
+                ? [{ id: { in: Array.from(skuGroupIds) } }]
+                : []),
             ],
           },
           select: { id: true, name: true, secondLanguageName: true },

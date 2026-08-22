@@ -47,7 +47,16 @@ function build(opts: {
 }
 
 const row = (id: string, name: string, existing: string | null = null) => ({
-  id, name, secondLanguageName: existing,
+  id, name, secondLanguageName: existing, productSkus: [],
+});
+
+/** A sized product: its groups live in productSkus[], with no link row. */
+const sized = (id: string, name: string, groupIds: string[]) => ({
+  id, name, secondLanguageName: null,
+  productSkus: [
+    { name: '10"', price: 5.8, modifierGroups: groupIds },
+    { name: '12"', price: 7, modifierGroups: groupIds },
+  ],
 });
 
 const run = (svc: any, overwrite = false) =>
@@ -171,10 +180,11 @@ describe("MenuTranslationService", () => {
     expect(branches).toContain("menuIds");
   });
 
-  it("asks for only the three fields it needs, never whole rows", async () => {
-    // This runs inside the API process, which sits near its heap ceiling —
-    // pulling prices, images and JSON blobs to translate a name is how a
-    // background job takes the API down with it.
+  it("asks for only the fields it needs, never whole rows", async () => {
+    // This runs inside the API process — pulling images, descriptions and
+    // pricing JSON to translate a NAME is how a background job takes the API
+    // down with it. productSkus is the one blob it genuinely needs: a sized
+    // product's modifier groups live nowhere else.
     const { svc } = build({ items: [row("i1", "Chow Mein")] });
     const seen: any[] = [];
     const orig = (svc as any).prisma.menuItem.findMany;
@@ -184,7 +194,33 @@ describe("MenuTranslationService", () => {
     };
     await run(svc);
     expect(Object.keys(seen[0] ?? {}).sort()).toEqual([
-      "id", "name", "secondLanguageName",
+      "id", "name", "productSkus", "secondLanguageName",
     ]);
+  });
+
+  it("finds the groups of a SIZED product, which live in productSkus", async () => {
+    // A multi-SKU product routes its groups through the SIZE — the picker
+    // reads selectedSku.modifierGroups and ignores item links, so there is no
+    // ModifierGroupOnItem row to find them by. Looking only at itemLinks
+    // translated every item name and left every pizza option in English.
+    const { svc, wheres } = build({
+      items: [sized("i1", "Margherita", ["g_base", "g_crust"])],
+      groups: [row("g_base", '10" - Base')],
+      options: [row("o1", "Tomato base")],
+    });
+    await run(svc);
+    const or = JSON.stringify(wheres["modifierGroup"]![0].OR);
+    expect(or).toContain("g_base");
+    expect(or).toContain("g_crust");
+  });
+
+  it("scopes the group lookup to the tenant, not a bare id list", async () => {
+    // The ids come out of a JSON blob, so the query must not trust them alone.
+    const { svc, wheres } = build({
+      items: [sized("i1", "Margherita", ["g_base"])],
+      groups: [row("g_base", '10" - Base')],
+    });
+    await run(svc);
+    expect(wheres["modifierGroup"]![0].brand).toEqual({ tenantId: "t1" });
   });
 });
