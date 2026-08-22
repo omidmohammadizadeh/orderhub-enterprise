@@ -14,12 +14,14 @@
 // is often the person who took the money.
 
 import { useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Ban, Loader2, X } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 
-const money = (n: number) => `£${Number(n).toFixed(2)}`;
+// money() now comes from useCurrency — a second, £-hardcoded copy here is
+// how one screen keeps printing pounds after every other one moved on.
 
 export function VoidItemModal({
   orderId,
@@ -33,6 +35,8 @@ export function VoidItemModal({
   /** Fired after a successful write-off so the caller can refresh totals. */
   onChanged: () => void;
 }) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
   const [type, setType] = useState<"VOID" | "COMP">("VOID");

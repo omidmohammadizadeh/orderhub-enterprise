@@ -8,6 +8,7 @@
 // service-charge.ts). This screen only writes the rule.
 
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Percent, X } from "lucide-react";
@@ -22,6 +23,8 @@ export function ServiceChargeModal({
   locationId: string;
   onClose: () => void;
 }) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const locationQuery = useQuery({
     queryKey: queryKeys.locationDetail(locationId),
@@ -162,9 +165,9 @@ export function ServiceChargeModal({
               </label>
 
               <div className="rounded-md bg-zinc-50 p-3 text-[12px] text-zinc-600">
-                On a £60.00 bill this adds{" "}
-                <b>£{((60 * pct) / 100).toFixed(2)}</b> — total{" "}
-                <b>£{(60 + (60 * pct) / 100).toFixed(2)}</b>.
+                On a {money(60)} bill this adds{" "}
+                <b>{money(((60 * pct) / 100))}</b> — total{" "}
+                <b>{money((60 + (60 * pct) / 100))}</b>.
                 <span className="mt-1 block text-[11px] text-zinc-500">
                   Charged on the bill after any discount.
                 </span>

@@ -15,6 +15,7 @@
 // re-enabled.
 
 import { useCallback, useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { QRCodeSVG } from "qrcode.react";
 import { paymentLinkClient } from "@/lib/api/pos.client";
 
@@ -33,6 +34,8 @@ export function PaymentLinkModal({
   customerPhone?: string | null;
   onClose: () => void;
 }) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -123,7 +126,7 @@ export function PaymentLinkModal({
 
         <p className="mt-1 text-xs text-zinc-500">
           {orderNumber ? `Order ${orderNumber} · ` : ""}
-          <span className="font-semibold text-zinc-700">£{amount.toFixed(2)}</span>
+          <span className="font-semibold text-zinc-700">{money(amount)}</span>
           {" · "}pending payment
         </p>
 

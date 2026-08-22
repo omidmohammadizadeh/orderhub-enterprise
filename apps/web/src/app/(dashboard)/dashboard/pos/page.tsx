@@ -15,6 +15,7 @@
 // promo/payment) so the page stays a thin orchestration layer.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Search,
@@ -98,6 +99,8 @@ interface PersistedCart {
 }
 
 export default function PosPage() {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money } = useCurrency();
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
@@ -801,7 +804,7 @@ export default function PosPage() {
   };
   const settleCash = async () => {
     if (!tabOrderId || !tableId || settlingCash) return;
-    if (!window.confirm(`£${tabTotal.toFixed(2)} received in cash?`)) return;
+    if (!window.confirm(`${money(tabTotal)} received in cash?`)) return;
     setSettlingCash(true);
     try {
       // Settle through the split-payment endpoint, not payment-status +
@@ -1096,7 +1099,7 @@ export default function PosPage() {
             {tabOrderId
               ? ` — running tab: ${tabItemCount} item${
                   tabItemCount === 1 ? "" : "s"
-                }, £${tabTotal.toFixed(2)}. Add items and “Send to kitchen”.`
+                }, ${money(tabTotal)}. Add items and “Send to kitchen”.`
               : currentTable?.status === "OCCUPIED"
                 ? // Seated but nothing sent yet. Say so explicitly: the
                   // bill/settle actions need a real tab, and "new tab"
@@ -1188,7 +1191,7 @@ export default function PosPage() {
                 onClick={payAndCloseTab}
                 className="shrink-0 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
               >
-                Pay &amp; close · £{tabTotal.toFixed(2)}
+                Pay &amp; close · {money(tabTotal)}
               </button>
             ))}
           </div>
@@ -1525,7 +1528,7 @@ export default function PosPage() {
                   <ShoppingBag className="h-4 w-4" />
                   {cartCount} {cartCount === 1 ? "item" : "items"}
                 </span>
-                <span>£{cartSubtotal.toFixed(2)}</span>
+                <span>{money(cartSubtotal)}</span>
               </button>
             </div>
           )}

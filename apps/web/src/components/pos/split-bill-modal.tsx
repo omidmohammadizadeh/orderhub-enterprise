@@ -13,6 +13,7 @@
 //   • Remaining     — the last person settles the rest
 
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
 import { tablesClient, type PaymentSummary } from "@/lib/api/tables.client";
@@ -33,7 +34,8 @@ interface Props {
   locationId?: string;
 }
 
-const money = (n: number) => `£${Number(n).toFixed(2)}`;
+// money() now comes from useCurrency — a second, £-hardcoded copy here is
+// how one screen keeps printing pounds after every other one moved on.
 
 export function SplitBillModal({
   orderId,
@@ -42,6 +44,8 @@ export function SplitBillModal({
   onSettled,
   locationId,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   // Card readers charge the PART amount; the order stays open until the
   // parts cover the total (see TerminalService.chargeOrder).
@@ -292,7 +296,7 @@ export function SplitBillModal({
               This payment
             </label>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold text-zinc-400">£</span>
+              <span className="text-lg font-semibold text-zinc-400">{symbol}</span>
               <input
                 value={amount}
                 onChange={(e) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { X } from "lucide-react";
 import {
   extractSizeKey,
@@ -98,6 +99,8 @@ export function ModifierSelectionModal({
   onClose,
   onAdd,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money } = useCurrency();
   const isSheet = presentation === "sheet";
   // Sheet only: has the hero scrolled out of the way? Drives the compact
   // header, the way a native app hands the title over as the photo leaves.
@@ -392,7 +395,7 @@ export function ModifierSelectionModal({
                   {item.name}
                 </h2>
                 <p className="mt-1 text-lg font-bold text-zinc-900">
-                  £{Number(basePrice).toFixed(2)}
+                  {money(Number(basePrice))}
                 </p>
                 {item.description && (
                   <p className="mt-2 text-[14px] leading-relaxed text-zinc-500">
@@ -407,6 +410,7 @@ export function ModifierSelectionModal({
 
           {stepped ? (
             <SteppedBody
+              money={money}
               step={current!}
               index={at}
               total={steps.length}
@@ -454,7 +458,7 @@ export function ModifierSelectionModal({
                       />
                       <span className="text-sm font-medium text-zinc-900">{sku.name}</span>
                     </div>
-                    <span className="text-sm text-zinc-700">£{Number(sku.price).toFixed(2)}</span>
+                    <span className="text-sm text-zinc-700">{money(Number(sku.price))}</span>
                   </label>
                 ))}
               </div>
@@ -462,7 +466,7 @@ export function ModifierSelectionModal({
           )}
 
           {nodes.map((node) => (
-            <GroupNode key={node.key} node={node} onToggle={toggle} />
+            <GroupNode key={node.key} node={node} onToggle={toggle} money={money} />
           ))}
 
           <Section title="Notes (optional)">
@@ -517,7 +521,7 @@ export function ModifierSelectionModal({
                   Step {at + 1} of {steps.length}
                 </div>
                 <div className="text-base font-semibold text-zinc-900">
-                  £{breakdown.lineTotal.toFixed(2)}
+                  {money(breakdown.lineTotal)}
                 </div>
               </div>
               {isLast ? (
@@ -552,7 +556,7 @@ export function ModifierSelectionModal({
               className="w-full rounded-xl bg-zinc-900 px-4 py-3.5 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40"
             >
               {canSubmit
-                ? `Add ${quantity} for £${breakdown.lineTotal.toFixed(2)}`
+                ? `Add ${quantity} for ${money(breakdown.lineTotal)}`
                 : // Name the question that's still open. With a meal deal the
                   // outstanding choice can be three levels down the page, and
                   // "choose the required options" doesn't say which.
@@ -563,7 +567,7 @@ export function ModifierSelectionModal({
               <div className="text-sm">
                 <span className="text-zinc-500">Total</span>
                 <span className="ml-2 text-base font-semibold text-zinc-900">
-                  £{breakdown.lineTotal.toFixed(2)}
+                  {money(breakdown.lineTotal)}
                 </span>
               </div>
               <div className="flex gap-2">
@@ -600,9 +604,12 @@ export function ModifierSelectionModal({
 function GroupNode({
   node,
   onToggle,
+  money,
 }: {
   node: ModifierTreeNode;
   onToggle: (node: ModifierTreeNode, optionId: string) => void;
+  /** Bound to the location's currency by the parent — never format here. */
+  money: (n: number | string | null | undefined) => string;
 }) {
   const selectionType = node.group.selectionType ?? "VARIANT";
   const min = node.group.minSelections ?? 0;
@@ -649,14 +656,14 @@ function GroupNode({
                   <span className="text-sm text-zinc-900">{entry.option.name}</span>
                 </div>
                 <span className="text-xs text-zinc-500">
-                  {entry.price > 0 ? `+£${entry.price.toFixed(2)}` : ""}
+                  {entry.price > 0 ? `+${money(entry.price)}` : ""}
                 </span>
               </label>
 
               {entry.children.length > 0 && (
                 <div className="mt-1 pl-3">
                   {entry.children.map((child) => (
-                    <GroupNode key={child.key} node={child} onToggle={onToggle} />
+                    <GroupNode key={child.key} node={child} onToggle={onToggle} money={money} />
                   ))}
                 </div>
               )}
@@ -700,6 +707,7 @@ function Section({
  * storefront end up disagreeing about what something costs.
  */
 function SteppedBody({
+  money,
   step,
   index,
   total,
@@ -715,6 +723,7 @@ function SteppedBody({
   setNotes,
   lineTotal,
 }: {
+  money: (n: number | string | null | undefined) => string;
   step: { kind: "size" } | { kind: "group"; node: ModifierTreeNode } | { kind: "review" };
   index: number;
   total: number;
@@ -770,7 +779,7 @@ function SteppedBody({
                 {sku.name}
               </span>
               <span className="text-[15px] text-zinc-700">
-                £{Number(sku.price).toFixed(2)}
+                {money(Number(sku.price))}
               </span>
             </button>
           ))}
@@ -778,7 +787,7 @@ function SteppedBody({
       )}
 
       {step.kind === "group" && (
-        <GroupNode node={step.node} onToggle={onToggle} />
+        <GroupNode node={step.node} onToggle={onToggle} money={money} />
       )}
 
       {step.kind === "review" && (
@@ -801,7 +810,7 @@ function SteppedBody({
                       {(m.depth ?? 0) > 0 ? "↳ " : ""}
                       {m.name}
                     </span>
-                    {m.price > 0 && <span>+£{m.price.toFixed(2)}</span>}
+                    {m.price > 0 && <span>+{money(m.price)}</span>}
                   </li>
                 ))}
               </ul>
@@ -829,7 +838,7 @@ function SteppedBody({
                 +
               </button>
               <span className="ml-auto text-lg font-semibold text-zinc-900">
-                £{lineTotal.toFixed(2)}
+                {money(lineTotal)}
               </span>
             </div>
           </div>

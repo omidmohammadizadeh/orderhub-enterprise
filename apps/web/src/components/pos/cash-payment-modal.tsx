@@ -17,6 +17,7 @@
 // the shop has physically taken would be worse than a drawer that didn't pop.
 
 import { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { Banknote, Delete, Loader2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ export function CashPaymentModal({
   onClose: () => void;
   onPaid?: () => void;
 }) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   // Held as a digit string in PENCE so the keypad behaves like a till: every
   // press shifts a digit in from the right. Parsing a decimal on each press
   // instead makes "1", "1.", "1.0" ambiguous and mishandles leading zeros.
@@ -122,7 +125,7 @@ export function CashPaymentModal({
                 Change due
               </p>
               <p className="text-4xl font-bold tabular-nums">
-                £{done.change.toFixed(2)}
+                {money(done.change)}
               </p>
             </div>
             <Button
@@ -139,7 +142,7 @@ export function CashPaymentModal({
                 Total due
               </p>
               <p className="text-3xl font-bold text-zinc-900">
-                £{amount.toFixed(2)}
+                {money(amount)}
               </p>
             </div>
 
@@ -147,7 +150,7 @@ export function CashPaymentModal({
               <div className="rounded-lg border border-zinc-200 px-3 py-2 text-right">
                 <p className="text-[11px] text-zinc-500">Cash received</p>
                 <p className="text-2xl font-semibold tabular-nums text-zinc-900">
-                  £{tendered.toFixed(2)}
+                  {money(tendered)}
                 </p>
               </div>
               <p
@@ -158,8 +161,8 @@ export function CashPaymentModal({
                 {tendered === 0
                   ? " "
                   : short
-                    ? `£${(amount - tendered).toFixed(2)} short`
-                    : `Change £${change.toFixed(2)}`}
+                    ? `${money((amount - tendered))} short`
+                    : `Change ${money(change)}`}
               </p>
             </div>
 
@@ -177,7 +180,8 @@ export function CashPaymentModal({
                   onClick={() => setPounds(v)}
                   className="rounded-md border border-zinc-300 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-50"
                 >
-                  £{v}
+                  {symbol}
+                  {v}
                 </button>
               ))}
             </div>
@@ -209,7 +213,7 @@ export function CashPaymentModal({
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                `Mark paid — £${(tendered || amount).toFixed(2)} received`
+                `Mark paid — ${money((tendered || amount))} received`
               )}
             </Button>
           </div>

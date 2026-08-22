@@ -15,6 +15,7 @@
 // online price delivery identically.
 
 import { useState, useEffect } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { deliveryZonesClient, type DeliveryZone } from "@/lib/api/pos.client";
@@ -33,6 +34,8 @@ function normalisePrefix(raw: string): string {
 }
 
 export function DeliveryFeeModal({ locationId, onClose }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
 
   const zonesQuery = useQuery<DeliveryZone[]>({
@@ -128,8 +131,8 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
               <thead className="border-b border-zinc-100 bg-zinc-50 text-[10px] uppercase tracking-wider text-zinc-500">
                 <tr>
                   <th className="px-3 py-1.5 text-left">Postcode</th>
-                  <th className="px-3 py-1.5 text-right">Fee (£)</th>
-                  <th className="px-3 py-1.5 text-right">Min order (£)</th>
+                  <th className="px-3 py-1.5 text-right">Fee ({symbol.trim()})</th>
+                  <th className="px-3 py-1.5 text-right">Min order ({symbol.trim()})</th>
                   <th className="px-3 py-1.5 text-center">Active</th>
                   <th className="px-3 py-1.5"></th>
                 </tr>
@@ -141,10 +144,10 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
                       {z.postcodePrefix}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      £{Number(z.fee).toFixed(2)}
+                      {money(Number(z.fee))}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {z.minOrderValue ? `£${Number(z.minOrderValue).toFixed(2)}` : "—"}
+                      {z.minOrderValue ? `${money(Number(z.minOrderValue))}` : "—"}
                     </td>
                     <td className="px-3 py-1.5 text-center">
                       <input

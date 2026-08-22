@@ -9,6 +9,7 @@
 //   • a "Mark paid manually" fallback for shops using a separate terminal.
 
 import { useEffect, useRef, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Loader2, X, CheckCircle2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
@@ -73,6 +74,8 @@ export function ChargeReaderModal({
   /** Fired once this charge has succeeded, before the modal closes. */
   onPaid?: () => void;
 }) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money } = useCurrency();
   const isPart = typeof partAmount === "number" && partAmount > 0;
   const chargeAmount = isPart ? partAmount : amount;
   const [phase, setPhase] = useState<Phase>("idle");
@@ -436,7 +439,7 @@ export function ChargeReaderModal({
 
         <div className="space-y-4 p-5">
           <p className="text-center text-3xl font-bold text-zinc-900">
-            £{chargeAmount.toFixed(2)}
+            {money(chargeAmount)}
           </p>
 
           {nativeReader && !isPart && phase !== "paid" && (
@@ -540,7 +543,7 @@ export function ChargeReaderModal({
                   {phase === "charging" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    `Charge £${chargeAmount.toFixed(2)} on reader`
+                    `Charge ${money(chargeAmount)} on reader`
                   )}
                 </Button>
               )}
@@ -560,7 +563,7 @@ export function ChargeReaderModal({
                       }
                       className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
                     >
-                      Try again — £{chargeAmount.toFixed(2)}
+                      Try again — {money(chargeAmount)}
                     </Button>
                   )}
                   {phase === "error" && (
@@ -671,7 +674,7 @@ export function ChargeReaderModal({
                   {phase === "charging" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    `Charge £${chargeAmount.toFixed(2)} to reader`
+                    `Charge ${money(chargeAmount)} to reader`
                   )}
                 </Button>
               )}
@@ -684,7 +687,7 @@ export function ChargeReaderModal({
                       onClick={startCharge}
                       className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
                     >
-                      Try again — £{chargeAmount.toFixed(2)}
+                      Try again — {money(chargeAmount)}
                     </Button>
                   )}
                   {phase === "error" && (

@@ -10,6 +10,7 @@
 // we hand the parent a fully-shaped Order payload via onPlaceOrder.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed } from "lucide-react";
 import { round2 } from "@orderhub/shared";
@@ -149,6 +150,8 @@ const PREP_PRESETS: Array<{ label: string; mins: number }> = [
 ];
 
 export function PosCartPanel(props: CartPanelProps) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money } = useCurrency();
   const {
     locationId,
     cart,
@@ -451,9 +454,9 @@ export function PosCartPanel(props: CartPanelProps) {
             lookup.minOrderValue != null ? Number(lookup.minOrderValue) : null,
           );
           setDeliveryLookupNote(
-            `Zone ${lookup.postcodePrefix} — £${lookup.fee.toFixed(2)}` +
+            `Zone ${lookup.postcodePrefix} — ${money(lookup.fee)}` +
               (lookup.minOrderValue
-                ? ` (min order £${Number(lookup.minOrderValue).toFixed(2)})`
+                ? ` (min order ${money(Number(lookup.minOrderValue))})`
                 : ""),
           );
         } else {
@@ -526,7 +529,7 @@ export function PosCartPanel(props: CartPanelProps) {
     if (!addrLine1.trim()) errors.push("Delivery address required");
     if (!postcode.trim()) errors.push("Postcode required");
     if (minSpendShortfall > 0) {
-      errors.push(`Min order £${deliveryMinSpend!.toFixed(2)} (need £${minSpendShortfall.toFixed(2)} more)`);
+      errors.push(`Min order ${money(deliveryMinSpend!)} (need ${money(minSpendShortfall)} more)`);
     }
   }
   if (paymentMethod === "ONLINE_CARD" && !online) {
@@ -784,7 +787,7 @@ export function PosCartPanel(props: CartPanelProps) {
                         +
                       </button>
                       <span className="ml-auto text-[11px] text-zinc-600">
-                        £{(line.unitPrice * line.quantity).toFixed(2)}
+                        {money((line.unitPrice * line.quantity))}
                       </span>
                     </div>
                   </div>
@@ -818,7 +821,7 @@ export function PosCartPanel(props: CartPanelProps) {
                   {dineIn.tabItemCount > 0
                     ? ` — ${dineIn.tabItemCount} item${
                         dineIn.tabItemCount === 1 ? "" : "s"
-                      } on the tab (£${dineIn.tabTotal.toFixed(2)})`
+                      } on the tab (${money(dineIn.tabTotal)})`
                     : " — new tab, nothing sent yet"}
                 </p>
               </div>
@@ -991,7 +994,7 @@ export function PosCartPanel(props: CartPanelProps) {
                       }
                     }}
                   >
-                    {promoButtonLabel(p)}
+                    {promoButtonLabel(p, money)}
                   </DiscountButton>
                 );
               })}
@@ -1039,7 +1042,7 @@ export function PosCartPanel(props: CartPanelProps) {
               <CheckCircle2 className="h-3 w-3" />
               {promoApplied.freeDelivery
                 ? "Free delivery applied"
-                : `−£${(promoApplied.discountAmount ?? 0).toFixed(2)} off (${promoApplied.code})`}
+                : `−${money((promoApplied.discountAmount ?? 0))} off (${promoApplied.code})`}
             </p>
           )}
           {promoError && (
@@ -1069,15 +1072,15 @@ export function PosCartPanel(props: CartPanelProps) {
       <div className="border-t border-zinc-200 bg-zinc-50 px-3 py-2 space-y-1.5">
         <Row
           label={dineIn ? "This round" : "Subtotal"}
-          value={`£${subtotal.toFixed(2)}`}
+          value={`${money(subtotal)}`}
         />
         {discountAmount > 0 && (
-          <Row label="Discount" value={`−£${discountAmount.toFixed(2)}`} accent="text-emerald-700" />
+          <Row label="Discount" value={`−${money(discountAmount)}`} accent="text-emerald-700" />
         )}
         {fulfillmentType === "DELIVERY" && !dineIn && (
           <Row
             label={`Delivery${(discountType === "FREE_DELIVERY" || promoApplied?.freeDelivery) ? " (free)" : ""}`}
-            value={`£${effectiveDeliveryFee.toFixed(2)}`}
+            value={`${money(effectiveDeliveryFee)}`}
           />
         )}
         {/* Dine-in: show what's already on the tab and what the bill
@@ -1085,16 +1088,16 @@ export function PosCartPanel(props: CartPanelProps) {
             the guest asks "what are we at?". */}
         {dineIn && dineIn.tabItemCount > 0 && (
           <>
-            <Row label="Already on tab" value={`£${dineIn.tabTotal.toFixed(2)}`} />
+            <Row label="Already on tab" value={`${money(dineIn.tabTotal)}`} />
             <Row
               label="Tab after this round"
-              value={`£${(dineIn.tabTotal + total).toFixed(2)}`}
+              value={`${money((dineIn.tabTotal + total))}`}
               bold
             />
           </>
         )}
         {!(dineIn && dineIn.tabItemCount > 0) && (
-          <Row label="Total" value={`£${total.toFixed(2)}`} bold />
+          <Row label="Total" value={`${money(total)}`} bold />
         )}
         {errors.length > 0 && (
           <ul className="mt-1 space-y-0.5">
@@ -1136,10 +1139,13 @@ export function PosCartPanel(props: CartPanelProps) {
 
 // ── Local atoms ──────────────────────────────────────────────────────────────
 
-function promoButtonLabel(p: PromoCode): string {
+function promoButtonLabel(
+  p: PromoCode,
+  money: (n: number | string | null | undefined) => string,
+): string {
   if (p.type === "FREE_DELIVERY") return `${p.code} · Free delivery`;
   if (p.type === "PERCENTAGE") return `${p.code} · ${Number(p.value)}% off`;
-  return `${p.code} · £${Number(p.value).toFixed(2)} off`;
+  return `${p.code} · ${money(Number(p.value))} off`;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

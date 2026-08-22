@@ -19,6 +19,7 @@
 // quick discounts entirely.
 
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { promoCodesClient, type PromoCode } from "@/lib/api/pos.client";
@@ -31,6 +32,8 @@ interface Props {
 type PromoType = "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
 
 export function PromosModal({ locationId, onClose }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
 
   const promosQuery = useQuery<PromoCode[]>({
@@ -145,13 +148,13 @@ export function PromosModal({ locationId, onClose }: Props) {
                   <tr key={p.id} className="border-b border-zinc-50 last:border-0">
                     <td className="px-3 py-1.5">
                       <div className="font-mono font-semibold">{p.code}</div>
-                      <div className="text-[10px] text-zinc-400">{typeLabel(p.type)}</div>
+                      <div className="text-[10px] text-zinc-400">{typeLabel(p.type, symbol)}</div>
                     </td>
                     <td className="px-3 py-1.5 text-right">
                       {p.type === "PERCENTAGE"
                         ? `${Number(p.value)}%`
                         : p.type === "FIXED_AMOUNT"
-                          ? `£${Number(p.value).toFixed(2)}`
+                          ? `${money(Number(p.value))}`
                           : "—"}
                     </td>
                     <td className="px-3 py-1.5 text-center text-[10px] text-zinc-500">
@@ -204,7 +207,7 @@ export function PromosModal({ locationId, onClose }: Props) {
               className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
             >
               <option value="PERCENTAGE">% off</option>
-              <option value="FIXED_AMOUNT">£ off</option>
+              <option value="FIXED_AMOUNT">{symbol.trim()} off</option>
               <option value="FREE_DELIVERY">Free delivery</option>
             </select>
             <input
@@ -258,11 +261,11 @@ export function PromosModal({ locationId, onClose }: Props) {
   );
 }
 
-function typeLabel(t: PromoType): string {
+function typeLabel(t: PromoType, symbol: string): string {
   return t === "PERCENTAGE"
     ? "% off subtotal"
     : t === "FIXED_AMOUNT"
-      ? "£ off subtotal"
+      ? `${symbol.trim()} off subtotal`
       : "Free delivery";
 }
 

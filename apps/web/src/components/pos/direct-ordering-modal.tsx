@@ -21,6 +21,7 @@
 // the symbol is referenced indirectly in tests / docs).
 
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
 import {
@@ -35,6 +36,7 @@ export interface DirectOrderingSettingsProps {
 /** Body shared between the standalone page and the legacy modal wrapper.
  *  Every input the original modal exposed is preserved 1:1. */
 export function DirectOrderingSettings({ locationId }: DirectOrderingSettingsProps) {
+  const { symbol } = useCurrency();
   const qc = useQueryClient();
   const configQuery = useQuery<DirectOrderingConfig>({
     queryKey: ["direct-ordering", locationId],
@@ -128,7 +130,7 @@ export function DirectOrderingSettings({ locationId }: DirectOrderingSettingsPro
         <div className="grid grid-cols-3 gap-3">
           <NumberField label="Days ahead" value={scheduleDays} onChange={setScheduleDays} />
           <NumberField label="Slot mins" value={slotMins} onChange={setSlotMins} />
-          <NumberField label="Min delivery (£)" value={minDelivery} onChange={setMinDelivery} />
+          <NumberField label={`Min delivery (${symbol.trim()})`} value={minDelivery} onChange={setMinDelivery} />
         </div>
       </div>
 
