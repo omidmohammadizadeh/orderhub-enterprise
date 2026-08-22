@@ -27,7 +27,12 @@ services:
     dockerfilePath: infrastructure/docker/Dockerfile.api
     dockerContext: .
     region: frankfurt
-    plan: starter       # upgrade to standard for production
+    # Standard (2GB / 1 CPU). Raised from starter on 2026-08-22: CPU was the
+    # real constraint — 0.5 CPU pinned at 100% produced 5-26 second responses
+    # on the storefront. The service is Blueprint-managed, so this MUST match
+    # what the dashboard is set to; if the blueprint still said starter, the
+    # next sync would quietly downgrade it back and undo the money spent.
+    plan: standard
     healthCheckPath: /api/v1/health
     numInstances: 1
     envVars:
@@ -35,18 +40,22 @@ services:
         value: production
       - key: PORT
         value: 4000
-      # V8 sizes its own heap from the container and lands FAR below it on a
-      # small instance. On 2026-08-22 the API died with "Reached heap limit"
-      # at a 252MB heap while Render's own memory graph showed the container
-      # at ~31% of 512MB — roughly 300MB sitting unused that Node refused to
-      # touch. This lets it use the room that is actually there.
+      # V8 sizes its own heap from the container and lands FAR below it. On
+      # 2026-08-22 the API died with "Reached heap limit" at a 252MB heap while
+      # Render's memory graph showed the container at ~31% of 512MB — ~300MB
+      # sitting unused that Node refused to touch.
       #
-      # 400 of 512 deliberately, not higher: the remainder is for native
-      # allocations, buffers and the runtime outside the JS heap. Set this too
-      # close to the limit and the CONTAINER gets OOM-killed instead, which is
-      # a harder failure than a heap error.
+      # MUST be re-sized whenever the plan changes. It was 400 for the 512MB
+      # starter; on Standard's 2GB, leaving it at 400 would have CAPPED the
+      # process below what the instance now provides — paying for 2GB and
+      # using a fifth of it.
+      #
+      # 1536 of 2048: the remaining 512MB is for native allocations, buffers
+      # and the runtime outside the JS heap. Set too close to the limit and the
+      # CONTAINER gets OOM-killed instead, which is a harder failure than a
+      # heap error.
       - key: NODE_OPTIONS
-        value: --max-old-space-size=400
+        value: --max-old-space-size=1536
       # ── Required: set these in the Render dashboard or via secrets ──
       - key: DATABASE_URL
         sync: false      # Supabase pooled connection (port 6543, ?pgbouncer=true)
