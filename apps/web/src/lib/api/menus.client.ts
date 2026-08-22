@@ -170,6 +170,9 @@ export interface AiMenuSize {
   name: string;
   price: number;
   sku?: string | null;
+  /** Groups that apply to THIS size only — keys into draft.modifierGroups.
+   *  Empty means the size inherits the product's groups. */
+  modifierGroupKeys?: string[];
 }
 export interface AiMenuOptionSizePrice {
   sizeName: string;

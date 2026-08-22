@@ -32,6 +32,15 @@ export interface AiMenuSize {
   name: string;
   price: number;
   sku?: string | null;
+  /**
+   * Groups that apply to THIS size only — keys into draft.modifierGroups.
+   *
+   * A photographed menu has no way to express this, but a scraped one does:
+   * a pizza shop prices its bases, crusts and toppings per size, so a 10" and
+   * a 16" carry different groups entirely. Left empty, the size inherits the
+   * product's own groups, which is what every existing draft does.
+   */
+  modifierGroupKeys?: string[];
 }
 
 export interface AiMenuOptionSizePrice {
@@ -202,8 +211,13 @@ export function classifyAiMenu(draft: AiMenuDraft, ns: string): NormalizedMenu {
           name: clean(s.name),
           plu: clean(s.sku) || `${prodExt}-sku-${si}`,
           price: money(s.price),
-          // Local group ids back-filled after the writer creates the rows.
-          modifierGroups: [],
+          // External group ids; the writer translates them to local ids once
+          // the group rows exist (resolveSkuModifierGroups). Empty means "this
+          // size inherits the product's groups" — the writer's fallback — so a
+          // draft that says nothing about per-size groups behaves as before.
+          modifierGroups: (s.modifierGroupKeys ?? [])
+            .map((k) => groupKeyToExt.get(clean(k)))
+            .filter((x): x is string => !!x),
         }));
         basePrice = Math.min(...productSkus.map((s) => s.price));
       } else {

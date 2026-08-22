@@ -12,7 +12,7 @@
 
 // Structural, not imported: this package sits below both apps, and the shape
 // is the import contract itself — spelling it out here is the point.
-interface DraftSize { name?: unknown; price?: unknown }
+interface DraftSize { name?: unknown; price?: unknown; modifierGroupKeys?: string[] }
 interface DraftOption { name?: unknown; priceAdjustment?: unknown }
 interface DraftGroup {
   key?: unknown; name?: unknown; selectionType?: unknown;
@@ -173,6 +173,17 @@ export function validateMenuJson(raw: unknown): MenuJsonReport {
           const sw = `${iw} size[${si}]${s?.name ? ` "${s.name}"` : ""}`;
           if (!String(s?.name ?? "").trim()) errors.push(`${sw}: missing "name"`);
           checkPrice(s?.price, sw, errors, { required: true });
+          // A size may carry its own groups (a 10" pizza's base is not a
+          // 16"'s). Same key check as the item level — a typo here loses
+          // every option on that one size only, which is harder to spot.
+          for (const k of Array.isArray(s?.modifierGroupKeys) ? s.modifierGroupKeys : []) {
+            usedKeys.add(k);
+            if (!groupKeys.has(k)) {
+              errors.push(
+                `${sw}: references modifier group "${k}", which is not defined in modifierGroups`,
+              );
+            }
+          }
         });
         // A single size is a flat item wearing a costume — it makes the POS
         // ask the operator to pick from a list of one.
