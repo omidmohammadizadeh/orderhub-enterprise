@@ -13,6 +13,7 @@
 //     clipping), adapting to the screen size and how many items there are.
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { formatMoney } from "@orderhub/shared";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import type { SignageBoard } from "@/lib/api/signage.client";
@@ -163,6 +164,10 @@ export default function SignageBoardPage() {
       ((q.state.data?.display.config.refreshSeconds ?? 45) as number) * 1000,
     refetchOnWindowFocus: true,
   });
+  // A menu board is the most public screen in the shop; it prices in the
+  // location's own currency.
+  const money = (n: number | string | null | undefined) =>
+    formatMoney(n, (query.data as any)?.location?.currency, { compact: true });
 
   const board = query.data;
 
@@ -349,7 +354,7 @@ export default function SignageBoardPage() {
                         </span>
                         {it.sizes && it.sizes.length ? null : (
                           <span className="text-[1.15em] font-semibold tabular-nums">
-                            £{(it.price ?? 0).toFixed(2)}
+                            {money((it.price ?? 0))}
                           </span>
                         )}
                       </div>
@@ -372,7 +377,7 @@ export default function SignageBoardPage() {
                                 {s.name}
                               </span>{" "}
                               <span className="font-semibold">
-                                £{s.price.toFixed(2)}
+                                {money(s.price)}
                               </span>
                             </span>
                           ))}

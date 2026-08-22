@@ -39,6 +39,8 @@ function stripeFor(account: string): Promise<Stripe | null> {
 }
 
 export interface EmbeddedPaymentSheetProps {
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
   clientSecret: string;
   /** The connected account the PaymentIntent was created on. */
   stripeAccountId: string;
@@ -54,6 +56,7 @@ export interface EmbeddedPaymentSheetProps {
 }
 
 export function EmbeddedPaymentSheet(props: EmbeddedPaymentSheetProps) {
+  const { money } = props;
   const stripePromise = useMemo(
     () => stripeFor(props.stripeAccountId),
     [props.stripeAccountId],
@@ -63,7 +66,7 @@ export function EmbeddedPaymentSheet(props: EmbeddedPaymentSheetProps) {
     // Better a legible message than an Elements crash: this only happens
     // when the deploy is missing the key, which is an operator problem.
     return (
-      <Shell onCancel={props.onCancel} amountPence={props.amountPence}>
+      <Shell onCancel={props.onCancel} amountPence={props.amountPence} money={props.money}>
         <p className="text-sm text-red-600">
           Card payments aren&apos;t configured on this site. Please choose cash,
           or contact the restaurant.
@@ -95,6 +98,7 @@ export function EmbeddedPaymentSheet(props: EmbeddedPaymentSheetProps) {
 }
 
 function PaymentForm({
+  money,
   amountPence,
   orderId,
   slug,
@@ -168,7 +172,7 @@ function PaymentForm({
   };
 
   return (
-    <Shell onCancel={busy ? undefined : onCancel} amountPence={amountPence}>
+    <Shell onCancel={busy ? undefined : onCancel} amountPence={amountPence} money={money}>
       <div className="space-y-4">
         <div className={hasWallet ? "" : "hidden"}>
           <ExpressCheckoutElement
@@ -249,7 +253,7 @@ host:    ${typeof window !== "undefined" ? window.location.host : "?"}`}
           ) : (
             <Lock className="h-3.5 w-3.5" />
           )}
-          Pay £{(amountPence / 100).toFixed(2)}
+          Pay {money((amountPence / 100))}
         </button>
 
         <p className="text-center text-[11px] text-zinc-500">
@@ -264,10 +268,13 @@ function Shell({
   children,
   onCancel,
   amountPence,
+  money,
 }: {
   children: React.ReactNode;
   onCancel?: () => void;
   amountPence: number;
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
 }) {
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
@@ -276,7 +283,7 @@ function Shell({
           <div>
             <h2 className="text-base font-semibold text-zinc-900">Payment</h2>
             <p className="text-xs text-zinc-500">
-              £{(amountPence / 100).toFixed(2)} to complete your order
+              {money((amountPence / 100))} to complete your order
             </p>
           </div>
           {onCancel && (

@@ -16,10 +16,13 @@ import { useEffect, useRef, useState } from "react";
 const HOLD_SECONDS = 8;
 
 export function PlacingOrderSheet({
+  money,
   summary,
   onCommit,
   onCancel,
 }: {
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
   /** What they're about to buy — shown so a mistake is catchable here. */
   summary: {
     brandName: string;
@@ -100,12 +103,12 @@ export function PlacingOrderSheet({
           {!!summary.tip && summary.tip > 0 && (
             <div className="flex justify-between text-zinc-600">
               <dt>Tip</dt>
-              <dd className="tabular-nums">£{summary.tip.toFixed(2)}</dd>
+              <dd className="tabular-nums">{money(summary.tip)}</dd>
             </div>
           )}
           <div className="flex justify-between font-semibold text-zinc-900">
             <dt>Total</dt>
-            <dd className="tabular-nums">£{summary.total.toFixed(2)}</dd>
+            <dd className="tabular-nums">{money(summary.total)}</dd>
           </div>
         </dl>
 

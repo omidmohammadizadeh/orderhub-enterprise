@@ -336,6 +336,8 @@ export class CustomerAuthService {
     customerAccountId: string,
     opts: { brandId?: string; storeSlug?: string } = {},
   ): Promise<{
+    /** The store's trading currency — every order here belongs to it. */
+    currency: string | null;
     active: any[];
     history: any[];
   }> {
@@ -357,6 +359,7 @@ export class CustomerAuthService {
     //   cached clients don't break; the web app always sends storeSlug.
     const brandFilter = brandId ? { brandId } : {};
     let locationFilter: { locationId?: string } = {};
+    let currency: string | null = null;
     if (storeSlug) {
       const location = await this.prisma.location.findFirst({
         where: {
@@ -366,10 +369,13 @@ export class CustomerAuthService {
             { id: storeSlug },
           ],
         },
-        select: { id: true },
+        // Currency too: every order on this page belongs to THIS store, so one
+        // lookup prices the whole history correctly.
+        select: { id: true, currency: true },
       });
-      if (!location) return { active: [], history: [] };
+      if (!location) return { active: [], history: [], currency: null };
       locationFilter = { locationId: location.id };
+      currency = location.currency ?? null;
     }
 
     // One query for each side. The board uses a single live query
@@ -400,6 +406,7 @@ export class CustomerAuthService {
     ]);
 
     return {
+      currency,
       active: active.map(serialiseOrderForCustomer),
       history: history.map(serialiseOrderForCustomer),
     };

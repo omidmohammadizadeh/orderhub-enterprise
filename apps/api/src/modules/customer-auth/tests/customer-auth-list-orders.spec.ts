@@ -62,7 +62,12 @@ describe("CustomerAuthService.listOrders storefront scoping", () => {
   it("fails CLOSED (empty, no order query) when the slug resolves to nothing", async () => {
     const { svc, prisma } = makeService();
     const res = await svc.listOrders(CUSTOMER_ID, { storeSlug: "not-a-shop" });
-    expect(res).toEqual({ active: [], history: [] });
+    // The point of this test is that it fails CLOSED — no orders, and no order
+    // query at all. currency rides along on the same shape (null here, since
+    // there is no location to take it from) and does not change that.
+    expect(res.active).toEqual([]);
+    expect(res.history).toEqual([]);
+    expect(res.currency).toBeNull();
     expect(prisma.order.findMany).not.toHaveBeenCalled();
   });
 

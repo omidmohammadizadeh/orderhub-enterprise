@@ -33,6 +33,8 @@ import type { GroupOrderView } from "@/lib/api/group-orders.client";
 import { AddressSearchField } from "@/components/storefront/address-search-field";
 
 export interface GroupBasketPanelProps {
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
   basket: GroupOrderView;
   myRef: string;
   shareUrl: string;
@@ -96,6 +98,7 @@ export interface GroupBasketPanelProps {
 }
 
 export function GroupBasketPanel(props: GroupBasketPanelProps) {
+  const { money } = props;
   const {
     basket,
     myRef,
@@ -252,7 +255,7 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                       )}
                     </p>
                     <p className="shrink-0 text-xs font-semibold text-zinc-900">
-                      £{person.total.toFixed(2)}
+                      {money(person.total)}
                     </p>
                   </div>
                   <ul className="mt-2 space-y-2">
@@ -279,7 +282,7 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                           )}
                         </div>
                         <span className="shrink-0 text-xs text-zinc-700">
-                          £{line.lineTotal.toFixed(2)}
+                          {money(line.lineTotal)}
                         </span>
                         {mine && open && (
                           <button
@@ -464,17 +467,17 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
         </div>
 
         <footer className="space-y-2 border-t border-zinc-200 px-4 py-3">
-          <Row label="Subtotal" value={`£${basket.subtotal.toFixed(2)}`} />
+          <Row label="Subtotal" value={`${money(basket.subtotal)}`} />
           {isDelivery && (
             <Row
               label="Delivery"
-              value={deliveryFee > 0 ? `£${deliveryFee.toFixed(2)}` : "—"}
+              value={deliveryFee > 0 ? `${money(deliveryFee)}` : "—"}
             />
           )}
-          <Row label="Total" value={`£${total.toFixed(2)}`} bold />
+          <Row label="Total" value={`${money(total)}`} bold />
           {!isHost && myShare > 0 && (
             <p className="text-[11px] text-zinc-500">
-              Your items come to £{myShare.toFixed(2)} —{" "}
+              Your items come to {money(myShare)} —{" "}
               {basket.hostName ?? "the host"} is paying for the order.
             </p>
           )}
@@ -506,7 +509,7 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                     className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
                   >
                     {isPlacing && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Place group order · £{total.toFixed(2)}
+                    Place group order · {money(total)}
                   </button>
                   <button
                     onClick={onUnlock}

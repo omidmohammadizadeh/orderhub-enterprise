@@ -15,11 +15,14 @@ import { useState } from "react";
 const PRESETS = [10, 15, 20, 25];
 
 export function TipStep({
+  money,
   tipBase,
   brandName,
   onBack,
   onContinue,
 }: {
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
   /** Food total the percentages are taken from — excludes delivery and tax. */
   tipBase: number;
   brandName: string;
@@ -83,7 +86,7 @@ export function TipStep({
                   !customOpen && pct === p ? "text-white/70" : "text-zinc-500"
                 }`}
               >
-                £{fromPct(p).toFixed(2)}
+                {money(fromPct(p))}
               </span>
             </button>
           ))}
@@ -127,7 +130,7 @@ export function TipStep({
           onClick={() => onContinue(tip)}
           className="mt-5 w-full rounded-xl bg-zinc-900 px-4 py-3.5 text-[15px] font-semibold text-white active:opacity-90"
         >
-          {tip > 0 ? `Continue with £${tip.toFixed(2)} tip` : "Continue"}
+          {tip > 0 ? `Continue with ${money(tip)} tip` : "Continue"}
         </button>
         <button
           type="button"

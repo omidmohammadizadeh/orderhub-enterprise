@@ -18,6 +18,7 @@
 // abandoned basket never becomes the next customer's order.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import {
@@ -45,13 +46,15 @@ interface Line {
   notes?: string;
 }
 
-const money = (n: number) => `£${Number(n ?? 0).toFixed(2)}`;
+// money() comes from useCurrency below — a local £-hardcoded copy here is
+// how one screen keeps printing pounds after the rest have moved on.
 
 // An untouched basket clears itself. Someone who walks off mid-order must
 // not leave their food on screen for the next person to pay for.
 const IDLE_RESET_MS = 90_000;
 
 export default function KioskPage() {
+  const { money } = useCurrency();
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   const menuQuery = useQuery({

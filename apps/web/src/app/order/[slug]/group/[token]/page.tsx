@@ -13,6 +13,7 @@
 // different menu per brand, and the basket knows which one it was opened for.
 
 import { useEffect, useState } from "react";
+import { formatMoney } from "@orderhub/shared";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -61,6 +62,10 @@ export default function GroupOrderJoinPage() {
     retry: false,
   });
   const store = storeQuery.data;
+  // The store's own currency — this page can be opened by a guest with no
+  // session, so it must come off the payload rather than any selection.
+  const money = (n: number | string | null | undefined) =>
+    formatMoney(n, (storeQuery.data as any)?.currency, { compact: true });
   const storeName =
     store?.location?.name ?? store?.brand?.name ?? "the restaurant";
   const logoUrl = store?.brand?.logoUrl ?? store?.location?.logoUrl ?? null;
@@ -220,14 +225,14 @@ export default function GroupOrderJoinPage() {
                     </span>
                   </span>
                   <span className="shrink-0 font-medium">
-                    £{p.total.toFixed(2)}
+                    {money(p.total)}
                   </span>
                 </li>
               ))}
             </ul>
             <div className="mt-2 flex items-center justify-between border-t border-zinc-200 pt-2 text-xs font-bold text-zinc-900">
               <span>Basket total</span>
-              <span>£{basket.subtotal.toFixed(2)}</span>
+              <span>{money(basket.subtotal)}</span>
             </div>
           </div>
         )}

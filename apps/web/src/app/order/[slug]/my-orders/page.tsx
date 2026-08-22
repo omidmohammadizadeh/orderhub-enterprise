@@ -19,6 +19,7 @@
 // bouncing to the home page — keeps the deep-link experience.
 
 import { useEffect, useMemo, useState, Suspense } from "react";
+import { formatMoney } from "@orderhub/shared";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import {
@@ -84,6 +85,8 @@ interface Order {
 }
 
 interface OrdersResponse {
+  /** The store's currency; every order below belongs to it. */
+  currency?: string | null;
   active: Order[];
   history: Order[];
 }
@@ -101,11 +104,16 @@ export default function MyOrdersPage() {
 }
 
 function MyOrdersInner() {
+  // Bound to the STORE's currency, which the API returns alongside the orders
+  // — this page is opened by a customer with no location selection of any
+  // kind, so it cannot come from anywhere else.
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { customer, token, isLoading: isAuthLoading } = useCustomerAuth();
   const [orders, setOrders] = useState<OrdersResponse | null>(null);
+  const money = (n: number | string | null | undefined) =>
+    formatMoney(n, orders?.currency, { compact: true });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -239,6 +247,7 @@ function MyOrdersInner() {
             >
               {orders?.active.map((o) => (
                 <ActiveCard
+                  money={money}
                   key={o.id}
                   order={o}
                   onTrack={() =>
@@ -258,6 +267,7 @@ function MyOrdersInner() {
               >
                 {orders?.history.map((o) => (
                   <HistoryCard
+                    money={money}
                     key={o.id}
                     order={o}
                     onView={() => setViewingOrder(o)}
@@ -296,6 +306,7 @@ function MyOrdersInner() {
       {/* View-details drawer */}
       {viewingOrder && (
         <ViewOrderDrawer
+          money={money}
           order={viewingOrder}
           onClose={() => setViewingOrder(null)}
         />
@@ -388,7 +399,16 @@ const STATUS_META: Record<
   FAILED: { label: "Failed", color: "bg-rose-100 text-rose-700", icon: <XCircle className="h-3 w-3" /> },
 };
 
-function ActiveCard({ order, onTrack }: { order: Order; onTrack: () => void }) {
+function ActiveCard({
+  order,
+  onTrack,
+  money,
+}: {
+  order: Order;
+  onTrack: () => void;
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
+}) {
   const meta = STATUS_META[order.status] ?? STATUS_META.PENDING!;
   const merchantName = order.brand?.name ?? order.location.name;
   const merchantLogo = order.brand?.logoUrl ?? order.location.logoUrl;
@@ -402,7 +422,7 @@ function ActiveCard({ order, onTrack }: { order: Order; onTrack: () => void }) {
             <OrderNumberPill order={order} />
           </div>
           <p className="mt-1 text-xs text-zinc-500">
-            {formatItems(order)} · £{order.total.toFixed(2)}
+            {formatItems(order)} · {money(order.total)}
           </p>
           <span className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.color}`}>
             {meta.icon}
@@ -424,12 +444,15 @@ function ActiveCard({ order, onTrack }: { order: Order; onTrack: () => void }) {
 }
 
 function HistoryCard({
+  money,
   order,
   onView,
   onReorder,
   reviewed,
   onReview,
 }: {
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
   order: Order;
   onView: () => void;
   onReorder: () => void;
@@ -458,7 +481,7 @@ function HistoryCard({
             <OrderNumberPill order={order} />
           </div>
           <p className="mt-1 text-xs text-zinc-500">
-            {date} · {formatItems(order)} · £{order.total.toFixed(2)}
+            {date} · {formatItems(order)} · {money(order.total)}
           </p>
           <span className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.color}`}>
             {meta.icon}
@@ -601,9 +624,12 @@ function SignedOutState({ onSignIn }: { onSignIn: () => void }) {
 function ViewOrderDrawer({
   order,
   onClose,
+  money,
 }: {
   order: Order;
   onClose: () => void;
+  /** Bound to the store's currency by the page — never format money here. */
+  money: (n: number | string | null | undefined) => string;
 }) {
   return (
     <div
@@ -637,14 +663,14 @@ function ViewOrderDrawer({
                   <span className="font-medium text-zinc-800">
                     {it.quantity}× {it.name}
                   </span>
-                  <span className="text-zinc-700">£{it.totalPrice.toFixed(2)}</span>
+                  <span className="text-zinc-700">{money(it.totalPrice)}</span>
                 </div>
                 {it.modifiers && it.modifiers.length > 0 && (
                   <ul className="ml-4 mt-1 list-disc text-xs text-zinc-500">
                     {it.modifiers.map((m, i) => (
                       <li key={i}>
                         {m.name}
-                        {m.price ? ` (+£${m.price.toFixed(2)})` : ""}
+                        {m.price ? ` (+${money(m.price)})` : ""}
                       </li>
                     ))}
                   </ul>
@@ -660,7 +686,7 @@ function ViewOrderDrawer({
           <div className="border-t border-zinc-100 pt-3">
             <div className="flex justify-between text-sm font-bold text-zinc-900">
               <span>Total</span>
-              <span>£{order.total.toFixed(2)}</span>
+              <span>{money(order.total)}</span>
             </div>
             {order.paymentMethod && (
               <p className="mt-1 text-xs text-zinc-500">

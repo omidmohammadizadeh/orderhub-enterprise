@@ -2064,6 +2064,7 @@ function OrderPage() {
       {/* Shared basket — replaces the cart panel entirely in group mode. */}
       {groupPanelOpen && basket && (
         <GroupBasketPanel
+          money={money}
           basket={basket}
           myRef={groupRef}
           shareUrl={groupOrdersClient.shareUrl(String(slug), basket.token)}
@@ -2329,6 +2330,7 @@ function OrderPage() {
 
       {tipOpen && (
         <TipStep
+          money={money}
           tipBase={subtotal}
           brandName={storefront.brand?.name ?? storefront.location.name}
           onBack={() => setTipOpen(false)}
@@ -2342,6 +2344,7 @@ function OrderPage() {
 
       {holding && (
         <PlacingOrderSheet
+          money={money}
           summary={{
             brandName: storefront.brand?.name ?? storefront.location.name,
             fulfilment:
@@ -2374,6 +2377,7 @@ function OrderPage() {
 
       {pendingPayment && (
         <EmbeddedPaymentSheet
+          money={money}
           clientSecret={pendingPayment.clientSecret}
           stripeAccountId={pendingPayment.stripeAccountId}
           amountPence={pendingPayment.amountPence}

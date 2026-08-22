@@ -140,7 +140,9 @@ export class SignageService {
       this.menus.findActiveMenuForLocation(display.locationId, display.tenantId),
       this.prisma.location.findUnique({
         where: { id: display.locationId },
-        select: { name: true },
+        // Currency too — a menu board is customer-facing, so a £ against
+        // AED prices is wrong in the most public place in the shop.
+        select: { name: true, currency: true },
       }),
     ]);
 
@@ -185,6 +187,7 @@ export class SignageService {
       },
       location: {
         name: location?.name ?? "",
+        currency: location?.currency ?? null,
         logoUrl: (menu as any)?.logoImage ?? null,
       },
       categories,
