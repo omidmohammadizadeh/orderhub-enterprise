@@ -6,13 +6,21 @@ import { MenuWriterService } from "../importers/menu-writer.service";
 // one record, inside a transaction that has a time limit.
 function fakeTx(counters: Record<string, number>) {
   const bump = (k: string) => (counters[k] = (counters[k] ?? 0) + 1);
+  let lastCreated: any[] = [];
   return {
     modifierOption: {
       findFirst: async () => { bump("option.findFirst"); return null; },
       create: async ({ data }: any) => { bump("option.create"); return { id: `o${counters["option.create"]}`, ...data }; },
+      createMany: async ({ data }: any) => { bump("option.createMany"); lastCreated = data; return { count: data.length }; },
       update: async ({ data }: any) => { bump("option.update"); return { id: "o", ...data }; },
       updateMany: async () => { bump("option.updateMany"); return { count: 0 }; },
-      findMany: async () => { bump("option.findMany"); return []; },
+      findMany: async () => {
+        bump("option.findMany");
+        // Second call is the post-insert id lookup; hand back what was written.
+        const rows = lastCreated.map((d: any, i: number) => ({ id: `o${i}`, externalId: d.externalId }));
+        lastCreated = [];
+        return rows;
+      },
     },
     modifierGroup: {
       findFirst: async () => { bump("group.findFirst"); return null; },
@@ -103,7 +111,7 @@ describe("MenuWriterService — the holding group is resolved once per import", 
       normalized: normalizedWith(300) as any,
     } as any);
 
-    expect(counters["option.create"]).toBe(300);
+    expect(counters["option.create"] ?? 0).toBe(0);
     // The holding group is resolved once for the whole import, not per option.
     expect(counters["group.findFirst"]).toBe(1);
     expect(counters["group.create"]).toBe(1);
@@ -130,9 +138,10 @@ describe("MenuWriterService — the holding group is resolved once per import", 
     // Reads no longer scale with the number of options — ten times the
     // options costs the same number of lookups.
     expect(big["option.findMany"]).toBe(small["option.findMany"]);
-    // ...while the writes obviously still do.
-    expect(big["option.create"]).toBe(500);
-    expect(small["option.create"]).toBe(50);
+    // ...and the inserts are batched too: one createMany either way.
+    expect(big["option.createMany"]).toBe(1);
+    expect(small["option.createMany"]).toBe(1);
+    expect(big["option.create"] ?? 0).toBe(0);
   });
 
   it("assigns option owners in one query per group, not one per option", async () => {
@@ -150,5 +159,20 @@ describe("MenuWriterService — the holding group is resolved once per import", 
     expect(counters["option.updateMany"]).toBeLessThanOrEqual(20);
     // Not one update per option any more.
     expect(counters["option.update"] ?? 0).toBe(0);
+  });
+
+  it("inserts every new option in ONE createMany, whatever the count", async () => {
+    const counters: Record<string, number> = {};
+    await build(counters).apply({
+      menuId: "m1",
+      tenantId: "t1",
+      brandId: "b1",
+      locationId: "l1",
+      normalized: normalizedWith(2325) as any,
+    } as any);
+
+    // 2,325 options — the size of a real imported menu — in one insert.
+    expect(counters["option.createMany"]).toBe(1);
+    expect(counters["option.create"] ?? 0).toBe(0);
   });
 });

@@ -230,30 +230,57 @@ export class MenuWriterService {
             } else {
               modifierExtToLocal.set(m.externalId, existing.id);
             }
-          } else {
-            // The placeholder group is created lazily — first matched
-            // primary group attaches it. Until then, options live in a
-            // synthetic "imports holding" group we create per menu.
-            const c = await tx.modifierOption.create({
-              data: {
-                groupId: await holdingGroup(),
-                name: m.name,
-                plu: m.plu,
-                priceAdjustment: m.priceAdjustment,
-                pricesBySize: m.pricesBySize as any,
-                skuPlus: m.skuPlus as any,
-                isAvailable: m.isAvailable,
-                visibleToCustomers: m.visibleToCustomers,
-                platformSource: source,
-                externalId: m.externalId,
-                syncHash: m.syncHash,
-                syncStatus: "synced",
-                lastSyncedAt: new Date(),
-              },
-            });
-            modifierExtToLocal.set(m.externalId, c.id);
-            created.mods++;
           }
+          // New options are collected and bulk-inserted below; creating them
+          // one at a time was 2,325 round trips on a menu this size.
+        }
+
+        // --- New options: one insert for all of them ---
+        //
+        // Every new option starts in the same holding group, so they share a
+        // groupId and go in a single createMany. createMany returns no ids, so
+        // one read afterwards maps externalId -> id for the group and product
+        // steps that follow. Two queries instead of one per option.
+        //
+        // skipDuplicates rather than catching a unique violation: inside a
+        // transaction a Postgres unique error aborts the WHOLE transaction
+        // (25P02) and would take the rest of the import with it.
+        const newModifiers = normalized.modifiers.filter(
+          (m) => !existingOptionByExt.has(m.externalId),
+        );
+        if (newModifiers.length) {
+          const holdingId = await holdingGroup();
+          const now = new Date();
+          await tx.modifierOption.createMany({
+            data: newModifiers.map((m) => ({
+              groupId: holdingId,
+              name: m.name,
+              plu: m.plu,
+              priceAdjustment: m.priceAdjustment,
+              pricesBySize: m.pricesBySize as any,
+              skuPlus: m.skuPlus as any,
+              isAvailable: m.isAvailable,
+              visibleToCustomers: m.visibleToCustomers,
+              platformSource: source,
+              externalId: m.externalId,
+              syncHash: m.syncHash,
+              syncStatus: "synced",
+              lastSyncedAt: now,
+            })),
+            skipDuplicates: true,
+          });
+          const inserted = await tx.modifierOption.findMany({
+            where: {
+              platformSource: source,
+              externalId: { in: newModifiers.map((m) => m.externalId) },
+              group: { brand: { tenantId } },
+            },
+            select: { id: true, externalId: true },
+          });
+          for (const r of inserted) {
+            if (r.externalId) modifierExtToLocal.set(r.externalId, r.id);
+          }
+          created.mods += inserted.length;
         }
 
         // --- Modifier groups ---
