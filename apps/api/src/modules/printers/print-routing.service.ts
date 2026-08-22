@@ -24,6 +24,7 @@
 //                                                     delivery order)
 
 import { Injectable, Logger } from "@nestjs/common";
+import { formatMoney } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   computeVisitCountForOrder,
@@ -116,6 +117,8 @@ export class PrintRoutingService {
         location: {
           select: {
             id: true,
+            // The shop's own money — a ticket must not print £ against AED.
+            currency: true,
             defaultKitchenStationId: true,
             receiptPrinterId: true,
             dispatchPrinterId: true,
@@ -444,7 +447,11 @@ export class PrintRoutingService {
             ? {
                 ...p,
                 isBill: true,
-                paymentLabel: `BILL - TO PAY £${Number(order.total).toFixed(2)}`,
+                paymentLabel: `BILL - TO PAY ${formatMoney(
+                  order.total,
+                  (order as any)?.location?.currency,
+                  { compact: true },
+                )}`,
               }
             : p;
         })(),
@@ -615,6 +622,7 @@ export class PrintRoutingService {
       customerVisitTag: visit.customerVisitTag,
       orderNumber: order.displayId ?? order.orderNumber ?? null,
       displayId: order.displayId ?? null,
+      currency: (order as any)?.location?.currency ?? null,
       // Order origin shown above the items so the kitchen instantly knows
       // whether to honour Uber's flow vs DIRECT etc. Both fields ship —
       // platform is the cross-channel taxonomy, orderSource is the

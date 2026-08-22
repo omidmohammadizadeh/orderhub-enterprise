@@ -9,6 +9,7 @@
 // flow (which triggers the print pipeline).
 
 import { useEffect, useMemo, useState } from "react";
+import { formatMoney } from "@orderhub/shared";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Clock, Loader2, PlayCircle, Bike, ShoppingBag } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
@@ -146,7 +147,11 @@ function ScheduledOrderCard({
       )}
 
       <div className="flex items-center justify-between border-t border-zinc-100 pt-1.5">
-        <span className="text-xs font-semibold">£{Number(order.total).toFixed(2)}</span>
+        <span className="text-xs font-semibold">
+          {formatMoney(order.total, (order as any)?.location?.currency, {
+            compact: true,
+          })}
+        </span>
         <button
           type="button"
           onClick={onStart}

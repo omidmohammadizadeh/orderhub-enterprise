@@ -7,6 +7,7 @@
 //   • Own fleet   — the location's online drivers (no courier fee); pick one.
 
 import { useEffect, useState } from "react";
+import { formatMoney } from "@orderhub/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Bike, Loader2, Truck, User, X } from "lucide-react";
@@ -35,8 +36,9 @@ function money(currency: string, amount: number | string | null): string {
   if (amount === null || amount === undefined) return "—";
   const n = typeof amount === "string" ? parseFloat(amount) : amount;
   if (!Number.isFinite(n)) return "—";
-  const sym = currency === "GBP" ? "£" : `${currency} `;
-  return `${sym}${n.toFixed(2)}`;
+  // Was a local GBP-or-code rule. formatMoney knows that a dinar has three
+  // decimal places, which a .toFixed(2) here would silently get wrong.
+  return formatMoney(n, currency, { compact: true });
 }
 
 export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props) {

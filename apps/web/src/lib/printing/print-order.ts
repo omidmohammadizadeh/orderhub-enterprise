@@ -7,6 +7,7 @@
 // so the caller can surface it.
 
 import { printersClient } from "../api/printers.client";
+import { formatMoney } from "@orderhub/shared";
 import { marketingClient } from "../api/marketing.client";
 import {
   hasNativeBridge,
@@ -229,9 +230,11 @@ export async function printOrderViaBridge(
   // shouts TO PAY so a check can never be mistaken for a paid receipt.
   if (opts?.billMode) {
     (payload as any).isBill = true;
-    (payload as any).paymentLabel = `BILL - TO PAY £${Number(
+    (payload as any).paymentLabel = `BILL - TO PAY ${formatMoney(
       order?.total ?? 0,
-    ).toFixed(2)}`;
+      (payload as any)?.currency,
+      { compact: true },
+    )}`;
   }
   const offer = await resolveReceiptOffer(order);
   applyReceiptOffer(payload, offer);

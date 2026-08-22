@@ -1,4 +1,5 @@
 import { modifierIndent } from "@orderhub/shared";
+import { formatMoney } from "@orderhub/shared";
 
 // ESC/POS command constants
 const ESC = "\x1B";
@@ -81,6 +82,8 @@ export function renderEscPos(doc: PrintDocument): string {
 
 export interface OrderPrintData {
   displayId?: string;
+  /** ISO-4217 from the order's location. Absent falls back to GBP. */
+  currency?: string | null;
   platform: string;
   orderSource: string;
   fulfillmentType: string;
@@ -118,8 +121,10 @@ function padded(left: string, right: string, width = 42): string {
   return left + " ".repeat(Math.max(1, gap)) + right;
 }
 
-function formatPrice(p: number): string {
-  return `£${p.toFixed(2)}`;
+function formatPriceIn(p: number, currency?: string | null): string {
+  // formatMoney keeps a dinar's third decimal place; .toFixed(2) here would
+  // silently drop it and misprice every line on a Kuwaiti ticket.
+  return formatMoney(p, currency ?? "GBP", { compact: true });
 }
 
 function paymentBannerFor(
@@ -144,6 +149,9 @@ function paymentBannerFor(
 }
 
 export function buildReceiptDocument(order: OrderPrintData): PrintDocument {
+  // Shadows the module-level helper so all prices below use this shop's
+  // currency without touching the call sites.
+  const formatPrice = (p: number) => formatPriceIn(p, order.currency);
   const lines: PrintLine[] = [];
 
   // Header
@@ -222,6 +230,9 @@ export function buildReceiptDocument(order: OrderPrintData): PrintDocument {
 }
 
 export function buildKitchenTicketDocument(order: OrderPrintData): PrintDocument {
+  // Shadows the module-level helper so all prices below use this shop's
+  // currency without touching the call sites.
+  const formatPrice = (p: number) => formatPriceIn(p, order.currency);
   const lines: PrintLine[] = [];
 
   // Header — large and readable from a distance

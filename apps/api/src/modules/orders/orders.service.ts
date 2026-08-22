@@ -58,6 +58,12 @@ const ORDER_INCLUDE = {
       brandId: true,
       address: true,
       phone: true,
+      // Currency travels with the ORDER's own location, not the one the
+      // operator happens to have selected. The board can be showing "All
+      // locations", and once a Dubai shop exists that view holds AED and GBP
+      // orders side by side — formatting them all in the selected location's
+      // currency would misprice half the screen.
+      currency: true,
       brand: { select: { id: true, name: true, logoUrl: true, phone: true, addressLine1: true, city: true, postcode: true } },
     },
   },

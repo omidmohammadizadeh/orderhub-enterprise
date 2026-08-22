@@ -20,7 +20,7 @@ import { uberDirectClient } from "../../lib/api/uber-direct.client";
 import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
-import { modifierDepth } from "@orderhub/shared";
+import { modifierDepth, formatMoney } from "@orderhub/shared";
 
 const NEXT_ACTIONS: Record<string, Array<{ status: string; label: string; variant: "default" | "outline" | "destructive" }>> = {
   PENDING: [
@@ -50,6 +50,10 @@ interface Props {
 }
 
 export function OrderDetailDrawer({ order, onClose }: Props) {
+  // The ORDER's own currency — the board can be showing every location at
+  // once, so this must not follow whichever one is selected.
+  const money = (n: number | string | null | undefined) =>
+    formatMoney(n, (order as any)?.location?.currency, { compact: true });
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelInput, setShowCancelInput] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -426,7 +430,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                   <span className="text-sm font-medium text-zinc-900">
                     {item.quantity}× {item.name}
                   </span>
-                  <span className="text-sm text-zinc-700">£{item.totalPrice.toFixed(2)}</span>
+                  <span className="text-sm text-zinc-700">{money(item.totalPrice)}</span>
                 </div>
                 {item.modifiers?.length > 0 && (
                   <div className="mt-1 ml-3 space-y-0.5">
@@ -439,7 +443,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                         // four unrelated extras.
                         style={{ paddingLeft: `${modifierDepth(m) * 12}px` }}
                       >
-                        + {m.name}{m.price > 0 ? ` (£${m.price.toFixed(2)})` : ""}
+                        + {m.name}{m.price > 0 ? ` (${money(m.price)})` : ""}
                       </p>
                     ))}
                   </div>
@@ -457,33 +461,33 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           {order.subtotal !== order.total && (
             <>
               <div className="flex justify-between text-sm text-zinc-600">
-                <span>Subtotal</span><span>£{order.subtotal.toFixed(2)}</span>
+                <span>Subtotal</span><span>{money(order.subtotal)}</span>
               </div>
               {order.deliveryFee > 0 && (
                 <div className="flex justify-between text-sm text-zinc-600">
-                  <span>Delivery</span><span>£{order.deliveryFee.toFixed(2)}</span>
+                  <span>Delivery</span><span>{money(order.deliveryFee)}</span>
                 </div>
               )}
               {Number((order as any).tipAmount ?? 0) > 0 && (
                 <div className="flex justify-between text-sm text-zinc-600">
                   <span>Tip</span>
-                  <span>£{Number((order as any).tipAmount).toFixed(2)}</span>
+                  <span>{money(Number((order as any).tipAmount))}</span>
                 </div>
               )}
               {order.taxAmount > 0 && (
                 <div className="flex justify-between text-sm text-zinc-600">
-                  <span>Tax</span><span>£{order.taxAmount.toFixed(2)}</span>
+                  <span>Tax</span><span>{money(order.taxAmount)}</span>
                 </div>
               )}
               {order.discount > 0 && (
                 <div className="flex justify-between text-sm text-emerald-600">
-                  <span>Discount</span><span>−£{order.discount.toFixed(2)}</span>
+                  <span>Discount</span><span>−{money(order.discount)}</span>
                 </div>
               )}
             </>
           )}
           <div className="flex justify-between text-sm font-bold text-zinc-900">
-            <span>Total</span><span>£{order.total.toFixed(2)}</span>
+            <span>Total</span><span>{money(order.total)}</span>
           </div>
         </div>
 
@@ -516,7 +520,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           </div>
         )}
       {order.platform === "UBER_EATS" && (
-          <UberEatsOrderActionsPanel orderId={order.id} />
+          <UberEatsOrderActionsPanel
+                orderId={order.id}
+                currency={(order as any)?.location?.currency} />
         )}
       </div>
 

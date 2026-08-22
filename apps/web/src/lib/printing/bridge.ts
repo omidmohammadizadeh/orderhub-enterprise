@@ -1,3 +1,4 @@
+import { formatMoney } from "@orderhub/shared";
 // Browser-side ESC/POS rendering + native Bluetooth bridge.
 //
 // When the dashboard is loaded inside the OrderHub Solutions Android
@@ -355,11 +356,14 @@ function fmtWhen(iso: any): string {
   return `${date} ${time}`;
 }
 
-function money(n: any): string {
+function moneyIn(n: any, currency?: string | null): string {
   const v = typeof n === "number" ? n : Number(n);
   if (!Number.isFinite(v)) return "";
-  // £ is encoded to its CP437 byte (0x9C) by strBytes so it prints.
-  return `£${v.toFixed(2)}`;
+  // £ is encoded to its CP437 byte (0x9C) by strBytes so it prints. Other
+  // currencies come back as plain ASCII letters ("AED 24.00"), which CP437
+  // carries without any mapping — and formatMoney keeps a dinar's third
+  // decimal place, which a .toFixed(2) here would have silently dropped.
+  return formatMoney(v, currency ?? "GBP", { compact: true });
 }
 
 // Word-wrap a long string at column boundaries. Thermal printers
@@ -806,6 +810,9 @@ export function buildOrderReceipt(
     printFont?: PrintFont;
   },
 ): Uint8Array {
+  // Bound to this order's currency; shadows the module-level helper so every
+  // price below prints in the shop's own money.
+  const money = (n: any) => moneyIn(n, (payload as any)?.currency);
   const font = normalisePrintFont(opts?.printFont);
   const cols = colsForFont(paperWidth, font);
   const scale = normaliseFontScale(opts?.fontScale);
@@ -1146,6 +1153,9 @@ export function buildOrderReceiptStar(
   paperWidth: number = 80,
   opts?: { fontScale?: FontScale; modifierScale?: FontScale },
 ): Uint8Array {
+  // Bound to this order's currency; shadows the module-level helper so every
+  // price below prints in the shop's own money.
+  const money = (n: any) => moneyIn(n, (payload as any)?.currency);
   const cols = colsFor(paperWidth);
   // ESC i n1 n2 — n1 expands height, n2 expands width (0 = normal,
   // 1 = double). Same policy as ESC/POS: LARGE is tall only, XLARGE is

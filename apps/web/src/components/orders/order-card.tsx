@@ -11,6 +11,7 @@ import {
   Undo2,
 } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
+import { formatMoney } from "@orderhub/shared";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { OrderActions } from "./order-actions";
 import type { Order } from "../../lib/api/orders.client";
@@ -28,6 +29,10 @@ function timeAgo(iso: string): string {
 }
 
 export function OrderCard({ order, onClick }: OrderCardProps) {
+  // The ORDER's own currency — the board can be showing every location at
+  // once, so this must not follow whichever one is selected.
+  const money = (n: number | string | null | undefined) =>
+    formatMoney(n, (order as any)?.location?.currency, { compact: true });
   const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
 
   return (
@@ -92,7 +97,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               ))}
           </div>
           <p className="mt-0.5 text-xs text-zinc-500">
-            {itemCount} item{itemCount !== 1 ? "s" : ""} · £{order.total.toFixed(2)}
+            {itemCount} item{itemCount !== 1 ? "s" : ""} · {money(order.total)}
           </p>
         </div>
 

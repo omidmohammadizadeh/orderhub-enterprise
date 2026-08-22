@@ -186,6 +186,10 @@ export function buildPrintPayload(
     // agent. Tablets build this payload themselves, which is why the PIN
     // never reached a printed ticket.
     customerPhone: phoneWithAccessCode(order),
+    // The ORDER's currency, so a ticket prints in the shop's own money. Comes
+    // from the order's location rather than the selected one — the board can
+    // be showing several locations at once.
+    currency: (order as any)?.location?.currency ?? null,
     deliveryAddress,
     receivedAt: (order as any).receivedAt ?? (order as any).createdAt ?? null,
     items: (order.items ?? []).map((i: any) => ({

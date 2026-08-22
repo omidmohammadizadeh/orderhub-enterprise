@@ -9,6 +9,7 @@
 // Uber's HTTP acknowledgment.
 
 import { useState } from "react";
+import { currencySymbol } from "@orderhub/shared";
 import { useMutation } from "@tanstack/react-query";
 import {
   Loader2,
@@ -34,7 +35,15 @@ const PRICE_REASONS: Array<{ value: string; label: string }> = [
 
 const READY_TIME_PRESETS = [10, 15, 20, 30];
 
-export function UberEatsOrderActionsPanel({ orderId }: { orderId: string }) {
+export function UberEatsOrderActionsPanel({
+  orderId,
+  currency,
+}: {
+  orderId: string;
+  /** The ORDER's currency, passed by the drawer — this panel never sees the
+   *  order itself, and the board may be showing several locations at once. */
+  currency?: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -135,7 +144,7 @@ export function UberEatsOrderActionsPanel({ orderId }: { orderId: string }) {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-500">
-                  £
+                  {currencySymbol(currency)}
                 </span>
                 <input
                   type="number"
