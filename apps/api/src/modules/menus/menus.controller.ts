@@ -1074,6 +1074,25 @@ export class MenusController {
     return this.menus.detachModifierFromGroup(groupId, modifierId, user.tenantId);
   }
 
+  // Declared ABOVE items/:itemId/modifier-groups/:groupId on purpose: Nest
+  // matches in declaration order, so below it "reorder" is read as a groupId
+  // and the call 404s as an unknown modifier group.
+  @Post("items/:itemId/modifier-groups/reorder")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set the order an item's modifier groups are asked for" })
+  reorderItemModifierGroups(
+    @Param("itemId") itemId: string,
+    @Body() body: { groupIds?: string[] },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.reorderItemModifierGroups(
+      itemId,
+      body?.groupIds ?? [],
+      user.tenantId,
+    );
+  }
+
   @Post("items/:itemId/modifier-groups/:groupId")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.CREATED)

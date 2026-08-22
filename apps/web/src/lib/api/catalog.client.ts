@@ -181,6 +181,14 @@ export const productsClient = {
     apiClient
       .post<CatalogProduct>(`/v1/items/${id}/toggle-availability`)
       .then((r) => r.data),
+  /** Set the order an item's modifier groups are asked for. */
+  reorderModifierGroups: (itemId: string, groupIds: string[]) =>
+    apiClient
+      .post<{ ok: true; order: string[] }>(
+        `/v1/items/${itemId}/modifier-groups/reorder`,
+        { groupIds },
+      )
+      .then((r) => r.data),
   attachModifierGroup: (itemId: string, groupId: string) =>
     apiClient
       .post(`/v1/items/${itemId}/modifier-groups/${groupId}`)

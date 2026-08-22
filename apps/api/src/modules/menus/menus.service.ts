@@ -2528,6 +2528,46 @@ export class MenusService {
     }
   }
 
+  /**
+   * Set the order the item's modifier groups are asked for.
+   *
+   * linkModifierGroupToItem accepts a sortOrder but nothing ever passed one,
+   * so every link sat at 0 and the picker asked for a pizza's crust, base and
+   * toppings in whatever order the rows happened to come back in. The
+   * operator now drags them into the sequence the kitchen expects and that
+   * order is what every channel publishes.
+   *
+   * Ids not currently linked are ignored rather than rejected: the editor
+   * sends what it has on screen, and a group detached in another tab should
+   * not fail the whole reorder.
+   */
+  async reorderItemModifierGroups(
+    itemId: string,
+    groupIds: string[],
+    tenantId: string,
+  ) {
+    await this.assertItemAccess(itemId, tenantId);
+    const links = await this.prisma.modifierGroupOnItem.findMany({
+      where: { itemId },
+      select: { groupId: true },
+    });
+    const linked = new Set(links.map((l) => l.groupId));
+    const ordered = groupIds.filter((id) => linked.has(id));
+    // Anything the caller left out keeps its place AFTER the listed ones,
+    // so a stale editor can never silently drop a group to the top.
+    const rest = links.map((l) => l.groupId).filter((id) => !ordered.includes(id));
+    const final = [...ordered, ...rest];
+    await this.prisma.$transaction(
+      final.map((groupId, i) =>
+        this.prisma.modifierGroupOnItem.update({
+          where: { itemId_groupId: { itemId, groupId } },
+          data: { sortOrder: i },
+        }),
+      ),
+    );
+    return { ok: true, order: final };
+  }
+
   async unlinkModifierGroupFromItem(itemId: string, groupId: string, tenantId: string) {
     await this.assertItemAccess(itemId, tenantId);
     await this.prisma.modifierGroupOnItem.delete({

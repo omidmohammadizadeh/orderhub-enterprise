@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { locationsClient } from "@/lib/api/locations.client";
-import { ArrowLeft, Save, Trash2, Plus, X, Layers } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, X, Layers, GripVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   productsClient,
@@ -126,6 +126,9 @@ export function ProductForm({
   const [outOfStock, setOutOfStock] = useState(false);
   const [visibleToCustomers, setVisibleToCustomers] = useState(true);
   const [attachedGroupIds, setAttachedGroupIds] = useState<string[]>([]);
+  // Which row is being dragged. A ref, not state: it changes during a drag
+  // and re-rendering on every dragover would fight the browser's own drag.
+  const draggingGroupIdx = useRef<number | null>(null);
   // Multi-SKU state. When hasMultipleSkus is true, the per-SKU rows
   // below replace the base price + flat modifier groups. Each SKU has
   // its own name, PLU, price and attached modifier groups so a pizza
@@ -269,6 +272,16 @@ export function ProductForm({
       for (const id of toDetach) {
         await productsClient.detachModifierGroup(saved.id, id);
       }
+      // Persist the ORDER. Attaching alone leaves every link at sortOrder 0,
+      // so without this the picker asks for crust, base and toppings in
+      // whatever order the rows come back in.
+      if (attachedGroupIds.length > 1) {
+        await productsClient
+          .reorderModifierGroups(saved.id, attachedGroupIds)
+          // Order is cosmetic next to the save itself — never fail a saved
+          // product because the sequence did not stick.
+          .catch(() => undefined);
+      }
       return saved;
     },
     onSuccess: (saved) => {
@@ -340,12 +353,13 @@ export function ProductForm({
       const local = allGroups.find((g) => g.id === id);
       if (local) merged.set(id, local);
     }
-    // Filter back down to whatever is currently in attachedGroupIds —
-    // operator may have detached one of the imported links in this
-    // session, so we still respect the local state.
-    return Array.from(merged.values()).filter((g: any) =>
-      attachedGroupIds.includes(g.id),
-    );
+    // Ordered BY attachedGroupIds, not by the map's insertion order. That
+    // array is what the operator drags, and it is what gets sent to the
+    // reorder endpoint on save — if the list rendered in the server's order
+    // instead, a drag would appear to work and snap back on the next render.
+    return attachedGroupIds
+      .map((id) => merged.get(id))
+      .filter((g: any): g is any => !!g);
   }, [linkedGroups, allGroups, attachedGroupIds]);
   const availableGroups = useMemo(
     () => allGroups.filter((g) => !attachedGroupIds.includes(g.id)),
@@ -618,11 +632,33 @@ export function ProductForm({
                     make one.
                   </p>
                 ) : (
-                  attachedGroups.map((g) => (
+                  attachedGroups.map((g, idx) => (
                     <div
                       key={g.id}
+                      draggable
+                      onDragStart={() => {
+                        draggingGroupIdx.current = idx;
+                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        const from = draggingGroupIdx.current;
+                        draggingGroupIdx.current = null;
+                        if (from == null || from === idx) return;
+                        setAttachedGroupIds((cur) => {
+                          const next = [...cur];
+                          const [moved] = next.splice(from, 1);
+                          if (moved) next.splice(idx, 0, moved);
+                          return next;
+                        });
+                      }}
                       className="group flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2 hover:border-zinc-300"
                     >
+                      <span
+                        className="cursor-grab pr-1.5 text-zinc-300 hover:text-zinc-600"
+                        title="Drag to change the order this group is asked for"
+                      >
+                        <GripVertical className="h-3.5 w-3.5" />
+                      </span>
                       <button
                         type="button"
                         onClick={() => setEditingGroupId(g.id)}
@@ -1147,6 +1183,10 @@ function SkuRow({
   // of the same tenant, so that read "the import attached nothing" when the
   // import had attached them correctly. Four rounds of debugging went to the
   // importer because of it. An id that won't resolve is now shown as an id.
+  // Which chip is being dragged. A ref for the same reason as the flat list:
+  // it changes throughout a drag and re-rendering would fight the browser.
+  const draggingChipIdx = useRef<number | null>(null);
+
   // Stored absolute -> displayed supplement. A blank box reads as +0.00, so
   // a size that costs the same as the base needs nothing typed.
   const total = Number(sku.price) || 0;
@@ -1259,10 +1299,27 @@ function SkuRow({
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {attached.map((g) => (
+          {attached.map((g, idx) => (
             <span
               key={g.id}
-              className={`group inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+              draggable
+              onDragStart={() => {
+                draggingChipIdx.current = idx;
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => {
+                const from = draggingChipIdx.current;
+                draggingChipIdx.current = null;
+                if (from == null || from === idx) return;
+                // Order here IS the array order in productSkus[].modifierGroups,
+                // so there is nothing to persist separately — it saves with the
+                // product like any other SKU field.
+                const next = [...sku.modifierGroupIds];
+                const [moved] = next.splice(from, 1);
+                if (moved) next.splice(idx, 0, moved);
+                onChange({ ...sku, modifierGroupIds: next });
+              }}
+              className={`group inline-flex cursor-grab items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
                 g.name
                   ? "bg-orange-100 text-orange-800"
                   : "bg-amber-100 text-amber-900"
