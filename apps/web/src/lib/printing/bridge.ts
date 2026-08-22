@@ -397,6 +397,65 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+/**
+ * True when a string contains anything the printer's CP437 character set
+ * cannot represent — CJK, Arabic, Cyrillic, Greek.
+ *
+ * strBytes() turns every one of those into "?", so a Chinese kitchen ticket
+ * would print as a row of question marks. Lines that trip this get drawn as
+ * pixels instead (see rasterTextLine).
+ */
+export function needsRaster(s: string): boolean {
+  for (const ch of s) {
+    const c = ch.codePointAt(0)!;
+    if (c < 0x80) continue;
+    if (TRANSLIT[ch] !== undefined) continue; // rewritten to ASCII already
+    if (c === 0x00a3) continue; // £ has a real CP437 byte
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Draw one line of text as an ESC/POS raster bitmap.
+ *
+ * The printer is locked to CP437 and most units sold in the UK have no CJK
+ * font chip at all, so the only way to put Chinese on the paper reliably is to
+ * send pixels — the same trick the QR code already uses, and it works on any
+ * printer that can print a logo. The tablet's own system font does the
+ * rendering, and Android and iOS both ship CJK coverage.
+ *
+ * `bold` doubles the weight for item lines, which is what the kitchen reads
+ * first. Returns null when there is no canvas (server-side render or a
+ * headless test), so the caller falls back to plain text.
+ */
+export function rasterTextLine(
+  text: string,
+  dotWidth: number,
+  opts?: { bold?: boolean; fontPx?: number },
+): number[] | null {
+  if (typeof document === "undefined") return null;
+  const fontPx = opts?.fontPx ?? 30;
+  // Raster rows are padded to whole bytes, so the width must be a multiple
+  // of 8 — packRaster divides by 8 and would drop a partial byte otherwise.
+  const w = Math.floor(dotWidth / 8) * 8;
+  const h = Math.ceil(fontPx * 1.35 / 8) * 8;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#000";
+  ctx.textBaseline = "middle";
+  // No explicit family: the platform picks one that actually has the glyphs.
+  // Naming a Latin font here would render CJK as tofu boxes.
+  ctx.font = `${opts?.bold ? "bold " : ""}${fontPx}px sans-serif`;
+  ctx.fillText(text, 0, h / 2);
+  return packRaster(ctx, w, h);
+}
+
 // Cache rastered logos per (url|width) so we don't re-decode the image
 // on every order print.
 const logoCache = new Map<string, number[] | null>();

@@ -910,6 +910,14 @@ model MenuCategory {
   menu               Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
   name               String
   description        String?
+  // Kitchen-language name. The customer-facing menu stays in English; the
+  // kitchen ticket prints this instead when it is set. A Chinese takeaway
+  // runs an English menu for customers and a Chinese one for the wok, and
+  // was otherwise keeping the two in the chef's head.
+  //
+  // Null (the default) means "no translation" — the ticket falls back to
+  // `name`, so nothing changes for a shop that never fills this in.
+  secondLanguageName String?
   imageUrl           String?
   sortOrder          Int      @default(0)
   isVisible          Boolean  @default(true)
@@ -953,6 +961,14 @@ model MenuItem {
   locationId         String?
   name               String
   description        String?
+  // Kitchen-language name. The customer-facing menu stays in English; the
+  // kitchen ticket prints this instead when it is set. A Chinese takeaway
+  // runs an English menu for customers and a Chinese one for the wok, and
+  // was otherwise keeping the two in the chef's head.
+  //
+  // Null (the default) means "no translation" — the ticket falls back to
+  // `name`, so nothing changes for a shop that never fills this in.
+  secondLanguageName String?
   basePrice          Decimal   @db.Decimal(10, 2)
   imageUrl           String?
   // Pre-Phase-AK had `sku` as a generic product code. Base44 calls this
@@ -1235,6 +1251,14 @@ model ModifierOption {
   modifierGroupIds         String[]      @default([])
   name                     String
   description              String?
+  // Kitchen-language name. The customer-facing menu stays in English; the
+  // kitchen ticket prints this instead when it is set. A Chinese takeaway
+  // runs an English menu for customers and a Chinese one for the wok, and
+  // was otherwise keeping the two in the chef's head.
+  //
+  // Null (the default) means "no translation" — the ticket falls back to
+  // `name`, so nothing changes for a shop that never fills this in.
+  secondLanguageName       String?
   // Base price for this modifier when no size key matches. Already
   // existed; renamed conceptually to "default price". pricesBySize
   // below is the authoritative per-size table.
@@ -3449,7 +3473,7 @@ model StripeWebhookEvent {
   @@map("stripe_webhook_events")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════��═════════════════════════════════════════════════════════════════════
 // PHASE F — ENTERPRISE SECURITY
 // ══════════════════════════════════════════════════════════════════════════════
 
