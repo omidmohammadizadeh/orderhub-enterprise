@@ -171,6 +171,19 @@ export class MenuWriterService {
 
         // --- Modifier options (write first; groups will reference them) ---
         const modifierExtToLocal = new Map<string, string>();
+
+        // Memoised for this import. ensureHoldingGroup runs a findFirst every
+        // call and it is called once per NEW option, so a fresh menu with
+        // 2,325 options ran 2,325 identical lookups that all return the same
+        // row after the first — inside a transaction with a time limit, where
+        // every round trip is paid for twice over.
+        let holdingGroupId: string | null = null;
+        const holdingGroup = async (): Promise<string> => {
+          if (!holdingGroupId) {
+            holdingGroupId = (await this.ensureHoldingGroup(tx, brandId, menuId)).id;
+          }
+          return holdingGroupId;
+        };
         for (const m of normalized.modifiers) {
           const existing = await tx.modifierOption.findFirst({
             where: {
@@ -205,10 +218,9 @@ export class MenuWriterService {
             // The placeholder group is created lazily — first matched
             // primary group attaches it. Until then, options live in a
             // synthetic "imports holding" group we create per menu.
-            const holding = await this.ensureHoldingGroup(tx, brandId, menuId);
             const c = await tx.modifierOption.create({
               data: {
-                groupId: holding.id,
+                groupId: await holdingGroup(),
                 name: m.name,
                 plu: m.plu,
                 priceAdjustment: m.priceAdjustment,

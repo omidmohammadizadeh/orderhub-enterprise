@@ -21,6 +21,21 @@ interface CommitArgs {
   draft: AiMenuDraft;
 }
 
+/** What the draft is asking to create — for the failure log. */
+function countDraft(draft: AiMenuDraft) {
+  const categories = draft.categories?.length ?? 0;
+  const items = (draft.categories ?? []).reduce(
+    (n, c) => n + (c.items?.length ?? 0),
+    0,
+  );
+  const groups = draft.modifierGroups?.length ?? 0;
+  const options = (draft.modifierGroups ?? []).reduce(
+    (n, g) => n + (g.options?.length ?? 0),
+    0,
+  );
+  return { categories, items, groups, options };
+}
+
 @Injectable()
 export class AiMenuImporter {
   private readonly logger = new Logger(AiMenuImporter.name);
@@ -65,9 +80,36 @@ export class AiMenuImporter {
         `AI menu import committed: menu=${menu.id} created=${result.createdCount} warnings=${result.warnings.length}`,
       );
       return { menuId: menu.id, menuName: menu.name, ...result };
-    } catch (err) {
+    } catch (err: any) {
       // Don't leave an empty orphan menu behind on a failed write.
       await this.menus.remove(menu.id, args.tenantId).catch(() => undefined);
+
+      // A bare 500 tells the operator nothing and tells us less. Log the
+      // failure WITH the shape of what was being written — the size of the
+      // import is the thing most likely to have caused it, and a stack alone
+      // does not carry that.
+      const counts = countDraft(draft);
+      this.logger.error(
+        `AI menu import FAILED menu=${menu.id} brand=${args.brandId} ` +
+          `(${counts.categories} categories, ${counts.items} items, ` +
+          `${counts.groups} option groups, ${counts.options} options): ` +
+          `${err?.code ? `[${err.code}] ` : ""}${err?.message ?? err}`,
+        err?.stack,
+      );
+
+      // Prisma closes an interactive transaction that overruns its timeout and
+      // every later query in it fails with P2028. On a big menu that is not a
+      // bug the operator can act on from "Internal server error", so say what
+      // actually happened and what it depends on.
+      const msg = String(err?.message ?? "");
+      if (err?.code === "P2028" || /transaction/i.test(msg) && /closed|timeout|expired/i.test(msg)) {
+        throw new BadRequestException(
+          `This menu was too large to write in one go — ${counts.items} items and ` +
+            `${counts.options} options exceeded the import transaction's time limit. ` +
+            `Nothing was created. Splitting it into smaller menus will import; ` +
+            `the size limit itself is ours to fix.`,
+        );
+      }
       throw err;
     }
   }
