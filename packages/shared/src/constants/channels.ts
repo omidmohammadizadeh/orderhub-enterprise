@@ -41,10 +41,21 @@ const UK: ChannelDef[] = [
   { id: "UBER_DIRECT" },
 ];
 
-// Deliveroo left the UAE in 2024, so it is deliberately NOT in the Gulf list.
-// Uber Eats does not operate there either — Careem (Uber-owned) is the local
-// equivalent.
-const GULF: ChannelDef[] = [DIRECT, { id: "TALABAT" }, { id: "CAREEM" }];
+// Deliveroo trades across the UAE — Dubai, Abu Dhabi and Sharjah — so it
+// belongs here alongside the local marketplaces. (An earlier version of this
+// file claimed it had withdrawn in 2024. That was wrong, and it was wrong in
+// the worst way: stated as fact in a comment and pinned by a test, which is
+// how a mistake stops looking like one. If a market changes, change it here
+// with a source, not from memory.)
+//
+// Uber Eats is NOT listed: it withdrew from the UAE and folded into Careem,
+// which Uber owns. Confirm before adding it — see the note above.
+const GULF: ChannelDef[] = [
+  DIRECT,
+  { id: "TALABAT" },
+  { id: "CAREEM" },
+  { id: "DELIVEROO" },
+];
 
 export const CHANNELS_BY_COUNTRY: Record<string, ChannelDef[]> = {
   GB: UK,

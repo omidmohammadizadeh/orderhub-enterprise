@@ -23,9 +23,19 @@ describe("channelsForCountry", () => {
     expect(ids("AE")).not.toContain("JUST_EAT");
   });
 
-  it("does NOT offer Deliveroo or Uber Eats in the Gulf", () => {
+  it("offers Deliveroo in the Gulf, because it trades there", () => {
+    // Deliveroo runs across Dubai, Abu Dhabi and Sharjah. An earlier version
+    // of this test asserted the opposite on the strength of a wrong claim
+    // about it withdrawing in 2024 — which is how a mistake gets locked in.
     for (const c of ["AE", "SA", "KW", "QA", "BH", "OM"]) {
-      expect(ids(c)).not.toContain("DELIVEROO");
+      expect(ids(c)).toContain("DELIVEROO");
+    }
+  });
+
+  it("does not offer Uber Eats in the Gulf", () => {
+    // Uber Eats folded into Careem, which Uber owns. If that changes, change
+    // the catalog with a source rather than from memory.
+    for (const c of ["AE", "SA", "KW"]) {
       expect(ids(c)).not.toContain("UBER_EATS");
     }
   });
