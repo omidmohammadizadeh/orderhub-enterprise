@@ -2531,7 +2531,121 @@ export class OrdersService {
       include: ORDER_INCLUDE,
       orderBy: { createdAt: "desc" },
     });
-    return this.attachCustomerVisitCounts(rows, user.tenantId);
+    return this.attachKitchenNames(
+      await this.attachCustomerVisitCounts(rows, user.tenantId),
+    );
+  }
+
+  /**
+   * Attach the kitchen-language name to each order line, for locations that
+   * print translated tickets.
+   *
+   * WHY HERE and not only in the print queue: the desktop print agent uses the
+   * server's KITCHEN_TICKET payload, but TABLETS BUILD THEIR OWN payload from
+   * the live-orders feed (see buildPrintPayload in the web app). The same
+   * split already cost us the driver PIN never reaching a printed ticket. The
+   * tablet is also the only renderer that can draw CJK — it rasters the line,
+   * where the desktop bridge depends on the printer's own font — so the path
+   * that needs this most is the one that would not have had it.
+   *
+   * Costs one indexed lookup for shops that do not use the feature, and
+   * returns before touching anything else.
+   */
+  private async attachKitchenNames<T extends Record<string, any>>(
+    rows: T[],
+  ): Promise<T[]> {
+    try {
+      const locIds = Array.from(
+        new Set(rows.map((r) => r.locationId).filter((x): x is string => !!x)),
+      );
+      if (!locIds.length) return rows;
+
+      const locs = await this.prisma.location.findMany({
+        where: { id: { in: locIds } },
+        select: { id: true, settings: true },
+      });
+      const translating = new Set(
+        locs
+          .filter(
+            (l) =>
+              ((l.settings ?? {}) as Record<string, unknown>)
+                .kitchenTicketSecondLanguage === true,
+          )
+          .map((l) => l.id),
+      );
+      if (!translating.size) return rows;
+
+      const live = rows.filter((r) => translating.has(r.locationId));
+      const itemIds = Array.from(
+        new Set(
+          live
+            .flatMap((r) => r.items ?? [])
+            .map((i: any) => i.menuItemId)
+            .filter((x: any): x is string => typeof x === "string" && !!x),
+        ),
+      );
+      const modNames = Array.from(
+        new Set(
+          live
+            .flatMap((r) => r.items ?? [])
+            .flatMap((i: any) => i.modifiers ?? [])
+            .map((m: any) => String(m?.name ?? "").trim())
+            .filter(Boolean),
+        ),
+      );
+      const brandIds = Array.from(
+        new Set(live.map((r) => r.brandId).filter((x: any): x is string => !!x)),
+      );
+
+      const [items, mods] = await Promise.all([
+        itemIds.length
+          ? this.prisma.menuItem.findMany({
+              where: { id: { in: itemIds }, NOT: { secondLanguageName: null } },
+              select: { id: true, secondLanguageName: true },
+            })
+          : Promise.resolve([]),
+        modNames.length && brandIds.length
+          ? this.prisma.modifierOption.findMany({
+              where: {
+                name: { in: modNames },
+                group: { brandId: { in: brandIds } },
+                NOT: { secondLanguageName: null },
+              },
+              select: { name: true, secondLanguageName: true },
+            })
+          : Promise.resolve([]),
+      ]);
+
+      const byItem = new Map(
+        items
+          .filter((i) => (i.secondLanguageName ?? "").trim())
+          .map((i) => [i.id, i.secondLanguageName!.trim()]),
+      );
+      const byMod = new Map(
+        mods
+          .filter((m) => (m.secondLanguageName ?? "").trim())
+          .map((m) => [m.name.trim(), m.secondLanguageName!.trim()]),
+      );
+      if (!byItem.size && !byMod.size) return rows;
+
+      for (const r of live) {
+        for (const it of (r.items ?? []) as any[]) {
+          const n = it.menuItemId ? byItem.get(it.menuItemId) : undefined;
+          // Only set a real translation. Absent means the ticket prints the
+          // original, which is how a half-translated menu keeps working.
+          if (n) it.secondLanguageName = n;
+          for (const m of (it.modifiers ?? []) as any[]) {
+            const mn = byMod.get(String(m?.name ?? "").trim());
+            if (mn) m.secondLanguageName = mn;
+          }
+        }
+      }
+      return rows;
+    } catch (e: any) {
+      // A board that loads in English beats a board that does not load.
+      this.logger.warn(`attachKitchenNames failed: ${e?.message ?? e}`);
+      return rows;
+    }
   }
 
   /**

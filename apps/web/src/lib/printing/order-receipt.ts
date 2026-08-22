@@ -190,6 +190,12 @@ export function buildPrintPayload(
     receivedAt: (order as any).receivedAt ?? (order as any).createdAt ?? null,
     items: (order.items ?? []).map((i: any) => ({
       name: cleanItemName(i.name, !!(i.modifiers?.length)),
+      // Kitchen-language name, attached to the live-orders feed by
+      // attachKitchenNames when the location prints translated tickets. The
+      // renderer prints THIS instead of `name` and, on a tablet, draws it as
+      // pixels — CP437 cannot carry CJK. Absent for every shop that has not
+      // turned translations on, which is nearly all of them.
+      secondLanguageName: i.secondLanguageName ?? null,
       quantity: i.quantity,
       modifiers: Array.isArray(i.modifiers) ? i.modifiers : [],
       notes: i.notes ?? null,
