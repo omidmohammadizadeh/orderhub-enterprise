@@ -547,6 +547,13 @@ model Location {
   city         String?
   postcode     String?
   country      String  @default("GB")
+
+  // Trading currency for this shop. Lives on the LOCATION, not on the brand
+  // and not on a global setting: a brand can trade in two countries, but a
+  // shop has one till, one bank account and one currency. Backfilled from
+  // `country` — see currencyForCountry in @orderhub/shared, which is also
+  // what the "Add location" form uses to pick a default.
+  currency     String  @default("GBP")
   about        String?
   logoUrl      String?
 

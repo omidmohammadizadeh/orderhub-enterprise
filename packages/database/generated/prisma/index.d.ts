@@ -28947,6 +28947,7 @@ export namespace Prisma {
     city: string | null
     postcode: string | null
     country: string | null
+    currency: string | null
     about: string | null
     logoUrl: string | null
     customDomain: string | null
@@ -29005,6 +29006,7 @@ export namespace Prisma {
     city: string | null
     postcode: string | null
     country: string | null
+    currency: string | null
     about: string | null
     logoUrl: string | null
     customDomain: string | null
@@ -29066,6 +29068,7 @@ export namespace Prisma {
     city: number
     postcode: number
     country: number
+    currency: number
     about: number
     logoUrl: number
     customDomain: number
@@ -29162,6 +29165,7 @@ export namespace Prisma {
     city?: true
     postcode?: true
     country?: true
+    currency?: true
     about?: true
     logoUrl?: true
     customDomain?: true
@@ -29220,6 +29224,7 @@ export namespace Prisma {
     city?: true
     postcode?: true
     country?: true
+    currency?: true
     about?: true
     logoUrl?: true
     customDomain?: true
@@ -29281,6 +29286,7 @@ export namespace Prisma {
     city?: true
     postcode?: true
     country?: true
+    currency?: true
     about?: true
     logoUrl?: true
     customDomain?: true
@@ -29433,6 +29439,7 @@ export namespace Prisma {
     city: string | null
     postcode: string | null
     country: string
+    currency: string
     about: string | null
     logoUrl: string | null
     customDomain: string | null
@@ -29517,6 +29524,7 @@ export namespace Prisma {
     city?: boolean
     postcode?: boolean
     country?: boolean
+    currency?: boolean
     about?: boolean
     logoUrl?: boolean
     customDomain?: boolean
@@ -29610,6 +29618,7 @@ export namespace Prisma {
     city?: boolean
     postcode?: boolean
     country?: boolean
+    currency?: boolean
     about?: boolean
     logoUrl?: boolean
     customDomain?: boolean
@@ -29679,6 +29688,7 @@ export namespace Prisma {
     city?: boolean
     postcode?: boolean
     country?: boolean
+    currency?: boolean
     about?: boolean
     logoUrl?: boolean
     customDomain?: boolean
@@ -29812,6 +29822,7 @@ export namespace Prisma {
       city: string | null
       postcode: string | null
       country: string
+      currency: string
       about: string | null
       logoUrl: string | null
       customDomain: string | null
@@ -30298,6 +30309,7 @@ export namespace Prisma {
     readonly city: FieldRef<"Location", 'String'>
     readonly postcode: FieldRef<"Location", 'String'>
     readonly country: FieldRef<"Location", 'String'>
+    readonly currency: FieldRef<"Location", 'String'>
     readonly about: FieldRef<"Location", 'String'>
     readonly logoUrl: FieldRef<"Location", 'String'>
     readonly customDomain: FieldRef<"Location", 'String'>
@@ -151758,6 +151770,7 @@ export namespace Prisma {
     city: 'city',
     postcode: 'postcode',
     country: 'country',
+    currency: 'currency',
     about: 'about',
     logoUrl: 'logoUrl',
     customDomain: 'customDomain',
@@ -154261,6 +154274,7 @@ export namespace Prisma {
     city: 'city',
     postcode: 'postcode',
     country: 'country',
+    currency: 'currency',
     about: 'about',
     logoUrl: 'logoUrl',
     customDomain: 'customDomain',
@@ -157976,6 +157990,7 @@ export namespace Prisma {
     city?: StringNullableFilter<"Location"> | string | null
     postcode?: StringNullableFilter<"Location"> | string | null
     country?: StringFilter<"Location"> | string
+    currency?: StringFilter<"Location"> | string
     about?: StringNullableFilter<"Location"> | string | null
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
@@ -158068,6 +158083,7 @@ export namespace Prisma {
     city?: SortOrderInput | SortOrder
     postcode?: SortOrderInput | SortOrder
     country?: SortOrder
+    currency?: SortOrder
     about?: SortOrderInput | SortOrder
     logoUrl?: SortOrderInput | SortOrder
     customDomain?: SortOrderInput | SortOrder
@@ -158168,6 +158184,7 @@ export namespace Prisma {
     city?: StringNullableFilter<"Location"> | string | null
     postcode?: StringNullableFilter<"Location"> | string | null
     country?: StringFilter<"Location"> | string
+    currency?: StringFilter<"Location"> | string
     about?: StringNullableFilter<"Location"> | string | null
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
@@ -158256,6 +158273,7 @@ export namespace Prisma {
     city?: SortOrderInput | SortOrder
     postcode?: SortOrderInput | SortOrder
     country?: SortOrder
+    currency?: SortOrder
     about?: SortOrderInput | SortOrder
     logoUrl?: SortOrderInput | SortOrder
     customDomain?: SortOrderInput | SortOrder
@@ -158329,6 +158347,7 @@ export namespace Prisma {
     city?: StringNullableWithAggregatesFilter<"Location"> | string | null
     postcode?: StringNullableWithAggregatesFilter<"Location"> | string | null
     country?: StringWithAggregatesFilter<"Location"> | string
+    currency?: StringWithAggregatesFilter<"Location"> | string
     about?: StringNullableWithAggregatesFilter<"Location"> | string | null
     logoUrl?: StringNullableWithAggregatesFilter<"Location"> | string | null
     customDomain?: StringNullableWithAggregatesFilter<"Location"> | string | null
@@ -171557,6 +171576,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -171649,6 +171669,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -171733,6 +171754,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171825,6 +171847,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171913,6 +171936,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -171974,6 +171998,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -172039,6 +172064,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -187045,6 +187071,7 @@ export namespace Prisma {
     city?: SortOrder
     postcode?: SortOrder
     country?: SortOrder
+    currency?: SortOrder
     about?: SortOrder
     logoUrl?: SortOrder
     customDomain?: SortOrder
@@ -187123,6 +187150,7 @@ export namespace Prisma {
     city?: SortOrder
     postcode?: SortOrder
     country?: SortOrder
+    currency?: SortOrder
     about?: SortOrder
     logoUrl?: SortOrder
     customDomain?: SortOrder
@@ -187181,6 +187209,7 @@ export namespace Prisma {
     city?: SortOrder
     postcode?: SortOrder
     country?: SortOrder
+    currency?: SortOrder
     about?: SortOrder
     logoUrl?: SortOrder
     customDomain?: SortOrder
@@ -208343,6 +208372,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -208434,6 +208464,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -208598,6 +208629,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -208689,6 +208721,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -210452,6 +210485,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -210542,6 +210576,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -211504,6 +211539,7 @@ export namespace Prisma {
     city?: StringNullableFilter<"Location"> | string | null
     postcode?: StringNullableFilter<"Location"> | string | null
     country?: StringFilter<"Location"> | string
+    currency?: StringFilter<"Location"> | string
     about?: StringNullableFilter<"Location"> | string | null
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
@@ -214583,6 +214619,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -214674,6 +214711,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -214884,6 +214922,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -214975,6 +215014,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215058,6 +215098,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -215149,6 +215190,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -215248,6 +215290,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215339,6 +215382,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -215971,6 +216015,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -216062,6 +216107,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -216252,6 +216298,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -216343,6 +216390,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217393,6 +217441,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -217484,6 +217533,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -217583,6 +217633,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217674,6 +217725,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -217858,6 +217910,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -217949,6 +218002,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -218155,6 +218209,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218246,6 +218301,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -221556,6 +221612,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -221647,6 +221704,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -221851,6 +221909,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -221942,6 +222001,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -223385,6 +223445,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -223476,6 +223537,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -223680,6 +223742,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -223771,6 +223834,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -223965,6 +224029,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -224056,6 +224121,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -224155,6 +224221,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -224246,6 +224313,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -224398,6 +224466,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -224489,6 +224558,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -225133,6 +225203,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -225224,6 +225295,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226427,6 +226499,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -226518,6 +226591,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -226645,6 +226719,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226736,6 +226811,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226835,6 +226911,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -226926,6 +227003,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -227130,6 +227208,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -227221,6 +227300,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -227415,6 +227495,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -227506,6 +227587,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -227657,6 +227739,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -227748,6 +227831,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -227847,6 +227931,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -227938,6 +228023,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -228037,6 +228123,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -228128,6 +228215,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -228211,6 +228299,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -228302,6 +228391,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -228464,6 +228554,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -228555,6 +228646,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229127,6 +229219,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229218,6 +229311,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229467,6 +229561,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229557,6 +229652,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229651,6 +229747,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229741,6 +229838,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229846,6 +229944,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229937,6 +230036,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -231072,6 +231172,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -231163,6 +231264,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -231510,6 +231612,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -231600,6 +231703,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -231846,6 +231950,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -231937,6 +232042,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232274,6 +232380,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -232365,6 +232472,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -232693,6 +232801,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232784,6 +232893,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -233692,6 +233802,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -233783,6 +233894,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -234076,6 +234188,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -234167,6 +234280,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238915,6 +239029,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -239006,6 +239121,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -239180,6 +239296,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239271,6 +239388,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240592,6 +240710,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -240683,6 +240802,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -240782,6 +240902,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240873,6 +240994,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240956,6 +241078,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241047,6 +241170,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241146,6 +241270,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -241237,6 +241362,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -241817,6 +241943,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241908,6 +242035,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -242153,6 +242281,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -242244,6 +242373,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -245177,6 +245307,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -245506,6 +245637,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -245596,6 +245728,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -245683,6 +245816,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -249965,6 +250099,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -250029,6 +250164,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -250222,6 +250358,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250312,6 +250449,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250399,6 +250537,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250460,6 +250599,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250550,6 +250690,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250637,6 +250778,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -250756,6 +250898,7 @@ export namespace Prisma {
     city?: string | null
     postcode?: string | null
     country?: string
+    currency?: string
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -251036,6 +251179,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -251126,6 +251270,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -251213,6 +251358,7 @@ export namespace Prisma {
     city?: NullableStringFieldUpdateOperationsInput | string | null
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null

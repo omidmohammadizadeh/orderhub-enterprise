@@ -5,6 +5,7 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { currencyForCountry, timezoneForCountry } from "@orderhub/shared";
 import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
@@ -429,7 +430,14 @@ export class LocationsService {
         postcode: addr.postcode ?? null,
         country: addr.country ?? "GB",
         phone: dto.phone ?? null,
-        timezone: dto.timezone ?? "Europe/London",
+        // Timezone and currency default FROM THE COUNTRY, not from the UK.
+        // A Dubai shop created on the old Europe/London default advertises
+        // its hours four hours out and publishes wrong service times to every
+        // marketplace; on the old GBP default it reads its AED prices as
+        // pounds. Both are still editable — this only stops the default from
+        // being silently wrong.
+        timezone: dto.timezone ?? timezoneForCountry(addr.country),
+        currency: (dto as any).currency ?? currencyForCountry(addr.country),
         openingHours: openingHours as any,
       },
     });

@@ -1,0 +1,141 @@
+// ── Country-derived defaults for a location ─────────────────────────────────
+//
+// Money was GBP everywhere: hardcoded "gbp" through the payment services and a
+// literal £ in well over a hundred places in the dashboard. That is fine for a
+// UK-only product and wrong the moment one shop trades in Dubai — a UAE
+// operator would price in AED and read the total as pounds.
+//
+// Currency belongs to the LOCATION. Not to a global toggle, and not to the
+// brand: a brand can trade in two countries, but a shop has one till, one
+// bank account and one currency.
+
+/** Country (ISO-3166 alpha-2) -> currency (ISO-4217). */
+export const CURRENCY_BY_COUNTRY: Record<string, string> = {
+  GB: "GBP",
+  IE: "EUR",
+  US: "USD",
+  // Talabat / Careem markets.
+  AE: "AED", // United Arab Emirates
+  SA: "SAR", // Saudi Arabia
+  KW: "KWD", // Kuwait
+  QA: "QAR", // Qatar
+  BH: "BHD", // Bahrain
+  OM: "OMR", // Oman
+  JO: "JOD", // Jordan
+  EG: "EGP", // Egypt
+  IQ: "IQD", // Iraq
+  PK: "PKR", // Pakistan
+};
+
+export const DEFAULT_CURRENCY = "GBP";
+
+/** The currency a country trades in. Unknown country falls back to GBP. */
+export function currencyForCountry(country: string | null | undefined): string {
+  const c = String(country ?? "").trim().toUpperCase();
+  return CURRENCY_BY_COUNTRY[c] ?? DEFAULT_CURRENCY;
+}
+
+/**
+ * How many decimal places this currency actually has.
+ *
+ * NOT always 2. The Kuwaiti, Bahraini and Omani dinars and the Jordanian
+ * dinar are thousandths — 1.250 KWD is one dinar 250 fils, and rendering it
+ * as "1.25" is a different amount of money. Iraq and Japan have none at all.
+ * Anything that formats or rounds money has to ask rather than assume, which
+ * is why `.toFixed(2)` is not safe once a Gulf shop exists.
+ */
+export function currencyDecimals(currency: string | null | undefined): number {
+  const c = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
+  if (["KWD", "BHD", "OMR", "JOD", "TND", "LYD"].includes(c)) return 3;
+  if (["JPY", "KRW", "IQD", "VND", "CLP", "ISK"].includes(c)) return 0;
+  return 2;
+}
+
+/** Short symbol for compact places — tiles, buttons, a 32-column receipt. */
+export function currencySymbol(currency: string | null | undefined): string {
+  const c = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
+  const map: Record<string, string> = {
+    GBP: "£",
+    EUR: "€",
+    USD: "$",
+    AED: "AED ",
+    SAR: "SAR ",
+    KWD: "KWD ",
+    QAR: "QAR ",
+    BHD: "BHD ",
+    OMR: "OMR ",
+    JOD: "JOD ",
+    EGP: "EGP ",
+    IQD: "IQD ",
+    PKR: "Rs ",
+  };
+  return map[c] ?? `${c} `;
+}
+
+/**
+ * Format an amount for display.
+ *
+ * Uses the platform's own currency data where available so AED, KWD and the
+ * rest come out with the right decimals and placement. Falls back to a plain
+ * symbol + fixed decimals when Intl is unavailable (the print bridge runs in
+ * places where it is not) — the fallback still asks currencyDecimals, so a
+ * dinar keeps its three places either way.
+ */
+export function formatMoney(
+  amount: number | string | null | undefined,
+  currency: string | null | undefined = DEFAULT_CURRENCY,
+  opts?: { /** Symbol only, no grouping — for narrow receipt columns. */ compact?: boolean },
+): string {
+  const n = Number(amount);
+  const value = Number.isFinite(n) ? n : 0;
+  const cur = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
+  const dp = currencyDecimals(cur);
+
+  if (opts?.compact) return `${currencySymbol(cur)}${value.toFixed(dp)}`;
+
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: cur,
+      minimumFractionDigits: dp,
+      maximumFractionDigits: dp,
+    }).format(value);
+  } catch {
+    // Unknown/invalid code — never throw over a display concern.
+    return `${currencySymbol(cur)}${value.toFixed(dp)}`;
+  }
+}
+
+/**
+ * Default IANA timezone for a country.
+ *
+ * Used to seed Location.timezone when a shop is created — a Dubai location
+ * created with the old Europe/London default would advertise its opening
+ * hours four hours out, and publish the wrong service times to every
+ * marketplace. The operator can still change it; this only stops the default
+ * from being silently wrong.
+ *
+ * Countries with several zones are not guessed at — they keep the UK default
+ * and the operator picks, which is honest rather than confidently wrong.
+ */
+export const TIMEZONE_BY_COUNTRY: Record<string, string> = {
+  GB: "Europe/London",
+  IE: "Europe/Dublin",
+  AE: "Asia/Dubai",
+  SA: "Asia/Riyadh",
+  KW: "Asia/Kuwait",
+  QA: "Asia/Qatar",
+  BH: "Asia/Bahrain",
+  OM: "Asia/Muscat",
+  JO: "Asia/Amman",
+  EG: "Africa/Cairo",
+  IQ: "Asia/Baghdad",
+  PK: "Asia/Karachi",
+};
+
+export const DEFAULT_TIMEZONE = "Europe/London";
+
+export function timezoneForCountry(country: string | null | undefined): string {
+  const c = String(country ?? "").trim().toUpperCase();
+  return TIMEZONE_BY_COUNTRY[c] ?? DEFAULT_TIMEZONE;
+}

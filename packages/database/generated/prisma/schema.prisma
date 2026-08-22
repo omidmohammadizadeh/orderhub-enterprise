@@ -547,8 +547,15 @@ model Location {
   city         String?
   postcode     String?
   country      String  @default("GB")
-  about        String?
-  logoUrl      String?
+
+  // Trading currency for this shop. Lives on the LOCATION, not on the brand
+  // and not on a global setting: a brand can trade in two countries, but a
+  // shop has one till, one bank account and one currency. Backfilled from
+  // `country` — see currencyForCountry in @orderhub/shared, which is also
+  // what the "Add location" form uses to pick a default.
+  currency String  @default("GBP")
+  about    String?
+  logoUrl  String?
 
   // Phase AN — online ordering presentation
   customDomain       String?
@@ -1636,7 +1643,7 @@ model PromoCode {
   @@map("promo_codes")
 }
 
-// ── MarketingCampaign (Phase AW-19) ──���──────────────────────────────────────
+// ── MarketingCampaign (Phase AW-19) ─────────────────────────────────────────
 //
 // Generic campaign row covering all the offer types in the Marketing UI
 // picker (Percentage off, BOGO, % off items, Amount off, Free item, Free
@@ -3662,7 +3669,7 @@ model WebPushSubscription {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════��════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════
 
