@@ -21,7 +21,12 @@ export interface KitchenTicketPayload {
      */
     secondLanguageName?: string | null;
     quantity: number;
-    modifiers: Array<{ name: string; depth?: number }>;
+    modifiers: Array<{
+      name: string;
+      depth?: number;
+      /** Kitchen-language name, same rules as the item's. */
+      secondLanguageName?: string | null;
+    }>;
     notes?: string | null;
   }>;
   // Kitchen needs to know at a glance whether to expect cash at
@@ -52,6 +57,16 @@ export function buildKitchenTicketPayload(
    * exist.
    */
   kitchenNames?: Map<string, string>,
+  /**
+   * Modifier translations, keyed by the option's NAME rather than its id.
+   *
+   * An order line stores its modifiers as {name, price, quantity} with no
+   * option id, and adding one would mean touching every order-write path. Name
+   * is a sound key regardless: "Chips" is the same word whichever group it came
+   * from, which is why the translator works on distinct names in the first
+   * place.
+   */
+  modifierNames?: Map<string, string>,
 ): KitchenTicketPayload {
   const customer = order.customerInfo as Record<string, any>;
 
@@ -74,6 +89,8 @@ export function buildKitchenTicketPayload(
       modifiers: (item.modifiers ?? []).map((m: any) => ({
         name: m.name,
         depth: m.depth ?? 0,
+        secondLanguageName:
+          modifierNames?.get(String(m.name ?? "").trim()) ?? null,
       })),
       notes: item.notes ?? null,
     })),

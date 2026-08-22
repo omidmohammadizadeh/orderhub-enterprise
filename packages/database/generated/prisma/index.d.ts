@@ -42366,6 +42366,7 @@ export namespace Prisma {
     locationId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     plu: string | null
     minSelections: number | null
     maxSelections: number | null
@@ -42390,6 +42391,7 @@ export namespace Prisma {
     locationId: string | null
     name: string | null
     description: string | null
+    secondLanguageName: string | null
     plu: string | null
     minSelections: number | null
     maxSelections: number | null
@@ -42414,6 +42416,7 @@ export namespace Prisma {
     locationId: number
     name: number
     description: number
+    secondLanguageName: number
     plu: number
     minSelections: number
     maxSelections: number
@@ -42455,6 +42458,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     plu?: true
     minSelections?: true
     maxSelections?: true
@@ -42479,6 +42483,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     plu?: true
     minSelections?: true
     maxSelections?: true
@@ -42503,6 +42508,7 @@ export namespace Prisma {
     locationId?: true
     name?: true
     description?: true
+    secondLanguageName?: true
     plu?: true
     minSelections?: true
     maxSelections?: true
@@ -42617,6 +42623,7 @@ export namespace Prisma {
     locationId: string | null
     name: string
     description: string | null
+    secondLanguageName: string | null
     plu: string | null
     minSelections: number
     maxSelections: number | null
@@ -42663,6 +42670,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
@@ -42697,6 +42705,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
@@ -42725,6 +42734,7 @@ export namespace Prisma {
     locationId?: boolean
     name?: boolean
     description?: boolean
+    secondLanguageName?: boolean
     plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
@@ -42775,6 +42785,7 @@ export namespace Prisma {
       locationId: string | null
       name: string
       description: string | null
+      secondLanguageName: string | null
       plu: string | null
       minSelections: number
       maxSelections: number | null
@@ -43198,6 +43209,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"ModifierGroup", 'String'>
     readonly name: FieldRef<"ModifierGroup", 'String'>
     readonly description: FieldRef<"ModifierGroup", 'String'>
+    readonly secondLanguageName: FieldRef<"ModifierGroup", 'String'>
     readonly plu: FieldRef<"ModifierGroup", 'String'>
     readonly minSelections: FieldRef<"ModifierGroup", 'Int'>
     readonly maxSelections: FieldRef<"ModifierGroup", 'Int'>
@@ -152028,6 +152040,7 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     plu: 'plu',
     minSelections: 'minSelections',
     maxSelections: 'maxSelections',
@@ -154421,6 +154434,7 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     description: 'description',
+    secondLanguageName: 'secondLanguageName',
     plu: 'plu',
     menuIds: 'menuIds',
     platformSource: 'platformSource',
@@ -159583,6 +159597,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
@@ -159616,6 +159631,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     plu?: SortOrderInput | SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrderInput | SortOrder
@@ -159653,6 +159669,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
@@ -159686,6 +159703,7 @@ export namespace Prisma {
     locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    secondLanguageName?: SortOrderInput | SortOrder
     plu?: SortOrderInput | SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrderInput | SortOrder
@@ -159721,6 +159739,7 @@ export namespace Prisma {
     locationId?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     name?: StringWithAggregatesFilter<"ModifierGroup"> | string
     description?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     plu?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     minSelections?: IntWithAggregatesFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableWithAggregatesFilter<"ModifierGroup"> | number | null
@@ -173490,6 +173509,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -173523,6 +173543,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -173554,6 +173575,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -173587,6 +173609,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -173619,6 +173642,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -173645,6 +173669,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -173672,6 +173697,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -188209,6 +188235,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
@@ -188242,6 +188269,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
@@ -188266,6 +188294,7 @@ export namespace Prisma {
     locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    secondLanguageName?: SortOrder
     plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
@@ -210686,6 +210715,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -210717,6 +210747,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -211599,6 +211630,7 @@ export namespace Prisma {
     locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    secondLanguageName?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
@@ -219180,6 +219212,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219212,6 +219245,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219247,6 +219281,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219279,6 +219314,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219347,6 +219383,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219379,6 +219416,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219420,6 +219458,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219452,6 +219491,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219573,6 +219613,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219605,6 +219646,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219732,6 +219774,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219764,6 +219807,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -219895,6 +219939,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -219927,6 +219972,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -220080,6 +220126,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -220112,6 +220159,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -233136,6 +233184,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -233168,6 +233217,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -233255,6 +233305,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -233287,6 +233338,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -245211,6 +245263,7 @@ export namespace Prisma {
     locationId?: string | null
     name: string
     description?: string | null
+    secondLanguageName?: string | null
     plu?: string | null
     minSelections?: number
     maxSelections?: number | null
@@ -245796,6 +245849,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -245827,6 +245881,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
@@ -245858,6 +245913,7 @@ export namespace Prisma {
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null

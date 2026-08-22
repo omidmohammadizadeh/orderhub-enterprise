@@ -315,7 +315,7 @@ export function renderToEscPos(
     if (boldItems) out.push(...boldOff());
     for (const m of it.modifiers ?? []) {
       if (modScale !== "NORMAL") out.push(...textScale(modScale));
-      write(`  ${modifierIndent(m)}+ ${m.name}`);
+      write(`  ${modifierIndent(m)}+ ${m.secondLanguageName || m.name}`);
       newline();
       if (modScale !== "NORMAL") out.push(...textScale("NORMAL"));
     }

@@ -944,14 +944,25 @@ export function buildOrderReceipt(
     if (Array.isArray(it?.modifiers) && it.modifiers.length) {
       buf.push(...MOD_ON);
       for (const m of it.modifiers) {
-        const mname = String(m?.name ?? m?.title ?? "");
+        // Kitchen-language name wins, same rule as the item line above.
+        const mname = String(
+          m?.secondLanguageName || m?.name || m?.title || "",
+        );
         if (!mname) continue;
         const mprice =
           typeof m?.price === "number" && m.price > 0
             ? `+${money(m.price)}`
             : "";
         const mline = `  - ${mname}`;
-        if (mprice && mline.length + 1 + mprice.length <= modCols)
+        // CP437 cannot carry CJK, so a translated option is drawn as pixels
+        // like the item line. Modifier text is smaller, so the raster is too.
+        const modRaster = needsRaster(mline)
+          ? rasterTextLine(mline, paperWidth === 58 ? 280 : 384, { fontPx: 22 })
+          : null;
+        if (modRaster) {
+          buf.push(...ALIGN_LEFT, ...modRaster);
+          if (mprice) line(buf, padBetween("", mprice, modCols));
+        } else if (mprice && mline.length + 1 + mprice.length <= modCols)
           line(buf, padBetween(mline, mprice, modCols));
         else for (const w of indented(mname, "  - ", modCols)) line(buf, w);
       }

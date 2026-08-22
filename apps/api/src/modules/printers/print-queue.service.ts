@@ -21,8 +21,10 @@ export class PrintQueueService {
    * the overwhelming majority of shops — which print English — pay one cheap
    * settings read that is already loaded, and no extra query at all.
    */
-  private async kitchenNamesFor(order: any): Promise<Map<string, string>> {
-    const empty = new Map<string, string>();
+  private async kitchenNamesFor(
+    order: any,
+  ): Promise<{ items: Map<string, string>; modifiers: Map<string, string> }> {
+    const empty = { items: new Map<string, string>(), modifiers: new Map<string, string>() };
     if (!order?.locationId) return empty;
     try {
       const loc = await this.prisma.location.findUnique({
@@ -41,18 +43,44 @@ export class PrintQueueService {
             .filter((id: any): id is string => typeof id === "string" && !!id),
         ),
       );
-      if (!ids.length) return empty;
+      if (ids.length) {
+        const rows = await this.prisma.menuItem.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, secondLanguageName: true },
+        });
+        for (const r of rows) {
+          // Only real translations go in. A blank means "not translated yet"
+          // and the ticket keeps printing English, so a shop can translate its
+          // menu a few items at a time.
+          const n = (r.secondLanguageName ?? "").trim();
+          if (n) empty.items.set(r.id, n);
+        }
+      }
 
-      const rows = await this.prisma.menuItem.findMany({
-        where: { id: { in: ids } },
-        select: { id: true, secondLanguageName: true },
-      });
-      for (const r of rows) {
-        // Only real translations go in the map. A blank one means "not
-        // translated yet" and the ticket keeps printing English, so a shop can
-        // translate its menu a few items at a time.
-        const n = (r.secondLanguageName ?? "").trim();
-        if (n) empty.set(r.id, n);
+      // Modifier names on the order line, matched by name (see the formatter).
+      // Scoped to this order's brand so one tenant's translation can never
+      // reach another's ticket.
+      const modNames: string[] = Array.from(
+        new Set<string>(
+          (order.items ?? [])
+            .flatMap((i: any) => i.modifiers ?? [])
+            .map((m: any) => String(m?.name ?? "").trim())
+            .filter(Boolean),
+        ),
+      );
+      if (modNames.length && order.brandId) {
+        const mods = await this.prisma.modifierOption.findMany({
+          where: {
+            name: { in: modNames },
+            group: { brandId: order.brandId },
+            NOT: { secondLanguageName: null },
+          },
+          select: { name: true, secondLanguageName: true },
+        });
+        for (const m of mods) {
+          const n = (m.secondLanguageName ?? "").trim();
+          if (n) empty.modifiers.set(m.name.trim(), n);
+        }
       }
       return empty;
     } catch (e: any) {
@@ -60,7 +88,7 @@ export class PrintQueueService {
       this.logger.warn(
         `kitchen-language lookup failed for order ${order?.id}: ${e?.message ?? e}`,
       );
-      return new Map<string, string>();
+      return { items: new Map<string, string>(), modifiers: new Map<string, string>() };
     }
   }
 
@@ -116,11 +144,15 @@ export class PrintQueueService {
       jobs.push({
         printerId: kitchenPrinter.id,
         type: "KITCHEN_TICKET",
-        payload: buildKitchenTicketPayload(
-          order,
-          visitCount,
-          await this.kitchenNamesFor(order),
-        ),
+        payload: await (async () => {
+          const names = await this.kitchenNamesFor(order);
+          return buildKitchenTicketPayload(
+            order,
+            visitCount,
+            names.items,
+            names.modifiers,
+          );
+        })(),
       });
     }
 

@@ -10,7 +10,7 @@ const order = {
   paymentMethod: "CASH",
   paymentStatus: "PAID",
   items: [
-    { menuItemId: "mi1", name: "Salt & Pepper Chicken", quantity: 2, modifiers: [] },
+    { menuItemId: "mi1", name: "Salt & Pepper Chicken", quantity: 2, modifiers: [{ name: "Extra spicy" }, { name: "No MSG" }] },
     { menuItemId: "mi2", name: "Egg Fried Rice", quantity: 1, modifiers: [] },
     { menuItemId: null, name: "Custom item", quantity: 1, modifiers: [] },
   ],
@@ -46,5 +46,25 @@ describe("kitchen ticket — second language", () => {
     // ticket is never left without a name at all.
     const p = buildKitchenTicketPayload(order, 1, new Map([["mi1", "椒盐鸡"]]));
     expect(p.items[0]!.name).toBe("Salt & Pepper Chicken");
+  });
+
+  it("translates modifiers too, matched by name", async () => {
+    const p = buildKitchenTicketPayload(
+      order,
+      1,
+      new Map([["mi1", "椒盐鸡"]]),
+      new Map([["Extra spicy", "多辣"]]),
+    );
+    expect(p.items[0]!.modifiers[0]!.secondLanguageName).toBe("多辣");
+    // Untranslated modifier keeps its English, same rule as items.
+    expect(p.items[0]!.modifiers[1]!.secondLanguageName).toBeNull();
+    expect(p.items[0]!.modifiers[1]!.name).toBe("No MSG");
+  });
+
+  it("leaves modifiers untranslated when no map is passed", async () => {
+    const p = buildKitchenTicketPayload(order, 1, new Map([["mi1", "椒盐鸡"]]));
+    for (const m of p.items[0]!.modifiers) {
+      expect(m.secondLanguageName).toBeNull();
+    }
   });
 });

@@ -1193,6 +1193,10 @@ model ModifierGroup {
   locationId               String?
   name                     String
   description              String?
+
+  // Kitchen-language name — see MenuItem.secondLanguageName. Null means the
+  // ticket prints the English one.
+  secondLanguageName       String?
   plu                      String?
   minSelections            Int           @default(0)
   maxSelections            Int?

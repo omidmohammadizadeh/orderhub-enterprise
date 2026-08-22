@@ -216,6 +216,12 @@ function GeneralTab({
   const [kitchenSecondLanguage, setKitchenSecondLanguage] = useState<boolean>(
     (location as any)?.settings?.kitchenTicketSecondLanguage === true,
   );
+  // Free text, not a fixed list: the shops that need this know exactly what
+  // their kitchen reads, and a dropdown of ten languages would be wrong for
+  // the eleventh.
+  const [kitchenLanguage, setKitchenLanguage] = useState<string>(
+    (location as any)?.settings?.kitchenTicketLanguage ?? "",
+  );
   const [smsSenderName, setSmsSenderName] = useState<string>(
     (location as any)?.settings?.smsSenderName ?? "",
   );
@@ -360,6 +366,7 @@ function GeneralTab({
         settings: {
           posBrandId: posBrandId || null,
           kitchenTicketSecondLanguage: kitchenSecondLanguage,
+          kitchenTicketLanguage: kitchenLanguage.trim() || null,
           smsSenderName: smsSenderName.trim() || null,
           smsNumber: smsNumber.trim() || null,
           callerIdNumber: callerIdNumber.trim() || null,
@@ -802,6 +809,19 @@ function GeneralTab({
             </span>
           </span>
         </label>
+        {kitchenSecondLanguage && (
+          <Field
+            label="Kitchen language"
+            help="Used when you press Translate on a menu. Any language — Chinese (Simplified), Polish, Turkish, Urdu…"
+          >
+            <input
+              value={kitchenLanguage}
+              onChange={(e) => setKitchenLanguage(e.target.value)}
+              placeholder="e.g. Chinese (Simplified)"
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+        )}
       </div>
 
       {/* Per-location phone identity — the number/name this shop's texts and
