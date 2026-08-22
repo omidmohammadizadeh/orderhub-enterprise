@@ -301,21 +301,13 @@ export function renderToEscPos(
   for (const it of payload.items ?? []) {
     if (boldItems) out.push(...boldOn());
     if (itemScale !== "NORMAL") out.push(...textScale(itemScale));
-    // Kitchen-language name wins when the location has translations on and
-    // this product has one. Not printed as an extra line: a kitchen reading
-    // Chinese should not have to scan past the English to find it.
-    //
-    // NOTE: this desktop bridge is a Node process with no canvas, so it cannot
-    // raster the glyphs the way the tablet renderer does — non-Latin text here
-    // still depends on the printer's own font. The tablet path is the one that
-    // draws pixels; see rasterTextLine in apps/web/src/lib/printing/bridge.ts.
-    write(`${it.quantity}x ${it.secondLanguageName || it.name}`);
+    write(`${it.quantity}x ${it.name}`);
     newline();
     if (itemScale !== "NORMAL") out.push(...textScale("NORMAL"));
     if (boldItems) out.push(...boldOff());
     for (const m of it.modifiers ?? []) {
       if (modScale !== "NORMAL") out.push(...textScale(modScale));
-      write(`  ${modifierIndent(m)}+ ${m.secondLanguageName || m.name}`);
+      write(`  ${modifierIndent(m)}+ ${m.name}`);
       newline();
       if (modScale !== "NORMAL") out.push(...textScale("NORMAL"));
     }

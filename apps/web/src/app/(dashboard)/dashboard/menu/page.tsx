@@ -12,8 +12,6 @@ import {
   Trash2,
   UtensilsCrossed,
   ChevronRight,
-  Loader2,
-  Languages,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -104,59 +102,6 @@ export default function MenuPage() {
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
-
-  const translateMutation = useMutation({
-    mutationFn: async (menuId: string) => {
-      const { jobId } = await menusClient.translateMenu(menuId, {
-        language: kitchenLanguage!,
-      });
-      // Poll rather than hold the request open — a few hundred names is
-      // several model calls and the proxy cuts a long request.
-      const deadline = Date.now() + 8 * 60_000;
-      for (;;) {
-        await new Promise((r) => setTimeout(r, 2500));
-        const job = await menusClient.translateMenuJob(menuId, jobId);
-        if (job.status === "done") return job.result;
-        if (job.status === "failed") throw new Error(job.error ?? "Translation failed");
-        if (Date.now() > deadline) throw new Error("Translation is taking too long");
-      }
-    },
-    onSuccess: (r) => {
-      const n = (r?.items ?? 0) + (r?.groups ?? 0) + (r?.options ?? 0);
-      toast.success(
-        n
-          ? `Translated ${r!.items} items, ${r!.groups} option groups and ${r!.options} options into ${kitchenLanguage}`
-          : "Nothing left to translate — every name already has one",
-      );
-      if (r?.skipped) {
-        toast(
-          `${r.skipped} left in the original — check those by hand`,
-          { icon: "⚠️", duration: 9000 },
-        );
-      }
-      qc.invalidateQueries({ queryKey: ["menu"] });
-      qc.invalidateQueries({ queryKey: ["catalog"] });
-    },
-    onError: (e: any) =>
-      toast.error(e?.response?.data?.message ?? e?.message ?? "Translation failed"),
-  });
-
-
-  // Kitchen-ticket translation. Only offered when this location has it turned
-  // on AND named a language — without the language there is nothing to
-  // translate INTO, and guessing one would be worse than not offering it.
-  const locationQuery = useQuery({
-    queryKey: ["location", selectedLocationId],
-    queryFn: () => locationsClient.get(selectedLocationId!),
-    enabled: !!selectedLocationId,
-    staleTime: 5 * 60_000,
-  });
-  const locSettings = ((locationQuery.data as any)?.settings ?? {}) as Record<string, any>;
-  const kitchenLanguage: string | null =
-    locSettings.kitchenTicketSecondLanguage === true
-      ? String(locSettings.kitchenTicketLanguage ?? "").trim() || null
-      : null;
-
 
   // Phase BA — location names for the "Live at" chips (shares the
   // ["locations"] cache with the switcher + publish modal).
@@ -707,15 +652,6 @@ export default function MenuPage() {
                 }
               }}
               onTag={() => { setTaggingMenu(menu); setOpenMenuId(null); }}
-              onTranslate={
-                kitchenLanguage
-                  ? () => translateMutation.mutate(menu.id)
-                  : undefined
-              }
-              translating={
-                translateMutation.isPending &&
-                translateMutation.variables === menu.id
-              }
             />
           ))}
         </div>
@@ -830,12 +766,9 @@ interface MenuCardProps {
   onDelete: () => void;
   onDetach: () => void;
   onTag: () => void;
-  /** Absent unless this location prints kitchen tickets in another language. */
-  onTranslate?: () => void;
-  translating?: boolean;
 }
 
-function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete, onDetach, onTag, onTranslate, translating }: MenuCardProps) {
+function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete, onDetach, onTag }: MenuCardProps) {
   // Phase AM — show the Live badge only when the menu is actually
   // published to at least one target. status=PUBLISHED alone isn't
   // enough; an operator might toggle every target off and that needs
@@ -955,23 +888,6 @@ function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, on
           <Tag className="h-3 w-3" />
           Tag brand
         </Button>
-        {onTranslate && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onTranslate}
-            disabled={translating}
-            className="h-8 gap-1.5 text-xs"
-            title="Fill the kitchen-language name on every item, option group and option that doesn't have one"
-          >
-            {translating ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Languages className="h-3 w-3" />
-            )}
-            {translating ? "Translating…" : "Translate"}
-          </Button>
-        )}
         <Link href={`/dashboard/menu/${menu.id}`}>
           <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
             Edit <ChevronRight className="h-3 w-3" />

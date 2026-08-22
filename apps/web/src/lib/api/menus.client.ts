@@ -374,25 +374,6 @@ export const menusClient = {
       .post<AiMenuCommitResult>(`/v1/brands/${brandId}/menus/import/ai/commit`, body)
       .then((r) => r.data),
 
-  // Kitchen-ticket translation. A background job for the same reason the AI
-  // parse is one — a few hundred names is several model calls, and a request
-  // held open that long gets cut by the proxy while the work succeeds.
-  translateMenu: (menuId: string, body: { language: string; overwrite?: boolean }) =>
-    apiClient
-      .post<{ jobId: string }>(`/v1/menus/${menuId}/translate`, body)
-      .then((r) => r.data),
-
-  translateMenuJob: (menuId: string, jobId: string) =>
-    apiClient
-      .get<{
-        status: "pending" | "done" | "failed";
-        translated: number;
-        total: number;
-        result: { items: number; groups: number; options: number; skipped: number } | null;
-        error: string | null;
-      }>(`/v1/menus/${menuId}/translate/${jobId}`)
-      .then((r) => r.data),
-
   updateMenu: (
     menuId: string,
     data: Partial<{

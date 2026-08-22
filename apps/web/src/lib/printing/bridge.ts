@@ -397,65 +397,6 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-/**
- * True when a string contains anything the printer's CP437 character set
- * cannot represent — CJK, Arabic, Cyrillic, Greek.
- *
- * strBytes() turns every one of those into "?", so a Chinese kitchen ticket
- * would print as a row of question marks. Lines that trip this get drawn as
- * pixels instead (see rasterTextLine).
- */
-export function needsRaster(s: string): boolean {
-  for (const ch of s) {
-    const c = ch.codePointAt(0)!;
-    if (c < 0x80) continue;
-    if (TRANSLIT[ch] !== undefined) continue; // rewritten to ASCII already
-    if (c === 0x00a3) continue; // £ has a real CP437 byte
-    return true;
-  }
-  return false;
-}
-
-/**
- * Draw one line of text as an ESC/POS raster bitmap.
- *
- * The printer is locked to CP437 and most units sold in the UK have no CJK
- * font chip at all, so the only way to put Chinese on the paper reliably is to
- * send pixels — the same trick the QR code already uses, and it works on any
- * printer that can print a logo. The tablet's own system font does the
- * rendering, and Android and iOS both ship CJK coverage.
- *
- * `bold` doubles the weight for item lines, which is what the kitchen reads
- * first. Returns null when there is no canvas (server-side render or a
- * headless test), so the caller falls back to plain text.
- */
-export function rasterTextLine(
-  text: string,
-  dotWidth: number,
-  opts?: { bold?: boolean; fontPx?: number },
-): number[] | null {
-  if (typeof document === "undefined") return null;
-  const fontPx = opts?.fontPx ?? 30;
-  // Raster rows are padded to whole bytes, so the width must be a multiple
-  // of 8 — packRaster divides by 8 and would drop a partial byte otherwise.
-  const w = Math.floor(dotWidth / 8) * 8;
-  const h = Math.ceil(fontPx * 1.35 / 8) * 8;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#000";
-  ctx.textBaseline = "middle";
-  // No explicit family: the platform picks one that actually has the glyphs.
-  // Naming a Latin font here would render CJK as tofu boxes.
-  ctx.font = `${opts?.bold ? "bold " : ""}${fontPx}px sans-serif`;
-  ctx.fillText(text, 0, h / 2);
-  return packRaster(ctx, w, h);
-}
-
 // Cache rastered logos per (url|width) so we don't re-decode the image
 // on every order print.
 const logoCache = new Map<string, number[] | null>();
@@ -894,15 +835,8 @@ export function buildOrderReceipt(
   const items = Array.isArray(payload?.items) ? payload.items : [];
   items.forEach((it: any, idx: number) => {
     const qty = String(it?.quantity ?? 1);
-    // Kitchen-language name wins when the location has translations on and
-    // this product has one. Replaces the English rather than adding a line:
-    // a kitchen reading Chinese should not scan past the English to find it.
     const name = String(
-      it?.secondLanguageName ||
-        it?.name ||
-        it?.productName ||
-        it?.title ||
-        "Item",
+      it?.name ?? it?.productName ?? it?.title ?? "Item",
     );
     const lineTotal =
       typeof it?.totalPrice === "number"
@@ -914,19 +848,7 @@ export function buildOrderReceipt(
 
     buf.push(...BOLD_ON, ...ITEM_ON);
     const head = `${qty}x ${name}`;
-    // CP437 cannot represent CJK — strBytes would turn the whole name into
-    // question marks — so a translated line is drawn as pixels instead, the
-    // same way the QR code and logo already are. Falls through to normal text
-    // when there is no canvas (a headless render), which prints English.
-    const rastered = needsRaster(head)
-      // Same dot widths the QR raster uses for each paper size.
-      ? rasterTextLine(head, paperWidth === 58 ? 280 : 384, { bold: true })
-      : null;
-    if (rastered) {
-      buf.push(...ALIGN_LEFT, ...rastered);
-      // The price cannot ride on a raster row, so it gets its own aligned line.
-      if (priceStr) line(buf, padBetween("", priceStr, itemCols));
-    } else if (head.length + 1 + priceStr.length <= itemCols) {
+    if (head.length + 1 + priceStr.length <= itemCols) {
       line(buf, padBetween(head, priceStr, itemCols));
     } else {
       // Item name too long for one line at this size — wrap the name,
@@ -944,25 +866,14 @@ export function buildOrderReceipt(
     if (Array.isArray(it?.modifiers) && it.modifiers.length) {
       buf.push(...MOD_ON);
       for (const m of it.modifiers) {
-        // Kitchen-language name wins, same rule as the item line above.
-        const mname = String(
-          m?.secondLanguageName || m?.name || m?.title || "",
-        );
+        const mname = String(m?.name ?? m?.title ?? "");
         if (!mname) continue;
         const mprice =
           typeof m?.price === "number" && m.price > 0
             ? `+${money(m.price)}`
             : "";
         const mline = `  - ${mname}`;
-        // CP437 cannot carry CJK, so a translated option is drawn as pixels
-        // like the item line. Modifier text is smaller, so the raster is too.
-        const modRaster = needsRaster(mline)
-          ? rasterTextLine(mline, paperWidth === 58 ? 280 : 384, { fontPx: 22 })
-          : null;
-        if (modRaster) {
-          buf.push(...ALIGN_LEFT, ...modRaster);
-          if (mprice) line(buf, padBetween("", mprice, modCols));
-        } else if (mprice && mline.length + 1 + mprice.length <= modCols)
+        if (mprice && mline.length + 1 + mprice.length <= modCols)
           line(buf, padBetween(mline, mprice, modCols));
         else for (const w of indented(mname, "  - ", modCols)) line(buf, w);
       }

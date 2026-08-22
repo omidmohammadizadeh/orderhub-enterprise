@@ -17,7 +17,6 @@ import { InventoryModule } from '../inventory/inventory.module';
 import { MenuAssignmentsModule } from './menu-assignments.module';
 import { VariantPriceResolverModule } from './variant-price-resolver.module';
 import { QUEUES } from '@orderhub/shared';
-import { MenuTranslationService } from "./menu-translation.service";
 
 @Module({
   // HubRiseModule exports the catalog service used by the AW-11
@@ -49,7 +48,6 @@ import { MenuTranslationService } from "./menu-translation.service";
     DeliverooMenuImporter,
     AiMenuParseService,
     AiMenuImporter,
-    MenuTranslationService,
   ],
   exports: [
     MenusService,

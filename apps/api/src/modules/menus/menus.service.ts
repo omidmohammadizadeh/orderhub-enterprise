@@ -1522,9 +1522,6 @@ export class MenusService {
         ...((dto as any).locationId && { locationId: (dto as any).locationId }),
         name: dto.name,
         description: dto.description,
-        // Kitchen-language name — printed on the kitchen ticket in place of
-        // `name` when the location has translations on.
-        secondLanguageName: dto.secondLanguageName ?? null,
         basePrice: dto.basePrice,
         imageUrl: dto.imageUrl,
         sku: dto.sku,
@@ -1563,11 +1560,6 @@ export class MenusService {
         ...(dto.name && { name: dto.name }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.basePrice !== undefined && { basePrice: dto.basePrice }),
-        // `!== undefined` and not a truthiness check: null is how the editor
-        // CLEARS a translation, and `&&` would silently drop it.
-        ...(dto.secondLanguageName !== undefined && {
-          secondLanguageName: dto.secondLanguageName || null,
-        }),
         ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
         ...(dto.sku !== undefined && { sku: dto.sku }),
         ...(dto.calories !== undefined && { calories: dto.calories }),

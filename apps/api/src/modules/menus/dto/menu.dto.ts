@@ -181,11 +181,6 @@ export class CreateMenuItemDto {
   @ApiProperty() @IsString() @MaxLength(200) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) description?: string;
   @ApiProperty() @IsNumber() @Min(0) basePrice!: number;
-  // Kitchen-language name. Customers always see `name`; the kitchen ticket
-  // prints this instead when the location has translations switched on.
-  // Nullable so clearing the box removes the translation rather than storing
-  // an empty string that reads as "translated to nothing".
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) secondLanguageName?: string | null;
   @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
   // sku is the legacy column; plu is the Phase AK authoritative field.
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) sku?: string;
@@ -226,11 +221,6 @@ export class UpdateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) description?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) basePrice?: number;
-  // Kitchen-language name. Customers always see `name`; the kitchen ticket
-  // prints this instead when the location has translations switched on.
-  // Nullable so clearing the box removes the translation rather than storing
-  // an empty string that reads as "translated to nothing".
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) secondLanguageName?: string | null;
   @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) sku?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) plu?: string;
