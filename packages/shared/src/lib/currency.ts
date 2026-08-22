@@ -81,6 +81,46 @@ export function currencySymbol(currency: string | null | undefined): string {
  * places where it is not) — the fallback still asks currencyDecimals, so a
  * dinar keeps its three places either way.
  */
+/**
+ * What to CALL a currency out loud, and what to call its subunit.
+ *
+ * For the voice agent, which is read aloud by a speech engine: "four pounds
+ * fifty", "fifteen dirhams". The prompt used to hardcode pounds, so the phone
+ * bot quoted a Dubai caller's order in sterling while the till charged AED.
+ *
+ * Plural forms only — prices are said as "one pound fifty" rarely enough that
+ * a singular table would be more machinery than it earns.
+ */
+const CURRENCY_NAMES: Record<string, { major: string; minor: string }> = {
+  GBP: { major: "pounds", minor: "pence" },
+  EUR: { major: "euros", minor: "cents" },
+  USD: { major: "dollars", minor: "cents" },
+  AED: { major: "dirhams", minor: "fils" },
+  SAR: { major: "riyals", minor: "halalas" },
+  QAR: { major: "riyals", minor: "dirhams" },
+  KWD: { major: "dinars", minor: "fils" },
+  BHD: { major: "dinars", minor: "fils" },
+  OMR: { major: "rials", minor: "baisa" },
+  JOD: { major: "dinars", minor: "piastres" },
+  EGP: { major: "pounds", minor: "piastres" },
+  IQD: { major: "dinars", minor: "fils" },
+  PKR: { major: "rupees", minor: "paisa" },
+};
+
+/** The spoken name of a currency's main unit, e.g. "dirhams". Falls back to
+ *  the ISO code, which a speech engine reads out letter by letter — ugly, but
+ *  unmistakably not a wrong currency name. */
+export function currencyName(currency: string | null | undefined): string {
+  const c = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
+  return CURRENCY_NAMES[c]?.major ?? c;
+}
+
+/** The spoken name of a currency's subunit, e.g. "fils". */
+export function currencyMinorName(currency: string | null | undefined): string {
+  const c = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
+  return CURRENCY_NAMES[c]?.minor ?? "";
+}
+
 export function formatMoney(
   amount: number | string | null | undefined,
   currency: string | null | undefined = DEFAULT_CURRENCY,

@@ -1,6 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Anthropic from "@anthropic-ai/sdk";
+import {
+  resolveZone,
+  zoneMode,
+  areaZoneNames,
+  postcodeRequiredFor,
+  currencyName,
+} from "@orderhub/shared";
+import { money } from "../whatsapp/whatsapp-cart";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { SmsService } from "../sms/sms.service";
@@ -150,7 +158,7 @@ export class VoiceAiService {
           // per call — without it the Claude bill roughly triples.
           cache_control: { type: "ephemeral" },
         },
-        { type: "text", text: `=== ORDER SO FAR ===\n${summarizeCart(state.cart)}` },
+        { type: "text", text: `=== ORDER SO FAR ===\n${summarizeCart(state.cart, ctx.currency)}` },
       ];
 
       const tools = this.toolDefs(ctx);
@@ -229,7 +237,7 @@ export class VoiceAiService {
         const mods = it.modifierGroups
           .map((g) => {
             const opts = g.options
-              .map((o) => `${o.name}${o.price ? ` +£${o.price.toFixed(2)}` : ""} [${o.id}]`)
+              .map((o) => `${o.name}${o.price ? ` +${money(o.price, ctx.currency)}` : ""} [${o.id}]`)
               .join(", ");
             const rule = g.required
               ? `REQUIRED pick ${g.min}${g.max ? `-${g.max}` : "+"}`
@@ -237,18 +245,29 @@ export class VoiceAiService {
             return `    - ${g.name} (${rule}): ${opts}`;
           })
           .join("\n");
-        return `  ${it.name} — £${it.price.toFixed(2)} [${it.id}]${
+        return `  ${it.name} — ${money(it.price, ctx.currency)} [${it.id}]${
           it.description ? ` — ${it.description}` : ""
         }${mods ? `\n${mods}` : ""}`;
       })
       .join("\n");
+
+    // What locates a caller depends on the shop. Asking a Dubai caller for a
+    // postcode gets you silence: there isn't one. Where the shop prices by
+    // area, the areas are named here so the model asks for one of THEM rather
+    // than inventing a plausible neighbourhood.
+    const areas = areaZoneNames(ctx.deliveryZones as any);
+    const deliveryGuidance = areas.length
+      ? `- This shop delivers by AREA, not postcode. The areas are: ${areas.join(", ")}. Ask which one they are in, run check_delivery_area with it, and pass it to set_fulfillment as \`area\`. Never accept an area that is not on that list — say plainly that the shop does not deliver there and offer collection.`
+      : postcodeRequiredFor(ctx.country)
+        ? "- For delivery, get the postcode first and run check_delivery_area before taking the rest of the address. Do not take a full address for an area the shop does not deliver to."
+        : "- Addresses here do NOT have postcodes. Never ask for one — take the building or street and the city.";
 
     return `You are answering the telephone for ${ctx.locationName}, a takeaway. You are speaking out loud to a customer on a phone call. You take orders, answer questions, and hand over to a human when you should.
 
 HOW TO SPEAK
 Everything you write is read aloud by a speech engine, so write it the way a person talks.
 - Short sentences. No markdown, no bullet points, no emoji, no headings, no lists.
-- Say prices as words: "four pounds fifty", not "£4.50".
+- Say prices as words in ${currencyName(ctx.currency)}: for example "four ${currencyName(ctx.currency)} fifty", never the written form.
 - Ask ONE question at a time and wait. The caller cannot scroll back or re-read you.
 - Never read the whole menu out. If asked what you do, name two or three popular things and ask what they fancy.
 - Keep your turns to a sentence or two. A long speech on the phone is unbearable.
@@ -258,7 +277,7 @@ TAKING AN ORDER
 - If an item has a REQUIRED option group, ask for that choice before adding it — one group at a time, offering at most three options aloud.
 - Never invent a dish, a price, or an option that is not on the menu below. If they ask for something you do not have, say so plainly and suggest the closest thing you do have.
 - Ask whether it is collection or delivery early, because it changes the price and the time.
-- For delivery, get the postcode first and run check_delivery_area before taking the rest of the address. Do not take a full address for an area the shop does not deliver to.
+${deliveryGuidance}
 
 BEFORE YOU PLACE ANYTHING
 Read the whole order back — every item, the total, and collection or delivery — and wait for them to confirm. This is not optional. A wrong order that reaches the kitchen is the worst thing you can do.
@@ -320,6 +339,11 @@ ${menu || "(no items available — apologise and transfer)"}`;
             line1: { type: "string" },
             city: { type: "string" },
             postcode: { type: "string" },
+            area: {
+              type: "string",
+              description:
+                "The named community, e.g. Dubai Marina. Use this instead of postcode where the shop delivers by area.",
+            },
           },
           required: ["type"],
         },
@@ -327,11 +351,13 @@ ${menu || "(no items available — apologise and transfer)"}`;
       {
         name: "check_delivery_area",
         description:
-          "Check whether the shop delivers to a postcode, and what the fee is. Always call this before taking a full delivery address.",
+          "Check whether the shop delivers somewhere, and what the fee is. Always call this before taking a full delivery address. Pass `area` where the shop delivers by area, `postcode` otherwise.",
         input_schema: {
           type: "object",
-          properties: { postcode: { type: "string" } },
-          required: ["postcode"],
+          properties: {
+            postcode: { type: "string" },
+            area: { type: "string", description: "The named community, e.g. Dubai Marina" },
+          },
         },
       },
       {
@@ -418,7 +444,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         return {
           result:
             state.cart.items.length < before
-              ? `Removed. Order is now:\n${summarizeCart(state.cart)}`
+              ? `Removed. Order is now:\n${summarizeCart(state.cart, ctx.currency)}`
               : "That line isn't on the order.",
         };
       }
@@ -426,18 +452,27 @@ ${menu || "(no items available — apologise and transfer)"}`;
         const type = input?.type === "PICKUP" ? "PICKUP" : "DELIVERY";
         state.cart.fulfillmentType = type;
         state.cart.fulfillmentChosen = true;
-        if (type === "DELIVERY" && input?.postcode) {
+        // An address needs whatever locates it here — a postcode in the UK, a
+        // community in the Gulf. Requiring a postcode meant a Dubai caller
+        // could never get past this, and the order was stamped "GB" besides.
+        if (type === "DELIVERY" && (input?.postcode || input?.area)) {
           state.cart.deliveryAddress = {
             line1: String(input.line1 ?? ""),
             city: String(input.city ?? ctx.address?.city ?? ""),
-            postcode: String(input.postcode),
-            country: "GB",
+            postcode: input.postcode ? String(input.postcode) : undefined,
+            area: input.area ? String(input.area) : undefined,
+            country: ctx.country,
           };
         }
         return { result: `Set to ${type}.` };
       }
       case "check_delivery_area":
-        return { result: this.checkArea(String(input?.postcode ?? ""), ctx) };
+        return {
+          result: this.checkArea(
+            String(input?.area ?? input?.postcode ?? ""),
+            ctx,
+          ),
+        };
       case "get_opening_hours":
         return { result: this.openingHours(ctx) };
       case "get_order_status":
@@ -502,27 +537,33 @@ ${menu || "(no items available — apologise and transfer)"}`;
       notes: input?.notes ? String(input.notes) : undefined,
     };
     state.cart.items.push(line);
-    return `Added ${line.quantity} × ${item.name} at £${lineUnitPrice(line).toFixed(
-      2,
-    )} each.\nOrder so far:\n${summarizeCart(state.cart)}`;
+    return `Added ${line.quantity} × ${item.name} at ${money(
+      lineUnitPrice(line),
+      ctx.currency,
+    )} each.\nOrder so far:\n${summarizeCart(state.cart, ctx.currency)}`;
   }
 
-  private checkArea(postcode: string, ctx: VoiceContext): string {
-    const pc = postcode.toUpperCase().replace(/\s+/g, "");
-    if (!pc) return "Ask them for the postcode.";
-    let best: { prefix: string; fee: number; minOrder: number | null } | null = null;
-    for (const z of ctx.deliveryZones) {
-      const zp = z.postcodePrefix.toUpperCase().replace(/\s+/g, "");
-      if (pc.startsWith(zp) && (!best || zp.length > best.prefix.length)) {
-        best = { prefix: zp, fee: z.fee, minOrderValue: z.minOrderValue } as any;
-      }
+  /** Answer "do you deliver to X?" — where X is a postcode or a community,
+   *  depending on how the shop actually prices delivery. */
+  private checkArea(where: string, ctx: VoiceContext): string {
+    const mode = zoneMode(ctx.deliveryZones as any);
+    const asked = (where ?? "").trim();
+    if (!asked) {
+      return mode === "AREA"
+        ? "Ask them which area they are in."
+        : "Ask them for the postcode.";
     }
-    if (!best) {
-      return `The shop does NOT deliver to ${postcode}. Tell them, and offer collection instead.`;
+    const match = resolveZone(ctx.deliveryZones as any, {
+      postcode: mode === "AREA" ? undefined : asked,
+      area: mode === "AREA" ? asked : undefined,
+    });
+    if (!match.matched) {
+      return `The shop does NOT deliver to ${asked}. Tell them, and offer collection instead.`;
     }
-    const min = (best as any).minOrderValue;
-    return `Delivers to ${postcode}. Fee £${best.fee.toFixed(2)}${
-      min ? `, minimum order £${Number(min).toFixed(2)}` : ""
+    return `Delivers to ${match.label ?? asked}. Fee ${money(match.fee, ctx.currency)}${
+      match.minOrderValue
+        ? `, minimum order ${money(match.minOrderValue, ctx.currency)}`
+        : ""
     }.`;
   }
 
@@ -575,9 +616,10 @@ ${menu || "(no items available — apologise and transfer)"}`;
     const mins = order.estimatedReadyTime
       ? Math.max(0, Math.round((new Date(order.estimatedReadyTime).getTime() - Date.now()) / 60000))
       : null;
-    return `Order ${order.orderNumber}, status ${order.status}, ${order.fulfillmentType}, total £${Number(
-      order.total,
-    ).toFixed(2)}${mins != null ? `, about ${mins} minutes away` : ""}.`;
+    return `Order ${order.orderNumber}, status ${order.status}, ${order.fulfillmentType}, total ${money(
+      Number(order.total),
+      ctx.currency,
+    )}${mins != null ? `, about ${mins} minutes away` : ""}.`;
   }
 
   private async placeOrder(
@@ -593,7 +635,13 @@ ${menu || "(no items available — apologise and transfer)"}`;
       return { result: "The order is empty — nothing to place." };
     }
     const isDelivery = state.cart.fulfillmentType === "DELIVERY";
-    if (isDelivery && !state.cart.deliveryAddress?.postcode) {
+    // What counts as "we have an address" follows the shop, not the UK.
+    const located =
+      zoneMode(ctx.deliveryZones as any) === "AREA"
+        ? !!state.cart.deliveryAddress?.area
+        : !!state.cart.deliveryAddress?.postcode ||
+          !postcodeRequiredFor(ctx.country);
+    if (isDelivery && !(state.cart.deliveryAddress?.line1 && located)) {
       return { result: "You need a delivery address first. Ask for it." };
     }
 
@@ -610,7 +658,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
     }));
     const subtotal = cartSubtotal(state.cart);
     const deliveryFee = isDelivery
-      ? this.feeForPostcode(state.cart.deliveryAddress!.postcode, ctx)
+      ? this.feeForAddress(state.cart.deliveryAddress, ctx)
       : 0;
     const isCard = String(input?.paymentMethod ?? "").toUpperCase() === "CARD";
 
@@ -652,8 +700,9 @@ ${menu || "(no items available — apologise and transfer)"}`;
       }
       const mins = isDelivery ? ctx.deliveryPrepMinutes : ctx.collectionPrepMinutes;
       return {
-        result: `Order ${order.orderNumber} placed. Total £${round2(subtotal + deliveryFee).toFixed(
-          2,
+        result: `Order ${order.orderNumber} placed. Total ${money(
+          round2(subtotal + deliveryFee),
+          ctx.currency,
         )}. Tell them roughly ${mins} minutes.${extra}`,
         turn: { orderId: order.id, outcome: "ORDER" },
       };
@@ -667,16 +716,19 @@ ${menu || "(no items available — apologise and transfer)"}`;
     }
   }
 
-  private feeForPostcode(postcode: string, ctx: VoiceContext): number {
-    const pc = postcode.toUpperCase().replace(/\s+/g, "");
-    let best: { prefix: string; fee: number } | null = null;
-    for (const z of ctx.deliveryZones) {
-      const zp = z.postcodePrefix.toUpperCase().replace(/\s+/g, "");
-      if (pc.startsWith(zp) && (!best || zp.length > best.prefix.length)) {
-        best = { prefix: zp, fee: z.fee };
-      }
-    }
-    return best?.fee ?? 0;
+  /** The delivery fee for whatever address the caller gave.
+   *
+   *  Same resolver as every other surface. Distance bands quote the TOP band
+   *  here — a phone call collects no coordinates — and orders.create re-prices
+   *  them from the address, so the caller is never quoted less than they pay. */
+  private feeForAddress(
+    address: { postcode?: string; area?: string } | undefined,
+    ctx: VoiceContext,
+  ): number {
+    return resolveZone(ctx.deliveryZones as any, {
+      postcode: address?.postcode,
+      area: address?.area,
+    }).fee;
   }
 
   /** Card orders get a Stripe link by text — nobody should read a card number

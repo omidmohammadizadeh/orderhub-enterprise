@@ -37,7 +37,18 @@ export interface VoiceContext extends WaMenuContext {
     city?: string | null;
     postcode?: string | null;
   };
-  deliveryZones: Array<{ postcodePrefix: string; fee: number; minOrderValue: number | null }>;
+  /** Full zone rows, all three modes. This used to be flattened to
+   *  `postcodePrefix: String(z.postcodePrefix ?? "")` — so an area or radius
+   *  row arrived as an empty prefix that matched EVERY postcode, and the bot
+   *  quoted whichever one it hit first. */
+  deliveryZones: Array<{
+    id: string;
+    postcodePrefix: string | null;
+    areaName: string | null;
+    maxDistanceMiles: number | null;
+    fee: number;
+    minOrderValue: number | null;
+  }>;
   acceptsCash: boolean;
   acceptsCard: boolean;
   deliveryPrepMinutes: number;
@@ -120,8 +131,15 @@ export class VoiceContextService {
     }
 
     const zones = await this.db().deliveryZone.findMany({
-      where: { locationId: location.id },
-      select: { postcodePrefix: true, fee: true, minOrderValue: true },
+      where: { locationId: location.id, isActive: true },
+      select: {
+        id: true,
+        postcodePrefix: true,
+        areaName: true,
+        maxDistanceMiles: true,
+        fee: true,
+        minOrderValue: true,
+      },
     });
 
     const direct = (location.directOrderingConfig ?? {}) as any;
@@ -145,7 +163,10 @@ export class VoiceContextService {
         postcode: location.postcode ?? null,
       },
       deliveryZones: zones.map((z: any) => ({
-        postcodePrefix: String(z.postcodePrefix ?? ""),
+        id: String(z.id),
+        postcodePrefix: z.postcodePrefix ?? null,
+        areaName: z.areaName ?? null,
+        maxDistanceMiles: z.maxDistanceMiles != null ? Number(z.maxDistanceMiles) : null,
         fee: Number(z.fee ?? 0),
         minOrderValue: z.minOrderValue != null ? Number(z.minOrderValue) : null,
       })),

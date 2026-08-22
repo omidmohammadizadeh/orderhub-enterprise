@@ -1,7 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Anthropic from "@anthropic-ai/sdk";
-import type { CanonicalOrder } from "@orderhub/shared";
+import type { CanonicalOrder, DeliveryZoneMode } from "@orderhub/shared";
+import {
+  resolveZone,
+  zoneMode,
+  areaZoneNames,
+  matchAreaZone,
+  postcodeRequiredFor,
+} from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { PaymentsService } from "../payments/payments.service";
@@ -18,6 +25,7 @@ import {
   cartItemCount,
   cartSubtotal,
   summarizeCart,
+  money,
   lineUnitPrice,
   lineTotal,
   round2,
@@ -195,9 +203,12 @@ export class WhatsAppAiService {
   }
 
   /** Only send a photo when the menu has a real https image URL (WhatsApp rejects others). */
-  private imageFor(item: WaMenuContext["items"][number]): { imageUrl: string; caption?: string }[] {
+  private imageFor(
+    item: WaMenuContext["items"][number],
+    currency: string,
+  ): { imageUrl: string; caption?: string }[] {
     return item.imageUrl && /^https:\/\//i.test(item.imageUrl)
-      ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item) }]
+      ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item, currency) }]
       : [];
   }
 
@@ -280,7 +291,12 @@ export class WhatsAppAiService {
         await this.send.sendText(
           phoneNumberId,
           from,
-          "Delivery 🛵 What's your address? Please send your *house number and street* (e.g. 12 High Street).",
+          // The worked example follows the shop. "12 High Street" is not what
+          // an address looks like where the bot is now being asked to take
+          // one, and an example is the whole point of the prompt.
+          postcodeRequiredFor(ctx.country)
+            ? "Delivery 🛵 What's your address? Please send your *house number and street* (e.g. 12 High Street)."
+            : "Delivery 🛵 What's your address? Please send your *building and street* (e.g. Marina Gate 2, Al Marsa Street).",
         );
       }
       return;
@@ -288,21 +304,63 @@ export class WhatsAppAiService {
 
     // ── Delivery address capture (plain-text replies only) ────────────────
     const plainText =
-      !/^(fulfil:|item:|cat:|more:|catmore:|opt:|skip:|wizback|rm:|editcart|pay:)/.test(text) &&
+      !/^(fulfil:|item:|cat:|more:|catmore:|opt:|skip:|wizback|rm:|editcart|pay:|area:)/.test(text) &&
       !MENU_CMDS.has(cmd) &&
       !GREETING_CMDS.has(cmd);
     if (convo.state === "ASK_ADDRESS" && plainText) {
-      cart.deliveryAddress = { line1: text.trim(), city: "", postcode: "", country: "GB" };
+      cart.deliveryAddress = { line1: text.trim(), city: "", country: ctx.country };
+      // What we ask for next depends on the shop. A Dubai customer has no
+      // postcode to give, and where the brand prices by area the area is the
+      // field that actually decides the fee.
+      const next = await this.askLocatingField(phoneNumberId, from, ctx);
+      // ORDERING means there was nothing more to ask, so the address is
+      // already complete — mark it chosen in the SAME write rather than
+      // leaving a window where the cart says otherwise.
+      if (next === "ORDERING") cart.fulfillmentChosen = true;
       await this.prisma.whatsAppConversation.update({
         where: { id: convo.id },
-        data: { cart: cart as any, state: "ASK_POSTCODE", lastOutboundAt: new Date() },
+        data: { cart: cart as any, state: next, lastOutboundAt: new Date() },
       });
-      await this.send.sendText(phoneNumberId, from, "Thanks! 📮 And your postcode?");
+      if (next === "ORDERING") {
+        await this.sendMenuList(phoneNumberId, from, ctx, "Great, thanks! 📍 Here's our menu — pick a category 👇");
+      }
       return;
     }
     if (convo.state === "ASK_POSTCODE" && plainText) {
-      if (!cart.deliveryAddress) cart.deliveryAddress = { line1: "", city: "", postcode: "", country: "GB" };
+      if (!cart.deliveryAddress) {
+        cart.deliveryAddress = { line1: "", city: "", country: ctx.country };
+      }
       cart.deliveryAddress.postcode = text.trim().toUpperCase();
+      cart.fulfillmentChosen = true;
+      await this.prisma.whatsAppConversation.update({
+        where: { id: convo.id },
+        data: { cart: cart as any, state: "ORDERING", lastOutboundAt: new Date() },
+      });
+      await this.sendMenuList(phoneNumberId, from, ctx, "Great, thanks! 📍 Here's our menu — pick a category 👇");
+      return;
+    }
+    // The area picker. Taps arrive as `area:<zoneId>`; typed replies are
+    // matched against the shop's own list, which is the only thing that counts
+    // as an answer — an area not on it means the shop doesn't deliver there,
+    // so accepting free text would be promising a delivery we can't make.
+    if (convo.state === "ASK_AREA" && (plainText || text.startsWith("area:"))) {
+      const zones = await this.brandZones(ctx);
+      const picked = text.startsWith("area:")
+        ? (zones.find((z) => z.id === text.slice(5))?.areaName ?? null)
+        : (matchAreaZone(zones as any, text.trim())?.areaName ?? null);
+      if (!picked) {
+        await this.sendAreaPicker(
+          phoneNumberId,
+          from,
+          ctx,
+          `Sorry, we don't deliver to *${text.trim()}* 😔 Pick one of our areas:`,
+        );
+        return;
+      }
+      if (!cart.deliveryAddress) {
+        cart.deliveryAddress = { line1: "", city: "", country: ctx.country };
+      }
+      cart.deliveryAddress.area = picked;
       cart.fulfillmentChosen = true;
       await this.prisma.whatsAppConversation.update({
         where: { id: convo.id },
@@ -365,7 +423,7 @@ export class WhatsAppAiService {
         const rows = cart.items.map((l, i) => ({
           id: `rm:${i}`,
           title: `${l.quantity}× ${l.name}`,
-          description: `£${lineTotal(l).toFixed(2)} — tap to remove`,
+          description: `${money(lineTotal(l), ctx.currency)} — tap to remove`,
         }));
         await this.send.sendList(
           phoneNumberId,
@@ -390,7 +448,7 @@ export class WhatsAppAiService {
         if (cart.items.length === 0) {
           await this.send.sendText(phoneNumberId, from, `Removed *${removed}*. Your cart's empty now 🛒 Reply *menu* to add items.`);
         } else {
-          await this.sendCartActions(phoneNumberId, from, `Removed *${removed}*.\n\n${summarizeCart(cart)}`);
+          await this.sendCartActions(phoneNumberId, from, `Removed *${removed}*.\n\n${summarizeCart(cart, ctx.currency)}`);
         }
         await this.persistTurn(convo.id, history, text, `[Removed ${removed}]`, cart, profileName, convo.customerName);
       } else {
@@ -460,7 +518,7 @@ export class WhatsAppAiService {
       if (!cart.pending && text.startsWith("opt:")) {
         const entry = ctx.optionIndex.get(text.slice(4));
         const item = entry ? ctx.itemIndex.get(entry.itemId) : undefined;
-        if (item && this.wizardEligible(item)) this.beginCustomisation(item, cart);
+        if (item && this.wizardEligible(item)) this.beginCustomisation(item, cart, ctx.currency);
       }
       if (cart.pending) {
         const { ask, doneBody, cancel } = this.wizardStep(text, ctx, cart);
@@ -493,7 +551,7 @@ export class WhatsAppAiService {
         );
         // Native form when published (Business Verification done).
         if (this.flowsEnabledFor(ctx) && this.flowEligible(item)) {
-          for (const img of this.imageFor(item)) {
+          for (const img of this.imageFor(item, ctx.currency)) {
             await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
           }
           await this.send.sendFlow(phoneNumberId, from, {
@@ -503,7 +561,7 @@ export class WhatsAppAiService {
             header: item.name,
             body: `Customise your ${item.name} — pick your options, then tap Add to cart.`,
             screen: "CUSTOMISE",
-            data: this.buildFlowData(item),
+            data: this.buildFlowData(item, ctx.currency),
             mode: this.flowMode,
           });
           await this.persistTurn(convo.id, history, `[Customer opened ${item.name}]`, `[Sent the Customise form for ${item.name}]`, cart, profileName, convo.customerName);
@@ -511,7 +569,7 @@ export class WhatsAppAiService {
         }
         // Single-select options → deterministic group-by-group wizard.
         if (this.wizardEligible(item)) {
-          const { present, images } = this.beginCustomisation(item, cart);
+          const { present, images } = this.beginCustomisation(item, cart, ctx.currency);
           for (const img of images) {
             await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
           }
@@ -519,7 +577,7 @@ export class WhatsAppAiService {
           await this.send.sendText(
             phoneNumberId,
             from,
-            `*${item.name}* — £${item.price.toFixed(2)}${item.description ? `\n${item.description}` : ""}`,
+            `*${item.name}* — ${money(item.price, ctx.currency)}${item.description ? `\n${item.description}` : ""}`,
           );
           if (present && present.kind === "list") {
             await this.send.sendList(phoneNumberId, from, present.body, present.buttonLabel, present.sections, present.header);
@@ -529,11 +587,11 @@ export class WhatsAppAiService {
         }
         // No options → add straight away.
         if (item.modifierGroups.length === 0) {
-          for (const img of this.imageFor(item)) {
+          for (const img of this.imageFor(item, ctx.currency)) {
             await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
           }
           this.addToCart({ itemId: item.id, quantity: 1, modifierOptionIds: [] }, ctx, cart);
-          const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart)}`;
+          const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart, ctx.currency)}`;
           await this.sendCartActions(phoneNumberId, from, body);
           await this.persistTurn(convo.id, history, `[Customer added ${item.name}]`, body, cart, profileName, convo.customerName);
           return;
@@ -567,10 +625,10 @@ export class WhatsAppAiService {
       const system: Anthropic.TextBlockParam[] = [
         {
           type: "text",
-          text: this.staticSystem(ctx),
+          text: this.staticSystem(ctx, areaZoneNames((await this.brandZones(ctx)) as any)),
           cache_control: { type: "ephemeral" },
         },
-        { type: "text", text: `=== CURRENT CART ===\n${summarizeCart(cart)}` },
+        { type: "text", text: `=== CURRENT CART ===\n${summarizeCart(cart, ctx.currency)}` },
       ];
 
       for (let i = 0; i < MAX_TURN_ITERATIONS; i++) {
@@ -642,7 +700,7 @@ export class WhatsAppAiService {
           header: presentation.header,
           body: presentation.body,
           screen: "CUSTOMISE",
-          data: this.buildFlowData(item),
+          data: this.buildFlowData(item, ctx.currency),
           mode: this.flowMode,
         });
       } else {
@@ -737,7 +795,7 @@ export class WhatsAppAiService {
       return;
     }
 
-    const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart)}`;
+    const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart, ctx.currency)}`;
     await this.sendCartActions(phoneNumberId, from, body);
     await this.persistTurn(
       convo.id,
@@ -893,13 +951,14 @@ export class WhatsAppAiService {
   private beginCustomisation(
     item: WaMenuContext["items"][number],
     cart: WaCart,
+    currency: string,
   ): { present?: Presentation; images: { imageUrl: string; caption?: string }[] } {
     const groups = item.modifierGroups;
     cart.pending = { itemId: item.id, groupIds: groups.map((g) => g.id), chosen: {}, done: [] };
     const first = groups[0];
     return {
-      present: first ? this.groupPickerPresent(item, first, []) : undefined,
-      images: this.imageFor(item),
+      present: first ? this.groupPickerPresent(item, first, [], currency) : undefined,
+      images: this.imageFor(item, currency),
     };
   }
 
@@ -909,6 +968,7 @@ export class WhatsAppAiService {
     item: WaMenuContext["items"][number],
     group: WaMenuContext["items"][number]["modifierGroups"][number],
     selected: string[],
+    currency: string,
   ): Presentation {
     const multi = this.isMultiSelect(group);
     const reserve = 1 /* back */ + (multi ? 1 /* done */ : group.required ? 0 : 1 /* skip */);
@@ -917,7 +977,7 @@ export class WhatsAppAiService {
       .map((o) => ({
         id: `opt:${o.id}`,
         title: `${selected.includes(o.id) ? "✅ " : ""}${o.name}`.slice(0, 24),
-        ...(o.price ? { description: `+£${o.price.toFixed(2)}` } : {}),
+        ...(o.price ? { description: `+${money(o.price, currency)}` } : {}),
       }));
     if (multi) {
       rows.push({ id: "wizdone", title: group.required ? "✅ Done" : "✅ Done / none" });
@@ -967,7 +1027,7 @@ export class WhatsAppAiService {
       }
       const prev = groupById(prevGid);
       return prev
-        ? { ask: this.groupPickerPresent(item, prev, pending.chosen[prevGid] ?? []) }
+        ? { ask: this.groupPickerPresent(item, prev, pending.chosen[prevGid] ?? [], ctx.currency) }
         : { cancel: true };
     }
 
@@ -978,13 +1038,13 @@ export class WhatsAppAiService {
     if (text.startsWith("opt:")) {
       const optId = text.slice(4);
       if (!curGroup.options.some((o) => o.id === optId)) {
-        return { ask: this.groupPickerPresent(item, curGroup, sel) }; // ignore stray tap
+        return { ask: this.groupPickerPresent(item, curGroup, sel, ctx.currency) }; // ignore stray tap
       }
       if (this.isMultiSelect(curGroup)) {
         const i = sel.indexOf(optId);
         if (i >= 0) sel.splice(i, 1); // toggle off
         else if (!curGroup.max || sel.length < curGroup.max) sel.push(optId);
-        return { ask: this.groupPickerPresent(item, curGroup, sel) };
+        return { ask: this.groupPickerPresent(item, curGroup, sel, ctx.currency) };
       }
       pending.chosen[curGid] = [optId]; // single-select → complete the group
       pending.done.push(curGid);
@@ -993,7 +1053,7 @@ export class WhatsAppAiService {
 
     if (text === "wizdone" && this.isMultiSelect(curGroup)) {
       if (curGroup.required && sel.length < Math.max(1, curGroup.min)) {
-        return { ask: this.groupPickerPresent(item, curGroup, sel) }; // need more
+        return { ask: this.groupPickerPresent(item, curGroup, sel, ctx.currency) }; // need more
       }
       pending.done.push(curGid);
       return this.advance(item, pending, ctx, cart);
@@ -1027,11 +1087,11 @@ export class WhatsAppAiService {
         }
       }
       if (added > 0) {
-        return { ask: this.groupPickerPresent(item, curGroup, sel) };
+        return { ask: this.groupPickerPresent(item, curGroup, sel, ctx.currency) };
       }
     }
 
-    return { ask: this.groupPickerPresent(item, curGroup, sel) }; // re-show current
+    return { ask: this.groupPickerPresent(item, curGroup, sel, ctx.currency) }; // re-show current
   }
 
   private advance(
@@ -1043,7 +1103,7 @@ export class WhatsAppAiService {
     const nextGid = pending.groupIds.find((id) => !pending.done.includes(id));
     const next = item.modifierGroups.find((g) => g.id === nextGid);
     if (next && nextGid) {
-      return { ask: this.groupPickerPresent(item, next, pending.chosen[nextGid] ?? []) };
+      return { ask: this.groupPickerPresent(item, next, pending.chosen[nextGid] ?? [], ctx.currency) };
     }
     return this.finaliseWizard(item, pending, ctx, cart);
   }
@@ -1063,11 +1123,14 @@ export class WhatsAppAiService {
     );
     cart.pending = undefined;
     if (cart.items.length === before) return { doneBody: result };
-    return { doneBody: `✅ Added ${item.name}.\n\n${summarizeCart(cart)}` };
+    return { doneBody: `✅ Added ${item.name}.\n\n${summarizeCart(cart, ctx.currency)}` };
   }
 
   /** Build the Flow screen data (g0..g4 + notes) from an item's option groups. */
-  private buildFlowData(item: WaMenuContext["items"][number]): Record<string, unknown> {
+  private buildFlowData(
+    item: WaMenuContext["items"][number],
+    currency: string,
+  ): Record<string, unknown> {
     const data: Record<string, unknown> = {
       item_id: item.id,
       subtitle: (item.description ?? "Choose your options").slice(0, 80),
@@ -1092,7 +1155,7 @@ export class WhatsAppAiService {
       }
       const opts = g.options.map((o) => ({
         id: o.id,
-        title: `${o.name}${o.price ? ` (+£${o.price.toFixed(2)})` : ""}`.slice(0, 30),
+        title: `${o.name}${o.price ? ` (+${money(o.price, currency)})` : ""}`.slice(0, 30),
       }));
       const multi = this.isMultiSelect(g);
       if (multi) {
@@ -1161,7 +1224,7 @@ export class WhatsAppAiService {
 
   // ── Auto-applied WhatsApp offers (order-level marketing campaigns) ───────
   // Mirrors the storefront: picks the best ACTIVE campaign on the WHATSAPP
-  // channel. Order-level only (% off / £ off / free delivery); item-level
+  // channel. Order-level only (% off / fixed amount off / free delivery); item-level
   // offers (BOGO, free item) aren't applied in the chat flow yet.
   private async resolveOffer(
     ctx: WaMenuContext,
@@ -1237,18 +1300,28 @@ export class WhatsAppAiService {
       return;
     }
 
-    // Delivery fee from the postcode zones (POS setup); enforce min order +
-    // refuse postcodes outside the delivery zones.
+    // Delivery fee from the brand's zones; enforce min order + refuse
+    // addresses outside them.
     let deliveryFee = 0;
     const subtotal = cartSubtotal(cart);
     if (cart.fulfillmentType === "DELIVERY") {
-      const postcode = cart.deliveryAddress?.postcode ?? "";
-      const zone = await this.resolveDeliveryFee(ctx, postcode);
+      const addr = cart.deliveryAddress;
+      const zone = await this.resolveDeliveryFee(ctx, {
+        postcode: addr?.postcode,
+        area: addr?.area,
+      });
+      // Name back whatever we actually asked them for. Saying "we don't
+      // deliver to SW1A 1AA" to a customer who was asked for their community
+      // reads as a bug, because it is one.
+      const where =
+        zone.mode === "AREA" ? (addr?.area ?? "").trim() : (addr?.postcode ?? "").trim();
       if (zone.hasZones && !zone.matched) {
         await this.send.sendText(
           phoneNumberId,
           from,
-          `Sorry, we don't deliver to *${postcode}* 😔 Reply *start over* to order for collection instead.`,
+          where
+            ? `Sorry, we don't deliver to *${where}* 😔 Reply *start over* to order for collection instead.`
+            : "Sorry, we couldn't work out your delivery area 😔 Reply *start over* to order for collection instead.",
         );
         return;
       }
@@ -1257,7 +1330,7 @@ export class WhatsAppAiService {
         await this.send.sendText(
           phoneNumberId,
           from,
-          `The minimum for delivery to *${postcode}* is £${zone.minOrder.toFixed(2)}. Please add £${need.toFixed(2)} more — reply *menu* to add items.`,
+          `The minimum for delivery to *${where}* is ${money(zone.minOrder, ctx.currency)}. Please add ${money(need, ctx.currency)} more — reply *menu* to add items.`,
         );
         return;
       }
@@ -1286,8 +1359,8 @@ export class WhatsAppAiService {
 
     const subtotalNow = subtotal;
     const fulfilNow = cart.fulfillmentType === "DELIVERY" ? "Delivery" : "Collection";
-    const discountLineNow = discount > 0 ? `\nDiscount${offer.label ? ` (${offer.label})` : ""}: -£${discount.toFixed(2)}` : "";
-    const feeLineNow = deliveryFee > 0 ? `\nDelivery fee: £${deliveryFee.toFixed(2)}` : "";
+    const discountLineNow = discount > 0 ? `\nDiscount${offer.label ? ` (${offer.label})` : ""}: -${money(discount, ctx.currency)}` : "";
+    const feeLineNow = deliveryFee > 0 ? `\nDelivery fee: ${money(deliveryFee, ctx.currency)}` : "";
 
     // ── CASH: no Stripe. Order is placed pay-on-arrival, shows on the board
     //    immediately (cash orders aren't hidden), and auto-accepts if the
@@ -1307,7 +1380,7 @@ export class WhatsAppAiService {
       await this.send.sendText(
         phoneNumberId,
         from,
-        `✅ Order confirmed!\n\n${summarizeCart(cart)}${discountLineNow}${feeLineNow}\n\n${fulfilNow} • Pay *£${cashTotal.toFixed(2)}* in cash on ${cart.fulfillmentType === "DELIVERY" ? "delivery" : "collection"} 💵\n\nWe're preparing it now 🧑‍🍳`,
+        `✅ Order confirmed!\n\n${summarizeCart(cart, ctx.currency)}${discountLineNow}${feeLineNow}\n\n${fulfilNow} • Pay *${money(cashTotal, ctx.currency)}* in cash on ${cart.fulfillmentType === "DELIVERY" ? "delivery" : "collection"} 💵\n\nWe're preparing it now 🧑‍🍳`,
       );
       return;
     }
@@ -1355,13 +1428,13 @@ export class WhatsAppAiService {
     }
     const total = round2(subtotal - discount + deliveryFee + serviceCharge);
     const fulfil = cart.fulfillmentType === "DELIVERY" ? "Delivery" : "Collection";
-    const discountLine = discount > 0 ? `\nDiscount${offer.label ? ` (${offer.label})` : ""}: -£${discount.toFixed(2)}` : "";
-    const feeLine = deliveryFee > 0 ? `\nDelivery fee: £${deliveryFee.toFixed(2)}` : "";
-    const svcLine = serviceCharge > 0 ? `\nService charge: £${serviceCharge.toFixed(2)}` : "";
+    const discountLine = discount > 0 ? `\nDiscount${offer.label ? ` (${offer.label})` : ""}: -${money(discount, ctx.currency)}` : "";
+    const feeLine = deliveryFee > 0 ? `\nDelivery fee: ${money(deliveryFee, ctx.currency)}` : "";
+    const svcLine = serviceCharge > 0 ? `\nService charge: ${money(serviceCharge, ctx.currency)}` : "";
     await this.send.sendText(
       phoneNumberId,
       from,
-      `✅ Order received!\n\n${summarizeCart(cart)}${discountLine}${feeLine}${svcLine}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
+      `✅ Order received!\n\n${summarizeCart(cart, ctx.currency)}${discountLine}${feeLine}${svcLine}\n\n${fulfil} • Total *${money(total, ctx.currency)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
     );
   }
 
@@ -1393,8 +1466,13 @@ export class WhatsAppAiService {
               line1: cart.deliveryAddress.line1 || "",
               line2: cart.deliveryAddress.line2,
               city: cart.deliveryAddress.city || "",
-              postcode: cart.deliveryAddress.postcode || "",
-              country: "GB",
+              // Both optional now. postcode was written as "" for a Gulf
+              // order, and country was stamped "GB" whatever the shop —
+              // between them the ticket, the dispatch map and every export
+              // said a Dubai delivery was in Britain.
+              postcode: cart.deliveryAddress.postcode || undefined,
+              area: cart.deliveryAddress.area || undefined,
+              country: cart.deliveryAddress.country || "GB",
             }
           : undefined,
       items: cart.items.map((l) => ({
@@ -1421,42 +1499,139 @@ export class WhatsAppAiService {
     } as CanonicalOrder;
   }
 
-  /** Postcode → delivery fee, mirroring the storefront: delivery charges
-   *  for customer-facing online ordering come from BRAND settings only,
-   *  never the POS/location zones (POS keeps its own postcode charges).
-   *  Longest-prefix match. */
+  /**
+   * Ask for whatever actually locates this customer, and say which state that
+   * leaves the conversation in.
+   *
+   * Three outcomes, decided by the shop rather than by a constant:
+   *   ASK_AREA      the brand prices by area — send its own list of areas.
+   *   ASK_POSTCODE  a country that has postcodes (UK/IE/US).
+   *   ORDERING      nothing more to ask: no postcodes here, and no area zones
+   *                 to pick from. Asking for a postcode anyway is what the bot
+   *                 used to do, and a Gulf customer has no answer to give.
+   */
+  private async askLocatingField(
+    phoneNumberId: string,
+    from: string,
+    ctx: WaMenuContext,
+  ): Promise<"ASK_AREA" | "ASK_POSTCODE" | "ORDERING"> {
+    const zones = await this.brandZones(ctx);
+    if (zoneMode(zones as any) === "AREA") {
+      await this.sendAreaPicker(phoneNumberId, from, ctx, "Thanks! 📍 Which area are you in?");
+      return "ASK_AREA";
+    }
+    if (postcodeRequiredFor(ctx.country)) {
+      await this.send.sendText(phoneNumberId, from, "Thanks! 📮 And your postcode?");
+      return "ASK_POSTCODE";
+    }
+    return "ORDERING";
+  }
+
+  /**
+   * The shop's delivery areas, as a tappable list.
+   *
+   * WhatsApp caps an interactive list at 10 rows. A brand with more areas than
+   * that gets a plain-text list instead of a silently truncated picker —
+   * dropping rows would tell a customer we don't deliver somewhere we do.
+   * Typed replies are matched against the same list either way.
+   */
+  private async sendAreaPicker(
+    phoneNumberId: string,
+    from: string,
+    ctx: WaMenuContext,
+    body: string,
+  ): Promise<void> {
+    const zones = await this.brandZones(ctx);
+    const areas = zones.filter((z) => z.areaName);
+    if (!areas.length) {
+      await this.send.sendText(phoneNumberId, from, body);
+      return;
+    }
+    if (areas.length > 10) {
+      const names = areaZoneNames(zones as any).join(", ");
+      await this.send.sendText(
+        phoneNumberId,
+        from,
+        `${body}\n\n${names}\n\nReply with the name of your area.`,
+      );
+      return;
+    }
+    await this.send.sendList(
+      phoneNumberId,
+      from,
+      body,
+      "Choose area",
+      [
+        {
+          rows: areas.map((z) => ({
+            id: `area:${z.id}`,
+            title: String(z.areaName),
+            description: `${money(Number(z.fee), ctx.currency)} delivery${
+              z.minOrderValue != null
+                ? ` · min ${money(Number(z.minOrderValue), ctx.currency)}`
+                : ""
+            }`,
+          })),
+        },
+      ],
+    );
+  }
+
+  /** The brand's delivery zones. Brand settings only — never the POS/location
+   *  zones, mirroring the storefront: the two keep separate charges on purpose
+   *  so a shop's till pricing can't leak into customer-facing ordering. */
+  private async brandZones(ctx: WaMenuContext) {
+    if (!ctx.brandId) return [];
+    return this.prisma.deliveryZone.findMany({
+      where: { brandId: ctx.brandId, isActive: true },
+      select: {
+        id: true,
+        postcodePrefix: true,
+        areaName: true,
+        maxDistanceMiles: true,
+        fee: true,
+        minOrderValue: true,
+      },
+    });
+  }
+
+  /** Quote the delivery fee for this cart.
+   *
+   *  Runs the SAME resolver as the storefront and the checkout — this used to
+   *  be a fourth private copy of longest-prefix matching that knew nothing
+   *  about areas or distance bands, so a Gulf shop's every WhatsApp customer
+   *  was told their address was outside the delivery zones.
+   *
+   *  Distance bands are quoted at the TOP band here rather than measured: the
+   *  bot never collects coordinates, and the checkout re-prices it properly
+   *  from the address anyway. Quoting the ceiling and charging less is the
+   *  only direction that can't surprise the customer. */
   private async resolveDeliveryFee(
     ctx: WaMenuContext,
-    postcode: string,
-  ): Promise<{ matched: boolean; hasZones: boolean; fee: number; minOrder: number | null }> {
-    const norm = (postcode || "").toUpperCase().replace(/\s+/g, "");
-    const pick = async (where: Record<string, unknown>) => {
-      const zones = await this.prisma.deliveryZone.findMany({
-        where: { ...where, isActive: true },
-        select: { postcodePrefix: true, fee: true, minOrderValue: true },
-      });
-      let best: { fee: number; minOrder: number | null; len: number } | null = null;
-      for (const z of zones) {
-        // Radius rows carry no prefix — skip them here; WhatsApp quoting is
-        // postcode-only for now.
-        const zp = (z.postcodePrefix ?? "").toUpperCase().replace(/\s+/g, "");
-        if (zp && norm.startsWith(zp) && (!best || zp.length > best.len)) {
-          best = {
-            fee: Number(z.fee),
-            minOrder: z.minOrderValue !== null ? Number(z.minOrderValue) : null,
-            len: zp.length,
-          };
-        }
-      }
-      return { hasZones: zones.length > 0, best };
+    address: { postcode?: string; area?: string },
+  ): Promise<{
+    mode: DeliveryZoneMode;
+    matched: boolean;
+    hasZones: boolean;
+    unserviceable: boolean;
+    fee: number;
+    minOrder: number | null;
+    label: string | null;
+  }> {
+    const zones = await this.brandZones(ctx);
+    const match = resolveZone(zones as any, {
+      postcode: address.postcode,
+      area: address.area,
+    });
+    return {
+      mode: match.mode,
+      matched: match.matched,
+      hasZones: zones.length > 0,
+      unserviceable: match.unserviceable,
+      fee: match.fee,
+      minOrder: match.minOrderValue,
+      label: match.label ?? null,
     };
-
-    // Brand settings only — no fallback to POS/location zones.
-    if (ctx.brandId) {
-      const b = await pick({ brandId: ctx.brandId });
-      return { matched: !!b.best, hasZones: b.hasZones, fee: b.best?.fee ?? 0, minOrder: b.best?.minOrder ?? null };
-    }
-    return { matched: false, hasZones: false, fee: 0, minOrder: null };
   }
 
   /** Persist cart + rolling transcript + derived state for one turn. */
@@ -1538,6 +1713,11 @@ export class WhatsAppAiService {
             line2: { type: "string" },
             city: { type: "string" },
             postcode: { type: "string" },
+            area: {
+              type: "string",
+              description:
+                "The named community the address is in, e.g. \"Dubai Marina\". Required where the shop delivers by area; it must be one of the areas listed in the system prompt.",
+            },
           },
           required: ["type"],
         },
@@ -1640,12 +1820,12 @@ export class WhatsAppAiService {
       case "add_to_cart":
         return { result: this.addToCart(input, ctx, cart) };
       case "update_line":
-        return { result: this.updateLine(input, cart) };
+        return { result: this.updateLine(input, cart, ctx.currency) };
       case "clear_cart":
         cart.items = [];
         return { result: "Cart cleared." };
       case "set_fulfillment":
-        return { result: this.setFulfillment(input, cart) };
+        return { result: this.setFulfillment(input, cart, ctx) };
       case "show_menu":
         return this.showMenu(input, ctx);
       case "show_item":
@@ -1672,7 +1852,7 @@ export class WhatsAppAiService {
     if (text.startsWith("item:")) {
       const item = ctx.itemIndex.get(text.slice(5));
       if (item) {
-        imageSends.push(...this.imageFor(item));
+        imageSends.push(...this.imageFor(item, ctx.currency));
         const required = item.modifierGroups.filter((g) => g.required);
         const groups = item.modifierGroups
           .map((g) => `${g.name} [grp:${g.id}]${g.required ? " (required)" : ""}`)
@@ -1703,7 +1883,7 @@ export class WhatsAppAiService {
       item.modifierGroups
         .map((g) => `${g.name} [grp:${g.id}]${g.required ? " (required)" : " (optional)"}`)
         .join("; ") || "no options";
-    const images = this.imageFor(item);
+    const images = this.imageFor(item, ctx.currency);
     return {
       result: `Showing ${item.name}${images.length ? " with its photo" : " (no photo on file)"}. Option groups: ${groups}.`,
       images,
@@ -1721,7 +1901,7 @@ export class WhatsAppAiService {
     if (this.flowsEnabledFor(ctx) && this.flowEligible(item)) {
       return {
         result: `Opening the Customise form for ${item.name}. The customer picks options and taps Add to cart; you'll be told when it's added.`,
-        images: this.imageFor(item),
+        images: this.imageFor(item, ctx.currency),
         present: {
           kind: "flow",
           itemId: item.id,
@@ -1732,7 +1912,7 @@ export class WhatsAppAiService {
     }
     // Otherwise start the deterministic group-by-group wizard (no AI loop).
     if (this.wizardEligible(item)) {
-      const { present, images } = this.beginCustomisation(item, cart);
+      const { present, images } = this.beginCustomisation(item, cart, ctx.currency);
       return {
         result: `Started options for ${item.name}. The customer is choosing group-by-group and it will be added automatically — do not ask about its options.`,
         present,
@@ -1755,7 +1935,7 @@ export class WhatsAppAiService {
     const rows = group.options.slice(0, 10).map((o) => ({
       id: `opt:${o.id}`,
       title: o.name,
-      ...(o.price ? { description: `+£${o.price.toFixed(2)}` } : {}),
+      ...(o.price ? { description: `+${money(o.price, ctx.currency)}` } : {}),
     }));
     if (rows.length === 0) return { result: `${group.name} has no available options.` };
     const body = String(input.body ?? `Choose your ${group.name}`);
@@ -1771,8 +1951,11 @@ export class WhatsAppAiService {
     };
   }
 
-  private itemCaption(item: { name: string; price: number; description?: string }): string {
-    return `${item.name} — £${item.price.toFixed(2)}${item.description ? `\n${item.description}` : ""}`;
+  private itemCaption(
+    item: { name: string; price: number; description?: string },
+    currency: string,
+  ): string {
+    return `${item.name} — ${money(item.price, currency)}${item.description ? `\n${item.description}` : ""}`;
   }
 
   private addToCart(input: any, ctx: WaMenuContext, cart: WaCart): string {
@@ -1820,38 +2003,40 @@ export class WhatsAppAiService {
       notes: input.notes ? String(input.notes) : undefined,
     };
     cart.items.push(line);
-    return `Added ${quantity}× ${item.name}. Cart now:\n${summarizeCart(cart)}`;
+    return `Added ${quantity}× ${item.name}. Cart now:\n${summarizeCart(cart, ctx.currency)}`;
   }
 
-  private updateLine(input: any, cart: WaCart): string {
+  private updateLine(input: any, cart: WaCart, currency: string): string {
     const idx = cart.items.findIndex((l) => l.lineId === String(input.lineId));
     if (idx === -1) return `No cart line ${input.lineId}.`;
     const qty = Math.max(0, Math.round(Number(input.quantity) || 0));
     if (qty === 0) {
       const removed = cart.items.splice(idx, 1)[0];
-      return `Removed ${removed?.name ?? "item"}. Cart now:\n${summarizeCart(cart)}`;
+      return `Removed ${removed?.name ?? "item"}. Cart now:\n${summarizeCart(cart, currency)}`;
     }
     const line = cart.items[idx];
     if (line) line.quantity = qty;
-    return `Updated. Cart now:\n${summarizeCart(cart)}`;
+    return `Updated. Cart now:\n${summarizeCart(cart, currency)}`;
   }
 
-  private setFulfillment(input: any, cart: WaCart): string {
+  private setFulfillment(input: any, cart: WaCart, ctx: WaMenuContext): string {
     const type = input.type === "PICKUP" ? "PICKUP" : "DELIVERY";
     cart.fulfillmentType = type;
     if (type === "DELIVERY") {
-      if (input.line1 || input.postcode || input.city) {
+      if (input.line1 || input.postcode || input.city || input.area) {
         cart.deliveryAddress = {
           line1: String(input.line1 ?? ""),
           line2: input.line2 ? String(input.line2) : undefined,
           city: String(input.city ?? ""),
-          postcode: String(input.postcode ?? ""),
-          country: "GB",
+          postcode: input.postcode ? String(input.postcode) : undefined,
+          area: input.area ? String(input.area) : undefined,
+          country: ctx.country,
         };
       }
       return cart.deliveryAddress
         ? `Set to delivery. Address on file: ${[
             cart.deliveryAddress.line1,
+            cart.deliveryAddress.area,
             cart.deliveryAddress.city,
             cart.deliveryAddress.postcode,
           ]
@@ -1943,7 +2128,7 @@ export class WhatsAppAiService {
     const rows = pageItems.map((i) => ({
       id: `item:${i.id}`,
       title: i.name,
-      description: `£${i.price.toFixed(2)}${i.description ? ` — ${i.description}` : ""}`,
+      description: `${money(i.price, ctx.currency)}${i.description ? ` — ${i.description}` : ""}`,
     }));
     const nextOffset = offset + showCount;
     const hasMore = nextOffset < items.length;
@@ -1997,13 +2182,13 @@ export class WhatsAppAiService {
     const total = cartSubtotal(cart);
     return [
       "Cart is valid and ready to confirm.",
-      `Items: ${cartItemCount(cart)} | Subtotal: £${total.toFixed(2)} | ${cart.fulfillmentType}`,
+      `Items: ${cartItemCount(cart)} | Subtotal: ${money(total, ctx.currency)} | ${cart.fulfillmentType}`,
       "Tell the customer their order is being placed and confirm the total. (Order creation + payment land in the next phase.)",
     ].join("\n");
   }
 
   // ── System prompt (static part — cached; the cart is sent separately) ────
-  private staticSystem(ctx: WaMenuContext): string {
+  private staticSystem(ctx: WaMenuContext, deliveryAreas: string[]): string {
     return [
       `You are the ordering assistant for ${ctx.locationName}, taking orders over WhatsApp.`,
       "Be warm but BRIEF and DECISIVE — 1-2 short sentences per reply. Don't ask permission for obvious next steps, don't offer to 'pick it up later', and never re-ask something already answered. Just do the helpful thing.",
@@ -2020,7 +2205,19 @@ export class WhatsAppAiService {
       "- Add items with add_to_cart, adjust with update_line, set delivery/pickup with set_fulfillment.",
       "- Use show_buttons for quick choices (e.g. Checkout / Add more / View menu).",
       "- When they're ready and you have items + fulfillment (+ address for delivery), call checkout.",
-      "- Confirm the running total in pounds (£). Only state prices that come from the menu or cart state.",
+      // The list is the shop's own zone rows. Told plainly so the model asks
+      // for an area rather than a postcode, and never invents one — an area
+      // that isn't here is one the shop has said it doesn't deliver to.
+      ...(deliveryAreas.length
+        ? [
+            `- This shop delivers by AREA, not postcode. The areas are: ${deliveryAreas.join(", ")}. Ask which one the customer is in and pass it as set_fulfillment's \`area\`. Never invent an area or accept one not on that list — if they name somewhere else, tell them we don't deliver there and offer collection.`,
+          ]
+        : postcodeRequiredFor(ctx.country)
+          ? []
+          : [
+              `- Addresses here do NOT have postcodes. Never ask for one — take the building/street and city.`,
+            ]),
+      `- Confirm the running total in ${ctx.currency}, formatted exactly as the cart state shows it. Only state prices that come from the menu or cart state.`,
       "- Respond ONLY with the customer-facing message — no internal reasoning, no markdown headings.",
       "",
       "=== LIVE MENU ===",

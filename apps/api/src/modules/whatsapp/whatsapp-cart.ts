@@ -1,7 +1,23 @@
 // Phase AY (P2) — the in-progress WhatsApp cart. Stored as JSON on
 // WhatsAppConversation.cart and mutated by the AI engine's tools. Prices are
-// plain numbers (GBP) computed from the live menu at add-time so the running
-// total never drifts from what the customer was quoted.
+// plain numbers, in the SHOP's currency, computed from the live menu at
+// add-time so the running total never drifts from what the customer was
+// quoted. The currency itself is not stored on the cart — it comes from the
+// location every time something is rendered, so a cart can't outlive a
+// currency change holding stale symbols.
+
+import { formatMoney } from "@orderhub/shared";
+
+/** Money for a WhatsApp message.
+ *
+ *  Compact (symbol + amount, no locale grouping) because these are chat
+ *  messages, not receipts — and because formatMoney's compact path still asks
+ *  currencyDecimals, so a Kuwaiti dinar prints its three decimals rather than
+ *  being silently rounded to two. Every price the bot says goes through here;
+ *  it used to be a hardcoded `£${n.toFixed(2)}` in twenty-odd places. */
+export function money(n: number, currency = "GBP"): string {
+  return formatMoney(n, currency, { compact: true });
+}
 
 export type WaFulfillmentType = "DELIVERY" | "PICKUP";
 
@@ -28,7 +44,10 @@ export interface WaDeliveryAddress {
   line1: string;
   line2?: string;
   city: string;
-  postcode: string;
+  /** Optional — the Gulf has no postal code in everyday use. */
+  postcode?: string;
+  /** The named community the shop prices on, e.g. "Dubai Marina". */
+  area?: string;
   country?: string;
 }
 
@@ -126,8 +145,13 @@ export function cartItemCount(cart: WaCart): number {
   return cart.items.reduce((s, l) => s + l.quantity, 0);
 }
 
-/** Human-readable cart summary for the AI to read (and to mirror to the user). */
-export function summarizeCart(cart: WaCart): string {
+/** Human-readable cart summary for the AI to read (and to mirror to the user).
+ *
+ *  `currency` defaults to GBP only so a caller that genuinely has no context
+ *  still renders something — every real caller passes the shop's own currency.
+ *  This printed a hardcoded £ before, so a Dubai customer was quoted their
+ *  order in pounds. */
+export function summarizeCart(cart: WaCart, currency = "GBP"): string {
   if (cart.items.length === 0) return "(empty)";
   const lines = cart.items.map((l) => {
     const mods =
@@ -135,14 +159,16 @@ export function summarizeCart(cart: WaCart): string {
         ? ` [${l.modifiers.map((m) => m.name).join(", ")}]`
         : "";
     const note = l.notes ? ` (note: ${l.notes})` : "";
-    return `${l.quantity}× ${l.name}${mods}${note} — £${lineTotal(l).toFixed(2)}`;
+    return `${l.quantity}× ${l.name}${mods}${note} — ${money(lineTotal(l), currency)}`;
   });
-  lines.push(`Subtotal: £${cartSubtotal(cart).toFixed(2)}`);
+  lines.push(`Subtotal: ${money(cartSubtotal(cart), currency)}`);
   lines.push(`Fulfillment: ${cart.fulfillmentType}`);
   if (cart.deliveryAddress) {
     const a = cart.deliveryAddress;
     lines.push(
-      `Address: ${[a.line1, a.line2, a.city, a.postcode].filter(Boolean).join(", ")}`,
+      // `area` sits before city: in the Gulf it is the locating part of the
+      // address and there is no postcode behind it.
+      `Address: ${[a.line1, a.line2, a.area, a.city, a.postcode].filter(Boolean).join(", ")}`,
     );
   }
   return lines.join("\n");

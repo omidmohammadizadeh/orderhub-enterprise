@@ -1,5 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { currencyForCountry } from "@orderhub/shared";
+import { money } from "./whatsapp-cart";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
 import { VariantPriceResolverService } from "../menus/variant-price-resolver.service";
@@ -44,6 +46,11 @@ export interface WaMenuContext {
   locationId: string;
   brandId?: string;
   locationName: string;
+  /** The shop's country and trading currency. Everything the bot says about
+   *  money or addresses keys off these — it used to say "£" and ask for a
+   *  postcode wherever the shop was. */
+  country: string;
+  currency: string;
   /** This location's WhatsApp business number (for the wa.me return link). */
   displayPhoneNumber?: string;
   /** Per-number WhatsApp Flow id (the "Customise" native form). A Flow is
@@ -147,6 +154,8 @@ export class WhatsAppMenuService {
         id: true,
         brandId: true,
         name: true,
+        country: true,
+        currency: true,
         brand: { select: { tenantId: true } },
       },
     });
@@ -371,6 +380,10 @@ export class WhatsAppMenuService {
       locationId: location.id,
       brandId: location.brandId ?? undefined,
       locationName: location.name,
+      country: location.country ?? "GB",
+      currency:
+        (location as { currency?: string }).currency ||
+        currencyForCountry(location.country),
       displayPhoneNumber: resolved?.displayPhoneNumber,
       flowId: resolved?.flowId,
       allowCash: resolved?.allowCash,
@@ -438,7 +451,7 @@ export class WhatsAppMenuService {
       const lines = [`## ${cat}`];
       for (const item of catItems) {
         lines.push(
-          `- ${item.name} — £${item.price.toFixed(2)} [id:${item.id}]${
+          `- ${item.name} — ${money(item.price, ctx.currency)} [id:${item.id}]${
             item.description ? ` — ${item.description}` : ""
           }`,
         );
@@ -448,7 +461,7 @@ export class WhatsAppMenuService {
             : `optional${g.max ? `, up to ${g.max}` : ""}`;
           lines.push(`    • ${g.name} [grp:${g.id}] (${rule}):`);
           for (const o of g.options) {
-            const p = o.price ? ` +£${o.price.toFixed(2)}` : "";
+            const p = o.price ? ` +${money(o.price, ctx.currency)}` : "";
             lines.push(`        - ${o.name}${p} [opt:${o.id}]`);
           }
         }
