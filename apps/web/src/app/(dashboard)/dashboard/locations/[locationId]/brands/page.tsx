@@ -282,6 +282,7 @@ export default function LocationBrandsPage() {
                   key={active.id}
                   brand={active}
                   locationId={locationId}
+                  country={(locationQuery.data as any)?.country}
                 />
               </div>
             </section>

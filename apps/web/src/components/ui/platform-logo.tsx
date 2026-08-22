@@ -178,6 +178,38 @@ function WhatsAppLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function CareemLogo({ size, rounded = true }: LogoProps) {
+  // Plain initial tile — the real mark is careem.png; this only shows if that
+  // file is missing, so it needs to be legible, not a reproduction.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Careem">
+      <rect width="100" height="100" fill="#00493E" />
+      <text
+        x="50" y="50" fill="white" fontSize="58" fontWeight="700"
+        textAnchor="middle" dominantBaseline="central"
+        fontFamily="system-ui, sans-serif"
+      >
+        C
+      </text>
+    </svg>
+  );
+}
+
+function TalabatLogo({ size, rounded = true }: LogoProps) {
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="talabat">
+      <rect width="100" height="100" fill="#FF5A00" />
+      <text
+        x="50" y="50" fill="white" fontSize="58" fontWeight="700"
+        textAnchor="middle" dominantBaseline="central"
+        fontFamily="system-ui, sans-serif"
+      >
+        t
+      </text>
+    </svg>
+  );
+}
+
 // Map each canonical platform key to:
 //   slug  — the PNG filename the operator uploads at /brand-logos/{slug}.png
 //   bg    — brand background colour (sits behind the PNG; if the PNG has
@@ -197,6 +229,9 @@ const PLATFORM_META: Record<
   POS:         { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   DIRECT:      { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   ONLINE:      { slug: "online",     bg: "#f97316", svg: (p) => <OnlineLogo {...p} /> },
+  // UAE / GCC marketplaces.
+  CAREEM:      { slug: "careem",     bg: "#00493E", svg: (p) => <CareemLogo {...p} /> },
+  TALABAT:     { slug: "talabat",    bg: "#FF5A00", svg: (p) => <TalabatLogo {...p} /> },
   // Phase AY — WhatsApp ordering channel.
   WHATSAPP:    { slug: "whatsapp",   bg: "#25D366", svg: (p) => <WhatsAppLogo {...p} /> },
   // Phase AW — brand-level direct online ordering. Same wordmark as
@@ -217,6 +252,8 @@ const LABELS: Record<string, string> = {
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
   DIRECT_ONLINE: "Direct online ordering",
+  CAREEM: "Careem",
+  TALABAT: "talabat",
 };
 
 interface Props {

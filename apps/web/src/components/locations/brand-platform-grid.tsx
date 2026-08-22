@@ -14,6 +14,7 @@
 // /v1/brand-connections backend.
 
 import { useEffect, useState } from "react";
+import { visibleChannelIds } from "@orderhub/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, RefreshCw, Settings, Trash2 } from "lucide-react";
 import {
@@ -45,21 +46,24 @@ import toast from "react-hot-toast";
 // /brand/<slug> storefront, configured via the BrandSettingsDrawer
 // rather than the inline external-store-id input the marketplace
 // channels use.
-const PLATFORMS: PlatformId[] = [
-  "DIRECT_ONLINE",
-  "JUST_EAT",
-  "UBER_EATS",
-  "DELIVEROO",
-  "STUART",
-  "UBER_DIRECT",
-];
 
 interface Props {
   brand: Brand;
   locationId: string;
+  /**
+   * The SHOP's country. Channels derive from it, so a UK shop is never shown
+   * Careem and a Dubai shop is never shown Just Eat — every channel here needs
+   * credentials and a store id, so an unavailable one is not harmless clutter,
+   * it is an invitation to configure something that cannot work.
+   *
+   * Deliberately not a control in the header: that would be a second source of
+   * truth able to disagree with the location switcher. A shop is in exactly one
+   * country, so ask the shop.
+   */
+  country?: string | null;
 }
 
-export function BrandPlatformGrid({ brand, locationId }: Props) {
+export function BrandPlatformGrid({ brand, locationId, country }: Props) {
   const qc = useQueryClient();
   const brandId = brand.id;
   const connsQuery = useQuery({
@@ -79,6 +83,16 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
   const currentBrand = brandQuery.data ?? brand;
 
   const conns = connsQuery.data ?? [];
+
+  // Country decides the list; anything already connected is added back even if
+  // this country would not offer it. Hiding a live connection would not stop
+  // the orders — it would only remove the screen that can turn them off.
+  const PLATFORMS = visibleChannelIds(
+    country,
+    conns
+      .filter((c) => c.locationId === locationId && c.status !== "not_connected")
+      .map((c) => c.platform as string),
+  ) as PlatformId[];
 
   const upsert = useMutation({
     mutationFn: brandConnectionsClient.upsert,

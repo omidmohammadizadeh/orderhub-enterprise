@@ -316,7 +316,11 @@ export type PlatformId =
   | "HUBRISE"
   | "STUART"
   | "UBER_DIRECT"
-  | "DIRECT_ONLINE";
+  | "DIRECT_ONLINE"
+  // UAE / GCC. The backend `platform` column is a free-form String, so these
+  // needed no migration.
+  | "CAREEM"
+  | "TALABAT";
 
 export type ConnectionStatus =
   | "not_connected"
