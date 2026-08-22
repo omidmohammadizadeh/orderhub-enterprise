@@ -432,14 +432,27 @@ export function needsRaster(s: string): boolean {
 export function rasterTextLine(
   text: string,
   dotWidth: number,
-  opts?: { bold?: boolean; fontPx?: number },
-): number[] | null {
+  opts?: {
+    bold?: boolean;
+    fontPx?: number;
+    /**
+     * Right-aligned text on the SAME raster row — the line's price.
+     *
+     * A raster is a picture, so a price printed after it lands on the next
+     * line with nothing tying the two together: the ticket read as a row of
+     * names and a separate column of floating numbers. Drawing it into the
+     * same bitmap puts the money back beside its item, which is how every
+     * other line on the ticket reads.
+     */
+    right?: string;
+  },
+): { bytes: number[]; rightDrawn: boolean } | null {
   if (typeof document === "undefined") return null;
   const fontPx = opts?.fontPx ?? 30;
   // Raster rows are padded to whole bytes, so the width must be a multiple
   // of 8 — packRaster divides by 8 and would drop a partial byte otherwise.
   const w = Math.floor(dotWidth / 8) * 8;
-  const h = Math.ceil(fontPx * 1.35 / 8) * 8;
+  const h = Math.ceil((fontPx * 1.35) / 8) * 8;
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -452,8 +465,33 @@ export function rasterTextLine(
   // No explicit family: the platform picks one that actually has the glyphs.
   // Naming a Latin font here would render CJK as tofu boxes.
   ctx.font = `${opts?.bold ? "bold " : ""}${fontPx}px sans-serif`;
-  ctx.fillText(text, 0, h / 2);
-  return packRaster(ctx, w, h);
+
+  const right = (opts?.right ?? "").trim();
+  const textW = ctx.measureText(text).width;
+  // Keep a gap so the name and the money never touch.
+  const rightW = right ? ctx.measureText(right).width + fontPx * 0.5 : 0;
+
+  // Only share the row if the WHOLE name still fits beside the price. At a
+  // large font "2x 椒盐鸡" and "17.00" do not both fit on 80mm, and trimming
+  // the name to make room for the money is the wrong way round — the kitchen
+  // needs the dish. When it will not fit, the price goes back to its own line
+  // and the caller is told so.
+  const rightDrawn = !!right && textW + rightW <= w;
+  if (rightDrawn) {
+    ctx.textAlign = "right";
+    ctx.fillText(right, w, h / 2);
+    ctx.textAlign = "left";
+  }
+
+  // Trim rather than squeeze: fillText's maxWidth compresses the glyphs, and a
+  // squashed CJK character is harder to read than a shortened name.
+  const available = rightDrawn ? w - rightW : w;
+  let shown = text;
+  while (shown.length > 1 && ctx.measureText(shown).width > available) {
+    shown = shown.slice(0, -1);
+  }
+  ctx.fillText(shown, 0, h / 2);
+  return { bytes: packRaster(ctx, w, h), rightDrawn };
 }
 
 // Cache rastered logos per (url|width) so we don't re-decode the image
@@ -920,12 +958,22 @@ export function buildOrderReceipt(
     // when there is no canvas (a headless render), which prints English.
     const rastered = needsRaster(head)
       // Same dot widths the QR raster uses for each paper size.
-      ? rasterTextLine(head, paperWidth === 58 ? 280 : 384, { bold: true })
+      ? rasterTextLine(head, paperWidth === 58 ? 280 : 384, {
+          bold: true,
+          // A raster is pixels, so the printer's double-height command does
+          // nothing to it — the size setting has to be applied to the FONT.
+          // Without this, turning item text up enlarged the price and left the
+          // Chinese name exactly as it was.
+          fontPx: 30 * itemH,
+          right: priceStr,
+        })
       : null;
     if (rastered) {
-      buf.push(...ALIGN_LEFT, ...rastered);
-      // The price cannot ride on a raster row, so it gets its own aligned line.
-      if (priceStr) line(buf, padBetween("", priceStr, itemCols));
+      buf.push(...ALIGN_LEFT, ...rastered.bytes);
+      // Too wide to share the row — the price keeps its own line rather than
+      // costing the name characters.
+      if (!rastered.rightDrawn && priceStr)
+        line(buf, padBetween("", priceStr, itemCols));
     } else if (head.length + 1 + priceStr.length <= itemCols) {
       line(buf, padBetween(head, priceStr, itemCols));
     } else {
@@ -957,11 +1005,17 @@ export function buildOrderReceipt(
         // CP437 cannot carry CJK, so a translated option is drawn as pixels
         // like the item line. Modifier text is smaller, so the raster is too.
         const modRaster = needsRaster(mline)
-          ? rasterTextLine(mline, paperWidth === 58 ? 280 : 384, { fontPx: 22 })
+          ? rasterTextLine(mline, paperWidth === 58 ? 280 : 384, {
+              // Same reason as the item line: the printer cannot scale a
+              // bitmap, so the modifier size setting is applied to the font.
+              fontPx: 22 * modH,
+              right: mprice,
+            })
           : null;
         if (modRaster) {
-          buf.push(...ALIGN_LEFT, ...modRaster);
-          if (mprice) line(buf, padBetween("", mprice, modCols));
+          buf.push(...ALIGN_LEFT, ...modRaster.bytes);
+          if (!modRaster.rightDrawn && mprice)
+            line(buf, padBetween("", mprice, modCols));
         } else if (mprice && mline.length + 1 + mprice.length <= modCols)
           line(buf, padBetween(mline, mprice, modCols));
         else for (const w of indented(mname, "  - ", modCols)) line(buf, w);

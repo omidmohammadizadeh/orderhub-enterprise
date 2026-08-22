@@ -19,6 +19,9 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 // ── Modifier option (leaf node) ───────────────────────────────────────────────
 export class ModifierOptionDto {
   @ApiProperty() @IsString() @MaxLength(120) name!: string;
+  // Kitchen-language name. main.ts runs forbidNonWhitelisted, so an unlisted
+  // field is a 400 before the service is reached.
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) secondLanguageName?: string | null;
   @ApiProperty() @IsNumber() @Min(0) priceAdjustment!: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isDefault?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;

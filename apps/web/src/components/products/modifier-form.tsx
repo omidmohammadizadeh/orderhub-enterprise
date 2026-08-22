@@ -53,6 +53,10 @@ export function ModifierForm({
 
   const [groupId, setGroupId] = useState<string>(existing?.groupId ?? groups[0]?.id ?? "");
   const [name, setName] = useState("");
+  // Kitchen-language name. Filled by Translate, but ALWAYS editable — a
+  // machine translation that reads wrong to the chef has to be correctable by
+  // the person who spotted it, not by re-running the whole menu.
+  const [secondLanguageName, setSecondLanguageName] = useState("");
   const [plu, setPlu] = useState(genPlu());
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [price, setPrice] = useState("0.00");
@@ -84,6 +88,7 @@ export function ModifierForm({
     if (!existing) return;
     setGroupId(existing.groupId);
     setName(existing.name);
+    setSecondLanguageName((existing as any).secondLanguageName ?? "");
     setPlu(existing.plu ?? genPlu());
     setImageUrl(existing.imageUrl);
     setPrice(String(existing.priceAdjustment));
@@ -117,6 +122,9 @@ export function ModifierForm({
       }
       const payload = {
         name: capitaliseFirst(name),
+        // null, not "", so clearing the box removes the translation rather
+        // than storing a blank that reads as "translated to nothing".
+        secondLanguageName: secondLanguageName.trim() || null,
         plu: plu.trim() || null,
         imageUrl,
         priceAdjustment: Number(price) || 0,
@@ -197,6 +205,20 @@ export function ModifierForm({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Extra Cheese, Mushrooms"
+              className="mt-1 h-9 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-medium text-zinc-600">
+              Kitchen name
+              <span className="ml-1 font-normal text-zinc-400">
+                — printed on the kitchen ticket instead of the name above
+              </span>
+            </span>
+            <Input
+              value={secondLanguageName}
+              onChange={(e) => setSecondLanguageName(e.target.value)}
+              placeholder="Leave blank to print the name above"
               className="mt-1 h-9 text-sm"
             />
           </label>

@@ -2252,6 +2252,7 @@ export class MenusService {
     tenantId: string,
     dto: {
       name: string;
+      secondLanguageName?: string | null;
       description?: string;
       minSelections?: number;
       maxSelections?: number;
@@ -2389,6 +2390,8 @@ export class MenusService {
     tenantId: string,
     dto: {
       name: string;
+      /** Kitchen-language name — printed on the kitchen ticket instead. */
+      secondLanguageName?: string | null;
       priceAdjustment?: number;
       isDefault?: boolean;
       imageUrl?: string;
@@ -2412,6 +2415,8 @@ export class MenusService {
       data: {
         groupId,
         name: dto.name,
+        // Kitchen-language name — printed on the kitchen ticket instead.
+        secondLanguageName: dto.secondLanguageName ?? null,
         plu,
         priceAdjustment: dto.priceAdjustment ?? 0,
         pricesBySize: (dto.pricesBySize ?? {}) as any,
@@ -2432,6 +2437,8 @@ export class MenusService {
     tenantId: string,
     dto: {
       name?: string;
+      /** Kitchen-language name — printed on the kitchen ticket instead. */
+      secondLanguageName?: string | null;
       priceAdjustment?: number;
       isDefault?: boolean;
       isAvailable?: boolean;
@@ -2468,6 +2475,11 @@ export class MenusService {
       where: { id: optionId },
       data: {
         ...(dto.name && { name: dto.name }),
+        // `!== undefined` and not truthiness: null is how the editor CLEARS a
+        // translation, and `&&` would silently drop it.
+        ...(dto.secondLanguageName !== undefined && {
+          secondLanguageName: dto.secondLanguageName || null,
+        }),
         ...(dto.priceAdjustment !== undefined && { priceAdjustment: dto.priceAdjustment }),
         ...(dto.isDefault !== undefined && { isDefault: dto.isDefault }),
         ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),

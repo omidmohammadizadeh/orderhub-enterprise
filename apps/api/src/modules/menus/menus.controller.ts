@@ -1029,7 +1029,7 @@ export class MenusController {
   @ApiOperation({ summary: "Update a modifier option" })
   updateModifierOption(
     @Param("optionId") optionId: string,
-    @Body() dto: { name?: string; priceAdjustment?: number; isDefault?: boolean; isAvailable?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string | null; nestedGroupIds?: string[]; sortOrder?: number; platformPricingOverrides?: Record<string, number> },
+    @Body() dto: { name?: string; secondLanguageName?: string | null; priceAdjustment?: number; isDefault?: boolean; isAvailable?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string | null; nestedGroupIds?: string[]; sortOrder?: number; platformPricingOverrides?: Record<string, number> },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.updateModifierOption(optionId, user.tenantId, dto);
