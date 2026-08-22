@@ -545,6 +545,13 @@ export class LocationsService {
       }
     }
 
+    // True only when the request actually MOVES the shop, so an unrelated
+    // save (a rename, a new phone number) never rewrites its currency or clock.
+    const countryChanged =
+      dto.country !== undefined &&
+      String(dto.country).toUpperCase() !==
+        String(current.country ?? "GB").toUpperCase();
+
     const updated = await this.prisma.location.update({
       where: { id: locationId },
       data: {
@@ -554,6 +561,21 @@ export class LocationsService {
         ...(dto.city !== undefined && { city: dto.city }),
         ...(dto.postcode !== undefined && { postcode: dto.postcode }),
         ...(dto.country !== undefined && { country: dto.country }),
+        // Moving a shop to another country moves its money and its clock with
+        // it. Without this, switching an existing shop to AE left it on GBP
+        // and Europe/London for ever — the defaults only ran at create time,
+        // so the country field looked like it worked and silently did nothing.
+        //
+        // An explicit timezone/currency in the same request still wins, so an
+        // operator who deliberately sets one is not overridden.
+        ...(countryChanged && {
+          ...(dto.timezone === undefined && {
+            timezone: timezoneForCountry(dto.country),
+          }),
+          ...((dto as any).currency === undefined && {
+            currency: currencyForCountry(dto.country),
+          }),
+        }),
         ...(mergedAddress && { address: mergedAddress as any }),
         ...(dto.phone !== undefined && { phone: dto.phone }),
         ...(dto.about !== undefined && { about: dto.about }),

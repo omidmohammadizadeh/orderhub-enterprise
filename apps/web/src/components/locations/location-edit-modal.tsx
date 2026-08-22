@@ -13,6 +13,7 @@
 // tabs 2 + 3 appear after first save.
 
 import { useEffect, useMemo, useState } from "react";
+import { SUPPORTED_COUNTRIES, dialCodeForCountry } from "@orderhub/shared";
 import { useCurrency } from "@/hooks/use-currency";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -443,11 +444,32 @@ function GeneralTab({
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Country">
-          <Input value={country} onChange={setCountry} placeholder="GB" />
+        <Field
+          label="Country"
+          help="Sets this shop's currency, timezone and which delivery channels it can connect to."
+        >
+          {/* A picker, not a text box. This field decides the shop's currency,
+              its timezone and its channel list, and the old free-text version
+              silently produced a GBP/London shop for anyone who typed "UAE" or
+              "Dubai" instead of the ISO code. */}
+          <select
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+          >
+            {SUPPORTED_COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field label="Phone">
-          <Input value={phone} onChange={setPhone} placeholder="+44…" />
+          <Input
+            value={phone}
+            onChange={setPhone}
+            placeholder={`${dialCodeForCountry(country)}…`}
+          />
         </Field>
       </div>
 
@@ -865,7 +887,7 @@ function GeneralTab({
             <input
               value={smsNumber}
               onChange={(e) => setSmsNumber(e.target.value)}
-              placeholder="+447..."
+              placeholder={`${dialCodeForCountry(country)}…`}
               className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
             />
           </Field>
@@ -873,7 +895,7 @@ function GeneralTab({
             <input
               value={callerIdNumber}
               onChange={(e) => setCallerIdNumber(e.target.value)}
-              placeholder="+447..."
+              placeholder={`${dialCodeForCountry(country)}…`}
               className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
             />
           </Field>
@@ -900,7 +922,7 @@ function GeneralTab({
           <input
             value={voiceNumber}
             onChange={(e) => setVoiceNumber(e.target.value)}
-            placeholder="+447..."
+            placeholder={`${dialCodeForCountry(country)}…`}
             className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
           />
         </Field>

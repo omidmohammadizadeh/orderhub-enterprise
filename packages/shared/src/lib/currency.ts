@@ -173,3 +173,43 @@ export function tenderNotesFor(currency: string | null | undefined): number[] {
   const c = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
   return TENDER_NOTES[c] ?? TENDER_NOTES.GBP!;
 }
+
+/**
+ * Countries a shop can be created in, for the picker.
+ *
+ * Derived from the ones we actually support rather than a full ISO list: each
+ * of these has a currency, a timezone and a channel set behind it, so offering
+ * a country we cannot price or schedule would be a trap. The Country field was
+ * a free-text box with a "GB" placeholder — typing "UAE" or "Dubai" instead of
+ * "AE" missed every lookup and silently produced a GBP/London shop.
+ */
+export interface CountryOption {
+  code: string;
+  name: string;
+  /** Dial prefix, for phone-field placeholders. */
+  dialCode: string;
+}
+
+export const SUPPORTED_COUNTRIES: CountryOption[] = [
+  { code: "GB", name: "United Kingdom", dialCode: "+44" },
+  { code: "IE", name: "Ireland", dialCode: "+353" },
+  { code: "AE", name: "United Arab Emirates", dialCode: "+971" },
+  { code: "SA", name: "Saudi Arabia", dialCode: "+966" },
+  { code: "KW", name: "Kuwait", dialCode: "+965" },
+  { code: "QA", name: "Qatar", dialCode: "+974" },
+  { code: "BH", name: "Bahrain", dialCode: "+973" },
+  { code: "OM", name: "Oman", dialCode: "+968" },
+  { code: "JO", name: "Jordan", dialCode: "+962" },
+  { code: "EG", name: "Egypt", dialCode: "+20" },
+  { code: "US", name: "United States", dialCode: "+1" },
+];
+
+export function countryOption(code: string | null | undefined): CountryOption | undefined {
+  const c = String(code ?? "").trim().toUpperCase();
+  return SUPPORTED_COUNTRIES.find((x) => x.code === c);
+}
+
+/** Dial prefix for a country, for placeholders. Defaults to the UK. */
+export function dialCodeForCountry(code: string | null | undefined): string {
+  return countryOption(code)?.dialCode ?? "+44";
+}
