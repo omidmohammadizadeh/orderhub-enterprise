@@ -176,18 +176,47 @@ export class MenuTranslationService {
 
     const needs = (v: string | null) => args.overwrite || !(v ?? "").trim();
 
+    // A menu owns its items THROUGH its categories
+    // (Menu -> MenuCategory -> MenuItemOnCategory -> MenuItem), which is how
+    // the editor reads one. MenuItem.menuIds is a parallel array that only the
+    // importers populate, so a menu built by cloning or by hand has items with
+    // an empty menuIds — querying that alone found nothing at all and the job
+    // reported "nothing to translate" on a full menu.
+    //
+    // Both are accepted: category membership is the truth, menuIds catches any
+    // imported row whose category link was not written.
+    const inThisMenu = {
+      OR: [
+        { categories: { some: { category: { menuId: menu.id } } } },
+        { menuIds: { has: menu.id } },
+      ],
+    };
+
+    // Narrow selects on purpose. This runs inside the API process, which sits
+    // close to its heap ceiling on the current instance — there is no reason
+    // to pull prices, images or JSON blobs to translate a name.
     const items = await this.prisma.menuItem.findMany({
-      where: { menuIds: { has: menu.id } },
+      where: inThisMenu,
       select: { id: true, name: true, secondLanguageName: true },
     });
-    const groups = await this.prisma.modifierGroup.findMany({
-      where: { menuIds: { has: menu.id } },
-      select: { id: true, name: true, secondLanguageName: true },
-    });
-    const options = await this.prisma.modifierOption.findMany({
-      where: { group: { menuIds: { has: menu.id } } },
-      select: { id: true, name: true, secondLanguageName: true },
-    });
+    const itemIds = items.map((i) => i.id);
+    const groups = itemIds.length
+      ? await this.prisma.modifierGroup.findMany({
+          where: {
+            OR: [
+              { itemLinks: { some: { itemId: { in: itemIds } } } },
+              { menuIds: { has: menu.id } },
+            ],
+          },
+          select: { id: true, name: true, secondLanguageName: true },
+        })
+      : [];
+    const options = groups.length
+      ? await this.prisma.modifierOption.findMany({
+          where: { groupId: { in: groups.map((g) => g.id) } },
+          select: { id: true, name: true, secondLanguageName: true },
+        })
+      : [];
 
     const pending = [
       ...items.filter((r) => needs(r.secondLanguageName)),

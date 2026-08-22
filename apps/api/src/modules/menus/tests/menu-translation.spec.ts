@@ -12,8 +12,12 @@ function build(opts: {
 }) {
   const calls: string[][] = [];
   const updates: Array<{ table: string; ids: string[]; value: string }> = [];
+  const wheres: Record<string, any[]> = {};
   const mk = (table: string, rows: any[]) => ({
-    findMany: async () => rows,
+    findMany: async (args: any) => {
+      (wheres[table] ??= []).push(args?.where);
+      return rows;
+    },
     updateMany: async ({ where, data }: any) => {
       updates.push({ table, ids: where.id.in, value: data.secondLanguageName });
       return { count: where.id.in.length };
@@ -39,7 +43,7 @@ function build(opts: {
     for (const r of rows) if (r.translated) m.set(r.source, r.translated);
     return m;
   };
-  return { svc, calls, updates };
+  return { svc, calls, updates, wheres };
 }
 
 const row = (id: string, name: string, existing: string | null = null) => ({
@@ -64,21 +68,28 @@ describe("MenuTranslationService", () => {
   });
 
   it("asks about each distinct NAME once, however many rows share it", async () => {
-    // "Chips" repeats across dozens of option groups on a real menu.
+    // "Chips" repeats across dozens of option groups on a real menu. Options
+    // hang off groups which hang off items, so the whole chain must be there.
     const { svc, calls } = build({
+      items: [row("i1", "Kebab")],
+      groups: [row("g1", "Add a side")],
       options: Array.from({ length: 50 }, (_, i) => row(`o${i}`, "Chips")),
     });
     await run(svc);
-    expect(calls.flat()).toEqual(["Chips"]);
+    // Asked about ONCE despite 50 rows carrying it.
+    expect(calls.flat().filter((n) => n === "Chips")).toEqual(["Chips"]);
   });
 
   it("updates every row sharing a name in one write", async () => {
     const { svc, updates } = build({
+      items: [row("i1", "Kebab")],
+      groups: [row("g1", "Add a side")],
       options: Array.from({ length: 50 }, (_, i) => row(`o${i}`, "Chips")),
     });
     await run(svc);
-    expect(updates).toHaveLength(1);
-    expect(updates[0]!.ids).toHaveLength(50);
+    const optionWrites = updates.filter((u) => u.table === "modifierOption");
+    expect(optionWrites).toHaveLength(1);
+    expect(optionWrites[0]!.ids).toHaveLength(50);
   });
 
   it("splits a large menu into batches rather than one huge call", async () => {
@@ -146,5 +157,34 @@ describe("MenuTranslationService", () => {
     const prisma: any = { menu: { findFirst: async () => null } };
     (svc as any).prisma = prisma;
     await expect(run(svc)).rejects.toThrow(/not found/i);
+  });
+
+  it("finds items through the menu's CATEGORIES, not just menuIds", async () => {
+    // A menu owns its items via Menu -> MenuCategory -> MenuItemOnCategory.
+    // MenuItem.menuIds is a parallel array only the importers populate, so
+    // querying it alone reported "nothing to translate" on a full menu.
+    const { svc, wheres } = build({ items: [row("i1", "Chow Mein")] });
+    await run(svc);
+    const where = wheres["menuItem"]![0];
+    const branches = JSON.stringify(where.OR);
+    expect(branches).toContain("categories");
+    expect(branches).toContain("menuIds");
+  });
+
+  it("asks for only the three fields it needs, never whole rows", async () => {
+    // This runs inside the API process, which sits near its heap ceiling —
+    // pulling prices, images and JSON blobs to translate a name is how a
+    // background job takes the API down with it.
+    const { svc } = build({ items: [row("i1", "Chow Mein")] });
+    const seen: any[] = [];
+    const orig = (svc as any).prisma.menuItem.findMany;
+    (svc as any).prisma.menuItem.findMany = async (a: any) => {
+      seen.push(a?.select);
+      return orig(a);
+    };
+    await run(svc);
+    expect(Object.keys(seen[0] ?? {}).sort()).toEqual([
+      "id", "name", "secondLanguageName",
+    ]);
   });
 });
