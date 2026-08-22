@@ -27,6 +27,8 @@ import { WhatsAppConnectionSection } from "./whatsapp-connection-section";
 import { StuartConnectionSection } from "./stuart-connection-section";
 import { UberDirectConnectionSection } from "./uber-direct-connection-section";
 import { ImageUploader } from "@/components/products/image-uploader";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { KITCHEN_LANGUAGES } from "@/lib/kitchen-languages";
 
 interface Props {
   locationId: string | null; // null = create
@@ -812,13 +814,17 @@ function GeneralTab({
         {kitchenSecondLanguage && (
           <Field
             label="Kitchen language"
-            help="Used when you press Translate on a menu. Any language — Chinese (Simplified), Polish, Turkish, Urdu…"
+            help="Used when you press Translate on a menu. Start typing to find one."
           >
-            <input
-              value={kitchenLanguage}
-              onChange={(e) => setKitchenLanguage(e.target.value)}
-              placeholder="e.g. Chinese (Simplified)"
-              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            <SearchableSelect
+              options={KITCHEN_LANGUAGES.map((l) => ({ value: l, label: l }))}
+              value={kitchenLanguage || undefined}
+              onChange={(v) => setKitchenLanguage(v ?? "")}
+              placeholder="Pick a language"
+              searchPlaceholder="Type to find a language…"
+              emptyLabel="No language matches — tell us and we'll add it"
+              allowAll
+              allLabel="Not set"
             />
           </Field>
         )}
