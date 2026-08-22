@@ -17,6 +17,7 @@
 //   • Everyone else — read-only.
 
 import { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X, ExternalLink, Trash2, Plus } from "lucide-react";
 import {
@@ -62,6 +63,8 @@ export function BrandSettingsDrawer({
   onClose,
   onSaved,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const user = useAuthStore((s) => s.user);
   const isAdmin = !!user && ADMIN_ROLES.has(user.role as string);
   const canEdit = !!user && STOREFRONT_EDIT_ROLES.has(user.role as string);
@@ -553,7 +556,7 @@ export function BrandSettingsDrawer({
               </select>
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Fixed (£)">
+              <Field label="Fixed ({symbol.trim()})">
                 <input
                   value={appFeeFixed}
                   onChange={(e) => setAppFeeFixed(e.target.value)}
@@ -597,6 +600,7 @@ export function BrandSettingsDrawer({
                           feePreview.source.mode,
                           feePreview.source.fixed,
                           feePreview.source.percentage,
+                          money,
                         )}
                         ?
                       </p>
@@ -609,6 +613,7 @@ export function BrandSettingsDrawer({
                                 c.from.mode,
                                 c.from.fixed,
                                 c.from.percentage,
+                                money,
                               )}
                             </span>
                           </li>
@@ -951,7 +956,7 @@ export function BrandSettingsDrawer({
                   className="input"
                 />
               </Field>
-              <Field label="Min delivery (£)">
+              <Field label="Min delivery ({symbol.trim()})">
                 <input
                   value={minDelivery}
                   onChange={(e) => setMinDelivery(e.target.value)}
@@ -1053,6 +1058,7 @@ function DeliveryZonesEditor({
   brandId: string;
   isAdmin: boolean;
 }) {
+  const { money } = useCurrency();
   const qc = useQueryClient();
   const zonesQuery = useQuery<DeliveryZone[]>({
     queryKey: ["brand-delivery-zones", brandId],
@@ -1194,10 +1200,10 @@ function DeliveryZonesEditor({
                     })()
                   : z.postcodePrefix}
               </span>
-              <span className="w-20 text-zinc-700">£{Number(z.fee).toFixed(2)}</span>
+              <span className="w-20 text-zinc-700">{money(Number(z.fee))}</span>
               <span className="flex-1 text-zinc-500">
                 {z.minOrderValue != null
-                  ? `min £${Number(z.minOrderValue).toFixed(2)}`
+                  ? `min ${money(Number(z.minOrderValue))}`
                   : "no min"}
               </span>
               <button
@@ -1254,7 +1260,7 @@ function DeliveryZonesEditor({
             />
           </Field>
         )}
-        <Field label="Fee (£)">
+        <Field label="Fee ({symbol.trim()})">
           <input
             value={newFee}
             onChange={(e) => setNewFee(e.target.value)}
@@ -1266,7 +1272,7 @@ function DeliveryZonesEditor({
             className="input"
           />
         </Field>
-        <Field label="Min order (£)">
+        <Field label="Min order ({symbol.trim()})">
           <input
             value={newMin}
             onChange={(e) => setNewMin(e.target.value)}
@@ -1351,13 +1357,18 @@ function ToggleRow({
 }
 
 /** "5% + £0.50", "£0.50", "5%", or "No fee" — for the apply-to-all preview. */
-function describeFee(mode: string, fixed: number, percentage: number): string {
+function describeFee(
+  mode: string,
+  fixed: number,
+  percentage: number,
+  money: (n: number | string | null | undefined) => string,
+): string {
   const parts: string[] = [];
   if (mode === "percentage_only" || mode === "fixed_and_percentage") {
     if (percentage) parts.push(`${percentage}%`);
   }
   if (mode === "fixed_only" || mode === "fixed_and_percentage") {
-    if (fixed) parts.push(`£${Number(fixed).toFixed(2)}`);
+    if (fixed) parts.push(`${money(Number(fixed))}`);
   }
   return parts.length ? parts.join(" + ") : "No fee";
 }

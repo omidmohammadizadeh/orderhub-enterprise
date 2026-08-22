@@ -6,6 +6,7 @@
 // amountOff instead of percentageOff.
 
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check } from "lucide-react";
 import toast from "react-hot-toast";
@@ -42,6 +43,8 @@ const AUDIENCES: Array<{ id: CampaignAudience; label: string; sub: string }> = [
 ];
 
 export function AmountOffCampaignForm({ onCancel, onSaved }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   const [name, setName] = useState("Amount off order");
@@ -162,7 +165,7 @@ export function AmountOffCampaignForm({ onCancel, onSaved }: Props) {
                     setAmountCustom(false);
                   }}
                 >
-                  £{a}
+                  {money(a)}
                 </Chip>
               ))}
               <Chip
@@ -353,7 +356,7 @@ export function AmountOffCampaignForm({ onCancel, onSaved }: Props) {
                     setMinOrderCustom(false);
                   }}
                 >
-                  £{v}
+                  {money(v)}
                 </Chip>
               ))}
               <Chip

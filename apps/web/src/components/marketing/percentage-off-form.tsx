@@ -16,6 +16,7 @@
 // one-brand-per-row). Channel set is shared across all of them.
 
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check } from "lucide-react";
 import toast from "react-hot-toast";
@@ -52,6 +53,8 @@ const AUDIENCES: Array<{ id: CampaignAudience; label: string; sub: string }> = [
 ];
 
 export function PercentageOffCampaignForm({ onCancel, onSaved }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   // Default name lets the operator skip the field — server requires it.
@@ -379,7 +382,7 @@ export function PercentageOffCampaignForm({ onCancel, onSaved }: Props) {
                     setMinOrderCustom(false);
                   }}
                 >
-                  £{v}
+                  {money(v)}
                 </Chip>
               ))}
               <Chip

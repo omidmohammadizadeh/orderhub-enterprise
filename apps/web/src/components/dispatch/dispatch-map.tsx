@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useRef } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useGoogleMaps } from "@/lib/hooks/use-google-maps";
 import type { DispatchFeed } from "@/lib/api/dispatch.client";
 
@@ -50,6 +51,8 @@ export function DispatchMap({
   selectedIds?: string[];
   onSelectOrder?: (id: string) => void;
 }) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const { ready, error } = useGoogleMaps();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);

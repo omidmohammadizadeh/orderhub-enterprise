@@ -16,6 +16,7 @@ const PRESETS = [10, 15, 20, 25];
 
 export function TipStep({
   money,
+  symbol,
   tipBase,
   brandName,
   onBack,
@@ -23,6 +24,8 @@ export function TipStep({
 }: {
   /** Bound to the store's currency by the page — never format money here. */
   money: (n: number | string | null | undefined) => string;
+  /** Currency symbol for bare prefixes, e.g. the custom-tip input. */
+  symbol: string;
   /** Food total the percentages are taken from — excludes delivery and tax. */
   tipBase: number;
   brandName: string;
@@ -110,7 +113,7 @@ export function TipStep({
               Tip amount
             </span>
             <div className="mt-1 flex items-center gap-2 rounded-xl border border-zinc-300 px-3 py-2.5">
-              <span className="text-[15px] text-zinc-500">£</span>
+              <span className="text-[15px] text-zinc-500">{symbol}</span>
               <input
                 autoFocus
                 inputMode="decimal"

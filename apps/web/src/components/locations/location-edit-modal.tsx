@@ -13,6 +13,7 @@
 // tabs 2 + 3 appear after first save.
 
 import { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Wand2, X } from "lucide-react";
@@ -39,6 +40,8 @@ interface Props {
 type Tab = "general" | "hours";
 
 export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const router = useRouter();
   const isCreate = locationId === null;
   const [tab, setTab] = useState<Tab>("general");
@@ -716,7 +719,7 @@ function GeneralTab({
               className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
             />
           </Field>
-          <Field label="Fixed fee per order (£)">
+          <Field label="Fixed fee per order ({symbol.trim()})">
             <input
               type="number"
               min="0"
@@ -762,7 +765,7 @@ function GeneralTab({
               className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
             />
           </Field>
-          <Field label="Fixed fee per order (£)">
+          <Field label="Fixed fee per order ({symbol.trim()})">
             <input
               type="number"
               min="0"

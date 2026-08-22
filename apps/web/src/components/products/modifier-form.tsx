@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Plus, X } from "lucide-react";
 import {
@@ -32,6 +33,8 @@ export function ModifierForm({
   onCancel,
   onSaved,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const isEdit = !!modifierId;
 
@@ -258,7 +261,7 @@ export function ModifierForm({
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="£0.00"
+                    placeholder={`${symbol}0.00`}
                     value={row.price}
                     onChange={(e) =>
                       setSizeRows(
@@ -407,7 +410,7 @@ export function ModifierForm({
             <h3 className="text-sm font-semibold text-zinc-900">Pricing</h3>
             <label className="block">
               <span className="text-xs font-medium text-zinc-700">
-                Base price (£)
+                Base price ({symbol.trim()})
               </span>
               <Input
                 type="number"

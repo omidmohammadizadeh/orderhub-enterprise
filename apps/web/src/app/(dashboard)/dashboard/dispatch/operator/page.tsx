@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -28,6 +29,8 @@ import { DriverManageModal } from "@/components/dispatch/driver-manage-modal";
 // attention, out-for-delivery, per-driver active jobs + cash-up, reassignment,
 // and recent failed/cancelled.
 export default function OperatorDashboardPage() {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const queryClient = useQueryClient();
   const [location, setLocation] = useState("all");
   const [busyOrder, setBusyOrder] = useState<string | null>(null);
@@ -319,6 +322,7 @@ function DriverCard({
   onReassign: (orderId: string, driverId: string) => void;
   onManage: () => void;
 }) {
+  const { money, symbol } = useCurrency();
   const dot =
     d.status === "ONLINE" ? "bg-green-500" : d.status === "ON_JOB" ? "bg-amber-500" : "bg-slate-300";
   const statusLabel = d.status === "ON_JOB" ? "On a job" : d.status === "ONLINE" ? "Online" : "Offline";
@@ -334,7 +338,7 @@ function DriverCard({
         <div className="flex items-center gap-2">
           <div className="text-right text-xs">
             <span className="font-semibold">{d.delivered}</span>
-            <span className="text-muted-foreground"> today · £{d.total}</span>
+            <span className="text-muted-foreground"> today · {money(d.total)}</span>
           </div>
           <button
             onClick={onManage}
@@ -347,10 +351,10 @@ function DriverCard({
 
       {/* Cash-up split + driver earning */}
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-        <span className="rounded bg-green-50 px-2 py-0.5 text-green-700">Cash £{d.cashTotal}</span>
-        <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-700">Card £{d.cardTotal}</span>
+        <span className="rounded bg-green-50 px-2 py-0.5 text-green-700">Cash {money(d.cashTotal)}</span>
+        <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-700">Card {money(d.cardTotal)}</span>
         <span className="rounded bg-violet-50 px-2 py-0.5 font-medium text-violet-700">
-          Driver earned £{d.earningToday}
+          Driver earned {money(d.earningToday)}
         </span>
       </div>
 

@@ -12,6 +12,7 @@
 // create flow; a hint tells the operator to recreate for those.
 
 import { useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check } from "lucide-react";
 import toast from "react-hot-toast";
@@ -68,6 +69,8 @@ const numOrNull = (v: number | string | null): number | null =>
   v == null || v === "" ? null : Number(v);
 
 export function EditCampaignModal({ campaign, onCancel, onSaved }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );

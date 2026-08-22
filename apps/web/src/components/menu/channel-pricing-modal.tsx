@@ -14,6 +14,7 @@
 // operator's own site; the markup stays visible and reversible.
 
 import { useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Percent, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -49,6 +50,8 @@ export function ChannelPricingModal({
   brandId,
   onClose,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   // channelKey → { display name, uplift % }. A channel absent from this map is
   // simply not sold on, and is left completely alone. The name is carried

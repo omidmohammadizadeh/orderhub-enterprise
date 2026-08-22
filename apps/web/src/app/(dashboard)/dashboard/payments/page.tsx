@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   DollarSign,
@@ -80,6 +81,8 @@ const PAYOUT_STATUS: Record<string, { label: string; className: string }> = {
 };
 
 export default function PaymentsPage() {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const { user } = useAuthStore();
   const [reconcileDate, setReconcileDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -212,7 +215,7 @@ export default function PaymentsPage() {
               <div key={label} className="bg-zinc-50 rounded-xl p-4">
                 <div className="text-xs text-zinc-500 mb-1">{label}</div>
                 <div className={cn("text-xl font-bold", color, bold && "text-2xl")}>
-                  £{parseFloat(value).toFixed(2)}
+                  {money(parseFloat(value))}
                 </div>
               </div>
             ))}
@@ -290,7 +293,7 @@ export default function PaymentsPage() {
                   </div>
                   <div className={cn("text-sm font-semibold ml-3 flex-shrink-0", LEDGER_COLORS[e.type] ?? "text-zinc-700")}>
                     {["REFUND", "PLATFORM_FEE", "PROCESSING_FEE"].includes(e.type) ? "−" : "+"}
-                    £{parseFloat(e.amount).toFixed(2)}
+                    {money(parseFloat(e.amount))}
                   </div>
                 </div>
               ))}

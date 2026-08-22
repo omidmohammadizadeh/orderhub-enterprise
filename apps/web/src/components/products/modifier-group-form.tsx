@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Plus, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -38,6 +39,8 @@ export function ModifierGroupForm({
   onCancel,
   onSaved,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const isEdit = !!groupId;
 
@@ -467,7 +470,7 @@ export function ModifierGroupForm({
                             </button>
                             <div className="flex items-center gap-3 flex-shrink-0">
                               <span className="text-xs text-zinc-500 tabular-nums">
-                                £{Number(m.priceAdjustment).toFixed(2)}
+                                {money(Number(m.priceAdjustment))}
                               </span>
                               <button
                                 type="button"
@@ -547,7 +550,7 @@ export function ModifierGroupForm({
                           </span>
                           <span className="flex items-center gap-3">
                             <span className="text-xs text-zinc-500 tabular-nums">
-                              £{m.priceAdjustment.toFixed(2)}
+                              {money(m.priceAdjustment)}
                             </span>
                             <button
                               type="button"
@@ -570,7 +573,7 @@ export function ModifierGroupForm({
                     id: m.id,
                     name: m.name,
                     subtitle: m.plu ?? "",
-                    meta: `£${Number(m.priceAdjustment).toFixed(2)} · from ${m.groupName}`,
+                    meta: `${money(Number(m.priceAdjustment))} · from ${m.groupName}`,
                   }))}
                   initiallyAttachedIds={attachedModifierIds}
                   onConfirm={(ids) => {
@@ -605,7 +608,7 @@ export function ModifierGroupForm({
                 <Input
                   type="number"
                   step="0.01"
-                  placeholder="£0.00"
+                  placeholder={`${symbol}0.00`}
                   value={newModPrice}
                   onChange={(e) => setNewModPrice(e.target.value)}
                   className="w-20 h-8 text-xs tabular-nums"

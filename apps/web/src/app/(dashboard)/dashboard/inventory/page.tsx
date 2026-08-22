@@ -16,6 +16,7 @@
 // service; just a new tab on this page.
 
 import { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X, AlertCircle, Check, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
@@ -62,6 +63,8 @@ const DURATION_LABELS: Record<DurationPreset, string> = {
 };
 
 export default function InventoryPage() {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   // ── Brand picker ─────────────────────────────────────────────────────
@@ -292,7 +295,7 @@ export default function InventoryPage() {
                     {item.name}
                   </p>
                   <p className="text-[11px] text-zinc-500">
-                    £{Number(item.basePrice).toFixed(2)}
+                    {money(Number(item.basePrice))}
                     {item.plu ? ` · ${item.plu}` : ""}
                   </p>
                 </div>
@@ -368,7 +371,7 @@ export default function InventoryPage() {
                           {item.name}
                         </p>
                         <p className="text-[10px] text-zinc-500">
-                          £{Number(item.basePrice).toFixed(2)}
+                          {money(Number(item.basePrice))}
                           {item.plu ? ` · ${item.plu}` : ""}
                         </p>
                       </div>
@@ -426,7 +429,7 @@ export default function InventoryPage() {
                   {panelItem.name}
                 </h2>
                 <p className="text-[11px] text-zinc-500">
-                  £{Number(panelItem.basePrice).toFixed(2)}
+                  {money(Number(panelItem.basePrice))}
                   {panelItem.plu ? ` · ${panelItem.plu}` : ""}
                 </p>
               </div>

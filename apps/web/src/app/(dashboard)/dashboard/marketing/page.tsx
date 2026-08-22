@@ -9,6 +9,7 @@
 // and route them straight into a "coming soon" stub for now.
 
 import { useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Megaphone,
@@ -121,6 +122,8 @@ const DATE_RANGES: Array<{ id: string; label: string; days: number | null }> = [
 const ALL_STATUSES: CampaignStatus[] = ["ACTIVE", "PAUSED", "DRAFT", "ENDED"];
 
 export default function MarketingPage() {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [formType, setFormType] = useState<CampaignType | null>(null);

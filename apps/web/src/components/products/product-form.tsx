@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { locationsClient } from "@/lib/api/locations.client";
 import { ArrowLeft, Save, Trash2, Plus, X, Layers, GripVertical } from "lucide-react";
@@ -54,6 +55,8 @@ export function ProductForm({
   onCancel,
   onSaved,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const isEdit = !!productId;
 
@@ -554,6 +557,7 @@ export function ProductForm({
                     key={i}
                     sku={sku}
                     basePrice={Number(basePrice) || 0}
+                    money={money}
                     allGroups={groupsForSkus}
                     onChange={(next) =>
                       setSkus(skus.map((r, idx) => (idx === i ? next : r)))
@@ -748,7 +752,7 @@ export function ProductForm({
           <Card className="p-5">
             <h3 className="text-sm font-semibold text-zinc-900 mb-4">Pricing</h3>
             <div className="space-y-4">
-              <Field label="Base price (£)">
+              <Field label="Base price ({symbol.trim()})">
                 <Input
                   type="number"
                   step="0.01"
@@ -1149,6 +1153,7 @@ function SkuRow({
   onCreateNew,
   onEditGroup,
   basePrice,
+  money,
 }: {
   sku: {
     name: string;
@@ -1163,6 +1168,8 @@ function SkuRow({
   // size ("make it a meal, +£3.99"). Converting at the input keeps the
   // familiar mental model without changing a single downstream price.
   basePrice: number;
+  /** Bound to the location's currency by the form — never format here. */
+  money: (n: number | string | null | undefined) => string;
   allGroups: import("@/lib/api/catalog.client").CatalogModifierGroup[];
   onChange: (next: {
     name: string;
@@ -1257,7 +1264,7 @@ function SkuRow({
               (total < 0 ? "text-red-600" : "text-zinc-500")
             }
           >
-            = £{total.toFixed(2)}
+            = {money(total)}
           </p>
         </div>
         <Input

@@ -11,6 +11,7 @@
 //     (e.g. exclude Meal Deals so they don't double-dip)
 
 import { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check, ChevronDown, ChevronRight, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
@@ -47,6 +48,8 @@ const AUDIENCES: Array<{ id: CampaignAudience; label: string; sub: string }> = [
 ];
 
 export function FreeItemCampaignForm({ onCancel, onSaved }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   const [name, setName] = useState("Free item with purchase");
@@ -254,7 +257,7 @@ export function FreeItemCampaignForm({ onCancel, onSaved }: Props) {
                     setMinOrderCustom(false);
                   }}
                 >
-                  £{v}
+                  {money(v)}
                 </Chip>
               ))}
               <Chip
@@ -352,7 +355,7 @@ export function FreeItemCampaignForm({ onCancel, onSaved }: Props) {
                                 />
                                 <span className="flex-1">{moc.item.name}</span>
                                 <span className="text-zinc-500">
-                                  £{Number(moc.item.basePrice).toFixed(2)}
+                                  {money(Number(moc.item.basePrice))}
                                 </span>
                               </label>
                             );

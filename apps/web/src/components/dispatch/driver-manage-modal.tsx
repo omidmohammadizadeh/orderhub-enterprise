@@ -4,6 +4,7 @@
 // fees + home location) and run a cash-up (with handover math + date range).
 
 import { useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2, X, Wallet, BadgePoundSterling } from "lucide-react";
 import toast from "react-hot-toast";
@@ -24,6 +25,8 @@ interface Props {
 }
 
 export function DriverManageModal({ driver, locations, open, onClose, onSaved }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const [tab, setTab] = useState<"pay" | "cashup">("pay");
 
@@ -254,7 +257,7 @@ function CashUpTab({
   });
 
   const v = view.data;
-  const money = (n: number) => `£${n.toFixed(2)}`;
+  const { money } = useCurrency();
   const owedToDriver = v ? v.cashHandover < 0 : false;
 
   return (
@@ -328,7 +331,7 @@ function CashUpTab({
           </div>
 
           <div className="rounded-lg border border-zinc-200 p-3 text-sm">
-            <Row label={`Start-up fee (${v.daysWorked}×£${v.startupFee.toFixed(2)})`} value={money(v.startupFeeTotal)} />
+            <Row label={`Start-up fee (${v.daysWorked}×${money(v.startupFee)})`} value={money(v.startupFeeTotal)} />
             <Row label="Delivery fees" value={money(v.deliveryFeeTotal)} />
             <div className="my-1.5 border-t border-zinc-100" />
             <Row label="Driver earning" value={money(v.driverEarning)} bold />

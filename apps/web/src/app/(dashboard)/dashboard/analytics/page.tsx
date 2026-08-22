@@ -10,6 +10,7 @@
 // on top of this week's.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -149,6 +150,8 @@ function pctDelta(curr: number, prev: number): number {
 }
 
 export default function AnalyticsPage() {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const [preset, setPreset] = useState<DatePreset>("7d");
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
@@ -824,7 +827,7 @@ function WalkInPanel({
       }),
   });
   const d = q.data;
-  const money = (n: number) => `£${Number(n ?? 0).toFixed(2)}`;
+  const { money } = useCurrency();
 
   if (q.isLoading) {
     return (
@@ -929,7 +932,7 @@ function DineInPanel({
       }),
   });
   const d = q.data;
-  const money = (n: number) => `£${Number(n ?? 0).toFixed(2)}`;
+  const { money } = useCurrency();
 
   if (q.isLoading) {
     return (

@@ -10,6 +10,7 @@
 // that ends with a customer tapping a row that doesn't exist.
 
 import { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Search, Star, X } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
@@ -26,9 +27,12 @@ interface Candidate {
   category: string;
 }
 
-const money = (n: number) => `£${Number(n ?? 0).toFixed(2)}`;
+// money() comes from useCurrency inside the component — a module-level
+// helper cannot read a hook, and a £-hardcoded one is what this was.
 
 export function TopSellersPanel() {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
 

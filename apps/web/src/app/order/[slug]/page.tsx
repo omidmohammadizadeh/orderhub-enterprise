@@ -34,7 +34,7 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatMoney } from "@orderhub/shared";
+import { formatMoney, currencySymbol } from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
@@ -510,6 +510,7 @@ function OrderPage() {
   const currency = (storefront as any)?.store?.currency ?? "GBP";
   const money = (n: number | string | null | undefined) =>
     formatMoney(n, currency, { compact: true });
+  const symbol = currencySymbol(currency);
 
   // Does this location take table bookings from the web? Drives the
   // "Book a table" button. Fetched separately (and only once the store
@@ -2331,6 +2332,7 @@ function OrderPage() {
       {tipOpen && (
         <TipStep
           money={money}
+          symbol={symbol}
           tipBase={subtotal}
           brandName={storefront.brand?.name ?? storefront.location.name}
           onBack={() => setTipOpen(false)}

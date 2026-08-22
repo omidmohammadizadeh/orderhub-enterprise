@@ -165,7 +165,7 @@ export function VariantsEditor({ productId, onClose }: Props) {
               <Input
                 type="number"
                 step="0.01"
-                placeholder="Price (£)"
+                placeholder="Price ({symbol.trim()})"
                 value={s.price}
                 onChange={(e) =>
                   setSkus(

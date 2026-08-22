@@ -12,6 +12,7 @@
 // which publish to HubRise as variants[] + price_overrides[].
 
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import {
   useMutation,
   useQueries,
@@ -82,6 +83,8 @@ export function ProductVariantPricingModal({
   variants,
   onClose,
 }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
 
   const { data: brands = [] } = useQuery({
@@ -373,7 +376,7 @@ export function ProductVariantPricingModal({
             <td className="sticky left-0 z-10 bg-white px-2 pl-4">
               <div className="text-sm text-zinc-700">{o.name}</div>
               <div className="text-[10px] text-zinc-400">
-                default +£{base.toFixed(2)}
+                default +{money(base)}
               </div>
             </td>
             {visibleLeaves.map((l) => (
@@ -537,7 +540,7 @@ export function ProductVariantPricingModal({
                               Base price
                             </div>
                             <div className="text-[10px] text-zinc-400">
-                              default £{Number(product?.basePrice ?? 0).toFixed(2)}
+                              default {money(Number(product?.basePrice ?? 0))}
                             </div>
                           </td>
                           {visibleLeaves.map((l) => (
@@ -560,7 +563,7 @@ export function ProductVariantPricingModal({
                                 {s.name || `Size ${i + 1}`}
                               </div>
                               <div className="text-[10px] text-zinc-400">
-                                default £{(Number(s.price) || 0).toFixed(2)}
+                                default {money((Number(s.price) || 0))}
                               </div>
                             </td>
                             {visibleLeaves.map((l) => (

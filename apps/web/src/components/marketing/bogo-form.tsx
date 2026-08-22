@@ -7,6 +7,7 @@
 // auto-lands as their freebie — no separate reward selection.
 
 import { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check, ChevronDown, ChevronRight, Gift } from "lucide-react";
 import toast from "react-hot-toast";
@@ -41,6 +42,8 @@ const AUDIENCES: Array<{ id: CampaignAudience; label: string; sub: string }> = [
 ];
 
 export function BogoCampaignForm({ onCancel, onSaved }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   const [name, setName] = useState("Buy 1, get 1 free");
@@ -375,6 +378,7 @@ function ItemPicker({
   setSelected: React.Dispatch<React.SetStateAction<Set<string>>>;
   accent: "violet" | "pink";
 }) {
+  const { money } = useCurrency();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   function toggleItem(id: string) {
@@ -482,7 +486,7 @@ function ItemPicker({
                       />
                       <span className="flex-1">{moc.item.name}</span>
                       <span className="text-zinc-500">
-                        £{Number(moc.item.basePrice).toFixed(2)}
+                        {money(Number(moc.item.basePrice))}
                       </span>
                     </label>
                   );

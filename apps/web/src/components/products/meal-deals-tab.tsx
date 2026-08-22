@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, UtensilsCrossed } from "lucide-react";
 import { mealDealsClient } from "@/lib/api/catalog.client";
@@ -20,6 +21,8 @@ interface Props {
 // "available at every location of this brand", non-empty means the
 // explicit list).
 export function MealDealsTab({ brandId, locationId, search }: Props) {
+  // Prices follow the selected location's currency, not a hardcoded pound.
+  const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
@@ -104,7 +107,7 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
               className="flex-1 h-9 text-sm"
             />
             <Input
-              placeholder="Price (£)"
+              placeholder="Price ({symbol.trim()})"
               type="number"
               step="0.01"
               value={price}
@@ -152,7 +155,7 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
               <tr key={d.id} className="hover:bg-zinc-50">
                 <td className="px-4 py-2.5 font-medium text-zinc-900">{d.name}</td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
-                  {d.price != null ? `£${Number(d.price).toFixed(2)}` : "—"}
+                  {d.price != null ? `${money(Number(d.price))}` : "—"}
                 </td>
                 <td className="px-4 py-2.5 text-center">
                   <span

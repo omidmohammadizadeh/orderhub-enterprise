@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
 import { Layers2 } from "lucide-react";
 import { productsClient } from "@/lib/api/catalog.client";
@@ -21,6 +22,7 @@ interface Props {
 // a multi-SKU one. The editor (VariantsEditor) handles the productSkus[]
 // JSON shape and per-platform pricing overrides.
 export function VariantsTab({ brandId, locationId, search }: Props) {
+  const { money, symbol } = useCurrency();
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
   const scopeKey = locationId ? `loc:${locationId}` : `brand:${brandId}`;
@@ -104,7 +106,7 @@ export function VariantsTab({ brandId, locationId, search }: Props) {
                   {skus.length}
                 </td>
                 <td className="px-4 py-2.5 tabular-nums">
-                  £{min.toFixed(2)} – £{max.toFixed(2)}
+                  {money(min)} – {money(max)}
                 </td>
                 <td className="px-4 py-2.5 text-right">
                   <button

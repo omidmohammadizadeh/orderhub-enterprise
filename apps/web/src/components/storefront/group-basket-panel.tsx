@@ -414,8 +414,8 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                   )}
                   {props.matchedZone && (
                     <p className="text-[11px] text-emerald-700">
-                      Matched zone <strong>{props.matchedZone.prefix}</strong> · £
-                      {props.matchedZone.fee.toFixed(2)} delivery
+                      Matched zone <strong>{props.matchedZone.prefix}</strong> ·{" "}
+                      {money(props.matchedZone.fee)} delivery
                     </p>
                   )}
                   {!props.matchedZone && props.addrPostcode.length >= 3 && (
