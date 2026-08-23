@@ -2,6 +2,7 @@ import {
   transformCareemMenu,
   validateCareemGroup,
   careemPrice,
+  careemGroupSelection,
   CAREEM_MAX_ITEMS,
   type SourceGroup,
   type SourceMenu,
@@ -69,50 +70,113 @@ describe("careemPrice", () => {
   });
 });
 
-describe("validateCareemGroup — Careem's own rules", () => {
+describe("careemGroupSelection — choosing the mode Careem will accept", () => {
+  // Careem's two modes are not our two modes, and mapping ADDON -> multi_select
+  // is what filled a real menu with rejections. Their rules read as
+  // constraints, not semantics:
+  //
+  //   multi_select false — any range: 0 <= min <= count, min <= max <= count
+  //   multi_select true  — exactly N, N > 1: min > 1 and max === min, never
+  //                        with nested groups
+  //
+  // So the mode follows the numbers. These tests assert the output is legal
+  // under whichever mode it picked, because that is the only thing Careem
+  // check.
+  const legal = (g: SourceGroup) => {
+    const { multi_select, min, max } = careemGroupSelection(g);
+    const count = g.options.length;
+    if (multi_select) {
+      expect(min).toBeGreaterThan(1);
+      expect(max).toBe(min);
+      expect(g.options.some((o) => (o.groupIds ?? []).length > 0)).toBe(false);
+    } else {
+      expect(min).toBeGreaterThanOrEqual(0);
+      expect(min).toBeLessThanOrEqual(count);
+      expect(max).toBeGreaterThanOrEqual(min);
+      expect(max).toBeLessThanOrEqual(count);
+    }
+    return { multi_select, min, max };
+  };
+
+  it('sends "choose any of these toppings" as a range, not multi-select', () => {
+    // The real case from TEST 22: min 0, max 7. Only expressible with
+    // multi_select false, and it was going out as true.
+    const g = group({
+      selectionType: "ADDON",
+      minSelections: 0,
+      maxSelections: 2,
+    });
+    expect(legal(g)).toEqual({ multi_select: false, min: 0, max: 2 });
+  });
+
+  it("sends a pick-one group as a range too", () => {
+    const g = group({ selectionType: "VARIANT", minSelections: 1, maxSelections: 1 });
+    expect(legal(g)).toEqual({ multi_select: false, min: 1, max: 1 });
+  });
+
+  it('uses their multi-select only for "exactly N", N > 1', () => {
+    const g = group({ selectionType: "ADDON", minSelections: 2, maxSelections: 2 });
+    expect(legal(g)).toEqual({ multi_select: true, min: 2, max: 2 });
+  });
+
+  it("never multi-selects a group holding nested groups", () => {
+    // Their rule: a group with nested groups may not set multi_select true.
+    // The numbers here would otherwise qualify.
+    const g = group({
+      selectionType: "ADDON",
+      minSelections: 2,
+      maxSelections: 2,
+      options: [
+        { id: "o1", name: "Fries", priceAdjustment: 0, isAvailable: true, sortOrder: 1, groupIds: ["g2"] },
+        { id: "o2", name: "Slaw", priceAdjustment: 0, isAvailable: true, sortOrder: 2 },
+      ],
+    });
+    expect(legal(g).multi_select).toBe(false);
+  });
+
+  it("clamps a max above the option count", () => {
+    // The fixture has two options; a max of 5 is not expressible.
+    expect(legal(group({ maxSelections: 5 }))).toEqual({
+      multi_select: false,
+      min: 0,
+      max: 2,
+    });
+  });
+
+  it("defaults a missing max to the option count", () => {
+    expect(legal(group({ minSelections: 0, maxSelections: null }))).toEqual({
+      multi_select: false,
+      min: 0,
+      max: 2,
+    });
+  });
+});
+
+describe("validateCareemGroup — what choosing a mode cannot fix", () => {
   it("accepts a normal pick-one group", () => {
     expect(validateCareemGroup(group())).toEqual([]);
   });
 
-  it("rejects a pick-one group whose max exceeds its option count", () => {
-    expect(validateCareemGroup(group({ maxSelections: 5 }))).toEqual([
-      expect.stringContaining("max must be between min and 2"),
-    ]);
-  });
-
-  it("requires min > 1 on a multi-select group", () => {
-    // Their rule, verbatim: when multi_select is true, min must be > 1.
-    const problems = validateCareemGroup(
-      group({ selectionType: "ADDON", minSelections: 1, maxSelections: 1 }),
-    );
-    expect(problems).toEqual([expect.stringContaining("min > 1")]);
-  });
-
-  it("requires max to EQUAL min on a multi-select group", () => {
-    const problems = validateCareemGroup(
-      group({ selectionType: "ADDON", minSelections: 2, maxSelections: 2 }),
-    );
-    expect(problems).toEqual([]);
+  it("accepts the pick-any group that used to be rejected", () => {
     expect(
       validateCareemGroup(
-        group({ selectionType: "ADDON", minSelections: 2, maxSelections: 3 }),
+        group({ selectionType: "ADDON", minSelections: 0, maxSelections: 2 }),
       ),
-    ).toEqual([expect.stringContaining("max = min")]);
+    ).toEqual([]);
   });
 
-  it("forbids nested groups inside a multi-select group", () => {
-    const problems = validateCareemGroup(
-      group({
-        selectionType: "ADDON",
-        minSelections: 2,
-        maxSelections: 2,
-        options: [
-          { id: "o1", name: "Fries", priceAdjustment: 0, isAvailable: true, sortOrder: 1, groupIds: ["g2"] },
-          { id: "o2", name: "Slaw", priceAdjustment: 0, isAvailable: true, sortOrder: 2 },
-        ],
-      }),
-    );
-    expect(problems).toEqual([expect.stringContaining("cannot contain nested groups")]);
+  it("refuses to ask for more selections than there are options", () => {
+    // Three of two cannot be honoured, and clamping it to two silently changes
+    // what the kitchen is told to make.
+    expect(
+      validateCareemGroup(group({ minSelections: 3, maxSelections: 3 })),
+    ).toEqual([expect.stringContaining("requires 3 selections but only has 2")]);
+  });
+
+  it("refuses a max below its min", () => {
+    expect(
+      validateCareemGroup(group({ minSelections: 2, maxSelections: 1 })),
+    ).toEqual([expect.stringContaining("below min")]);
   });
 
   it("catches a blank name and an empty group", () => {

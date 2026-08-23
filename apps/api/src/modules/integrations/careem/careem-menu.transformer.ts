@@ -196,12 +196,41 @@ export function careemPrice(
  * comes back FAILED with a message about "customization group max". Their
  * wording, their thresholds.
  */
+/**
+ * The legal {multi_select, min, max} for a group, in Careem's terms.
+ *
+ * Their two modes are not the two modes we have, and mapping ours onto theirs
+ * by name is what produced a menu full of rejections. Read their rules as
+ * constraints rather than as semantics:
+ *
+ *   multi_select FALSE — any range: 0 <= min <= count, min <= max <= count.
+ *                        "Choose a size" and "add any toppings" are both this.
+ *   multi_select TRUE  — exactly N, where N > 1: min > 1 and max === min.
+ *                        A narrow special case, and never with nested groups.
+ *
+ * So the mode is decided by the NUMBERS, picking whichever one the group is
+ * legal under, rather than by whether we happen to call it an add-on. A
+ * "choose any of 7 toppings" group is min 0, max 7 — which is only expressible
+ * with multi_select false, and was being sent as true.
+ */
+export function careemGroupSelection(group: SourceGroup): {
+  multi_select: boolean;
+  min: number;
+  max: number;
+} {
+  const count = group.options.length;
+  const hasNested = group.options.some((o) => (o.groupIds ?? []).length > 0);
+  const min = Math.min(Math.max(0, group.minSelections), count);
+  const max = Math.min(Math.max(min, group.maxSelections ?? count), count);
+
+  // Their "exactly N" mode, which nested groups are not allowed to use.
+  const exactlyN = min === max && min > 1 && !hasNested;
+  return { multi_select: exactlyN, min, max };
+}
+
 export function validateCareemGroup(group: SourceGroup): string[] {
   const problems: string[] = [];
   const count = group.options.length;
-  const multiSelect = group.selectionType === "ADDON";
-  const min = group.minSelections;
-  const max = group.maxSelections ?? (multiSelect ? min : count);
 
   if (!group.name?.trim()) problems.push("name cannot be blank");
   if (count === 0) {
@@ -212,29 +241,27 @@ export function validateCareemGroup(group: SourceGroup): string[] {
     return problems;
   }
 
-  if (multiSelect) {
-    // Theirs, verbatim: min must be > 1 and max must EQUAL min.
-    if (min <= 1) {
-      problems.push(
-        `multi-select group needs min > 1 (has ${min}) — Careem rejects pick-many groups that allow one or none`,
-      );
-    }
-    if (max !== min) {
-      problems.push(`multi-select group needs max = min (has min ${min}, max ${max})`);
-    }
-    if (group.options.some((o) => (o.groupIds ?? []).length > 0)) {
-      problems.push("multi-select group cannot contain nested groups");
-    }
-  } else {
-    if (min < 0 || min > count) {
-      problems.push(`min must be between 0 and ${count} (has ${min})`);
-    }
-    if (max < min || max > count) {
-      problems.push(`max must be between min and ${count} (has ${max})`);
-    }
+  // careemGroupSelection makes any group legal for Careem by choosing the mode
+  // that fits, so the only thing left to catch is a group that is broken in
+  // OUR data and would be published as something it isn't. Asking for three of
+  // two options cannot be honoured; clamping it to two silently changes what
+  // the kitchen expects.
+  if (group.minSelections > count) {
+    problems.push(
+      `requires ${group.minSelections} selections but only has ${count} option(s)`,
+    );
+  }
+  if (
+    group.maxSelections != null &&
+    group.maxSelections < group.minSelections
+  ) {
+    problems.push(
+      `max (${group.maxSelections}) is below min (${group.minSelections})`,
+    );
   }
   return problems;
 }
+
 
 /**
  * Build the catalog payload, or refuse with reasons.
@@ -321,7 +348,7 @@ export function transformCareemMenu(
     for (const problem of validateCareemGroup(group)) {
       errors.push({ entity: "group", id: group.id, message: problem });
     }
-    const multiSelect = group.selectionType === "ADDON";
+    const selection = careemGroupSelection(group);
     return {
       id: group.id,
       deleted: false,
@@ -333,9 +360,7 @@ export function transformCareemMenu(
             description_localized: localized(group.description, null),
           }
         : {}),
-      multi_select: multiSelect,
-      min: group.minSelections,
-      max: group.maxSelections ?? (multiSelect ? group.minSelections : group.options.length),
+      ...selection,
       priority: group.sortOrder,
       options: group.options.map((o) => o.id),
     };
