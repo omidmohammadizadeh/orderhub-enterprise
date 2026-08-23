@@ -4,6 +4,11 @@ import { z } from "zod";
 // Single normalised shape that ALL platform adapters must map into.
 // The API and worker operate on CanonicalOrder, never on raw platform payloads.
 
+// Mirrors the OrderPlatform enum in the Prisma schema — which already carried
+// TALABAT, DOORDASH, GRUBHUB and CAREEM while this list did not. The database
+// would accept a Careem order that this schema rejected first, so ingest
+// failed at validation with an enum error that reads like a bug in the
+// transformer. Keep the two lists identical.
 export const OrderPlatformSchema = z.enum([
   "UBER_EATS",
   "DELIVEROO",
@@ -12,11 +17,16 @@ export const OrderPlatformSchema = z.enum([
   "DIRECT",
   "POS",
   "ONLINE",
+  "TALABAT",
+  "DOORDASH",
+  "GRUBHUB",
+  "CAREEM",
   "WHATSAPP",
 ]);
 export type OrderPlatform = z.infer<typeof OrderPlatformSchema>;
 
 // The sales channel that originated the order
+// Mirrors the OrderSource enum in the Prisma schema — same drift as above.
 export const OrderSourceSchema = z.enum([
   "ONLINE",
   "POS",
@@ -25,6 +35,10 @@ export const OrderSourceSchema = z.enum([
   "JUST_EAT",
   "HUBRISE",
   "DIRECT",
+  "TALABAT",
+  "DOORDASH",
+  "GRUBHUB",
+  "CAREEM",
   "WHATSAPP",
 ]);
 export type OrderSource = z.infer<typeof OrderSourceSchema>;
@@ -90,6 +104,11 @@ export const OrderModifierSchema = z.object({
   name: z.string(),
   price: z.number(),
   quantity: z.number().default(1),
+  /** Nesting level for modifiers that hang off another modifier — a sauce
+   *  chosen for the side that was chosen for the meal. The kitchen ticket
+   *  indents by it, so a flat list still reads as the tree it came from.
+   *  Optional: most marketplaces have no nesting to express. */
+  depth: z.number().int().nonnegative().optional(),
 });
 export type OrderModifier = z.infer<typeof OrderModifierSchema>;
 
