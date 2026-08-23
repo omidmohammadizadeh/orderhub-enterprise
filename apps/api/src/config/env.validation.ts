@@ -84,6 +84,20 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
+  // Careem POS (Gulf marketplace). OAuth2 client_credentials, scope "pos".
+  // CAREEM_ENV picks the gateway: staging by default, so a misconfigured
+  // deploy talks to the sandbox rather than to real customers' orders.
+  //
+  // CAREEM_WEBHOOK_API_KEY is the STATIC secret Careem sends back in an
+  // `x-careem-api-key` header — their webhooks carry no signature, so this
+  // key is the entire authentication. Careem's engineering team provisions
+  // both it and the webhook URL; neither is self-serve in the portal.
+  CAREEM_CLIENT_ID: z.string().optional(),
+  CAREEM_CLIENT_SECRET: z.string().optional(),
+  CAREEM_WEBHOOK_API_KEY: z.string().optional(),
+  CAREEM_ENV: z.enum(["staging", "production"]).default("staging"),
+  CAREEM_API_BASE: z.string().url().optional(),
+
   // Billing enforcement. The guard reads the per-location subscriptions that
   // actually charge merchants, which nothing enforced before — so this ships
   // as "observe": it logs what it WOULD block and lets the request through.
