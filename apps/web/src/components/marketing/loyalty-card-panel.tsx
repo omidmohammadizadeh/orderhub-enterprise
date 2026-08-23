@@ -11,13 +11,13 @@
 // pays for it, and a group running six sites will not want one rule across
 // all of them.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Loader2, Check, X } from "lucide-react";
+import { Heart, Loader2, Check, X, Search } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useCurrency } from "@/hooks/use-currency";
-import { productsClient } from "@/lib/api/catalog.client";
+import { brandsClient } from "@/lib/api/locations.client";
 
 interface Card {
   isActive: boolean;
@@ -46,16 +46,58 @@ export function LoyaltyCardPanel({
       apiClient.get(`/v1/loyalty/cards/${locationId}`).then((r) => r.data),
   });
 
-  // The reward is picked from the menu, so staff hand over a thing that
-  // actually exists rather than reading a sentence someone typed.
-  const { data: items } = useQuery({
-    queryKey: ["loyalty-reward-items", brandId, locationId],
+  // The reward comes from the PUBLISHED menu, the same source Top Sellers
+  // uses — not the product catalog. The catalog holds everything a tenant has
+  // ever created, including items on no menu at all, and offering one of those
+  // as a reward is offering something the customer cannot see and the kitchen
+  // may not make.
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brands", locationId],
+    queryFn: () => brandsClient.list(locationId ?? undefined),
     enabled: !!locationId,
-    queryFn: () =>
-      brandId
-        ? productsClient.list(brandId)
-        : productsClient.listForLocation(String(locationId)),
   });
+  const [pickedBrand, setPickedBrand] = useState<string | null>(brandId ?? null);
+  const activeBrand = brands.find((b: any) => b.id === pickedBrand) ?? brands[0];
+
+  const { data: storefront } = useQuery({
+    queryKey: ["loyalty-reward-menu", locationId, activeBrand?.id],
+    enabled: !!locationId && !!activeBrand?.id,
+    queryFn: () =>
+      apiClient
+        .get(
+          `/v1/ordering/store/${encodeURIComponent(String(locationId))}` +
+            `?brand=${encodeURIComponent(activeBrand!.id)}`,
+        )
+        .then((r) => r.data as any),
+  });
+
+  const items = useMemo(() => {
+    const out: Array<{ id: string; name: string; price: number; imageUrl: string | null; category: string }> = [];
+    for (const cat of storefront?.menu?.categories ?? []) {
+      for (const link of cat.items ?? []) {
+        const it = link?.item;
+        if (!it?.id) continue;
+        out.push({
+          id: it.id,
+          name: it.name,
+          price: Number(it.basePrice ?? 0),
+          imageUrl: it.imageUrl ?? null,
+          category: cat.name ?? "",
+        });
+      }
+    }
+    return out;
+  }, [storefront]);
+
+  const [itemSearch, setItemSearch] = useState("");
+  const shown = useMemo(() => {
+    const q = itemSearch.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (i) =>
+        i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q),
+    );
+  }, [items, itemSearch]);
 
   const [form, setForm] = useState<Card | null>(null);
   useEffect(() => {
@@ -166,26 +208,87 @@ export function LoyaltyCardPanel({
           </div>
         </Field>
 
-        <Field label="Reward" hint="What staff hand over when the card is full.">
-          <select
-            value={form.rewardItemId ?? ""}
-            onChange={(e) => {
-              const id = e.target.value || null;
-              set("rewardItemId", id);
-              const picked = (items ?? []).find((i: any) => i.id === id);
-              // Keep the wording in step with the item, so the customer's card
-              // and the kitchen ticket say the same thing.
-              if (picked) set("rewardLabel", `Free ${picked.name}`);
-            }}
-            className={input}
-          >
-            <option value="">Choose an item…</option>
-            {(items ?? []).map((i: any) => (
-              <option key={i.id} value={i.id}>
-                {i.name}
-              </option>
-            ))}
-          </select>
+        <Field
+          label="Reward"
+          hint="What staff hand over when the card is full. Picked from the live menu, so it is something they actually make."
+        >
+          {brands.length > 1 && (
+            <select
+              value={activeBrand?.id ?? ""}
+              onChange={(e) => setPickedBrand(e.target.value)}
+              className={`${input} mb-2`}
+            >
+              {brands.map((b: any) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+            <input
+              value={itemSearch}
+              onChange={(e) => setItemSearch(e.target.value)}
+              placeholder="Search the menu…"
+              className={`${input} pl-8`}
+            />
+          </div>
+          {/* A scrolling list rather than a dropdown: a kebab shop's menu runs
+              to a couple of hundred items, and a native select of that length
+              is unusable on a laptop and worse on a tablet. */}
+          <div className="mt-2 max-h-56 overflow-y-auto rounded-md border border-zinc-200">
+            {items.length === 0 ? (
+              <p className="p-3 text-xs text-zinc-400">
+                No published menu for this brand yet — publish one and its items
+                appear here.
+              </p>
+            ) : shown.length === 0 ? (
+              <p className="p-3 text-xs text-zinc-400">
+                Nothing matches &ldquo;{itemSearch}&rdquo;.
+              </p>
+            ) : (
+              shown.map((i) => {
+                const on = form.rewardItemId === i.id;
+                return (
+                  <button
+                    key={i.id}
+                    type="button"
+                    onClick={() => {
+                      set("rewardItemId", on ? null : i.id);
+                      // Keep the wording in step with the item, so the
+                      // customer's card and the kitchen ticket agree.
+                      if (!on) set("rewardLabel", `Free ${i.name}`);
+                    }}
+                    className={`flex w-full items-center gap-2.5 border-b border-zinc-100 px-3 py-2 text-left last:border-b-0 ${
+                      on ? "bg-rose-50" : "hover:bg-zinc-50"
+                    }`}
+                  >
+                    {i.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={i.imageUrl}
+                        alt=""
+                        className="h-8 w-8 shrink-0 rounded object-cover"
+                      />
+                    ) : (
+                      <span className="h-8 w-8 shrink-0 rounded bg-zinc-100" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-zinc-900">
+                        {i.name}
+                      </span>
+                      <span className="block truncate text-[11px] text-zinc-400">
+                        {i.category} · {symbol}
+                        {i.price.toFixed(2)}
+                      </span>
+                    </span>
+                    {on && <Check className="h-4 w-4 shrink-0 text-rose-600" />}
+                  </button>
+                );
+              })
+            )}
+          </div>
         </Field>
 
         <Field
