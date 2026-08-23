@@ -18,7 +18,6 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import Image from "next/image";
 import { Clock, MapPin, Phone, ArrowRight, Star } from "lucide-react";
 import axios from "axios";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
@@ -69,7 +68,7 @@ export default function StorefrontHomePage() {
   if ((data as any)?.freeItem?.name) offers.push(`Free ${(data as any).freeItem.name}`);
 
   return (
-    <main className="min-h-screen bg-white pb-2">
+    <main className="min-h-screen overflow-x-hidden bg-white pb-2">
       <style jsx global>{`
         @keyframes oh-rise {
           from {
@@ -105,16 +104,14 @@ export default function StorefrontHomePage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="relative h-[46vh] min-h-[280px] w-full overflow-hidden bg-zinc-900">
+        {/* Plain <img>, like the rest of the storefront. next/image needs
+            every host whitelisted in next.config, and menu photography lives
+            wherever the operator put it — Supabase today, anywhere tomorrow.
+            An allow-list cannot keep up, and the failure mode is a
+            broken-image icon on a shop's own front page. */}
         {hero && (
           <div className="oh-drift absolute inset-0">
-            <Image
-              src={hero}
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-            />
+            <img src={hero} alt="" className="h-full w-full object-cover" />
           </div>
         )}
         {/* A scrim, not a tint: the shop's photo stays the photo, and the
@@ -124,11 +121,9 @@ export default function StorefrontHomePage() {
         <div className="absolute inset-x-0 bottom-0 p-5">
           {brand?.logoUrl && (
             <div className="oh-rise mb-3 h-16 w-16 overflow-hidden rounded-2xl bg-white p-1 shadow-lg">
-              <Image
+              <img
                 src={brand.logoUrl}
                 alt=""
-                width={64}
-                height={64}
                 className="h-full w-full rounded-xl object-contain"
               />
             </div>
@@ -192,12 +187,10 @@ export default function StorefrontHomePage() {
               >
                 <div className="relative h-28 w-36 overflow-hidden rounded-xl bg-zinc-100">
                   {item.imageUrl && (
-                    <Image
+                    <img
                       src={item.imageUrl}
                       alt=""
-                      fill
-                      sizes="144px"
-                      className="object-cover"
+                      className="h-full w-full object-cover"
                     />
                   )}
                 </div>
@@ -216,7 +209,12 @@ export default function StorefrontHomePage() {
       {/* ── About + practicalities ───────────────────────────────────── */}
       <section className="oh-rise px-4 pt-7" style={{ animationDelay: "360ms" }}>
         {(brand?.about || location?.about) && (
-          <p className="text-[15px] leading-relaxed text-zinc-600">
+          {/* break-words because this is operator-written text and theirs
+              contains a bare ordering URL. One unbreakable word widens the
+              whole document, and on mobile a horizontally-scrolling page
+              stretches the fixed tab bar with it and pushes the last tab off
+              the screen. */}
+          <p className="text-[15px] leading-relaxed text-zinc-600 [overflow-wrap:anywhere]">
             {brand?.about ?? location?.about}
           </p>
         )}

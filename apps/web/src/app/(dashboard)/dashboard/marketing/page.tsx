@@ -11,7 +11,7 @@
 import { useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
+import { Heart,
   Megaphone,
   Plus,
   Loader2,
@@ -127,6 +127,7 @@ export default function MarketingPage() {
   const { money, symbol } = useCurrency();
   const qc = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [loyaltyOpen, setLoyaltyOpen] = useState(false);
   const [formType, setFormType] = useState<CampaignType | null>(null);
   const [editing, setEditing] = useState<MarketingCampaign | null>(null);
 
@@ -208,13 +209,6 @@ export default function MarketingPage() {
         <TopSellersPanel />
       </div>
 
-      {/* The loyalty card is here because this is where an operator comes to
-          give money away — but it is kept apart from campaigns on purpose.
-          Campaigns are advertised; a stamp card is private to the customer
-          holding it and appears nowhere on the public storefront. */}
-      <div className="mt-4">
-        <LoyaltyCardPanel />
-      </div>
 
       {isLoading ? (
         <div className="grid place-items-center py-24 text-zinc-400">
@@ -297,8 +291,27 @@ export default function MarketingPage() {
               );
             }
           }}
+          onLoyalty={() => {
+            setPickerOpen(false);
+            setLoyaltyOpen(true);
+          }}
           onCancel={() => setPickerOpen(false)}
         />
+      )}
+
+      {/* Its own editor, not the campaign form — the two configure different
+          things and share none of their fields. */}
+      {loyaltyOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 py-10 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setLoyaltyOpen(false);
+          }}
+        >
+          <div className="mx-4 w-full max-w-2xl">
+            <LoyaltyCardPanel onClose={() => setLoyaltyOpen(false)} />
+          </div>
+        </div>
       )}
 
       {formType === "PERCENTAGE_OFF" && (
@@ -704,9 +717,11 @@ function StatusChip({ status }: { status: string }) {
 
 function TypePicker({
   onPick,
+  onLoyalty,
   onCancel,
 }: {
   onPick: (type: CampaignType) => void;
+  onLoyalty: () => void;
   onCancel: () => void;
 }) {
   return (
@@ -750,6 +765,31 @@ function TypePicker({
               </button>
             );
           })}
+
+          {/* The loyalty card sits alongside the offers because this is the
+              screen an operator opens to give something away — but it is not
+              a campaign and never becomes one. A campaign is ADVERTISED, on
+              the storefront and out to the marketplaces. A stamp card belongs
+              to the customer holding it and appears only on their own card,
+              which is why it opens its own editor rather than the campaign
+              form. */}
+          <button
+            type="button"
+            onClick={onLoyalty}
+            className="relative text-left rounded-xl border border-zinc-200 hover:border-rose-300 hover:bg-rose-50/40 p-4 transition-colors"
+          >
+            <span className="absolute top-3 right-3 rounded-full bg-rose-100 text-rose-700 text-[10px] font-semibold px-1.5 py-0.5">
+              Repeat custom
+            </span>
+            <Heart className="h-7 w-7 text-rose-500 mb-3" />
+            <p className="text-sm font-semibold text-zinc-900">Loyalty card</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Example: 6 orders, free chips
+            </p>
+            <p className="text-[10px] text-zinc-400 mt-2">
+              Private to each customer — never shown on your menu
+            </p>
+          </button>
         </div>
       </div>
     </div>

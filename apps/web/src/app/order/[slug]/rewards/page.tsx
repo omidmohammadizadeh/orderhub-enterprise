@@ -18,7 +18,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import Image from "next/image";
 import { Heart, Lock, Sparkles, Ticket } from "lucide-react";
 import { formatMoney } from "@orderhub/shared";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
@@ -213,12 +212,10 @@ export default function StorefrontRewardsPage() {
               </div>
               {card.rewardItem?.imageUrl && (
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl ring-2 ring-white/20">
-                  <Image
+                  <img
                     src={card.rewardItem.imageUrl}
                     alt=""
-                    fill
-                    sizes="56px"
-                    className="object-cover"
+                    className="h-full w-full object-cover"
                   />
                 </div>
               )}

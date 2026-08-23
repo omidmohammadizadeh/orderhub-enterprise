@@ -57,7 +57,10 @@ export function StorefrontTabBar({ slug, brandId, rewardCount = 0 }: TabBarProps
         className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 backdrop-blur md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <ul className="mx-auto flex max-w-lg">
+        {/* No max-width. Constraining it centred the bar and left the outer
+            tabs adrift on a wide phone, and any horizontal overflow elsewhere
+            on the page then pushed the last one out of reach entirely. */}
+        <ul className="flex w-full">
           {tabs.map(({ href, label, icon: Icon, badge }) => {
             // The menu tab is the base path, so an exact match — otherwise it
             // would light up on every child route at once.

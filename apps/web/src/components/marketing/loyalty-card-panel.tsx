@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Loader2, Check } from "lucide-react";
+import { Heart, Loader2, Check, X } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useCurrency } from "@/hooks/use-currency";
@@ -28,7 +28,13 @@ interface Card {
   rewardExpiryDays: number | null;
 }
 
-export function LoyaltyCardPanel({ brandId }: { brandId?: string | null }) {
+export function LoyaltyCardPanel({
+  brandId,
+  onClose,
+}: {
+  brandId?: string | null;
+  onClose?: () => void;
+}) {
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const { symbol } = useCurrency();
   const qc = useQueryClient();
@@ -61,6 +67,9 @@ export function LoyaltyCardPanel({ brandId }: { brandId?: string | null }) {
       apiClient.put(`/v1/loyalty/cards/${locationId}`, body).then((r) => r.data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["loyalty-card-config", locationId] });
+      // Close on save so the operator lands back on the campaigns list, the
+      // same way the campaign form behaves.
+      onClose?.();
     },
   });
 
@@ -100,7 +109,8 @@ export function LoyaltyCardPanel({ brandId }: { brandId?: string | null }) {
             your public menu.
           </p>
         </div>
-        <label className="flex shrink-0 items-center gap-2 text-sm font-medium text-zinc-700">
+        <div className="flex shrink-0 items-center gap-3">
+        <label className="flex items-center gap-2 text-sm font-medium text-zinc-700">
           <input
             type="checkbox"
             checked={form.isActive}
@@ -109,6 +119,17 @@ export function LoyaltyCardPanel({ brandId }: { brandId?: string | null }) {
           />
           Live
         </label>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+        </div>
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
