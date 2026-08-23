@@ -13,7 +13,11 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Roles } from "../../../common/decorators/roles.decorator";
-import { CareemAuthError, CareemClientService } from "./careem-client.service";
+import {
+  CareemApiError,
+  CareemAuthError,
+  CareemClientService,
+} from "./careem-client.service";
 import { CareemWebhookLogService } from "./careem-webhook-log.service";
 import { CareemStoreService } from "./careem-store.service";
 import { CareemMenuPublishService } from "./careem-menu-publish.service";
@@ -363,6 +367,14 @@ export class CareemController {
       return await fn();
     } catch (err) {
       if (err instanceof HttpException) throw err;
+      // Careem's own rejection, with their status kept. A 400 from them is a
+      // 400 from us — turning it into a 500 would say the fault was ours.
+      if (err instanceof CareemApiError) {
+        throw new HttpException(
+          { step: what, status: err.status, careemSaid: err.message },
+          err.status >= 400 && err.status < 600 ? err.status : 502,
+        );
+      }
       const message =
         err instanceof CareemAuthError
           ? `Careem auth failed (HTTP ${err.status} from ${err.tokenUrl}): ${err.body.slice(0, 300)}`

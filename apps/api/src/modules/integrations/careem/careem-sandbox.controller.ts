@@ -19,6 +19,7 @@ import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 import { CareemSandboxService } from "./careem-sandbox.service";
+import { CareemApiError } from "./careem-client.service";
 import { CareemMenuPublishService } from "./careem-menu-publish.service";
 import { CareemOrderService } from "./careem-order.service";
 import { CareemStoreService } from "./careem-store.service";
@@ -278,6 +279,14 @@ export class CareemSandboxController {
       return await fn();
     } catch (err) {
       if (err instanceof HttpException) throw err;
+      // Careem's own rejection, with their status kept. A 400 from them is a
+      // 400 from us — turning it into a 500 would say the fault was ours.
+      if (err instanceof CareemApiError) {
+        throw new HttpException(
+          { step: what, status: err.status, careemSaid: err.message },
+          err.status >= 400 && err.status < 600 ? err.status : 502,
+        );
+      }
       const message = (err as Error).message;
       this.logger.error(`Careem sandbox ${what} failed: ${message}`);
       throw new InternalServerErrorException({

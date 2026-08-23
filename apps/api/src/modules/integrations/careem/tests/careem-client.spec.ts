@@ -1,6 +1,7 @@
 import {
   AUTH_VARIANTS,
   CareemAuthError,
+  describeCareemError,
   CareemClientService,
   isClientAuthFailure,
 } from "../careem-client.service";
@@ -617,5 +618,65 @@ describe("CareemClientService — sandbox wiring", () => {
     process.env.CAREEM_ENV = "production";
     expect(svc().tokenUrl).toBe("https://identity.careem.com/token");
     process.env.CAREEM_ENV = "staging";
+  });
+});
+
+// Careem's errors are the useful part of a failure — several map straight to a
+// fix in their own FAQ. Collapsing them to "request failed (400)" throws away
+// the only thing worth reading, which is what step 3 of the sandbox showed.
+describe("describeCareemError", () => {
+  it("pulls the field and the reason out of a validation error", () => {
+    // Their FAQ's own example: the wall every partner hits first.
+    const body = JSON.stringify({
+      message: "Validation Error",
+      code: "VALIDATION_ERROR",
+      error_type: "ValidationError",
+      errors: [{ field: "branch_id", errors: [{ message: "branch_id is not mapped" }] }],
+    });
+    expect(describeCareemError(body)).toBe(
+      "Validation Error — branch_id: branch_id is not mapped",
+    );
+  });
+
+  it("collapses the same message repeated per offending row", () => {
+    // Their blank-name example repeats "Name cannot be blank!" once per entity.
+    const body = JSON.stringify({
+      message: "Validation Error",
+      errors: [
+        {
+          field: "Name",
+          errors: [
+            { message: "Name cannot be blank!" },
+            { message: "Name cannot be blank!" },
+            { message: "Name cannot be blank!" },
+          ],
+        },
+      ],
+    });
+    expect(describeCareemError(body)).toBe(
+      "Validation Error — Name: Name cannot be blank!",
+    );
+  });
+
+  it("reads a forbidden error's reason", () => {
+    const body = JSON.stringify({
+      message: "Forbidden Error",
+      errors: [{ reason: "Catalog cannot be reset for a branch with catalog creation in progress." }],
+    });
+    expect(describeCareemError(body)).toContain("catalog creation in progress");
+  });
+
+  it("keeps a message that has no nested errors", () => {
+    expect(
+      describeCareemError(JSON.stringify({ message: "Api deprecated Error", errors: null })),
+    ).toBe("Api deprecated Error");
+  });
+
+  it("falls back to the raw text when it isn't their JSON", () => {
+    expect(describeCareemError("<html>502 Bad Gateway</html>")).toContain("502");
+  });
+
+  it("says something for an empty body", () => {
+    expect(describeCareemError("")).toBe("(empty response)");
   });
 });

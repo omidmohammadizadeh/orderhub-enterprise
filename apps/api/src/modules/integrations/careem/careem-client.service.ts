@@ -109,6 +109,70 @@ const RATE_LIMIT_COOLDOWN_MS = 30 * 60_000;
 /** A failed token request, carrying what Careem actually said. Thrown rather
  *  than logged-and-generalised so the diagnostics page can show the operator
  *  the real reason instead of "could not authenticate". */
+/**
+ * A rejected API call, carrying what Careem actually said.
+ *
+ * Their errors are specific and several map to a fix in their own FAQ —
+ * "branch_id is not mapped" means ask their operations team, "Name cannot be
+ * blank!" names the entity. Reducing all of that to "request failed (400)"
+ * throws away the only part worth reading.
+ */
+export class CareemApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly body: string,
+    readonly method: string,
+    readonly path: string,
+  ) {
+    super(
+      `Careem rejected ${method} ${path} (${status}): ${describeCareemError(body)}`,
+    );
+    this.name = "CareemApiError";
+  }
+}
+
+/**
+ * Their error body as one readable line.
+ *
+ * Validation errors nest — {errors: [{field, errors: [{message}]}]} — and the
+ * useful part is two levels down. Anything unrecognised falls back to the raw
+ * text rather than being swallowed.
+ */
+export function describeCareemError(body: string): string {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return body.slice(0, 300) || "(empty response)";
+  }
+  const e = parsed as {
+    message?: string;
+    code?: string;
+    errors?: Array<{
+      field?: string;
+      reason?: string;
+      errors?: Array<{ message?: string }>;
+    }> | null;
+  };
+  const detail = (e.errors ?? [])
+    .map((group) => {
+      const messages = (group.errors ?? [])
+        .map((x) => x.message)
+        .filter(Boolean)
+        // The same message repeated per offending row is noise; one is enough.
+        .filter((m, i, all) => all.indexOf(m) === i)
+        .join("; ");
+      const text = messages || group.reason || "";
+      return group.field ? `${group.field}: ${text}` : text;
+    })
+    .filter(Boolean)
+    .join(" | ");
+
+  const head = e.message ?? e.code ?? "";
+  if (head && detail) return `${head} — ${detail}`;
+  return head || detail || body.slice(0, 300);
+}
+
 export class CareemAuthError extends Error {
   constructor(
     readonly status: number,
@@ -487,8 +551,11 @@ export class CareemClientService {
       this.logger.error(
         `Careem ${init.method} ${path} failed ${res.status}: ${text.slice(0, 400)}`,
       );
-      throw new BadRequestException(
-        `Careem request failed (${res.status}).`,
+      throw new CareemApiError(
+        res.status,
+        text,
+        init.method ?? "GET",
+        path,
       );
     }
     if (!text) return undefined as T;
