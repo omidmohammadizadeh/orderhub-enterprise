@@ -1,9 +1,12 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { OrdersModule } from "../../orders/orders.module";
 import { CareemClientService } from "./careem-client.service";
 import { CareemController } from "./careem.controller";
 import { CareemWebhookController } from "./careem-webhook.controller";
 import { CareemWebhookLogService } from "./careem-webhook-log.service";
+import { CareemOrderService } from "./careem-order.service";
+import { CareemOrderSyncService } from "./careem-order-sync.service";
 
 // Phase CA — direct Careem (Now/SuperApp) POS integration.
 //
@@ -11,14 +14,23 @@ import { CareemWebhookLogService } from "./careem-webhook-log.service";
 // token caching, and the authenticated request helper.
 // CA-1 webhook receiver: one endpoint, four event types, static-key auth.
 //
-// Deliberately NOT importing OrdersModule yet. Nothing here creates an order
-// until the transformer is written against a real payload rather than the
-// spec's examples — the same rule that left the JET transformer honest about
-// being spec-derived.
+// CA-2 order intake: ORDER_CREATED becomes one of our orders, ORDER_STATUS_UPDATED
+// mirrors their courier lifecycle onto it, and our own accept/ready/cancel is
+// pushed back.
+//
+// OrdersModule is a one-way import — nothing in Orders reaches back into
+// Careem — so no forwardRef, matching JetModule and DeliverooModule. The
+// outbound sync listens on the order.status_changed event rather than being
+// called, which is what keeps that direction one-way.
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, OrdersModule],
   controllers: [CareemController, CareemWebhookController],
-  providers: [CareemClientService, CareemWebhookLogService],
-  exports: [CareemClientService],
+  providers: [
+    CareemClientService,
+    CareemWebhookLogService,
+    CareemOrderService,
+    CareemOrderSyncService,
+  ],
+  exports: [CareemClientService, CareemOrderService],
 })
 export class CareemModule {}

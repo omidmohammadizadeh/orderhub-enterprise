@@ -12,6 +12,7 @@ import { timingSafeEqual } from "crypto";
 import { Public } from "../../../common/decorators/public.decorator";
 import { BillingExempt } from "../../../common/guards/billing.guard";
 import { CareemWebhookLogService } from "./careem-webhook-log.service";
+import { CareemOrderService } from "./careem-order.service";
 
 // Phase CA-1 — Careem's inbound notifications.
 //
@@ -55,7 +56,10 @@ import { CareemWebhookLogService } from "./careem-webhook-log.service";
 export class CareemWebhookController {
   private readonly logger = new Logger(CareemWebhookController.name);
 
-  constructor(private readonly seen: CareemWebhookLogService) {}
+  constructor(
+    private readonly seen: CareemWebhookLogService,
+    private readonly orders: CareemOrderService,
+  ) {}
 
   @Post()
   @Public()
@@ -96,21 +100,45 @@ export class CareemWebhookController {
         `status=${body?.details?.status ?? "-"}`,
     );
 
-    switch (eventType) {
-      case "ORDER_CREATED":
-      case "ORDER_STATUS_UPDATED":
-      case "ORDER_ITEM_REPLACEMENT_ACCEPTED":
-      case "CATALOG_REQUEST_STATUS_UPDATED":
-        // CA-2 onward. Landing them as logged no-ops rather than 404ing means
-        // Careem can point staging at us today and we can read real payloads
-        // out of the logs — which is the only way the transformer gets built
-        // from real shapes instead of from the spec's examples.
-        this.logger.debug(
-          `Careem ${eventType} payload: ${JSON.stringify(body).slice(0, 2000)}`,
-        );
-        break;
-      default:
-        this.logger.warn(`Careem webhook with unknown event_type: ${eventType}`);
+    // Everything below is best-effort. Careem retries a failed webhook four
+    // times, and a payload we cannot process will not process on the fifth
+    // attempt either — so errors are logged and swallowed rather than turned
+    // into a non-2xx that provokes retries we know are pointless.
+    try {
+      switch (eventType) {
+        case "ORDER_CREATED":
+          await this.orders.ingest(body.details as never);
+          break;
+
+        case "ORDER_STATUS_UPDATED":
+          await this.orders.applyStatus(body.details as never);
+          break;
+
+        case "ORDER_ITEM_REPLACEMENT_ACCEPTED":
+          // Shops only, per their docs, and it needs the merchant to propose a
+          // replacement through Careem's own portal. Nothing to do for a
+          // restaurant; logged so we notice if one ever arrives.
+          this.logger.warn(
+            `Careem item replacement on order ${orderId} — not handled for restaurants`,
+          );
+          break;
+
+        case "CATALOG_REQUEST_STATUS_UPDATED":
+          // CA-3. The catalog push is not built yet, so this is recorded for
+          // the diagnostics page rather than acted on.
+          this.logger.log(
+            `Careem catalog request ${(body.details as Record<string, unknown>)?.request_id} ` +
+              `→ ${(body.details as Record<string, unknown>)?.status}`,
+          );
+          break;
+
+        default:
+          this.logger.warn(`Careem webhook with unknown event_type: ${eventType}`);
+      }
+    } catch (err) {
+      this.logger.error(
+        `Careem ${eventType} handling failed for order ${orderId}: ${(err as Error).message}`,
+      );
     }
 
     return { received: true };
