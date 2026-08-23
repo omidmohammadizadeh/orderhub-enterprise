@@ -97,6 +97,11 @@ const envSchema = z.object({
   CAREEM_WEBHOOK_API_KEY: z.string().optional(),
   CAREEM_ENV: z.enum(["staging", "production"]).default("staging"),
   CAREEM_API_BASE: z.string().url().optional(),
+  // Careem's spec disagrees with itself about where tokens come from: /token
+  // is listed under `paths` (the gateway) while securitySchemes gives
+  // https://identity.careem.com/token. We use the gateway; this override makes
+  // switching an env var rather than a deploy.
+  CAREEM_TOKEN_URL: z.string().url().optional(),
 
   // Billing enforcement. The guard reads the per-location subscriptions that
   // actually charge merchants, which nothing enforced before — so this ships

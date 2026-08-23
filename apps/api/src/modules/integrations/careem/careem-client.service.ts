@@ -39,6 +39,20 @@ interface CachedToken {
   expiresAt: number;
 }
 
+/** A failed token request, carrying what Careem actually said. Thrown rather
+ *  than logged-and-generalised so the diagnostics page can show the operator
+ *  the real reason instead of "could not authenticate". */
+export class CareemAuthError extends Error {
+  constructor(
+    readonly status: number,
+    readonly body: string,
+    readonly tokenUrl: string,
+  ) {
+    super(`Careem token request failed (${status}) at ${tokenUrl}`);
+    this.name = "CareemAuthError";
+  }
+}
+
 @Injectable()
 export class CareemClientService {
   private readonly logger = new Logger(CareemClientService.name);
@@ -53,6 +67,23 @@ export class CareemClientService {
 
   get baseUrl(): string {
     return process.env.CAREEM_API_BASE?.trim() || HOSTS[this.env];
+  }
+
+  /**
+   * Where we ask for a token.
+   *
+   * The spec is internally inconsistent about this and it matters: `/token` is
+   * listed under `paths`, i.e. on the gateway, while `securitySchemes` gives
+   * `tokenUrl: https://identity.careem.com/token`. Their own auth diagram
+   * draws the identity provider as a participant separate from the API, which
+   * leans the second way.
+   *
+   * We use the gateway (the spec's `paths` entry) and let CAREEM_TOKEN_URL
+   * override it, so if the identity host turns out to be the right one it is
+   * an environment variable rather than a deploy.
+   */
+  get tokenUrl(): string {
+    return process.env.CAREEM_TOKEN_URL?.trim() || `${this.baseUrl}/token`;
   }
 
   private get clientId(): string | null {
@@ -100,7 +131,7 @@ export class CareemClientService {
     form.append("grant_type", "client_credentials");
     form.append("scope", "pos");
 
-    const res = await fetch(`${this.baseUrl}/token`, {
+    const res = await fetch(this.tokenUrl, {
       method: "POST",
       body: form,
       signal: AbortSignal.timeout(15_000),
@@ -108,9 +139,14 @@ export class CareemClientService {
     const text = await res.text();
     if (!res.ok) {
       this.logger.error(
-        `Careem token request failed ${res.status}: ${text.slice(0, 300)}`,
+        `Careem token request failed ${res.status} at ${this.tokenUrl}: ${text.slice(0, 500)}`,
       );
-      throw new BadRequestException("Could not authenticate with Careem.");
+      // Careem's own words, not ours. Their errors are specific and
+      // actionable — "clients not found for client_id=…" means the webhook
+      // isn't configured for this environment, per their FAQ — and swallowing
+      // that behind "Could not authenticate" turns a five-minute fix into a
+      // support thread.
+      throw new CareemAuthError(res.status, text, this.tokenUrl);
     }
     let body: {
       access_token?: string;

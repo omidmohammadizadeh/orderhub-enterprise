@@ -1,7 +1,7 @@
 import { Controller, Get, Logger, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Roles } from "../../../common/decorators/roles.decorator";
-import { CareemClientService } from "./careem-client.service";
+import { CareemAuthError, CareemClientService } from "./careem-client.service";
 import { CareemWebhookLogService } from "./careem-webhook-log.service";
 
 // Phase CA-0 — "are the credentials actually working?"
@@ -44,6 +44,7 @@ export class CareemController {
       clientSecretSet: !!process.env.CAREEM_CLIENT_SECRET,
       webhookKeySet: !!process.env.CAREEM_WEBHOOK_API_KEY,
       webhookUrl: `${(process.env.API_URL ?? "").replace(/\/+$/, "")}/api/v1/webhooks/careem`,
+      tokenUrl: this.client.tokenUrl,
     };
 
     if (!this.client.configured()) {
@@ -57,7 +58,19 @@ export class CareemController {
       const token = await this.client.accessToken(true);
       out.token = { ok: true, length: token.length };
     } catch (err) {
-      out.token = { ok: false, error: (err as Error).message };
+      out.token =
+        err instanceof CareemAuthError
+          ? {
+              ok: false,
+              status: err.status,
+              tokenUrl: err.tokenUrl,
+              // Verbatim. Careem's errors name the actual problem — e.g.
+              // "clients not found for client_id=…", which their FAQ says
+              // means the webhook isn't configured for this environment.
+              careemSaid: err.body.slice(0, 1000),
+              hint: hintFor(err),
+            }
+          : { ok: false, error: (err as Error).message };
       out.webhooks = this.webhookSummary();
       return out; // nothing below can work without one
     }
@@ -101,6 +114,8 @@ export class CareemController {
     };
   }
 
+  private hintFor = hintFor;
+
   /** Never let one failing call hide the rest of the diagnosis. */
   private async safe<T>(fn: () => Promise<T>) {
     try {
@@ -109,4 +124,42 @@ export class CareemController {
       return { error: (err as Error).message };
     }
   }
+}
+
+/**
+ * Turn Careem's error into the next thing to actually do.
+ *
+ * Their messages are specific and their FAQ maps several of them to a fix, so
+ * this is a lookup rather than a guess. Anything unrecognised says so instead
+ * of inventing an explanation.
+ */
+function hintFor(err: CareemAuthError): string {
+  const body = err.body.toLowerCase();
+  if (body.includes("clients not found")) {
+    return (
+      "Careem doesn't recognise this client_id on this environment. Their FAQ " +
+      "maps this exact error to a webhook URL not being configured for the " +
+      "environment — confirm the sandbox credential in the portal has the " +
+      "webhook URL and x-careem-api-key saved against it, and that these are " +
+      "the SANDBOX credentials rather than production ones."
+    );
+  }
+  if (err.status === 401 || body.includes("invalid_client")) {
+    return (
+      "The client id or secret was rejected. Re-check both for whitespace or a " +
+      "truncated paste — Careem shows them once and they are long."
+    );
+  }
+  if (err.status === 404) {
+    return (
+      "The token endpoint itself 404'd, which points at the URL rather than the " +
+      "credentials. Careem's spec is inconsistent here: /token is listed on the " +
+      "gateway, but securitySchemes gives https://identity.careem.com/token. Try " +
+      "setting CAREEM_TOKEN_URL to that identity host."
+    );
+  }
+  if (err.status === 429) {
+    return "Rate limited. Their docs warn that requesting a token per API call can get an IP blocked — we cache, so this is more likely a shared IP.";
+  }
+  return "Unrecognised error — send the `careemSaid` text to Careem support.";
 }

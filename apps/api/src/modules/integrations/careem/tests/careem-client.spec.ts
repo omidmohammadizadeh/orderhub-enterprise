@@ -1,4 +1,4 @@
-import { CareemClientService } from "../careem-client.service";
+import { CareemAuthError, CareemClientService } from "../careem-client.service";
 import { verifyCareemApiKey } from "../careem-webhook.controller";
 
 // Careem POS transport + the static-key webhook auth.
@@ -180,5 +180,53 @@ describe("verifyCareemApiKey", () => {
 
   it("tolerates surrounding whitespace from header handling", () => {
     expect(verifyCareemApiKey("  a12345f-1337  ", "a12345f-1337")).toBe(true);
+  });
+});
+
+describe("CareemAuthError", () => {
+  beforeEach(() => {
+    process.env.CAREEM_CLIENT_ID = "cid";
+    process.env.CAREEM_CLIENT_SECRET = "csec";
+  });
+  afterEach(() => {
+    delete process.env.CAREEM_CLIENT_ID;
+    delete process.env.CAREEM_CLIENT_SECRET;
+    delete process.env.CAREEM_TOKEN_URL;
+    jest.restoreAllMocks();
+  });
+
+  it("carries Careem's own words rather than a generic message", async () => {
+    // Their errors name the actual problem — "clients not found for
+    // client_id=…" means the webhook isn't configured for the environment,
+    // per their FAQ. Generalising that to "could not authenticate" turns a
+    // five-minute fix into a support thread.
+    const said = JSON.stringify({
+      message: "clients not found for client_id=abc",
+      code: "NOT_FOUND_ERROR",
+    });
+    jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: async () => said,
+    } as any);
+
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).rejects.toMatchObject({
+      name: "CareemAuthError",
+      status: 404,
+      body: said,
+    });
+  });
+
+  it("reports which URL it tried, because the spec disagrees with itself", () => {
+    // /token is listed under `paths` (the gateway) while securitySchemes
+    // gives https://identity.careem.com/token. An override makes that an env
+    // var rather than a deploy.
+    const svc = new CareemClientService();
+    expect(svc.tokenUrl).toBe(
+      "https://apigateway-stg.careemdash.com/pos/api/v1/token",
+    );
+    process.env.CAREEM_TOKEN_URL = "https://identity.careem.com/token";
+    expect(svc.tokenUrl).toBe("https://identity.careem.com/token");
   });
 });

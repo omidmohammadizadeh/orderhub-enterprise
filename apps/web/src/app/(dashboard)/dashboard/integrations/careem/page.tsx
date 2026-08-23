@@ -33,7 +33,18 @@ interface Diagnostics {
   clientSecretSet?: boolean;
   webhookKeySet?: boolean;
   webhookUrl?: string;
-  token?: { ok?: boolean; length?: number; error?: string } | string;
+  tokenUrl?: string;
+  token?:
+    | {
+        ok?: boolean;
+        length?: number;
+        error?: string;
+        status?: number;
+        tokenUrl?: string;
+        careemSaid?: string;
+        hint?: string;
+      }
+    | string;
   brands?: unknown;
   branches?: unknown;
   webhooks?: {
@@ -86,12 +97,11 @@ export default function CareemPage() {
 
   const tokenOk =
     typeof diag.data?.token === "object" && diag.data.token?.ok === true;
+  const tokenObj =
+    typeof diag.data?.token === "object" ? diag.data.token : undefined;
   const tokenErr =
-    typeof diag.data?.token === "object"
-      ? diag.data.token?.error
-      : typeof diag.data?.token === "string"
-        ? diag.data.token
-        : undefined;
+    tokenObj?.error ??
+    (typeof diag.data?.token === "string" ? diag.data.token : undefined);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
@@ -140,11 +150,34 @@ export default function CareemPage() {
                 <strong>{diag.data?.environment}</strong> gateway is answering.
               </p>
             ) : (
-              <p className="text-sm">{tokenErr ?? "No token."}</p>
+              <div className="space-y-2 text-sm">
+                <p>
+                  {tokenErr ??
+                    `Careem rejected the token request${
+                      tokenObj?.status ? ` (HTTP ${tokenObj.status})` : ""
+                    }.`}
+                </p>
+                {tokenObj?.hint && (
+                  <p className="rounded border border-red-200 bg-white/60 p-2 text-[13px] leading-relaxed">
+                    {tokenObj.hint}
+                  </p>
+                )}
+                {tokenObj?.careemSaid && (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-red-700">
+                      Careem said
+                    </p>
+                    <pre className="mt-1 max-h-40 overflow-auto rounded bg-white/70 p-2 font-mono text-[10px] leading-relaxed text-zinc-800">
+                      {pretty(tokenObj.careemSaid)}
+                    </pre>
+                  </div>
+                )}
+              </div>
             )}
             <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 text-xs sm:grid-cols-2">
               <Row label="Environment" value={diag.data?.environment} />
               <Row label="Gateway" value={diag.data?.baseUrl} mono />
+              <Row label="Token URL" value={diag.data?.tokenUrl} mono />
               <Row
                 label="CAREEM_CLIENT_ID"
                 value={diag.data?.clientIdSet ? "set" : "missing"}
