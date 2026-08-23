@@ -306,3 +306,47 @@ describe("transformCareemOrder", () => {
     expect(out.displayId).toBe("CA-62503433");
   });
 });
+
+// Order.deliveryType is MERCHANT | PLATFORM and it is not decoration: PLATFORM
+// hands the post-READY chain to the marketplace's courier, MERCHANT walks the
+// operator all the way to delivered. Careem's own word ("careem"/"merchant")
+// is not that vocabulary, and writing it through unmapped made every
+// Careem-delivered order read as the shop's own delivery.
+describe("transformCareemOrder — who is actually driving", () => {
+  const names = { item: () => "Pizza", option: () => "Cheese" };
+  const ctx = { tenantId: "t1", locationId: "loc-1", brandId: "b1" } as never;
+
+  const order = (over: Record<string, unknown> = {}) =>
+    ({
+      id: 1,
+      status: "pending",
+      branch: { id: "loc-1", name: "Shop", brand_id: "b1" },
+      price: { original_total_price: 10, total_taxable_price: 10 },
+      items: [{ id: "i1", quantity: 1, price: 10, total_price: 10 }],
+      ...over,
+    }) as never;
+
+  it("marks a Careem-delivered order PLATFORM", () => {
+    const out = transformCareemOrder(order({ delivery_type: "careem" }), names, ctx);
+    expect((out.metadata as any).deliveryType).toBe("PLATFORM");
+    expect(out.fulfillmentType).toBe("PLATFORM_COURIER");
+  });
+
+  it("marks a self-delivery order MERCHANT", () => {
+    const out = transformCareemOrder(order({ delivery_type: "merchant" }), names, ctx);
+    expect((out.metadata as any).deliveryType).toBe("MERCHANT");
+    expect(out.fulfillmentType).toBe("DELIVERY");
+  });
+
+  it("keeps Careem's own word alongside, for support conversations", () => {
+    const out = transformCareemOrder(order({ delivery_type: "careem" }), names, ctx);
+    expect((out.metadata as any).careemDeliveryType).toBe("careem");
+  });
+
+  it("treats an unknown delivery_type as Careem's, not the shop's", () => {
+    // Careem deliver the overwhelming majority. Guessing MERCHANT would put a
+    // kitchen on the hook for a driver that was never theirs to find.
+    const out = transformCareemOrder(order({ delivery_type: undefined }), names, ctx);
+    expect((out.metadata as any).deliveryType).toBe("PLATFORM");
+  });
+});

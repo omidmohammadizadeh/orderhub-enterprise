@@ -322,7 +322,14 @@ export function transformCareemOrder(
       careemBranchId: order.branch?.id ?? null,
       careemBrandId: order.branch?.brand_id ?? null,
       careemStatus: order.status ?? null,
-      deliveryType: order.delivery_type ?? null,
+      // OUR vocabulary, not theirs. Order.deliveryType is MERCHANT | PLATFORM,
+      // and it does more than colour a badge: PLATFORM hands the post-READY
+      // chain to the marketplace's courier, while MERCHANT walks the operator
+      // all the way to delivered. Writing Careem's own word here left every
+      // Careem-DELIVERED order reading as the shop's own delivery — telling a
+      // kitchen to find a driver for an order Careem were already collecting.
+      deliveryType: selfDelivery ? "MERCHANT" : "PLATFORM",
+      careemDeliveryType: order.delivery_type ?? null,
       merchantPayType: order.merchant_pay_type ?? null,
       customerPaymentType: order.customer?.payment_type ?? null,
       // Non-zero means the driver collects this much in cash. Zero means paid.

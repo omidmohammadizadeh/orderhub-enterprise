@@ -1899,7 +1899,14 @@ export class OrdersService {
         );
       }
 
-      const updated = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
+      // WITH the relations. The board merges this response straight into the
+      // row it already has, so returning a bare Order blanked the brand and
+      // location columns the moment an order was accepted — the fields were
+      // not changed, they were absent, and absent overwrote them.
+      const updated = await tx.order.findUniqueOrThrow({
+        where: { id: orderId },
+        include: ORDER_INCLUDE,
+      });
 
       await tx.orderStatusHistory.create({
         data: {
