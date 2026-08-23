@@ -2371,6 +2371,7 @@ function OrderPage() {
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
+          currency={currency}
           allModifierGroups={storefront.brandModifierGroups ?? []}
           // Customer-facing: photo-led sheet, one priced Add button. The
           // till keeps the compact dialog — same logic, different chrome.

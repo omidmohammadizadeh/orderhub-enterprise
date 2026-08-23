@@ -423,6 +423,10 @@ export default function TableQrPage() {
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
+          // This page is public, so the modal must never look the currency up
+          // — that endpoint needs a dashboard token. It comes from the same
+          // storefront payload the menu does.
+          currency={(store as any)?.store?.currency ?? "GBP"}
           allModifierGroups={store?.brandModifierGroups ?? []}
           // One question per screen: staff and customers at a till are
           // completing a task, not browsing. The storefront stays on scroll.

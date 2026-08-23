@@ -20,7 +20,13 @@ import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 export function useCurrency(locationIdOverride?: string | null) {
   const selected = useSelectedLocationStore((s) => s.selectedLocationId);
-  const locationId = locationIdOverride ?? selected;
+  // `undefined` means "use whatever location the operator has selected".
+  // An explicit `null` means "do not look one up at all" — which is what a
+  // PUBLIC page must pass. This endpoint needs a dashboard token, and the
+  // selected location is persisted in localStorage, so on a storefront the
+  // query would fire with a real id, 401, and bounce the customer to /login.
+  const locationId =
+    locationIdOverride === undefined ? selected : locationIdOverride;
 
   const { data } = useQuery({
     queryKey: queryKeys.locationDetail(locationId ?? ""),

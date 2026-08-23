@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { X } from "lucide-react";
 import {
+  formatMoney,
   extractSizeKey,
   calculateCartItem,
   buildCartItemName,
@@ -56,6 +57,14 @@ interface Props {
    * For flat products this prop is unused and can be empty.
    */
   allModifierGroups?: CatalogModifierGroup[];
+  /**
+   * ISO currency for prices in this modal.
+   *
+   * REQUIRED from any public page. Without it the modal looks the currency up
+   * from the selected location, and that endpoint needs a dashboard token — on
+   * a storefront the customer gets a 401 and is bounced to /login.
+   */
+  currency?: string | null;
   open: boolean;
   onClose: () => void;
   onAdd: (line: {
@@ -92,6 +101,7 @@ interface Props {
 export function ModifierSelectionModal({
   item,
   allModifierGroups = [],
+  currency,
   presentation = "modal",
   flow = "scroll",
   heroFallback,
@@ -100,7 +110,14 @@ export function ModifierSelectionModal({
   onAdd,
 }: Props) {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money } = useCurrency();
+  // The till knows its currency from the selected location; the public
+  // storefront and table pages already have theirs from the storefront
+  // payload and MUST pass it, because the lookup below is authenticated.
+  const { money: lookedUpMoney } = useCurrency(currency ? null : undefined);
+  const money = currency
+    ? (n: string | number | null | undefined) =>
+        formatMoney(Number(n ?? 0), currency)
+    : lookedUpMoney;
   const isSheet = presentation === "sheet";
   // Sheet only: has the hero scrolled out of the way? Drives the compact
   // header, the way a native app hands the title over as the photo leaves.
