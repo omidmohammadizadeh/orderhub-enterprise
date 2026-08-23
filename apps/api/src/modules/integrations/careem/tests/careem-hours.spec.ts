@@ -131,3 +131,32 @@ describe("transformCareemHours", () => {
     expect(out.every((d) => d.active === false)).toBe(true);
   });
 });
+
+// A shop with no hours set is OPEN on the till — isCurrentlyOpen treats an
+// unconfigured schedule as always open. Publishing seven inactive days made
+// Careem the only place the shop was shut, and silently: nothing on our side
+// looks wrong, and their FAQ lists this as why a branch shows closed on the
+// SuperApp.
+describe("an unconfigured week", () => {
+  const ALL_WEEK_OPEN = Object.fromEntries(
+    ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map(
+      (d) => [d, [{ from: "00:00", to: "23:59" }]],
+    ),
+  );
+
+  it("publishes open all week, not closed all week", () => {
+    const out = transformCareemHours(ALL_WEEK_OPEN);
+    expect(out).toHaveLength(7);
+    expect(out.every((d) => d.active)).toBe(true);
+    for (const day of out) {
+      expect(day.shifts).toEqual([{ start_time: "00:00", end_time: END_OF_DAY }]);
+    }
+  });
+
+  it("does not spill a full day into the next one", () => {
+    // 00:00–23:59 does not cross midnight, so nothing should be added to the
+    // following day — otherwise every day would carry a phantom second shift.
+    const out = transformCareemHours(ALL_WEEK_OPEN);
+    expect(out.every((d) => d.shifts.length === 1)).toBe(true);
+  });
+});

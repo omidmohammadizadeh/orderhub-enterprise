@@ -33,7 +33,25 @@ import {
 // it. Until then a catalog push fails with "branch_id is not mapped". Nothing
 // here can do that step; `state` on the branch reports whether it has happened.
 
-export /** Careem cap a page at 20 and default to it. */
+export /**
+ * What we publish when a shop has set no hours at all.
+ *
+ * Careem reject 00:00 as an end time, so a full day is 00:00–23:59. It loses a
+ * minute at midnight, which is theirs to explain, not ours to work around.
+ */
+const ALL_WEEK_OPEN = Object.fromEntries(
+  [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+  ].map((d) => [d, [{ from: "00:00", to: "23:59" }]]),
+);
+
+/** Careem cap a page at 20 and default to it. */
 const PAGE_SIZE = 20;
 /** 4000 branches. Far past any real chain, and a stop for a broken cursor. */
 const MAX_PAGES = 200;
@@ -218,10 +236,24 @@ export class CareemStoreService {
       ? location.openingHours
       : (location.brand as { openingHours: unknown } | null)?.openingHours;
 
-    const operational_hours = transformCareemHours(
-      toWeekHours(raw),
-      this.weekStart,
-    );
+    // A shop with no hours set anywhere is OPEN, not shut.
+    //
+    // isCurrentlyOpen treats an unconfigured schedule as always open, and that
+    // is what the operator sees on their own till. Publishing seven inactive
+    // days would have made Careem the only place the shop was closed — and
+    // silently, since nothing on our side would look wrong. Careem's FAQ lists
+    // exactly this as why a branch shows closed on the SuperApp.
+    const configured = hoursConfigured(raw);
+    if (!configured) {
+      this.logger.warn(
+        `${locationId} has no opening hours on the location or its brand. ` +
+          `Publishing OPEN all week to Careem, matching how the till treats ` +
+          `it — set real hours before this shop goes live.`,
+      );
+    }
+    const operational_hours = configured
+      ? transformCareemHours(toWeekHours(raw), this.weekStart)
+      : transformCareemHours(ALL_WEEK_OPEN, this.weekStart);
     await this.client.request("/operational-hours", {
       method: "PUT",
       brandId: location.brandId,

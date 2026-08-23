@@ -78,7 +78,10 @@ export class CareemMockController {
       // regression there becomes visible instead of mysterious.
       userAgent: userAgent ?? null,
       authorized: !!auth?.startsWith("Bearer "),
-      body: method === "GET" ? null : body,
+      // NEVER the credentials. The token body carries client_id and
+      // client_secret, and this recording is rendered in a browser and copied
+      // into support threads — which is exactly how a secret escapes.
+      body: method === "GET" ? null : redact(body),
       responseStatus: status,
       response,
     });
@@ -180,4 +183,27 @@ export class CareemMockController {
       error_type: "NotFoundError",
     });
   }
+}
+
+/** Keys whose values must never be shown back. Matched loosely because the
+ *  cost of redacting one field too many is nothing. */
+const SECRET_KEY = /secret|password|token|authorization|api[-_]?key/i;
+
+function redact(body: unknown): unknown {
+  if (!body || typeof body !== "object") return body;
+  if (Array.isArray(body)) return body.map(redact);
+  return Object.fromEntries(
+    Object.entries(body as Record<string, unknown>).map(([k, v]) => [
+      k,
+      SECRET_KEY.test(k)
+        ? "[redacted]"
+        : // client_id is not a secret on its own, but it identifies the
+          // credential, so it is shortened rather than shown whole.
+          k === "client_id" && typeof v === "string"
+          ? `${v.slice(0, 4)}…${v.slice(-4)}`
+          : typeof v === "object"
+            ? redact(v)
+            : v,
+    ]),
+  );
 }
