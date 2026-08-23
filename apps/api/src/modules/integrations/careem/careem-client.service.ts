@@ -23,6 +23,10 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 // "please provide the webhook URL and the associated secret to the engineering
 // team" — so neither is self-serve in the partner portal.
 
+/** Careem's identity provider. Shared across environments — the client_id
+ *  determines which one you get a token for. */
+const IDENTITY_TOKEN_URL = "https://identity.careem.com/token";
+
 const HOSTS = {
   production: "https://apigateway.careemdash.com/pos/api/v1",
   staging: "https://apigateway-stg.careemdash.com/pos/api/v1",
@@ -70,20 +74,24 @@ export class CareemClientService {
   }
 
   /**
-   * Where we ask for a token.
+   * Where we ask for a token — the IDENTITY provider, not the API gateway.
    *
-   * The spec is internally inconsistent about this and it matters: `/token` is
-   * listed under `paths`, i.e. on the gateway, while `securitySchemes` gives
-   * `tokenUrl: https://identity.careem.com/token`. Their own auth diagram
-   * draws the identity provider as a participant separate from the API, which
-   * leans the second way.
+   * The spec contradicts itself here and only one side of it works. `/token`
+   * is listed under `paths`, which puts it on the gateway; `securitySchemes`
+   * gives `tokenUrl: https://identity.careem.com/token`; and their auth
+   * diagram draws the identity provider as a participant separate from the
+   * API. Tested against both:
    *
-   * We use the gateway (the spec's `paths` entry) and let CAREEM_TOKEN_URL
-   * override it, so if the identity host turns out to be the right one it is
-   * an environment variable rather than a deploy.
+   *   POST {gateway}/token          → 404, a bare Symfony NotFoundHttpException
+   *   POST identity.careem.com/token → 401 {"error":"invalid_client"}
+   *
+   * A 401 invalid_client is an OAuth2 server correctly rejecting bad
+   * credentials, i.e. the endpoint exists and speaks the protocol. The `paths`
+   * entry does not. One identity host serves both environments — the client_id
+   * decides which — so this is not derived from CAREEM_ENV.
    */
   get tokenUrl(): string {
-    return process.env.CAREEM_TOKEN_URL?.trim() || `${this.baseUrl}/token`;
+    return process.env.CAREEM_TOKEN_URL?.trim() || IDENTITY_TOKEN_URL;
   }
 
   private get clientId(): string | null {

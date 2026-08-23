@@ -152,10 +152,11 @@ function hintFor(err: CareemAuthError): string {
   }
   if (err.status === 404) {
     return (
-      "The token endpoint itself 404'd, which points at the URL rather than the " +
-      "credentials. Careem's spec is inconsistent here: /token is listed on the " +
-      "gateway, but securitySchemes gives https://identity.careem.com/token. Try " +
-      "setting CAREEM_TOKEN_URL to that identity host."
+      "The token endpoint 404'd, which points at the URL rather than the " +
+      "credentials. We default to Careem's identity provider " +
+      "(https://identity.careem.com/token) because the gateway path in their " +
+      "spec returns a bare Symfony NotFoundHttpException. If CAREEM_TOKEN_URL " +
+      "is set, clear it."
     );
   }
   if (err.status === 429) {

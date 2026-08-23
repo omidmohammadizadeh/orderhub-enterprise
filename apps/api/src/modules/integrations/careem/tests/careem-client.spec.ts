@@ -218,15 +218,32 @@ describe("CareemAuthError", () => {
     });
   });
 
-  it("reports which URL it tried, because the spec disagrees with itself", () => {
-    // /token is listed under `paths` (the gateway) while securitySchemes
-    // gives https://identity.careem.com/token. An override makes that an env
-    // var rather than a deploy.
+  it("asks the IDENTITY provider for tokens, not the gateway", () => {
+    // The spec contradicts itself: /token is under `paths` (the gateway) while
+    // securitySchemes gives the identity host. Only one works —
+    //   POST {gateway}/token           → 404 Symfony NotFoundHttpException
+    //   POST identity.careem.com/token → 401 {"error":"invalid_client"}
+    // — and a 401 invalid_client is an OAuth2 server correctly rejecting bad
+    // credentials, i.e. the endpoint is real.
     const svc = new CareemClientService();
-    expect(svc.tokenUrl).toBe(
-      "https://apigateway-stg.careemdash.com/pos/api/v1/token",
-    );
-    process.env.CAREEM_TOKEN_URL = "https://identity.careem.com/token";
     expect(svc.tokenUrl).toBe("https://identity.careem.com/token");
+    expect(svc.tokenUrl).not.toContain("careemdash");
+  });
+
+  it("uses one identity host for both environments", () => {
+    // The client_id decides which environment the token is for, so this is
+    // deliberately NOT derived from CAREEM_ENV.
+    process.env.CAREEM_ENV = "production";
+    expect(new CareemClientService().tokenUrl).toBe(
+      "https://identity.careem.com/token",
+    );
+    delete process.env.CAREEM_ENV;
+  });
+
+  it("still allows an override", () => {
+    process.env.CAREEM_TOKEN_URL = "https://identity-test.example/token";
+    expect(new CareemClientService().tokenUrl).toBe(
+      "https://identity-test.example/token",
+    );
   });
 });
