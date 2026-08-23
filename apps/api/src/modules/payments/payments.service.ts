@@ -387,7 +387,24 @@ export class PaymentsService {
       where: { stripePaymentIntentId: paymentIntentId, tenantId },
     });
     if (!payment) throw new NotFoundException("Payment not found");
+    return this.confirmPaymentRow(tenantId, payment, paymentIntentId);
+  }
 
+  /**
+   * Everything that happens when money actually lands: ledger entries, the
+   * order flipped to PAID, the board lit up, auto-accept fired.
+   *
+   * Split out from confirmPayment so a provider that is NOT Stripe can reuse
+   * it by finding its own Payment row first — Tap's charge id is not a
+   * PaymentIntent and never will be, and duplicating this would mean a Gulf
+   * order that was paid for but never reached the kitchen.
+   *
+   * `reference` is whatever the provider calls the transaction; it lands on
+   * the ledger entries, which is what anyone reconciling a bank statement
+   * actually reads.
+   */
+  async confirmPaymentRow(tenantId: string, payment: any, reference: string) {
+    const paymentIntentId = reference;
     if (payment.status === PaymentRecordStatus.SUCCEEDED) {
       return payment; // idempotent
     }

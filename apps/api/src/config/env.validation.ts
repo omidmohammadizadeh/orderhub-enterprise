@@ -84,6 +84,17 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
+  // Tap Payments — the Gulf money path. One key does everything: it
+  // authorises the API calls AND signs the webhook `hashstring`, so there is
+  // no separate webhook secret to set (or to forget) the way Stripe has.
+  //
+  // Optional, like Stripe's: a deployment with no Gulf shops needs neither,
+  // and a Gulf shop without it is told at checkout that the restaurant
+  // doesn't take cards yet rather than 500-ing mid-payment.
+  TAP_SECRET_KEY: z.string().optional(),
+  // Override only for Tap's sandbox or a proxy. Defaults to the live base.
+  TAP_API_BASE: z.string().url().optional(),
+
 
   // Platform webhook secrets (per-tenant overrides stored in DB; these are fallback globals)
   UBER_EATS_CLIENT_ID: z.string().optional(),

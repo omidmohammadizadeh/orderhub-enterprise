@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  Logger,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { Request } from "express";
@@ -25,15 +26,19 @@ import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { ReceiptEmailService } from "./receipt-email.service";
 import { PayoutsService } from "../payouts/payouts.service";
+import { TapService } from "./tap.service";
 
 @ApiTags("payments")
 @ApiBearerAuth()
 @Controller({ path: "payments", version: "1" })
 export class PaymentsController {
+  private readonly logger = new Logger(PaymentsController.name);
+
   constructor(
     private readonly payments: PaymentsService,
     private readonly receiptEmail: ReceiptEmailService,
     private readonly payouts: PayoutsService,
+    private readonly tap: TapService,
   ) {}
 
   // POST /v1/payments/intent
@@ -62,6 +67,46 @@ export class PaymentsController {
       ? req.body
       : Buffer.from(JSON.stringify(req.body));
     return this.payments.handleStripeWebhook(rawBody, signature ?? "");
+  }
+
+  /**
+   * POST /v1/payments/tap/webhook — Tap's charge/refund notifications.
+   *
+   * Public, like Stripe's, and for the same reason: the provider posts here
+   * unauthenticated. What stands in for auth is the `hashstring` header, an
+   * HMAC over six fields of the body signed with our secret key — without
+   * verifying it, posting a CAPTURED charge to this URL is all it would take
+   * to mark any order paid.
+   *
+   * Unlike Stripe's, this reads the PARSED body: Tap signs field values, not
+   * the raw bytes, so there is nothing to gain from the buffer and one less
+   * thing to get wrong about body-parser ordering.
+   *
+   * Always 200s. Tap retries on any non-2xx, and a charge we can't match to an
+   * order is not going to match on the fifth attempt either — it's logged and
+   * dropped instead of retried forever.
+   */
+  @Post("tap/webhook")
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Tap Payments webhook (hashstring-signed)" })
+  async handleTapWebhook(
+    @Body() body: any,
+    @Headers("hashstring") hashstring: string,
+  ) {
+    if (!this.tap.verifyWebhook(body, hashstring)) {
+      // Not an error the caller gets to distinguish. A verification failure is
+      // either a misconfigured key or someone probing, and telling the two
+      // apart in the response helps only the second.
+      this.logger.warn(`Tap webhook rejected: bad or missing hashstring (id=${body?.id ?? "?"})`);
+      return { received: true };
+    }
+    await this.tap
+      .settleCharge(body)
+      .catch((err: any) =>
+        this.logger.error(`Tap settleCharge failed for ${body?.id}: ${err.message}`),
+      );
+    return { received: true };
   }
 
   // GET /v1/payments/orders/:orderId

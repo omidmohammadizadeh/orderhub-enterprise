@@ -82,6 +82,51 @@ export function currencySymbol(currency: string | null | undefined): string {
  * dinar keeps its three places either way.
  */
 /**
+ * Convert a decimal amount to a provider's smallest unit, and back.
+ *
+ * `amount * 100` is written out by hand all over the payments code and is
+ * WRONG for a third of the currencies we now trade in: the Gulf dinars (KWD,
+ * BHD, OMR) and JOD are thousandths, so 1.250 KWD is 1250 fils, not 125. Two
+ * of Stripe's zero-decimal currencies (JPY, KRW) go the other way.
+ *
+ * Ask currencyDecimals rather than assuming, and round — floating point makes
+ * 19.99 * 100 come out at 1998.9999999999998, which truncates to a penny
+ * short on every order.
+ */
+export function toMinorUnits(
+  amount: number | string | null | undefined,
+  currency: string | null | undefined,
+): number {
+  const n = Number(amount);
+  const value = Number.isFinite(n) ? n : 0;
+  return Math.round(value * 10 ** currencyDecimals(currency));
+}
+
+export function fromMinorUnits(
+  units: number | string | null | undefined,
+  currency: string | null | undefined,
+): number {
+  const n = Number(units);
+  const value = Number.isFinite(n) ? n : 0;
+  return value / 10 ** currencyDecimals(currency);
+}
+
+/**
+ * Round a decimal amount to the number of places its currency actually has.
+ *
+ * Tap takes amounts as DECIMALS rather than minor units, and rejects one with
+ * more precision than the currency allows — and its webhook signature is
+ * computed over the amount as a string, so an amount that disagrees with
+ * Tap's rounding fails signature verification rather than failing visibly.
+ */
+export function roundToCurrency(
+  amount: number | string | null | undefined,
+  currency: string | null | undefined,
+): number {
+  return fromMinorUnits(toMinorUnits(amount, currency), currency);
+}
+
+/**
  * What to CALL a currency out loud, and what to call its subunit.
  *
  * For the voice agent, which is read aloud by a speech engine: "four pounds

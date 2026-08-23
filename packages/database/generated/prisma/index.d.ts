@@ -27283,6 +27283,8 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string | null
     stripeConnectedAccountId: string | null
+    tapDestinationId: string | null
+    tapBusinessId: string | null
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string | null
@@ -27317,6 +27319,8 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string | null
     stripeConnectedAccountId: string | null
+    tapDestinationId: string | null
+    tapBusinessId: string | null
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string | null
@@ -27354,6 +27358,8 @@ export namespace Prisma {
     customDomain: number
     customDomainStatus: number
     stripeConnectedAccountId: number
+    tapDestinationId: number
+    tapBusinessId: number
     applicationFeeFixedAmount: number
     applicationFeePercentage: number
     applicationFeeMode: number
@@ -27405,6 +27411,8 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     stripeConnectedAccountId?: true
+    tapDestinationId?: true
+    tapBusinessId?: true
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
     applicationFeeMode?: true
@@ -27439,6 +27447,8 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     stripeConnectedAccountId?: true
+    tapDestinationId?: true
+    tapBusinessId?: true
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
     applicationFeeMode?: true
@@ -27476,6 +27486,8 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     stripeConnectedAccountId?: true
+    tapDestinationId?: true
+    tapBusinessId?: true
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
     applicationFeeMode?: true
@@ -27601,6 +27613,8 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string
     stripeConnectedAccountId: string | null
+    tapDestinationId: string | null
+    tapBusinessId: string | null
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string
@@ -27658,6 +27672,8 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     stripeConnectedAccountId?: boolean
+    tapDestinationId?: boolean
+    tapBusinessId?: boolean
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
@@ -27712,6 +27728,8 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     stripeConnectedAccountId?: boolean
+    tapDestinationId?: boolean
+    tapBusinessId?: boolean
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
@@ -27752,6 +27770,8 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     stripeConnectedAccountId?: boolean
+    tapDestinationId?: boolean
+    tapBusinessId?: boolean
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
@@ -27832,6 +27852,18 @@ export namespace Prisma {
       customDomain: string | null
       customDomainStatus: string
       stripeConnectedAccountId: string | null
+      /**
+       * Tap's destination id for this brand — where its share of a split charge
+       * settles. The Gulf equivalent of stripeConnectedAccountId, and like it,
+       * a charge cannot be taken for the brand without one.
+       */
+      tapDestinationId: string | null
+      /**
+       * Tap's business id for the brand, from the marketplace Business API.
+       * Kept alongside the destination id because they are different things and
+       * only the destination one is used on a charge.
+       */
+      tapBusinessId: string | null
       applicationFeeFixedAmount: Prisma.Decimal | null
       applicationFeePercentage: Prisma.Decimal | null
       applicationFeeMode: string
@@ -28275,6 +28307,8 @@ export namespace Prisma {
     readonly customDomain: FieldRef<"Brand", 'String'>
     readonly customDomainStatus: FieldRef<"Brand", 'String'>
     readonly stripeConnectedAccountId: FieldRef<"Brand", 'String'>
+    readonly tapDestinationId: FieldRef<"Brand", 'String'>
+    readonly tapBusinessId: FieldRef<"Brand", 'String'>
     readonly applicationFeeFixedAmount: FieldRef<"Brand", 'Decimal'>
     readonly applicationFeePercentage: FieldRef<"Brand", 'Decimal'>
     readonly applicationFeeMode: FieldRef<"Brand", 'String'>
@@ -94534,6 +94568,8 @@ export namespace Prisma {
     stripeConnectAccountId: string | null
     stripePaymentIntentId: string | null
     stripeChargeId: string | null
+    provider: string | null
+    providerChargeId: string | null
     amount: Decimal | null
     currency: string | null
     status: $Enums.PaymentRecordStatus | null
@@ -94552,6 +94588,8 @@ export namespace Prisma {
     stripeConnectAccountId: string | null
     stripePaymentIntentId: string | null
     stripeChargeId: string | null
+    provider: string | null
+    providerChargeId: string | null
     amount: Decimal | null
     currency: string | null
     status: $Enums.PaymentRecordStatus | null
@@ -94570,6 +94608,8 @@ export namespace Prisma {
     stripeConnectAccountId: number
     stripePaymentIntentId: number
     stripeChargeId: number
+    provider: number
+    providerChargeId: number
     amount: number
     currency: number
     status: number
@@ -94607,6 +94647,8 @@ export namespace Prisma {
     stripeConnectAccountId?: true
     stripePaymentIntentId?: true
     stripeChargeId?: true
+    provider?: true
+    providerChargeId?: true
     amount?: true
     currency?: true
     status?: true
@@ -94625,6 +94667,8 @@ export namespace Prisma {
     stripeConnectAccountId?: true
     stripePaymentIntentId?: true
     stripeChargeId?: true
+    provider?: true
+    providerChargeId?: true
     amount?: true
     currency?: true
     status?: true
@@ -94643,6 +94687,8 @@ export namespace Prisma {
     stripeConnectAccountId?: true
     stripePaymentIntentId?: true
     stripeChargeId?: true
+    provider?: true
+    providerChargeId?: true
     amount?: true
     currency?: true
     status?: true
@@ -94749,6 +94795,8 @@ export namespace Prisma {
     stripeConnectAccountId: string | null
     stripePaymentIntentId: string | null
     stripeChargeId: string | null
+    provider: string
+    providerChargeId: string | null
     amount: Decimal
     currency: string
     status: $Enums.PaymentRecordStatus
@@ -94787,6 +94835,8 @@ export namespace Prisma {
     stripeConnectAccountId?: boolean
     stripePaymentIntentId?: boolean
     stripeChargeId?: boolean
+    provider?: boolean
+    providerChargeId?: boolean
     amount?: boolean
     currency?: boolean
     status?: boolean
@@ -94811,6 +94861,8 @@ export namespace Prisma {
     stripeConnectAccountId?: boolean
     stripePaymentIntentId?: boolean
     stripeChargeId?: boolean
+    provider?: boolean
+    providerChargeId?: boolean
     amount?: boolean
     currency?: boolean
     status?: boolean
@@ -94832,6 +94884,8 @@ export namespace Prisma {
     stripeConnectAccountId?: boolean
     stripePaymentIntentId?: boolean
     stripeChargeId?: boolean
+    provider?: boolean
+    providerChargeId?: boolean
     amount?: boolean
     currency?: boolean
     status?: boolean
@@ -94871,6 +94925,18 @@ export namespace Prisma {
       stripeConnectAccountId: string | null
       stripePaymentIntentId: string | null
       stripeChargeId: string | null
+      /**
+       * Which provider took the money. Derived from the shop's country at
+       * charge time and STORED, unlike the live routing decision — a refund
+       * three months later has to go back through whoever actually took it,
+       * even if the shop has since moved country.
+       */
+      provider: string
+      /**
+       * The provider's own id for this charge. Tap's `charge.id` (chg_…); null
+       * on Stripe rows, which keep using the two columns above.
+       */
+      providerChargeId: string | null
       amount: Prisma.Decimal
       currency: string
       status: $Enums.PaymentRecordStatus
@@ -95284,6 +95350,8 @@ export namespace Prisma {
     readonly stripeConnectAccountId: FieldRef<"Payment", 'String'>
     readonly stripePaymentIntentId: FieldRef<"Payment", 'String'>
     readonly stripeChargeId: FieldRef<"Payment", 'String'>
+    readonly provider: FieldRef<"Payment", 'String'>
+    readonly providerChargeId: FieldRef<"Payment", 'String'>
     readonly amount: FieldRef<"Payment", 'Decimal'>
     readonly currency: FieldRef<"Payment", 'String'>
     readonly status: FieldRef<"Payment", 'PaymentRecordStatus'>
@@ -151758,6 +151826,8 @@ export namespace Prisma {
     customDomain: 'customDomain',
     customDomainStatus: 'customDomainStatus',
     stripeConnectedAccountId: 'stripeConnectedAccountId',
+    tapDestinationId: 'tapDestinationId',
+    tapBusinessId: 'tapBusinessId',
     applicationFeeFixedAmount: 'applicationFeeFixedAmount',
     applicationFeePercentage: 'applicationFeePercentage',
     applicationFeeMode: 'applicationFeeMode',
@@ -153057,6 +153127,8 @@ export namespace Prisma {
     stripeConnectAccountId: 'stripeConnectAccountId',
     stripePaymentIntentId: 'stripePaymentIntentId',
     stripeChargeId: 'stripeChargeId',
+    provider: 'provider',
+    providerChargeId: 'providerChargeId',
     amount: 'amount',
     currency: 'currency',
     status: 'status',
@@ -154275,6 +154347,8 @@ export namespace Prisma {
     customDomain: 'customDomain',
     customDomainStatus: 'customDomainStatus',
     stripeConnectedAccountId: 'stripeConnectedAccountId',
+    tapDestinationId: 'tapDestinationId',
+    tapBusinessId: 'tapBusinessId',
     applicationFeeMode: 'applicationFeeMode',
     defaultStationId: 'defaultStationId'
   };
@@ -155101,6 +155175,8 @@ export namespace Prisma {
     stripeConnectAccountId: 'stripeConnectAccountId',
     stripePaymentIntentId: 'stripePaymentIntentId',
     stripeChargeId: 'stripeChargeId',
+    provider: 'provider',
+    providerChargeId: 'providerChargeId',
     currency: 'currency'
   };
 
@@ -157770,6 +157846,8 @@ export namespace Prisma {
     customDomain?: StringNullableFilter<"Brand"> | string | null
     customDomainStatus?: StringFilter<"Brand"> | string
     stripeConnectedAccountId?: StringNullableFilter<"Brand"> | string | null
+    tapDestinationId?: StringNullableFilter<"Brand"> | string | null
+    tapBusinessId?: StringNullableFilter<"Brand"> | string | null
     applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Brand"> | string
@@ -157823,6 +157901,8 @@ export namespace Prisma {
     customDomain?: SortOrderInput | SortOrder
     customDomainStatus?: SortOrder
     stripeConnectedAccountId?: SortOrderInput | SortOrder
+    tapDestinationId?: SortOrderInput | SortOrder
+    tapBusinessId?: SortOrderInput | SortOrder
     applicationFeeFixedAmount?: SortOrderInput | SortOrder
     applicationFeePercentage?: SortOrderInput | SortOrder
     applicationFeeMode?: SortOrder
@@ -157881,6 +157961,8 @@ export namespace Prisma {
     customDomain?: StringNullableFilter<"Brand"> | string | null
     customDomainStatus?: StringFilter<"Brand"> | string
     stripeConnectedAccountId?: StringNullableFilter<"Brand"> | string | null
+    tapDestinationId?: StringNullableFilter<"Brand"> | string | null
+    tapBusinessId?: StringNullableFilter<"Brand"> | string | null
     applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Brand"> | string
@@ -157934,6 +158016,8 @@ export namespace Prisma {
     customDomain?: SortOrderInput | SortOrder
     customDomainStatus?: SortOrder
     stripeConnectedAccountId?: SortOrderInput | SortOrder
+    tapDestinationId?: SortOrderInput | SortOrder
+    tapBusinessId?: SortOrderInput | SortOrder
     applicationFeeFixedAmount?: SortOrderInput | SortOrder
     applicationFeePercentage?: SortOrderInput | SortOrder
     applicationFeeMode?: SortOrder
@@ -157980,6 +158064,8 @@ export namespace Prisma {
     customDomain?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     customDomainStatus?: StringWithAggregatesFilter<"Brand"> | string
     stripeConnectedAccountId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    tapDestinationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    tapBusinessId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     applicationFeeFixedAmount?: DecimalNullableWithAggregatesFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableWithAggregatesFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringWithAggregatesFilter<"Brand"> | string
@@ -164841,6 +164927,8 @@ export namespace Prisma {
     stripeConnectAccountId?: StringNullableFilter<"Payment"> | string | null
     stripePaymentIntentId?: StringNullableFilter<"Payment"> | string | null
     stripeChargeId?: StringNullableFilter<"Payment"> | string | null
+    provider?: StringFilter<"Payment"> | string
+    providerChargeId?: StringNullableFilter<"Payment"> | string | null
     amount?: DecimalFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     currency?: StringFilter<"Payment"> | string
     status?: EnumPaymentRecordStatusFilter<"Payment"> | $Enums.PaymentRecordStatus
@@ -164864,6 +164952,8 @@ export namespace Prisma {
     stripeConnectAccountId?: SortOrderInput | SortOrder
     stripePaymentIntentId?: SortOrderInput | SortOrder
     stripeChargeId?: SortOrderInput | SortOrder
+    provider?: SortOrder
+    providerChargeId?: SortOrderInput | SortOrder
     amount?: SortOrder
     currency?: SortOrder
     status?: SortOrder
@@ -164885,12 +164975,14 @@ export namespace Prisma {
     id?: string
     stripePaymentIntentId?: string
     stripeChargeId?: string
+    providerChargeId?: string
     AND?: PaymentWhereInput | PaymentWhereInput[]
     OR?: PaymentWhereInput[]
     NOT?: PaymentWhereInput | PaymentWhereInput[]
     tenantId?: StringFilter<"Payment"> | string
     orderId?: StringFilter<"Payment"> | string
     stripeConnectAccountId?: StringNullableFilter<"Payment"> | string | null
+    provider?: StringFilter<"Payment"> | string
     amount?: DecimalFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     currency?: StringFilter<"Payment"> | string
     status?: EnumPaymentRecordStatusFilter<"Payment"> | $Enums.PaymentRecordStatus
@@ -164905,7 +164997,7 @@ export namespace Prisma {
     connectAccount?: XOR<StripeConnectAccountNullableRelationFilter, StripeConnectAccountWhereInput> | null
     refunds?: RefundListRelationFilter
     ledgerEntries?: LedgerEntryListRelationFilter
-  }, "id" | "stripePaymentIntentId" | "stripeChargeId">
+  }, "id" | "stripePaymentIntentId" | "stripeChargeId" | "providerChargeId">
 
   export type PaymentOrderByWithAggregationInput = {
     id?: SortOrder
@@ -164914,6 +165006,8 @@ export namespace Prisma {
     stripeConnectAccountId?: SortOrderInput | SortOrder
     stripePaymentIntentId?: SortOrderInput | SortOrder
     stripeChargeId?: SortOrderInput | SortOrder
+    provider?: SortOrder
+    providerChargeId?: SortOrderInput | SortOrder
     amount?: SortOrder
     currency?: SortOrder
     status?: SortOrder
@@ -164941,6 +165035,8 @@ export namespace Prisma {
     stripeConnectAccountId?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     stripePaymentIntentId?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     stripeChargeId?: StringNullableWithAggregatesFilter<"Payment"> | string | null
+    provider?: StringWithAggregatesFilter<"Payment"> | string
+    providerChargeId?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     amount?: DecimalWithAggregatesFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     currency?: StringWithAggregatesFilter<"Payment"> | string
     status?: EnumPaymentRecordStatusWithAggregatesFilter<"Payment"> | $Enums.PaymentRecordStatus
@@ -171301,6 +171397,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -171353,6 +171451,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -171403,6 +171503,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -171455,6 +171557,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -171506,6 +171610,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -171543,6 +171649,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -171580,6 +171688,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -179511,6 +179621,8 @@ export namespace Prisma {
     tenantId: string
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -179534,6 +179646,8 @@ export namespace Prisma {
     stripeConnectAccountId?: string | null
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -179553,6 +179667,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -179576,6 +179692,8 @@ export namespace Prisma {
     stripeConnectAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -179597,6 +179715,8 @@ export namespace Prisma {
     stripeConnectAccountId?: string | null
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -179614,6 +179734,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -179633,6 +179755,8 @@ export namespace Prisma {
     stripeConnectAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -186814,6 +186938,8 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     stripeConnectedAccountId?: SortOrder
+    tapDestinationId?: SortOrder
+    tapBusinessId?: SortOrder
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
@@ -186856,6 +186982,8 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     stripeConnectedAccountId?: SortOrder
+    tapDestinationId?: SortOrder
+    tapBusinessId?: SortOrder
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
@@ -186890,6 +187018,8 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     stripeConnectedAccountId?: SortOrder
+    tapDestinationId?: SortOrder
+    tapBusinessId?: SortOrder
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
@@ -192114,6 +192244,8 @@ export namespace Prisma {
     stripeConnectAccountId?: SortOrder
     stripePaymentIntentId?: SortOrder
     stripeChargeId?: SortOrder
+    provider?: SortOrder
+    providerChargeId?: SortOrder
     amount?: SortOrder
     currency?: SortOrder
     status?: SortOrder
@@ -192141,6 +192273,8 @@ export namespace Prisma {
     stripeConnectAccountId?: SortOrder
     stripePaymentIntentId?: SortOrder
     stripeChargeId?: SortOrder
+    provider?: SortOrder
+    providerChargeId?: SortOrder
     amount?: SortOrder
     currency?: SortOrder
     status?: SortOrder
@@ -192159,6 +192293,8 @@ export namespace Prisma {
     stripeConnectAccountId?: SortOrder
     stripePaymentIntentId?: SortOrder
     stripeChargeId?: SortOrder
+    provider?: SortOrder
+    providerChargeId?: SortOrder
     amount?: SortOrder
     currency?: SortOrder
     status?: SortOrder
@@ -205358,6 +205494,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -205408,6 +205546,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -206632,6 +206772,8 @@ export namespace Prisma {
     customDomain?: StringNullableFilter<"Brand"> | string | null
     customDomainStatus?: StringFilter<"Brand"> | string
     stripeConnectedAccountId?: StringNullableFilter<"Brand"> | string | null
+    tapDestinationId?: StringNullableFilter<"Brand"> | string | null
+    tapBusinessId?: StringNullableFilter<"Brand"> | string | null
     applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Brand"> | string
@@ -208925,6 +209067,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -208976,6 +209120,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -209106,6 +209252,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -209157,6 +209305,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -212077,6 +212227,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -212128,6 +212280,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -213565,6 +213719,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -213616,6 +213772,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -214580,6 +214738,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -214631,6 +214791,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -214877,6 +215039,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -214928,6 +215092,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -215532,6 +215698,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -215583,6 +215751,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -215794,6 +215964,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -215845,6 +216017,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -216540,6 +216714,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -216591,6 +216767,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -216741,6 +216919,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -216792,6 +216972,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -218767,6 +218949,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -218818,6 +219002,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -219107,6 +219293,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -219158,6 +219346,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -220531,6 +220721,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -220582,6 +220774,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -220647,6 +220841,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -220698,6 +220894,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -220747,6 +220945,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -220798,6 +220998,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -220863,6 +221065,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -220914,6 +221118,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -221859,6 +222065,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -221910,6 +222118,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -222162,6 +222372,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -222213,6 +222425,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -222667,6 +222881,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -222718,6 +222934,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -222894,6 +223112,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -222945,6 +223165,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -223692,6 +223914,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -223743,6 +223967,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -223995,6 +224221,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -224046,6 +224274,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -224797,6 +225027,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -224848,6 +225080,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -225076,6 +225310,8 @@ export namespace Prisma {
     tenantId: string
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -225097,6 +225333,8 @@ export namespace Prisma {
     stripeConnectAccountId?: string | null
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -225552,6 +225790,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -225603,6 +225843,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -225799,6 +226041,8 @@ export namespace Prisma {
     stripeConnectAccountId?: StringNullableFilter<"Payment"> | string | null
     stripePaymentIntentId?: StringNullableFilter<"Payment"> | string | null
     stripeChargeId?: StringNullableFilter<"Payment"> | string | null
+    provider?: StringFilter<"Payment"> | string
+    providerChargeId?: StringNullableFilter<"Payment"> | string | null
     amount?: DecimalFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     currency?: StringFilter<"Payment"> | string
     status?: EnumPaymentRecordStatusFilter<"Payment"> | $Enums.PaymentRecordStatus
@@ -227158,6 +227402,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -227209,6 +227455,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -227461,6 +227709,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -227512,6 +227762,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -231568,6 +231820,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -231619,6 +231873,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -235367,6 +235623,8 @@ export namespace Prisma {
     tenantId: string
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -235388,6 +235646,8 @@ export namespace Prisma {
     orderId: string
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -236257,6 +236517,8 @@ export namespace Prisma {
     tenantId: string
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -236279,6 +236541,8 @@ export namespace Prisma {
     stripeConnectAccountId?: string | null
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -236349,6 +236613,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -236371,6 +236637,8 @@ export namespace Prisma {
     stripeConnectAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -236405,6 +236673,8 @@ export namespace Prisma {
     tenantId: string
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -236427,6 +236697,8 @@ export namespace Prisma {
     stripeConnectAccountId?: string | null
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -236494,6 +236766,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -236516,6 +236790,8 @@ export namespace Prisma {
     stripeConnectAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -242732,6 +243008,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -243161,6 +243439,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -243211,6 +243491,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -243261,6 +243543,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -249676,6 +249960,8 @@ export namespace Prisma {
     stripeConnectAccountId?: string | null
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -249892,6 +250178,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -249913,6 +250201,8 @@ export namespace Prisma {
     stripeConnectAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -249933,6 +250223,8 @@ export namespace Prisma {
     stripeConnectAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -250933,6 +251225,8 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
@@ -251116,6 +251410,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -251167,6 +251463,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -251217,6 +251515,8 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
@@ -251980,6 +252280,8 @@ export namespace Prisma {
     orderId: string
     stripePaymentIntentId?: string | null
     stripeChargeId?: string | null
+    provider?: string
+    providerChargeId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     currency?: string
     status: $Enums.PaymentRecordStatus
@@ -252010,6 +252312,8 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -252031,6 +252335,8 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus
@@ -252051,6 +252357,8 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeChargeId?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    providerChargeId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     currency?: StringFieldUpdateOperationsInput | string
     status?: EnumPaymentRecordStatusFieldUpdateOperationsInput | $Enums.PaymentRecordStatus

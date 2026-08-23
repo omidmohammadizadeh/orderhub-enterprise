@@ -11,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
-import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
+import { QUEUES, ORDER_JOBS, usesTap } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { SocketService } from "../../infrastructure/socket/socket.service";
@@ -24,6 +24,7 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { CustomerPushService } from "../customer-push/customer-push.service";
 import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-delivery-sync.service";
 import { PaymentsService } from "../payments/payments.service";
+import { TapService } from "../payments/tap.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import {
   assertTransition,
@@ -119,6 +120,7 @@ export class OrdersService {
     private readonly printJobs: PrintJobsService, // Phase AS-2
     private readonly promoCodes: PromoCodesService, // Phase AM
     private readonly payments: PaymentsService, // Phase AP-8 — Stripe manual-capture lifecycle hooks
+    private readonly tap: TapService, // Gulf refunds — Tap has no auth-then-capture step
     // Phase AU — push status back to HubRise. forwardRef needed because
     // HubRiseModule transitively imports OrdersModule (via WebhooksModule).
     @Inject(forwardRef(() => HubRiseOrderSyncService))
@@ -2010,11 +2012,33 @@ export class OrdersService {
       // authorization (pre-accept rejection) it cancels the auth
       // instead, which is cheaper and leaves no charge on the
       // customer's statement.
-      this.payments
-        .refundForOrder(orderId, dto.cancelReason ?? undefined)
-        .catch((err: any) =>
-          this.logger.error(`Stripe refund/cancel failed for ${orderId}: ${err.message}`),
-        );
+      //
+      // The provider fork lives HERE rather than inside refundForOrder
+      // because TapService already depends on PaymentsService for the
+      // shared settle path, and branching downstream would make that a
+      // cycle. Tap has no authorise-then-capture step — its charges are
+      // captured outright — so there is no auth to cancel and a
+      // cancellation is always a refund.
+      //
+      // Not silently skippable: refundForOrder bails early on a payment with
+      // no stripePaymentIntentId, which every Tap payment is. Without this
+      // branch a cancelled Gulf order would keep the customer's money and
+      // nothing would say so.
+      void (async () => {
+        const loc = order.locationId
+          ? await this.prisma.location.findUnique({
+              where: { id: order.locationId },
+              select: { country: true },
+            })
+          : null;
+        if (usesTap(loc?.country)) {
+          await this.tap.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
+        } else {
+          await this.payments.refundForOrder(orderId, dto.cancelReason ?? undefined);
+        }
+      })().catch((err: any) =>
+        this.logger.error(`Refund/cancel failed for ${orderId}: ${err.message}`),
+      );
     }
 
     // In-process event so channels (e.g. WhatsApp) can notify the customer of

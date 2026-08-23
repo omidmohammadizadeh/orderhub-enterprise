@@ -23,6 +23,13 @@ export const appConfig = registerAs("app", () => ({
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? "",
   },
 
+  // Tap Payments (Gulf). The same secret key authorises API calls and signs
+  // the webhook hashstring — there is no second webhook secret.
+  tap: {
+    secretKey: process.env.TAP_SECRET_KEY ?? "",
+    apiBase: process.env.TAP_API_BASE ?? "https://api.tap.company/v2",
+  },
+
   // Global fallback webhook secrets — per-tenant overrides are stored in the
   // integrations table and take precedence over these during signature verification.
   platforms: {

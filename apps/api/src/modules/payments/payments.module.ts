@@ -6,11 +6,12 @@ import { PaymentsService } from "./payments.service";
 import { TerminalController } from "./terminal.controller";
 import { TerminalService } from "./terminal.service";
 import { ReceiptEmailService } from "./receipt-email.service";
+import { TapService } from "./tap.service";
 
 @Module({
   imports: [ConfigModule, PayoutsModule],
   controllers: [PaymentsController, TerminalController],
-  providers: [PaymentsService, TerminalService, ReceiptEmailService],
-  exports: [PaymentsService, TerminalService, ReceiptEmailService],
+  providers: [PaymentsService, TerminalService, ReceiptEmailService, TapService],
+  exports: [PaymentsService, TerminalService, ReceiptEmailService, TapService],
 })
 export class PaymentsModule {}

@@ -440,6 +440,14 @@ model Brand {
   customDomain              String?
   customDomainStatus        String   @default("not_configured") // not_configured | pending | verified | failed
   stripeConnectedAccountId  String?
+  /// Tap's destination id for this brand — where its share of a split charge
+  /// settles. The Gulf equivalent of stripeConnectedAccountId, and like it,
+  /// a charge cannot be taken for the brand without one.
+  tapDestinationId          String?
+  /// Tap's business id for the brand, from the marketplace Business API.
+  /// Kept alongside the destination id because they are different things and
+  /// only the destination one is used on a charge.
+  tapBusinessId             String?
   applicationFeeFixedAmount Decimal? @db.Decimal(10, 2)
   applicationFeePercentage  Decimal? @db.Decimal(5, 2)
   applicationFeeMode        String   @default("none") // none | fixed_only | percentage_only | fixed_and_percentage
@@ -2963,6 +2971,14 @@ model Payment {
   connectAccount         StripeConnectAccount? @relation(fields: [stripeConnectAccountId], references: [id], onDelete: SetNull)
   stripePaymentIntentId  String?               @unique
   stripeChargeId         String?               @unique
+  /// Which provider took the money. Derived from the shop's country at
+  /// charge time and STORED, unlike the live routing decision — a refund
+  /// three months later has to go back through whoever actually took it,
+  /// even if the shop has since moved country.
+  provider               String                @default("STRIPE") // STRIPE | TAP
+  /// The provider's own id for this charge. Tap's `charge.id` (chg_…); null
+  /// on Stripe rows, which keep using the two columns above.
+  providerChargeId       String?               @unique
   amount                 Decimal               @db.Decimal(10, 2)
   currency               String                @default("gbp")
   status                 PaymentRecordStatus

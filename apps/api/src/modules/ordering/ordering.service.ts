@@ -9,11 +9,13 @@ import {
   currencyForCountry,
   resolveZone,
   zoneMode,
+  usesTap,
   type ZoneLike,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
+import { TapService } from "../payments/tap.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
 import {
@@ -264,6 +266,7 @@ export class OrderingService {
     // fires for actual newcomers.
     private readonly marketing: MarketingService,
     private readonly deliveryZones: DeliveryZonesService,
+    private readonly tap: TapService,
   ) {}
 
   /**
@@ -1162,20 +1165,33 @@ export class OrderingService {
     // customer's browser. The actual Checkout Session is built later
     // (after the Order exists so the success_url can reference it).
     if (dto.paymentMethod === "CARD") {
-      // Resolved WITH the pinned brand, matching what the payment call
-      // below does. Without it a brand using the brand-level acct_
-      // escape hatch fails this gate and is told the shop takes no
-      // cards, even though the charge it's guarding would have gone
-      // through. Passing the brand can only widen what's accepted here.
-      const connect = await this.payments.resolveConnectAccount(
-        location.brand.tenantId,
-        location.id,
-        pinnedBrandId ?? null,
-      );
-      if (!connect) {
-        throw new BadRequestException(
-          "This restaurant hasn't set up card payments yet. Please choose Cash, or contact the restaurant.",
+      if (usesTap(location.country)) {
+        // A Gulf shop has no Stripe Connect account and never will — Stripe's
+        // own UAE rules forbid the direct-charge model this storefront uses.
+        // Its gate is a Tap destination instead; TapService checks the brand's
+        // and says so specifically, so don't pre-empt it with a vaguer message
+        // here. All this needs to catch is Tap not being wired up at all.
+        if (!this.tap.configured()) {
+          throw new BadRequestException(
+            "This restaurant hasn't set up card payments yet. Please choose Cash, or contact the restaurant.",
+          );
+        }
+      } else {
+        // Resolved WITH the pinned brand, matching what the payment call
+        // below does. Without it a brand using the brand-level acct_
+        // escape hatch fails this gate and is told the shop takes no
+        // cards, even though the charge it's guarding would have gone
+        // through. Passing the brand can only widen what's accepted here.
+        const connect = await this.payments.resolveConnectAccount(
+          location.brand.tenantId,
+          location.id,
+          pinnedBrandId ?? null,
         );
+        if (!connect) {
+          throw new BadRequestException(
+            "This restaurant hasn't set up card payments yet. Please choose Cash, or contact the restaurant.",
+          );
+        }
       }
     }
 
@@ -1471,6 +1487,34 @@ export class OrderingService {
     // joins the staff board only once the Stripe webhook reports
     // authorization (payment_intent.amount_capturable_updated).
     if (dto.paymentMethod === "CARD") {
+      const origin0 = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
+      const brandQs0 = pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "";
+      if (usesTap(location.country)) {
+        // Tap is hosted-only here, including when the storefront asked for
+        // the embedded flow. `src_all` renders Tap's own page with every
+        // method the merchant has enabled — KNET, mada, BENEFIT, Apple Pay —
+        // and each carries its own redirect and 3-D Secure step that an
+        // embedded card field cannot host. Returning a checkoutUrl for an
+        // `embedded: true` request is deliberate: the storefront already
+        // knows how to redirect, and half a payment sheet is worse than a
+        // page change.
+        const { redirectUrl } = await this.tap.createCharge({
+          tenantId: location.brand.tenantId,
+          orderId: order.id,
+          redirectUrl: `${origin0}/order/${slug}/confirmation?orderId=${order.id}${brandQs0}`,
+          // Tap posts the settled charge here. Must be publicly reachable —
+          // the money is not marked received anywhere else.
+          webhookUrl: `${(process.env.API_URL ?? "").replace(/\/+$/, "")}/v1/payments/tap/webhook`,
+          customer: {
+            firstName: dto.customerInfo.name?.split(/\s+/)[0] ?? "Customer",
+            lastName: dto.customerInfo.name?.split(/\s+/).slice(1).join(" ") || undefined,
+            email: dto.customerInfo.email,
+            phone: dto.customerInfo.phone,
+          },
+        });
+        return { ...order, checkoutUrl: redirectUrl } as any;
+      }
+
       // Embedded — the customer pays on our page (Payment Element /
       // Apple Pay / Google Pay), so there's nowhere to redirect to and
       // the client needs a PaymentIntent secret instead of a URL.
@@ -1536,11 +1580,22 @@ export class OrderingService {
     // scope), which would otherwise leave the order stuck forever.
     const initial = await this.prisma.order.findUnique({
       where: { id: orderId },
-      select: { paymentMethod: true, paymentStatus: true },
+      select: {
+        paymentMethod: true,
+        paymentStatus: true,
+        location: { select: { country: true } },
+      },
     });
     if (initial?.paymentMethod === "CARD" && initial.paymentStatus === "PENDING") {
       try {
-        await this.payments.reconcileOrderPayment(orderId);
+        // Same belt-and-braces on either provider, for the same reason: a
+        // customer redirected back before the webhook lands, or a webhook
+        // that never lands, must not leave a paid order sitting unpaid.
+        if (usesTap((initial as any).location?.country)) {
+          await this.tap.reconcileOrder(orderId);
+        } else {
+          await this.payments.reconcileOrderPayment(orderId);
+        }
       } catch {
         /* best-effort — the underlying read below still returns
            whatever's in the DB so the polling loop keeps trying. */

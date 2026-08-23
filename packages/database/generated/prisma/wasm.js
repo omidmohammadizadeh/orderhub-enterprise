@@ -312,6 +312,8 @@ exports.Prisma.BrandScalarFieldEnum = {
   customDomain: 'customDomain',
   customDomainStatus: 'customDomainStatus',
   stripeConnectedAccountId: 'stripeConnectedAccountId',
+  tapDestinationId: 'tapDestinationId',
+  tapBusinessId: 'tapBusinessId',
   applicationFeeFixedAmount: 'applicationFeeFixedAmount',
   applicationFeePercentage: 'applicationFeePercentage',
   applicationFeeMode: 'applicationFeeMode',
@@ -1431,6 +1433,8 @@ exports.Prisma.PaymentScalarFieldEnum = {
   stripeConnectAccountId: 'stripeConnectAccountId',
   stripePaymentIntentId: 'stripePaymentIntentId',
   stripeChargeId: 'stripeChargeId',
+  provider: 'provider',
+  providerChargeId: 'providerChargeId',
   amount: 'amount',
   currency: 'currency',
   status: 'status',
@@ -2430,6 +2434,8 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   customDomain: 'customDomain',
   customDomainStatus: 'customDomainStatus',
   stripeConnectedAccountId: 'stripeConnectedAccountId',
+  tapDestinationId: 'tapDestinationId',
+  tapBusinessId: 'tapBusinessId',
   applicationFeeMode: 'applicationFeeMode',
   defaultStationId: 'defaultStationId'
 };
@@ -3076,6 +3082,8 @@ exports.Prisma.PaymentOrderByRelevanceFieldEnum = {
   stripeConnectAccountId: 'stripeConnectAccountId',
   stripePaymentIntentId: 'stripePaymentIntentId',
   stripeChargeId: 'stripeChargeId',
+  provider: 'provider',
+  providerChargeId: 'providerChargeId',
   currency: 'currency'
 };
 
