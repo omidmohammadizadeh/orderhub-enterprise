@@ -98,13 +98,14 @@ export class CareemController {
       results,
       conclusion: winner
         ? `Careem accepts "${winner.variant}" — the client now uses it automatically.`
-        : results.every((r) => /invalid_client/i.test(r.body))
-          ? "Every style was rejected with invalid_client, so it is the CREDENTIALS " +
-            "rather than the method. Most likely these are production credentials " +
-            "being used against a sandbox client_id (or the reverse), or the " +
-            "credential was never fully generated — Careem's dialog needs the " +
-            "webhook URL and key filled in before it issues one. Regenerate the " +
-            "sandbox credential and paste both halves again."
+        : results.every((r) => /invalid_client|bad credentials/i.test(r.body))
+          ? "Every combination was rejected, including the Identity guide's exact " +
+            "S2S curl, so it is the CREDENTIALS rather than the request. Note " +
+            "that guide lists only ONE environment — https://identity.careem.com " +
+            "(Production) — and says credentials come 'from Careem " +
+            "representatives'. Ask Careem which identity host issues tokens for " +
+            "SANDBOX Developer Hub credentials, and whether the Menu & Orders " +
+            "access request is approved."
           : "No style succeeded and the errors differ — read them below.",
     };
   }

@@ -27,12 +27,31 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
  *  determines which one you get a token for. */
 const IDENTITY_TOKEN_URL = "https://identity.careem.com/token";
 
-/** RFC 6749 client-authentication styles, in the order we try them. Careem's
- *  spec documents the first; the rest exist because that spec was already
- *  wrong about the token URL. */
+/**
+ * How we present ourselves to the token endpoint.
+ *
+ * Three axes, because Careem's two documents disagree on all three and only
+ * one combination can be right:
+ *
+ *   transport — the POS spec says multipart/form-data; the Identity guide's
+ *               S2S curl says application/x-www-form-urlencoded.
+ *   auth      — RFC 6749 allows the id/secret in the body
+ *               (client_secret_post) or an Authorization header
+ *               (client_secret_basic). Servers rarely take both.
+ *   scope     — the POS spec calls `scope=pos` required and the only accepted
+ *               value. The Identity guide's S2S table lists exactly three
+ *               mandatory fields — grant_type, client_id, client_secret — and
+ *               NO scope at all.
+ *
+ * Ordered so the Identity guide's literal curl goes first: it is the document
+ * that actually describes this token endpoint, and the POS spec has already
+ * been wrong once about where the endpoint even is.
+ */
 export const AUTH_VARIANTS = [
-  "multipart_post",
-  "form_post",
+  "form_post_noscope", // exactly the Identity guide's S2S curl
+  "form_post", // …plus scope=pos, per the POS spec
+  "multipart_post", // the POS spec's content type
+  "form_basic_noscope",
   "form_basic",
   "multipart_basic",
 ] as const;
@@ -42,10 +61,12 @@ const basicAuth = (id: string, secret: string) =>
   `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`;
 
 /** Is the server complaining about who we say we are, rather than anything
- *  else? Only then is trying another auth style meaningful. */
+ *  else? Only then is trying another style meaningful. */
 export function isClientAuthFailure(status: number, body: string): boolean {
   if (status !== 400 && status !== 401) return false;
-  return /invalid_client|unauthorized_client|client authentication/i.test(body);
+  return /invalid_client|unauthorized_client|invalid_scope|client authentication|bad credentials/i.test(
+    body,
+  );
 }
 
 const HOSTS = {
@@ -167,36 +188,34 @@ export class CareemClientService {
   private buildTokenRequest(variant: AuthVariant): RequestInit {
     const id = this.clientId!;
     const secret = this.clientSecret!;
-    const base = { grant_type: "client_credentials", scope: "pos" };
+    const multipart = variant.startsWith("multipart");
+    const basic = variant.includes("basic");
+    const withScope = !variant.endsWith("noscope");
 
-    if (variant === "multipart_post" || variant === "multipart_basic") {
+    const fields: Record<string, string> = { grant_type: "client_credentials" };
+    if (withScope) fields.scope = "pos";
+    if (!basic) {
+      fields.client_id = id;
+      fields.client_secret = secret;
+    }
+
+    if (multipart) {
       const form = new FormData();
-      for (const [k, v] of Object.entries(base)) form.append(k, v);
-      if (variant === "multipart_post") {
-        form.append("client_id", id);
-        form.append("client_secret", secret);
-      }
+      for (const [k, v] of Object.entries(fields)) form.append(k, v);
       // FormData sets its own boundary — never set Content-Type by hand.
       return {
         method: "POST",
         body: form,
-        ...(variant === "multipart_basic"
-          ? { headers: { Authorization: basicAuth(id, secret) } }
-          : {}),
+        ...(basic ? { headers: { Authorization: basicAuth(id, secret) } } : {}),
       };
     }
 
-    const params = new URLSearchParams(base);
-    if (variant === "form_post") {
-      params.set("client_id", id);
-      params.set("client_secret", secret);
-    }
     return {
       method: "POST",
-      body: params.toString(),
+      body: new URLSearchParams(fields).toString(),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        ...(variant === "form_basic" ? { Authorization: basicAuth(id, secret) } : {}),
+        ...(basic ? { Authorization: basicAuth(id, secret) } : {}),
       },
     };
   }

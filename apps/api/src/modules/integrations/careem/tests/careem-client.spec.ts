@@ -67,9 +67,13 @@ describe("CareemClientService — token", () => {
     jest.restoreAllMocks();
   });
 
-  it("posts multipart/form-data with the only grant type and scope Careem accepts", async () => {
-    // Sending x-www-form-urlencoded here returns a bare 400 with nothing to go
-    // on, which is why this is pinned rather than left to the reader.
+  it("leads with the Identity guide's exact S2S curl", async () => {
+    // Careem has two documents that disagree. The POS spec says
+    // multipart/form-data with scope=pos required; the Identity guide — which
+    // is the document that actually describes THIS token endpoint — shows
+    // x-www-form-urlencoded with exactly three fields and NO scope. The POS
+    // spec was already wrong about the endpoint's URL, so the Identity guide
+    // goes first.
     const fetchMock = jest
       .spyOn(global, "fetch" as any)
       .mockResolvedValue(okToken() as any);
@@ -77,14 +81,51 @@ describe("CareemClientService — token", () => {
     await expect(svc.accessToken()).resolves.toBe("tok_1");
 
     const [url, init] = fetchMock.mock.calls[0] as [string, any];
-    expect(url).toContain("/token");
-    expect(init.body).toBeInstanceOf(FormData);
-    expect(init.body.get("grant_type")).toBe("client_credentials");
-    expect(init.body.get("scope")).toBe("pos");
-    expect(init.body.get("client_id")).toBe("cid");
-    // FormData sets its own multipart boundary — setting Content-Type by hand
-    // produces a boundary mismatch and an unparseable request.
-    expect(init.headers?.["Content-Type"]).toBeUndefined();
+    expect(url).toBe("https://identity.careem.com/token");
+    expect(init.headers["Content-Type"]).toBe("application/x-www-form-urlencoded");
+    const sent = new URLSearchParams(init.body as string);
+    expect(sent.get("grant_type")).toBe("client_credentials");
+    expect(sent.get("client_id")).toBe("cid");
+    expect(sent.get("client_secret")).toBe("csec");
+    // The whole point: no scope.
+    expect(sent.get("scope")).toBeNull();
+  });
+
+  it("still offers the POS spec's shape as a fallback", async () => {
+    const rejected = {
+      ok: false,
+      status: 401,
+      text: async () => '{"error":"invalid_client"}',
+    };
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(okToken() as any);
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).resolves.toBe("tok_1");
+
+    const second = fetchMock.mock.calls[1]![1] as any;
+    expect(new URLSearchParams(second.body as string).get("scope")).toBe("pos");
+  });
+
+  it("sends multipart only after both urlencoded shapes fail", async () => {
+    const rejected = {
+      ok: false,
+      status: 401,
+      text: async () => '{"error":"invalid_client"}',
+    };
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(okToken() as any);
+    const svc = new CareemClientService();
+    await svc.accessToken();
+    const third = fetchMock.mock.calls[2]![1] as any;
+    expect(third.body).toBeInstanceOf(FormData);
+    // FormData sets its own boundary — setting Content-Type by hand produces a
+    // boundary mismatch and an unparseable request.
+    expect(third.headers?.["Content-Type"]).toBeUndefined();
   });
 
   it("caches the token instead of re-authenticating per call", async () => {
@@ -276,24 +317,45 @@ describe("client-authentication variants", () => {
     text: async () => JSON.stringify({ access_token: "tok", expires_in: 3600 }),
   };
 
+  it("omits client_id from the body when using HTTP Basic", async () => {
+    // Sending it both ways is how you get "invalid_client" from a server that
+    // would otherwise have accepted the header.
+    const rejected = {
+      ok: false,
+      status: 401,
+      text: async () => '{"error":"invalid_client"}',
+    };
+    const fetchMock = jest.spyOn(global, "fetch" as any);
+    for (let i = 0; i < 3; i++) fetchMock.mockResolvedValueOnce(rejected as any);
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ access_token: "tok", expires_in: 3600 }),
+    } as any);
+
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).resolves.toBe("tok");
+    const fourth = fetchMock.mock.calls[3]![1] as any;
+    expect(fourth.headers.Authorization).toMatch(/^Basic /);
+    expect(String(fourth.body)).not.toContain("client_id");
+  });
+
   it("falls back to HTTP Basic when the body form is rejected", async () => {
     // invalid_client is RFC 6749's error for "client authentication failed",
     // and the usual cause with good credentials is that the server wanted the
     // other style. Careem documents the body form — and their spec was already
     // wrong about the token URL.
-    const fetchMock = jest
-      .spyOn(global, "fetch" as any)
-      .mockResolvedValueOnce(rejected as any)
-      .mockResolvedValueOnce(rejected as any)
-      .mockResolvedValueOnce(accepted as any);
+    const fetchMock = jest.spyOn(global, "fetch" as any);
+    for (let i = 0; i < 3; i++) fetchMock.mockResolvedValueOnce(rejected as any);
+    fetchMock.mockResolvedValueOnce(accepted as any);
 
     const svc = new CareemClientService();
     await expect(svc.accessToken()).resolves.toBe("tok");
 
-    const third = fetchMock.mock.calls[2]![1] as any;
-    expect(third.headers.Authorization).toMatch(/^Basic /);
+    const winning = fetchMock.mock.calls.at(-1)![1] as any;
+    expect(winning.headers.Authorization).toMatch(/^Basic /);
     // client_id must NOT also be in the body when it's in the header.
-    expect(String(third.body)).not.toContain("client_id");
+    expect(String(winning.body)).not.toContain("client_id");
   });
 
   it("remembers the winning style instead of re-walking the list", async () => {
