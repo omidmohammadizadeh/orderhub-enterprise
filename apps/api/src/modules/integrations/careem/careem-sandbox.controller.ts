@@ -190,8 +190,30 @@ export class CareemSandboxController {
       );
     }
 
+    // Choose items that will actually exercise something.
+    //
+    // Taking the first two off the menu ordered two plain pizzas, and the
+    // modifier path — the most branching code in the order transformer — never
+    // ran. Prefer an item whose group has an option carrying nested groups of
+    // its own, then any item with groups at all, then whatever is left.
     const wanted = Math.min(Math.max(1, body?.itemCount ?? 2), catalogItems.length);
-    const chosen = catalogItems.slice(0, wanted);
+    const optionById = new Map(catalogOptions.map((o) => [o.id, o]));
+    const groupById = new Map(catalogGroups.map((g) => [g.id, g]));
+    const nestingScore = (item: { groups?: string[] }) => {
+      const groups = (item.groups ?? [])
+        .map((id) => groupById.get(id))
+        .filter(Boolean) as Array<{ options: string[] }>;
+      if (!groups.length) return 0;
+      const nested = groups.some((g) =>
+        g.options.some((oid) => (optionById.get(oid)?.groups ?? []).length > 0),
+      );
+      return nested ? 2 : 1;
+    };
+    const chosen = body?.withoutModifiers
+      ? catalogItems.slice(0, wanted)
+      : [...catalogItems]
+          .sort((a, b) => nestingScore(b) - nestingScore(a))
+          .slice(0, wanted);
     // The catalog carries prices in whatever unit we publish; orders come back
     // in major units, so undo it here rather than inventing figures.
     const minor = process.env.CAREEM_PRICE_UNIT === "minor";
@@ -299,6 +321,17 @@ export class CareemSandboxController {
       orderId: created?.orderId ?? null,
       careemOrderId: order.id,
       sentPayload: order,
+      // Said plainly, because "the ticket has no modifiers" reads as a bug
+      // when it can just as easily mean the menu had none to send.
+      modifiers: chosen.map((item) => ({
+        item: item.name,
+        exercises:
+          nestingScore(item) === 2
+            ? "nested groups"
+            : nestingScore(item) === 1
+              ? "one level of options"
+              : "no modifier groups on this item",
+      })),
       nextSteps: [
         "Open the orders board — it should be there as a Careem order",
         "Accept it, then check sandbox/calls for the PUT /orders/{id} we sent",
