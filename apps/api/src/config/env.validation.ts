@@ -102,6 +102,13 @@ const envSchema = z.object({
   // https://identity.careem.com/token. We use the gateway; this override makes
   // switching an env var rather than a deploy.
   CAREEM_TOKEN_URL: z.string().url().optional(),
+  // Which unit Careem wants catalog prices in. UNRESOLVED: their schema says
+  // `integer` and never states of what. Their example shows "price": 20, which
+  // reads as whole dirhams — but an integer in whole dirhams cannot express
+  // 11.50, which a real menu is full of. The transformer refuses to round, so
+  // a wrong setting fails loudly with the offending items named rather than
+  // mispricing a whole menu by 100×. Confirm with Careem, then set this.
+  CAREEM_PRICE_UNIT: z.enum(["major", "minor"]).default("major"),
 
   // Billing enforcement. The guard reads the per-location subscriptions that
   // actually charge merchants, which nothing enforced before — so this ships
