@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Plug,
   ShoppingBag,
   UtensilsCrossed,
   BarChart3,
@@ -232,6 +233,10 @@ const secondaryNav: NavItem[] = [
   { href: "/dashboard/settings/kitchen", label: "Kitchen screens", icon: MonitorCheck, roles: MANAGER_TIER },
   // Security / Branding / Sandbox are platform-admin-only — internal tooling
   // and cross-tenant settings that client owners/managers should never see.
+  // Connection status for the direct marketplace integrations. Admin-only:
+  // it exposes gateway hosts and which credentials are set, which is internal
+  // plumbing rather than anything a client owner acts on.
+  { href: "/dashboard/integrations/careem", label: "Careem", icon: Plug, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
