@@ -44,6 +44,7 @@ export interface CareemCatalogPayload {
     name: string;
     include_tax: boolean;
     tax: number;
+    currency_id: number;
     category_ids: string[];
   };
   categories: unknown[];
@@ -102,9 +103,39 @@ export interface SourceCategory {
   itemIds: string[];
 }
 
+/**
+ * Careem identify a currency by an integer of their own, not by ISO code.
+ * Their table, verbatim — the five we can't serve are kept so a country we
+ * add later doesn't silently fall through to Dirhams.
+ */
+const CAREEM_CURRENCY_ID: Record<string, number> = {
+  AED: 1,
+  SAR: 2,
+  EGP: 3,
+  QAR: 4,
+  LBP: 5,
+  KWD: 6,
+  JOD: 7,
+  BHD: 8,
+  SGD: 9,
+  IRR: 10,
+  OMR: 11,
+  PKR: 12,
+  AUD: 13,
+  IQD: 14,
+};
+
+/** The API runs in UAE, Jordan and KSA only — nothing else can be published,
+ *  whatever currency the shop is set to. */
+const CAREEM_COUNTRIES = new Set(["AE", "JO", "SA"]);
+
 export interface SourceMenu {
   id: string;
   name: string;
+  /** ISO 4217 for the shop's country. Careem want their own integer for it. */
+  currency: string;
+  /** Where the shop trades. Careem serve three countries and no others. */
+  country: string;
   /** Careem prices are tax-INCLUSIVE. This is the rate they contain. */
   taxPercentage: number;
   categories: SourceCategory[];
@@ -217,6 +248,26 @@ export function transformCareemMenu(
 ): CareemMenuResult {
   const errors: CareemMenuProblem[] = [];
   const groupsById = new Map(menu.groups.map((g) => [g.id, g]));
+
+  // Careem serve UAE, Jordan and KSA. A shop anywhere else has no outlet to
+  // map to, so refusing here beats a rejection five minutes after upload.
+  if (!CAREEM_COUNTRIES.has((menu.country ?? "").toUpperCase())) {
+    errors.push({
+      entity: "catalog",
+      id: menu.id,
+      message:
+        `Careem's POS API covers UAE, Jordan and KSA only — this shop is in ` +
+        `${menu.country || "an unset country"}.`,
+    });
+  }
+
+  if (!CAREEM_CURRENCY_ID[menu.currency]) {
+    errors.push({
+      entity: "catalog",
+      id: menu.id,
+      message: `Careem have no currency id for ${menu.currency || "an unset currency"}.`,
+    });
+  }
 
   if (menu.items.length > CAREEM_MAX_ITEMS) {
     errors.push({
@@ -374,6 +425,9 @@ export function transformCareemMenu(
         // add. UAE 5%, KSA 15%.
         include_tax: true,
         tax: menu.taxPercentage,
+        // Required by their schema. We never sent it, and a catalog without it
+        // is rejected outright.
+        currency_id: CAREEM_CURRENCY_ID[menu.currency]!,
         category_ids: categories.map((c) => c.id),
       },
       categories,

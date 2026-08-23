@@ -308,6 +308,14 @@ export class CareemStoreService {
             "Ask Careem operations to map this branch to an outlet",
             "Publish the menu",
             "Check the catalog on the SuperApp APK Careem share with partners",
+            // Both from their FAQ, and both make a correct integration look
+            // broken. Auto-acceptance is on by default at some branches and
+            // only their operations team can turn it off; and a branch left
+            // logged into the Careem portal has staff accepting orders there,
+            // so nothing reaches us and the statuses disagree.
+            "Ask Careem operations to disable order auto-acceptance for this branch",
+            "Make sure the shop is logged OUT of the Careem partner portal — " +
+              "orders accepted there never reach us",
           ],
     };
   }

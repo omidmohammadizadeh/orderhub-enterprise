@@ -26,11 +26,19 @@ import {
 /** Careem's per-branch floor between syncs. */
 const MIN_SYNC_INTERVAL_MS = 2 * 60_000;
 
+/** Careem's FAQ gives UAE and KSA. Jordan is theirs to confirm. */
+/** Careem's own ceiling, separate from the two-minute per-branch floor. */
+const MAX_SYNCS_PER_MINUTE = 50;
+
+const VAT_BY_COUNTRY: Record<string, number> = { AE: 5, SA: 15, JO: 16 };
+
 @Injectable()
 export class CareemMenuPublishService {
   private readonly logger = new Logger(CareemMenuPublishService.name);
   /** Last push per branch, to honour their two-minute floor. */
   private readonly lastSync = new Map<string, number>();
+  /** Push timestamps across EVERY branch, for their second, separate cap. */
+  private readonly recentSyncs: number[] = [];
 
   constructor(
     private readonly prisma: PrismaService,
@@ -69,6 +77,21 @@ export class CareemMenuPublishService {
       );
     }
 
+    // Their second limit, which the per-branch floor does not cover: 50
+    // catalog syncs a minute across all branches. A chain republishing every
+    // shop at once is exactly how that gets hit, and a 429 costs the whole
+    // batch rather than the one over the line.
+    const minuteAgo = Date.now() - 60_000;
+    while (this.recentSyncs.length && this.recentSyncs[0]! < minuteAgo) {
+      this.recentSyncs.shift();
+    }
+    if (this.recentSyncs.length >= MAX_SYNCS_PER_MINUTE) {
+      throw new BadRequestException(
+        `Careem allow ${MAX_SYNCS_PER_MINUTE} catalog syncs a minute across all ` +
+          `branches. Try again shortly.`,
+      );
+    }
+
     const menu = await this.loadMenu(locationId, tenantId);
     const { payload, errors } = transformCareemMenu(menu, {
       unit: this.priceUnit,
@@ -93,6 +116,7 @@ export class CareemMenuPublishService {
       body: payload,
     });
     this.lastSync.set(locationId, Date.now());
+    this.recentSyncs.push(Date.now());
 
     const requestId = String(res?.request_id ?? "");
     this.logger.log(
@@ -103,17 +127,25 @@ export class CareemMenuPublishService {
   }
 
   /**
-   * Wipe the branch's catalog and start again.
+   * Careem RETIRED this on 24 April 2024.
    *
-   * Careem are explicit that this is for data inconsistencies only, and that
-   * it does not delete anything on its own — the old catalog goes only when
-   * the next FULL push (diff: false) lands, which is the only kind we send.
-   * So this is always a two-step: reset, then publish.
+   * Kept, and kept behind a flag, because their own FAQ says a partner "may
+   * request an approval for consuming the endpoint" — so it is disabled
+   * rather than gone. Without that approval it answers API_DEPRECATED_ERROR.
    *
-   * A 403 means one of our own pushes is still in flight; their two-minute
-   * floor makes that likely if these are called back to back.
+   * The replacement is the ordinary publish: our push is always diff:false, a
+   * full replace, and Careem delete whatever the payload omits. That already
+   * does what a reset was for.
    */
   async resetCatalog(locationId: string, tenantId?: string) {
+    if (process.env.CAREEM_ALLOW_CATALOG_RESET !== "true") {
+      throw new BadRequestException(
+        "Careem deprecated DELETE /catalogs on 24 April 2024 and it returns " +
+          "API_DEPRECATED_ERROR. Publish the menu instead — our push is a full " +
+          "replace, so it clears anything Careem still hold. If Careem have " +
+          "approved this endpoint for us, set CAREEM_ALLOW_CATALOG_RESET=true.",
+      );
+    }
     if (tenantId) await this.assertOwned(locationId, tenantId);
     const brandId = await this.brandIdFor(locationId, tenantId);
     await this.client.request("/catalogs", {
@@ -270,8 +302,15 @@ export class CareemMenuPublishService {
     return {
       id: menu.id,
       name: menu.name,
-      // Careem prices INCLUDE tax. UAE 5%, KSA 15% per their FAQ.
-      taxPercentage: currencyForCountry(location.country) === "SAR" ? 15 : 5,
+      country: location.country,
+      // Careem want their own integer for the currency; the transformer maps
+      // it and refuses a currency they have no id for.
+      currency: currencyForCountry(location.country),
+      // Careem prices INCLUDE tax — this is the rate baked into them, not one
+      // to add. Their FAQ states UAE 5% and KSA 15%. Jordan is the third
+      // country they serve and they never gave a figure for it; 16% is its
+      // standard sales tax. Wrong here misreports the split, not the price.
+      taxPercentage: VAT_BY_COUNTRY[location.country] ?? 5,
       categories: sourceCategories,
       items,
       groups,

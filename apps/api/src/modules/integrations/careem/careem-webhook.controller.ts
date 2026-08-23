@@ -123,6 +123,10 @@ export class CareemWebhookController {
           );
           break;
 
+        // Their docs name this event twice and differently: the events table
+        // says CATALOG_STATUS_UPDATED, the sequence diagram says
+        // CATALOG_REQUEST_STATUS_UPDATED. Accept both rather than bet on one.
+        case "CATALOG_STATUS_UPDATED":
         case "CATALOG_REQUEST_STATUS_UPDATED":
           // CA-3. The catalog push is not built yet, so this is recorded for
           // the diagnostics page rather than acted on.
@@ -152,6 +156,7 @@ export interface CareemNotification {
     | "ORDER_CREATED"
     | "ORDER_STATUS_UPDATED"
     | "ORDER_ITEM_REPLACEMENT_ACCEPTED"
+    | "CATALOG_STATUS_UPDATED"
     | "CATALOG_REQUEST_STATUS_UPDATED"
     | string;
   details?: {

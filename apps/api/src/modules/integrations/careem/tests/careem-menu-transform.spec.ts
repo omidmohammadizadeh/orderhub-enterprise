@@ -25,6 +25,8 @@ const group = (over: Partial<SourceGroup> = {}): SourceGroup => ({
 const menu = (over: Partial<SourceMenu> = {}): SourceMenu => ({
   id: "menu-1",
   name: "Main menu",
+  country: "AE",
+  currency: "AED",
   taxPercentage: 5,
   categories: [
     { id: "cat-1", name: "Burgers", sortOrder: 1, itemIds: ["item-1"] },
@@ -257,5 +259,39 @@ describe("transformCareemMenu", () => {
     // One catalog per branch — so "which catalog?" has an obvious answer in a
     // support conversation.
     expect(build(menu()).payload!.catalog.id).toBe("loc-1");
+  });
+});
+
+// Careem identify a currency by an integer of their own, and the field is
+// required — we shipped without it, which would have had every catalog
+// rejected outright.
+describe("transformCareemMenu — currency and country", () => {
+  it("sends Careem's own currency integer, not the ISO code", () => {
+    const { payload } = build(menu());
+    expect(payload!.catalog.currency_id).toBe(1); // AED
+  });
+
+  it("maps a Saudi menu to their Riyal id", () => {
+    const { payload } = build(menu({ country: "SA", currency: "SAR" }));
+    expect(payload!.catalog.currency_id).toBe(2);
+  });
+
+  it("refuses a country Careem does not serve", () => {
+    // Their API covers UAE, Jordan and KSA. A British shop has no outlet to
+    // map to, so this fails here rather than five minutes after upload.
+    const { payload, errors } = build(menu({ country: "GB", currency: "GBP" }));
+    expect(payload).toBeNull();
+    expect(errors.some((e) => /UAE, Jordan and KSA/.test(e.message))).toBe(true);
+  });
+
+  it("refuses a currency Careem has no id for", () => {
+    const { payload, errors } = build(menu({ country: "AE", currency: "GBP" }));
+    expect(payload).toBeNull();
+    expect(errors.some((e) => /no currency id/.test(e.message))).toBe(true);
+  });
+
+  it("serves Jordan, the third country they cover", () => {
+    const { payload } = build(menu({ country: "JO", currency: "JOD" }));
+    expect(payload!.catalog.currency_id).toBe(7);
   });
 });
