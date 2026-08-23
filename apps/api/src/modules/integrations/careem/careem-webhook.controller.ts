@@ -36,6 +36,10 @@ import { BillingExempt } from "../../../common/guards/billing.guard";
 //     replayed body is indistinguishable from a fresh one — an HMAC over the
 //     body wouldn't fix replay either, but here there is nothing else at all.
 //
+// The public path is /api/v1/webhooks/careem — main.ts sets a global "api"
+// prefix, so the version alone is not the whole path. Careem's portal takes the
+// full URL and the key together when the credential is generated.
+//
 // ── Always 200 ──────────────────────────────────────────────────────────────
 //
 // Except for a failed key check. A body we can't parse or an order we can't
