@@ -264,7 +264,9 @@ model CustomerAccount {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
-  orders Order[] // Phase AP-5 — back-relation for "My Orders"
+  orders         Order[] // Phase AP-5 — back-relation for "My Orders"
+  loyaltyStamps  LoyaltyStamp[]
+  loyaltyRewards LoyaltyReward[]
 
   @@index([email])
   @@index([googleId])
@@ -686,8 +688,9 @@ model Location {
   latitude  Float?
   longitude Float?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  loyaltyCard LoyaltyCard?
 
   @@index([brandId])
   @@index([brandId, deletedAt])
@@ -1100,8 +1103,9 @@ model MenuItem {
   // per (item, channel) currently snoozed; absence = available.
   channelAvailability MenuItemChannelAvailability[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  loyaltyCards LoyaltyCard[] @relation("LoyaltyRewardItem")
 
   @@index([brandId])
   @@index([brandId, isAvailable])
@@ -2068,8 +2072,9 @@ model Order {
   // Phase MK-INSIGHTS — marketing campaigns that applied to this order.
   campaignRedemptions CampaignRedemption[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  loyaltyStamp LoyaltyStamp?
 
   @@unique([externalId, platform])
   @@index([tenantId, createdAt(sort: Desc)])
@@ -2395,7 +2400,7 @@ model KdsTicket {
   @@map("kds_tickets")
 }
 
-// ── Printer ───────────────────────────────────────────────────────────────────
+// ── Printer ─────────────────────────────────────────���─────────────────────────
 model Printer {
   id             String                @id @default(cuid())
   tenantId       String
@@ -4977,4 +4982,97 @@ model ContractEvent {
 
   @@index([contractId, createdAt])
   @@map("contract_events")
+}
+
+// ── Loyalty card ────────────────────────────────────────────────────────────
+//
+// A stamp card, per LOCATION. Six orders, a free thing — the model every
+// takeaway already runs on paper, which is the point: customers understand it
+// without being taught, and staff can honour it at the counter.
+//
+// Per location rather than per brand because the shop giving the food away is
+// the shop that pays for it. A group can run six-stamps-free-chips at one site
+// and nothing at another.
+//
+// Deliberately NOT a MarketingCampaign. Campaigns are advertised — they live on
+// the storefront, in the promo rail, on the marketplaces. A stamp card belongs
+// to the customer who signed in for it and appears only on their own card.
+model LoyaltyCard {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  isActive         Boolean   @default(false)
+  /// Stamps needed for one reward. Six by default — the number people expect.
+  stampsRequired   Int       @default(6)
+  /// Order subtotal needed to earn a stamp. Null = any order counts.
+  /// Without one, six £2 chip orders earn a free main.
+  minimumSpend     Decimal?  @db.Decimal(10, 2)
+  /// What they get. The item is what staff hand over; the label is what the
+  /// customer reads, and it stands alone if the item is later deleted.
+  rewardItemId     String?
+  rewardItem       MenuItem? @relation("LoyaltyRewardItem", fields: [rewardItemId], references: [id], onDelete: SetNull)
+  rewardLabel      String    @default("Free item")
+  /// Days a reward stays claimable once earned. Null = forever.
+  rewardExpiryDays Int?
+
+  stamps  LoyaltyStamp[]
+  rewards LoyaltyReward[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("loyalty_cards")
+}
+
+/// One stamp. Unique per ORDER, so a retry, a webhook replay or an operator
+/// re-opening an order can never mint a second one for the same money.
+model LoyaltyStamp {
+  id       String      @id @default(cuid())
+  tenantId String
+  cardId   String
+  card     LoyaltyCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  customerAccountId String
+  customerAccount   CustomerAccount @relation(fields: [customerAccountId], references: [id], onDelete: Cascade)
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// Kept so a later change to minimumSpend cannot rewrite history.
+  spend Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([cardId, customerAccountId])
+  @@index([tenantId])
+  @@map("loyalty_stamps")
+}
+
+/// An earned reward, before and after it is spent.
+model LoyaltyReward {
+  id       String      @id @default(cuid())
+  tenantId String
+  cardId   String
+  card     LoyaltyCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  customerAccountId String
+  customerAccount   CustomerAccount @relation(fields: [customerAccountId], references: [id], onDelete: Cascade)
+
+  /// Frozen at the moment it was earned. The operator can change the reward
+  /// tomorrow; what this customer was promised does not change with it.
+  label        String
+  rewardItemId String?
+
+  earnedAt       DateTime  @default(now())
+  expiresAt      DateTime?
+  claimedAt      DateTime?
+  /// The order it was spent on, so a dispute has an answer.
+  claimedOrderId String?   @unique
+
+  @@index([customerAccountId, claimedAt])
+  @@index([tenantId])
+  @@map("loyalty_rewards")
 }

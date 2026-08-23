@@ -653,6 +653,22 @@ export type Contract = $Result.DefaultSelection<Prisma.$ContractPayload>
  * 
  */
 export type ContractEvent = $Result.DefaultSelection<Prisma.$ContractEventPayload>
+/**
+ * Model LoyaltyCard
+ * 
+ */
+export type LoyaltyCard = $Result.DefaultSelection<Prisma.$LoyaltyCardPayload>
+/**
+ * Model LoyaltyStamp
+ * One stamp. Unique per ORDER, so a retry, a webhook replay or an operator
+ * re-opening an order can never mint a second one for the same money.
+ */
+export type LoyaltyStamp = $Result.DefaultSelection<Prisma.$LoyaltyStampPayload>
+/**
+ * Model LoyaltyReward
+ * An earned reward, before and after it is spent.
+ */
+export type LoyaltyReward = $Result.DefaultSelection<Prisma.$LoyaltyRewardPayload>
 
 /**
  * Enums
@@ -2870,6 +2886,36 @@ export class PrismaClient<
     * ```
     */
   get contractEvent(): Prisma.ContractEventDelegate<ExtArgs>;
+
+  /**
+   * `prisma.loyaltyCard`: Exposes CRUD operations for the **LoyaltyCard** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LoyaltyCards
+    * const loyaltyCards = await prisma.loyaltyCard.findMany()
+    * ```
+    */
+  get loyaltyCard(): Prisma.LoyaltyCardDelegate<ExtArgs>;
+
+  /**
+   * `prisma.loyaltyStamp`: Exposes CRUD operations for the **LoyaltyStamp** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LoyaltyStamps
+    * const loyaltyStamps = await prisma.loyaltyStamp.findMany()
+    * ```
+    */
+  get loyaltyStamp(): Prisma.LoyaltyStampDelegate<ExtArgs>;
+
+  /**
+   * `prisma.loyaltyReward`: Exposes CRUD operations for the **LoyaltyReward** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LoyaltyRewards
+    * const loyaltyRewards = await prisma.loyaltyReward.findMany()
+    * ```
+    */
+  get loyaltyReward(): Prisma.LoyaltyRewardDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3437,7 +3483,10 @@ export namespace Prisma {
     CustomerPushOrder: 'CustomerPushOrder',
     ContractTemplate: 'ContractTemplate',
     Contract: 'Contract',
-    ContractEvent: 'ContractEvent'
+    ContractEvent: 'ContractEvent',
+    LoyaltyCard: 'LoyaltyCard',
+    LoyaltyStamp: 'LoyaltyStamp',
+    LoyaltyReward: 'LoyaltyReward'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3453,7 +3502,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -12347,6 +12396,216 @@ export namespace Prisma {
           }
         }
       }
+      LoyaltyCard: {
+        payload: Prisma.$LoyaltyCardPayload<ExtArgs>
+        fields: Prisma.LoyaltyCardFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LoyaltyCardFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LoyaltyCardFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>
+          }
+          findFirst: {
+            args: Prisma.LoyaltyCardFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LoyaltyCardFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>
+          }
+          findMany: {
+            args: Prisma.LoyaltyCardFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>[]
+          }
+          create: {
+            args: Prisma.LoyaltyCardCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>
+          }
+          createMany: {
+            args: Prisma.LoyaltyCardCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LoyaltyCardCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>[]
+          }
+          delete: {
+            args: Prisma.LoyaltyCardDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>
+          }
+          update: {
+            args: Prisma.LoyaltyCardUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>
+          }
+          deleteMany: {
+            args: Prisma.LoyaltyCardDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LoyaltyCardUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.LoyaltyCardUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyCardPayload>
+          }
+          aggregate: {
+            args: Prisma.LoyaltyCardAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLoyaltyCard>
+          }
+          groupBy: {
+            args: Prisma.LoyaltyCardGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LoyaltyCardGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LoyaltyCardCountArgs<ExtArgs>
+            result: $Utils.Optional<LoyaltyCardCountAggregateOutputType> | number
+          }
+        }
+      }
+      LoyaltyStamp: {
+        payload: Prisma.$LoyaltyStampPayload<ExtArgs>
+        fields: Prisma.LoyaltyStampFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LoyaltyStampFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LoyaltyStampFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>
+          }
+          findFirst: {
+            args: Prisma.LoyaltyStampFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LoyaltyStampFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>
+          }
+          findMany: {
+            args: Prisma.LoyaltyStampFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>[]
+          }
+          create: {
+            args: Prisma.LoyaltyStampCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>
+          }
+          createMany: {
+            args: Prisma.LoyaltyStampCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LoyaltyStampCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>[]
+          }
+          delete: {
+            args: Prisma.LoyaltyStampDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>
+          }
+          update: {
+            args: Prisma.LoyaltyStampUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>
+          }
+          deleteMany: {
+            args: Prisma.LoyaltyStampDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LoyaltyStampUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.LoyaltyStampUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyStampPayload>
+          }
+          aggregate: {
+            args: Prisma.LoyaltyStampAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLoyaltyStamp>
+          }
+          groupBy: {
+            args: Prisma.LoyaltyStampGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LoyaltyStampGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LoyaltyStampCountArgs<ExtArgs>
+            result: $Utils.Optional<LoyaltyStampCountAggregateOutputType> | number
+          }
+        }
+      }
+      LoyaltyReward: {
+        payload: Prisma.$LoyaltyRewardPayload<ExtArgs>
+        fields: Prisma.LoyaltyRewardFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LoyaltyRewardFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LoyaltyRewardFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>
+          }
+          findFirst: {
+            args: Prisma.LoyaltyRewardFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LoyaltyRewardFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>
+          }
+          findMany: {
+            args: Prisma.LoyaltyRewardFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>[]
+          }
+          create: {
+            args: Prisma.LoyaltyRewardCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>
+          }
+          createMany: {
+            args: Prisma.LoyaltyRewardCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LoyaltyRewardCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>[]
+          }
+          delete: {
+            args: Prisma.LoyaltyRewardDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>
+          }
+          update: {
+            args: Prisma.LoyaltyRewardUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>
+          }
+          deleteMany: {
+            args: Prisma.LoyaltyRewardDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LoyaltyRewardUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.LoyaltyRewardUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LoyaltyRewardPayload>
+          }
+          aggregate: {
+            args: Prisma.LoyaltyRewardAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLoyaltyReward>
+          }
+          groupBy: {
+            args: Prisma.LoyaltyRewardGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LoyaltyRewardGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LoyaltyRewardCountArgs<ExtArgs>
+            result: $Utils.Optional<LoyaltyRewardCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -12814,10 +13073,14 @@ export namespace Prisma {
 
   export type CustomerAccountCountOutputType = {
     orders: number
+    loyaltyStamps: number
+    loyaltyRewards: number
   }
 
   export type CustomerAccountCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     orders?: boolean | CustomerAccountCountOutputTypeCountOrdersArgs
+    loyaltyStamps?: boolean | CustomerAccountCountOutputTypeCountLoyaltyStampsArgs
+    loyaltyRewards?: boolean | CustomerAccountCountOutputTypeCountLoyaltyRewardsArgs
   }
 
   // Custom InputTypes
@@ -12836,6 +13099,20 @@ export namespace Prisma {
    */
   export type CustomerAccountCountOutputTypeCountOrdersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OrderWhereInput
+  }
+
+  /**
+   * CustomerAccountCountOutputType without action
+   */
+  export type CustomerAccountCountOutputTypeCountLoyaltyStampsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyStampWhereInput
+  }
+
+  /**
+   * CustomerAccountCountOutputType without action
+   */
+  export type CustomerAccountCountOutputTypeCountLoyaltyRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyRewardWhereInput
   }
 
 
@@ -13261,6 +13538,7 @@ export namespace Prisma {
     variants: number
     stationRoutes: number
     channelAvailability: number
+    loyaltyCards: number
   }
 
   export type MenuItemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13269,6 +13547,7 @@ export namespace Prisma {
     variants?: boolean | MenuItemCountOutputTypeCountVariantsArgs
     stationRoutes?: boolean | MenuItemCountOutputTypeCountStationRoutesArgs
     channelAvailability?: boolean | MenuItemCountOutputTypeCountChannelAvailabilityArgs
+    loyaltyCards?: boolean | MenuItemCountOutputTypeCountLoyaltyCardsArgs
   }
 
   // Custom InputTypes
@@ -13315,6 +13594,13 @@ export namespace Prisma {
    */
   export type MenuItemCountOutputTypeCountChannelAvailabilityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MenuItemChannelAvailabilityWhereInput
+  }
+
+  /**
+   * MenuItemCountOutputType without action
+   */
+  export type MenuItemCountOutputTypeCountLoyaltyCardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyCardWhereInput
   }
 
 
@@ -14435,6 +14721,46 @@ export namespace Prisma {
    */
   export type ContractCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ContractEventWhereInput
+  }
+
+
+  /**
+   * Count Type LoyaltyCardCountOutputType
+   */
+
+  export type LoyaltyCardCountOutputType = {
+    stamps: number
+    rewards: number
+  }
+
+  export type LoyaltyCardCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    stamps?: boolean | LoyaltyCardCountOutputTypeCountStampsArgs
+    rewards?: boolean | LoyaltyCardCountOutputTypeCountRewardsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * LoyaltyCardCountOutputType without action
+   */
+  export type LoyaltyCardCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCardCountOutputType
+     */
+    select?: LoyaltyCardCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * LoyaltyCardCountOutputType without action
+   */
+  export type LoyaltyCardCountOutputTypeCountStampsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyStampWhereInput
+  }
+
+  /**
+   * LoyaltyCardCountOutputType without action
+   */
+  export type LoyaltyCardCountOutputTypeCountRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyRewardWhereInput
   }
 
 
@@ -21411,6 +21737,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     orders?: boolean | CustomerAccount$ordersArgs<ExtArgs>
+    loyaltyStamps?: boolean | CustomerAccount$loyaltyStampsArgs<ExtArgs>
+    loyaltyRewards?: boolean | CustomerAccount$loyaltyRewardsArgs<ExtArgs>
     _count?: boolean | CustomerAccountCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerAccount"]>
 
@@ -21450,6 +21778,8 @@ export namespace Prisma {
 
   export type CustomerAccountInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     orders?: boolean | CustomerAccount$ordersArgs<ExtArgs>
+    loyaltyStamps?: boolean | CustomerAccount$loyaltyStampsArgs<ExtArgs>
+    loyaltyRewards?: boolean | CustomerAccount$loyaltyRewardsArgs<ExtArgs>
     _count?: boolean | CustomerAccountCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerAccountIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -21458,6 +21788,8 @@ export namespace Prisma {
     name: "CustomerAccount"
     objects: {
       orders: Prisma.$OrderPayload<ExtArgs>[]
+      loyaltyStamps: Prisma.$LoyaltyStampPayload<ExtArgs>[]
+      loyaltyRewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -21839,6 +22171,8 @@ export namespace Prisma {
   export interface Prisma__CustomerAccountClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     orders<T extends CustomerAccount$ordersArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
+    loyaltyStamps<T extends CustomerAccount$loyaltyStampsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$loyaltyStampsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findMany"> | Null>
+    loyaltyRewards<T extends CustomerAccount$loyaltyRewardsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$loyaltyRewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -22213,6 +22547,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: OrderScalarFieldEnum | OrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerAccount.loyaltyStamps
+   */
+  export type CustomerAccount$loyaltyStampsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    where?: LoyaltyStampWhereInput
+    orderBy?: LoyaltyStampOrderByWithRelationInput | LoyaltyStampOrderByWithRelationInput[]
+    cursor?: LoyaltyStampWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LoyaltyStampScalarFieldEnum | LoyaltyStampScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerAccount.loyaltyRewards
+   */
+  export type CustomerAccount$loyaltyRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    where?: LoyaltyRewardWhereInput
+    orderBy?: LoyaltyRewardOrderByWithRelationInput | LoyaltyRewardOrderByWithRelationInput[]
+    cursor?: LoyaltyRewardWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LoyaltyRewardScalarFieldEnum | LoyaltyRewardScalarFieldEnum[]
   }
 
   /**
@@ -29629,6 +30003,7 @@ export namespace Prisma {
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
+    loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -29796,6 +30171,7 @@ export namespace Prisma {
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
+    loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -29835,6 +30211,7 @@ export namespace Prisma {
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       stuartConfig: Prisma.$StuartConfigPayload<ExtArgs> | null
       uberDirectConfig: Prisma.$UberDirectConfigPayload<ExtArgs> | null
+      loyaltyCard: Prisma.$LoyaltyCardPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -30295,6 +30672,7 @@ export namespace Prisma {
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     stuartConfig<T extends Location$stuartConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$stuartConfigArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     uberDirectConfig<T extends Location$uberDirectConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$uberDirectConfigArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    loyaltyCard<T extends Location$loyaltyCardArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyCardArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -31182,6 +31560,21 @@ export namespace Prisma {
      */
     include?: UberDirectConfigInclude<ExtArgs> | null
     where?: UberDirectConfigWhereInput
+  }
+
+  /**
+   * Location.loyaltyCard
+   */
+  export type Location$loyaltyCardArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    where?: LoyaltyCardWhereInput
   }
 
   /**
@@ -38355,6 +38748,7 @@ export namespace Prisma {
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
     stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
     channelAvailability?: boolean | MenuItem$channelAvailabilityArgs<ExtArgs>
+    loyaltyCards?: boolean | MenuItem$loyaltyCardsArgs<ExtArgs>
     _count?: boolean | MenuItemCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menuItem"]>
 
@@ -38457,6 +38851,7 @@ export namespace Prisma {
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
     stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
     channelAvailability?: boolean | MenuItem$channelAvailabilityArgs<ExtArgs>
+    loyaltyCards?: boolean | MenuItem$loyaltyCardsArgs<ExtArgs>
     _count?: boolean | MenuItemCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MenuItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -38470,6 +38865,7 @@ export namespace Prisma {
       recipe: Prisma.$RecipePayload<ExtArgs> | null
       stationRoutes: Prisma.$MenuItemStationPayload<ExtArgs>[]
       channelAvailability: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
+      loyaltyCards: Prisma.$LoyaltyCardPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -38885,6 +39281,7 @@ export namespace Prisma {
     recipe<T extends MenuItem$recipeArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$recipeArgs<ExtArgs>>): Prisma__RecipeClient<$Result.GetResult<Prisma.$RecipePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     stationRoutes<T extends MenuItem$stationRoutesArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$stationRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findMany"> | Null>
     channelAvailability<T extends MenuItem$channelAvailabilityArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$channelAvailabilityArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
+    loyaltyCards<T extends MenuItem$loyaltyCardsArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$loyaltyCardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -39383,6 +39780,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MenuItemChannelAvailabilityScalarFieldEnum | MenuItemChannelAvailabilityScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItem.loyaltyCards
+   */
+  export type MenuItem$loyaltyCardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    where?: LoyaltyCardWhereInput
+    orderBy?: LoyaltyCardOrderByWithRelationInput | LoyaltyCardOrderByWithRelationInput[]
+    cursor?: LoyaltyCardWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LoyaltyCardScalarFieldEnum | LoyaltyCardScalarFieldEnum[]
   }
 
   /**
@@ -61887,6 +62304,7 @@ export namespace Prisma {
     driverAssignment?: boolean | Order$driverAssignmentArgs<ExtArgs>
     payments?: boolean | Order$paymentsArgs<ExtArgs>
     campaignRedemptions?: boolean | Order$campaignRedemptionsArgs<ExtArgs>
+    loyaltyStamp?: boolean | Order$loyaltyStampArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
 
@@ -62066,6 +62484,7 @@ export namespace Prisma {
     driverAssignment?: boolean | Order$driverAssignmentArgs<ExtArgs>
     payments?: boolean | Order$paymentsArgs<ExtArgs>
     campaignRedemptions?: boolean | Order$campaignRedemptionsArgs<ExtArgs>
+    loyaltyStamp?: boolean | Order$loyaltyStampArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -62091,6 +62510,7 @@ export namespace Prisma {
       driverAssignment: Prisma.$DriverAssignmentPayload<ExtArgs> | null
       payments: Prisma.$PaymentPayload<ExtArgs>[]
       campaignRedemptions: Prisma.$CampaignRedemptionPayload<ExtArgs>[]
+      loyaltyStamp: Prisma.$LoyaltyStampPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -62545,6 +62965,7 @@ export namespace Prisma {
     driverAssignment<T extends Order$driverAssignmentArgs<ExtArgs> = {}>(args?: Subset<T, Order$driverAssignmentArgs<ExtArgs>>): Prisma__DriverAssignmentClient<$Result.GetResult<Prisma.$DriverAssignmentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     payments<T extends Order$paymentsArgs<ExtArgs> = {}>(args?: Subset<T, Order$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany"> | Null>
     campaignRedemptions<T extends Order$campaignRedemptionsArgs<ExtArgs> = {}>(args?: Subset<T, Order$campaignRedemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findMany"> | Null>
+    loyaltyStamp<T extends Order$loyaltyStampArgs<ExtArgs> = {}>(args?: Subset<T, Order$loyaltyStampArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -63145,6 +63566,21 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: CampaignRedemptionScalarFieldEnum | CampaignRedemptionScalarFieldEnum[]
+  }
+
+  /**
+   * Order.loyaltyStamp
+   */
+  export type Order$loyaltyStampArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    where?: LoyaltyStampWhereInput
   }
 
   /**
@@ -151659,6 +152095,3150 @@ export namespace Prisma {
 
 
   /**
+   * Model LoyaltyCard
+   */
+
+  export type AggregateLoyaltyCard = {
+    _count: LoyaltyCardCountAggregateOutputType | null
+    _avg: LoyaltyCardAvgAggregateOutputType | null
+    _sum: LoyaltyCardSumAggregateOutputType | null
+    _min: LoyaltyCardMinAggregateOutputType | null
+    _max: LoyaltyCardMaxAggregateOutputType | null
+  }
+
+  export type LoyaltyCardAvgAggregateOutputType = {
+    stampsRequired: number | null
+    minimumSpend: Decimal | null
+    rewardExpiryDays: number | null
+  }
+
+  export type LoyaltyCardSumAggregateOutputType = {
+    stampsRequired: number | null
+    minimumSpend: Decimal | null
+    rewardExpiryDays: number | null
+  }
+
+  export type LoyaltyCardMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    isActive: boolean | null
+    stampsRequired: number | null
+    minimumSpend: Decimal | null
+    rewardItemId: string | null
+    rewardLabel: string | null
+    rewardExpiryDays: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LoyaltyCardMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    isActive: boolean | null
+    stampsRequired: number | null
+    minimumSpend: Decimal | null
+    rewardItemId: string | null
+    rewardLabel: string | null
+    rewardExpiryDays: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LoyaltyCardCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    isActive: number
+    stampsRequired: number
+    minimumSpend: number
+    rewardItemId: number
+    rewardLabel: number
+    rewardExpiryDays: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type LoyaltyCardAvgAggregateInputType = {
+    stampsRequired?: true
+    minimumSpend?: true
+    rewardExpiryDays?: true
+  }
+
+  export type LoyaltyCardSumAggregateInputType = {
+    stampsRequired?: true
+    minimumSpend?: true
+    rewardExpiryDays?: true
+  }
+
+  export type LoyaltyCardMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    isActive?: true
+    stampsRequired?: true
+    minimumSpend?: true
+    rewardItemId?: true
+    rewardLabel?: true
+    rewardExpiryDays?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LoyaltyCardMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    isActive?: true
+    stampsRequired?: true
+    minimumSpend?: true
+    rewardItemId?: true
+    rewardLabel?: true
+    rewardExpiryDays?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LoyaltyCardCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    isActive?: true
+    stampsRequired?: true
+    minimumSpend?: true
+    rewardItemId?: true
+    rewardLabel?: true
+    rewardExpiryDays?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type LoyaltyCardAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LoyaltyCard to aggregate.
+     */
+    where?: LoyaltyCardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyCards to fetch.
+     */
+    orderBy?: LoyaltyCardOrderByWithRelationInput | LoyaltyCardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LoyaltyCardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyCards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyCards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LoyaltyCards
+    **/
+    _count?: true | LoyaltyCardCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: LoyaltyCardAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: LoyaltyCardSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LoyaltyCardMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LoyaltyCardMaxAggregateInputType
+  }
+
+  export type GetLoyaltyCardAggregateType<T extends LoyaltyCardAggregateArgs> = {
+        [P in keyof T & keyof AggregateLoyaltyCard]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLoyaltyCard[P]>
+      : GetScalarType<T[P], AggregateLoyaltyCard[P]>
+  }
+
+
+
+
+  export type LoyaltyCardGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyCardWhereInput
+    orderBy?: LoyaltyCardOrderByWithAggregationInput | LoyaltyCardOrderByWithAggregationInput[]
+    by: LoyaltyCardScalarFieldEnum[] | LoyaltyCardScalarFieldEnum
+    having?: LoyaltyCardScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LoyaltyCardCountAggregateInputType | true
+    _avg?: LoyaltyCardAvgAggregateInputType
+    _sum?: LoyaltyCardSumAggregateInputType
+    _min?: LoyaltyCardMinAggregateInputType
+    _max?: LoyaltyCardMaxAggregateInputType
+  }
+
+  export type LoyaltyCardGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    isActive: boolean
+    stampsRequired: number
+    minimumSpend: Decimal | null
+    rewardItemId: string | null
+    rewardLabel: string
+    rewardExpiryDays: number | null
+    createdAt: Date
+    updatedAt: Date
+    _count: LoyaltyCardCountAggregateOutputType | null
+    _avg: LoyaltyCardAvgAggregateOutputType | null
+    _sum: LoyaltyCardSumAggregateOutputType | null
+    _min: LoyaltyCardMinAggregateOutputType | null
+    _max: LoyaltyCardMaxAggregateOutputType | null
+  }
+
+  type GetLoyaltyCardGroupByPayload<T extends LoyaltyCardGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LoyaltyCardGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LoyaltyCardGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LoyaltyCardGroupByOutputType[P]>
+            : GetScalarType<T[P], LoyaltyCardGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LoyaltyCardSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    isActive?: boolean
+    stampsRequired?: boolean
+    minimumSpend?: boolean
+    rewardItemId?: boolean
+    rewardLabel?: boolean
+    rewardExpiryDays?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    rewardItem?: boolean | LoyaltyCard$rewardItemArgs<ExtArgs>
+    stamps?: boolean | LoyaltyCard$stampsArgs<ExtArgs>
+    rewards?: boolean | LoyaltyCard$rewardsArgs<ExtArgs>
+    _count?: boolean | LoyaltyCardCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["loyaltyCard"]>
+
+  export type LoyaltyCardSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    isActive?: boolean
+    stampsRequired?: boolean
+    minimumSpend?: boolean
+    rewardItemId?: boolean
+    rewardLabel?: boolean
+    rewardExpiryDays?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    rewardItem?: boolean | LoyaltyCard$rewardItemArgs<ExtArgs>
+  }, ExtArgs["result"]["loyaltyCard"]>
+
+  export type LoyaltyCardSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    isActive?: boolean
+    stampsRequired?: boolean
+    minimumSpend?: boolean
+    rewardItemId?: boolean
+    rewardLabel?: boolean
+    rewardExpiryDays?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type LoyaltyCardInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    rewardItem?: boolean | LoyaltyCard$rewardItemArgs<ExtArgs>
+    stamps?: boolean | LoyaltyCard$stampsArgs<ExtArgs>
+    rewards?: boolean | LoyaltyCard$rewardsArgs<ExtArgs>
+    _count?: boolean | LoyaltyCardCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type LoyaltyCardIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    rewardItem?: boolean | LoyaltyCard$rewardItemArgs<ExtArgs>
+  }
+
+  export type $LoyaltyCardPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LoyaltyCard"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+      rewardItem: Prisma.$MenuItemPayload<ExtArgs> | null
+      stamps: Prisma.$LoyaltyStampPayload<ExtArgs>[]
+      rewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      isActive: boolean
+      /**
+       * Stamps needed for one reward. Six by default — the number people expect.
+       */
+      stampsRequired: number
+      /**
+       * Order subtotal needed to earn a stamp. Null = any order counts.
+       * Without one, six £2 chip orders earn a free main.
+       */
+      minimumSpend: Prisma.Decimal | null
+      /**
+       * What they get. The item is what staff hand over; the label is what the
+       * customer reads, and it stands alone if the item is later deleted.
+       */
+      rewardItemId: string | null
+      rewardLabel: string
+      /**
+       * Days a reward stays claimable once earned. Null = forever.
+       */
+      rewardExpiryDays: number | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["loyaltyCard"]>
+    composites: {}
+  }
+
+  type LoyaltyCardGetPayload<S extends boolean | null | undefined | LoyaltyCardDefaultArgs> = $Result.GetResult<Prisma.$LoyaltyCardPayload, S>
+
+  type LoyaltyCardCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<LoyaltyCardFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: LoyaltyCardCountAggregateInputType | true
+    }
+
+  export interface LoyaltyCardDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LoyaltyCard'], meta: { name: 'LoyaltyCard' } }
+    /**
+     * Find zero or one LoyaltyCard that matches the filter.
+     * @param {LoyaltyCardFindUniqueArgs} args - Arguments to find a LoyaltyCard
+     * @example
+     * // Get one LoyaltyCard
+     * const loyaltyCard = await prisma.loyaltyCard.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LoyaltyCardFindUniqueArgs>(args: SelectSubset<T, LoyaltyCardFindUniqueArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one LoyaltyCard that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {LoyaltyCardFindUniqueOrThrowArgs} args - Arguments to find a LoyaltyCard
+     * @example
+     * // Get one LoyaltyCard
+     * const loyaltyCard = await prisma.loyaltyCard.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LoyaltyCardFindUniqueOrThrowArgs>(args: SelectSubset<T, LoyaltyCardFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first LoyaltyCard that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyCardFindFirstArgs} args - Arguments to find a LoyaltyCard
+     * @example
+     * // Get one LoyaltyCard
+     * const loyaltyCard = await prisma.loyaltyCard.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LoyaltyCardFindFirstArgs>(args?: SelectSubset<T, LoyaltyCardFindFirstArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first LoyaltyCard that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyCardFindFirstOrThrowArgs} args - Arguments to find a LoyaltyCard
+     * @example
+     * // Get one LoyaltyCard
+     * const loyaltyCard = await prisma.loyaltyCard.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LoyaltyCardFindFirstOrThrowArgs>(args?: SelectSubset<T, LoyaltyCardFindFirstOrThrowArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more LoyaltyCards that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyCardFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LoyaltyCards
+     * const loyaltyCards = await prisma.loyaltyCard.findMany()
+     * 
+     * // Get first 10 LoyaltyCards
+     * const loyaltyCards = await prisma.loyaltyCard.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const loyaltyCardWithIdOnly = await prisma.loyaltyCard.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LoyaltyCardFindManyArgs>(args?: SelectSubset<T, LoyaltyCardFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a LoyaltyCard.
+     * @param {LoyaltyCardCreateArgs} args - Arguments to create a LoyaltyCard.
+     * @example
+     * // Create one LoyaltyCard
+     * const LoyaltyCard = await prisma.loyaltyCard.create({
+     *   data: {
+     *     // ... data to create a LoyaltyCard
+     *   }
+     * })
+     * 
+     */
+    create<T extends LoyaltyCardCreateArgs>(args: SelectSubset<T, LoyaltyCardCreateArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many LoyaltyCards.
+     * @param {LoyaltyCardCreateManyArgs} args - Arguments to create many LoyaltyCards.
+     * @example
+     * // Create many LoyaltyCards
+     * const loyaltyCard = await prisma.loyaltyCard.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LoyaltyCardCreateManyArgs>(args?: SelectSubset<T, LoyaltyCardCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LoyaltyCards and returns the data saved in the database.
+     * @param {LoyaltyCardCreateManyAndReturnArgs} args - Arguments to create many LoyaltyCards.
+     * @example
+     * // Create many LoyaltyCards
+     * const loyaltyCard = await prisma.loyaltyCard.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LoyaltyCards and only return the `id`
+     * const loyaltyCardWithIdOnly = await prisma.loyaltyCard.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LoyaltyCardCreateManyAndReturnArgs>(args?: SelectSubset<T, LoyaltyCardCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a LoyaltyCard.
+     * @param {LoyaltyCardDeleteArgs} args - Arguments to delete one LoyaltyCard.
+     * @example
+     * // Delete one LoyaltyCard
+     * const LoyaltyCard = await prisma.loyaltyCard.delete({
+     *   where: {
+     *     // ... filter to delete one LoyaltyCard
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LoyaltyCardDeleteArgs>(args: SelectSubset<T, LoyaltyCardDeleteArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one LoyaltyCard.
+     * @param {LoyaltyCardUpdateArgs} args - Arguments to update one LoyaltyCard.
+     * @example
+     * // Update one LoyaltyCard
+     * const loyaltyCard = await prisma.loyaltyCard.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LoyaltyCardUpdateArgs>(args: SelectSubset<T, LoyaltyCardUpdateArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more LoyaltyCards.
+     * @param {LoyaltyCardDeleteManyArgs} args - Arguments to filter LoyaltyCards to delete.
+     * @example
+     * // Delete a few LoyaltyCards
+     * const { count } = await prisma.loyaltyCard.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LoyaltyCardDeleteManyArgs>(args?: SelectSubset<T, LoyaltyCardDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LoyaltyCards.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyCardUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LoyaltyCards
+     * const loyaltyCard = await prisma.loyaltyCard.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LoyaltyCardUpdateManyArgs>(args: SelectSubset<T, LoyaltyCardUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one LoyaltyCard.
+     * @param {LoyaltyCardUpsertArgs} args - Arguments to update or create a LoyaltyCard.
+     * @example
+     * // Update or create a LoyaltyCard
+     * const loyaltyCard = await prisma.loyaltyCard.upsert({
+     *   create: {
+     *     // ... data to create a LoyaltyCard
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LoyaltyCard we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LoyaltyCardUpsertArgs>(args: SelectSubset<T, LoyaltyCardUpsertArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of LoyaltyCards.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyCardCountArgs} args - Arguments to filter LoyaltyCards to count.
+     * @example
+     * // Count the number of LoyaltyCards
+     * const count = await prisma.loyaltyCard.count({
+     *   where: {
+     *     // ... the filter for the LoyaltyCards we want to count
+     *   }
+     * })
+    **/
+    count<T extends LoyaltyCardCountArgs>(
+      args?: Subset<T, LoyaltyCardCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LoyaltyCardCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LoyaltyCard.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyCardAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LoyaltyCardAggregateArgs>(args: Subset<T, LoyaltyCardAggregateArgs>): Prisma.PrismaPromise<GetLoyaltyCardAggregateType<T>>
+
+    /**
+     * Group by LoyaltyCard.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyCardGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LoyaltyCardGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LoyaltyCardGroupByArgs['orderBy'] }
+        : { orderBy?: LoyaltyCardGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LoyaltyCardGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLoyaltyCardGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LoyaltyCard model
+   */
+  readonly fields: LoyaltyCardFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LoyaltyCard.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LoyaltyCardClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    rewardItem<T extends LoyaltyCard$rewardItemArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyCard$rewardItemArgs<ExtArgs>>): Prisma__MenuItemClient<$Result.GetResult<Prisma.$MenuItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    stamps<T extends LoyaltyCard$stampsArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyCard$stampsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findMany"> | Null>
+    rewards<T extends LoyaltyCard$rewardsArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyCard$rewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LoyaltyCard model
+   */ 
+  interface LoyaltyCardFieldRefs {
+    readonly id: FieldRef<"LoyaltyCard", 'String'>
+    readonly tenantId: FieldRef<"LoyaltyCard", 'String'>
+    readonly locationId: FieldRef<"LoyaltyCard", 'String'>
+    readonly isActive: FieldRef<"LoyaltyCard", 'Boolean'>
+    readonly stampsRequired: FieldRef<"LoyaltyCard", 'Int'>
+    readonly minimumSpend: FieldRef<"LoyaltyCard", 'Decimal'>
+    readonly rewardItemId: FieldRef<"LoyaltyCard", 'String'>
+    readonly rewardLabel: FieldRef<"LoyaltyCard", 'String'>
+    readonly rewardExpiryDays: FieldRef<"LoyaltyCard", 'Int'>
+    readonly createdAt: FieldRef<"LoyaltyCard", 'DateTime'>
+    readonly updatedAt: FieldRef<"LoyaltyCard", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LoyaltyCard findUnique
+   */
+  export type LoyaltyCardFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyCard to fetch.
+     */
+    where: LoyaltyCardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyCard findUniqueOrThrow
+   */
+  export type LoyaltyCardFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyCard to fetch.
+     */
+    where: LoyaltyCardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyCard findFirst
+   */
+  export type LoyaltyCardFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyCard to fetch.
+     */
+    where?: LoyaltyCardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyCards to fetch.
+     */
+    orderBy?: LoyaltyCardOrderByWithRelationInput | LoyaltyCardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LoyaltyCards.
+     */
+    cursor?: LoyaltyCardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyCards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyCards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LoyaltyCards.
+     */
+    distinct?: LoyaltyCardScalarFieldEnum | LoyaltyCardScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyCard findFirstOrThrow
+   */
+  export type LoyaltyCardFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyCard to fetch.
+     */
+    where?: LoyaltyCardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyCards to fetch.
+     */
+    orderBy?: LoyaltyCardOrderByWithRelationInput | LoyaltyCardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LoyaltyCards.
+     */
+    cursor?: LoyaltyCardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyCards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyCards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LoyaltyCards.
+     */
+    distinct?: LoyaltyCardScalarFieldEnum | LoyaltyCardScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyCard findMany
+   */
+  export type LoyaltyCardFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyCards to fetch.
+     */
+    where?: LoyaltyCardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyCards to fetch.
+     */
+    orderBy?: LoyaltyCardOrderByWithRelationInput | LoyaltyCardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LoyaltyCards.
+     */
+    cursor?: LoyaltyCardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyCards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyCards.
+     */
+    skip?: number
+    distinct?: LoyaltyCardScalarFieldEnum | LoyaltyCardScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyCard create
+   */
+  export type LoyaltyCardCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LoyaltyCard.
+     */
+    data: XOR<LoyaltyCardCreateInput, LoyaltyCardUncheckedCreateInput>
+  }
+
+  /**
+   * LoyaltyCard createMany
+   */
+  export type LoyaltyCardCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LoyaltyCards.
+     */
+    data: LoyaltyCardCreateManyInput | LoyaltyCardCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LoyaltyCard createManyAndReturn
+   */
+  export type LoyaltyCardCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many LoyaltyCards.
+     */
+    data: LoyaltyCardCreateManyInput | LoyaltyCardCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LoyaltyCard update
+   */
+  export type LoyaltyCardUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LoyaltyCard.
+     */
+    data: XOR<LoyaltyCardUpdateInput, LoyaltyCardUncheckedUpdateInput>
+    /**
+     * Choose, which LoyaltyCard to update.
+     */
+    where: LoyaltyCardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyCard updateMany
+   */
+  export type LoyaltyCardUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LoyaltyCards.
+     */
+    data: XOR<LoyaltyCardUpdateManyMutationInput, LoyaltyCardUncheckedUpdateManyInput>
+    /**
+     * Filter which LoyaltyCards to update
+     */
+    where?: LoyaltyCardWhereInput
+  }
+
+  /**
+   * LoyaltyCard upsert
+   */
+  export type LoyaltyCardUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LoyaltyCard to update in case it exists.
+     */
+    where: LoyaltyCardWhereUniqueInput
+    /**
+     * In case the LoyaltyCard found by the `where` argument doesn't exist, create a new LoyaltyCard with this data.
+     */
+    create: XOR<LoyaltyCardCreateInput, LoyaltyCardUncheckedCreateInput>
+    /**
+     * In case the LoyaltyCard was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LoyaltyCardUpdateInput, LoyaltyCardUncheckedUpdateInput>
+  }
+
+  /**
+   * LoyaltyCard delete
+   */
+  export type LoyaltyCardDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    /**
+     * Filter which LoyaltyCard to delete.
+     */
+    where: LoyaltyCardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyCard deleteMany
+   */
+  export type LoyaltyCardDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LoyaltyCards to delete
+     */
+    where?: LoyaltyCardWhereInput
+  }
+
+  /**
+   * LoyaltyCard.rewardItem
+   */
+  export type LoyaltyCard$rewardItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItem
+     */
+    select?: MenuItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemInclude<ExtArgs> | null
+    where?: MenuItemWhereInput
+  }
+
+  /**
+   * LoyaltyCard.stamps
+   */
+  export type LoyaltyCard$stampsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    where?: LoyaltyStampWhereInput
+    orderBy?: LoyaltyStampOrderByWithRelationInput | LoyaltyStampOrderByWithRelationInput[]
+    cursor?: LoyaltyStampWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LoyaltyStampScalarFieldEnum | LoyaltyStampScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyCard.rewards
+   */
+  export type LoyaltyCard$rewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    where?: LoyaltyRewardWhereInput
+    orderBy?: LoyaltyRewardOrderByWithRelationInput | LoyaltyRewardOrderByWithRelationInput[]
+    cursor?: LoyaltyRewardWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LoyaltyRewardScalarFieldEnum | LoyaltyRewardScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyCard without action
+   */
+  export type LoyaltyCardDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model LoyaltyStamp
+   */
+
+  export type AggregateLoyaltyStamp = {
+    _count: LoyaltyStampCountAggregateOutputType | null
+    _avg: LoyaltyStampAvgAggregateOutputType | null
+    _sum: LoyaltyStampSumAggregateOutputType | null
+    _min: LoyaltyStampMinAggregateOutputType | null
+    _max: LoyaltyStampMaxAggregateOutputType | null
+  }
+
+  export type LoyaltyStampAvgAggregateOutputType = {
+    spend: Decimal | null
+  }
+
+  export type LoyaltyStampSumAggregateOutputType = {
+    spend: Decimal | null
+  }
+
+  export type LoyaltyStampMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    cardId: string | null
+    customerAccountId: string | null
+    orderId: string | null
+    spend: Decimal | null
+    createdAt: Date | null
+  }
+
+  export type LoyaltyStampMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    cardId: string | null
+    customerAccountId: string | null
+    orderId: string | null
+    spend: Decimal | null
+    createdAt: Date | null
+  }
+
+  export type LoyaltyStampCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    cardId: number
+    customerAccountId: number
+    orderId: number
+    spend: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type LoyaltyStampAvgAggregateInputType = {
+    spend?: true
+  }
+
+  export type LoyaltyStampSumAggregateInputType = {
+    spend?: true
+  }
+
+  export type LoyaltyStampMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    cardId?: true
+    customerAccountId?: true
+    orderId?: true
+    spend?: true
+    createdAt?: true
+  }
+
+  export type LoyaltyStampMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    cardId?: true
+    customerAccountId?: true
+    orderId?: true
+    spend?: true
+    createdAt?: true
+  }
+
+  export type LoyaltyStampCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    cardId?: true
+    customerAccountId?: true
+    orderId?: true
+    spend?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type LoyaltyStampAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LoyaltyStamp to aggregate.
+     */
+    where?: LoyaltyStampWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyStamps to fetch.
+     */
+    orderBy?: LoyaltyStampOrderByWithRelationInput | LoyaltyStampOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LoyaltyStampWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyStamps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyStamps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LoyaltyStamps
+    **/
+    _count?: true | LoyaltyStampCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: LoyaltyStampAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: LoyaltyStampSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LoyaltyStampMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LoyaltyStampMaxAggregateInputType
+  }
+
+  export type GetLoyaltyStampAggregateType<T extends LoyaltyStampAggregateArgs> = {
+        [P in keyof T & keyof AggregateLoyaltyStamp]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLoyaltyStamp[P]>
+      : GetScalarType<T[P], AggregateLoyaltyStamp[P]>
+  }
+
+
+
+
+  export type LoyaltyStampGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyStampWhereInput
+    orderBy?: LoyaltyStampOrderByWithAggregationInput | LoyaltyStampOrderByWithAggregationInput[]
+    by: LoyaltyStampScalarFieldEnum[] | LoyaltyStampScalarFieldEnum
+    having?: LoyaltyStampScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LoyaltyStampCountAggregateInputType | true
+    _avg?: LoyaltyStampAvgAggregateInputType
+    _sum?: LoyaltyStampSumAggregateInputType
+    _min?: LoyaltyStampMinAggregateInputType
+    _max?: LoyaltyStampMaxAggregateInputType
+  }
+
+  export type LoyaltyStampGroupByOutputType = {
+    id: string
+    tenantId: string
+    cardId: string
+    customerAccountId: string
+    orderId: string
+    spend: Decimal
+    createdAt: Date
+    _count: LoyaltyStampCountAggregateOutputType | null
+    _avg: LoyaltyStampAvgAggregateOutputType | null
+    _sum: LoyaltyStampSumAggregateOutputType | null
+    _min: LoyaltyStampMinAggregateOutputType | null
+    _max: LoyaltyStampMaxAggregateOutputType | null
+  }
+
+  type GetLoyaltyStampGroupByPayload<T extends LoyaltyStampGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LoyaltyStampGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LoyaltyStampGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LoyaltyStampGroupByOutputType[P]>
+            : GetScalarType<T[P], LoyaltyStampGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LoyaltyStampSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    cardId?: boolean
+    customerAccountId?: boolean
+    orderId?: boolean
+    spend?: boolean
+    createdAt?: boolean
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["loyaltyStamp"]>
+
+  export type LoyaltyStampSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    cardId?: boolean
+    customerAccountId?: boolean
+    orderId?: boolean
+    spend?: boolean
+    createdAt?: boolean
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["loyaltyStamp"]>
+
+  export type LoyaltyStampSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    cardId?: boolean
+    customerAccountId?: boolean
+    orderId?: boolean
+    spend?: boolean
+    createdAt?: boolean
+  }
+
+  export type LoyaltyStampInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+  export type LoyaltyStampIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+
+  export type $LoyaltyStampPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LoyaltyStamp"
+    objects: {
+      card: Prisma.$LoyaltyCardPayload<ExtArgs>
+      customerAccount: Prisma.$CustomerAccountPayload<ExtArgs>
+      order: Prisma.$OrderPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      cardId: string
+      customerAccountId: string
+      orderId: string
+      /**
+       * Kept so a later change to minimumSpend cannot rewrite history.
+       */
+      spend: Prisma.Decimal
+      createdAt: Date
+    }, ExtArgs["result"]["loyaltyStamp"]>
+    composites: {}
+  }
+
+  type LoyaltyStampGetPayload<S extends boolean | null | undefined | LoyaltyStampDefaultArgs> = $Result.GetResult<Prisma.$LoyaltyStampPayload, S>
+
+  type LoyaltyStampCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<LoyaltyStampFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: LoyaltyStampCountAggregateInputType | true
+    }
+
+  export interface LoyaltyStampDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LoyaltyStamp'], meta: { name: 'LoyaltyStamp' } }
+    /**
+     * Find zero or one LoyaltyStamp that matches the filter.
+     * @param {LoyaltyStampFindUniqueArgs} args - Arguments to find a LoyaltyStamp
+     * @example
+     * // Get one LoyaltyStamp
+     * const loyaltyStamp = await prisma.loyaltyStamp.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LoyaltyStampFindUniqueArgs>(args: SelectSubset<T, LoyaltyStampFindUniqueArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one LoyaltyStamp that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {LoyaltyStampFindUniqueOrThrowArgs} args - Arguments to find a LoyaltyStamp
+     * @example
+     * // Get one LoyaltyStamp
+     * const loyaltyStamp = await prisma.loyaltyStamp.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LoyaltyStampFindUniqueOrThrowArgs>(args: SelectSubset<T, LoyaltyStampFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first LoyaltyStamp that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyStampFindFirstArgs} args - Arguments to find a LoyaltyStamp
+     * @example
+     * // Get one LoyaltyStamp
+     * const loyaltyStamp = await prisma.loyaltyStamp.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LoyaltyStampFindFirstArgs>(args?: SelectSubset<T, LoyaltyStampFindFirstArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first LoyaltyStamp that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyStampFindFirstOrThrowArgs} args - Arguments to find a LoyaltyStamp
+     * @example
+     * // Get one LoyaltyStamp
+     * const loyaltyStamp = await prisma.loyaltyStamp.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LoyaltyStampFindFirstOrThrowArgs>(args?: SelectSubset<T, LoyaltyStampFindFirstOrThrowArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more LoyaltyStamps that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyStampFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LoyaltyStamps
+     * const loyaltyStamps = await prisma.loyaltyStamp.findMany()
+     * 
+     * // Get first 10 LoyaltyStamps
+     * const loyaltyStamps = await prisma.loyaltyStamp.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const loyaltyStampWithIdOnly = await prisma.loyaltyStamp.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LoyaltyStampFindManyArgs>(args?: SelectSubset<T, LoyaltyStampFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a LoyaltyStamp.
+     * @param {LoyaltyStampCreateArgs} args - Arguments to create a LoyaltyStamp.
+     * @example
+     * // Create one LoyaltyStamp
+     * const LoyaltyStamp = await prisma.loyaltyStamp.create({
+     *   data: {
+     *     // ... data to create a LoyaltyStamp
+     *   }
+     * })
+     * 
+     */
+    create<T extends LoyaltyStampCreateArgs>(args: SelectSubset<T, LoyaltyStampCreateArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many LoyaltyStamps.
+     * @param {LoyaltyStampCreateManyArgs} args - Arguments to create many LoyaltyStamps.
+     * @example
+     * // Create many LoyaltyStamps
+     * const loyaltyStamp = await prisma.loyaltyStamp.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LoyaltyStampCreateManyArgs>(args?: SelectSubset<T, LoyaltyStampCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LoyaltyStamps and returns the data saved in the database.
+     * @param {LoyaltyStampCreateManyAndReturnArgs} args - Arguments to create many LoyaltyStamps.
+     * @example
+     * // Create many LoyaltyStamps
+     * const loyaltyStamp = await prisma.loyaltyStamp.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LoyaltyStamps and only return the `id`
+     * const loyaltyStampWithIdOnly = await prisma.loyaltyStamp.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LoyaltyStampCreateManyAndReturnArgs>(args?: SelectSubset<T, LoyaltyStampCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a LoyaltyStamp.
+     * @param {LoyaltyStampDeleteArgs} args - Arguments to delete one LoyaltyStamp.
+     * @example
+     * // Delete one LoyaltyStamp
+     * const LoyaltyStamp = await prisma.loyaltyStamp.delete({
+     *   where: {
+     *     // ... filter to delete one LoyaltyStamp
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LoyaltyStampDeleteArgs>(args: SelectSubset<T, LoyaltyStampDeleteArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one LoyaltyStamp.
+     * @param {LoyaltyStampUpdateArgs} args - Arguments to update one LoyaltyStamp.
+     * @example
+     * // Update one LoyaltyStamp
+     * const loyaltyStamp = await prisma.loyaltyStamp.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LoyaltyStampUpdateArgs>(args: SelectSubset<T, LoyaltyStampUpdateArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more LoyaltyStamps.
+     * @param {LoyaltyStampDeleteManyArgs} args - Arguments to filter LoyaltyStamps to delete.
+     * @example
+     * // Delete a few LoyaltyStamps
+     * const { count } = await prisma.loyaltyStamp.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LoyaltyStampDeleteManyArgs>(args?: SelectSubset<T, LoyaltyStampDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LoyaltyStamps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyStampUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LoyaltyStamps
+     * const loyaltyStamp = await prisma.loyaltyStamp.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LoyaltyStampUpdateManyArgs>(args: SelectSubset<T, LoyaltyStampUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one LoyaltyStamp.
+     * @param {LoyaltyStampUpsertArgs} args - Arguments to update or create a LoyaltyStamp.
+     * @example
+     * // Update or create a LoyaltyStamp
+     * const loyaltyStamp = await prisma.loyaltyStamp.upsert({
+     *   create: {
+     *     // ... data to create a LoyaltyStamp
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LoyaltyStamp we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LoyaltyStampUpsertArgs>(args: SelectSubset<T, LoyaltyStampUpsertArgs<ExtArgs>>): Prisma__LoyaltyStampClient<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of LoyaltyStamps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyStampCountArgs} args - Arguments to filter LoyaltyStamps to count.
+     * @example
+     * // Count the number of LoyaltyStamps
+     * const count = await prisma.loyaltyStamp.count({
+     *   where: {
+     *     // ... the filter for the LoyaltyStamps we want to count
+     *   }
+     * })
+    **/
+    count<T extends LoyaltyStampCountArgs>(
+      args?: Subset<T, LoyaltyStampCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LoyaltyStampCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LoyaltyStamp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyStampAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LoyaltyStampAggregateArgs>(args: Subset<T, LoyaltyStampAggregateArgs>): Prisma.PrismaPromise<GetLoyaltyStampAggregateType<T>>
+
+    /**
+     * Group by LoyaltyStamp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyStampGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LoyaltyStampGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LoyaltyStampGroupByArgs['orderBy'] }
+        : { orderBy?: LoyaltyStampGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LoyaltyStampGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLoyaltyStampGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LoyaltyStamp model
+   */
+  readonly fields: LoyaltyStampFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LoyaltyStamp.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LoyaltyStampClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    card<T extends LoyaltyCardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyCardDefaultArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    customerAccount<T extends CustomerAccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccountDefaultArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LoyaltyStamp model
+   */ 
+  interface LoyaltyStampFieldRefs {
+    readonly id: FieldRef<"LoyaltyStamp", 'String'>
+    readonly tenantId: FieldRef<"LoyaltyStamp", 'String'>
+    readonly cardId: FieldRef<"LoyaltyStamp", 'String'>
+    readonly customerAccountId: FieldRef<"LoyaltyStamp", 'String'>
+    readonly orderId: FieldRef<"LoyaltyStamp", 'String'>
+    readonly spend: FieldRef<"LoyaltyStamp", 'Decimal'>
+    readonly createdAt: FieldRef<"LoyaltyStamp", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LoyaltyStamp findUnique
+   */
+  export type LoyaltyStampFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyStamp to fetch.
+     */
+    where: LoyaltyStampWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyStamp findUniqueOrThrow
+   */
+  export type LoyaltyStampFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyStamp to fetch.
+     */
+    where: LoyaltyStampWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyStamp findFirst
+   */
+  export type LoyaltyStampFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyStamp to fetch.
+     */
+    where?: LoyaltyStampWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyStamps to fetch.
+     */
+    orderBy?: LoyaltyStampOrderByWithRelationInput | LoyaltyStampOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LoyaltyStamps.
+     */
+    cursor?: LoyaltyStampWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyStamps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyStamps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LoyaltyStamps.
+     */
+    distinct?: LoyaltyStampScalarFieldEnum | LoyaltyStampScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyStamp findFirstOrThrow
+   */
+  export type LoyaltyStampFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyStamp to fetch.
+     */
+    where?: LoyaltyStampWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyStamps to fetch.
+     */
+    orderBy?: LoyaltyStampOrderByWithRelationInput | LoyaltyStampOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LoyaltyStamps.
+     */
+    cursor?: LoyaltyStampWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyStamps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyStamps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LoyaltyStamps.
+     */
+    distinct?: LoyaltyStampScalarFieldEnum | LoyaltyStampScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyStamp findMany
+   */
+  export type LoyaltyStampFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyStamps to fetch.
+     */
+    where?: LoyaltyStampWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyStamps to fetch.
+     */
+    orderBy?: LoyaltyStampOrderByWithRelationInput | LoyaltyStampOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LoyaltyStamps.
+     */
+    cursor?: LoyaltyStampWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyStamps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyStamps.
+     */
+    skip?: number
+    distinct?: LoyaltyStampScalarFieldEnum | LoyaltyStampScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyStamp create
+   */
+  export type LoyaltyStampCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LoyaltyStamp.
+     */
+    data: XOR<LoyaltyStampCreateInput, LoyaltyStampUncheckedCreateInput>
+  }
+
+  /**
+   * LoyaltyStamp createMany
+   */
+  export type LoyaltyStampCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LoyaltyStamps.
+     */
+    data: LoyaltyStampCreateManyInput | LoyaltyStampCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LoyaltyStamp createManyAndReturn
+   */
+  export type LoyaltyStampCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many LoyaltyStamps.
+     */
+    data: LoyaltyStampCreateManyInput | LoyaltyStampCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LoyaltyStamp update
+   */
+  export type LoyaltyStampUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LoyaltyStamp.
+     */
+    data: XOR<LoyaltyStampUpdateInput, LoyaltyStampUncheckedUpdateInput>
+    /**
+     * Choose, which LoyaltyStamp to update.
+     */
+    where: LoyaltyStampWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyStamp updateMany
+   */
+  export type LoyaltyStampUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LoyaltyStamps.
+     */
+    data: XOR<LoyaltyStampUpdateManyMutationInput, LoyaltyStampUncheckedUpdateManyInput>
+    /**
+     * Filter which LoyaltyStamps to update
+     */
+    where?: LoyaltyStampWhereInput
+  }
+
+  /**
+   * LoyaltyStamp upsert
+   */
+  export type LoyaltyStampUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LoyaltyStamp to update in case it exists.
+     */
+    where: LoyaltyStampWhereUniqueInput
+    /**
+     * In case the LoyaltyStamp found by the `where` argument doesn't exist, create a new LoyaltyStamp with this data.
+     */
+    create: XOR<LoyaltyStampCreateInput, LoyaltyStampUncheckedCreateInput>
+    /**
+     * In case the LoyaltyStamp was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LoyaltyStampUpdateInput, LoyaltyStampUncheckedUpdateInput>
+  }
+
+  /**
+   * LoyaltyStamp delete
+   */
+  export type LoyaltyStampDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+    /**
+     * Filter which LoyaltyStamp to delete.
+     */
+    where: LoyaltyStampWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyStamp deleteMany
+   */
+  export type LoyaltyStampDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LoyaltyStamps to delete
+     */
+    where?: LoyaltyStampWhereInput
+  }
+
+  /**
+   * LoyaltyStamp without action
+   */
+  export type LoyaltyStampDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyStamp
+     */
+    select?: LoyaltyStampSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyStampInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model LoyaltyReward
+   */
+
+  export type AggregateLoyaltyReward = {
+    _count: LoyaltyRewardCountAggregateOutputType | null
+    _min: LoyaltyRewardMinAggregateOutputType | null
+    _max: LoyaltyRewardMaxAggregateOutputType | null
+  }
+
+  export type LoyaltyRewardMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    cardId: string | null
+    customerAccountId: string | null
+    label: string | null
+    rewardItemId: string | null
+    earnedAt: Date | null
+    expiresAt: Date | null
+    claimedAt: Date | null
+    claimedOrderId: string | null
+  }
+
+  export type LoyaltyRewardMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    cardId: string | null
+    customerAccountId: string | null
+    label: string | null
+    rewardItemId: string | null
+    earnedAt: Date | null
+    expiresAt: Date | null
+    claimedAt: Date | null
+    claimedOrderId: string | null
+  }
+
+  export type LoyaltyRewardCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    cardId: number
+    customerAccountId: number
+    label: number
+    rewardItemId: number
+    earnedAt: number
+    expiresAt: number
+    claimedAt: number
+    claimedOrderId: number
+    _all: number
+  }
+
+
+  export type LoyaltyRewardMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    cardId?: true
+    customerAccountId?: true
+    label?: true
+    rewardItemId?: true
+    earnedAt?: true
+    expiresAt?: true
+    claimedAt?: true
+    claimedOrderId?: true
+  }
+
+  export type LoyaltyRewardMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    cardId?: true
+    customerAccountId?: true
+    label?: true
+    rewardItemId?: true
+    earnedAt?: true
+    expiresAt?: true
+    claimedAt?: true
+    claimedOrderId?: true
+  }
+
+  export type LoyaltyRewardCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    cardId?: true
+    customerAccountId?: true
+    label?: true
+    rewardItemId?: true
+    earnedAt?: true
+    expiresAt?: true
+    claimedAt?: true
+    claimedOrderId?: true
+    _all?: true
+  }
+
+  export type LoyaltyRewardAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LoyaltyReward to aggregate.
+     */
+    where?: LoyaltyRewardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyRewards to fetch.
+     */
+    orderBy?: LoyaltyRewardOrderByWithRelationInput | LoyaltyRewardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LoyaltyRewardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyRewards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyRewards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LoyaltyRewards
+    **/
+    _count?: true | LoyaltyRewardCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LoyaltyRewardMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LoyaltyRewardMaxAggregateInputType
+  }
+
+  export type GetLoyaltyRewardAggregateType<T extends LoyaltyRewardAggregateArgs> = {
+        [P in keyof T & keyof AggregateLoyaltyReward]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLoyaltyReward[P]>
+      : GetScalarType<T[P], AggregateLoyaltyReward[P]>
+  }
+
+
+
+
+  export type LoyaltyRewardGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyRewardWhereInput
+    orderBy?: LoyaltyRewardOrderByWithAggregationInput | LoyaltyRewardOrderByWithAggregationInput[]
+    by: LoyaltyRewardScalarFieldEnum[] | LoyaltyRewardScalarFieldEnum
+    having?: LoyaltyRewardScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LoyaltyRewardCountAggregateInputType | true
+    _min?: LoyaltyRewardMinAggregateInputType
+    _max?: LoyaltyRewardMaxAggregateInputType
+  }
+
+  export type LoyaltyRewardGroupByOutputType = {
+    id: string
+    tenantId: string
+    cardId: string
+    customerAccountId: string
+    label: string
+    rewardItemId: string | null
+    earnedAt: Date
+    expiresAt: Date | null
+    claimedAt: Date | null
+    claimedOrderId: string | null
+    _count: LoyaltyRewardCountAggregateOutputType | null
+    _min: LoyaltyRewardMinAggregateOutputType | null
+    _max: LoyaltyRewardMaxAggregateOutputType | null
+  }
+
+  type GetLoyaltyRewardGroupByPayload<T extends LoyaltyRewardGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LoyaltyRewardGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LoyaltyRewardGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LoyaltyRewardGroupByOutputType[P]>
+            : GetScalarType<T[P], LoyaltyRewardGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LoyaltyRewardSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    cardId?: boolean
+    customerAccountId?: boolean
+    label?: boolean
+    rewardItemId?: boolean
+    earnedAt?: boolean
+    expiresAt?: boolean
+    claimedAt?: boolean
+    claimedOrderId?: boolean
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["loyaltyReward"]>
+
+  export type LoyaltyRewardSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    cardId?: boolean
+    customerAccountId?: boolean
+    label?: boolean
+    rewardItemId?: boolean
+    earnedAt?: boolean
+    expiresAt?: boolean
+    claimedAt?: boolean
+    claimedOrderId?: boolean
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["loyaltyReward"]>
+
+  export type LoyaltyRewardSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    cardId?: boolean
+    customerAccountId?: boolean
+    label?: boolean
+    rewardItemId?: boolean
+    earnedAt?: boolean
+    expiresAt?: boolean
+    claimedAt?: boolean
+    claimedOrderId?: boolean
+  }
+
+  export type LoyaltyRewardInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }
+  export type LoyaltyRewardIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }
+
+  export type $LoyaltyRewardPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LoyaltyReward"
+    objects: {
+      card: Prisma.$LoyaltyCardPayload<ExtArgs>
+      customerAccount: Prisma.$CustomerAccountPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      cardId: string
+      customerAccountId: string
+      /**
+       * Frozen at the moment it was earned. The operator can change the reward
+       * tomorrow; what this customer was promised does not change with it.
+       */
+      label: string
+      rewardItemId: string | null
+      earnedAt: Date
+      expiresAt: Date | null
+      claimedAt: Date | null
+      /**
+       * The order it was spent on, so a dispute has an answer.
+       */
+      claimedOrderId: string | null
+    }, ExtArgs["result"]["loyaltyReward"]>
+    composites: {}
+  }
+
+  type LoyaltyRewardGetPayload<S extends boolean | null | undefined | LoyaltyRewardDefaultArgs> = $Result.GetResult<Prisma.$LoyaltyRewardPayload, S>
+
+  type LoyaltyRewardCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<LoyaltyRewardFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: LoyaltyRewardCountAggregateInputType | true
+    }
+
+  export interface LoyaltyRewardDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LoyaltyReward'], meta: { name: 'LoyaltyReward' } }
+    /**
+     * Find zero or one LoyaltyReward that matches the filter.
+     * @param {LoyaltyRewardFindUniqueArgs} args - Arguments to find a LoyaltyReward
+     * @example
+     * // Get one LoyaltyReward
+     * const loyaltyReward = await prisma.loyaltyReward.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LoyaltyRewardFindUniqueArgs>(args: SelectSubset<T, LoyaltyRewardFindUniqueArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one LoyaltyReward that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {LoyaltyRewardFindUniqueOrThrowArgs} args - Arguments to find a LoyaltyReward
+     * @example
+     * // Get one LoyaltyReward
+     * const loyaltyReward = await prisma.loyaltyReward.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LoyaltyRewardFindUniqueOrThrowArgs>(args: SelectSubset<T, LoyaltyRewardFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first LoyaltyReward that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyRewardFindFirstArgs} args - Arguments to find a LoyaltyReward
+     * @example
+     * // Get one LoyaltyReward
+     * const loyaltyReward = await prisma.loyaltyReward.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LoyaltyRewardFindFirstArgs>(args?: SelectSubset<T, LoyaltyRewardFindFirstArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first LoyaltyReward that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyRewardFindFirstOrThrowArgs} args - Arguments to find a LoyaltyReward
+     * @example
+     * // Get one LoyaltyReward
+     * const loyaltyReward = await prisma.loyaltyReward.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LoyaltyRewardFindFirstOrThrowArgs>(args?: SelectSubset<T, LoyaltyRewardFindFirstOrThrowArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more LoyaltyRewards that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyRewardFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LoyaltyRewards
+     * const loyaltyRewards = await prisma.loyaltyReward.findMany()
+     * 
+     * // Get first 10 LoyaltyRewards
+     * const loyaltyRewards = await prisma.loyaltyReward.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const loyaltyRewardWithIdOnly = await prisma.loyaltyReward.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LoyaltyRewardFindManyArgs>(args?: SelectSubset<T, LoyaltyRewardFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a LoyaltyReward.
+     * @param {LoyaltyRewardCreateArgs} args - Arguments to create a LoyaltyReward.
+     * @example
+     * // Create one LoyaltyReward
+     * const LoyaltyReward = await prisma.loyaltyReward.create({
+     *   data: {
+     *     // ... data to create a LoyaltyReward
+     *   }
+     * })
+     * 
+     */
+    create<T extends LoyaltyRewardCreateArgs>(args: SelectSubset<T, LoyaltyRewardCreateArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many LoyaltyRewards.
+     * @param {LoyaltyRewardCreateManyArgs} args - Arguments to create many LoyaltyRewards.
+     * @example
+     * // Create many LoyaltyRewards
+     * const loyaltyReward = await prisma.loyaltyReward.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LoyaltyRewardCreateManyArgs>(args?: SelectSubset<T, LoyaltyRewardCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LoyaltyRewards and returns the data saved in the database.
+     * @param {LoyaltyRewardCreateManyAndReturnArgs} args - Arguments to create many LoyaltyRewards.
+     * @example
+     * // Create many LoyaltyRewards
+     * const loyaltyReward = await prisma.loyaltyReward.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LoyaltyRewards and only return the `id`
+     * const loyaltyRewardWithIdOnly = await prisma.loyaltyReward.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LoyaltyRewardCreateManyAndReturnArgs>(args?: SelectSubset<T, LoyaltyRewardCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a LoyaltyReward.
+     * @param {LoyaltyRewardDeleteArgs} args - Arguments to delete one LoyaltyReward.
+     * @example
+     * // Delete one LoyaltyReward
+     * const LoyaltyReward = await prisma.loyaltyReward.delete({
+     *   where: {
+     *     // ... filter to delete one LoyaltyReward
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LoyaltyRewardDeleteArgs>(args: SelectSubset<T, LoyaltyRewardDeleteArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one LoyaltyReward.
+     * @param {LoyaltyRewardUpdateArgs} args - Arguments to update one LoyaltyReward.
+     * @example
+     * // Update one LoyaltyReward
+     * const loyaltyReward = await prisma.loyaltyReward.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LoyaltyRewardUpdateArgs>(args: SelectSubset<T, LoyaltyRewardUpdateArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more LoyaltyRewards.
+     * @param {LoyaltyRewardDeleteManyArgs} args - Arguments to filter LoyaltyRewards to delete.
+     * @example
+     * // Delete a few LoyaltyRewards
+     * const { count } = await prisma.loyaltyReward.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LoyaltyRewardDeleteManyArgs>(args?: SelectSubset<T, LoyaltyRewardDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LoyaltyRewards.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyRewardUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LoyaltyRewards
+     * const loyaltyReward = await prisma.loyaltyReward.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LoyaltyRewardUpdateManyArgs>(args: SelectSubset<T, LoyaltyRewardUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one LoyaltyReward.
+     * @param {LoyaltyRewardUpsertArgs} args - Arguments to update or create a LoyaltyReward.
+     * @example
+     * // Update or create a LoyaltyReward
+     * const loyaltyReward = await prisma.loyaltyReward.upsert({
+     *   create: {
+     *     // ... data to create a LoyaltyReward
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LoyaltyReward we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LoyaltyRewardUpsertArgs>(args: SelectSubset<T, LoyaltyRewardUpsertArgs<ExtArgs>>): Prisma__LoyaltyRewardClient<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of LoyaltyRewards.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyRewardCountArgs} args - Arguments to filter LoyaltyRewards to count.
+     * @example
+     * // Count the number of LoyaltyRewards
+     * const count = await prisma.loyaltyReward.count({
+     *   where: {
+     *     // ... the filter for the LoyaltyRewards we want to count
+     *   }
+     * })
+    **/
+    count<T extends LoyaltyRewardCountArgs>(
+      args?: Subset<T, LoyaltyRewardCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LoyaltyRewardCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LoyaltyReward.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyRewardAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LoyaltyRewardAggregateArgs>(args: Subset<T, LoyaltyRewardAggregateArgs>): Prisma.PrismaPromise<GetLoyaltyRewardAggregateType<T>>
+
+    /**
+     * Group by LoyaltyReward.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LoyaltyRewardGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LoyaltyRewardGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LoyaltyRewardGroupByArgs['orderBy'] }
+        : { orderBy?: LoyaltyRewardGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LoyaltyRewardGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLoyaltyRewardGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LoyaltyReward model
+   */
+  readonly fields: LoyaltyRewardFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LoyaltyReward.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LoyaltyRewardClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    card<T extends LoyaltyCardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyCardDefaultArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    customerAccount<T extends CustomerAccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccountDefaultArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LoyaltyReward model
+   */ 
+  interface LoyaltyRewardFieldRefs {
+    readonly id: FieldRef<"LoyaltyReward", 'String'>
+    readonly tenantId: FieldRef<"LoyaltyReward", 'String'>
+    readonly cardId: FieldRef<"LoyaltyReward", 'String'>
+    readonly customerAccountId: FieldRef<"LoyaltyReward", 'String'>
+    readonly label: FieldRef<"LoyaltyReward", 'String'>
+    readonly rewardItemId: FieldRef<"LoyaltyReward", 'String'>
+    readonly earnedAt: FieldRef<"LoyaltyReward", 'DateTime'>
+    readonly expiresAt: FieldRef<"LoyaltyReward", 'DateTime'>
+    readonly claimedAt: FieldRef<"LoyaltyReward", 'DateTime'>
+    readonly claimedOrderId: FieldRef<"LoyaltyReward", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LoyaltyReward findUnique
+   */
+  export type LoyaltyRewardFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyReward to fetch.
+     */
+    where: LoyaltyRewardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyReward findUniqueOrThrow
+   */
+  export type LoyaltyRewardFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyReward to fetch.
+     */
+    where: LoyaltyRewardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyReward findFirst
+   */
+  export type LoyaltyRewardFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyReward to fetch.
+     */
+    where?: LoyaltyRewardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyRewards to fetch.
+     */
+    orderBy?: LoyaltyRewardOrderByWithRelationInput | LoyaltyRewardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LoyaltyRewards.
+     */
+    cursor?: LoyaltyRewardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyRewards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyRewards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LoyaltyRewards.
+     */
+    distinct?: LoyaltyRewardScalarFieldEnum | LoyaltyRewardScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyReward findFirstOrThrow
+   */
+  export type LoyaltyRewardFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyReward to fetch.
+     */
+    where?: LoyaltyRewardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyRewards to fetch.
+     */
+    orderBy?: LoyaltyRewardOrderByWithRelationInput | LoyaltyRewardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LoyaltyRewards.
+     */
+    cursor?: LoyaltyRewardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyRewards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyRewards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LoyaltyRewards.
+     */
+    distinct?: LoyaltyRewardScalarFieldEnum | LoyaltyRewardScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyReward findMany
+   */
+  export type LoyaltyRewardFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * Filter, which LoyaltyRewards to fetch.
+     */
+    where?: LoyaltyRewardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LoyaltyRewards to fetch.
+     */
+    orderBy?: LoyaltyRewardOrderByWithRelationInput | LoyaltyRewardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LoyaltyRewards.
+     */
+    cursor?: LoyaltyRewardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LoyaltyRewards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LoyaltyRewards.
+     */
+    skip?: number
+    distinct?: LoyaltyRewardScalarFieldEnum | LoyaltyRewardScalarFieldEnum[]
+  }
+
+  /**
+   * LoyaltyReward create
+   */
+  export type LoyaltyRewardCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LoyaltyReward.
+     */
+    data: XOR<LoyaltyRewardCreateInput, LoyaltyRewardUncheckedCreateInput>
+  }
+
+  /**
+   * LoyaltyReward createMany
+   */
+  export type LoyaltyRewardCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LoyaltyRewards.
+     */
+    data: LoyaltyRewardCreateManyInput | LoyaltyRewardCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LoyaltyReward createManyAndReturn
+   */
+  export type LoyaltyRewardCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many LoyaltyRewards.
+     */
+    data: LoyaltyRewardCreateManyInput | LoyaltyRewardCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LoyaltyReward update
+   */
+  export type LoyaltyRewardUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LoyaltyReward.
+     */
+    data: XOR<LoyaltyRewardUpdateInput, LoyaltyRewardUncheckedUpdateInput>
+    /**
+     * Choose, which LoyaltyReward to update.
+     */
+    where: LoyaltyRewardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyReward updateMany
+   */
+  export type LoyaltyRewardUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LoyaltyRewards.
+     */
+    data: XOR<LoyaltyRewardUpdateManyMutationInput, LoyaltyRewardUncheckedUpdateManyInput>
+    /**
+     * Filter which LoyaltyRewards to update
+     */
+    where?: LoyaltyRewardWhereInput
+  }
+
+  /**
+   * LoyaltyReward upsert
+   */
+  export type LoyaltyRewardUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LoyaltyReward to update in case it exists.
+     */
+    where: LoyaltyRewardWhereUniqueInput
+    /**
+     * In case the LoyaltyReward found by the `where` argument doesn't exist, create a new LoyaltyReward with this data.
+     */
+    create: XOR<LoyaltyRewardCreateInput, LoyaltyRewardUncheckedCreateInput>
+    /**
+     * In case the LoyaltyReward was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LoyaltyRewardUpdateInput, LoyaltyRewardUncheckedUpdateInput>
+  }
+
+  /**
+   * LoyaltyReward delete
+   */
+  export type LoyaltyRewardDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    /**
+     * Filter which LoyaltyReward to delete.
+     */
+    where: LoyaltyRewardWhereUniqueInput
+  }
+
+  /**
+   * LoyaltyReward deleteMany
+   */
+  export type LoyaltyRewardDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LoyaltyRewards to delete
+     */
+    where?: LoyaltyRewardWhereInput
+  }
+
+  /**
+   * LoyaltyReward without action
+   */
+  export type LoyaltyRewardDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -154206,6 +157786,52 @@ export namespace Prisma {
   export type ContractEventScalarFieldEnum = (typeof ContractEventScalarFieldEnum)[keyof typeof ContractEventScalarFieldEnum]
 
 
+  export const LoyaltyCardScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    isActive: 'isActive',
+    stampsRequired: 'stampsRequired',
+    minimumSpend: 'minimumSpend',
+    rewardItemId: 'rewardItemId',
+    rewardLabel: 'rewardLabel',
+    rewardExpiryDays: 'rewardExpiryDays',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type LoyaltyCardScalarFieldEnum = (typeof LoyaltyCardScalarFieldEnum)[keyof typeof LoyaltyCardScalarFieldEnum]
+
+
+  export const LoyaltyStampScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    cardId: 'cardId',
+    customerAccountId: 'customerAccountId',
+    orderId: 'orderId',
+    spend: 'spend',
+    createdAt: 'createdAt'
+  };
+
+  export type LoyaltyStampScalarFieldEnum = (typeof LoyaltyStampScalarFieldEnum)[keyof typeof LoyaltyStampScalarFieldEnum]
+
+
+  export const LoyaltyRewardScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    cardId: 'cardId',
+    customerAccountId: 'customerAccountId',
+    label: 'label',
+    rewardItemId: 'rewardItemId',
+    earnedAt: 'earnedAt',
+    expiresAt: 'expiresAt',
+    claimedAt: 'claimedAt',
+    claimedOrderId: 'claimedOrderId'
+  };
+
+  export type LoyaltyRewardScalarFieldEnum = (typeof LoyaltyRewardScalarFieldEnum)[keyof typeof LoyaltyRewardScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -155976,6 +159602,41 @@ export namespace Prisma {
   export type ContractEventOrderByRelevanceFieldEnum = (typeof ContractEventOrderByRelevanceFieldEnum)[keyof typeof ContractEventOrderByRelevanceFieldEnum]
 
 
+  export const LoyaltyCardOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    rewardItemId: 'rewardItemId',
+    rewardLabel: 'rewardLabel'
+  };
+
+  export type LoyaltyCardOrderByRelevanceFieldEnum = (typeof LoyaltyCardOrderByRelevanceFieldEnum)[keyof typeof LoyaltyCardOrderByRelevanceFieldEnum]
+
+
+  export const LoyaltyStampOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    cardId: 'cardId',
+    customerAccountId: 'customerAccountId',
+    orderId: 'orderId'
+  };
+
+  export type LoyaltyStampOrderByRelevanceFieldEnum = (typeof LoyaltyStampOrderByRelevanceFieldEnum)[keyof typeof LoyaltyStampOrderByRelevanceFieldEnum]
+
+
+  export const LoyaltyRewardOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    cardId: 'cardId',
+    customerAccountId: 'customerAccountId',
+    label: 'label',
+    rewardItemId: 'rewardItemId',
+    claimedOrderId: 'claimedOrderId'
+  };
+
+  export type LoyaltyRewardOrderByRelevanceFieldEnum = (typeof LoyaltyRewardOrderByRelevanceFieldEnum)[keyof typeof LoyaltyRewardOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references 
    */
@@ -157391,6 +161052,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     updatedAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     orders?: OrderListRelationFilter
+    loyaltyStamps?: LoyaltyStampListRelationFilter
+    loyaltyRewards?: LoyaltyRewardListRelationFilter
   }
 
   export type CustomerAccountOrderByWithRelationInput = {
@@ -157409,6 +161072,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     orders?: OrderOrderByRelationAggregateInput
+    loyaltyStamps?: LoyaltyStampOrderByRelationAggregateInput
+    loyaltyRewards?: LoyaltyRewardOrderByRelationAggregateInput
     _relevance?: CustomerAccountOrderByRelevanceInput
   }
 
@@ -157431,6 +161096,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     updatedAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     orders?: OrderListRelationFilter
+    loyaltyStamps?: LoyaltyStampListRelationFilter
+    loyaltyRewards?: LoyaltyRewardListRelationFilter
   }, "id" | "email" | "googleId">
 
   export type CustomerAccountOrderByWithAggregationInput = {
@@ -158249,6 +161916,7 @@ export namespace Prisma {
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
+    loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -158342,6 +162010,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterOrderByWithRelationInput
     stuartConfig?: StuartConfigOrderByWithRelationInput
     uberDirectConfig?: UberDirectConfigOrderByWithRelationInput
+    loyaltyCard?: LoyaltyCardOrderByWithRelationInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
@@ -158439,6 +162108,7 @@ export namespace Prisma {
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
+    loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
@@ -159370,6 +163040,7 @@ export namespace Prisma {
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
     stationRoutes?: MenuItemStationListRelationFilter
     channelAvailability?: MenuItemChannelAvailabilityListRelationFilter
+    loyaltyCards?: LoyaltyCardListRelationFilter
   }
 
   export type MenuItemOrderByWithRelationInput = {
@@ -159422,6 +163093,7 @@ export namespace Prisma {
     recipe?: RecipeOrderByWithRelationInput
     stationRoutes?: MenuItemStationOrderByRelationAggregateInput
     channelAvailability?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
+    loyaltyCards?: LoyaltyCardOrderByRelationAggregateInput
     _relevance?: MenuItemOrderByRelevanceInput
   }
 
@@ -159478,6 +163150,7 @@ export namespace Prisma {
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
     stationRoutes?: MenuItemStationListRelationFilter
     channelAvailability?: MenuItemChannelAvailabilityListRelationFilter
+    loyaltyCards?: LoyaltyCardListRelationFilter
   }, "id">
 
   export type MenuItemOrderByWithAggregationInput = {
@@ -161747,6 +165420,7 @@ export namespace Prisma {
     driverAssignment?: XOR<DriverAssignmentNullableRelationFilter, DriverAssignmentWhereInput> | null
     payments?: PaymentListRelationFilter
     campaignRedemptions?: CampaignRedemptionListRelationFilter
+    loyaltyStamp?: XOR<LoyaltyStampNullableRelationFilter, LoyaltyStampWhereInput> | null
   }
 
   export type OrderOrderByWithRelationInput = {
@@ -161838,6 +165512,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentOrderByWithRelationInput
     payments?: PaymentOrderByRelationAggregateInput
     campaignRedemptions?: CampaignRedemptionOrderByRelationAggregateInput
+    loyaltyStamp?: LoyaltyStampOrderByWithRelationInput
     _relevance?: OrderOrderByRelevanceInput
   }
 
@@ -161934,6 +165609,7 @@ export namespace Prisma {
     driverAssignment?: XOR<DriverAssignmentNullableRelationFilter, DriverAssignmentWhereInput> | null
     payments?: PaymentListRelationFilter
     campaignRedemptions?: CampaignRedemptionListRelationFilter
+    loyaltyStamp?: XOR<LoyaltyStampNullableRelationFilter, LoyaltyStampWhereInput> | null
   }, "id" | "idempotencyKey" | "externalId_platform">
 
   export type OrderOrderByWithAggregationInput = {
@@ -170219,6 +173895,261 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"ContractEvent"> | Date | string
   }
 
+  export type LoyaltyCardWhereInput = {
+    AND?: LoyaltyCardWhereInput | LoyaltyCardWhereInput[]
+    OR?: LoyaltyCardWhereInput[]
+    NOT?: LoyaltyCardWhereInput | LoyaltyCardWhereInput[]
+    id?: StringFilter<"LoyaltyCard"> | string
+    tenantId?: StringFilter<"LoyaltyCard"> | string
+    locationId?: StringFilter<"LoyaltyCard"> | string
+    isActive?: BoolFilter<"LoyaltyCard"> | boolean
+    stampsRequired?: IntFilter<"LoyaltyCard"> | number
+    minimumSpend?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: StringNullableFilter<"LoyaltyCard"> | string | null
+    rewardLabel?: StringFilter<"LoyaltyCard"> | string
+    rewardExpiryDays?: IntNullableFilter<"LoyaltyCard"> | number | null
+    createdAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
+    updatedAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    rewardItem?: XOR<MenuItemNullableRelationFilter, MenuItemWhereInput> | null
+    stamps?: LoyaltyStampListRelationFilter
+    rewards?: LoyaltyRewardListRelationFilter
+  }
+
+  export type LoyaltyCardOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    stampsRequired?: SortOrder
+    minimumSpend?: SortOrderInput | SortOrder
+    rewardItemId?: SortOrderInput | SortOrder
+    rewardLabel?: SortOrder
+    rewardExpiryDays?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    rewardItem?: MenuItemOrderByWithRelationInput
+    stamps?: LoyaltyStampOrderByRelationAggregateInput
+    rewards?: LoyaltyRewardOrderByRelationAggregateInput
+    _relevance?: LoyaltyCardOrderByRelevanceInput
+  }
+
+  export type LoyaltyCardWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: LoyaltyCardWhereInput | LoyaltyCardWhereInput[]
+    OR?: LoyaltyCardWhereInput[]
+    NOT?: LoyaltyCardWhereInput | LoyaltyCardWhereInput[]
+    tenantId?: StringFilter<"LoyaltyCard"> | string
+    isActive?: BoolFilter<"LoyaltyCard"> | boolean
+    stampsRequired?: IntFilter<"LoyaltyCard"> | number
+    minimumSpend?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: StringNullableFilter<"LoyaltyCard"> | string | null
+    rewardLabel?: StringFilter<"LoyaltyCard"> | string
+    rewardExpiryDays?: IntNullableFilter<"LoyaltyCard"> | number | null
+    createdAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
+    updatedAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    rewardItem?: XOR<MenuItemNullableRelationFilter, MenuItemWhereInput> | null
+    stamps?: LoyaltyStampListRelationFilter
+    rewards?: LoyaltyRewardListRelationFilter
+  }, "id" | "locationId">
+
+  export type LoyaltyCardOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    stampsRequired?: SortOrder
+    minimumSpend?: SortOrderInput | SortOrder
+    rewardItemId?: SortOrderInput | SortOrder
+    rewardLabel?: SortOrder
+    rewardExpiryDays?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: LoyaltyCardCountOrderByAggregateInput
+    _avg?: LoyaltyCardAvgOrderByAggregateInput
+    _max?: LoyaltyCardMaxOrderByAggregateInput
+    _min?: LoyaltyCardMinOrderByAggregateInput
+    _sum?: LoyaltyCardSumOrderByAggregateInput
+  }
+
+  export type LoyaltyCardScalarWhereWithAggregatesInput = {
+    AND?: LoyaltyCardScalarWhereWithAggregatesInput | LoyaltyCardScalarWhereWithAggregatesInput[]
+    OR?: LoyaltyCardScalarWhereWithAggregatesInput[]
+    NOT?: LoyaltyCardScalarWhereWithAggregatesInput | LoyaltyCardScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LoyaltyCard"> | string
+    tenantId?: StringWithAggregatesFilter<"LoyaltyCard"> | string
+    locationId?: StringWithAggregatesFilter<"LoyaltyCard"> | string
+    isActive?: BoolWithAggregatesFilter<"LoyaltyCard"> | boolean
+    stampsRequired?: IntWithAggregatesFilter<"LoyaltyCard"> | number
+    minimumSpend?: DecimalNullableWithAggregatesFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: StringNullableWithAggregatesFilter<"LoyaltyCard"> | string | null
+    rewardLabel?: StringWithAggregatesFilter<"LoyaltyCard"> | string
+    rewardExpiryDays?: IntNullableWithAggregatesFilter<"LoyaltyCard"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"LoyaltyCard"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"LoyaltyCard"> | Date | string
+  }
+
+  export type LoyaltyStampWhereInput = {
+    AND?: LoyaltyStampWhereInput | LoyaltyStampWhereInput[]
+    OR?: LoyaltyStampWhereInput[]
+    NOT?: LoyaltyStampWhereInput | LoyaltyStampWhereInput[]
+    id?: StringFilter<"LoyaltyStamp"> | string
+    tenantId?: StringFilter<"LoyaltyStamp"> | string
+    cardId?: StringFilter<"LoyaltyStamp"> | string
+    customerAccountId?: StringFilter<"LoyaltyStamp"> | string
+    orderId?: StringFilter<"LoyaltyStamp"> | string
+    spend?: DecimalFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"LoyaltyStamp"> | Date | string
+    card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
+    customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+    order?: XOR<OrderRelationFilter, OrderWhereInput>
+  }
+
+  export type LoyaltyStampOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    orderId?: SortOrder
+    spend?: SortOrder
+    createdAt?: SortOrder
+    card?: LoyaltyCardOrderByWithRelationInput
+    customerAccount?: CustomerAccountOrderByWithRelationInput
+    order?: OrderOrderByWithRelationInput
+    _relevance?: LoyaltyStampOrderByRelevanceInput
+  }
+
+  export type LoyaltyStampWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orderId?: string
+    AND?: LoyaltyStampWhereInput | LoyaltyStampWhereInput[]
+    OR?: LoyaltyStampWhereInput[]
+    NOT?: LoyaltyStampWhereInput | LoyaltyStampWhereInput[]
+    tenantId?: StringFilter<"LoyaltyStamp"> | string
+    cardId?: StringFilter<"LoyaltyStamp"> | string
+    customerAccountId?: StringFilter<"LoyaltyStamp"> | string
+    spend?: DecimalFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"LoyaltyStamp"> | Date | string
+    card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
+    customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+    order?: XOR<OrderRelationFilter, OrderWhereInput>
+  }, "id" | "orderId">
+
+  export type LoyaltyStampOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    orderId?: SortOrder
+    spend?: SortOrder
+    createdAt?: SortOrder
+    _count?: LoyaltyStampCountOrderByAggregateInput
+    _avg?: LoyaltyStampAvgOrderByAggregateInput
+    _max?: LoyaltyStampMaxOrderByAggregateInput
+    _min?: LoyaltyStampMinOrderByAggregateInput
+    _sum?: LoyaltyStampSumOrderByAggregateInput
+  }
+
+  export type LoyaltyStampScalarWhereWithAggregatesInput = {
+    AND?: LoyaltyStampScalarWhereWithAggregatesInput | LoyaltyStampScalarWhereWithAggregatesInput[]
+    OR?: LoyaltyStampScalarWhereWithAggregatesInput[]
+    NOT?: LoyaltyStampScalarWhereWithAggregatesInput | LoyaltyStampScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
+    tenantId?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
+    cardId?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
+    customerAccountId?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
+    orderId?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
+    spend?: DecimalWithAggregatesFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeWithAggregatesFilter<"LoyaltyStamp"> | Date | string
+  }
+
+  export type LoyaltyRewardWhereInput = {
+    AND?: LoyaltyRewardWhereInput | LoyaltyRewardWhereInput[]
+    OR?: LoyaltyRewardWhereInput[]
+    NOT?: LoyaltyRewardWhereInput | LoyaltyRewardWhereInput[]
+    id?: StringFilter<"LoyaltyReward"> | string
+    tenantId?: StringFilter<"LoyaltyReward"> | string
+    cardId?: StringFilter<"LoyaltyReward"> | string
+    customerAccountId?: StringFilter<"LoyaltyReward"> | string
+    label?: StringFilter<"LoyaltyReward"> | string
+    rewardItemId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    earnedAt?: DateTimeFilter<"LoyaltyReward"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
+    claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
+    claimedOrderId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
+    customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+  }
+
+  export type LoyaltyRewardOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    label?: SortOrder
+    rewardItemId?: SortOrderInput | SortOrder
+    earnedAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    claimedOrderId?: SortOrderInput | SortOrder
+    card?: LoyaltyCardOrderByWithRelationInput
+    customerAccount?: CustomerAccountOrderByWithRelationInput
+    _relevance?: LoyaltyRewardOrderByRelevanceInput
+  }
+
+  export type LoyaltyRewardWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    claimedOrderId?: string
+    AND?: LoyaltyRewardWhereInput | LoyaltyRewardWhereInput[]
+    OR?: LoyaltyRewardWhereInput[]
+    NOT?: LoyaltyRewardWhereInput | LoyaltyRewardWhereInput[]
+    tenantId?: StringFilter<"LoyaltyReward"> | string
+    cardId?: StringFilter<"LoyaltyReward"> | string
+    customerAccountId?: StringFilter<"LoyaltyReward"> | string
+    label?: StringFilter<"LoyaltyReward"> | string
+    rewardItemId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    earnedAt?: DateTimeFilter<"LoyaltyReward"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
+    claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
+    card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
+    customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+  }, "id" | "claimedOrderId">
+
+  export type LoyaltyRewardOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    label?: SortOrder
+    rewardItemId?: SortOrderInput | SortOrder
+    earnedAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    claimedOrderId?: SortOrderInput | SortOrder
+    _count?: LoyaltyRewardCountOrderByAggregateInput
+    _max?: LoyaltyRewardMaxOrderByAggregateInput
+    _min?: LoyaltyRewardMinOrderByAggregateInput
+  }
+
+  export type LoyaltyRewardScalarWhereWithAggregatesInput = {
+    AND?: LoyaltyRewardScalarWhereWithAggregatesInput | LoyaltyRewardScalarWhereWithAggregatesInput[]
+    OR?: LoyaltyRewardScalarWhereWithAggregatesInput[]
+    NOT?: LoyaltyRewardScalarWhereWithAggregatesInput | LoyaltyRewardScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    tenantId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    cardId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    customerAccountId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    label?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    rewardItemId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
+    earnedAt?: DateTimeWithAggregatesFilter<"LoyaltyReward"> | Date | string
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyReward"> | Date | string | null
+    claimedAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyReward"> | Date | string | null
+    claimedOrderId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
+  }
+
   export type TenantCreateInput = {
     id?: string
     name: string
@@ -170901,6 +174832,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     orders?: OrderCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
   }
 
   export type CustomerAccountUncheckedCreateInput = {
@@ -170919,6 +174852,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
   }
 
   export type CustomerAccountUpdateInput = {
@@ -170937,6 +174872,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
   }
 
   export type CustomerAccountUncheckedUpdateInput = {
@@ -170955,6 +174892,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
   }
 
   export type CustomerAccountCreateManyInput = {
@@ -171896,6 +175835,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -171985,6 +175925,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -172074,6 +176015,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -172163,6 +176105,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -173271,6 +177214,7 @@ export namespace Prisma {
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUncheckedCreateInput = {
@@ -173323,6 +177267,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUpdateInput = {
@@ -173375,6 +177320,7 @@ export namespace Prisma {
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateInput = {
@@ -173427,6 +177373,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemCreateManyInput = {
@@ -175976,6 +179923,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateInput = {
@@ -176062,6 +180010,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUpdateInput = {
@@ -176148,6 +180097,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateInput = {
@@ -176234,6 +180184,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderCreateManyInput = {
@@ -185710,6 +189661,266 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type LoyaltyCardCreateInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutLoyaltyCardInput
+    rewardItem?: MenuItemCreateNestedOneWithoutLoyaltyCardsInput
+    stamps?: LoyaltyStampCreateNestedManyWithoutCardInput
+    rewards?: LoyaltyRewardCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
+    rewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
+    rewardItem?: MenuItemUpdateOneWithoutLoyaltyCardsNestedInput
+    stamps?: LoyaltyStampUpdateManyWithoutCardNestedInput
+    rewards?: LoyaltyRewardUpdateManyWithoutCardNestedInput
+  }
+
+  export type LoyaltyCardUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
+    rewards?: LoyaltyRewardUncheckedUpdateManyWithoutCardNestedInput
+  }
+
+  export type LoyaltyCardCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LoyaltyCardUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyCardUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyStampCreateInput = {
+    id?: string
+    tenantId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    card: LoyaltyCardCreateNestedOneWithoutStampsInput
+    customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyStampsInput
+    order: OrderCreateNestedOneWithoutLoyaltyStampInput
+  }
+
+  export type LoyaltyStampUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    customerAccountId: string
+    orderId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type LoyaltyStampUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    card?: LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyStampsNestedInput
+    order?: OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput
+  }
+
+  export type LoyaltyStampUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyStampCreateManyInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    customerAccountId: string
+    orderId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type LoyaltyStampUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyStampUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyRewardCreateInput = {
+    id?: string
+    tenantId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+    card: LoyaltyCardCreateNestedOneWithoutRewardsInput
+    customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
+  }
+
+  export type LoyaltyRewardUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    customerAccountId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
+  export type LoyaltyRewardUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    card?: LoyaltyCardUpdateOneRequiredWithoutRewardsNestedInput
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
+  }
+
+  export type LoyaltyRewardUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type LoyaltyRewardCreateManyInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    customerAccountId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
+  export type LoyaltyRewardUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type LoyaltyRewardUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -186578,6 +190789,26 @@ export namespace Prisma {
     _max?: NestedEnumLeadStatusFilter<$PrismaModel>
   }
 
+  export type LoyaltyStampListRelationFilter = {
+    every?: LoyaltyStampWhereInput
+    some?: LoyaltyStampWhereInput
+    none?: LoyaltyStampWhereInput
+  }
+
+  export type LoyaltyRewardListRelationFilter = {
+    every?: LoyaltyRewardWhereInput
+    some?: LoyaltyRewardWhereInput
+    none?: LoyaltyRewardWhereInput
+  }
+
+  export type LoyaltyStampOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type LoyaltyRewardOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type CustomerAccountOrderByRelevanceInput = {
     fields: CustomerAccountOrderByRelevanceFieldEnum | CustomerAccountOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -187325,6 +191556,11 @@ export namespace Prisma {
   export type UberDirectConfigNullableRelationFilter = {
     is?: UberDirectConfigWhereInput | null
     isNot?: UberDirectConfigWhereInput | null
+  }
+
+  export type LoyaltyCardNullableRelationFilter = {
+    is?: LoyaltyCardWhereInput | null
+    isNot?: LoyaltyCardWhereInput | null
   }
 
   export type IntegrationOrderByRelationAggregateInput = {
@@ -188202,6 +192438,12 @@ export namespace Prisma {
     none?: MenuItemStationWhereInput
   }
 
+  export type LoyaltyCardListRelationFilter = {
+    every?: LoyaltyCardWhereInput
+    some?: LoyaltyCardWhereInput
+    none?: LoyaltyCardWhereInput
+  }
+
   export type ModifierGroupOnItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -188211,6 +192453,10 @@ export namespace Prisma {
   }
 
   export type MenuItemStationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type LoyaltyCardOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -189961,6 +194207,11 @@ export namespace Prisma {
     every?: PaymentWhereInput
     some?: PaymentWhereInput
     none?: PaymentWhereInput
+  }
+
+  export type LoyaltyStampNullableRelationFilter = {
+    is?: LoyaltyStampWhereInput | null
+    isNot?: LoyaltyStampWhereInput | null
   }
 
   export type OrderItemOrderByRelationAggregateInput = {
@@ -196133,6 +200384,170 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type MenuItemNullableRelationFilter = {
+    is?: MenuItemWhereInput | null
+    isNot?: MenuItemWhereInput | null
+  }
+
+  export type LoyaltyCardOrderByRelevanceInput = {
+    fields: LoyaltyCardOrderByRelevanceFieldEnum | LoyaltyCardOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type LoyaltyCardCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    stampsRequired?: SortOrder
+    minimumSpend?: SortOrder
+    rewardItemId?: SortOrder
+    rewardLabel?: SortOrder
+    rewardExpiryDays?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LoyaltyCardAvgOrderByAggregateInput = {
+    stampsRequired?: SortOrder
+    minimumSpend?: SortOrder
+    rewardExpiryDays?: SortOrder
+  }
+
+  export type LoyaltyCardMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    stampsRequired?: SortOrder
+    minimumSpend?: SortOrder
+    rewardItemId?: SortOrder
+    rewardLabel?: SortOrder
+    rewardExpiryDays?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LoyaltyCardMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    stampsRequired?: SortOrder
+    minimumSpend?: SortOrder
+    rewardItemId?: SortOrder
+    rewardLabel?: SortOrder
+    rewardExpiryDays?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LoyaltyCardSumOrderByAggregateInput = {
+    stampsRequired?: SortOrder
+    minimumSpend?: SortOrder
+    rewardExpiryDays?: SortOrder
+  }
+
+  export type LoyaltyCardRelationFilter = {
+    is?: LoyaltyCardWhereInput
+    isNot?: LoyaltyCardWhereInput
+  }
+
+  export type CustomerAccountRelationFilter = {
+    is?: CustomerAccountWhereInput
+    isNot?: CustomerAccountWhereInput
+  }
+
+  export type LoyaltyStampOrderByRelevanceInput = {
+    fields: LoyaltyStampOrderByRelevanceFieldEnum | LoyaltyStampOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type LoyaltyStampCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    orderId?: SortOrder
+    spend?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type LoyaltyStampAvgOrderByAggregateInput = {
+    spend?: SortOrder
+  }
+
+  export type LoyaltyStampMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    orderId?: SortOrder
+    spend?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type LoyaltyStampMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    orderId?: SortOrder
+    spend?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type LoyaltyStampSumOrderByAggregateInput = {
+    spend?: SortOrder
+  }
+
+  export type LoyaltyRewardOrderByRelevanceInput = {
+    fields: LoyaltyRewardOrderByRelevanceFieldEnum | LoyaltyRewardOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type LoyaltyRewardCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    label?: SortOrder
+    rewardItemId?: SortOrder
+    earnedAt?: SortOrder
+    expiresAt?: SortOrder
+    claimedAt?: SortOrder
+    claimedOrderId?: SortOrder
+  }
+
+  export type LoyaltyRewardMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    label?: SortOrder
+    rewardItemId?: SortOrder
+    earnedAt?: SortOrder
+    expiresAt?: SortOrder
+    claimedAt?: SortOrder
+    claimedOrderId?: SortOrder
+  }
+
+  export type LoyaltyRewardMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    cardId?: SortOrder
+    customerAccountId?: SortOrder
+    label?: SortOrder
+    rewardItemId?: SortOrder
+    earnedAt?: SortOrder
+    expiresAt?: SortOrder
+    claimedAt?: SortOrder
+    claimedOrderId?: SortOrder
+  }
+
   export type BrandCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -197637,11 +202052,39 @@ export namespace Prisma {
     connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
   }
 
+  export type LoyaltyStampCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCustomerAccountInput, LoyaltyStampUncheckedCreateWithoutCustomerAccountInput> | LoyaltyStampCreateWithoutCustomerAccountInput[] | LoyaltyStampUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCustomerAccountInput | LoyaltyStampCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: LoyaltyStampCreateManyCustomerAccountInputEnvelope
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+  }
+
+  export type LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCustomerAccountInput, LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput> | LoyaltyRewardCreateWithoutCustomerAccountInput[] | LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput | LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: LoyaltyRewardCreateManyCustomerAccountInputEnvelope
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+  }
+
   export type OrderUncheckedCreateNestedManyWithoutCustomerAccountInput = {
     create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
     connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
     createMany?: OrderCreateManyCustomerAccountInputEnvelope
     connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+  }
+
+  export type LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCustomerAccountInput, LoyaltyStampUncheckedCreateWithoutCustomerAccountInput> | LoyaltyStampCreateWithoutCustomerAccountInput[] | LoyaltyStampUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCustomerAccountInput | LoyaltyStampCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: LoyaltyStampCreateManyCustomerAccountInputEnvelope
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+  }
+
+  export type LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCustomerAccountInput, LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput> | LoyaltyRewardCreateWithoutCustomerAccountInput[] | LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput | LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: LoyaltyRewardCreateManyCustomerAccountInputEnvelope
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
   }
 
   export type OrderUpdateManyWithoutCustomerAccountNestedInput = {
@@ -197658,6 +202101,34 @@ export namespace Prisma {
     deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
   }
 
+  export type LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCustomerAccountInput, LoyaltyStampUncheckedCreateWithoutCustomerAccountInput> | LoyaltyStampCreateWithoutCustomerAccountInput[] | LoyaltyStampUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCustomerAccountInput | LoyaltyStampCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: LoyaltyStampUpsertWithWhereUniqueWithoutCustomerAccountInput | LoyaltyStampUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: LoyaltyStampCreateManyCustomerAccountInputEnvelope
+    set?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    disconnect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    delete?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    update?: LoyaltyStampUpdateWithWhereUniqueWithoutCustomerAccountInput | LoyaltyStampUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: LoyaltyStampUpdateManyWithWhereWithoutCustomerAccountInput | LoyaltyStampUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: LoyaltyStampScalarWhereInput | LoyaltyStampScalarWhereInput[]
+  }
+
+  export type LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCustomerAccountInput, LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput> | LoyaltyRewardCreateWithoutCustomerAccountInput[] | LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput | LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: LoyaltyRewardUpsertWithWhereUniqueWithoutCustomerAccountInput | LoyaltyRewardUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: LoyaltyRewardCreateManyCustomerAccountInputEnvelope
+    set?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    disconnect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    delete?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    update?: LoyaltyRewardUpdateWithWhereUniqueWithoutCustomerAccountInput | LoyaltyRewardUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: LoyaltyRewardUpdateManyWithWhereWithoutCustomerAccountInput | LoyaltyRewardUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
+  }
+
   export type OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput = {
     create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
     connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
@@ -197670,6 +202141,34 @@ export namespace Prisma {
     update?: OrderUpdateWithWhereUniqueWithoutCustomerAccountInput | OrderUpdateWithWhereUniqueWithoutCustomerAccountInput[]
     updateMany?: OrderUpdateManyWithWhereWithoutCustomerAccountInput | OrderUpdateManyWithWhereWithoutCustomerAccountInput[]
     deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
+  }
+
+  export type LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCustomerAccountInput, LoyaltyStampUncheckedCreateWithoutCustomerAccountInput> | LoyaltyStampCreateWithoutCustomerAccountInput[] | LoyaltyStampUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCustomerAccountInput | LoyaltyStampCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: LoyaltyStampUpsertWithWhereUniqueWithoutCustomerAccountInput | LoyaltyStampUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: LoyaltyStampCreateManyCustomerAccountInputEnvelope
+    set?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    disconnect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    delete?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    update?: LoyaltyStampUpdateWithWhereUniqueWithoutCustomerAccountInput | LoyaltyStampUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: LoyaltyStampUpdateManyWithWhereWithoutCustomerAccountInput | LoyaltyStampUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: LoyaltyStampScalarWhereInput | LoyaltyStampScalarWhereInput[]
+  }
+
+  export type LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCustomerAccountInput, LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput> | LoyaltyRewardCreateWithoutCustomerAccountInput[] | LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput | LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: LoyaltyRewardUpsertWithWhereUniqueWithoutCustomerAccountInput | LoyaltyRewardUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: LoyaltyRewardCreateManyCustomerAccountInputEnvelope
+    set?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    disconnect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    delete?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    update?: LoyaltyRewardUpdateWithWhereUniqueWithoutCustomerAccountInput | LoyaltyRewardUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: LoyaltyRewardUpdateManyWithWhereWithoutCustomerAccountInput | LoyaltyRewardUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutPasswordResetTokensInput = {
@@ -198528,6 +203027,12 @@ export namespace Prisma {
     connect?: UberDirectConfigWhereUniqueInput
   }
 
+  export type LoyaltyCardCreateNestedOneWithoutLocationInput = {
+    create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
+    connect?: LoyaltyCardWhereUniqueInput
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -198682,6 +203187,12 @@ export namespace Prisma {
     create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
     connect?: UberDirectConfigWhereUniqueInput
+  }
+
+  export type LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
+    connect?: LoyaltyCardWhereUniqueInput
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -199044,6 +203555,16 @@ export namespace Prisma {
     update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type LoyaltyCardUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
+    upsert?: LoyaltyCardUpsertWithoutLocationInput
+    disconnect?: LoyaltyCardWhereInput | boolean
+    delete?: LoyaltyCardWhereInput | boolean
+    connect?: LoyaltyCardWhereUniqueInput
+    update?: XOR<XOR<LoyaltyCardUpdateToOneWithWhereWithoutLocationInput, LoyaltyCardUpdateWithoutLocationInput>, LoyaltyCardUncheckedUpdateWithoutLocationInput>
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -199344,6 +203865,16 @@ export namespace Prisma {
     delete?: UberDirectConfigWhereInput | boolean
     connect?: UberDirectConfigWhereUniqueInput
     update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
+    upsert?: LoyaltyCardUpsertWithoutLocationInput
+    disconnect?: LoyaltyCardWhereInput | boolean
+    delete?: LoyaltyCardWhereInput | boolean
+    connect?: LoyaltyCardWhereUniqueInput
+    update?: XOR<XOR<LoyaltyCardUpdateToOneWithWhereWithoutLocationInput, LoyaltyCardUpdateWithoutLocationInput>, LoyaltyCardUncheckedUpdateWithoutLocationInput>
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -199819,6 +204350,13 @@ export namespace Prisma {
     connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
   }
 
+  export type LoyaltyCardCreateNestedManyWithoutRewardItemInput = {
+    create?: XOR<LoyaltyCardCreateWithoutRewardItemInput, LoyaltyCardUncheckedCreateWithoutRewardItemInput> | LoyaltyCardCreateWithoutRewardItemInput[] | LoyaltyCardUncheckedCreateWithoutRewardItemInput[]
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutRewardItemInput | LoyaltyCardCreateOrConnectWithoutRewardItemInput[]
+    createMany?: LoyaltyCardCreateManyRewardItemInputEnvelope
+    connect?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutItemInput, MenuItemOnCategoryUncheckedCreateWithoutItemInput> | MenuItemOnCategoryCreateWithoutItemInput[] | MenuItemOnCategoryUncheckedCreateWithoutItemInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutItemInput | MenuItemOnCategoryCreateOrConnectWithoutItemInput[]
@@ -199858,6 +204396,13 @@ export namespace Prisma {
     connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput | MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput[]
     createMany?: MenuItemChannelAvailabilityCreateManyItemInputEnvelope
     connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+  }
+
+  export type LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput = {
+    create?: XOR<LoyaltyCardCreateWithoutRewardItemInput, LoyaltyCardUncheckedCreateWithoutRewardItemInput> | LoyaltyCardCreateWithoutRewardItemInput[] | LoyaltyCardUncheckedCreateWithoutRewardItemInput[]
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutRewardItemInput | LoyaltyCardCreateOrConnectWithoutRewardItemInput[]
+    createMany?: LoyaltyCardCreateManyRewardItemInputEnvelope
+    connect?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
   }
 
   export type DecimalFieldUpdateOperationsInput = {
@@ -199968,6 +204513,20 @@ export namespace Prisma {
     deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
   }
 
+  export type LoyaltyCardUpdateManyWithoutRewardItemNestedInput = {
+    create?: XOR<LoyaltyCardCreateWithoutRewardItemInput, LoyaltyCardUncheckedCreateWithoutRewardItemInput> | LoyaltyCardCreateWithoutRewardItemInput[] | LoyaltyCardUncheckedCreateWithoutRewardItemInput[]
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutRewardItemInput | LoyaltyCardCreateOrConnectWithoutRewardItemInput[]
+    upsert?: LoyaltyCardUpsertWithWhereUniqueWithoutRewardItemInput | LoyaltyCardUpsertWithWhereUniqueWithoutRewardItemInput[]
+    createMany?: LoyaltyCardCreateManyRewardItemInputEnvelope
+    set?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    disconnect?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    delete?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    connect?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    update?: LoyaltyCardUpdateWithWhereUniqueWithoutRewardItemInput | LoyaltyCardUpdateWithWhereUniqueWithoutRewardItemInput[]
+    updateMany?: LoyaltyCardUpdateManyWithWhereWithoutRewardItemInput | LoyaltyCardUpdateManyWithWhereWithoutRewardItemInput[]
+    deleteMany?: LoyaltyCardScalarWhereInput | LoyaltyCardScalarWhereInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutItemInput, MenuItemOnCategoryUncheckedCreateWithoutItemInput> | MenuItemOnCategoryCreateWithoutItemInput[] | MenuItemOnCategoryUncheckedCreateWithoutItemInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutItemInput | MenuItemOnCategoryCreateOrConnectWithoutItemInput[]
@@ -200046,6 +204605,20 @@ export namespace Prisma {
     update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput[]
     updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput[]
     deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+  }
+
+  export type LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput = {
+    create?: XOR<LoyaltyCardCreateWithoutRewardItemInput, LoyaltyCardUncheckedCreateWithoutRewardItemInput> | LoyaltyCardCreateWithoutRewardItemInput[] | LoyaltyCardUncheckedCreateWithoutRewardItemInput[]
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutRewardItemInput | LoyaltyCardCreateOrConnectWithoutRewardItemInput[]
+    upsert?: LoyaltyCardUpsertWithWhereUniqueWithoutRewardItemInput | LoyaltyCardUpsertWithWhereUniqueWithoutRewardItemInput[]
+    createMany?: LoyaltyCardCreateManyRewardItemInputEnvelope
+    set?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    disconnect?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    delete?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    connect?: LoyaltyCardWhereUniqueInput | LoyaltyCardWhereUniqueInput[]
+    update?: LoyaltyCardUpdateWithWhereUniqueWithoutRewardItemInput | LoyaltyCardUpdateWithWhereUniqueWithoutRewardItemInput[]
+    updateMany?: LoyaltyCardUpdateManyWithWhereWithoutRewardItemInput | LoyaltyCardUpdateManyWithWhereWithoutRewardItemInput[]
+    deleteMany?: LoyaltyCardScalarWhereInput | LoyaltyCardScalarWhereInput[]
   }
 
   export type LocationCreateNestedOneWithoutChannelPausesInput = {
@@ -201133,6 +205706,12 @@ export namespace Prisma {
     connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
   }
 
+  export type LoyaltyStampCreateNestedOneWithoutOrderInput = {
+    create?: XOR<LoyaltyStampCreateWithoutOrderInput, LoyaltyStampUncheckedCreateWithoutOrderInput>
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutOrderInput
+    connect?: LoyaltyStampWhereUniqueInput
+  }
+
   export type OrderItemUncheckedCreateNestedManyWithoutOrderInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -201179,6 +205758,12 @@ export namespace Prisma {
     connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutOrderInput | CampaignRedemptionCreateOrConnectWithoutOrderInput[]
     createMany?: CampaignRedemptionCreateManyOrderInputEnvelope
     connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+  }
+
+  export type LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput = {
+    create?: XOR<LoyaltyStampCreateWithoutOrderInput, LoyaltyStampUncheckedCreateWithoutOrderInput>
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutOrderInput
+    connect?: LoyaltyStampWhereUniqueInput
   }
 
   export type EnumOrderPlatformFieldUpdateOperationsInput = {
@@ -201345,6 +205930,16 @@ export namespace Prisma {
     deleteMany?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
   }
 
+  export type LoyaltyStampUpdateOneWithoutOrderNestedInput = {
+    create?: XOR<LoyaltyStampCreateWithoutOrderInput, LoyaltyStampUncheckedCreateWithoutOrderInput>
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutOrderInput
+    upsert?: LoyaltyStampUpsertWithoutOrderInput
+    disconnect?: LoyaltyStampWhereInput | boolean
+    delete?: LoyaltyStampWhereInput | boolean
+    connect?: LoyaltyStampWhereUniqueInput
+    update?: XOR<XOR<LoyaltyStampUpdateToOneWithWhereWithoutOrderInput, LoyaltyStampUpdateWithoutOrderInput>, LoyaltyStampUncheckedUpdateWithoutOrderInput>
+  }
+
   export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -201437,6 +206032,16 @@ export namespace Prisma {
     update?: CampaignRedemptionUpdateWithWhereUniqueWithoutOrderInput | CampaignRedemptionUpdateWithWhereUniqueWithoutOrderInput[]
     updateMany?: CampaignRedemptionUpdateManyWithWhereWithoutOrderInput | CampaignRedemptionUpdateManyWithWhereWithoutOrderInput[]
     deleteMany?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
+  }
+
+  export type LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput = {
+    create?: XOR<LoyaltyStampCreateWithoutOrderInput, LoyaltyStampUncheckedCreateWithoutOrderInput>
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutOrderInput
+    upsert?: LoyaltyStampUpsertWithoutOrderInput
+    disconnect?: LoyaltyStampWhereInput | boolean
+    delete?: LoyaltyStampWhereInput | boolean
+    connect?: LoyaltyStampWhereUniqueInput
+    update?: XOR<XOR<LoyaltyStampUpdateToOneWithWhereWithoutOrderInput, LoyaltyStampUpdateWithoutOrderInput>, LoyaltyStampUncheckedUpdateWithoutOrderInput>
   }
 
   export type OrderCreateNestedOneWithoutItemsInput = {
@@ -204417,6 +209022,190 @@ export namespace Prisma {
     update?: XOR<XOR<ContractUpdateToOneWithWhereWithoutEventsInput, ContractUpdateWithoutEventsInput>, ContractUncheckedUpdateWithoutEventsInput>
   }
 
+  export type LocationCreateNestedOneWithoutLoyaltyCardInput = {
+    create?: XOR<LocationCreateWithoutLoyaltyCardInput, LocationUncheckedCreateWithoutLoyaltyCardInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutLoyaltyCardInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type MenuItemCreateNestedOneWithoutLoyaltyCardsInput = {
+    create?: XOR<MenuItemCreateWithoutLoyaltyCardsInput, MenuItemUncheckedCreateWithoutLoyaltyCardsInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutLoyaltyCardsInput
+    connect?: MenuItemWhereUniqueInput
+  }
+
+  export type LoyaltyStampCreateNestedManyWithoutCardInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCardInput, LoyaltyStampUncheckedCreateWithoutCardInput> | LoyaltyStampCreateWithoutCardInput[] | LoyaltyStampUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCardInput | LoyaltyStampCreateOrConnectWithoutCardInput[]
+    createMany?: LoyaltyStampCreateManyCardInputEnvelope
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+  }
+
+  export type LoyaltyRewardCreateNestedManyWithoutCardInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCardInput, LoyaltyRewardUncheckedCreateWithoutCardInput> | LoyaltyRewardCreateWithoutCardInput[] | LoyaltyRewardUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCardInput | LoyaltyRewardCreateOrConnectWithoutCardInput[]
+    createMany?: LoyaltyRewardCreateManyCardInputEnvelope
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+  }
+
+  export type LoyaltyStampUncheckedCreateNestedManyWithoutCardInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCardInput, LoyaltyStampUncheckedCreateWithoutCardInput> | LoyaltyStampCreateWithoutCardInput[] | LoyaltyStampUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCardInput | LoyaltyStampCreateOrConnectWithoutCardInput[]
+    createMany?: LoyaltyStampCreateManyCardInputEnvelope
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+  }
+
+  export type LoyaltyRewardUncheckedCreateNestedManyWithoutCardInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCardInput, LoyaltyRewardUncheckedCreateWithoutCardInput> | LoyaltyRewardCreateWithoutCardInput[] | LoyaltyRewardUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCardInput | LoyaltyRewardCreateOrConnectWithoutCardInput[]
+    createMany?: LoyaltyRewardCreateManyCardInputEnvelope
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+  }
+
+  export type LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput = {
+    create?: XOR<LocationCreateWithoutLoyaltyCardInput, LocationUncheckedCreateWithoutLoyaltyCardInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutLoyaltyCardInput
+    upsert?: LocationUpsertWithoutLoyaltyCardInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutLoyaltyCardInput, LocationUpdateWithoutLoyaltyCardInput>, LocationUncheckedUpdateWithoutLoyaltyCardInput>
+  }
+
+  export type MenuItemUpdateOneWithoutLoyaltyCardsNestedInput = {
+    create?: XOR<MenuItemCreateWithoutLoyaltyCardsInput, MenuItemUncheckedCreateWithoutLoyaltyCardsInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutLoyaltyCardsInput
+    upsert?: MenuItemUpsertWithoutLoyaltyCardsInput
+    disconnect?: MenuItemWhereInput | boolean
+    delete?: MenuItemWhereInput | boolean
+    connect?: MenuItemWhereUniqueInput
+    update?: XOR<XOR<MenuItemUpdateToOneWithWhereWithoutLoyaltyCardsInput, MenuItemUpdateWithoutLoyaltyCardsInput>, MenuItemUncheckedUpdateWithoutLoyaltyCardsInput>
+  }
+
+  export type LoyaltyStampUpdateManyWithoutCardNestedInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCardInput, LoyaltyStampUncheckedCreateWithoutCardInput> | LoyaltyStampCreateWithoutCardInput[] | LoyaltyStampUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCardInput | LoyaltyStampCreateOrConnectWithoutCardInput[]
+    upsert?: LoyaltyStampUpsertWithWhereUniqueWithoutCardInput | LoyaltyStampUpsertWithWhereUniqueWithoutCardInput[]
+    createMany?: LoyaltyStampCreateManyCardInputEnvelope
+    set?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    disconnect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    delete?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    update?: LoyaltyStampUpdateWithWhereUniqueWithoutCardInput | LoyaltyStampUpdateWithWhereUniqueWithoutCardInput[]
+    updateMany?: LoyaltyStampUpdateManyWithWhereWithoutCardInput | LoyaltyStampUpdateManyWithWhereWithoutCardInput[]
+    deleteMany?: LoyaltyStampScalarWhereInput | LoyaltyStampScalarWhereInput[]
+  }
+
+  export type LoyaltyRewardUpdateManyWithoutCardNestedInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCardInput, LoyaltyRewardUncheckedCreateWithoutCardInput> | LoyaltyRewardCreateWithoutCardInput[] | LoyaltyRewardUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCardInput | LoyaltyRewardCreateOrConnectWithoutCardInput[]
+    upsert?: LoyaltyRewardUpsertWithWhereUniqueWithoutCardInput | LoyaltyRewardUpsertWithWhereUniqueWithoutCardInput[]
+    createMany?: LoyaltyRewardCreateManyCardInputEnvelope
+    set?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    disconnect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    delete?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    update?: LoyaltyRewardUpdateWithWhereUniqueWithoutCardInput | LoyaltyRewardUpdateWithWhereUniqueWithoutCardInput[]
+    updateMany?: LoyaltyRewardUpdateManyWithWhereWithoutCardInput | LoyaltyRewardUpdateManyWithWhereWithoutCardInput[]
+    deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
+  }
+
+  export type LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput = {
+    create?: XOR<LoyaltyStampCreateWithoutCardInput, LoyaltyStampUncheckedCreateWithoutCardInput> | LoyaltyStampCreateWithoutCardInput[] | LoyaltyStampUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyStampCreateOrConnectWithoutCardInput | LoyaltyStampCreateOrConnectWithoutCardInput[]
+    upsert?: LoyaltyStampUpsertWithWhereUniqueWithoutCardInput | LoyaltyStampUpsertWithWhereUniqueWithoutCardInput[]
+    createMany?: LoyaltyStampCreateManyCardInputEnvelope
+    set?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    disconnect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    delete?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    connect?: LoyaltyStampWhereUniqueInput | LoyaltyStampWhereUniqueInput[]
+    update?: LoyaltyStampUpdateWithWhereUniqueWithoutCardInput | LoyaltyStampUpdateWithWhereUniqueWithoutCardInput[]
+    updateMany?: LoyaltyStampUpdateManyWithWhereWithoutCardInput | LoyaltyStampUpdateManyWithWhereWithoutCardInput[]
+    deleteMany?: LoyaltyStampScalarWhereInput | LoyaltyStampScalarWhereInput[]
+  }
+
+  export type LoyaltyRewardUncheckedUpdateManyWithoutCardNestedInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutCardInput, LoyaltyRewardUncheckedCreateWithoutCardInput> | LoyaltyRewardCreateWithoutCardInput[] | LoyaltyRewardUncheckedCreateWithoutCardInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCardInput | LoyaltyRewardCreateOrConnectWithoutCardInput[]
+    upsert?: LoyaltyRewardUpsertWithWhereUniqueWithoutCardInput | LoyaltyRewardUpsertWithWhereUniqueWithoutCardInput[]
+    createMany?: LoyaltyRewardCreateManyCardInputEnvelope
+    set?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    disconnect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    delete?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    update?: LoyaltyRewardUpdateWithWhereUniqueWithoutCardInput | LoyaltyRewardUpdateWithWhereUniqueWithoutCardInput[]
+    updateMany?: LoyaltyRewardUpdateManyWithWhereWithoutCardInput | LoyaltyRewardUpdateManyWithWhereWithoutCardInput[]
+    deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
+  }
+
+  export type LoyaltyCardCreateNestedOneWithoutStampsInput = {
+    create?: XOR<LoyaltyCardCreateWithoutStampsInput, LoyaltyCardUncheckedCreateWithoutStampsInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutStampsInput
+    connect?: LoyaltyCardWhereUniqueInput
+  }
+
+  export type CustomerAccountCreateNestedOneWithoutLoyaltyStampsInput = {
+    create?: XOR<CustomerAccountCreateWithoutLoyaltyStampsInput, CustomerAccountUncheckedCreateWithoutLoyaltyStampsInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutLoyaltyStampsInput
+    connect?: CustomerAccountWhereUniqueInput
+  }
+
+  export type OrderCreateNestedOneWithoutLoyaltyStampInput = {
+    create?: XOR<OrderCreateWithoutLoyaltyStampInput, OrderUncheckedCreateWithoutLoyaltyStampInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutLoyaltyStampInput
+    connect?: OrderWhereUniqueInput
+  }
+
+  export type LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput = {
+    create?: XOR<LoyaltyCardCreateWithoutStampsInput, LoyaltyCardUncheckedCreateWithoutStampsInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutStampsInput
+    upsert?: LoyaltyCardUpsertWithoutStampsInput
+    connect?: LoyaltyCardWhereUniqueInput
+    update?: XOR<XOR<LoyaltyCardUpdateToOneWithWhereWithoutStampsInput, LoyaltyCardUpdateWithoutStampsInput>, LoyaltyCardUncheckedUpdateWithoutStampsInput>
+  }
+
+  export type CustomerAccountUpdateOneRequiredWithoutLoyaltyStampsNestedInput = {
+    create?: XOR<CustomerAccountCreateWithoutLoyaltyStampsInput, CustomerAccountUncheckedCreateWithoutLoyaltyStampsInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutLoyaltyStampsInput
+    upsert?: CustomerAccountUpsertWithoutLoyaltyStampsInput
+    connect?: CustomerAccountWhereUniqueInput
+    update?: XOR<XOR<CustomerAccountUpdateToOneWithWhereWithoutLoyaltyStampsInput, CustomerAccountUpdateWithoutLoyaltyStampsInput>, CustomerAccountUncheckedUpdateWithoutLoyaltyStampsInput>
+  }
+
+  export type OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput = {
+    create?: XOR<OrderCreateWithoutLoyaltyStampInput, OrderUncheckedCreateWithoutLoyaltyStampInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutLoyaltyStampInput
+    upsert?: OrderUpsertWithoutLoyaltyStampInput
+    connect?: OrderWhereUniqueInput
+    update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutLoyaltyStampInput, OrderUpdateWithoutLoyaltyStampInput>, OrderUncheckedUpdateWithoutLoyaltyStampInput>
+  }
+
+  export type LoyaltyCardCreateNestedOneWithoutRewardsInput = {
+    create?: XOR<LoyaltyCardCreateWithoutRewardsInput, LoyaltyCardUncheckedCreateWithoutRewardsInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutRewardsInput
+    connect?: LoyaltyCardWhereUniqueInput
+  }
+
+  export type CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput = {
+    create?: XOR<CustomerAccountCreateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutLoyaltyRewardsInput
+    connect?: CustomerAccountWhereUniqueInput
+  }
+
+  export type LoyaltyCardUpdateOneRequiredWithoutRewardsNestedInput = {
+    create?: XOR<LoyaltyCardCreateWithoutRewardsInput, LoyaltyCardUncheckedCreateWithoutRewardsInput>
+    connectOrCreate?: LoyaltyCardCreateOrConnectWithoutRewardsInput
+    upsert?: LoyaltyCardUpsertWithoutRewardsInput
+    connect?: LoyaltyCardWhereUniqueInput
+    update?: XOR<XOR<LoyaltyCardUpdateToOneWithWhereWithoutRewardsInput, LoyaltyCardUpdateWithoutRewardsInput>, LoyaltyCardUncheckedUpdateWithoutRewardsInput>
+  }
+
+  export type CustomerAccountUpdateOneRequiredWithoutLoyaltyRewardsNestedInput = {
+    create?: XOR<CustomerAccountCreateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutLoyaltyRewardsInput
+    upsert?: CustomerAccountUpsertWithoutLoyaltyRewardsInput
+    connect?: CustomerAccountWhereUniqueInput
+    update?: XOR<XOR<CustomerAccountUpdateToOneWithWhereWithoutLoyaltyRewardsInput, CustomerAccountUpdateWithoutLoyaltyRewardsInput>, CustomerAccountUncheckedUpdateWithoutLoyaltyRewardsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -205933,6 +210722,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutTenantInput = {
@@ -206018,6 +210808,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutTenantInput = {
@@ -208803,6 +213594,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutUserLocationsInput = {
@@ -208891,6 +213683,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -209060,6 +213853,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutUserLocationsInput = {
@@ -209148,6 +213942,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -209973,6 +214768,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutCustomerAccountInput = {
@@ -210058,6 +214854,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutCustomerAccountInput = {
@@ -210067,6 +214864,68 @@ export namespace Prisma {
 
   export type OrderCreateManyCustomerAccountInputEnvelope = {
     data: OrderCreateManyCustomerAccountInput | OrderCreateManyCustomerAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LoyaltyStampCreateWithoutCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    card: LoyaltyCardCreateNestedOneWithoutStampsInput
+    order: OrderCreateNestedOneWithoutLoyaltyStampInput
+  }
+
+  export type LoyaltyStampUncheckedCreateWithoutCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    orderId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type LoyaltyStampCreateOrConnectWithoutCustomerAccountInput = {
+    where: LoyaltyStampWhereUniqueInput
+    create: XOR<LoyaltyStampCreateWithoutCustomerAccountInput, LoyaltyStampUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyStampCreateManyCustomerAccountInputEnvelope = {
+    data: LoyaltyStampCreateManyCustomerAccountInput | LoyaltyStampCreateManyCustomerAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LoyaltyRewardCreateWithoutCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+    card: LoyaltyCardCreateNestedOneWithoutRewardsInput
+  }
+
+  export type LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
+  export type LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    create: XOR<LoyaltyRewardCreateWithoutCustomerAccountInput, LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyRewardCreateManyCustomerAccountInputEnvelope = {
+    data: LoyaltyRewardCreateManyCustomerAccountInput | LoyaltyRewardCreateManyCustomerAccountInput[]
     skipDuplicates?: boolean
   }
 
@@ -210084,6 +214943,67 @@ export namespace Prisma {
   export type OrderUpdateManyWithWhereWithoutCustomerAccountInput = {
     where: OrderScalarWhereInput
     data: XOR<OrderUpdateManyMutationInput, OrderUncheckedUpdateManyWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyStampUpsertWithWhereUniqueWithoutCustomerAccountInput = {
+    where: LoyaltyStampWhereUniqueInput
+    update: XOR<LoyaltyStampUpdateWithoutCustomerAccountInput, LoyaltyStampUncheckedUpdateWithoutCustomerAccountInput>
+    create: XOR<LoyaltyStampCreateWithoutCustomerAccountInput, LoyaltyStampUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyStampUpdateWithWhereUniqueWithoutCustomerAccountInput = {
+    where: LoyaltyStampWhereUniqueInput
+    data: XOR<LoyaltyStampUpdateWithoutCustomerAccountInput, LoyaltyStampUncheckedUpdateWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyStampUpdateManyWithWhereWithoutCustomerAccountInput = {
+    where: LoyaltyStampScalarWhereInput
+    data: XOR<LoyaltyStampUpdateManyMutationInput, LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyStampScalarWhereInput = {
+    AND?: LoyaltyStampScalarWhereInput | LoyaltyStampScalarWhereInput[]
+    OR?: LoyaltyStampScalarWhereInput[]
+    NOT?: LoyaltyStampScalarWhereInput | LoyaltyStampScalarWhereInput[]
+    id?: StringFilter<"LoyaltyStamp"> | string
+    tenantId?: StringFilter<"LoyaltyStamp"> | string
+    cardId?: StringFilter<"LoyaltyStamp"> | string
+    customerAccountId?: StringFilter<"LoyaltyStamp"> | string
+    orderId?: StringFilter<"LoyaltyStamp"> | string
+    spend?: DecimalFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"LoyaltyStamp"> | Date | string
+  }
+
+  export type LoyaltyRewardUpsertWithWhereUniqueWithoutCustomerAccountInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    update: XOR<LoyaltyRewardUpdateWithoutCustomerAccountInput, LoyaltyRewardUncheckedUpdateWithoutCustomerAccountInput>
+    create: XOR<LoyaltyRewardCreateWithoutCustomerAccountInput, LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyRewardUpdateWithWhereUniqueWithoutCustomerAccountInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    data: XOR<LoyaltyRewardUpdateWithoutCustomerAccountInput, LoyaltyRewardUncheckedUpdateWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyRewardUpdateManyWithWhereWithoutCustomerAccountInput = {
+    where: LoyaltyRewardScalarWhereInput
+    data: XOR<LoyaltyRewardUpdateManyMutationInput, LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountInput>
+  }
+
+  export type LoyaltyRewardScalarWhereInput = {
+    AND?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
+    OR?: LoyaltyRewardScalarWhereInput[]
+    NOT?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
+    id?: StringFilter<"LoyaltyReward"> | string
+    tenantId?: StringFilter<"LoyaltyReward"> | string
+    cardId?: StringFilter<"LoyaltyReward"> | string
+    customerAccountId?: StringFilter<"LoyaltyReward"> | string
+    label?: StringFilter<"LoyaltyReward"> | string
+    rewardItemId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    earnedAt?: DateTimeFilter<"LoyaltyReward"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
+    claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
+    claimedOrderId?: StringNullableFilter<"LoyaltyReward"> | string | null
   }
 
   export type UserCreateWithoutPasswordResetTokensInput = {
@@ -210924,6 +215844,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -211012,6 +215933,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -211271,6 +216193,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutBrandInput = {
@@ -211356,6 +216279,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutBrandInput = {
@@ -212605,6 +217529,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutLocationInput = {
@@ -212690,6 +217615,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutLocationInput = {
@@ -213850,6 +218776,41 @@ export namespace Prisma {
     create: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type LoyaltyCardCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    rewardItem?: MenuItemCreateNestedOneWithoutLoyaltyCardsInput
+    stamps?: LoyaltyStampCreateNestedManyWithoutCardInput
+    rewards?: LoyaltyRewardCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
+    rewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardCreateOrConnectWithoutLocationInput = {
+    where: LoyaltyCardWhereUniqueInput
+    create: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
+  }
+
   export type BrandUpsertWithoutLocationsInput = {
     update: XOR<BrandUpdateWithoutLocationsInput, BrandUncheckedUpdateWithoutLocationsInput>
     create: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
@@ -214880,6 +219841,47 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type LoyaltyCardUpsertWithoutLocationInput = {
+    update: XOR<LoyaltyCardUpdateWithoutLocationInput, LoyaltyCardUncheckedUpdateWithoutLocationInput>
+    create: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
+    where?: LoyaltyCardWhereInput
+  }
+
+  export type LoyaltyCardUpdateToOneWithWhereWithoutLocationInput = {
+    where?: LoyaltyCardWhereInput
+    data: XOR<LoyaltyCardUpdateWithoutLocationInput, LoyaltyCardUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type LoyaltyCardUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rewardItem?: MenuItemUpdateOneWithoutLoyaltyCardsNestedInput
+    stamps?: LoyaltyStampUpdateManyWithoutCardNestedInput
+    rewards?: LoyaltyRewardUpdateManyWithoutCardNestedInput
+  }
+
+  export type LoyaltyCardUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
+    rewards?: LoyaltyRewardUncheckedUpdateManyWithoutCardNestedInput
+  }
+
   export type BrandCreateWithoutPlatformConnectionsInput = {
     id?: string
     name: string
@@ -215075,6 +220077,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -215163,6 +220166,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -215382,6 +220386,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -215470,6 +220475,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -215558,6 +220564,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -215646,6 +220653,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -215750,6 +220758,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -215838,6 +220847,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -216492,6 +221502,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMenuAssignmentsInput = {
@@ -216580,6 +221591,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMenuAssignmentsInput = {
@@ -216775,6 +221787,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMenuAssignmentsInput = {
@@ -216863,6 +221876,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutChannelSourcesInput = {
@@ -217697,6 +222711,46 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type LoyaltyCardCreateWithoutRewardItemInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutLoyaltyCardInput
+    stamps?: LoyaltyStampCreateNestedManyWithoutCardInput
+    rewards?: LoyaltyRewardCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardUncheckedCreateWithoutRewardItemInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
+    rewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardCreateOrConnectWithoutRewardItemInput = {
+    where: LoyaltyCardWhereUniqueInput
+    create: XOR<LoyaltyCardCreateWithoutRewardItemInput, LoyaltyCardUncheckedCreateWithoutRewardItemInput>
+  }
+
+  export type LoyaltyCardCreateManyRewardItemInputEnvelope = {
+    data: LoyaltyCardCreateManyRewardItemInput | LoyaltyCardCreateManyRewardItemInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MenuItemOnCategoryUpsertWithWhereUniqueWithoutItemInput = {
     where: MenuItemOnCategoryWhereUniqueInput
     update: XOR<MenuItemOnCategoryUpdateWithoutItemInput, MenuItemOnCategoryUncheckedUpdateWithoutItemInput>
@@ -217840,6 +222894,39 @@ export namespace Prisma {
     data: XOR<MenuItemChannelAvailabilityUpdateManyMutationInput, MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemInput>
   }
 
+  export type LoyaltyCardUpsertWithWhereUniqueWithoutRewardItemInput = {
+    where: LoyaltyCardWhereUniqueInput
+    update: XOR<LoyaltyCardUpdateWithoutRewardItemInput, LoyaltyCardUncheckedUpdateWithoutRewardItemInput>
+    create: XOR<LoyaltyCardCreateWithoutRewardItemInput, LoyaltyCardUncheckedCreateWithoutRewardItemInput>
+  }
+
+  export type LoyaltyCardUpdateWithWhereUniqueWithoutRewardItemInput = {
+    where: LoyaltyCardWhereUniqueInput
+    data: XOR<LoyaltyCardUpdateWithoutRewardItemInput, LoyaltyCardUncheckedUpdateWithoutRewardItemInput>
+  }
+
+  export type LoyaltyCardUpdateManyWithWhereWithoutRewardItemInput = {
+    where: LoyaltyCardScalarWhereInput
+    data: XOR<LoyaltyCardUpdateManyMutationInput, LoyaltyCardUncheckedUpdateManyWithoutRewardItemInput>
+  }
+
+  export type LoyaltyCardScalarWhereInput = {
+    AND?: LoyaltyCardScalarWhereInput | LoyaltyCardScalarWhereInput[]
+    OR?: LoyaltyCardScalarWhereInput[]
+    NOT?: LoyaltyCardScalarWhereInput | LoyaltyCardScalarWhereInput[]
+    id?: StringFilter<"LoyaltyCard"> | string
+    tenantId?: StringFilter<"LoyaltyCard"> | string
+    locationId?: StringFilter<"LoyaltyCard"> | string
+    isActive?: BoolFilter<"LoyaltyCard"> | boolean
+    stampsRequired?: IntFilter<"LoyaltyCard"> | number
+    minimumSpend?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: StringNullableFilter<"LoyaltyCard"> | string | null
+    rewardLabel?: StringFilter<"LoyaltyCard"> | string
+    rewardExpiryDays?: IntNullableFilter<"LoyaltyCard"> | number | null
+    createdAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
+    updatedAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
+  }
+
   export type LocationCreateWithoutChannelPausesInput = {
     id?: string
     name: string
@@ -217926,6 +223013,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutChannelPausesInput = {
@@ -218014,6 +223102,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutChannelPausesInput = {
@@ -218118,6 +223207,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutChannelPausesInput = {
@@ -218206,6 +223296,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -218257,6 +223348,7 @@ export namespace Prisma {
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutChannelAvailabilityInput = {
@@ -218308,6 +223400,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutChannelAvailabilityInput = {
@@ -218401,6 +223494,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutItemChannelSnoozesInput = {
@@ -218489,6 +223583,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutItemChannelSnoozesInput = {
@@ -218556,6 +223651,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutChannelAvailabilityInput = {
@@ -218607,6 +223703,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
   }
 
   export type LocationUpsertWithoutItemChannelSnoozesInput = {
@@ -218706,6 +223803,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutItemChannelSnoozesInput = {
@@ -218794,6 +223892,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuCategoryCreateWithoutItemsInput = {
@@ -218902,6 +224001,7 @@ export namespace Prisma {
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutCategoriesInput = {
@@ -218953,6 +224053,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutCategoriesInput = {
@@ -219083,6 +224184,7 @@ export namespace Prisma {
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutCategoriesInput = {
@@ -219134,6 +224236,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
   }
 
   export type BrandCreateWithoutModifierGroupsInput = {
@@ -220397,6 +225500,7 @@ export namespace Prisma {
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutModifierGroupLinksInput = {
@@ -220448,6 +225552,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutModifierGroupLinksInput = {
@@ -220584,6 +225689,7 @@ export namespace Prisma {
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutModifierGroupLinksInput = {
@@ -220635,6 +225741,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
   }
 
   export type ModifierGroupUpsertWithoutItemLinksInput = {
@@ -220761,6 +225868,7 @@ export namespace Prisma {
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutVariantsInput = {
@@ -220812,6 +225920,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutVariantsInput = {
@@ -220879,6 +225988,7 @@ export namespace Prisma {
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutVariantsInput = {
@@ -220930,6 +226040,7 @@ export namespace Prisma {
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
   }
 
   export type BrandCreateWithoutMealDealsInput = {
@@ -221744,6 +226855,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutCustomerInput = {
@@ -221829,6 +226941,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutCustomerInput = {
@@ -222181,6 +227294,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDirectOrderingConfigInput = {
@@ -222269,6 +227383,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -222482,6 +227597,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDirectOrderingConfigInput = {
@@ -222570,6 +227686,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -223604,6 +228721,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutCampaignRedemptionsInput = {
@@ -223689,6 +228807,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutCampaignRedemptionsInput = {
@@ -223857,6 +228976,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutCampaignRedemptionsInput = {
@@ -223942,6 +229062,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type LocationCreateWithoutDeliveryZonesInput = {
@@ -224030,6 +229151,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
@@ -224118,6 +229240,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -224331,6 +229454,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
@@ -224419,6 +229543,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDeliveryZonesInput = {
@@ -224622,6 +229747,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPaymentConfigInput = {
@@ -224710,6 +229836,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -224814,6 +229941,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
@@ -224902,6 +230030,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -225059,6 +230188,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -225147,6 +230277,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -225214,6 +230345,8 @@ export namespace Prisma {
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
   }
 
   export type CustomerAccountUncheckedCreateWithoutOrdersInput = {
@@ -225231,6 +230364,8 @@ export namespace Prisma {
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
   }
 
   export type CustomerAccountCreateOrConnectWithoutOrdersInput = {
@@ -225632,6 +230767,29 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type LoyaltyStampCreateWithoutOrderInput = {
+    id?: string
+    tenantId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    card: LoyaltyCardCreateNestedOneWithoutStampsInput
+    customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyStampsInput
+  }
+
+  export type LoyaltyStampUncheckedCreateWithoutOrderInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    customerAccountId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type LoyaltyStampCreateOrConnectWithoutOrderInput = {
+    where: LoyaltyStampWhereUniqueInput
+    create: XOR<LoyaltyStampCreateWithoutOrderInput, LoyaltyStampUncheckedCreateWithoutOrderInput>
+  }
+
   export type TenantUpsertWithoutOrdersInput = {
     update: XOR<TenantUpdateWithoutOrdersInput, TenantUncheckedUpdateWithoutOrdersInput>
     create: XOR<TenantCreateWithoutOrdersInput, TenantUncheckedCreateWithoutOrdersInput>
@@ -225804,6 +230962,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -225892,6 +231051,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -225971,6 +231131,8 @@ export namespace Prisma {
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
   }
 
   export type CustomerAccountUncheckedUpdateWithoutOrdersInput = {
@@ -225988,6 +231150,8 @@ export namespace Prisma {
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
   }
 
   export type BrandUpsertWithoutOrdersInput = {
@@ -226308,6 +231472,35 @@ export namespace Prisma {
     data: XOR<CampaignRedemptionUpdateManyMutationInput, CampaignRedemptionUncheckedUpdateManyWithoutOrderInput>
   }
 
+  export type LoyaltyStampUpsertWithoutOrderInput = {
+    update: XOR<LoyaltyStampUpdateWithoutOrderInput, LoyaltyStampUncheckedUpdateWithoutOrderInput>
+    create: XOR<LoyaltyStampCreateWithoutOrderInput, LoyaltyStampUncheckedCreateWithoutOrderInput>
+    where?: LoyaltyStampWhereInput
+  }
+
+  export type LoyaltyStampUpdateToOneWithWhereWithoutOrderInput = {
+    where?: LoyaltyStampWhereInput
+    data: XOR<LoyaltyStampUpdateWithoutOrderInput, LoyaltyStampUncheckedUpdateWithoutOrderInput>
+  }
+
+  export type LoyaltyStampUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    card?: LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyStampsNestedInput
+  }
+
+  export type LoyaltyStampUncheckedUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrderCreateWithoutItemsInput = {
     id?: string
     externalId?: string | null
@@ -226391,6 +231584,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutItemsInput = {
@@ -226476,6 +231670,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutItemsInput = {
@@ -226577,6 +231772,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutItemsInput = {
@@ -226662,6 +231858,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderCreateWithoutStatusHistoryInput = {
@@ -226747,6 +231944,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutStatusHistoryInput = {
@@ -226832,6 +232030,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutStatusHistoryInput = {
@@ -226933,6 +232132,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutStatusHistoryInput = {
@@ -227018,6 +232218,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type LocationCreateWithoutKdsScreensInput = {
@@ -227106,6 +232307,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -227194,6 +232396,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -227326,6 +232529,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -227414,6 +232618,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -227518,6 +232723,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutSignageDisplaysInput = {
@@ -227606,6 +232812,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutSignageDisplaysInput = {
@@ -227819,6 +233026,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutSignageDisplaysInput = {
@@ -227907,6 +233115,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutSignageDisplaysInput = {
@@ -228110,6 +233319,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutTablesInput = {
@@ -228198,6 +233408,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutTablesInput = {
@@ -228354,6 +233565,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutTablesInput = {
@@ -228442,6 +233654,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TableReservationUpsertWithWhereUniqueWithoutTableInput = {
@@ -228546,6 +233759,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKioskDevicesInput = {
@@ -228634,6 +233848,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKioskDevicesInput = {
@@ -228738,6 +233953,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKioskDevicesInput = {
@@ -228826,6 +234042,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutTableReservationsInput = {
@@ -228914,6 +234131,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutTableReservationsInput = {
@@ -229002,6 +234220,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutTableReservationsInput = {
@@ -229169,6 +234388,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutTableReservationsInput = {
@@ -229257,6 +234477,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TableUpsertWithoutReservationsInput = {
@@ -229440,6 +234661,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutKdsTicketsInput = {
@@ -229525,6 +234747,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutKdsTicketsInput = {
@@ -229661,6 +234884,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutKdsTicketsInput = {
@@ -229746,6 +234970,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type LocationCreateWithoutPrintersInput = {
@@ -229834,6 +235059,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
@@ -229922,6 +235148,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -230176,6 +235403,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutReceiptPrinterInput = {
@@ -230264,6 +235492,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -230362,6 +235591,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDispatchPrinterInput = {
@@ -230450,6 +235680,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -230559,6 +235790,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -230647,6 +235879,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -231003,6 +236236,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutPrintJobsInput = {
@@ -231088,6 +236322,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutPrintJobsInput = {
@@ -231443,6 +236678,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutPrintJobsInput = {
@@ -231528,6 +236764,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type PrinterStationUpsertWithoutPrintJobsInput = {
@@ -231787,6 +237024,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrinterStationsInput = {
@@ -231875,6 +237113,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -232231,6 +237470,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDefaultKitchenStationInput = {
@@ -232319,6 +237559,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -232569,6 +237810,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrinterStationsInput = {
@@ -232657,6 +237899,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -232999,6 +238242,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintAgentsInput = {
@@ -233087,6 +238331,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -233420,6 +238665,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintAgentsInput = {
@@ -233508,6 +238754,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -233591,6 +238838,7 @@ export namespace Prisma {
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutStationRoutesInput = {
@@ -233642,6 +238890,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutStationRoutesInput = {
@@ -233750,6 +238999,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutStationRoutesInput = {
@@ -233801,6 +239051,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
   }
 
   export type PrinterStationUpsertWithoutMenuItemRoutesInput = {
@@ -234445,6 +239696,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutHomeDriversInput = {
@@ -234533,6 +239785,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutHomeDriversInput = {
@@ -234831,6 +240084,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutHomeDriversInput = {
@@ -234919,6 +240173,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type DriverAssignmentUpsertWithWhereUniqueWithoutDriverInput = {
@@ -235310,6 +240565,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutDriverAssignmentInput = {
@@ -235395,6 +240651,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutDriverAssignmentInput = {
@@ -235573,6 +240830,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutDriverAssignmentInput = {
@@ -235658,6 +240916,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type DriverUpsertWithoutAssignmentsInput = {
@@ -236176,6 +241435,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampCreateNestedOneWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutPaymentsInput = {
@@ -236261,6 +241521,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+    loyaltyStamp?: LoyaltyStampUncheckedCreateNestedOneWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutPaymentsInput = {
@@ -236477,6 +241738,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutPaymentsInput = {
@@ -236562,6 +241824,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type StripeConnectAccountUpsertWithoutPaymentsInput = {
@@ -237928,6 +243191,7 @@ export namespace Prisma {
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutRecipeInput = {
@@ -237979,6 +243243,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutRecipeInput = {
@@ -238068,6 +243333,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutRecipeInput = {
@@ -238119,6 +243385,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
   }
 
   export type RecipeIngredientUpsertWithWhereUniqueWithoutRecipeInput = {
@@ -239704,6 +244971,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMerchantSubscriptionInput = {
@@ -239792,6 +245060,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMerchantSubscriptionInput = {
@@ -239971,6 +245240,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMerchantSubscriptionInput = {
@@ -240059,6 +245329,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantSubscriptionCreateWithoutInvoicesInput = {
@@ -241385,6 +246656,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutStuartConfigInput = {
@@ -241473,6 +246745,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutStuartConfigInput = {
@@ -241577,6 +246850,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutStuartConfigInput = {
@@ -241665,6 +246939,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutUberDirectConfigInput = {
@@ -241753,6 +247028,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutUberDirectConfigInput = {
@@ -241841,6 +247117,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUberDirectConfigInput = {
@@ -241945,6 +247222,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutUberDirectConfigInput = {
@@ -242033,6 +247311,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type CustomerPushOrderCreateWithoutSubscriptionInput = {
@@ -242618,6 +247897,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutContractsInput = {
@@ -242706,6 +247986,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutContractsInput = {
@@ -242956,6 +248237,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutContractsInput = {
@@ -243044,6 +248326,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type ContractEventUpsertWithWhereUniqueWithoutContractInput = {
@@ -243253,6 +248536,1392 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationCreateWithoutLoyaltyCardInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutLoyaltyCardInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutLoyaltyCardInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutLoyaltyCardInput, LocationUncheckedCreateWithoutLoyaltyCardInput>
+  }
+
+  export type MenuItemCreateWithoutLoyaltyCardsInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    secondLanguageName?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+  }
+
+  export type MenuItemUncheckedCreateWithoutLoyaltyCardsInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    secondLanguageName?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+  }
+
+  export type MenuItemCreateOrConnectWithoutLoyaltyCardsInput = {
+    where: MenuItemWhereUniqueInput
+    create: XOR<MenuItemCreateWithoutLoyaltyCardsInput, MenuItemUncheckedCreateWithoutLoyaltyCardsInput>
+  }
+
+  export type LoyaltyStampCreateWithoutCardInput = {
+    id?: string
+    tenantId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyStampsInput
+    order: OrderCreateNestedOneWithoutLoyaltyStampInput
+  }
+
+  export type LoyaltyStampUncheckedCreateWithoutCardInput = {
+    id?: string
+    tenantId: string
+    customerAccountId: string
+    orderId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type LoyaltyStampCreateOrConnectWithoutCardInput = {
+    where: LoyaltyStampWhereUniqueInput
+    create: XOR<LoyaltyStampCreateWithoutCardInput, LoyaltyStampUncheckedCreateWithoutCardInput>
+  }
+
+  export type LoyaltyStampCreateManyCardInputEnvelope = {
+    data: LoyaltyStampCreateManyCardInput | LoyaltyStampCreateManyCardInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LoyaltyRewardCreateWithoutCardInput = {
+    id?: string
+    tenantId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+    customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
+  }
+
+  export type LoyaltyRewardUncheckedCreateWithoutCardInput = {
+    id?: string
+    tenantId: string
+    customerAccountId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
+  export type LoyaltyRewardCreateOrConnectWithoutCardInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    create: XOR<LoyaltyRewardCreateWithoutCardInput, LoyaltyRewardUncheckedCreateWithoutCardInput>
+  }
+
+  export type LoyaltyRewardCreateManyCardInputEnvelope = {
+    data: LoyaltyRewardCreateManyCardInput | LoyaltyRewardCreateManyCardInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LocationUpsertWithoutLoyaltyCardInput = {
+    update: XOR<LocationUpdateWithoutLoyaltyCardInput, LocationUncheckedUpdateWithoutLoyaltyCardInput>
+    create: XOR<LocationCreateWithoutLoyaltyCardInput, LocationUncheckedCreateWithoutLoyaltyCardInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutLoyaltyCardInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutLoyaltyCardInput, LocationUncheckedUpdateWithoutLoyaltyCardInput>
+  }
+
+  export type LocationUpdateWithoutLoyaltyCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutLoyaltyCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type MenuItemUpsertWithoutLoyaltyCardsInput = {
+    update: XOR<MenuItemUpdateWithoutLoyaltyCardsInput, MenuItemUncheckedUpdateWithoutLoyaltyCardsInput>
+    create: XOR<MenuItemCreateWithoutLoyaltyCardsInput, MenuItemUncheckedCreateWithoutLoyaltyCardsInput>
+    where?: MenuItemWhereInput
+  }
+
+  export type MenuItemUpdateToOneWithWhereWithoutLoyaltyCardsInput = {
+    where?: MenuItemWhereInput
+    data: XOR<MenuItemUpdateWithoutLoyaltyCardsInput, MenuItemUncheckedUpdateWithoutLoyaltyCardsInput>
+  }
+
+  export type MenuItemUpdateWithoutLoyaltyCardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+  }
+
+  export type MenuItemUncheckedUpdateWithoutLoyaltyCardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+  }
+
+  export type LoyaltyStampUpsertWithWhereUniqueWithoutCardInput = {
+    where: LoyaltyStampWhereUniqueInput
+    update: XOR<LoyaltyStampUpdateWithoutCardInput, LoyaltyStampUncheckedUpdateWithoutCardInput>
+    create: XOR<LoyaltyStampCreateWithoutCardInput, LoyaltyStampUncheckedCreateWithoutCardInput>
+  }
+
+  export type LoyaltyStampUpdateWithWhereUniqueWithoutCardInput = {
+    where: LoyaltyStampWhereUniqueInput
+    data: XOR<LoyaltyStampUpdateWithoutCardInput, LoyaltyStampUncheckedUpdateWithoutCardInput>
+  }
+
+  export type LoyaltyStampUpdateManyWithWhereWithoutCardInput = {
+    where: LoyaltyStampScalarWhereInput
+    data: XOR<LoyaltyStampUpdateManyMutationInput, LoyaltyStampUncheckedUpdateManyWithoutCardInput>
+  }
+
+  export type LoyaltyRewardUpsertWithWhereUniqueWithoutCardInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    update: XOR<LoyaltyRewardUpdateWithoutCardInput, LoyaltyRewardUncheckedUpdateWithoutCardInput>
+    create: XOR<LoyaltyRewardCreateWithoutCardInput, LoyaltyRewardUncheckedCreateWithoutCardInput>
+  }
+
+  export type LoyaltyRewardUpdateWithWhereUniqueWithoutCardInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    data: XOR<LoyaltyRewardUpdateWithoutCardInput, LoyaltyRewardUncheckedUpdateWithoutCardInput>
+  }
+
+  export type LoyaltyRewardUpdateManyWithWhereWithoutCardInput = {
+    where: LoyaltyRewardScalarWhereInput
+    data: XOR<LoyaltyRewardUpdateManyMutationInput, LoyaltyRewardUncheckedUpdateManyWithoutCardInput>
+  }
+
+  export type LoyaltyCardCreateWithoutStampsInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutLoyaltyCardInput
+    rewardItem?: MenuItemCreateNestedOneWithoutLoyaltyCardsInput
+    rewards?: LoyaltyRewardCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardUncheckedCreateWithoutStampsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    rewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardCreateOrConnectWithoutStampsInput = {
+    where: LoyaltyCardWhereUniqueInput
+    create: XOR<LoyaltyCardCreateWithoutStampsInput, LoyaltyCardUncheckedCreateWithoutStampsInput>
+  }
+
+  export type CustomerAccountCreateWithoutLoyaltyStampsInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
+  }
+
+  export type CustomerAccountUncheckedCreateWithoutLoyaltyStampsInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
+  }
+
+  export type CustomerAccountCreateOrConnectWithoutLoyaltyStampsInput = {
+    where: CustomerAccountWhereUniqueInput
+    create: XOR<CustomerAccountCreateWithoutLoyaltyStampsInput, CustomerAccountUncheckedCreateWithoutLoyaltyStampsInput>
+  }
+
+  export type OrderCreateWithoutLoyaltyStampInput = {
+    id?: string
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderNumber?: number | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
+    courierEtaAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
+    covers?: number | null
+    isWalkIn?: boolean
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutOrdersInput
+    location: LocationCreateNestedOneWithoutOrdersInput
+    customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
+    items?: OrderItemCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
+    payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutLoyaltyStampInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    customerAccountId?: string | null
+    brandId?: string | null
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderNumber?: number | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
+    courierEtaAt?: Date | string | null
+    courierProvider?: string | null
+    courierJobId?: string | null
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    tableId?: string | null
+    covers?: number | null
+    isWalkIn?: boolean
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    tipAmount?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryUncheckedCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketUncheckedCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutLoyaltyStampInput = {
+    where: OrderWhereUniqueInput
+    create: XOR<OrderCreateWithoutLoyaltyStampInput, OrderUncheckedCreateWithoutLoyaltyStampInput>
+  }
+
+  export type LoyaltyCardUpsertWithoutStampsInput = {
+    update: XOR<LoyaltyCardUpdateWithoutStampsInput, LoyaltyCardUncheckedUpdateWithoutStampsInput>
+    create: XOR<LoyaltyCardCreateWithoutStampsInput, LoyaltyCardUncheckedCreateWithoutStampsInput>
+    where?: LoyaltyCardWhereInput
+  }
+
+  export type LoyaltyCardUpdateToOneWithWhereWithoutStampsInput = {
+    where?: LoyaltyCardWhereInput
+    data: XOR<LoyaltyCardUpdateWithoutStampsInput, LoyaltyCardUncheckedUpdateWithoutStampsInput>
+  }
+
+  export type LoyaltyCardUpdateWithoutStampsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
+    rewardItem?: MenuItemUpdateOneWithoutLoyaltyCardsNestedInput
+    rewards?: LoyaltyRewardUpdateManyWithoutCardNestedInput
+  }
+
+  export type LoyaltyCardUncheckedUpdateWithoutStampsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rewards?: LoyaltyRewardUncheckedUpdateManyWithoutCardNestedInput
+  }
+
+  export type CustomerAccountUpsertWithoutLoyaltyStampsInput = {
+    update: XOR<CustomerAccountUpdateWithoutLoyaltyStampsInput, CustomerAccountUncheckedUpdateWithoutLoyaltyStampsInput>
+    create: XOR<CustomerAccountCreateWithoutLoyaltyStampsInput, CustomerAccountUncheckedCreateWithoutLoyaltyStampsInput>
+    where?: CustomerAccountWhereInput
+  }
+
+  export type CustomerAccountUpdateToOneWithWhereWithoutLoyaltyStampsInput = {
+    where?: CustomerAccountWhereInput
+    data: XOR<CustomerAccountUpdateWithoutLoyaltyStampsInput, CustomerAccountUncheckedUpdateWithoutLoyaltyStampsInput>
+  }
+
+  export type CustomerAccountUpdateWithoutLoyaltyStampsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
+  }
+
+  export type CustomerAccountUncheckedUpdateWithoutLoyaltyStampsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
+  }
+
+  export type OrderUpsertWithoutLoyaltyStampInput = {
+    update: XOR<OrderUpdateWithoutLoyaltyStampInput, OrderUncheckedUpdateWithoutLoyaltyStampInput>
+    create: XOR<OrderCreateWithoutLoyaltyStampInput, OrderUncheckedCreateWithoutLoyaltyStampInput>
+    where?: OrderWhereInput
+  }
+
+  export type OrderUpdateToOneWithWhereWithoutLoyaltyStampInput = {
+    where?: OrderWhereInput
+    data: XOR<OrderUpdateWithoutLoyaltyStampInput, OrderUncheckedUpdateWithoutLoyaltyStampInput>
+  }
+
+  export type OrderUpdateWithoutLoyaltyStampInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
+    covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
+    location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
+    customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
+    items?: OrderItemUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutLoyaltyStampInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    tableId?: NullableStringFieldUpdateOperationsInput | string | null
+    covers?: NullableIntFieldUpdateOperationsInput | number | null
+    isWalkIn?: BoolFieldUpdateOperationsInput | boolean
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tipAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUncheckedUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUncheckedUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type LoyaltyCardCreateWithoutRewardsInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutLoyaltyCardInput
+    rewardItem?: MenuItemCreateNestedOneWithoutLoyaltyCardsInput
+    stamps?: LoyaltyStampCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardUncheckedCreateWithoutRewardsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
+  }
+
+  export type LoyaltyCardCreateOrConnectWithoutRewardsInput = {
+    where: LoyaltyCardWhereUniqueInput
+    create: XOR<LoyaltyCardCreateWithoutRewardsInput, LoyaltyCardUncheckedCreateWithoutRewardsInput>
+  }
+
+  export type CustomerAccountCreateWithoutLoyaltyRewardsInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
+  }
+
+  export type CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
+  }
+
+  export type CustomerAccountCreateOrConnectWithoutLoyaltyRewardsInput = {
+    where: CustomerAccountWhereUniqueInput
+    create: XOR<CustomerAccountCreateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput>
+  }
+
+  export type LoyaltyCardUpsertWithoutRewardsInput = {
+    update: XOR<LoyaltyCardUpdateWithoutRewardsInput, LoyaltyCardUncheckedUpdateWithoutRewardsInput>
+    create: XOR<LoyaltyCardCreateWithoutRewardsInput, LoyaltyCardUncheckedCreateWithoutRewardsInput>
+    where?: LoyaltyCardWhereInput
+  }
+
+  export type LoyaltyCardUpdateToOneWithWhereWithoutRewardsInput = {
+    where?: LoyaltyCardWhereInput
+    data: XOR<LoyaltyCardUpdateWithoutRewardsInput, LoyaltyCardUncheckedUpdateWithoutRewardsInput>
+  }
+
+  export type LoyaltyCardUpdateWithoutRewardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
+    rewardItem?: MenuItemUpdateOneWithoutLoyaltyCardsNestedInput
+    stamps?: LoyaltyStampUpdateManyWithoutCardNestedInput
+  }
+
+  export type LoyaltyCardUncheckedUpdateWithoutRewardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
+  }
+
+  export type CustomerAccountUpsertWithoutLoyaltyRewardsInput = {
+    update: XOR<CustomerAccountUpdateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedUpdateWithoutLoyaltyRewardsInput>
+    create: XOR<CustomerAccountCreateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput>
+    where?: CustomerAccountWhereInput
+  }
+
+  export type CustomerAccountUpdateToOneWithWhereWithoutLoyaltyRewardsInput = {
+    where?: CustomerAccountWhereInput
+    data: XOR<CustomerAccountUpdateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedUpdateWithoutLoyaltyRewardsInput>
+  }
+
+  export type CustomerAccountUpdateWithoutLoyaltyRewardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
+  }
+
+  export type CustomerAccountUncheckedUpdateWithoutLoyaltyRewardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
   }
 
   export type BrandCreateManyTenantInput = {
@@ -244021,6 +250690,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutTenantInput = {
@@ -244106,6 +250776,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutTenantInput = {
@@ -245653,6 +252324,27 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type LoyaltyStampCreateManyCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    orderId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type LoyaltyRewardCreateManyCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    cardId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
   export type OrderUpdateWithoutCustomerAccountInput = {
     id?: StringFieldUpdateOperationsInput | string
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -245736,6 +252428,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutCustomerAccountInput = {
@@ -245821,6 +252514,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutCustomerAccountInput = {
@@ -245899,6 +252593,69 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyStampUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    card?: LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput
+    order?: OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput
+  }
+
+  export type LoyaltyStampUncheckedUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyRewardUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    card?: LoyaltyCardUpdateOneRequiredWithoutRewardsNestedInput
+  }
+
+  export type LoyaltyRewardUncheckedUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LocationCreateManyBrandInput = {
@@ -246321,6 +253078,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -246409,6 +253167,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -246766,6 +253525,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutBrandInput = {
@@ -246851,6 +253611,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutBrandInput = {
@@ -247832,6 +254593,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutLocationInput = {
@@ -247917,6 +254679,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutLocationInput = {
@@ -249205,6 +255968,19 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type LoyaltyCardCreateManyRewardItemInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    stampsRequired?: number
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: string
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MenuItemOnCategoryUpdateWithoutItemInput = {
     sortOrder?: IntFieldUpdateOperationsInput | number
     priceOverride?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -249327,6 +256103,49 @@ export namespace Prisma {
     snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
     snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyCardUpdateWithoutRewardItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
+    stamps?: LoyaltyStampUpdateManyWithoutCardNestedInput
+    rewards?: LoyaltyRewardUpdateManyWithoutCardNestedInput
+  }
+
+  export type LoyaltyCardUncheckedUpdateWithoutRewardItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
+    rewards?: LoyaltyRewardUncheckedUpdateManyWithoutCardNestedInput
+  }
+
+  export type LoyaltyCardUncheckedUpdateManyWithoutRewardItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    stampsRequired?: IntFieldUpdateOperationsInput | number
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -249924,6 +256743,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutCustomerInput = {
@@ -250009,6 +256829,7 @@ export namespace Prisma {
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+    loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutCustomerInput = {
@@ -251069,6 +257890,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutReceiptPrinterInput = {
@@ -251157,6 +257979,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -251310,6 +258133,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDispatchPrinterInput = {
@@ -251398,6 +258222,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -251898,6 +258723,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDefaultKitchenStationInput = {
@@ -251986,6 +258812,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -253819,6 +260646,90 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type LoyaltyStampCreateManyCardInput = {
+    id?: string
+    tenantId: string
+    customerAccountId: string
+    orderId: string
+    spend: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type LoyaltyRewardCreateManyCardInput = {
+    id?: string
+    tenantId: string
+    customerAccountId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
+  export type LoyaltyStampUpdateWithoutCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyStampsNestedInput
+    order?: OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput
+  }
+
+  export type LoyaltyStampUncheckedUpdateWithoutCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyStampUncheckedUpdateManyWithoutCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyRewardUpdateWithoutCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
+  }
+
+  export type LoyaltyRewardUncheckedUpdateWithoutCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type LoyaltyRewardUncheckedUpdateManyWithoutCardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
 
 
   /**
@@ -253968,6 +260879,10 @@ export namespace Prisma {
      * @deprecated Use ContractCountOutputTypeDefaultArgs instead
      */
     export type ContractCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ContractCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use LoyaltyCardCountOutputTypeDefaultArgs instead
+     */
+    export type LoyaltyCardCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LoyaltyCardCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TenantDefaultArgs instead
      */
@@ -254476,6 +261391,18 @@ export namespace Prisma {
      * @deprecated Use ContractEventDefaultArgs instead
      */
     export type ContractEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ContractEventDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use LoyaltyCardDefaultArgs instead
+     */
+    export type LoyaltyCardArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LoyaltyCardDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use LoyaltyStampDefaultArgs instead
+     */
+    export type LoyaltyStampArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LoyaltyStampDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use LoyaltyRewardDefaultArgs instead
+     */
+    export type LoyaltyRewardArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LoyaltyRewardDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

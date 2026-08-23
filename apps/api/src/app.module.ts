@@ -91,6 +91,7 @@ import { ProviderRegistryModule } from "./modules/provider-registry/provider-reg
 import { MobileModule } from "./modules/mobile/mobile.module";
 import { InventoryModule } from "./modules/inventory/inventory.module";
 import { MarketingModule } from "./modules/marketing/marketing.module";
+import { LoyaltyModule } from "./modules/loyalty/loyalty.module";
 import { PauseModule } from "./modules/pauses/pause.module";
 import { SandboxModule } from "./modules/sandbox/sandbox.module";
 import { OutboxModule } from "./modules/outbox/outbox.module";
@@ -293,6 +294,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     MobileModule,
     InventoryModule,
     MarketingModule,
+    LoyaltyModule,
     PauseModule,
     SandboxModule,
     OutboxModule,

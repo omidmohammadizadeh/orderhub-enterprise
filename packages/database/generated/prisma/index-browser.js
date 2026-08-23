@@ -2275,6 +2275,43 @@ exports.Prisma.ContractEventScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.LoyaltyCardScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  isActive: 'isActive',
+  stampsRequired: 'stampsRequired',
+  minimumSpend: 'minimumSpend',
+  rewardItemId: 'rewardItemId',
+  rewardLabel: 'rewardLabel',
+  rewardExpiryDays: 'rewardExpiryDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LoyaltyStampScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  customerAccountId: 'customerAccountId',
+  orderId: 'orderId',
+  spend: 'spend',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.LoyaltyRewardScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  customerAccountId: 'customerAccountId',
+  label: 'label',
+  rewardItemId: 'rewardItemId',
+  earnedAt: 'earnedAt',
+  expiresAt: 'expiresAt',
+  claimedAt: 'claimedAt',
+  claimedOrderId: 'claimedOrderId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3645,6 +3682,32 @@ exports.Prisma.ContractEventOrderByRelevanceFieldEnum = {
   ip: 'ip',
   userAgent: 'userAgent'
 };
+
+exports.Prisma.LoyaltyCardOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  rewardItemId: 'rewardItemId',
+  rewardLabel: 'rewardLabel'
+};
+
+exports.Prisma.LoyaltyStampOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  customerAccountId: 'customerAccountId',
+  orderId: 'orderId'
+};
+
+exports.Prisma.LoyaltyRewardOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  customerAccountId: 'customerAccountId',
+  label: 'label',
+  rewardItemId: 'rewardItemId',
+  claimedOrderId: 'claimedOrderId'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -4223,7 +4286,10 @@ exports.Prisma.ModelName = {
   CustomerPushOrder: 'CustomerPushOrder',
   ContractTemplate: 'ContractTemplate',
   Contract: 'Contract',
-  ContractEvent: 'ContractEvent'
+  ContractEvent: 'ContractEvent',
+  LoyaltyCard: 'LoyaltyCard',
+  LoyaltyStamp: 'LoyaltyStamp',
+  LoyaltyReward: 'LoyaltyReward'
 };
 
 /**
