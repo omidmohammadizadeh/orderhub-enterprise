@@ -3,7 +3,9 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
+  InternalServerErrorException,
   Logger,
   Param,
   Post,
@@ -190,7 +192,9 @@ export class CareemController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.store.onboardLocation(user.tenantId, locationId);
+    return this.explain("onboard", () =>
+      this.store.onboardLocation(user.tenantId, locationId),
+    );
   }
 
   @Post("locations/:locationId/hours")
@@ -201,7 +205,9 @@ export class CareemController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.store.publishHours(user.tenantId, locationId);
+    return this.explain("publish hours", () =>
+      this.store.publishHours(user.tenantId, locationId),
+    );
   }
 
   @Get("locations/:locationId/visibility")
@@ -211,7 +217,9 @@ export class CareemController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.store.visibility(user.tenantId, locationId);
+    return this.explain("read visibility", () =>
+      this.store.visibility(user.tenantId, locationId),
+    );
   }
 
   @Post("locations/:locationId/visibility")
@@ -225,7 +233,9 @@ export class CareemController {
     @Body() body: { open: boolean },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.store.setVisibility(user.tenantId, locationId, !!body?.open);
+    return this.explain("set visibility", () =>
+      this.store.setVisibility(user.tenantId, locationId, !!body?.open),
+    );
   }
 
   @Post("locations/:locationId/pause")
@@ -239,7 +249,9 @@ export class CareemController {
     @Body() body: { minutes: number },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.store.pauseFor(user.tenantId, locationId, Number(body?.minutes));
+    return this.explain("pause", () =>
+      this.store.pauseFor(user.tenantId, locationId, Number(body?.minutes)),
+    );
   }
 
   // The switch that decides whether Careem's orders are ours to cook. Separate
@@ -272,7 +284,9 @@ export class CareemController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menu.publish(locationId, user.tenantId);
+    return this.explain("publish menu", () =>
+      this.menu.publish(locationId, user.tenantId),
+    );
   }
 
   @Post("locations/:locationId/menu/reset")
@@ -298,7 +312,9 @@ export class CareemController {
     @Param("requestId") requestId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menu.status(locationId, requestId, user.tenantId);
+    return this.explain("menu status", () =>
+      this.menu.status(locationId, requestId, user.tenantId),
+    );
   }
 
   private webhookSummary() {
@@ -316,6 +332,33 @@ export class CareemController {
   }
 
   private hintFor = hintFor;
+
+  /**
+   * Let a genuine crash through with its cause attached.
+   *
+   * Nest turns anything that isn't an HttpException into "Internal server
+   * error" and nothing else. That is right for a public API and wrong for
+   * these routes, which exist to be run by hand while wiring an integration
+   * up — a bare 500 sends the reader to the Render logs, away from the screen
+   * that was meant to answer the question.
+   */
+  private async explain<T>(what: string, fn: () => Promise<T>): Promise<T> {
+    try {
+      return await fn();
+    } catch (err) {
+      if (err instanceof HttpException) throw err;
+      const message =
+        err instanceof CareemAuthError
+          ? `Careem auth failed (HTTP ${err.status} from ${err.tokenUrl}): ${err.body.slice(0, 300)}`
+          : (err as Error).message;
+      this.logger.error(`Careem ${what} failed: ${message}`);
+      throw new InternalServerErrorException({
+        step: what,
+        message,
+        where: (err as Error).stack?.split("\n")[1]?.trim() ?? null,
+      });
+    }
+  }
 
   /** Never let one failing call hide the rest of the diagnosis. */
   private async safe<T>(fn: () => Promise<T>) {

@@ -572,3 +572,50 @@ describe("rate-limit protection", () => {
     expect(fetchMock).toHaveBeenCalled();
   });
 });
+
+// The sandbox has to be complete or it is worse than nothing: pointing only
+// CAREEM_API_BASE at the mock left the token request going to Careem's real
+// identity provider — the one request we have no credentials for — so every
+// call died at step one without ever reaching the mock.
+describe("CareemClientService — sandbox wiring", () => {
+  const svc = () => new CareemClientService();
+
+  beforeEach(() => {
+    process.env.CAREEM_SANDBOX = "true";
+    process.env.CAREEM_ENV = "staging";
+    process.env.CAREEM_API_BASE = "https://us.example.com/api/v1/careem-mock";
+    delete process.env.CAREEM_TOKEN_URL;
+    delete process.env.CAREEM_CLIENT_ID;
+    delete process.env.CAREEM_CLIENT_SECRET;
+  });
+
+  afterEach(() => {
+    delete process.env.CAREEM_SANDBOX;
+    delete process.env.CAREEM_API_BASE;
+  });
+
+  it("asks the sandbox for the token, not Careem", () => {
+    expect(svc().tokenUrl).toBe("https://us.example.com/api/v1/careem-mock/token");
+  });
+
+  it("needs no Careem credentials — that is the whole point", () => {
+    expect(svc().configured()).toBe(true);
+  });
+
+  it("still honours an explicit CAREEM_TOKEN_URL", () => {
+    process.env.CAREEM_TOKEN_URL = "https://elsewhere.test/token";
+    expect(svc().tokenUrl).toBe("https://elsewhere.test/token");
+  });
+
+  it("goes back to Careem's identity provider once the sandbox is off", () => {
+    process.env.CAREEM_SANDBOX = "false";
+    expect(svc().tokenUrl).toBe("https://identity.careem.com/token");
+    expect(svc().configured()).toBe(false);
+  });
+
+  it("refuses to sandbox against Careem's production", () => {
+    process.env.CAREEM_ENV = "production";
+    expect(svc().tokenUrl).toBe("https://identity.careem.com/token");
+    process.env.CAREEM_ENV = "staging";
+  });
+});

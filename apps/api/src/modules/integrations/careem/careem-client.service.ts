@@ -157,20 +157,43 @@ export class CareemClientService {
    * decides which — so this is not derived from CAREEM_ENV.
    */
   get tokenUrl(): string {
-    return process.env.CAREEM_TOKEN_URL?.trim() || IDENTITY_TOKEN_URL;
+    if (process.env.CAREEM_TOKEN_URL?.trim()) {
+      return process.env.CAREEM_TOKEN_URL.trim();
+    }
+    // In the sandbox the token has to come from the sandbox. Pointing only
+    // CAREEM_API_BASE at the mock left this asking the real identity provider
+    // for a token, which is exactly the request we have no credentials for —
+    // so every call failed at the first step, before reaching the mock at all.
+    if (this.sandbox) return `${this.baseUrl}/token`;
+    return IDENTITY_TOKEN_URL;
+  }
+
+  /** Mirrors CareemSandboxService.enabled. Duplicated rather than injected
+   *  because the client is what the sandbox service's own callers depend on,
+   *  and a cycle here would be worse than one repeated condition. */
+  private get sandbox(): boolean {
+    return (
+      process.env.CAREEM_SANDBOX === "true" &&
+      process.env.CAREEM_ENV !== "production"
+    );
   }
 
   private get clientId(): string | null {
+    if (this.sandbox) return process.env.CAREEM_CLIENT_ID?.trim() || "sandbox";
     return process.env.CAREEM_CLIENT_ID?.trim() || null;
   }
 
   private get clientSecret(): string | null {
+    if (this.sandbox) return process.env.CAREEM_CLIENT_SECRET?.trim() || "sandbox";
     return process.env.CAREEM_CLIENT_SECRET?.trim() || null;
   }
 
   /** Whether Careem is wired up at all. Checked before routing anything to it,
    *  so a missing key is a clear refusal rather than a 500 mid-flow. */
   configured(): boolean {
+    // The sandbox exists precisely because Careem have not issued us a client,
+    // so requiring one to use it would defeat the point.
+    if (this.sandbox) return true;
     return !!this.clientId && !!this.clientSecret;
   }
 
@@ -188,7 +211,10 @@ export class CareemClientService {
     // Re-throw the last failure rather than asking again. `force` deliberately
     // does NOT bypass this: the reason a caller forces is a 401 mid-request,
     // and hammering a rejecting endpoint is what gets an IP blocked.
-    if (Date.now() < this.cooldownUntil && this.lastFailure) {
+    // The cooldown protects Careem's IP allowance. The sandbox is our own
+    // server, so there is nothing to protect — and a cooldown left over from
+    // real credentials failing would otherwise block the sandbox for minutes.
+    if (!this.sandbox && Date.now() < this.cooldownUntil && this.lastFailure) {
       throw this.lastFailure;
     }
     if (!force && this.pending) return this.pending;
