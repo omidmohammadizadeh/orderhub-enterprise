@@ -34,6 +34,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
+  formatMoney,
   itemAllowsMode, round2, buildCartItemName, toOrderLineModifier } from "@orderhub/shared";
 import type { SelectedModifier } from "@orderhub/shared";
 import { cn } from "@/lib/utils";
@@ -92,7 +93,19 @@ function basketReducer(state: BasketLine[], action: BasketAction): BasketLine[] 
   }
 }
 
-const money = (n: number) => `£${n.toFixed(2)}`;
+/**
+ * Money formatter, bound to a currency.
+ *
+ * This was a hardcoded pound, which is fine until a Dubai shop opens a table
+ * tab and its guests are quoted in sterling. The currency rides on the same
+ * storefront payload the menu does, so the page has it — it just has to be
+ * threaded to the components that print prices.
+ */
+type MoneyFn = (n: number) => string;
+const moneyFor =
+  (currency: string): MoneyFn =>
+  (n: number) =>
+    formatMoney(n, currency);
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
@@ -127,6 +140,10 @@ export default function TableQrPage() {
     enabled: !!table?.locationId,
   });
   const store = storeQuery.data;
+  // Falls back to GBP only while the payload is still loading — every shop
+  // carries a real currency on its location row.
+  const currency = ((store as any)?.store?.currency ?? "GBP") as string;
+  const money = useMemo(() => moneyFor(currency), [currency]);
 
   const tabQuery = useQuery({
     queryKey: ["table-qr-tab", token],
@@ -362,6 +379,7 @@ export default function TableQrPage() {
       <main className="px-4 pb-40 pt-4">
         {view === "menu" ? (
           <MenuView
+            money={money}
             loading={storeQuery.isLoading}
             failed={storeQuery.isError}
             onRetry={() => storeQuery.refetch()}
@@ -392,6 +410,7 @@ export default function TableQrPage() {
           />
         ) : (
           <TabView
+            money={money}
             loading={tabQuery.isLoading}
             failed={tabQuery.isError}
             data={tabQuery.data}
@@ -453,6 +472,7 @@ export default function TableQrPage() {
       {/* ── Basket sheet ── */}
       {basketOpen && (
         <BasketSheet
+          money={money}
           lines={basket}
           total={basketTotal}
           tableName={table.tableName}
@@ -506,6 +526,7 @@ function MenuView({
   sections,
   showImages,
   onPick,
+  money,
 }: {
   loading: boolean;
   failed: boolean;
@@ -513,6 +534,7 @@ function MenuView({
   sections: Array<{ cat: MenuCategory; items: MenuItem[] }>;
   showImages: boolean;
   onPick: (item: MenuItem) => void;
+  money: MoneyFn;
 }) {
   if (loading) {
     return (
@@ -564,6 +586,7 @@ function MenuView({
             <div className="space-y-2">
               {items.map((item) => (
                 <ItemRow
+              money={money}
                   key={item.id}
                   item={item}
                   showImage={showImages}
@@ -582,10 +605,12 @@ function ItemRow({
   item,
   showImage,
   onClick,
+  money,
 }: {
   item: MenuItem;
   showImage: boolean;
   onClick: () => void;
+  money: MoneyFn;
 }) {
   return (
     <button
@@ -644,6 +669,7 @@ function TabView({
   data,
   refreshing,
   onRefresh,
+  money,
 }: {
   loading: boolean;
   failed: boolean;
@@ -653,6 +679,7 @@ function TabView({
     total: number;
     paymentStatus?: string | null;
   };
+  money: MoneyFn;
   refreshing: boolean;
   onRefresh: () => void;
 }) {
@@ -746,6 +773,7 @@ function TabView({
 // ── Basket sheet ───────────────────────────────────────────────────────────
 
 function BasketSheet({
+  money,
   lines,
   total,
   tableName,
@@ -762,6 +790,7 @@ function BasketSheet({
   onRemove,
   onSend,
 }: {
+  money: MoneyFn;
   lines: BasketLine[];
   total: number;
   tableName: string;
