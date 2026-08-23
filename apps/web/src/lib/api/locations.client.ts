@@ -161,6 +161,10 @@ export interface Brand {
   customDomain?: string | null;
   customDomainStatus?: string;
   stripeConnectedAccountId?: string | null;
+  /** Tap's destination id — where a Gulf brand's share of a split charge
+   *  settles. The counterpart of stripeConnectedAccountId; a card charge is
+   *  refused without one. */
+  tapDestinationId?: string | null;
   applicationFeeFixedAmount?: number | string | null;
   applicationFeePercentage?: number | string | null;
   applicationFeeMode?: string;

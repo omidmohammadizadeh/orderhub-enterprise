@@ -25,6 +25,7 @@ import {
   defaultZoneModeForCountry,
   milesToKm,
   kmToMiles,
+  usesTap,
 } from "@orderhub/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X, ExternalLink, Trash2, Plus } from "lucide-react";
@@ -72,7 +73,12 @@ export function BrandSettingsDrawer({
   onSaved,
 }: Props) {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money, symbol } = useCurrency();
+  const { money, symbol, country } = useCurrency();
+  // Which provider this brand is actually paid through. Derived from the
+  // shop's country, exactly like the checkout does it — a drawer that offered
+  // a Stripe account id to a Dubai brand would be offering something that can
+  // never work.
+  const gulf = usesTap(country);
   const user = useAuthStore((s) => s.user);
   const isAdmin = !!user && ADMIN_ROLES.has(user.role as string);
   const canEdit = !!user && STOREFRONT_EDIT_ROLES.has(user.role as string);
@@ -114,6 +120,13 @@ export function BrandSettingsDrawer({
   // ── Stripe Connect ────────────────────────────────────────────────
   const [stripeAccountId, setStripeAccountId] = useState(
     brand.stripeConnectedAccountId ?? "",
+  );
+  // Tap's destination for this brand — the Gulf counterpart of the Stripe
+  // connected account. Typed in by hand from Tap's dashboard: Tap doesn't
+  // document what its Business API returns, so there's nothing safe to read
+  // it out of automatically.
+  const [tapDestinationId, setTapDestinationId] = useState(
+    brand.tapDestinationId ?? "",
   );
   const [appFeeMode, setAppFeeMode] = useState(brand.applicationFeeMode ?? "none");
   const [appFeeFixed, setAppFeeFixed] = useState<string>(
@@ -262,6 +275,7 @@ export function BrandSettingsDrawer({
     setPostcode(brand.postcode ?? "");
     setAbout(brand.about ?? "");
     setStripeAccountId(brand.stripeConnectedAccountId ?? "");
+    setTapDestinationId(brand.tapDestinationId ?? "");
     setAppFeeMode(brand.applicationFeeMode ?? "none");
     setAppFeeFixed(brand.applicationFeeFixedAmount?.toString() ?? "");
     setAppFeePct(brand.applicationFeePercentage?.toString() ?? "");
@@ -304,6 +318,7 @@ export function BrandSettingsDrawer({
           postcode: postcode || null,
           about: about || null,
           stripeConnectedAccountId: stripeAccountId || null,
+          tapDestinationId: tapDestinationId.trim() || null,
           applicationFeeMode: appFeeMode,
           applicationFeeFixedAmount: appFeeFixed ? Number(appFeeFixed) : null,
           applicationFeePercentage: appFeePct ? Number(appFeePct) : null,
@@ -536,20 +551,47 @@ export function BrandSettingsDrawer({
           {/* ── Stripe Connect — admin only (payouts). Hidden from
               owners entirely. ─────────────────────────────────────── */}
           {isAdmin && (
-          <Section title="Stripe Connect (payouts)">
-            <p className="text-[11px] text-zinc-500">
-              Each brand can receive payouts to its own Stripe account. Leave
-              blank to fall through to the location's Stripe settings.
-            </p>
-            <Field label="Connected account id">
-              <input
-                value={stripeAccountId}
-                onChange={(e) => setStripeAccountId(e.target.value)}
-                disabled={!canEdit}
-                placeholder="acct_…"
-                className="input font-mono"
-              />
-            </Field>
+          <Section title={gulf ? "Payouts (Tap)" : "Stripe Connect (payouts)"}>
+            {gulf ? (
+              <>
+                <p className="text-[11px] text-zinc-500">
+                  Gulf shops are paid through Tap, not Stripe — Stripe&apos;s own
+                  UAE rules don&apos;t allow the way our checkout charges cards.
+                  Paste the destination id Tap issued for this brand once its
+                  KYC is done; card payments are refused until it&apos;s here.
+                </p>
+                <Field label="Tap destination id">
+                  <input
+                    value={tapDestinationId}
+                    onChange={(e) => setTapDestinationId(e.target.value)}
+                    disabled={!canEdit}
+                    placeholder="Destination id from Tap"
+                    className="input font-mono"
+                  />
+                </Field>
+                {!tapDestinationId.trim() && (
+                  <p className="text-[11px] text-amber-600">
+                    Without this the shop can take cash but not cards.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-[11px] text-zinc-500">
+                  Each brand can receive payouts to its own Stripe account. Leave
+                  blank to fall through to the location&apos;s Stripe settings.
+                </p>
+                <Field label="Connected account id">
+                  <input
+                    value={stripeAccountId}
+                    onChange={(e) => setStripeAccountId(e.target.value)}
+                    disabled={!canEdit}
+                    placeholder="acct_…"
+                    className="input font-mono"
+                  />
+                </Field>
+              </>
+            )}
             <Field label="Application fee mode">
               <select
                 value={appFeeMode}
@@ -563,6 +605,24 @@ export function BrandSettingsDrawer({
                 <option value="fixed_and_percentage">Fixed + percentage</option>
               </select>
             </Field>
+            {/* The split between the two isn't guessable from the labels, and
+                getting it backwards is the difference between the shop paying
+                the fee and the customer paying it. */}
+            {appFeeMode !== "none" && (
+              <p className="text-[11px] text-zinc-500">
+                The <strong>fixed</strong> amount is added to the customer&apos;s
+                bill as a service charge. The <strong>percentage</strong> is
+                silent — it comes out of the restaurant&apos;s share.
+                {gulf ? (
+                  <>
+                    {" "}
+                    In the Gulf the card processing fee comes out of{" "}
+                    <strong>our</strong> share rather than the shop&apos;s, so set
+                    the percentage higher than you would in the UK.
+                  </>
+                ) : null}
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Fixed ({symbol.trim()})">
                 <input

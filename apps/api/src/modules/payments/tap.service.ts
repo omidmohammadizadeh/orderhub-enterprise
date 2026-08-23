@@ -269,13 +269,22 @@ export class TapService {
       (order as any).location?.currency ||
       currencyForCountry((order as any).location?.country)
     ).toUpperCase();
-    const total = roundToCurrency(Number(order.total), currency);
-    const platformFee = await this.platformFeeFor(order, total, currency);
+    const basket = roundToCurrency(Number(order.total), currency);
+    const { platformFee, customerSurcharge } = this.feeBreakdown(
+      order,
+      basket,
+      currency,
+    );
+    // What the customer is actually charged. The fixed part of the fee is a
+    // surcharge on top of the basket, so it has to be IN the amount as well as
+    // in our cut — charging only the basket would quietly take it out of the
+    // restaurant instead, which is the opposite of what the setting means.
+    const charged = roundToCurrency(basket + customerSurcharge, currency);
 
     const charge = await this.call<TapCharge>("/charges", {
       method: "POST",
       body: {
-        amount: total,
+        amount: charged,
         currency,
         // Tap's hosted page with every method the merchant has enabled.
         source: { id: "src_all" },
@@ -290,7 +299,15 @@ export class TapService {
           ...(params.customer.email ? { email: params.customer.email } : {}),
           ...(params.customer.phone ? { phone: parsePhone(params.customer.phone) } : {}),
         },
-        description: `${brand?.name ?? (order as any).location?.name ?? "Order"} — ${order.displayId ?? order.id}`,
+        // Tap's hosted page shows the description, and it is the only place
+        // the customer can see why they are being charged more than their
+        // basket. Stripe gets a "Service charge" line item; a charge has no
+        // line items, so it says so here.
+        description:
+          `${brand?.name ?? (order as any).location?.name ?? "Order"} — ${order.displayId ?? order.id}` +
+          (customerSurcharge > 0
+            ? ` (incl. ${customerSurcharge.toFixed(currencyDecimals(currency))} service charge)`
+            : ""),
         // Our own id on their record, so a Tap dashboard row can be traced
         // back to an order without going through our database.
         reference: {
@@ -307,7 +324,7 @@ export class TapService {
         },
         destinations: {
           destination: splitForDestination({
-            totalAmount: total,
+            totalAmount: charged,
             platformFee,
             currency,
             destinationId,
@@ -331,11 +348,11 @@ export class TapService {
       order,
       charge,
       currency,
-      total,
+      charged,
       platformFee,
     });
 
-    return { chargeId: charge.id, redirectUrl: url, amount: total, currency };
+    return { chargeId: charge.id, redirectUrl: url, amount: charged, currency };
   }
 
   /** Read a charge back from Tap. Used to reconcile an order whose webhook
@@ -507,34 +524,48 @@ export class TapService {
   // ── internals ─────────────────────────────────────────────────────────────
 
   /**
-   * Our cut, in the order's own currency.
+   * Split the fee the way the UK already does, in the order's own currency.
    *
-   * Mirrors PaymentsService.computeFeeBreakdownPence, brand-over-location and
-   * all — but in decimal units rather than pence, because Tap deals in
-   * decimals and a Gulf dinar has three of them. The `* 100` that path uses is
-   * exactly the assumption that breaks here.
+   * Two different things come out of one config, and they are NOT the same
+   * money:
+   *
+   *   • the FIXED part is a visible surcharge ADDED to the customer's bill —
+   *     7.75% + AED 2 on a 100 order means the customer is charged 102;
+   *   • the PERCENTAGE part is silent, taken out of the restaurant's share.
+   *
+   * So our cut is fixed + pct×basket, and the restaurant gets
+   * (basket + surcharge) − our cut, which is basket − pct×basket. Same
+   * arithmetic as computeFeeBreakdownPence in PaymentsService, and it has to
+   * stay the same or the identical brand config would mean different money
+   * either side of the Gulf.
+   *
+   * Decimal units, not pence: the `* 100` that path uses is exactly the
+   * assumption that breaks on a three-decimal dinar.
    */
-  private async platformFeeFor(
+  private feeBreakdown(
     order: any,
-    total: number,
+    basket: number,
     currency: string,
-  ): Promise<number> {
+  ): { platformFee: number; customerSurcharge: number } {
     const brand = order.brand;
     const src =
       brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
         ? brand
         : order.location;
     const mode = String(src?.applicationFeeMode ?? "none");
-    if (mode === "none") return 0;
-    const pct =
-      mode === "percentage_only" || mode === "fixed_and_percentage"
-        ? (Number(src?.applicationFeePercentage ?? 0) / 100) * total
-        : 0;
-    const fixed =
-      mode === "fixed_only" || mode === "fixed_and_percentage"
-        ? Number(src?.applicationFeeFixedAmount ?? 0)
-        : 0;
-    return roundToCurrency(pct + fixed, currency);
+    if (mode === "none") return { platformFee: 0, customerSurcharge: 0 };
+
+    const usesFixed = mode === "fixed_only" || mode === "fixed_and_percentage";
+    const usesPct = mode === "percentage_only" || mode === "fixed_and_percentage";
+    const fixed = usesFixed ? Number(src?.applicationFeeFixedAmount ?? 0) : 0;
+    const pct = usesPct
+      ? basket * (Number(src?.applicationFeePercentage ?? 0) / 100)
+      : 0;
+
+    return {
+      platformFee: roundToCurrency(fixed + pct, currency),
+      customerSurcharge: roundToCurrency(fixed, currency),
+    };
   }
 
   /**
@@ -550,7 +581,8 @@ export class TapService {
     order: any;
     charge: TapCharge;
     currency: string;
-    total: number;
+    /** What the customer is charged — basket PLUS any fixed surcharge. */
+    charged: number;
     platformFee: number;
   }): Promise<void> {
     await (this.prisma as any).payment
@@ -560,13 +592,18 @@ export class TapService {
           orderId: input.order.id,
           provider: "TAP",
           providerChargeId: input.charge.id,
-          amount: input.total,
+          amount: input.charged,
           currency: input.currency.toLowerCase(),
           status: "PENDING",
           method: "CARD",
           platformFee: input.platformFee,
           processingFee: 0,
-          netAmount: roundToCurrency(input.total - input.platformFee, input.currency),
+          // What the restaurant actually receives — and what a refund has to
+          // claw back from their destination.
+          netAmount: roundToCurrency(
+            input.charged - input.platformFee,
+            input.currency,
+          ),
           metadata: {
             tapChargeId: input.charge.id,
             tapStatus: input.charge.status,

@@ -333,6 +333,90 @@ describe("TapService.createCharge", () => {
     await expect(svc.createCharge(args)).rejects.toThrow(/Tap onboarding/i);
   });
 
+  it("adds the FIXED fee to the customer's bill and takes the percentage from the shop", async () => {
+    // The rule the UK already uses (computeFeeBreakdownPence): fixed is a
+    // visible surcharge on top, percentage is silent out of the restaurant's
+    // share. 7.75% + AED 2 on a 100 basket → customer charged 102, we keep
+    // 9.75, shop gets 92.25. Folding the fixed part into the fee WITHOUT
+    // adding it to the charge would quietly take it out of the restaurant,
+    // which is the opposite of what the setting means.
+    const svc = build({
+      id: "b1",
+      name: "Shawarma Co",
+      tapDestinationId: "dst_9",
+      applicationFeeMode: "fixed_and_percentage",
+      applicationFeePercentage: 7.75,
+      applicationFeeFixedAmount: 2,
+    });
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({ id: "chg_s", status: "INITIATED", transaction: { url: "u" } }),
+    } as any);
+
+    const out = await svc.createCharge(args);
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
+
+    expect(body.amount).toBe(102);
+    expect(body.destinations.destination).toEqual([
+      { id: "dst_9", amount: 92.25, currency: "AED" },
+    ]);
+    // Our remainder: 102 charged − 92.25 to the shop.
+    expect(roundToCurrency(102 - 92.25, "AED")).toBe(9.75);
+    expect(out.amount).toBe(102);
+    // The customer can only see why they're paying 102 from the description —
+    // a charge has no line items the way a Stripe session does.
+    expect(body.description).toContain("2.00 service charge");
+  });
+
+  it("adds nothing to the bill in percentage_only mode", async () => {
+    const svc = build({
+      id: "b1",
+      name: "S",
+      tapDestinationId: "dst_9",
+      applicationFeeMode: "percentage_only",
+      applicationFeePercentage: 7.75,
+      applicationFeeFixedAmount: 2,
+    });
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({ id: "chg_p", status: "INITIATED", transaction: { url: "u" } }),
+    } as any);
+    await svc.createCharge(args);
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
+    // Fixed amount is set but the mode doesn't use it — the customer pays the
+    // basket and the whole fee comes out of the shop.
+    expect(body.amount).toBe(100);
+    expect(body.destinations.destination[0].amount).toBe(92.25);
+    expect(body.description).not.toContain("service charge");
+  });
+
+  it("surcharges the whole fee in fixed_only mode", async () => {
+    const svc = build({
+      id: "b1",
+      name: "S",
+      tapDestinationId: "dst_9",
+      applicationFeeMode: "fixed_only",
+      applicationFeeFixedAmount: 2,
+      applicationFeePercentage: 7.75,
+    });
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({ id: "chg_f", status: "INITIATED", transaction: { url: "u" } }),
+    } as any);
+    await svc.createCharge(args);
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
+    // Customer pays 102, shop still gets its full 100 — the fee was entirely
+    // the customer's surcharge.
+    expect(body.amount).toBe(102);
+    expect(body.destinations.destination[0].amount).toBe(100);
+  });
+
   it("sends the split, the currency and the order's own reference", async () => {
     const svc = build({
       id: "b1",

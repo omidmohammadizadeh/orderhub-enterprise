@@ -66,6 +66,12 @@ export interface UpdateBrandDto {
   customDomain?: string | null;
   customDomainStatus?: string;
   stripeConnectedAccountId?: string | null;
+  /** Tap's destination id for this brand — where its share of a split charge
+   *  settles. The Gulf counterpart of stripeConnectedAccountId, and like it,
+   *  a card charge is refused without one. Entered by hand from Tap's
+   *  dashboard: Tap doesn't document the Business API response, so there is
+   *  nothing safe to read it out of automatically. */
+  tapDestinationId?: string | null;
   applicationFeeFixedAmount?: number | null;
   applicationFeePercentage?: number | null;
   applicationFeeMode?: string;
@@ -373,6 +379,11 @@ export class BrandsService {
         }),
         ...(dto.stripeConnectedAccountId !== undefined && {
           stripeConnectedAccountId: dto.stripeConnectedAccountId,
+        }),
+        ...(dto.tapDestinationId !== undefined && {
+          // Trimmed and emptied to null: a stray space makes it a destination
+          // Tap has never heard of, and the failure lands mid-payment.
+          tapDestinationId: (dto.tapDestinationId ?? "").trim() || null,
         }),
         ...(dto.applicationFeeFixedAmount !== undefined && {
           applicationFeeFixedAmount: dto.applicationFeeFixedAmount as any,
