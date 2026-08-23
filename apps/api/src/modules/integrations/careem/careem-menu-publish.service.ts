@@ -102,6 +102,33 @@ export class CareemMenuPublishService {
     return { ok: true, requestId };
   }
 
+  /**
+   * Wipe the branch's catalog and start again.
+   *
+   * Careem are explicit that this is for data inconsistencies only, and that
+   * it does not delete anything on its own — the old catalog goes only when
+   * the next FULL push (diff: false) lands, which is the only kind we send.
+   * So this is always a two-step: reset, then publish.
+   *
+   * A 403 means one of our own pushes is still in flight; their two-minute
+   * floor makes that likely if these are called back to back.
+   */
+  async resetCatalog(locationId: string, tenantId?: string) {
+    if (tenantId) await this.assertOwned(locationId, tenantId);
+    const brandId = await this.brandIdFor(locationId, tenantId);
+    await this.client.request("/catalogs", {
+      method: "DELETE",
+      branchId: locationId,
+      ...(brandId ? { brandId } : {}),
+    });
+    return {
+      ok: true,
+      note:
+        "Nothing is gone yet. Careem only drop the old catalog when the next " +
+        "full push arrives — publish the menu to complete the reset.",
+    };
+  }
+
   /** Poll one catalog request. The webhook says the same thing unprompted;
    *  this exists for when it hasn't arrived and someone is watching. */
   async status(locationId: string, requestId: string, tenantId?: string) {

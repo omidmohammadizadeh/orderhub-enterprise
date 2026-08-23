@@ -146,4 +146,28 @@ export class CareemOrderSyncService {
       body: { delay_in_minutes: Math.min(60, Math.max(1, Math.round(minutes))) },
     });
   }
+
+  /**
+   * Tell Careem the shop turned this order down.
+   *
+   * Their tag endpoint takes exactly one value, `reject`, and it is metadata
+   * rather than a state change — cancelling the order is a separate PUT, which
+   * the status listener above already does. This is the extra signal that says
+   * the rejection came from the kitchen, so their support can tell it apart
+   * from a customer cancelling.
+   */
+  async tagRejected(orderId: string): Promise<void> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, platform: "CAREEM" as any },
+      select: { externalId: true, metadata: true },
+    });
+    if (!order?.externalId) return;
+    const meta = (order.metadata ?? {}) as Record<string, unknown>;
+    await this.client.request(`/orders/${order.externalId}/tags`, {
+      method: "PATCH",
+      brandId: (meta.careemBrandId as string) ?? undefined,
+      branchId: (meta.careemBranchId as string) ?? undefined,
+      body: { tag: "reject" },
+    });
+  }
 }

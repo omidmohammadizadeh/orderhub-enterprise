@@ -33,6 +33,11 @@ import {
 // it. Until then a catalog push fails with "branch_id is not mapped". Nothing
 // here can do that step; `state` on the branch reports whether it has happened.
 
+export /** Careem cap a page at 20 and default to it. */
+const PAGE_SIZE = 20;
+/** 4000 branches. Far past any real chain, and a stop for a broken cursor. */
+const MAX_PAGES = 200;
+
 export interface CareemBranch {
   id: string;
   name: string;
@@ -225,7 +230,7 @@ export class CareemStoreService {
   }
 
   async listBrands() {
-    return this.client.request("/brands", { method: "GET" });
+    return this.paged("/brands");
   }
 
   async listBranches(tenantId: string, brandId: string) {
@@ -234,16 +239,47 @@ export class CareemStoreService {
       select: { id: true },
     });
     if (!brand) throw new BadRequestException("Brand not found");
-    return this.client.request("/branches", { method: "GET", brandId });
+    return this.paged("/branches", brandId);
   }
 
   /**
-   * Everything needed to take orders at one location, in order.
+   * Walk every page.
    *
-   * POS integration is deliberately NOT switched on here. Careem leave it off
-   * on a new branch so the catalog can be checked first, and flipping it as
-   * part of setup would defeat that — it is the moment their orders become our
-   * responsibility, and it deserves its own decision.
+   * Careem cap a page at 20 and default to it, so a single GET quietly returns
+   * the first twenty of anything — a chain with more branches than that would
+   * look like it had exactly twenty.
+   */
+  private async paged<T>(path: string, brandId?: string): Promise<T[]> {
+    const out: T[] = [];
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const res = await this.client.request<{ data?: T[] } | T[]>(
+        `${path}?page_number=${page}&page_size=${PAGE_SIZE}`,
+        { method: "GET", ...(brandId ? { brandId } : {}) },
+      );
+      const rows = Array.isArray(res) ? res : (res?.data ?? []);
+      out.push(...rows);
+      if (rows.length < PAGE_SIZE) return out;
+    }
+    this.logger.warn(
+      `Careem ${path} still had more after ${MAX_PAGES} pages — stopping.`,
+    );
+    return out;
+  }
+
+  /**
+   * Everything needed to take orders at one location, in their documented
+   * order: brand, branch, POS integration, hours.
+   *
+   * POS integration goes on here because their integration process puts it at
+   * branch setup — step 4, before mapping and before the catalog. That is safe
+   * precisely because of the step that follows it: an UNMAPPED branch is not
+   * an outlet on the SuperApp, so no customer can order from it and the switch
+   * has nothing to route yet.
+   *
+   * An ALREADY-MAPPED branch is the case where it is not safe, and the switch
+   * is left alone. Turning it on there would take a shop that is trading on
+   * its own Careem tablet and point its live orders at a menu we have not
+   * pushed yet. Re-running onboarding on a working shop must not do that.
    */
   async onboardLocation(tenantId: string, locationId: string) {
     const { brandId } = await this.location(tenantId, locationId, {
@@ -252,18 +288,27 @@ export class CareemStoreService {
 
     await this.registerBrand(tenantId, brandId);
     const branch = await this.registerBranch(tenantId, locationId);
+    const mapped = branch?.state === "MAPPED";
+
+    if (!mapped) await this.setPosIntegration(tenantId, locationId, true);
     await this.publishHours(tenantId, locationId);
 
     return {
       branch,
-      mapped: branch?.state === "MAPPED",
-      nextSteps: [
-        ...(branch?.state === "MAPPED"
-          ? []
-          : ["Ask Careem operations to map this branch to an outlet"]),
-        "Publish the menu",
-        "Enable POS integration once the catalog looks right on the SuperApp",
-      ],
+      mapped,
+      posIntegrationEnabled: !mapped,
+      nextSteps: mapped
+        ? [
+            "This branch is already mapped and may be trading. POS integration " +
+              "was left as it was — publish the menu first, then switch it on " +
+              "deliberately.",
+            "Publish the menu",
+          ]
+        : [
+            "Ask Careem operations to map this branch to an outlet",
+            "Publish the menu",
+            "Check the catalog on the SuperApp APK Careem share with partners",
+          ],
     };
   }
 

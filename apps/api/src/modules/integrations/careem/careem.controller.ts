@@ -275,6 +275,21 @@ export class CareemController {
     return this.menu.publish(locationId, user.tenantId);
   }
 
+  @Post("locations/:locationId/menu/reset")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Reset a branch's Careem catalog — only for data inconsistencies, and " +
+      "it takes effect on the next full publish",
+  })
+  resetMenu(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menu.resetCatalog(locationId, user.tenantId);
+  }
+
   @Get("locations/:locationId/menu/status/:requestId")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Track a catalog upload Careem accepted earlier" })
