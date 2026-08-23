@@ -84,6 +84,13 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
+  // Billing enforcement. The guard reads the per-location subscriptions that
+  // actually charge merchants, which nothing enforced before — so this ships
+  // as "observe": it logs what it WOULD block and lets the request through.
+  // Watch the logs, confirm who's affected, then set "enforce". "off" restores
+  // the previous behaviour exactly.
+  BILLING_ENFORCEMENT: z.enum(["off", "observe", "enforce"]).default("observe"),
+
   // Tap Payments — the Gulf money path. One key does everything: it
   // authorises the API calls AND signs the webhook `hashstring`, so there is
   // no separate webhook secret to set (or to forget) the way Stripe has.

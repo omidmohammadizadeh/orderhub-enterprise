@@ -13,6 +13,7 @@
 //      side (configured once in Stripe Dashboard → Billing → Manage
 //      failed payments).
 
+import { currencyForCountry } from "@orderhub/shared";
 import {
   Injectable,
   Logger,
@@ -32,6 +33,27 @@ try {
   Stripe = require("stripe").default ?? require("stripe");
 } catch {
   Stripe = null;
+}
+
+/**
+ * The currency to bill a location's subscription in.
+ *
+ * Stripe wants it lowercase. The shop's own `currency` column wins — it is what
+ * the till and the storefront already price in — falling back to whatever its
+ * country trades in.
+ *
+ * This is Order Hub charging the MERCHANT, so it settles to our UK account
+ * whatever we present it in. Presenting AED is about what the merchant's bank
+ * statement says, not about where the money lands — it needs no second Stripe
+ * account and no UAE entity.
+ */
+export function subscriptionCurrency(location: {
+  currency?: string | null;
+  country?: string | null;
+}): string {
+  return String(
+    location?.currency || currencyForCountry(location?.country),
+  ).toLowerCase();
 }
 
 @Injectable()
@@ -190,15 +212,31 @@ export class SubscriptionsService {
     await this.assertLocationAccess(tenantId, locationId, userId, role);
     if (!Number.isFinite(monthlyAmountPence) || monthlyAmountPence < 100) {
       throw new BadRequestException(
-        "monthlyAmountPence must be a number >= 100 (i.e. >= £1.00)",
+        "monthlyAmountPence must be a number >= 100 (i.e. >= 1.00 in the shop's currency)",
       );
     }
 
     const location = await this.prisma.location.findFirst({
       where: { id: locationId, brand: { tenantId } },
-      select: { id: true, name: true, brand: { select: { tenantId: true } } },
+      select: {
+        id: true,
+        name: true,
+        country: true,
+        currency: true,
+        brand: { select: { tenantId: true } },
+      },
     });
     if (!location) throw new NotFoundException("Location not found");
+
+    // The shop's own trading currency, not a constant. A Dubai merchant billed
+    // in GBP pays their bank's foreign-transaction fee on top and watches the
+    // amount move every month with the exchange rate — churn and support
+    // tickets, not a technical failure. Same rule that already picks their
+    // till currency and their delivery-zone mode.
+    //
+    // Stripe presents any of these on a UK account and still settles us in
+    // GBP, so this needs no second Stripe account and no UAE entity.
+    const currency = subscriptionCurrency(location);
 
     let sub = await (this.prisma as any).merchantSubscription.findFirst({
       where: { tenantId, locationId },
@@ -223,7 +261,7 @@ export class SubscriptionsService {
 
           const price = await this.stripe.prices.create({
             unit_amount: monthlyAmountPence,
-            currency: "gbp",
+            currency,
             recurring: { interval: "month" },
             product_data: {
               name: `OrderHub subscription — ${location.name}`,
@@ -275,7 +313,7 @@ export class SubscriptionsService {
           stripePriceId,
           stripeCheckoutId: checkoutId,
           monthlyAmountPence,
-          currency: "gbp",
+          currency,
           status: "incomplete",
         },
         include: { location: { select: { id: true, name: true } } },
@@ -291,7 +329,7 @@ export class SubscriptionsService {
       try {
         const price = await this.stripe.prices.create({
           unit_amount: monthlyAmountPence,
-          currency: "gbp",
+          currency,
           recurring: { interval: "month" },
           product_data: {
             name: `OrderHub subscription — ${location.name}`,

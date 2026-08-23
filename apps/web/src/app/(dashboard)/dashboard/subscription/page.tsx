@@ -10,6 +10,13 @@
 // can render pills without an extra round-trip.
 
 import { useState, Suspense } from "react";
+import {
+  formatMoney,
+  fromMinorUnits,
+  toMinorUnits,
+  currencySymbol,
+  currencyForCountry,
+} from "@orderhub/shared";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import {
@@ -49,6 +56,10 @@ interface MerchantSubscription {
 interface Location {
   id: string;
   name: string;
+  /** The shop's trading currency and country, so the subscription is priced in
+   *  the money the merchant's bank statement will actually show. */
+  currency?: string | null;
+  country?: string | null;
 }
 
 // Who may set or cancel a plan on someone's behalf.
@@ -215,6 +226,12 @@ function Inner() {
           locationName={
             locations.find((l) => l.id === setupLocationId)?.name ?? ""
           }
+          currency={
+            locations.find((l) => l.id === setupLocationId)?.currency ??
+            currencyForCountry(
+              locations.find((l) => l.id === setupLocationId)?.country,
+            )
+          }
           onClose={() => setSetupLocationId(null)}
           onCreated={() => {
             qc.invalidateQueries({ queryKey: ["merchant-subscriptions"] });
@@ -268,8 +285,13 @@ function SubscriptionRow({
     onSuccess: onChanged,
   });
 
-  const monthly = (sub.monthlyAmountPence / 100).toFixed(2);
-  const currencySym = sub.currency === "gbp" ? "£" : sub.currency.toUpperCase();
+  // fromMinorUnits, not / 100: a Kuwaiti dinar is thousandths, so a KWD
+  // subscription rendered by dividing by 100 shows ten times the real price.
+  const monthly = formatMoney(
+    fromMinorUnits(sub.monthlyAmountPence, sub.currency),
+    sub.currency,
+    { compact: true },
+  );
   const nextCharge = sub.currentPeriodEnd
     ? new Date(sub.currentPeriodEnd).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -297,7 +319,6 @@ function SubscriptionRow({
             )}
           </div>
           <div className="mt-0.5 text-xs text-zinc-500">
-            {currencySym}
             {monthly}/month
             {sub.defaultPaymentBrand && sub.defaultPaymentLast4 && (
               <>
@@ -415,8 +436,6 @@ function InvoiceList({
         .get(`/v1/subscriptions/locations/${locationId}/invoices`)
         .then((r) => r.data ?? []),
   });
-  const currencySym = currency === "gbp" ? "£" : currency.toUpperCase();
-
   if (isLoading)
     return (
       <div className="mt-3 ml-13 py-3">
@@ -442,8 +461,9 @@ function InvoiceList({
             {new Date(inv.createdAt).toLocaleDateString("en-GB")}
           </span>
           <span className="text-zinc-900 font-medium">
-            {currencySym}
-            {(inv.amountDue / 100).toFixed(2)}
+            {formatMoney(fromMinorUnits(inv.amountDue, currency), currency, {
+              compact: true,
+            })}
           </span>
           <InvoiceStatusPill status={inv.status} />
           <span className="flex-1" />
@@ -477,11 +497,17 @@ function InvoiceList({
 function SetupModal({
   locationId,
   locationName,
+  currency,
   onClose,
   onCreated,
 }: {
   locationId: string;
   locationName: string;
+  /** The SHOP's trading currency. The amount box said £ regardless, so setting
+   *  up a Dubai shop meant typing a number in the wrong currency — and the
+   *  server bills whatever the shop trades in, so it would have been charged
+   *  as AED. */
+  currency: string;
   onClose: () => void;
   onCreated: () => void;
 }) {
@@ -491,7 +517,8 @@ function SetupModal({
     mutationFn: () =>
       apiClient
         .post(`/v1/subscriptions/locations/${locationId}/plan`, {
-          monthlyAmountPence: Math.round(Number(amount) * 100),
+          // Minor units for the shop's own currency — not always × 100.
+          monthlyAmountPence: toMinorUnits(Number(amount), currency),
           billingEmail: email || undefined,
         })
         .then((r) => r.data as { checkoutUrl?: string }),
@@ -524,10 +551,12 @@ function SetupModal({
         <div className="mt-5 space-y-3">
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Monthly amount (GBP)
+              Monthly amount ({currency.toUpperCase()})
             </label>
             <div className="mt-1 flex items-center rounded-md border border-zinc-200">
-              <span className="px-3 text-zinc-500">£</span>
+              <span className="px-3 text-zinc-500">
+                {currencySymbol(currency).trim()}
+              </span>
               <input
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
