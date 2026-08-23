@@ -38,6 +38,7 @@ import {
 } from "@/lib/api/marketing.client";
 import { EditCampaignModal } from "@/components/marketing/edit-campaign-modal";
 import { TopSellersPanel } from "@/components/marketing/top-sellers-panel";
+import { LoyaltyCardPanel } from "@/components/marketing/loyalty-card-panel";
 import { PercentageOffCampaignForm } from "@/components/marketing/percentage-off-form";
 import { AmountOffCampaignForm } from "@/components/marketing/amount-off-form";
 import { PercentOffItemsCampaignForm } from "@/components/marketing/percent-off-items-form";
@@ -205,6 +206,14 @@ export default function MarketingPage() {
           changes far more often than they launch an offer. */}
       <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4">
         <TopSellersPanel />
+      </div>
+
+      {/* The loyalty card is here because this is where an operator comes to
+          give money away — but it is kept apart from campaigns on purpose.
+          Campaigns are advertised; a stamp card is private to the customer
+          holding it and appears nowhere on the public storefront. */}
+      <div className="mt-4">
+        <LoyaltyCardPanel />
       </div>
 
       {isLoading ? (
