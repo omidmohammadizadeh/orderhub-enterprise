@@ -72,6 +72,11 @@ export interface MenuCategory {
   menuId: string;
   name: string;
   sortOrder: number;
+  // Which service modes the whole category is sold in. Optional because rows
+  // saved before the feature have them absent, and absent means "all three".
+  availableCollection?: boolean;
+  availableDelivery?: boolean;
+  availableDineIn?: boolean;
   items: MenuItemOnCategory[];
 }
 

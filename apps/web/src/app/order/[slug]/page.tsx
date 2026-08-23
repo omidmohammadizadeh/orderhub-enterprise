@@ -937,9 +937,16 @@ function OrderPage() {
     const lists: Array<{ cat: MenuCategory; items: MenuItem[] }> = [];
     for (const cat of allCategories) {
       if (activeCategory !== "all" && cat.id !== activeCategory) continue;
+      // A whole category can be turned off for a service mode, which takes
+      // everything inside it — skip it rather than rendering an empty heading.
+      if (!itemAllowsFulfillment(cat, fulfillmentType)) continue;
       const items = cat.items
         .filter((link) => link.item.isAvailable)
         .map((link) => link.item)
+        // Products the shop does not sell this way. Switching between
+        // collection and delivery re-runs this, so the menu changes with the
+        // choice rather than failing at checkout.
+        .filter((it) => itemAllowsFulfillment(it, fulfillmentType))
         .filter(
           (it) =>
             !q ||
@@ -955,7 +962,7 @@ function OrderPage() {
       }
     }
     return lists;
-  }, [allCategories, activeCategory, search]);
+  }, [allCategories, activeCategory, search, fulfillmentType]);
 
   // ── Group ordering ───────────────────────────────────────────────────────
   //
@@ -2376,6 +2383,10 @@ function OrderPage() {
           // Customer-facing: photo-led sheet, one priced Add button. The
           // till keeps the compact dialog — same logic, different chrome.
           presentation="sheet"
+          // One question per screen, as the till and table pages already do.
+          // A long scroll of every group at once is where customers miss a
+          // required choice and then cannot see why the button is disabled.
+          flow="stepped"
           heroFallback={
             <FoodPlaceholder name={modalItem.name} className="h-full w-full" />
           }

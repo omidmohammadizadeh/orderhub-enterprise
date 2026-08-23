@@ -1379,6 +1379,16 @@ export class MenusService {
         ...((dto as any).description !== undefined && { description: (dto as any).description }),
         ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
         ...((dto as any).isActive !== undefined && { isVisible: (dto as any).isActive }),
+        // Service modes. A category off for a mode takes everything in it.
+        ...((dto as any).availableCollection !== undefined && {
+          availableCollection: (dto as any).availableCollection,
+        }),
+        ...((dto as any).availableDelivery !== undefined && {
+          availableDelivery: (dto as any).availableDelivery,
+        }),
+        ...((dto as any).availableDineIn !== undefined && {
+          availableDineIn: (dto as any).availableDineIn,
+        }),
       },
     });
   }

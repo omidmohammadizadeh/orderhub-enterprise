@@ -920,11 +920,11 @@ model BrandChannelSource {
 }
 
 model MenuCategory {
-  id                 String   @id @default(cuid())
-  menuId             String
-  menu               Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  name               String
-  description        String?
+  id                  String   @id @default(cuid())
+  menuId              String
+  menu                Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
   // Kitchen-language name. The customer-facing menu stays in English; the
   // kitchen ticket prints this instead when it is set. A Chinese takeaway
   // runs an English menu for customers and a Chinese one for the wok, and
@@ -932,20 +932,27 @@ model MenuCategory {
   //
   // Null (the default) means "no translation" — the ticket falls back to
   // `name`, so nothing changes for a shop that never fills this in.
-  secondLanguageName String?
-  imageUrl           String?
-  sortOrder          Int      @default(0)
-  isVisible          Boolean  @default(true)
+  secondLanguageName  String?
+  imageUrl            String?
+  sortOrder           Int      @default(0)
+  isVisible           Boolean  @default(true)
   // Phase AK: many-to-many across menus. menuIds[] mirrors Base44's
   // pattern of letting a single category appear in multiple menus
   // without duplicating it. menuId above stays as the "primary" menu
   // (matches the existing service layer); menuIds is the authoritative
   // membership list used by Menu Manager filters and POS lookups.
-  menuIds            String[] @default([])
+  menuIds             String[] @default([])
   // available = staff toggle (hide everywhere). visibleToCustomers =
   // visibility on the customer storefront only; POS still sees it.
-  available          Boolean  @default(true)
-  visibleToCustomers Boolean  @default(true)
+  available           Boolean  @default(true)
+  visibleToCustomers  Boolean  @default(true)
+  // Which SERVICE MODES this whole category is sold in. Same three flags as
+  // MenuItem, all defaulting true. A category being off for a mode hides the
+  // category AND everything in it — an easier switch than unticking thirty
+  // items one at a time, which is why it exists alongside the per-item flags.
+  availableCollection Boolean  @default(true)
+  availableDelivery   Boolean  @default(true)
+  availableDineIn     Boolean  @default(true)
 
   // Import / sync (same pattern as Menu).
   platformSource   String?

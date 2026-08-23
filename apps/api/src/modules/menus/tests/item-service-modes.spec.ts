@@ -1,4 +1,5 @@
 import {
+  categoryItemAllowsFulfillment,
   itemAllowsFulfillment,
   itemAllowsMode,
   isOrderableNowhere,
@@ -97,5 +98,43 @@ describe("isOrderableNowhere", () => {
 
   it("does not flag a normal item", () => {
     expect(isOrderableNowhere({ availableDelivery: false })).toBe(false);
+  });
+});
+
+// A category switched off for a mode takes everything inside it, whatever the
+// individual items say. That is the whole point of having the switch at the
+// level people think in — nobody unticks thirty items one at a time.
+describe("categoryItemAllowsFulfillment", () => {
+  const on = {
+    availableCollection: true,
+    availableDelivery: true,
+    availableDineIn: true,
+  };
+
+  it("hides every item in a category that is off for delivery", () => {
+    const cat = { ...on, availableDelivery: false };
+    expect(categoryItemAllowsFulfillment(cat, on, "DELIVERY")).toBe(false);
+    // …including an item explicitly marked available for delivery.
+    expect(
+      categoryItemAllowsFulfillment(cat, { availableDelivery: true }, "DELIVERY"),
+    ).toBe(false);
+  });
+
+  it("still allows that category on collection", () => {
+    const cat = { ...on, availableDelivery: false };
+    expect(categoryItemAllowsFulfillment(cat, on, "PICKUP")).toBe(true);
+  });
+
+  it("lets one item opt out inside a category that is on", () => {
+    expect(
+      categoryItemAllowsFulfillment(on, { availableDelivery: false }, "DELIVERY"),
+    ).toBe(false);
+    expect(categoryItemAllowsFulfillment(on, on, "DELIVERY")).toBe(true);
+  });
+
+  it("allows everything when neither carries the flags", () => {
+    expect(categoryItemAllowsFulfillment(undefined, undefined, "DELIVERY")).toBe(
+      true,
+    );
   });
 });

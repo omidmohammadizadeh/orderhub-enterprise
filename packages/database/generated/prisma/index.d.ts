@@ -36669,6 +36669,9 @@ export namespace Prisma {
     isVisible: boolean | null
     available: boolean | null
     visibleToCustomers: boolean | null
+    availableCollection: boolean | null
+    availableDelivery: boolean | null
+    availableDineIn: boolean | null
     platformSource: string | null
     externalId: string | null
     externalParentId: string | null
@@ -36690,6 +36693,9 @@ export namespace Prisma {
     isVisible: boolean | null
     available: boolean | null
     visibleToCustomers: boolean | null
+    availableCollection: boolean | null
+    availableDelivery: boolean | null
+    availableDineIn: boolean | null
     platformSource: string | null
     externalId: string | null
     externalParentId: string | null
@@ -36712,6 +36718,9 @@ export namespace Prisma {
     menuIds: number
     available: number
     visibleToCustomers: number
+    availableCollection: number
+    availableDelivery: number
+    availableDineIn: number
     platformSource: number
     externalId: number
     externalParentId: number
@@ -36743,6 +36752,9 @@ export namespace Prisma {
     isVisible?: true
     available?: true
     visibleToCustomers?: true
+    availableCollection?: true
+    availableDelivery?: true
+    availableDineIn?: true
     platformSource?: true
     externalId?: true
     externalParentId?: true
@@ -36764,6 +36776,9 @@ export namespace Prisma {
     isVisible?: true
     available?: true
     visibleToCustomers?: true
+    availableCollection?: true
+    availableDelivery?: true
+    availableDineIn?: true
     platformSource?: true
     externalId?: true
     externalParentId?: true
@@ -36786,6 +36801,9 @@ export namespace Prisma {
     menuIds?: true
     available?: true
     visibleToCustomers?: true
+    availableCollection?: true
+    availableDelivery?: true
+    availableDineIn?: true
     platformSource?: true
     externalId?: true
     externalParentId?: true
@@ -36895,6 +36913,9 @@ export namespace Prisma {
     menuIds: string[]
     available: boolean
     visibleToCustomers: boolean
+    availableCollection: boolean
+    availableDelivery: boolean
+    availableDineIn: boolean
     platformSource: string | null
     externalId: string | null
     externalParentId: string | null
@@ -36936,6 +36957,9 @@ export namespace Prisma {
     menuIds?: boolean
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: boolean
     externalId?: boolean
     externalParentId?: boolean
@@ -36962,6 +36986,9 @@ export namespace Prisma {
     menuIds?: boolean
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: boolean
     externalId?: boolean
     externalParentId?: boolean
@@ -36985,6 +37012,9 @@ export namespace Prisma {
     menuIds?: boolean
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: boolean
     externalId?: boolean
     externalParentId?: boolean
@@ -37024,6 +37054,9 @@ export namespace Prisma {
       menuIds: string[]
       available: boolean
       visibleToCustomers: boolean
+      availableCollection: boolean
+      availableDelivery: boolean
+      availableDineIn: boolean
       platformSource: string | null
       externalId: string | null
       externalParentId: string | null
@@ -37439,6 +37472,9 @@ export namespace Prisma {
     readonly menuIds: FieldRef<"MenuCategory", 'String[]'>
     readonly available: FieldRef<"MenuCategory", 'Boolean'>
     readonly visibleToCustomers: FieldRef<"MenuCategory", 'Boolean'>
+    readonly availableCollection: FieldRef<"MenuCategory", 'Boolean'>
+    readonly availableDelivery: FieldRef<"MenuCategory", 'Boolean'>
+    readonly availableDineIn: FieldRef<"MenuCategory", 'Boolean'>
     readonly platformSource: FieldRef<"MenuCategory", 'String'>
     readonly externalId: FieldRef<"MenuCategory", 'String'>
     readonly externalParentId: FieldRef<"MenuCategory", 'String'>
@@ -152070,6 +152106,9 @@ export namespace Prisma {
     menuIds: 'menuIds',
     available: 'available',
     visibleToCustomers: 'visibleToCustomers',
+    availableCollection: 'availableCollection',
+    availableDelivery: 'availableDelivery',
+    availableDineIn: 'availableDineIn',
     platformSource: 'platformSource',
     externalId: 'externalId',
     externalParentId: 'externalParentId',
@@ -159144,6 +159183,9 @@ export namespace Prisma {
     menuIds?: StringNullableListFilter<"MenuCategory">
     available?: BoolFilter<"MenuCategory"> | boolean
     visibleToCustomers?: BoolFilter<"MenuCategory"> | boolean
+    availableCollection?: BoolFilter<"MenuCategory"> | boolean
+    availableDelivery?: BoolFilter<"MenuCategory"> | boolean
+    availableDineIn?: BoolFilter<"MenuCategory"> | boolean
     platformSource?: StringNullableFilter<"MenuCategory"> | string | null
     externalId?: StringNullableFilter<"MenuCategory"> | string | null
     externalParentId?: StringNullableFilter<"MenuCategory"> | string | null
@@ -159169,6 +159211,9 @@ export namespace Prisma {
     menuIds?: SortOrder
     available?: SortOrder
     visibleToCustomers?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     platformSource?: SortOrderInput | SortOrder
     externalId?: SortOrderInput | SortOrder
     externalParentId?: SortOrderInput | SortOrder
@@ -159198,6 +159243,9 @@ export namespace Prisma {
     menuIds?: StringNullableListFilter<"MenuCategory">
     available?: BoolFilter<"MenuCategory"> | boolean
     visibleToCustomers?: BoolFilter<"MenuCategory"> | boolean
+    availableCollection?: BoolFilter<"MenuCategory"> | boolean
+    availableDelivery?: BoolFilter<"MenuCategory"> | boolean
+    availableDineIn?: BoolFilter<"MenuCategory"> | boolean
     platformSource?: StringNullableFilter<"MenuCategory"> | string | null
     externalId?: StringNullableFilter<"MenuCategory"> | string | null
     externalParentId?: StringNullableFilter<"MenuCategory"> | string | null
@@ -159223,6 +159271,9 @@ export namespace Prisma {
     menuIds?: SortOrder
     available?: SortOrder
     visibleToCustomers?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     platformSource?: SortOrderInput | SortOrder
     externalId?: SortOrderInput | SortOrder
     externalParentId?: SortOrderInput | SortOrder
@@ -159253,6 +159304,9 @@ export namespace Prisma {
     menuIds?: StringNullableListFilter<"MenuCategory">
     available?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
     visibleToCustomers?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
+    availableCollection?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
+    availableDelivery?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
+    availableDineIn?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
     platformSource?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
     externalId?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
     externalParentId?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
@@ -172996,6 +173050,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -173021,6 +173078,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -173044,6 +173104,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -173069,6 +173132,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -173093,6 +173159,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -173114,6 +173183,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -173136,6 +173208,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -188024,6 +188099,9 @@ export namespace Prisma {
     menuIds?: SortOrder
     available?: SortOrder
     visibleToCustomers?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     platformSource?: SortOrder
     externalId?: SortOrder
     externalParentId?: SortOrder
@@ -188049,6 +188127,9 @@ export namespace Prisma {
     isVisible?: SortOrder
     available?: SortOrder
     visibleToCustomers?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     platformSource?: SortOrder
     externalId?: SortOrder
     externalParentId?: SortOrder
@@ -188070,6 +188151,9 @@ export namespace Prisma {
     isVisible?: SortOrder
     available?: SortOrder
     visibleToCustomers?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     platformSource?: SortOrder
     externalId?: SortOrder
     externalParentId?: SortOrder
@@ -215876,6 +215960,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -215899,6 +215986,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -216157,6 +216247,9 @@ export namespace Prisma {
     menuIds?: StringNullableListFilter<"MenuCategory">
     available?: BoolFilter<"MenuCategory"> | boolean
     visibleToCustomers?: BoolFilter<"MenuCategory"> | boolean
+    availableCollection?: BoolFilter<"MenuCategory"> | boolean
+    availableDelivery?: BoolFilter<"MenuCategory"> | boolean
+    availableDineIn?: BoolFilter<"MenuCategory"> | boolean
     platformSource?: StringNullableFilter<"MenuCategory"> | string | null
     externalId?: StringNullableFilter<"MenuCategory"> | string | null
     externalParentId?: StringNullableFilter<"MenuCategory"> | string | null
@@ -218714,6 +218807,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -218738,6 +218834,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -218883,6 +218982,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -218907,6 +219009,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -233988,6 +234093,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -234012,6 +234120,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -234091,6 +234202,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -234115,6 +234229,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248785,6 +248902,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryCreatemenuIdsInput | string[]
     available?: boolean
     visibleToCustomers?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     platformSource?: string | null
     externalId?: string | null
     externalParentId?: string | null
@@ -248836,6 +248956,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248859,6 +248982,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248882,6 +249008,9 @@ export namespace Prisma {
     menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
     available?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     platformSource?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalParentId?: NullableStringFieldUpdateOperationsInput | string | null

@@ -78,6 +78,23 @@ export function itemAllowsFulfillment(
   return itemAllowsMode(item, serviceModeFor(fulfillmentType));
 }
 
+/**
+ * Is this item sold this way, taking its CATEGORY into account?
+ *
+ * A category turned off for a mode takes everything inside it, whatever the
+ * individual items say — that is the point of having the switch at the level
+ * people actually think in. An item can still be restricted on its own within
+ * a category that is on.
+ */
+export function categoryItemAllowsFulfillment(
+  category: ServiceModeFlags | null | undefined,
+  item: ServiceModeFlags | null | undefined,
+  fulfillmentType: string | null | undefined,
+): boolean {
+  const mode = serviceModeFor(fulfillmentType);
+  return itemAllowsMode(category, mode) && itemAllowsMode(item, mode);
+}
+
 /** Every mode this item is sold in — for a badge, or a marketplace that wants
  *  the list rather than a yes/no. */
 export function modesFor(item: ServiceModeFlags | null | undefined): ServiceMode[] {

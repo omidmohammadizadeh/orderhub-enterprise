@@ -375,6 +375,8 @@ export default function KioskPage() {
             // "PICKUP" below), so a product not sold on collection has no
             // business on this screen.
             if (!itemAllowsMode(item, "COLLECTION")) return null;
+            // …and the category it sits in.
+            if (!itemAllowsMode(currentCat, "COLLECTION")) return null;
             const sold = item?.outOfStock === true;
             return (
               <button

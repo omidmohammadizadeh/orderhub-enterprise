@@ -946,6 +946,13 @@ model MenuCategory {
   // visibility on the customer storefront only; POS still sees it.
   available          Boolean  @default(true)
   visibleToCustomers Boolean  @default(true)
+  // Which SERVICE MODES this whole category is sold in. Same three flags as
+  // MenuItem, all defaulting true. A category being off for a mode hides the
+  // category AND everything in it — an easier switch than unticking thirty
+  // items one at a time, which is why it exists alongside the per-item flags.
+  availableCollection Boolean @default(true)
+  availableDelivery   Boolean @default(true)
+  availableDineIn     Boolean @default(true)
 
   // Import / sync (same pattern as Menu).
   platformSource   String?

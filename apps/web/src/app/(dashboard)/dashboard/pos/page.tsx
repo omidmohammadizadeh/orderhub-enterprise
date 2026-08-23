@@ -30,7 +30,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   round2,
   toOrderLineModifier,
-  itemAllowsFulfillment,
+  categoryItemAllowsFulfillment,
   type SelectedModifier,
   type ProductSku,
 } from "@orderhub/shared";
@@ -418,7 +418,7 @@ export default function PosPage() {
         if (!it || !it.isAvailable) continue;
         // Search reaches the whole menu, so it has to honour the same rule as
         // the grid — otherwise the one route around it is the search box
-        if (!itemAllowsFulfillment(it, draft.fulfillmentType)) continue;
+        if (!categoryItemAllowsFulfillment(c, it, draft.fulfillmentType)) continue;
         if (
           it.name.toLowerCase().includes(q) ||
           (it.description ?? "").toLowerCase().includes(q)
@@ -438,7 +438,9 @@ export default function PosPage() {
       // Products the shop does not sell this way. The service mode is chosen
       // on the step before the menu, so this is settled by the time anyone
       // sees a tile.
-      .filter((it) => itemAllowsFulfillment(it, draft.fulfillmentType));
+      .filter((it) =>
+        categoryItemAllowsFulfillment(activeCategory, it, draft.fulfillmentType),
+      );
   }, [activeCategory, draft.fulfillmentType]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
@@ -1431,7 +1433,11 @@ export default function PosPage() {
                         (l: any) =>
                           l.item &&
                           l.item.isAvailable &&
-                          itemAllowsFulfillment(l.item, draft.fulfillmentType),
+                          categoryItemAllowsFulfillment(
+                            cat,
+                            l.item,
+                            draft.fulfillmentType,
+                          ),
                       ).length;
                       return (
                         <button
