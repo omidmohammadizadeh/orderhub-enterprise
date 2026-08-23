@@ -463,6 +463,10 @@ export default function CareemPage() {
             integration can be run before they issue a client. Nothing here
             leaves the box.
           </p>
+          <p className="mt-1 text-xs text-amber-700">
+            It is held in memory, so any API restart or deploy empties it. If a
+            step says a branch does not exist, run step 2 again.
+          </p>
         </div>
 
         {sandbox.data?.enabled === false ? (

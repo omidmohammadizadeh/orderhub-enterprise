@@ -115,6 +115,8 @@ export class CareemSandboxService {
 
   snapshot() {
     return {
+      // In memory and per-instance. Anything below is gone after a restart.
+      volatile: true,
       brands: [...this.brands.values()],
       branches: [...this.branches.values()],
       catalogs: [...this.catalogs.keys()],
@@ -313,8 +315,13 @@ export class CareemSandboxService {
   private mustBranch(branchId: string) {
     const branch = this.branches.get(branchId);
     if (!branch) {
+      // The sandbox lives in memory, so every deploy and every restart empties
+      // it. Saying so here saves the reader diagnosing a 404 that only means
+      // "the API restarted since you ran step 2".
       throw new CareemMockError(404, {
-        message: `branch ${branchId} does not exist`,
+        message:
+          `branch ${branchId} does not exist. The sandbox is in memory and is ` +
+          `emptied by any API restart — re-run "Onboard the shop" to recreate it.`,
         code: "NOT_FOUND_ERROR",
         error_type: "NotFoundError",
       });
