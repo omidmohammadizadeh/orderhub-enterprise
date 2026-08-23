@@ -325,11 +325,28 @@ export class SubscriptionsService {
     // ── Already have a sub → swap to a new Price for the new amount.
     // For simplicity we always mint a fresh Price; Stripe accepts a
     // few thousand per merchant fine.
+    //
+    // The EXISTING subscription's currency wins over the location's. Stripe
+    // will not let a live subscription change currency, so if a shop's country
+    // was switched after it started paying — which rewrites Location.currency —
+    // handing Stripe an AED price for a GBP subscription fails with a currency
+    // -mismatch error at the moment an operator tries to change the price.
+    // Keeping the original is the only thing Stripe will accept; moving a
+    // paying merchant to a new currency means cancelling and re-subscribing,
+    // which is a decision, not a side effect of editing an amount.
+    const existingCurrency = String(sub.currency ?? currency).toLowerCase();
+    if (existingCurrency !== currency) {
+      this.logger.warn(
+        `Location ${locationId} now trades in ${currency.toUpperCase()} but its ` +
+          `subscription bills ${existingCurrency.toUpperCase()}; keeping the ` +
+          `subscription's currency (Stripe cannot change it in place).`,
+      );
+    }
     if (this.stripe && sub.stripeSubscriptionId) {
       try {
         const price = await this.stripe.prices.create({
           unit_amount: monthlyAmountPence,
-          currency,
+          currency: existingCurrency,
           recurring: { interval: "month" },
           product_data: {
             name: `OrderHub subscription — ${location.name}`,
