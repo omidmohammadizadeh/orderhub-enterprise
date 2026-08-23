@@ -40,6 +40,28 @@ import { PaymentsService } from "./payments.service";
 // rather than owning the balance, and a refund has to name the destinations to
 // claw back from.
 //
+// ── Two constraints Tap confirmed in writing, 2026-08-23 ────────────────────
+//
+// 1. THE REMAINDER IS NOT WHAT WE KEEP. Tap's processing fee is "deducted from
+//    the total transaction amount at the Marketplace level, not from each
+//    destination/restaurant's share", and Tap "also deducts the applicable VAT
+//    on the processing fee". Both come out of OUR balance, after the
+//    destination has been paid in full.
+//
+//    So on a 102 charge with a 95 destination, the 7 remainder is gross: Tap
+//    takes its fee on the whole 102, plus 5% VAT on that fee, and what's left
+//    is ours. The opposite of Stripe, where the SHOP absorbs the card cost.
+//    Nothing in this file models that — it happens at settlement, not at
+//    charge time — but it is why a Gulf brand's percentage has to be set
+//    higher than the UK equivalent to take home the same money.
+//
+// 2. ONE MARKETPLACE ACCOUNT SERVES ONE COUNTRY. "The retailer's country must
+//    be the same as the Marketplace account's country, because Tap cannot
+//    split a payment across countries." A UAE marketplace cannot onboard a
+//    Saudi restaurant. Expanding to a second Gulf country means a second
+//    licensed entity, bank account and Tap account there — not a config
+//    change. Whatever `TAP_SECRET_KEY` holds, it is one country's marketplace.
+//
 // ── What is verified and what is not ────────────────────────────────────────
 //
 // Verified against developers.tap.company: the charge, refund and webhook

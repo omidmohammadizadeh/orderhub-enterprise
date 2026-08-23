@@ -21,10 +21,19 @@ describe("paymentProviderForCountry", () => {
     expect(paymentProviderForCountry("IE")).toBe("STRIPE");
   });
 
-  it("routes the Gulf to Tap", () => {
+  it("routes the six countries Tap actually serves to Tap", () => {
     for (const c of ["AE", "SA", "KW", "QA", "BH", "OM"]) {
       expect(usesTap(c)).toBe(true);
     }
+  });
+
+  it("does not route Egypt or Jordan to Tap", () => {
+    // Both were in this list, taken from Tap's MENA marketing copy. Asked
+    // directly, Tap said "Egypt is currently not supported" — they have a
+    // Cairo office, which is what made the copy read the other way. A shop in
+    // either was being sent to a provider that cannot onboard it.
+    expect(usesTap("EG")).toBe(false);
+    expect(usesTap("JO")).toBe(false);
   });
 
   it("falls back to Stripe for anywhere unlisted, including no country at all", () => {

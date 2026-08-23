@@ -20,14 +20,26 @@
 export type PaymentProviderId = "STRIPE" | "TAP";
 
 /**
- * Countries Tap settles in. Tap's own footprint is the GCC plus Egypt and
- * Jordan, which is also roughly talabat's — the marketplaces these shops
- * already trade on.
+ * Countries Tap settles in — the six Tap confirmed in writing on 2026-08-23,
+ * and no more.
+ *
+ * Egypt and Jordan used to be in this list. They came out of Tap's own MENA
+ * marketing copy and were wrong: Tap support, asked directly, said "Egypt is
+ * currently not supported" (they have a Cairo office, which is what made the
+ * marketing read the other way), and Jordan is absent from the supported list
+ * too. A shop in either was being routed to a provider that cannot onboard it.
  *
  * A country NOT listed here falls to Stripe. That is the safe default: Stripe
  * is the live, proven path, and a shop in an unlisted country getting Stripe
  * is a shop that can at least be onboarded manually, whereas defaulting to Tap
  * would hand it a provider that cannot settle its currency.
+ *
+ * ⚠️ Being on this list is necessary but NOT sufficient. Tap requires the
+ * retailer's country to MATCH the marketplace account's country — they cannot
+ * split a payment across countries — so one Tap marketplace account serves
+ * exactly one of these six. Selling into a second country means a second
+ * licensed entity, a second bank account and a second Tap account there. See
+ * TapService's header.
  */
 const TAP_COUNTRIES = new Set([
   "AE", // United Arab Emirates
@@ -36,8 +48,6 @@ const TAP_COUNTRIES = new Set([
   "QA", // Qatar
   "BH", // Bahrain
   "OM", // Oman
-  "EG", // Egypt
-  "JO", // Jordan
 ]);
 
 export function paymentProviderForCountry(
