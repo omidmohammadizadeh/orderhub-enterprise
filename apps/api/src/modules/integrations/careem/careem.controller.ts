@@ -54,7 +54,23 @@ export class CareemController {
     summary: "Check Careem credentials, list visible brands/branches, and show recent webhooks",
   })
   async diagnostics() {
+    // Whether ANY of what follows is Careem. With the sandbox on, the token
+    // and the gateway are both this server, so "credentials accepted" means we
+    // accepted our own — which is the one thing this page must never imply.
+    const sandbox =
+      process.env.CAREEM_SANDBOX === "true" &&
+      process.env.CAREEM_ENV !== "production";
+
     const out: Record<string, unknown> = {
+      sandbox,
+      ...(sandbox
+        ? {
+            sandboxWarning:
+              "The sandbox is ON. The token and gateway below are this server " +
+              "answering as Careem. Nothing here says anything about whether " +
+              "Careem accept our credentials — unset CAREEM_SANDBOX to find out.",
+          }
+        : {}),
       environment: this.client.env,
       baseUrl: this.client.baseUrl,
       // Presence, never the value.

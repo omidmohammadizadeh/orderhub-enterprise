@@ -28,6 +28,8 @@ import { apiClient } from "@/lib/api/client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface Diagnostics {
+  sandbox?: boolean;
+  sandboxWarning?: string;
   environment?: string;
   baseUrl?: string;
   clientIdSet?: boolean;
@@ -162,6 +164,7 @@ export default function CareemPage() {
     }
   };
 
+  const sandboxOn = diag.data?.sandbox === true;
   const tokenOk =
     typeof diag.data?.token === "object" && diag.data.token?.ok === true;
   const tokenObj =
@@ -208,10 +211,25 @@ export default function CareemPage() {
         <>
           {/* ── Credentials ─────────────────────────────────── */}
           <Panel
-            tone={tokenOk ? "good" : "bad"}
-            title={tokenOk ? "Credentials accepted" : "Credentials not working"}
+            tone={sandboxOn ? "warn" : tokenOk ? "good" : "bad"}
+            title={
+              sandboxOn
+                ? "Sandbox — this is us, not Careem"
+                : tokenOk
+                  ? "Credentials accepted"
+                  : "Credentials not working"
+            }
           >
-            {tokenOk ? (
+            {sandboxOn ? (
+              // A token came back, but WE issued it. Saying "credentials
+              // accepted" here would be the single most misleading thing this
+              // page could do — it is the one question it exists to answer.
+              <p className="text-sm">
+                {diag.data?.sandboxWarning ??
+                  "The sandbox is on: the token and gateway below are this " +
+                    "server answering as Careem."}
+              </p>
+            ) : tokenOk ? (
               <p className="text-sm">
                 Careem issued an access token. The{" "}
                 <strong>{diag.data?.environment}</strong> gateway is answering.
@@ -363,8 +381,14 @@ export default function CareemPage() {
           {/* ── What the credentials can see ────────────────── */}
           {tokenOk && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Json title="Brands" value={diag.data?.brands} />
-              <Json title="Branches" value={diag.data?.branches} />
+              <Json
+                title={sandboxOn ? "Brands (sandbox)" : "Brands"}
+                value={diag.data?.brands}
+              />
+              <Json
+                title={sandboxOn ? "Branches (sandbox)" : "Branches"}
+                value={diag.data?.branches}
+              />
             </div>
           )}
         </>
