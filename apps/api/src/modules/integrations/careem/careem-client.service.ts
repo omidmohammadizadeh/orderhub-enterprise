@@ -27,6 +27,12 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
  *  determines which one you get a token for. */
 const IDENTITY_TOKEN_URL = "https://identity.careem.com/token";
 
+/** Careem lists User-Agent as a REQUIRED header on every POS endpoint, beside
+ *  Authorization. Node's fetch does not reliably send one on its own, and a
+ *  gateway rejecting an absent User-Agent fails in a way that looks nothing
+ *  like a missing header — so it is set explicitly and identifies us. */
+const USER_AGENT = "OrderHub/1.0 (+https://www.orderhubsolutions.com)";
+
 /**
  * How we present ourselves to the token endpoint.
  *
@@ -206,7 +212,10 @@ export class CareemClientService {
       return {
         method: "POST",
         body: form,
-        ...(basic ? { headers: { Authorization: basicAuth(id, secret) } } : {}),
+        headers: {
+          "User-Agent": USER_AGENT,
+          ...(basic ? { Authorization: basicAuth(id, secret) } : {}),
+        },
       };
     }
 
@@ -215,6 +224,7 @@ export class CareemClientService {
       body: new URLSearchParams(fields).toString(),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": USER_AGENT,
         ...(basic ? { Authorization: basicAuth(id, secret) } : {}),
       },
     };
@@ -343,9 +353,15 @@ export class CareemClientService {
    */
   async request<T>(
     path: string,
-    init: { method: string; body?: unknown; query?: Record<string, string | undefined> } = {
-      method: "GET",
-    },
+    init: {
+      method: string;
+      body?: unknown;
+      query?: Record<string, string | undefined>;
+      /** Careem scopes most endpoints by header, not by path. Branch, catalog
+       *  and order calls all require Branch-Id, and most require Brand-Id. */
+      brandId?: string;
+      branchId?: string;
+    } = { method: "GET" },
   ): Promise<T> {
     const doCall = async (token: string) => {
       const qs = init.query
@@ -360,6 +376,13 @@ export class CareemClientService {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           accept: "application/json",
+          // REQUIRED on every POS endpoint — their docs list it beside
+          // Authorization on all of them. Node's fetch does not reliably send
+          // one, and a gateway that rejects an absent User-Agent does it with
+          // an error that looks nothing like "you forgot a header".
+          "User-Agent": USER_AGENT,
+          ...(init.brandId ? { "Brand-Id": init.brandId } : {}),
+          ...(init.branchId ? { "Branch-Id": init.branchId } : {}),
         },
         ...(init.body ? { body: JSON.stringify(init.body) } : {}),
         signal: AbortSignal.timeout(30_000),

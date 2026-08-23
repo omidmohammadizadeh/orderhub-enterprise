@@ -400,3 +400,78 @@ describe("client-authentication variants", () => {
     expect(results.every((r) => r.ok === false)).toBe(true);
   });
 });
+
+describe("required headers", () => {
+  beforeEach(() => {
+    process.env.CAREEM_CLIENT_ID = "cid";
+    process.env.CAREEM_CLIENT_SECRET = "csec";
+  });
+  afterEach(() => {
+    delete process.env.CAREEM_CLIENT_ID;
+    delete process.env.CAREEM_CLIENT_SECRET;
+    jest.restoreAllMocks();
+  });
+
+  const okToken = {
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({ access_token: "tok", expires_in: 3600 }),
+  };
+
+  it("sends User-Agent, which Careem lists as required on every endpoint", async () => {
+    // Node's fetch doesn't reliably send one, and a gateway that rejects an
+    // absent User-Agent fails in a way that looks nothing like a missing
+    // header.
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(okToken as any)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => "{}",
+      } as any);
+
+    await new CareemClientService().request("/brands");
+    const apiCall = fetchMock.mock.calls[1]![1] as any;
+    expect(apiCall.headers["User-Agent"]).toMatch(/OrderHub/);
+  });
+
+  it("sets it on the token request too", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValue(okToken as any);
+    await new CareemClientService().accessToken();
+    const tokenCall = fetchMock.mock.calls[0]![1] as any;
+    expect(tokenCall.headers["User-Agent"]).toMatch(/OrderHub/);
+  });
+
+  it("passes Brand-Id and Branch-Id when given", async () => {
+    // Careem scopes branch, catalog and order endpoints by header rather than
+    // by path — omitting them is a 400 that reads like a bad body.
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(okToken as any)
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => "{}" } as any);
+
+    await new CareemClientService().request("/catalogs", {
+      method: "PUT",
+      brandId: "brand-1",
+      branchId: "branch-1",
+      body: {},
+    });
+    const apiCall = fetchMock.mock.calls[1]![1] as any;
+    expect(apiCall.headers["Brand-Id"]).toBe("brand-1");
+    expect(apiCall.headers["Branch-Id"]).toBe("branch-1");
+  });
+
+  it("omits them entirely when not given, rather than sending empty strings", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(okToken as any)
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => "{}" } as any);
+    await new CareemClientService().request("/brands");
+    const apiCall = fetchMock.mock.calls[1]![1] as any;
+    expect(apiCall.headers["Brand-Id"]).toBeUndefined();
+    expect(apiCall.headers["Branch-Id"]).toBeUndefined();
+  });
+});

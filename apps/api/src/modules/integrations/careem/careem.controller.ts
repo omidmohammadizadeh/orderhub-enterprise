@@ -99,13 +99,14 @@ export class CareemController {
       conclusion: winner
         ? `Careem accepts "${winner.variant}" — the client now uses it automatically.`
         : results.every((r) => /invalid_client|bad credentials/i.test(r.body))
-          ? "Every combination was rejected, including the Identity guide's exact " +
-            "S2S curl, so it is the CREDENTIALS rather than the request. Note " +
-            "that guide lists only ONE environment — https://identity.careem.com " +
-            "(Production) — and says credentials come 'from Careem " +
-            "representatives'. Ask Careem which identity host issues tokens for " +
-            "SANDBOX Developer Hub credentials, and whether the Menu & Orders " +
-            "access request is approved."
+          ? "Every combination was rejected, so it is the CREDENTIALS rather than " +
+            "the request. Careem's own integration process says they issue the " +
+            "POS OAuth client: step 2 is 'Setup client — We would set up an " +
+            "OAuth client on our end and share its credentials with you.' The " +
+            "self-serve Sandbox credentials dialog in the Developer Hub does not " +
+            "appear to issue a POS client. Ask your Careem contact to provision " +
+            "one. Their prerequisites also list contract completion and approval " +
+            "from their information security and legal teams before API access."
           : "No style succeeded and the errors differ — read them below.",
     };
   }
