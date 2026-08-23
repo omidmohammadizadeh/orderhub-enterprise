@@ -19,10 +19,11 @@ import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.s
 import { DeliverooClientService } from "../integrations/deliveroo/deliveroo-client.service";
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import { JetItemAvailabilityService } from "../integrations/jet/jet-item-availability.service";
+import { CareemItemAvailabilityService } from "../integrations/careem/careem-item-availability.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
-// Mirrors the publish-menu modal's TARGETS. Free-form string in the DB
-// so adding (e.g.) CAREEM later doesn't need a migration.
+// Mirrors the publish-menu modal's TARGETS. Free-form string in the DB, which
+// is why CAREEM could be added here without a migration.
 // Phase BA: "ALL" is a sentinel meaning "every channel" — written by the
 // menu/products-page location toggle ("86 here entirely") and matched by
 // the read filter alongside the specific channel.
@@ -34,6 +35,7 @@ export type SupportedChannel =
   | "DELIVEROO"
   | "WHATSAPP"
   | "HUBRISE"
+  | "CAREEM"
   | "ALL";
 
 // Operator presets from the spec. Translated to an `expiresAt` Date
@@ -58,6 +60,7 @@ export class MenuAvailabilityService {
     private readonly deliverooClient: DeliverooClientService,
     private readonly uberEatsMenu: UberEatsMenuPublishService,
     private readonly jetAvailability: JetItemAvailabilityService,
+    private readonly careemAvailability: CareemItemAvailabilityService,
     @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
@@ -414,6 +417,24 @@ export class MenuAvailabilityService {
         );
     }
 
+    // Fire-and-forget direct Careem sync. Careem take active true or false and
+    // nothing else — no nextAvailableAt — so a TIMED snooze here is restored by
+    // our own expiry sweep rather than by them.
+    if (args.channel === "CAREEM" || args.channel === "ALL") {
+      this.careemAvailability
+        .pushItemAvailability({
+          tenantId: args.tenantId,
+          itemId: args.itemId,
+          locationId: args.locationId,
+          available: false,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Careem availability push failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+        );
+    }
+
     // Fire-and-forget direct Uber Eats sync (sparse Update Menu Item).
     if (args.channel === "UBER_EATS" || args.channel === "ALL") {
       this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null, false, args.locationId).catch(
@@ -527,6 +548,34 @@ export class MenuAvailabilityService {
           .catch((err) =>
             this.logger.warn(
               `Just Eat item-availability restore failed for item ${args.itemId}: ${err?.message ?? err}`,
+            ),
+          );
+      }
+    }
+
+    // Restore on Careem. Same guard as Just Eat above: an "ALL" row may still
+    // 86 this item after a CAREEM unsnooze, and putting it back on the
+    // SuperApp while it is suspended locally sells something the kitchen has
+    // already taken off.
+    if (args.channel === "CAREEM" || args.channel === "ALL") {
+      const stillOutOnCareem = (
+        await this.getSnoozedItemIdsForChannel(
+          "CAREEM",
+          [args.itemId],
+          args.locationId,
+        )
+      ).has(args.itemId);
+      if (!stillOutOnCareem) {
+        this.careemAvailability
+          .pushItemAvailability({
+            tenantId: args.tenantId,
+            itemId: args.itemId,
+            locationId: args.locationId,
+            available: true,
+          })
+          .catch((err) =>
+            this.logger.warn(
+              `Careem availability restore failed for item ${args.itemId}: ${err?.message ?? err}`,
             ),
           );
       }

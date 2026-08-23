@@ -10,6 +10,7 @@ import { CareemOrderSyncService } from "./careem-order-sync.service";
 import { CareemMenuPublishService } from "./careem-menu-publish.service";
 import { CareemStoreService } from "./careem-store.service";
 import { CareemSandboxService } from "./careem-sandbox.service";
+import { CareemItemAvailabilityService } from "./careem-item-availability.service";
 import { CareemSandboxController } from "./careem-sandbox.controller";
 import { CareemMockController } from "./careem-mock.controller";
 
@@ -54,12 +55,14 @@ import { CareemMockController } from "./careem-mock.controller";
     CareemMenuPublishService,
     CareemStoreService,
     CareemSandboxService,
+    CareemItemAvailabilityService,
   ],
   exports: [
     CareemClientService,
     CareemOrderService,
     CareemMenuPublishService,
     CareemStoreService,
+    CareemItemAvailabilityService,
   ],
 })
 export class CareemModule {}

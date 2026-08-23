@@ -549,6 +549,15 @@ export default function CareemPage() {
                 },
                 {
                   n: 8,
+                  label: "Take an item off (86)",
+                  hint: "Snooze reaches Careem as PATCH /catalogs/{id}/items — not a menu republish.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/sandbox/locations/${locationId}/eighty-six`,
+                    ),
+                },
+                {
+                  n: 9,
                   label: "What did we actually send?",
                   hint: "Every request the mock received, newest first.",
                   run: () =>

@@ -23,6 +23,7 @@ import { CareemApiError } from "./careem-client.service";
 import { CareemMenuPublishService } from "./careem-menu-publish.service";
 import { CareemOrderService } from "./careem-order.service";
 import { CareemStoreService } from "./careem-store.service";
+import { CareemItemAvailabilityService } from "./careem-item-availability.service";
 
 // Driving the Careem integration with no Careem.
 //
@@ -52,6 +53,7 @@ export class CareemSandboxController {
     private readonly menu: CareemMenuPublishService,
     private readonly orders: CareemOrderService,
     private readonly store: CareemStoreService,
+    private readonly availability: CareemItemAvailabilityService,
   ) {}
 
   @Get("status")
@@ -148,6 +150,8 @@ export class CareemSandboxController {
       selfDelivery?: boolean;
       scheduled?: boolean;
       itemCount?: number;
+      /** Send a bare order instead — the shape we were testing before. */
+      withoutModifiers?: boolean;
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
@@ -166,6 +170,18 @@ export class CareemSandboxController {
       id: string;
       name: string;
       price: number;
+      groups?: string[];
+    }>;
+    const catalogGroups = (dry.payload?.groups ?? []) as Array<{
+      id: string;
+      name: string;
+      options: string[];
+    }>;
+    const catalogOptions = (dry.payload?.options ?? []) as Array<{
+      id: string;
+      name: string;
+      price: number;
+      groups?: string[];
     }>;
     if (!catalogItems.length) {
       throw new BadRequestException(
@@ -181,7 +197,21 @@ export class CareemSandboxController {
     const minor = process.env.CAREEM_PRICE_UNIT === "minor";
     const major = (n: number) => (minor ? n / 100 : n);
 
-    const originalTotal = chosen.reduce((sum, i) => sum + major(i.price), 0);
+    // Careem's own arithmetic: the basket is items PLUS their options.
+    // Leaving options out of the total would have made every simulated order
+    // internally inconsistent, and the transformer cross-checks it.
+    const preview = chosen.map((item, index) =>
+      index === 0 && !(body?.withoutModifiers ?? false)
+        ? this.pickGroups(item, catalogGroups, catalogOptions, major)
+        : [],
+    );
+    const optionsTotal = preview
+      .flat()
+      .flatMap((g) => g.options)
+      .reduce((sum, o) => sum + o.total_price, 0);
+    const originalTotal = round(
+      chosen.reduce((sum, i) => sum + major(i.price), 0) + optionsTotal,
+    );
     const deliveryFee = 7;
     const serviceFee = 1;
     const selfDelivery = !!body?.selfDelivery;
@@ -240,13 +270,25 @@ export class CareemSandboxController {
             cash_in: 0,
           }
         : { cash_in: 0 }),
-      items: chosen.map((item) => ({
-        id: item.id,
-        quantity: 1,
-        price: major(item.price),
-        total_price: major(item.price),
-        groups: [],
-      })),
+      items: chosen.map((item, index) => {
+        // Modifiers on the FIRST item only, and only when the menu has some.
+        // Two items both carrying options would test the same code twice; one
+        // with and one without covers the branch that matters.
+        const groups =
+          index === 0 && !(body?.withoutModifiers ?? false)
+            ? this.pickGroups(item, catalogGroups, catalogOptions, major)
+            : [];
+        const optionsTotal = groups
+          .flatMap((g) => g.options)
+          .reduce((sum, o) => sum + o.total_price, 0);
+        return {
+          id: item.id,
+          quantity: 1,
+          price: major(item.price),
+          total_price: round(major(item.price) + optionsTotal),
+          groups,
+        };
+      }),
     };
 
     const created = await this.explain("ingest the order", () =>
@@ -296,6 +338,128 @@ export class CareemSandboxController {
         where: (err as Error).stack?.split("\n")[1]?.trim() ?? null,
       });
     }
+  }
+
+  /**
+   * Real modifier groups for an item, in Careem's inbound shape.
+   *
+   * The point is the NESTED case: an option that carries groups of its own —
+   * "choose a sauce for the side you chose". Careem support that natively,
+   * and it is the part of the order transformer with the most branching and
+   * the least real-world exposure. If the menu has a nested group, this uses
+   * it; if not, a flat one still exercises the lookup.
+   */
+  private pickGroups(
+    item: { groups?: string[] },
+    groups: Array<{ id: string; name: string; options: string[] }>,
+    options: Array<{ id: string; name: string; price: number; groups?: string[] }>,
+    major: (n: number) => number,
+  ) {
+    const byId = new Map(options.map((o) => [o.id, o]));
+    const groupById = new Map(groups.map((g) => [g.id, g]));
+
+    const attached = (item.groups ?? [])
+      .map((id) => groupById.get(id))
+      .filter(Boolean) as Array<{ id: string; options: string[] }>;
+    if (!attached.length) return [];
+
+    // Prefer a group whose first option has nested groups of its own.
+    const nesting = attached.find((g) =>
+      g.options.some((oid) => (byId.get(oid)?.groups ?? []).length > 0),
+    );
+    const group = nesting ?? attached[0]!;
+    const optionId = group.options.find(
+      (oid) => (byId.get(oid)?.groups ?? []).length > 0,
+    ) ?? group.options[0];
+    const option = optionId ? byId.get(optionId) : undefined;
+    if (!option) return [];
+
+    const nested = (option.groups ?? [])
+      .map((id) => groupById.get(id))
+      .filter(Boolean)
+      .slice(0, 1)
+      .map((g) => {
+        const childId = g!.options[0];
+        const child = childId ? byId.get(childId) : undefined;
+        return child
+          ? {
+              id: g!.id,
+              options: [
+                {
+                  id: child.id,
+                  quantity: 1,
+                  total_price: round(major(child.price)),
+                },
+              ],
+            }
+          : null;
+      })
+      .filter(Boolean) as Array<{
+      id: string;
+      options: Array<{ id: string; quantity: number; total_price: number }>;
+    }>;
+
+    return [
+      {
+        id: group.id,
+        options: [
+          {
+            id: option.id,
+            quantity: 1,
+            total_price: round(major(option.price)),
+            ...(nested.length ? { groups: nested } : {}),
+          },
+        ],
+      },
+    ];
+  }
+
+  /**
+   * Take the first publishable item off, then put it back.
+   *
+   * The 86 path is separate from publishing on purpose: Careem allow one
+   * catalog sync per branch every two minutes and it takes five to appear, so
+   * republishing a whole menu to hide one pizza is neither fast enough nor
+   * allowed often enough. This is the endpoint that exists for it.
+   */
+  @Post("locations/:locationId/eighty-six")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Push an item off, then back on, via Careem's 86 endpoint" })
+  async eightySix(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    this.assertEnabled();
+    const dry = await this.explain("build the catalog", () =>
+      this.menu.dryRun(locationId, user.tenantId),
+    );
+    const first = (dry.payload?.items ?? [])[0] as
+      | { id: string; name: string }
+      | undefined;
+    if (!first) throw new BadRequestException("This menu has no items to 86.");
+
+    await this.availability.pushItemAvailability({
+      tenantId: user.tenantId,
+      itemId: first.id,
+      locationId,
+      available: false,
+    });
+    await this.availability.pushItemAvailability({
+      tenantId: user.tenantId,
+      itemId: first.id,
+      locationId,
+      available: true,
+    });
+
+    return {
+      ok: true,
+      item: { id: first.id, name: first.name },
+      note:
+        "Sent inactive then active. Check the call log for two PATCH " +
+        "/catalogs/{id}/items — Careem have no 'until', so a timed snooze is " +
+        "restored by our own expiry sweep rather than by them.",
+    };
   }
 
   private assertEnabled() {

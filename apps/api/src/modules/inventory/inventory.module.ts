@@ -8,6 +8,7 @@ import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 import { DeliverooModule } from "../integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
 import { JetModule } from "../integrations/jet/jet.module";
+import { CareemModule } from "../integrations/careem/careem.module";
 import { LocationAccessService } from "../../common/access/location-access.service";
 
 @Module({
@@ -28,6 +29,7 @@ import { LocationAccessService } from "../../common/access/location-access.servi
     DeliverooModule,
     UberEatsModule,
     JetModule,
+    CareemModule,
   ],
   controllers: [InventoryController, MenuAvailabilityController],
   providers: [InventoryService, MenuAvailabilityService, LocationAccessService],
