@@ -208,12 +208,12 @@ export default function StorefrontHomePage() {
 
       {/* ── About + practicalities ───────────────────────────────────── */}
       <section className="oh-rise px-4 pt-7" style={{ animationDelay: "360ms" }}>
+        {/* overflow-wrap:anywhere because this is operator-written text and
+            theirs contains a bare ordering URL. One unbreakable word widens
+            the whole document, and on mobile a horizontally-scrolling page
+            stretches the fixed tab bar with it and carries the last tab past
+            the edge of the screen. */}
         {(brand?.about || location?.about) && (
-          {/* break-words because this is operator-written text and theirs
-              contains a bare ordering URL. One unbreakable word widens the
-              whole document, and on mobile a horizontally-scrolling page
-              stretches the fixed tab bar with it and pushes the last tab off
-              the screen. */}
           <p className="text-[15px] leading-relaxed text-zinc-600 [overflow-wrap:anywhere]">
             {brand?.about ?? location?.about}
           </p>
