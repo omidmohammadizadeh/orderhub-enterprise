@@ -350,13 +350,17 @@ export class CareemMenuPublishService {
     brandId: string,
     items: SourceMenu["items"],
   ): Promise<SourceGroup[]> {
-    const links = await (this.prisma as any).menuItemModifierGroup.findMany({
-      where: { menuItemId: { in: items.map((i) => i.id) } },
-      select: { menuItemId: true, modifierGroupId: true },
+    // The join is ModifierGroupOnItem — itemId/groupId, not menuItemId/
+    // modifierGroupId. It was reached through `as any` under the wrong name,
+    // which turned a typo into an undefined and a 500 at the first real call.
+    const links = await this.prisma.modifierGroupOnItem.findMany({
+      where: { itemId: { in: items.map((i) => i.id) } },
+      select: { itemId: true, groupId: true },
+      orderBy: { sortOrder: "asc" },
     });
     const byItem = new Map<string, string[]>();
-    for (const l of links as Array<{ menuItemId: string; modifierGroupId: string }>) {
-      byItem.set(l.menuItemId, [...(byItem.get(l.menuItemId) ?? []), l.modifierGroupId]);
+    for (const l of links) {
+      byItem.set(l.itemId, [...(byItem.get(l.itemId) ?? []), l.groupId]);
     }
     for (const item of items) item.groupIds = byItem.get(item.id) ?? [];
 
@@ -367,7 +371,14 @@ export class CareemMenuPublishService {
       const rows = await this.prisma.modifierGroup.findMany({
         where: { id: { in: frontier }, brandId },
         include: {
-          options: { where: { isAvailable: true }, orderBy: { sortOrder: "asc" } },
+          options: {
+            where: { isAvailable: true },
+            orderBy: { sortOrder: "asc" },
+            // Nested groups live in the join table since Phase BN. The legacy
+            // modifierGroupIds array is still populated on older rows, so both
+            // are read and merged — one of them being empty is normal.
+            include: { nestedGroupLinks: { select: { groupId: true } } },
+          },
         },
       });
       const next: string[] = [];
@@ -384,7 +395,12 @@ export class CareemMenuPublishService {
           sortOrder: g.sortOrder,
           selectionType: g.selectionType === "ADDON" ? "ADDON" : "VARIANT",
           options: g.options.map((o) => {
-            const nested = (o.modifierGroupIds ?? []) as string[];
+            const nested = [
+              ...new Set([
+                ...((o.modifierGroupIds ?? []) as string[]),
+                ...o.nestedGroupLinks.map((l) => l.groupId),
+              ]),
+            ];
             next.push(...nested);
             return {
               id: o.id,

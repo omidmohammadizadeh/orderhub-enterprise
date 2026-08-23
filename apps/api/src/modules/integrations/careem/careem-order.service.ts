@@ -192,7 +192,7 @@ export class CareemOrderService {
           })
         : Promise.resolve([]),
       optionIds.size
-        ? (this.prisma as any).modifierOption.findMany({
+        ? this.prisma.modifierOption.findMany({
             where: { id: { in: [...optionIds] } },
             select: { id: true, name: true },
           })
@@ -200,9 +200,7 @@ export class CareemOrderService {
     ]);
 
     const itemNames = new Map(items.map((i) => [i.id, i.name]));
-    const optionNames = new Map(
-      (options as Array<{ id: string; name: string }>).map((o) => [o.id, o.name]),
-    );
+    const optionNames = new Map(options.map((o) => [o.id, o.name]));
     return {
       item: (id) => itemNames.get(id),
       option: (id) => optionNames.get(id),

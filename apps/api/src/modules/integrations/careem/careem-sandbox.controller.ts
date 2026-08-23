@@ -4,7 +4,9 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   Param,
@@ -109,7 +111,12 @@ export class CareemSandboxController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const result = await this.menu.dryRun(locationId, user.tenantId);
+    // This is a debugging tool, so an unexpected failure has to say what it
+    // was. A bare 500 sends the reader to the server logs, which on Render
+    // means leaving the page that was meant to answer the question.
+    const result = await this.explain("dry-run", () =>
+      this.menu.dryRun(locationId, user.tenantId),
+    );
     return {
       ...result,
       priceUnit: process.env.CAREEM_PRICE_UNIT === "minor" ? "minor" : "major",
@@ -151,7 +158,9 @@ export class CareemSandboxController {
     });
     if (!location) throw new NotFoundException("Location not found");
 
-    const dry = await this.menu.dryRun(locationId, user.tenantId);
+    const dry = await this.explain("build the catalog", () =>
+      this.menu.dryRun(locationId, user.tenantId),
+    );
     const catalogItems = (dry.payload?.items ?? []) as Array<{
       id: string;
       name: string;
@@ -239,7 +248,9 @@ export class CareemSandboxController {
       })),
     };
 
-    const created = await this.orders.ingest(order as never);
+    const created = await this.explain("ingest the order", () =>
+      this.orders.ingest(order as never),
+    );
     return {
       ok: true,
       orderId: created?.orderId ?? null,
@@ -253,6 +264,29 @@ export class CareemSandboxController {
           : "Careem delivery: there should be NO address, and no driver of ours",
       ],
     };
+  }
+
+  /**
+   * Let a genuine crash through with its cause attached.
+   *
+   * Nest turns anything that isn't an HttpException into "Internal server
+   * error" with nothing else, which is the right default for a public API and
+   * the wrong one here.
+   */
+  private async explain<T>(what: string, fn: () => Promise<T>): Promise<T> {
+    try {
+      return await fn();
+    } catch (err) {
+      if (err instanceof HttpException) throw err;
+      const message = (err as Error).message;
+      this.logger.error(`Careem sandbox ${what} failed: ${message}`);
+      throw new InternalServerErrorException({
+        step: what,
+        message,
+        // The top of the stack is where it actually broke; the rest is Nest.
+        where: (err as Error).stack?.split("\n")[1]?.trim() ?? null,
+      });
+    }
   }
 
   private assertEnabled() {
