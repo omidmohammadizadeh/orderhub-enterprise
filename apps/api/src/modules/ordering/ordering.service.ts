@@ -7,9 +7,11 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   currencyForCountry,
+  itemAllowsFulfillment,
   resolveZone,
-  zoneMode,
+  serviceModeFor,
   usesTap,
+  zoneMode,
   type ZoneLike,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
@@ -1086,6 +1088,52 @@ export class OrderingService {
     }
   }
 
+  /**
+   * Refuse a basket containing something the shop does not sell this way.
+   *
+   * Named in the error, because "your order could not be placed" at the
+   * payment step is the worst possible time to be vague — the customer has to
+   * know which item to remove.
+   */
+  private async assertItemsAllowFulfillment(
+    menuItemIds: string[],
+    fulfillmentType: string | null | undefined,
+  ): Promise<void> {
+    const ids = [...new Set(menuItemIds.filter(Boolean))];
+    if (!ids.length) return;
+
+    const items = await this.prisma.menuItem.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        name: true,
+        availableCollection: true,
+        availableDelivery: true,
+        availableDineIn: true,
+      },
+    });
+
+    const blocked = items.filter(
+      (item) => !itemAllowsFulfillment(item, fulfillmentType),
+    );
+    if (!blocked.length) return;
+
+    const mode = serviceModeFor(fulfillmentType);
+    const how =
+      mode === "DELIVERY"
+        ? "delivery"
+        : mode === "DINE_IN"
+          ? "dine-in"
+          : "collection";
+    throw new BadRequestException(
+      blocked.length === 1
+        ? `${blocked[0]!.name} isn't available for ${how}. Please remove it or change how you'd like your order.`
+        : `These aren't available for ${how}: ${blocked
+            .map((b) => b.name)
+            .join(", ")}. Please remove them or change how you'd like your order.`,
+    );
+  }
+
   async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
@@ -1194,6 +1242,17 @@ export class OrderingService {
         }
       }
     }
+
+    // Service-mode enforcement.
+    //
+    // The storefront already hides these, but hiding is not enforcing: the
+    // cart survives a fulfillment switch, a stale tab keeps the old menu, and
+    // the payload is client-supplied. If a shop says a 20" sharing pizza does
+    // not go on a moped, the checkout has to be where that actually holds.
+    await this.assertItemsAllowFulfillment(
+      dto.items.map((i) => i.menuItemId),
+      dto.fulfillmentType,
+    );
 
     const items = dto.items.map((item) => ({
       menuItemId: item.menuItemId,

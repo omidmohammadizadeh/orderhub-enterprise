@@ -126,6 +126,9 @@ export interface MenuItem {
   calories?: number | null;
   // Phase AK fields
   visibleToCustomers?: boolean;
+  availableCollection?: boolean;
+  availableDelivery?: boolean;
+  availableDineIn?: boolean;
   outOfStock?: boolean;
   hasMultipleSkus?: boolean;
   productSkus?: ProductSku[];

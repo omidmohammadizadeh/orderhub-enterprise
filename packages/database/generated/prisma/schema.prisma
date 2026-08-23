@@ -967,15 +967,15 @@ model MenuCategory {
 }
 
 model MenuItem {
-  id                 String    @id @default(cuid())
-  brandId            String
+  id                  String    @id @default(cuid())
+  brandId             String
   // Phase AP — Products section is location-scoped. When set, this
   // product only appears in the Products tab for that location.
   // Backfilled from "Pizza Uno Pelton" by the AP migration; rows that
   // didn't match keep this null until the operator reassigns them.
-  locationId         String?
-  name               String
-  description        String?
+  locationId          String?
+  name                String
+  description         String?
   // Kitchen-language name. The customer-facing menu stays in English; the
   // kitchen ticket prints this instead when it is set. A Chinese takeaway
   // runs an English menu for customers and a Chinese one for the wok, and
@@ -983,36 +983,51 @@ model MenuItem {
   //
   // Null (the default) means "no translation" — the ticket falls back to
   // `name`, so nothing changes for a shop that never fills this in.
-  secondLanguageName String?
-  basePrice          Decimal   @db.Decimal(10, 2)
-  imageUrl           String?
+  secondLanguageName  String?
+  basePrice           Decimal   @db.Decimal(10, 2)
+  imageUrl            String?
   // Pre-Phase-AK had `sku` as a generic product code. Base44 calls this
   // the PLU and uses it across all integration imports (Deliveroo
   // pos_item_id, HubRise ref, Uber external_data). We keep `sku` for
   // backward compatibility but `plu` is the authoritative field going
   // forward. Both default to null; PLU service backfills via the
   // "Generate missing PLUs" action in Menu Manager.
-  sku                String?
-  plu                String?
-  isAvailable        Boolean   @default(true)
+  sku                 String?
+  plu                 String?
+  isAvailable         Boolean   @default(true)
   // Hide from customer storefront only. POS still sees it. Separate
   // from isAvailable (which hides everywhere) and outOfStock (which
   // shows POS staff a "tap to restore" overlay).
-  visibleToCustomers Boolean   @default(true)
-  outOfStock         Boolean   @default(false)
+  visibleToCustomers  Boolean   @default(true)
+  outOfStock          Boolean   @default(false)
+  // Which SERVICE MODES this item is sold in. All three default true, so
+  // every existing item behaves exactly as before.
+  //
+  // Distinct from the flags above, which are all about *temporary* state:
+  // isAvailable hides it everywhere, outOfStock is an 86 the kitchen
+  // restores, visibleToCustomers hides it from customers but not the till.
+  // These three are a permanent property of the product — a 20" sharing
+  // pizza that does not survive a moped, a table-service-only sharing
+  // platter — so they are settings on the item, not stock state.
+  //
+  // Walk-in counter trade is recorded as PICKUP (see the KDS bucketing),
+  // so it rides on availableCollection; availableDineIn is table tabs only.
+  availableCollection Boolean   @default(true)
+  availableDelivery   Boolean   @default(true)
+  availableDineIn     Boolean   @default(true)
   // When set, the autoProgressOrders cron flips outOfStock back to false
   // at this time. Used for "out for an hour" scheduling.
-  availableRestoreAt DateTime?
-  allergens          String[]
-  dietaryTags        String[]
+  availableRestoreAt  DateTime?
+  allergens           String[]
+  dietaryTags         String[]
   // Base44 had a separate `dietary` JSON field with platform-specific
   // dietary metadata (e.g. is_vegetarian, is_vegan as separate keys).
   // dietaryTags above stays for storefront filtering; this JSON carries
   // anything platform-flavoured we don't want to flatten.
-  dietary            Json      @default("[]")
-  calories           Int?
-  prepTime           Int?
-  metadata           Json      @default("{}")
+  dietary             Json      @default("[]")
+  calories            Int?
+  prepTime            Int?
+  metadata            Json      @default("{}")
 
   // ── Multi-SKU pricing ──────────────────────────────────────────────────
   // Base44's signature feature: a single product with multiple sizes,
@@ -1625,7 +1640,7 @@ model LoyaltyAccount {
   @@map("loyalty_accounts")
 }
 
-// ── Promo Codes ───────────────────────────────��───────────────────────────────
+// ── Promo Codes ───────────────────────────────────────────────────────────────
 model PromoCode {
   id            String        @id @default(cuid())
   tenantId      String

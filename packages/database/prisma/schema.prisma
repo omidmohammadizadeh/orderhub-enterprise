@@ -1000,6 +1000,21 @@ model MenuItem {
   // shows POS staff a "tap to restore" overlay).
   visibleToCustomers Boolean   @default(true)
   outOfStock         Boolean   @default(false)
+  // Which SERVICE MODES this item is sold in. All three default true, so
+  // every existing item behaves exactly as before.
+  //
+  // Distinct from the flags above, which are all about *temporary* state:
+  // isAvailable hides it everywhere, outOfStock is an 86 the kitchen
+  // restores, visibleToCustomers hides it from customers but not the till.
+  // These three are a permanent property of the product — a 20" sharing
+  // pizza that does not survive a moped, a table-service-only sharing
+  // platter — so they are settings on the item, not stock state.
+  //
+  // Walk-in counter trade is recorded as PICKUP (see the KDS bucketing),
+  // so it rides on availableCollection; availableDineIn is table tabs only.
+  availableCollection Boolean  @default(true)
+  availableDelivery   Boolean  @default(true)
+  availableDineIn     Boolean  @default(true)
   // When set, the autoProgressOrders cron flips outOfStock back to false
   // at this time. Used for "out for an hour" scheduling.
   availableRestoreAt DateTime?

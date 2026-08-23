@@ -24,6 +24,7 @@ import { Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import {
   buildCartItemName,
   calculateCartItem,
+  itemAllowsMode,
   round2,
   type SelectedModifier,
   toOrderLineModifier,
@@ -370,6 +371,10 @@ export default function KioskPage() {
           {(currentCat?.items ?? []).map((link: any) => {
             const item = link.item ?? link;
             if (item?.isAvailable === false) return null;
+            // The kiosk only ever places collection orders (fulfillmentType
+            // "PICKUP" below), so a product not sold on collection has no
+            // business on this screen.
+            if (!itemAllowsMode(item, "COLLECTION")) return null;
             const sold = item?.outOfStock === true;
             return (
               <button

@@ -37867,6 +37867,9 @@ export namespace Prisma {
     isAvailable: boolean | null
     visibleToCustomers: boolean | null
     outOfStock: boolean | null
+    availableCollection: boolean | null
+    availableDelivery: boolean | null
+    availableDineIn: boolean | null
     availableRestoreAt: Date | null
     calories: number | null
     prepTime: number | null
@@ -37901,6 +37904,9 @@ export namespace Prisma {
     isAvailable: boolean | null
     visibleToCustomers: boolean | null
     outOfStock: boolean | null
+    availableCollection: boolean | null
+    availableDelivery: boolean | null
+    availableDineIn: boolean | null
     availableRestoreAt: Date | null
     calories: number | null
     prepTime: number | null
@@ -37935,6 +37941,9 @@ export namespace Prisma {
     isAvailable: number
     visibleToCustomers: number
     outOfStock: number
+    availableCollection: number
+    availableDelivery: number
+    availableDineIn: number
     availableRestoreAt: number
     allergens: number
     dietaryTags: number
@@ -38002,6 +38011,9 @@ export namespace Prisma {
     isAvailable?: true
     visibleToCustomers?: true
     outOfStock?: true
+    availableCollection?: true
+    availableDelivery?: true
+    availableDineIn?: true
     availableRestoreAt?: true
     calories?: true
     prepTime?: true
@@ -38036,6 +38048,9 @@ export namespace Prisma {
     isAvailable?: true
     visibleToCustomers?: true
     outOfStock?: true
+    availableCollection?: true
+    availableDelivery?: true
+    availableDineIn?: true
     availableRestoreAt?: true
     calories?: true
     prepTime?: true
@@ -38070,6 +38085,9 @@ export namespace Prisma {
     isAvailable?: true
     visibleToCustomers?: true
     outOfStock?: true
+    availableCollection?: true
+    availableDelivery?: true
+    availableDineIn?: true
     availableRestoreAt?: true
     allergens?: true
     dietaryTags?: true
@@ -38200,6 +38218,9 @@ export namespace Prisma {
     isAvailable: boolean
     visibleToCustomers: boolean
     outOfStock: boolean
+    availableCollection: boolean
+    availableDelivery: boolean
+    availableDineIn: boolean
     availableRestoreAt: Date | null
     allergens: string[]
     dietaryTags: string[]
@@ -38262,6 +38283,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: boolean
     allergens?: boolean
     dietaryTags?: boolean
@@ -38312,6 +38336,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: boolean
     allergens?: boolean
     dietaryTags?: boolean
@@ -38355,6 +38382,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: boolean
     allergens?: boolean
     dietaryTags?: boolean
@@ -38419,6 +38449,9 @@ export namespace Prisma {
       isAvailable: boolean
       visibleToCustomers: boolean
       outOfStock: boolean
+      availableCollection: boolean
+      availableDelivery: boolean
+      availableDineIn: boolean
       availableRestoreAt: Date | null
       allergens: string[]
       dietaryTags: string[]
@@ -38858,6 +38891,9 @@ export namespace Prisma {
     readonly isAvailable: FieldRef<"MenuItem", 'Boolean'>
     readonly visibleToCustomers: FieldRef<"MenuItem", 'Boolean'>
     readonly outOfStock: FieldRef<"MenuItem", 'Boolean'>
+    readonly availableCollection: FieldRef<"MenuItem", 'Boolean'>
+    readonly availableDelivery: FieldRef<"MenuItem", 'Boolean'>
+    readonly availableDineIn: FieldRef<"MenuItem", 'Boolean'>
     readonly availableRestoreAt: FieldRef<"MenuItem", 'DateTime'>
     readonly allergens: FieldRef<"MenuItem", 'String[]'>
     readonly dietaryTags: FieldRef<"MenuItem", 'String[]'>
@@ -152061,6 +152097,9 @@ export namespace Prisma {
     isAvailable: 'isAvailable',
     visibleToCustomers: 'visibleToCustomers',
     outOfStock: 'outOfStock',
+    availableCollection: 'availableCollection',
+    availableDelivery: 'availableDelivery',
+    availableDineIn: 'availableDineIn',
     availableRestoreAt: 'availableRestoreAt',
     allergens: 'allergens',
     dietaryTags: 'dietaryTags',
@@ -159241,6 +159280,9 @@ export namespace Prisma {
     isAvailable?: BoolFilter<"MenuItem"> | boolean
     visibleToCustomers?: BoolFilter<"MenuItem"> | boolean
     outOfStock?: BoolFilter<"MenuItem"> | boolean
+    availableCollection?: BoolFilter<"MenuItem"> | boolean
+    availableDelivery?: BoolFilter<"MenuItem"> | boolean
+    availableDineIn?: BoolFilter<"MenuItem"> | boolean
     availableRestoreAt?: DateTimeNullableFilter<"MenuItem"> | Date | string | null
     allergens?: StringNullableListFilter<"MenuItem">
     dietaryTags?: StringNullableListFilter<"MenuItem">
@@ -159290,6 +159332,9 @@ export namespace Prisma {
     isAvailable?: SortOrder
     visibleToCustomers?: SortOrder
     outOfStock?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     availableRestoreAt?: SortOrderInput | SortOrder
     allergens?: SortOrder
     dietaryTags?: SortOrder
@@ -159343,6 +159388,9 @@ export namespace Prisma {
     isAvailable?: BoolFilter<"MenuItem"> | boolean
     visibleToCustomers?: BoolFilter<"MenuItem"> | boolean
     outOfStock?: BoolFilter<"MenuItem"> | boolean
+    availableCollection?: BoolFilter<"MenuItem"> | boolean
+    availableDelivery?: BoolFilter<"MenuItem"> | boolean
+    availableDineIn?: BoolFilter<"MenuItem"> | boolean
     availableRestoreAt?: DateTimeNullableFilter<"MenuItem"> | Date | string | null
     allergens?: StringNullableListFilter<"MenuItem">
     dietaryTags?: StringNullableListFilter<"MenuItem">
@@ -159392,6 +159440,9 @@ export namespace Prisma {
     isAvailable?: SortOrder
     visibleToCustomers?: SortOrder
     outOfStock?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     availableRestoreAt?: SortOrderInput | SortOrder
     allergens?: SortOrder
     dietaryTags?: SortOrder
@@ -159443,6 +159494,9 @@ export namespace Prisma {
     isAvailable?: BoolWithAggregatesFilter<"MenuItem"> | boolean
     visibleToCustomers?: BoolWithAggregatesFilter<"MenuItem"> | boolean
     outOfStock?: BoolWithAggregatesFilter<"MenuItem"> | boolean
+    availableCollection?: BoolWithAggregatesFilter<"MenuItem"> | boolean
+    availableDelivery?: BoolWithAggregatesFilter<"MenuItem"> | boolean
+    availableDineIn?: BoolWithAggregatesFilter<"MenuItem"> | boolean
     availableRestoreAt?: DateTimeNullableWithAggregatesFilter<"MenuItem"> | Date | string | null
     allergens?: StringNullableListFilter<"MenuItem">
     dietaryTags?: StringNullableListFilter<"MenuItem">
@@ -173106,6 +173160,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -173155,6 +173212,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -173204,6 +173264,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -173253,6 +173316,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -173302,6 +173368,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -173345,6 +173414,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -173388,6 +173460,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -188075,6 +188150,9 @@ export namespace Prisma {
     isAvailable?: SortOrder
     visibleToCustomers?: SortOrder
     outOfStock?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     availableRestoreAt?: SortOrder
     allergens?: SortOrder
     dietaryTags?: SortOrder
@@ -188129,6 +188207,9 @@ export namespace Prisma {
     isAvailable?: SortOrder
     visibleToCustomers?: SortOrder
     outOfStock?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     availableRestoreAt?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
@@ -188163,6 +188244,9 @@ export namespace Prisma {
     isAvailable?: SortOrder
     visibleToCustomers?: SortOrder
     outOfStock?: SortOrder
+    availableCollection?: SortOrder
+    availableDelivery?: SortOrder
+    availableDineIn?: SortOrder
     availableRestoreAt?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
@@ -218045,6 +218129,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -218093,6 +218180,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -218338,6 +218428,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -218386,6 +218479,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -218672,6 +218768,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -218720,6 +218819,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -218841,6 +218943,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -218889,6 +218994,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -220149,6 +220257,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -220197,6 +220308,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -220330,6 +220444,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -220378,6 +220495,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -220501,6 +220621,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -220549,6 +220672,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -220613,6 +220739,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -220661,6 +220790,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -233319,6 +233451,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -233367,6 +233502,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -233472,6 +233610,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -233520,6 +233661,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -237632,6 +237776,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -237680,6 +237827,9 @@ export namespace Prisma {
     isAvailable?: boolean
     visibleToCustomers?: boolean
     outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
     availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
@@ -237766,6 +237916,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
@@ -237814,6 +237967,9 @@ export namespace Prisma {
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
     outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
     availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]

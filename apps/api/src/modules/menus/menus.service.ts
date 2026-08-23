@@ -1538,6 +1538,11 @@ export class MenusService {
         platformPricingOverrides: (dto as any).platformPricingOverrides ?? {},
         // Phase AK fields — all optional, sensible defaults from schema:
         visibleToCustomers: (dto as any).visibleToCustomers ?? true,
+        // Sold in every service mode unless the caller says otherwise, so a
+        // product created by any existing client behaves as it always has.
+        availableCollection: (dto as any).availableCollection ?? true,
+        availableDelivery: (dto as any).availableDelivery ?? true,
+        availableDineIn: (dto as any).availableDineIn ?? true,
         outOfStock: (dto as any).outOfStock ?? false,
         hasMultipleSkus: (dto as any).hasMultipleSkus ?? false,
         productSkus: ((dto as any).productSkus ?? []) as any,
@@ -1579,6 +1584,17 @@ export class MenusService {
         ...(dto.outOfStock !== undefined && { outOfStock: dto.outOfStock }),
         ...(dto.visibleToCustomers !== undefined && {
           visibleToCustomers: dto.visibleToCustomers,
+        }),
+        // Which service modes this item is sold in. `!== undefined` so an
+        // older client that never sends them leaves them alone.
+        ...(dto.availableCollection !== undefined && {
+          availableCollection: dto.availableCollection,
+        }),
+        ...(dto.availableDelivery !== undefined && {
+          availableDelivery: dto.availableDelivery,
+        }),
+        ...(dto.availableDineIn !== undefined && {
+          availableDineIn: dto.availableDineIn,
         }),
         ...(dto.hasMultipleSkus !== undefined && {
           hasMultipleSkus: dto.hasMultipleSkus,

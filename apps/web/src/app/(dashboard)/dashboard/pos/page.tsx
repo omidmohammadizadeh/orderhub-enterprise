@@ -30,6 +30,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   round2,
   toOrderLineModifier,
+  itemAllowsFulfillment,
   type SelectedModifier,
   type ProductSku,
 } from "@orderhub/shared";
@@ -415,6 +416,9 @@ export default function PosPage() {
       for (const link of c.items ?? []) {
         const it = link.item;
         if (!it || !it.isAvailable) continue;
+        // Search reaches the whole menu, so it has to honour the same rule as
+        // the grid — otherwise the one route around it is the search box
+        if (!itemAllowsFulfillment(it, draft.fulfillmentType)) continue;
         if (
           it.name.toLowerCase().includes(q) ||
           (it.description ?? "").toLowerCase().includes(q)
@@ -424,14 +428,18 @@ export default function PosPage() {
       }
     }
     return out;
-  }, [categories, search]);
+  }, [categories, search, draft.fulfillmentType]);
 
   const products: MenuItem[] = useMemo(() => {
     if (!activeCategory) return [];
     return (activeCategory.items ?? [])
       .map((link) => link.item)
-      .filter((it) => it && it.isAvailable);
-  }, [activeCategory]);
+      .filter((it) => it && it.isAvailable)
+      // Products the shop does not sell this way. The service mode is chosen
+      // on the step before the menu, so this is settled by the time anyone
+      // sees a tile.
+      .filter((it) => itemAllowsFulfillment(it, draft.fulfillmentType));
+  }, [activeCategory, draft.fulfillmentType]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const submitMutation = useMutation({
@@ -1417,8 +1425,13 @@ export default function PosPage() {
                 ) : (
                   <div className={`grid gap-2 ${sizing.grid}`}>
                     {categories.map((cat) => {
+                      // Counted the same way the grid filters, or a category
+                      // advertises items it will not then show.
                       const count = (cat.items ?? []).filter(
-                        (l: any) => l.item && l.item.isAvailable,
+                        (l: any) =>
+                          l.item &&
+                          l.item.isAvailable &&
+                          itemAllowsFulfillment(l.item, draft.fulfillmentType),
                       ).length;
                       return (
                         <button

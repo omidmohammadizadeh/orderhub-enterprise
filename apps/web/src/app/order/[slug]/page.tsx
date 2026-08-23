@@ -120,7 +120,11 @@ import type {
   MenuItem,
   MenuCategory,
 } from "@/lib/api/menus.client";
-import { round2, toOrderLineModifier } from "@orderhub/shared";
+import {
+  round2,
+  toOrderLineModifier,
+  itemAllowsFulfillment,
+} from "@orderhub/shared";
 import { displayPrice } from "@/lib/menu/display-price";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
@@ -881,8 +885,11 @@ function OrderPage() {
   // campaign map the page already computes, so the rail and the per-item
   // badges can never disagree about what's discounted.
   const topSellers: MenuItem[] = useMemo(
-    () => ((storefront as any)?.topSellers ?? []) as MenuItem[],
-    [storefront],
+    () =>
+      (((storefront as any)?.topSellers ?? []) as MenuItem[]).filter((it) =>
+        itemAllowsFulfillment(it, fulfillmentType),
+      ),
+    [storefront, fulfillmentType],
   );
   const promoItems: MenuItem[] = useMemo(() => {
     const seen = new Set<string>();
@@ -891,13 +898,14 @@ function OrderPage() {
       for (const link of (cat as any).items ?? []) {
         const item = link?.item as MenuItem | undefined;
         if (!item?.id || seen.has(item.id)) continue;
+        if (!itemAllowsFulfillment(item, fulfillmentType)) continue;
         if (!itemPromos[item.id]) continue;
         seen.add(item.id);
         out.push(item);
       }
     }
     return out;
-  }, [allCategories, itemPromos]);
+  }, [allCategories, itemPromos, fulfillmentType]);
 
   // Inline quantity control on the menu row.
   //

@@ -128,6 +128,11 @@ export function ProductForm({
   const [isAvailable, setIsAvailable] = useState(true);
   const [outOfStock, setOutOfStock] = useState(false);
   const [visibleToCustomers, setVisibleToCustomers] = useState(true);
+  // Which service modes this product is sold in. All three on by default —
+  // unticking one is the exception, not the setup step.
+  const [availableCollection, setAvailableCollection] = useState(true);
+  const [availableDelivery, setAvailableDelivery] = useState(true);
+  const [availableDineIn, setAvailableDineIn] = useState(true);
   const [attachedGroupIds, setAttachedGroupIds] = useState<string[]>([]);
   // Which row is being dragged. A ref, not state: it changes during a drag
   // and re-rendering on every dragover would fight the browser's own drag.
@@ -193,6 +198,11 @@ export function ProductForm({
     setIsAvailable(existing.isAvailable);
     setOutOfStock(existing.outOfStock);
     setVisibleToCustomers(existing.visibleToCustomers);
+    // `!== false` rather than `?? true`: products saved before this existed
+    // have the field absent, and they are sold everywhere.
+    setAvailableCollection((existing as any).availableCollection !== false);
+    setAvailableDelivery((existing as any).availableDelivery !== false);
+    setAvailableDineIn((existing as any).availableDineIn !== false);
     setAttachedGroupIds(
       (existing.modifierGroupLinks ?? []).map((l) => l.groupId),
     );
@@ -246,6 +256,9 @@ export function ProductForm({
         isAvailable,
         outOfStock,
         visibleToCustomers,
+        availableCollection,
+        availableDelivery,
+        availableDineIn,
         brandIds,
         hasMultipleSkus: hasMultipleSkus && cleanedSkus.length > 0,
         productSkus: hasMultipleSkus ? cleanedSkus : [],
@@ -879,6 +892,42 @@ export function ProductForm({
                 onChange={setVisibleToCustomers}
               />
             </div>
+          </Card>
+
+          <Card title="How it can be ordered">
+            <p className="mb-3 text-xs text-zinc-500">
+              Turn one off and this product stops being offered that way —
+              online, on the till, and on the marketplaces we publish to.
+              Everything is on unless you say otherwise.
+            </p>
+            <div className="space-y-3">
+              <Toggle
+                label="Available on collection"
+                hint="Orders collected from the shop, including walk-ins at the counter."
+                checked={availableCollection}
+                onChange={setAvailableCollection}
+              />
+              <Toggle
+                label="Available on delivery"
+                hint="Your own drivers and the marketplaces' — anything that travels."
+                checked={availableDelivery}
+                onChange={setAvailableDelivery}
+              />
+              <Toggle
+                label="Available dine-in"
+                hint="Table tabs. Off for anything you only sell to take away."
+                checked={availableDineIn}
+                onChange={setAvailableDineIn}
+              />
+            </div>
+            {!availableCollection && !availableDelivery && !availableDineIn && (
+              // Silent otherwise: the product simply never appears anywhere,
+              // and nothing on the menu shows why.
+              <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+                With all three off, nobody can order this — it will not appear
+                on any menu, till or marketplace.
+              </p>
+            )}
           </Card>
         </div>
       </div>

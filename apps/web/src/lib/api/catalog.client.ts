@@ -18,6 +18,11 @@ export interface CatalogProduct {
   sku: string | null;
   isAvailable: boolean;
   visibleToCustomers: boolean;
+  // Which service modes this product is sold in. Optional because rows saved
+  // before the feature have them absent, and absent means "all three".
+  availableCollection?: boolean;
+  availableDelivery?: boolean;
+  availableDineIn?: boolean;
   outOfStock: boolean;
   hasMultipleSkus: boolean;
   productSkus: Array<{

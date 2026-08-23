@@ -33,7 +33,8 @@ import {
   Utensils,
   AlertCircle,
 } from "lucide-react";
-import { round2, buildCartItemName, toOrderLineModifier } from "@orderhub/shared";
+import {
+  itemAllowsMode, round2, buildCartItemName, toOrderLineModifier } from "@orderhub/shared";
 import type { SelectedModifier } from "@orderhub/shared";
 import { cn } from "@/lib/utils";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
@@ -188,7 +189,10 @@ export default function TableQrPage() {
       if (activeCategory !== "all" && cat.id !== activeCategory) continue;
       const items = cat.items
         .filter((link) => link.item.isAvailable)
-        .map((link) => link.item);
+        .map((link) => link.item)
+        // This page is table service only, so anything not sold dine-in —
+        // a delivery-only bundle, say — should never reach a guest's phone.
+        .filter((it) => itemAllowsMode(it, "DINE_IN"));
       if (items.length > 0 || activeCategory === cat.id) out.push({ cat, items });
     }
     return out;

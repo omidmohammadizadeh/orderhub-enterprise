@@ -199,6 +199,11 @@ export class CreateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
+  // Which service modes this item is sold in. Absent = unchanged; the columns
+  // default true so an older client that never sends them changes nothing.
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableCollection?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDelivery?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDineIn?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() hasMultipleSkus?: boolean;
   @ApiPropertyOptional({ type: [ProductSkuDto] })
   @IsOptional()
@@ -243,6 +248,11 @@ export class UpdateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
+  // Which service modes this item is sold in. Absent = unchanged; the columns
+  // default true so an older client that never sends them changes nothing.
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableCollection?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDelivery?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDineIn?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() hasMultipleSkus?: boolean;
   @ApiPropertyOptional({ type: [ProductSkuDto] })
   @IsOptional()
