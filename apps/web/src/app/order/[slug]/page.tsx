@@ -38,6 +38,7 @@ import { formatMoney, currencySymbol } from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
+import { StorefrontTabBar } from "@/components/storefront/tab-bar";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import { TipStep } from "@/components/storefront/tip-step";
 import {
@@ -2555,6 +2556,13 @@ function OrderPage() {
           // checkout.mutate(); nothing else to do here.
         }}
       />
+
+      {/* Mobile tab bar. On a phone a storefront is four places, not one long
+          page — what's on, what to order, what you ordered, what you've
+          earned — and a footer is the only navigation a thumb can reach while
+          scrolling a long menu. Desktop keeps its header and never renders
+          this. */}
+      <StorefrontTabBar slug={String(slug)} brandId={brandId} />
     </div>
   );
 

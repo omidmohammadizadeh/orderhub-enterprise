@@ -39,6 +39,7 @@ import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { LeaveReviewModal } from "@/components/storefront/leave-review-modal";
 import { reviewsClient } from "@/lib/api/reviews.client";
+import { StorefrontTabBar } from "@/components/storefront/tab-bar";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -311,6 +312,14 @@ function MyOrdersInner() {
           onClose={() => setViewingOrder(null)}
         />
       )}
+
+      {/* Same four tabs as the rest of the storefront, so Orders is somewhere
+          a customer navigates TO rather than a page they can only reach from
+          a link they were sent. */}
+      <StorefrontTabBar
+        slug={String(params.slug)}
+        brandId={brandIdFromUrl}
+      />
     </div>
   );
 }
