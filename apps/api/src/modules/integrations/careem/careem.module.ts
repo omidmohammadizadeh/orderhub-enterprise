@@ -9,6 +9,9 @@ import { CareemOrderService } from "./careem-order.service";
 import { CareemOrderSyncService } from "./careem-order-sync.service";
 import { CareemMenuPublishService } from "./careem-menu-publish.service";
 import { CareemStoreService } from "./careem-store.service";
+import { CareemSandboxService } from "./careem-sandbox.service";
+import { CareemSandboxController } from "./careem-sandbox.controller";
+import { CareemMockController } from "./careem-mock.controller";
 
 // Phase CA — direct Careem (Now/SuperApp) POS integration.
 //
@@ -23,6 +26,10 @@ import { CareemStoreService } from "./careem-store.service";
 // integration switch, SuperApp visibility including a timed pause, and opening
 // hours split across midnight the way Careem model them.
 //
+// CA-5 sandbox: Careem's own API answering on our server, so the whole
+// integration can be driven before they issue a client. Off unless
+// CAREEM_SANDBOX=true, and refuses to run against their production.
+//
 // CA-2 order intake: ORDER_CREATED becomes one of our orders, ORDER_STATUS_UPDATED
 // mirrors their courier lifecycle onto it, and our own accept/ready/cancel is
 // pushed back.
@@ -33,7 +40,12 @@ import { CareemStoreService } from "./careem-store.service";
 // called, which is what keeps that direction one-way.
 @Module({
   imports: [ConfigModule, OrdersModule],
-  controllers: [CareemController, CareemWebhookController],
+  controllers: [
+    CareemController,
+    CareemWebhookController,
+    CareemSandboxController,
+    CareemMockController,
+  ],
   providers: [
     CareemClientService,
     CareemWebhookLogService,
@@ -41,6 +53,7 @@ import { CareemStoreService } from "./careem-store.service";
     CareemOrderSyncService,
     CareemMenuPublishService,
     CareemStoreService,
+    CareemSandboxService,
   ],
   exports: [
     CareemClientService,

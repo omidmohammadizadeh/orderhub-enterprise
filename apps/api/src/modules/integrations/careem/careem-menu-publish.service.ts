@@ -127,6 +127,33 @@ export class CareemMenuPublishService {
   }
 
   /**
+   * Build the catalog without sending it.
+   *
+   * The transformer makes every decision that can go wrong — the price unit,
+   * their group min/max rules, which items are publishable at all — and all of
+   * them are cheaper to read here than to discover from a rejection five
+   * minutes after an upload.
+   */
+  async dryRun(locationId: string, tenantId?: string) {
+    const menu = await this.loadMenu(locationId, tenantId);
+    const { payload, errors } = transformCareemMenu(menu, {
+      unit: this.priceUnit,
+      branchId: locationId,
+    });
+    return {
+      wouldPublish: !!payload,
+      problems: errors,
+      counts: {
+        categories: payload?.categories.length ?? 0,
+        items: payload?.items.length ?? 0,
+        groups: payload?.groups.length ?? 0,
+        options: payload?.options.length ?? 0,
+      },
+      payload,
+    };
+  }
+
+  /**
    * Careem RETIRED this on 24 April 2024.
    *
    * Kept, and kept behind a flag, because their own FAQ says a partner "may
