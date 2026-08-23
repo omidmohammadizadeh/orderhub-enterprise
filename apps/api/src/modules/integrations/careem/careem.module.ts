@@ -8,6 +8,7 @@ import { CareemWebhookLogService } from "./careem-webhook-log.service";
 import { CareemOrderService } from "./careem-order.service";
 import { CareemOrderSyncService } from "./careem-order-sync.service";
 import { CareemMenuPublishService } from "./careem-menu-publish.service";
+import { CareemStoreService } from "./careem-store.service";
 
 // Phase CA — direct Careem (Now/SuperApp) POS integration.
 //
@@ -17,6 +18,10 @@ import { CareemMenuPublishService } from "./careem-menu-publish.service";
 //
 // CA-3 catalog publish: our menu → their flat catalog, validated against their
 // own rules before it leaves, then tracked asynchronously.
+//
+// CA-4 store control: brand + branch registration carrying OUR ids, the POS
+// integration switch, SuperApp visibility including a timed pause, and opening
+// hours split across midnight the way Careem model them.
 //
 // CA-2 order intake: ORDER_CREATED becomes one of our orders, ORDER_STATUS_UPDATED
 // mirrors their courier lifecycle onto it, and our own accept/ready/cancel is
@@ -35,7 +40,13 @@ import { CareemMenuPublishService } from "./careem-menu-publish.service";
     CareemOrderService,
     CareemOrderSyncService,
     CareemMenuPublishService,
+    CareemStoreService,
   ],
-  exports: [CareemClientService, CareemOrderService, CareemMenuPublishService],
+  exports: [
+    CareemClientService,
+    CareemOrderService,
+    CareemMenuPublishService,
+    CareemStoreService,
+  ],
 })
 export class CareemModule {}

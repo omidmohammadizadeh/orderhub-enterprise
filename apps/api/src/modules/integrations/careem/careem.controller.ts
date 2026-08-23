@@ -1,8 +1,22 @@
-import { Controller, Get, Logger, Post, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Post,
+  Query,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import { CareemAuthError, CareemClientService } from "./careem-client.service";
 import { CareemWebhookLogService } from "./careem-webhook-log.service";
+import { CareemStoreService } from "./careem-store.service";
+import { CareemMenuPublishService } from "./careem-menu-publish.service";
+import { CurrentUser } from "../../../common/decorators/current-user.decorator";
+import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 
 // Phase CA-0 — "are the credentials actually working?"
 //
@@ -28,6 +42,8 @@ export class CareemController {
   constructor(
     private readonly client: CareemClientService,
     private readonly seen: CareemWebhookLogService,
+    private readonly store: CareemStoreService,
+    private readonly menu: CareemMenuPublishService,
   ) {}
 
   @Get("diagnostics")
@@ -157,6 +173,117 @@ export class CareemController {
       ...this.webhookSummary(),
       events: this.seen.recent(n),
     };
+  }
+
+  // ── Phase CA-4: setting a shop up, and opening or closing it ─────────────
+  //
+  // Everything below is scoped to the caller's tenant inside the service, so a
+  // location id from a browser can only ever reach that tenant's own shops.
+
+  @Post("locations/:locationId/onboard")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Register the brand + branch with Careem and publish its hours",
+  })
+  onboard(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.store.onboardLocation(user.tenantId, locationId);
+  }
+
+  @Post("locations/:locationId/hours")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Push this shop's opening hours to Careem" })
+  publishHours(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.store.publishHours(user.tenantId, locationId);
+  }
+
+  @Get("locations/:locationId/visibility")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Is this branch orderable on the Careem SuperApp?" })
+  visibility(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.store.visibility(user.tenantId, locationId);
+  }
+
+  @Post("locations/:locationId/visibility")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Open or close this branch to Careem customers",
+  })
+  setVisibility(
+    @Param("locationId") locationId: string,
+    @Body() body: { open: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.store.setVisibility(user.tenantId, locationId, !!body?.open);
+  }
+
+  @Post("locations/:locationId/pause")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Stop Careem orders for N minutes — Careem reopen it themselves",
+  })
+  pause(
+    @Param("locationId") locationId: string,
+    @Body() body: { minutes: number },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.store.pauseFor(user.tenantId, locationId, Number(body?.minutes));
+  }
+
+  // The switch that decides whether Careem's orders are ours to cook. Separate
+  // from onboarding on purpose — see CareemStoreService.
+  @Post("locations/:locationId/pos-integration")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Route Careem orders to us, or back to the branch's own tablet",
+  })
+  setPosIntegration(
+    @Param("locationId") locationId: string,
+    @Body() body: { active: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.store.setPosIntegration(
+      user.tenantId,
+      locationId,
+      !!body?.active,
+    );
+  }
+
+  @Post("locations/:locationId/menu/publish")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Publish this shop's menu as a Careem catalog (~5 min to go live)",
+  })
+  publishMenu(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menu.publish(locationId, user.tenantId);
+  }
+
+  @Get("locations/:locationId/menu/status/:requestId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Track a catalog upload Careem accepted earlier" })
+  menuStatus(
+    @Param("locationId") locationId: string,
+    @Param("requestId") requestId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menu.status(locationId, requestId, user.tenantId);
   }
 
   private webhookSummary() {

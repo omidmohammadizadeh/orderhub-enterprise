@@ -57,6 +57,7 @@ export class CareemMenuPublishService {
    */
   async publish(
     locationId: string,
+    tenantId?: string,
   ): Promise<
     { ok: true; requestId: string } | { ok: false; errors: CareemMenuProblem[] }
   > {
@@ -68,7 +69,7 @@ export class CareemMenuPublishService {
       );
     }
 
-    const menu = await this.loadMenu(locationId);
+    const menu = await this.loadMenu(locationId, tenantId);
     const { payload, errors } = transformCareemMenu(menu, {
       unit: this.priceUnit,
       branchId: locationId,
@@ -84,7 +85,7 @@ export class CareemMenuPublishService {
       return { ok: false, errors };
     }
 
-    const brandId = await this.brandIdFor(locationId);
+    const brandId = await this.brandIdFor(locationId, tenantId);
     const res = await this.client.request<{ request_id?: string }>("/catalogs", {
       method: "PUT",
       branchId: locationId,
@@ -103,7 +104,8 @@ export class CareemMenuPublishService {
 
   /** Poll one catalog request. The webhook says the same thing unprompted;
    *  this exists for when it hasn't arrived and someone is watching. */
-  async status(locationId: string, requestId: string) {
+  async status(locationId: string, requestId: string, tenantId?: string) {
+    if (tenantId) await this.assertOwned(locationId, tenantId);
     return this.client.request(`/catalogs/status/${encodeURIComponent(requestId)}`, {
       method: "GET",
       branchId: locationId,
@@ -141,12 +143,25 @@ export class CareemMenuPublishService {
     );
   }
 
-  private async brandIdFor(locationId: string): Promise<string | null> {
+  private async brandIdFor(
+    locationId: string,
+    tenantId?: string,
+  ): Promise<string | null> {
     const loc = await this.prisma.location.findFirst({
-      where: { id: locationId },
+      where: { id: locationId, ...(tenantId ? { brand: { tenantId } } : {}) },
       select: { brandId: true },
     });
     return loc?.brandId ?? null;
+  }
+
+  /** Locations carry no tenantId of their own — they hang off the brand.
+   *  Anything reachable from a browser has to check this. */
+  private async assertOwned(locationId: string, tenantId: string) {
+    const owned = await this.prisma.location.findFirst({
+      where: { id: locationId, deletedAt: null, brand: { tenantId } },
+      select: { id: true },
+    });
+    if (!owned) throw new BadRequestException("Location not found");
   }
 
   /**
@@ -156,9 +171,16 @@ export class CareemMenuPublishService {
    * modifier groups those items actually reference. Publishing a hidden item
    * would put it on the SuperApp where nobody here expects to see it.
    */
-  private async loadMenu(locationId: string): Promise<SourceMenu> {
+  private async loadMenu(
+    locationId: string,
+    tenantId?: string,
+  ): Promise<SourceMenu> {
     const location = await this.prisma.location.findFirst({
-      where: { id: locationId, deletedAt: null },
+      where: {
+        id: locationId,
+        deletedAt: null,
+        ...(tenantId ? { brand: { tenantId } } : {}),
+      },
       select: { id: true, name: true, brandId: true, country: true },
     });
     if (!location) throw new BadRequestException("Location not found");
