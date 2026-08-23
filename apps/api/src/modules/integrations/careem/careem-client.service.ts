@@ -91,6 +91,21 @@ interface CachedToken {
   expiresAt: number;
 }
 
+/**
+ * How long to stop asking after a failed token request.
+ *
+ * Careem's docs are explicit: "do not try to request a new token every time you
+ * do an API request. This might potentially lead to unneeded rate-limiting or
+ * even IP block and might require manual intervention." A credential that was
+ * rejected a second ago will be rejected again, so retrying it on a timer buys
+ * nothing and spends the one budget that is genuinely hard to get back.
+ *
+ * A 429 gets a much longer cooldown, because at that point the endpoint is
+ * already telling us to stop and every further attempt digs the hole deeper.
+ */
+const FAILURE_COOLDOWN_MS = 5 * 60_000;
+const RATE_LIMIT_COOLDOWN_MS = 30 * 60_000;
+
 /** A failed token request, carrying what Careem actually said. Thrown rather
  *  than logged-and-generalised so the diagnostics page can show the operator
  *  the real reason instead of "could not authenticate". */
@@ -109,6 +124,9 @@ export class CareemAuthError extends Error {
 export class CareemClientService {
   private readonly logger = new Logger(CareemClientService.name);
   private cached: CachedToken | null = null;
+  /** Set after a failure; blocks further attempts until it passes. */
+  private cooldownUntil = 0;
+  private lastFailure: CareemAuthError | null = null;
   /** In-flight token request, so a burst of calls on a cold cache makes ONE
    *  round trip rather than one per caller. */
   private pending: Promise<string> | null = null;
@@ -167,12 +185,31 @@ export class CareemClientService {
     if (!force && this.cached && Date.now() < this.cached.expiresAt) {
       return this.cached.token;
     }
+    // Re-throw the last failure rather than asking again. `force` deliberately
+    // does NOT bypass this: the reason a caller forces is a 401 mid-request,
+    // and hammering a rejecting endpoint is what gets an IP blocked.
+    if (Date.now() < this.cooldownUntil && this.lastFailure) {
+      throw this.lastFailure;
+    }
     if (!force && this.pending) return this.pending;
 
     this.pending = this.requestToken().finally(() => {
       this.pending = null;
     });
     return this.pending;
+  }
+
+  /** Seconds until we will try again, or 0 if we would try now. Surfaced so an
+   *  operator seeing a stale error understands it is not being re-checked. */
+  get cooldownSeconds(): number {
+    return Math.max(0, Math.ceil((this.cooldownUntil - Date.now()) / 1000));
+  }
+
+  /** Clears the cooldown so the next call really asks Careem. Behind an
+   *  explicit operator action — never automatic. */
+  resetCooldown(): void {
+    this.cooldownUntil = 0;
+    this.lastFailure = null;
   }
 
   /**
@@ -259,6 +296,11 @@ export class CareemClientService {
           ok: res.ok,
           body: body.slice(0, 400),
         });
+        // Stop dead on a rate limit. Continuing to walk the list while the
+        // endpoint is actively refusing us is how a temporary throttle becomes
+        // an IP block their docs say needs manual intervention to undo.
+        if (res.status === 429) break;
+        if (res.ok) break;
       } catch (err) {
         out.push({
           variant,
@@ -306,6 +348,25 @@ export class CareemClientService {
     if (!res.ok && last) {
       text = last.text;
     }
+    if (!res.ok) {
+      const err = new CareemAuthError(
+        last?.status ?? res.status,
+        text,
+        this.tokenUrl,
+      );
+      this.lastFailure = err;
+      this.cooldownUntil =
+        Date.now() +
+        (err.status === 429 ? RATE_LIMIT_COOLDOWN_MS : FAILURE_COOLDOWN_MS);
+      this.logger.warn(
+        `Careem token failed (${err.status}); not retrying for ${Math.round(
+          (this.cooldownUntil - Date.now()) / 1000,
+        )}s`,
+      );
+      throw err;
+    }
+    this.cooldownUntil = 0;
+    this.lastFailure = null;
     if (!res.ok) {
       this.logger.error(
         `Careem token request failed ${res.status} at ${this.tokenUrl}: ${text.slice(0, 500)}`,

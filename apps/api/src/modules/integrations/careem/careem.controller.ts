@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Query } from "@nestjs/common";
+import { Controller, Get, Logger, Post, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import { CareemAuthError, CareemClientService } from "./careem-client.service";
@@ -45,6 +45,9 @@ export class CareemController {
       webhookKeySet: !!process.env.CAREEM_WEBHOOK_API_KEY,
       webhookUrl: `${(process.env.API_URL ?? "").replace(/\/+$/, "")}/api/v1/webhooks/careem`,
       tokenUrl: this.client.tokenUrl,
+      // Non-zero means we are deliberately not re-asking, so a stale error on
+      // screen isn't mistaken for a live one.
+      retryInSeconds: this.client.cooldownSeconds,
     };
 
     if (!this.client.configured()) {
@@ -55,7 +58,11 @@ export class CareemController {
 
     // 1. Can we authenticate at all?
     try {
-      const token = await this.client.accessToken(true);
+      // NOT forced. This page polls, and a forced refresh here meant up to six
+      // token requests every thirty seconds — which is what got us rate-limited
+      // by Cloudflare in the first place. Their docs warn an IP block "might
+      // require manual intervention" to undo.
+      const token = await this.client.accessToken();
       out.token = { ok: true, length: token.length };
     } catch (err) {
       out.token =
@@ -84,6 +91,24 @@ export class CareemController {
     return out;
   }
 
+  @Post("retry")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
+  @ApiOperation({
+    summary: "Clear the failure cooldown and ask Careem again right now",
+  })
+  async retry() {
+    this.client.resetCooldown();
+    try {
+      await this.client.accessToken(true);
+      return { ok: true };
+    } catch (err) {
+      return {
+        ok: false,
+        error: err instanceof CareemAuthError ? err.body.slice(0, 400) : String(err),
+      };
+    }
+  }
+
   @Get("auth-probe")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
   @ApiOperation({
@@ -91,14 +116,21 @@ export class CareemController {
       "Try every OAuth client-authentication style against Careem and report each result",
   })
   async authProbe() {
+    // Six requests in one go. Fine as a deliberate button press, never on a
+    // timer — see the cooldown note in CareemClientService.
     const results = await this.client.diagnoseAuth();
     const winner = results.find((r) => r.ok);
     return {
       tokenUrl: this.client.tokenUrl,
       results,
-      conclusion: winner
-        ? `Careem accepts "${winner.variant}" — the client now uses it automatically.`
-        : results.every((r) => /invalid_client|bad credentials/i.test(r.body))
+      conclusion: results.some((r) => r.status === 429)
+        ? "Careem is RATE LIMITING us (HTTP 429, via Cloudflare). Stop probing — " +
+          "their docs warn that repeated token requests can escalate to an IP " +
+          "block needing manual intervention. Wait, and ask your Careem contact " +
+          "to confirm the block is lifted."
+        : winner
+          ? `Careem accepts "${winner.variant}" — the client now uses it automatically.`
+          : results.every((r) => /invalid_client|bad credentials/i.test(r.body))
           ? "Every combination was rejected, so it is the CREDENTIALS rather than " +
             "the request. Careem's own integration process says they issue the " +
             "POS OAuth client: step 2 is 'Setup client — We would set up an " +
@@ -107,7 +139,7 @@ export class CareemController {
             "appear to issue a POS client. Ask your Careem contact to provision " +
             "one. Their prerequisites also list contract completion and approval " +
             "from their information security and legal teams before API access."
-          : "No style succeeded and the errors differ — read them below.",
+            : "No style succeeded and the errors differ — read them below.",
     };
   }
 

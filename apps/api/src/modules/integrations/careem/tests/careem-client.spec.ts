@@ -475,3 +475,100 @@ describe("required headers", () => {
     expect(apiCall.headers["Branch-Id"]).toBeUndefined();
   });
 });
+
+describe("rate-limit protection", () => {
+  // Careem's docs: "do not try to request a new token every time you do an API
+  // request. This might potentially lead to unneeded rate-limiting or even IP
+  // block and might require manual intervention." We tripped exactly that — the
+  // diagnostics page polled a FORCED token refresh every 30s, and with the
+  // variant fallback that was up to six requests per poll.
+  beforeEach(() => {
+    process.env.CAREEM_CLIENT_ID = "cid";
+    process.env.CAREEM_CLIENT_SECRET = "csec";
+  });
+  afterEach(() => {
+    delete process.env.CAREEM_CLIENT_ID;
+    delete process.env.CAREEM_CLIENT_SECRET;
+    jest.restoreAllMocks();
+  });
+
+  const rejected = {
+    ok: false,
+    status: 401,
+    text: async () => '{"error":"invalid_client"}',
+  };
+  const throttled = {
+    ok: false,
+    status: 429,
+    text: async () => "<html>Access denied … Cloudflare</html>",
+  };
+
+  it("stops asking after a failure, even when forced", async () => {
+    // `force` exists for a 401 mid-request. It must not become a way to
+    // hammer an endpoint that is already refusing us.
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue(rejected as any);
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).rejects.toBeInstanceOf(CareemAuthError);
+    const afterFirst = fetchMock.mock.calls.length;
+
+    await expect(svc.accessToken()).rejects.toBeInstanceOf(CareemAuthError);
+    await expect(svc.accessToken(true)).rejects.toBeInstanceOf(CareemAuthError);
+    expect(fetchMock.mock.calls.length).toBe(afterFirst);
+    expect(svc.cooldownSeconds).toBeGreaterThan(0);
+  });
+
+  it("backs off much harder on a 429 than on a rejection", async () => {
+    jest.spyOn(global, "fetch" as any).mockResolvedValue(throttled as any);
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).rejects.toBeInstanceOf(CareemAuthError);
+    // 30 minutes vs 5 — at 429 the endpoint is already telling us to stop.
+    expect(svc.cooldownSeconds).toBeGreaterThan(20 * 60);
+  });
+
+  it("does not walk the variant list while being rate limited", async () => {
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue(throttled as any);
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).rejects.toBeInstanceOf(CareemAuthError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops the probe at the first 429 instead of firing all six", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValue(throttled as any);
+    const results = await new CareemClientService().diagnoseAuth();
+    expect(results).toHaveLength(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("lets an operator clear the cooldown deliberately", async () => {
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue(rejected as any);
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).rejects.toThrow();
+    const before = fetchMock.mock.calls.length;
+    svc.resetCooldown();
+    expect(svc.cooldownSeconds).toBe(0);
+    await expect(svc.accessToken()).rejects.toThrow();
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(before);
+  });
+
+  it("clears the cooldown once a token finally succeeds", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ access_token: "tok", expires_in: 3600 }),
+      } as any);
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).resolves.toBe("tok");
+    expect(svc.cooldownSeconds).toBe(0);
+    expect(fetchMock).toHaveBeenCalled();
+  });
+});

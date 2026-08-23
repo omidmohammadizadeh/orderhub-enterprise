@@ -34,6 +34,7 @@ interface Diagnostics {
   webhookKeySet?: boolean;
   webhookUrl?: string;
   tokenUrl?: string;
+  retryInSeconds?: number;
   token?:
     | {
         ok?: boolean;
@@ -75,13 +76,18 @@ export default function CareemPage() {
   const [probe, setProbe] = useState<AuthProbe | null>(null);
   const [probing, setProbing] = useState(false);
 
+  // Deliberately NOT polled. This call reaches out to Careem, and polling it
+  // every thirty seconds is what got us rate-limited by Cloudflare — their docs
+  // warn an IP block "might require manual intervention" to undo. Refresh is a
+  // button now.
   const diag = useQuery<Diagnostics>({
     queryKey: ["careem-diagnostics"],
     queryFn: () =>
       apiClient
         .get("/v1/integrations/careem/diagnostics")
         .then((r) => r.data as Diagnostics),
-    refetchInterval: 30_000,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
   });
 
   const hooks = useQuery<{ events: WebhookEvent[] }>({
@@ -90,6 +96,7 @@ export default function CareemPage() {
       apiClient
         .get("/v1/integrations/careem/webhooks", { params: { limit: 10 } })
         .then((r) => r.data as { events: WebhookEvent[] }),
+    // Safe to poll: this reads our own in-memory buffer, not Careem.
     refetchInterval: 15_000,
   });
 
@@ -170,6 +177,14 @@ export default function CareemPage() {
                     {tokenObj.hint}
                   </p>
                 )}
+                {!!diag.data?.retryInSeconds && (
+                  <p className="rounded border border-amber-300 bg-amber-50 p-2 text-[12px] text-amber-900">
+                    Not re-checking for another {diag.data.retryInSeconds}s. A
+                    credential rejected a moment ago will be rejected again, and
+                    repeated token requests are what trigger Careem&apos;s rate
+                    limiting.
+                  </p>
+                )}
                 <div>
                   <button
                     type="button"
@@ -195,8 +210,9 @@ export default function CareemPage() {
                     Run auth probe
                   </button>
                   <p className="mt-1 text-[11px] text-zinc-600">
-                    Tries every OAuth client-authentication style and reports what
-                    Careem said to each.
+                    Tries every style once and reports what Careem said to each.
+                    Six requests — press it when something has changed, not
+                    repeatedly.
                   </p>
                 </div>
                 {probe && (
