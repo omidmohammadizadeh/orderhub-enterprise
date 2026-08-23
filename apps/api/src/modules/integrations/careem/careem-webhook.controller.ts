@@ -11,6 +11,7 @@ import { ApiExcludeController } from "@nestjs/swagger";
 import { timingSafeEqual } from "crypto";
 import { Public } from "../../../common/decorators/public.decorator";
 import { BillingExempt } from "../../../common/guards/billing.guard";
+import { CareemWebhookLogService } from "./careem-webhook-log.service";
 
 // Phase CA-1 — Careem's inbound notifications.
 //
@@ -54,6 +55,8 @@ import { BillingExempt } from "../../../common/guards/billing.guard";
 export class CareemWebhookController {
   private readonly logger = new Logger(CareemWebhookController.name);
 
+  constructor(private readonly seen: CareemWebhookLogService) {}
+
   @Post()
   @Public()
   @HttpCode(HttpStatus.OK)
@@ -61,16 +64,33 @@ export class CareemWebhookController {
     @Body() body: CareemNotification,
     @Headers("x-careem-api-key") apiKey?: string,
   ): Promise<{ received: true }> {
-    if (!verifyCareemApiKey(apiKey, process.env.CAREEM_WEBHOOK_API_KEY)) {
+    const authenticated = verifyCareemApiKey(
+      apiKey,
+      process.env.CAREEM_WEBHOOK_API_KEY,
+    );
+    const eventType = body?.event_type;
+    const orderId = body?.details?.id;
+
+    // Recorded either way. The endpoint answers 200 on a bad key so a prober
+    // learns nothing, which also robs the operator who just configured that key
+    // of any way to tell it worked — this is how they find out.
+    this.seen.record({
+      at: new Date().toISOString(),
+      eventType: eventType ?? null,
+      orderId: orderId ?? null,
+      status: body?.details?.status ?? null,
+      authenticated,
+      payloadPreview: JSON.stringify(body ?? {}).slice(0, 4000),
+    });
+
+    if (!authenticated) {
       this.logger.warn(
         `Careem webhook rejected: bad or missing x-careem-api-key ` +
-          `(event=${body?.event_type ?? "?"})`,
+          `(event=${eventType ?? "?"})`,
       );
       return { received: true };
     }
 
-    const eventType = body?.event_type;
-    const orderId = body?.details?.id;
     this.logger.log(
       `Careem webhook ${eventType ?? "?"} order=${orderId ?? "-"} ` +
         `status=${body?.details?.status ?? "-"}`,

@@ -1,7 +1,9 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { CareemClientService } from "./careem-client.service";
+import { CareemController } from "./careem.controller";
 import { CareemWebhookController } from "./careem-webhook.controller";
+import { CareemWebhookLogService } from "./careem-webhook-log.service";
 
 // Phase CA — direct Careem (Now/SuperApp) POS integration.
 //
@@ -15,8 +17,8 @@ import { CareemWebhookController } from "./careem-webhook.controller";
 // being spec-derived.
 @Module({
   imports: [ConfigModule],
-  controllers: [CareemWebhookController],
-  providers: [CareemClientService],
+  controllers: [CareemController, CareemWebhookController],
+  providers: [CareemClientService, CareemWebhookLogService],
   exports: [CareemClientService],
 })
 export class CareemModule {}
