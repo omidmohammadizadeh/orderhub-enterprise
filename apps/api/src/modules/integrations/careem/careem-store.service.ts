@@ -43,6 +43,8 @@ export interface CareemBranch {
   name: string;
   brand_id: string;
   state: "UNMAPPED" | "MAPPED";
+  pos_integration?: boolean;
+  visibility?: string;
 }
 
 @Injectable()
@@ -294,7 +296,11 @@ export class CareemStoreService {
     await this.publishHours(tenantId, locationId);
 
     return {
-      branch,
+      // The branch as PUT returned it, with the POS toggle brought up to date.
+      // Careem answer the PUT before that toggle is flipped, so returning
+      // their body verbatim put pos_integration:false next to our own
+      // posIntegrationEnabled:true — one response contradicting itself.
+      branch: { ...branch, ...(mapped ? {} : { pos_integration: true }) },
       mapped,
       posIntegrationEnabled: !mapped,
       nextSteps: mapped
