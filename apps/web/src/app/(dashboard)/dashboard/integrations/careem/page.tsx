@@ -25,6 +25,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface Diagnostics {
   environment?: string;
@@ -71,6 +72,14 @@ interface AuthProbe {
   results?: Array<{ variant: string; status: number; ok: boolean; body: string }>;
 }
 
+interface SandboxStatus {
+  enabled?: boolean;
+  howToEnable?: string;
+  brands?: Array<{ id: string; name: string }>;
+  branches?: Array<{ id: string; name: string; state: string; pos_integration: boolean }>;
+  catalogs?: string[];
+}
+
 export default function CareemPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [probe, setProbe] = useState<AuthProbe | null>(null);
@@ -99,6 +108,49 @@ export default function CareemPage() {
     // Safe to poll: this reads our own in-memory buffer, not Careem.
     refetchInterval: 15_000,
   });
+
+  // ── Sandbox (CA-5) ───────────────────────────────────────────────────────
+  // Careem's API answering on our own server, so the integration can be driven
+  // before they issue a client. Everything here is a button because the
+  // alternative is curl with a bearer token, and this page exists precisely
+  // because that went wrong four different ways last time.
+  const locationId = useSelectedLocationStore((st) => st.selectedLocationId);
+  const [running, setRunning] = useState<string | null>(null);
+  const [result, setResult] = useState<{ step: string; body: unknown } | null>(
+    null,
+  );
+
+  const sandbox = useQuery<SandboxStatus>({
+    queryKey: ["careem-sandbox"],
+    queryFn: () =>
+      apiClient
+        .get("/v1/integrations/careem/sandbox/status")
+        .then((r) => r.data as SandboxStatus),
+    refetchOnWindowFocus: false,
+  });
+
+  /** Run one step and show whatever came back — including the failures, which
+   *  are the interesting ones here. */
+  const step = async (
+    label: string,
+    call: () => Promise<{ data: unknown }>,
+  ) => {
+    setRunning(label);
+    setResult(null);
+    try {
+      const res = await call();
+      setResult({ step: label, body: res.data });
+    } catch (err) {
+      const e = err as { response?: { status?: number; data?: unknown } };
+      setResult({
+        step: `${label} — HTTP ${e.response?.status ?? "?"}`,
+        body: e.response?.data ?? String(err),
+      });
+    } finally {
+      setRunning(null);
+      void sandbox.refetch();
+    }
+  };
 
   const copy = async (label: string, text: string) => {
     try {
@@ -375,6 +427,171 @@ export default function CareemPage() {
             Nothing received yet. Place a test order in Careem&apos;s sandbox and
             it will appear here.
           </p>
+        )}
+      </section>
+
+      {/* ── Sandbox ───────────────────────────────────────────────────── */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-900">Sandbox</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Careem&apos;s API answering on our own server, so the whole
+            integration can be run before they issue a client. Nothing here
+            leaves the box.
+          </p>
+        </div>
+
+        {sandbox.data?.enabled === false ? (
+          <p className="rounded-lg border border-dashed border-zinc-200 p-4 text-xs text-zinc-600">
+            {sandbox.data.howToEnable}
+          </p>
+        ) : !locationId ? (
+          <p className="rounded-lg border border-dashed border-zinc-200 p-4 text-xs text-zinc-600">
+            Pick a location in the switcher first — every step below runs
+            against it.
+          </p>
+        ) : (
+          <>
+            <ol className="space-y-2">
+              {[
+                {
+                  n: 1,
+                  label: "Check the menu",
+                  hint: "Sends nothing. Read a price and check the unit is right.",
+                  run: () =>
+                    apiClient.get(
+                      `/v1/integrations/careem/sandbox/locations/${locationId}/menu/dry-run`,
+                    ),
+                },
+                {
+                  n: 2,
+                  label: "Onboard the shop",
+                  hint: "Brand, branch, POS integration, opening hours.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/locations/${locationId}/onboard`,
+                    ),
+                },
+                {
+                  n: 3,
+                  label: "Publish the menu — expect this to FAIL",
+                  hint: 'A new branch is unmapped. "branch_id is not mapped" is the right answer here.',
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/locations/${locationId}/menu/publish`,
+                    ),
+                },
+                {
+                  n: 4,
+                  label: "Map the branch",
+                  hint: "What Careem's operations team does by hand.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/sandbox/locations/${locationId}/map`,
+                    ),
+                },
+                {
+                  n: 5,
+                  label: "Publish the menu again",
+                  hint: "Same call as step 3. It should work now.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/locations/${locationId}/menu/publish`,
+                    ),
+                },
+                {
+                  n: 6,
+                  label: "Send a Careem order",
+                  hint: "Built from this shop's real menu. It should land on the orders board.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/sandbox/locations/${locationId}/simulate-order`,
+                      { itemCount: 2 },
+                    ),
+                },
+                {
+                  n: 7,
+                  label: "Send a self-delivery order",
+                  hint: "Careem send customer details ONLY for self-delivery — this one should carry an address, step 6 should not.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/sandbox/locations/${locationId}/simulate-order`,
+                      { itemCount: 2, selfDelivery: true },
+                    ),
+                },
+                {
+                  n: 8,
+                  label: "What did we actually send?",
+                  hint: "Every request the mock received, newest first.",
+                  run: () =>
+                    apiClient.get("/v1/integrations/careem/sandbox/calls", {
+                      params: { limit: 25 },
+                    }),
+                },
+              ].map((s) => (
+                <li
+                  key={s.n}
+                  className="flex items-start justify-between gap-4 rounded-lg border border-zinc-200 p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-zinc-900">
+                      <span className="mr-2 text-zinc-400">{s.n}</span>
+                      {s.label}
+                    </p>
+                    <p className="mt-0.5 text-xs text-zinc-500">{s.hint}</p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={running !== null}
+                    onClick={() => void step(s.label, s.run)}
+                    className="shrink-0 rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
+                  >
+                    {running === s.label ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      "Run"
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ol>
+
+            <button
+              type="button"
+              disabled={running !== null}
+              onClick={() =>
+                void step("Reset", () =>
+                  apiClient.post("/v1/integrations/careem/sandbox/reset"),
+                )
+              }
+              className="text-xs text-zinc-500 underline hover:text-zinc-700"
+            >
+              Empty the sandbox and start again
+            </button>
+
+            {result && (
+              <div className="rounded-lg border border-zinc-200 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-zinc-900">
+                    {result.step}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      copy("sandbox", JSON.stringify(result.body, null, 2))
+                    }
+                    className="inline-flex items-center gap-1 rounded border border-zinc-200 px-1.5 py-0.5 text-[10px] hover:bg-zinc-50"
+                  >
+                    <Copy className="h-2.5 w-2.5" />
+                    {copied === "sandbox" ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <pre className="mt-2 max-h-96 overflow-auto rounded bg-zinc-50 p-2 font-mono text-[10px] leading-relaxed text-zinc-700">
+                  {JSON.stringify(result.body, null, 2)}
+                </pre>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>
