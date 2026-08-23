@@ -84,6 +84,31 @@ export class CareemController {
     return out;
   }
 
+  @Get("auth-probe")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
+  @ApiOperation({
+    summary:
+      "Try every OAuth client-authentication style against Careem and report each result",
+  })
+  async authProbe() {
+    const results = await this.client.diagnoseAuth();
+    const winner = results.find((r) => r.ok);
+    return {
+      tokenUrl: this.client.tokenUrl,
+      results,
+      conclusion: winner
+        ? `Careem accepts "${winner.variant}" — the client now uses it automatically.`
+        : results.every((r) => /invalid_client/i.test(r.body))
+          ? "Every style was rejected with invalid_client, so it is the CREDENTIALS " +
+            "rather than the method. Most likely these are production credentials " +
+            "being used against a sandbox client_id (or the reverse), or the " +
+            "credential was never fully generated — Careem's dialog needs the " +
+            "webhook URL and key filled in before it issues one. Regenerate the " +
+            "sandbox credential and paste both halves again."
+          : "No style succeeded and the errors differ — read them below.",
+    };
+  }
+
   @Get("webhooks")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
   @ApiOperation({
@@ -146,8 +171,13 @@ function hintFor(err: CareemAuthError): string {
   }
   if (err.status === 401 || body.includes("invalid_client")) {
     return (
-      "The client id or secret was rejected. Re-check both for whitespace or a " +
-      "truncated paste — Careem shows them once and they are long."
+      "Careem rejected the client credentials themselves. We already retry with " +
+      "every OAuth client-authentication style (body params and HTTP Basic), so " +
+      "this is not the method. Check: (1) the id and secret pasted whole, with no " +
+      "trailing whitespace — Careem shows them once and they are long; (2) these " +
+      "are SANDBOX credentials, matching CAREEM_ENV=staging; (3) the credential " +
+      "was fully generated — their dialog needs a webhook URL and key before it " +
+      "issues one. Run the auth probe for a per-style breakdown."
     );
   }
   if (err.status === 404) {

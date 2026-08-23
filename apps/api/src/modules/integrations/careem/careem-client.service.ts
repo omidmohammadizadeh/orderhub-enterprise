@@ -27,6 +27,27 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
  *  determines which one you get a token for. */
 const IDENTITY_TOKEN_URL = "https://identity.careem.com/token";
 
+/** RFC 6749 client-authentication styles, in the order we try them. Careem's
+ *  spec documents the first; the rest exist because that spec was already
+ *  wrong about the token URL. */
+export const AUTH_VARIANTS = [
+  "multipart_post",
+  "form_post",
+  "form_basic",
+  "multipart_basic",
+] as const;
+export type AuthVariant = (typeof AUTH_VARIANTS)[number];
+
+const basicAuth = (id: string, secret: string) =>
+  `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`;
+
+/** Is the server complaining about who we say we are, rather than anything
+ *  else? Only then is trying another auth style meaningful. */
+export function isClientAuthFailure(status: number, body: string): boolean {
+  if (status !== 400 && status !== 401) return false;
+  return /invalid_client|unauthorized_client|client authentication/i.test(body);
+}
+
 const HOSTS = {
   production: "https://apigateway.careemdash.com/pos/api/v1",
   staging: "https://apigateway-stg.careemdash.com/pos/api/v1",
@@ -127,24 +148,135 @@ export class CareemClientService {
     return this.pending;
   }
 
+  /**
+   * How the client authenticates itself to the token endpoint.
+   *
+   * RFC 6749 allows two, and servers rarely accept both: `client_secret_post`
+   * puts the id and secret in the body, `client_secret_basic` puts them in an
+   * Authorization header. `invalid_client` is precisely the error for "client
+   * authentication failed", so when the credentials are known-good it usually
+   * means the server wanted the other one.
+   *
+   * Careem's spec documents the body form (multipart), and their spec was
+   * already wrong about the token URL, so we try it first and fall back rather
+   * than trusting it. Whichever works is remembered, so the fallback costs one
+   * extra round trip once per process rather than on every token.
+   */
+  private authVariant: AuthVariant | null = null;
+
+  private buildTokenRequest(variant: AuthVariant): RequestInit {
+    const id = this.clientId!;
+    const secret = this.clientSecret!;
+    const base = { grant_type: "client_credentials", scope: "pos" };
+
+    if (variant === "multipart_post" || variant === "multipart_basic") {
+      const form = new FormData();
+      for (const [k, v] of Object.entries(base)) form.append(k, v);
+      if (variant === "multipart_post") {
+        form.append("client_id", id);
+        form.append("client_secret", secret);
+      }
+      // FormData sets its own boundary — never set Content-Type by hand.
+      return {
+        method: "POST",
+        body: form,
+        ...(variant === "multipart_basic"
+          ? { headers: { Authorization: basicAuth(id, secret) } }
+          : {}),
+      };
+    }
+
+    const params = new URLSearchParams(base);
+    if (variant === "form_post") {
+      params.set("client_id", id);
+      params.set("client_secret", secret);
+    }
+    return {
+      method: "POST",
+      body: params.toString(),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        ...(variant === "form_basic" ? { Authorization: basicAuth(id, secret) } : {}),
+      },
+    };
+  }
+
+  /**
+   * Try every client-authentication variant against the token endpoint and
+   * report what each one did.
+   *
+   * The same idea as JET's signature-variant diagnostic: when authentication
+   * fails there are only a handful of ways it can be wrong, and trying them all
+   * once turns a day of guessing into one line of output. Never returns a
+   * credential — only the status and the server's reply.
+   */
+  async diagnoseAuth(): Promise<
+    Array<{ variant: AuthVariant; status: number; ok: boolean; body: string }>
+  > {
+    if (!this.configured()) {
+      throw new BadRequestException("Careem is not configured.");
+    }
+    const out = [];
+    for (const variant of AUTH_VARIANTS) {
+      try {
+        const res = await fetch(this.tokenUrl, {
+          ...this.buildTokenRequest(variant),
+          signal: AbortSignal.timeout(15_000),
+        });
+        const body = await res.text();
+        out.push({
+          variant,
+          status: res.status,
+          ok: res.ok,
+          body: body.slice(0, 400),
+        });
+      } catch (err) {
+        out.push({
+          variant,
+          status: 0,
+          ok: false,
+          body: (err as Error).message,
+        });
+      }
+    }
+    return out;
+  }
+
   private async requestToken(): Promise<string> {
     if (!this.configured()) {
       throw new BadRequestException("Careem is not configured.");
     }
-    // multipart/form-data — see the note at the top of this file. FormData
-    // sets its own boundary, so we must NOT set Content-Type ourselves.
-    const form = new FormData();
-    form.append("client_id", this.clientId!);
-    form.append("client_secret", this.clientSecret!);
-    form.append("grant_type", "client_credentials");
-    form.append("scope", "pos");
+    // Remembered winner first; otherwise the spec's documented shape, then the
+    // alternatives. Stops at the first success.
+    const order = this.authVariant
+      ? [this.authVariant]
+      : [...AUTH_VARIANTS];
 
-    const res = await fetch(this.tokenUrl, {
-      method: "POST",
-      body: form,
-      signal: AbortSignal.timeout(15_000),
-    });
-    const text = await res.text();
+    let last: { status: number; text: string } | null = null;
+    let res!: Response;
+    let text = "";
+    for (const variant of order) {
+      res = await fetch(this.tokenUrl, {
+        ...this.buildTokenRequest(variant),
+        signal: AbortSignal.timeout(15_000),
+      });
+      text = await res.text();
+      if (res.ok) {
+        if (this.authVariant !== variant) {
+          this.logger.log(`Careem accepted client auth variant "${variant}"`);
+        }
+        this.authVariant = variant;
+        break;
+      }
+      last = { status: res.status, text };
+      // Only worth trying another variant when the server is specifically
+      // complaining about CLIENT AUTHENTICATION. A 404 or a 500 means
+      // something else is wrong and retrying four ways just makes noise.
+      if (!isClientAuthFailure(res.status, text)) break;
+    }
+    if (!res.ok && last) {
+      text = last.text;
+    }
     if (!res.ok) {
       this.logger.error(
         `Careem token request failed ${res.status} at ${this.tokenUrl}: ${text.slice(0, 500)}`,

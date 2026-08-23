@@ -1,4 +1,9 @@
-import { CareemAuthError, CareemClientService } from "../careem-client.service";
+import {
+  AUTH_VARIANTS,
+  CareemAuthError,
+  CareemClientService,
+  isClientAuthFailure,
+} from "../careem-client.service";
 import { verifyCareemApiKey } from "../careem-webhook.controller";
 
 // Careem POS transport + the static-key webhook auth.
@@ -245,5 +250,91 @@ describe("CareemAuthError", () => {
     expect(new CareemClientService().tokenUrl).toBe(
       "https://identity-test.example/token",
     );
+  });
+});
+
+describe("client-authentication variants", () => {
+  beforeEach(() => {
+    process.env.CAREEM_CLIENT_ID = "cid";
+    process.env.CAREEM_CLIENT_SECRET = "csec";
+  });
+  afterEach(() => {
+    delete process.env.CAREEM_CLIENT_ID;
+    delete process.env.CAREEM_CLIENT_SECRET;
+    jest.restoreAllMocks();
+  });
+
+  const rejected = {
+    ok: false,
+    status: 401,
+    text: async () =>
+      JSON.stringify({ error: "invalid_client", error_description: "Bad client credentials" }),
+  };
+  const accepted = {
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({ access_token: "tok", expires_in: 3600 }),
+  };
+
+  it("falls back to HTTP Basic when the body form is rejected", async () => {
+    // invalid_client is RFC 6749's error for "client authentication failed",
+    // and the usual cause with good credentials is that the server wanted the
+    // other style. Careem documents the body form — and their spec was already
+    // wrong about the token URL.
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(accepted as any);
+
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).resolves.toBe("tok");
+
+    const third = fetchMock.mock.calls[2]![1] as any;
+    expect(third.headers.Authorization).toMatch(/^Basic /);
+    // client_id must NOT also be in the body when it's in the header.
+    expect(String(third.body)).not.toContain("client_id");
+  });
+
+  it("remembers the winning style instead of re-walking the list", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce(rejected as any)
+      .mockResolvedValueOnce(accepted as any)
+      .mockResolvedValue(accepted as any);
+
+    const svc = new CareemClientService();
+    await svc.accessToken();
+    const afterFirst = fetchMock.mock.calls.length;
+    await svc.accessToken(true); // force past the cache
+    expect(fetchMock.mock.calls.length).toBe(afterFirst + 1);
+  });
+
+  it("does not try other styles for an error that isn't about client auth", () => {
+    // A 404 or a 500 means something else is wrong; retrying four ways just
+    // makes noise and four times the load.
+    expect(isClientAuthFailure(401, '{"error":"invalid_client"}')).toBe(true);
+    expect(isClientAuthFailure(400, "unauthorized_client")).toBe(true);
+    expect(isClientAuthFailure(404, "NotFoundHttpException")).toBe(false);
+    expect(isClientAuthFailure(500, "internal")).toBe(false);
+    expect(isClientAuthFailure(401, "some other problem")).toBe(false);
+  });
+
+  it("stops after one attempt on a non-auth error", async () => {
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: async () => "NotFoundHttpException",
+    } as any);
+    const svc = new CareemClientService();
+    await expect(svc.accessToken()).rejects.toBeInstanceOf(CareemAuthError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("probes every style and reports each result", async () => {
+    jest.spyOn(global, "fetch" as any).mockResolvedValue(rejected as any);
+    const results = await new CareemClientService().diagnoseAuth();
+    expect(results.map((r) => r.variant)).toEqual([...AUTH_VARIANTS]);
+    expect(results.every((r) => r.ok === false)).toBe(true);
   });
 });

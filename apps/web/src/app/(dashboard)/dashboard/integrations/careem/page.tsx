@@ -64,8 +64,16 @@ interface WebhookEvent {
   payloadPreview: string;
 }
 
+interface AuthProbe {
+  tokenUrl?: string;
+  conclusion?: string;
+  results?: Array<{ variant: string; status: number; ok: boolean; body: string }>;
+}
+
 export default function CareemPage() {
   const [copied, setCopied] = useState<string | null>(null);
+  const [probe, setProbe] = useState<AuthProbe | null>(null);
+  const [probing, setProbing] = useState(false);
 
   const diag = useQuery<Diagnostics>({
     queryKey: ["careem-diagnostics"],
@@ -161,6 +169,55 @@ export default function CareemPage() {
                   <p className="rounded border border-red-200 bg-white/60 p-2 text-[13px] leading-relaxed">
                     {tokenObj.hint}
                   </p>
+                )}
+                <div>
+                  <button
+                    type="button"
+                    disabled={probing}
+                    onClick={async () => {
+                      setProbing(true);
+                      try {
+                        const r = await apiClient.get(
+                          "/v1/integrations/careem/auth-probe",
+                        );
+                        setProbe(r.data as AuthProbe);
+                      } catch (e) {
+                        setProbe({
+                          conclusion: (e as { message?: string })?.message ?? "Probe failed",
+                        });
+                      } finally {
+                        setProbing(false);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    {probing && <Loader2 className="h-3 w-3 animate-spin" />}
+                    Run auth probe
+                  </button>
+                  <p className="mt-1 text-[11px] text-zinc-600">
+                    Tries every OAuth client-authentication style and reports what
+                    Careem said to each.
+                  </p>
+                </div>
+                {probe && (
+                  <div className="rounded border border-red-200 bg-white/60 p-2">
+                    <p className="text-[13px] leading-relaxed">{probe.conclusion}</p>
+                    {probe.results?.length ? (
+                      <table className="mt-2 w-full text-[10px]">
+                        <tbody>
+                          {probe.results.map((r) => (
+                            <tr key={r.variant} className="border-b border-zinc-100 last:border-0">
+                              <td className="py-1 pr-2 font-mono">{r.variant}</td>
+                              <td className="py-1 pr-2 font-mono">{r.status}</td>
+                              <td className="py-1 font-mono text-zinc-600">
+                                {r.body.slice(0, 90)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : null}
+                  </div>
                 )}
                 {tokenObj?.careemSaid && (
                   <div>
