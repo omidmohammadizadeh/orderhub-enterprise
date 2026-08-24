@@ -44,7 +44,8 @@ export type ReferralRejection =
   | "PHONE_ALREADY_KNOWN"
   | "SELF_REFERRAL"
   | "REFERRER_AT_CAP"
-  | "BELOW_MINIMUM_SPEND";
+  | "BELOW_MINIMUM_SPEND"
+  | "NO_PHONE";
 
 @Injectable()
 export class ReferralService {
@@ -405,7 +406,14 @@ export class ReferralService {
     if (args.friendId === args.referrerId) return "SELF_REFERRAL";
 
     const phone = normalisePhone(args.friendPhone);
-    if (phone) {
+    // NO PHONE, NO REFERRAL.
+    //
+    // Every check below runs on the phone, and CustomerAccount.phone is
+    // optional — so treating "no phone" as eligible made an account with the
+    // field left blank the easiest way through the whole scheme. Absence of
+    // evidence is not eligibility when the evidence is the point.
+    if (!phone) return "NO_PHONE";
+    {
       const referrer = await this.prisma.customerAccount.findUnique({
         where: { id: args.referrerId },
         select: { phone: true },
@@ -470,6 +478,8 @@ export class ReferralService {
         return "Your friend has reached their referral limit.";
       case "BELOW_MINIMUM_SPEND":
         return "That order didn't reach the minimum for a referral reward.";
+      case "NO_PHONE":
+        return "Add a mobile number to your account to use a referral code.";
     }
   }
 

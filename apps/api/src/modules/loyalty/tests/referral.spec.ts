@@ -31,6 +31,18 @@ const PROGRAM = {
   rewardExpiryDays: null,
 };
 
+const PROGRAM_FOR_PAYOUT = {
+  id: "prog-1",
+  tenantId: "t1",
+  locationId: "loc-1",
+  isActive: true,
+  referrerAmount: 5,
+  friendAmount: 5,
+  minimumSpend: null,
+  maxPerCustomer: 10,
+  rewardExpiryDays: null,
+};
+
 const svc = (over: Record<string, any> = {}) => {
   const prisma: any = {
     referralProgram: { findUnique: jest.fn().mockResolvedValue(PROGRAM), upsert: jest.fn() },
@@ -273,5 +285,54 @@ describe("configuring the programme", () => {
     const { s, prisma } = svc();
     await s.upsertProgram("t1", "loc-1", { maxPerCustomer: 0 });
     expect(prisma.referralProgram.upsert.mock.calls[0][0].create.maxPerCustomer).toBe(1);
+  });
+});
+
+// The hole that mattered most: every fraud check runs on the phone, and
+// CustomerAccount.phone is OPTIONAL. Treating "no phone" as eligible made an
+// account with the field left blank the easiest way through the entire
+// scheme — absence of evidence read as eligibility.
+describe("an account with no phone number", () => {
+  it("cannot use a referral code at all", async () => {
+    const { s, prisma } = svc();
+    prisma.referralCode.findFirst.mockResolvedValue({
+      id: "code-1",
+      programId: "prog-1",
+      customerAccountId: "referrer-1",
+    });
+    prisma.customerAccount.findUnique.mockResolvedValue({
+      id: "friend-1",
+      phone: null,
+    });
+    await expect(
+      s.claimCode({ customerAccountId: "friend-1", locationId: "loc-1", code: "ABC123" }),
+    ).rejects.toThrow(/mobile number/i);
+  });
+
+  it("does not pay out at qualification either", async () => {
+    // Checked again at payout, because the field can be cleared in between.
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1",
+      tenantId: "t1",
+      locationId: "loc-1",
+      customerAccountId: "friend-1",
+      subtotal: 20,
+      total: 20,
+      status: "COMPLETED",
+      createdAt: new Date(),
+    });
+    prisma.referral.findFirst.mockResolvedValue({
+      id: "ref-1",
+      programId: "prog-1",
+      referrerAccountId: "referrer-1",
+      friendAccountId: "friend-1",
+      friendPhone: null,
+      status: "PENDING",
+      program: PROGRAM_FOR_PAYOUT,
+    });
+    prisma.customerAccount.findUnique.mockResolvedValue({ id: "friend-1", phone: null });
+    expect(await s.qualifyForOrder("order-1")).toBe(false);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });
