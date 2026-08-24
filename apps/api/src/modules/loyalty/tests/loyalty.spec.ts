@@ -42,7 +42,7 @@ const order = (over: Record<string, any> = {}) => ({
   customerAccountId: "cust-1",
   subtotal: 12,
   total: 15,
-  status: "ACCEPTED",
+  status: "COMPLETED",
   ...over,
 });
 
@@ -64,19 +64,20 @@ describe("earning a stamp", () => {
     expect((await s.awardForOrder("order-1")).stamped).toBe(false);
   });
 
-  it("gives nothing for an order the shop has not accepted yet", async () => {
-    // A payload is not an order. Until the shop says yes, nothing is owed.
+  it("gives nothing for an order that is not finished", async () => {
+    // A payload is not an order, and an order in the kitchen is not a sale.
     const { s, prisma } = svc();
     prisma.order.findUnique.mockResolvedValue(order({ status: "PENDING" }));
     expect((await s.awardForOrder("order-1")).stamped).toBe(false);
   });
 
-  it("stamps an order that has moved past acceptance", async () => {
-    // A shop that jumps straight to PREPARING has still accepted it.
+  it("gives nothing for an order still in the kitchen", async () => {
+    // A shop that never presses Completed still pays out — the 5am rollover
+    // completes anything in flight and awards the stamp itself.
     const { s, prisma } = svc();
     prisma.order.findUnique.mockResolvedValue(order({ status: "PREPARING" }));
     prisma.loyaltyCard.findUnique.mockResolvedValue(ACTIVE);
-    expect((await s.awardForOrder("order-1")).stamped).toBe(true);
+    expect((await s.awardForOrder("order-1")).stamped).toBe(false);
   });
 
   it("gives nothing when the card is switched off", async () => {
@@ -228,7 +229,7 @@ describe("the order.status_changed listener", () => {
       customerAccountId: "cust-1",
       subtotal: 20,
       total: 20,
-      status: "ACCEPTED",
+      status: "COMPLETED",
     });
     prisma.loyaltyCard.findUnique.mockResolvedValue(ACTIVE);
     return { s, prisma };
@@ -236,13 +237,13 @@ describe("the order.status_changed listener", () => {
 
   it("acts on the field OrdersService actually emits — toStatus", async () => {
     const { s, prisma } = listen();
-    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" });
     expect(prisma.loyaltyStamp.create).toHaveBeenCalled();
   });
 
-  it("ignores a transition that is neither acceptance nor cancellation", async () => {
+  it("ignores a transition that is neither completion nor cancellation", async () => {
     const { s, prisma } = listen();
-    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "READY" });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" });
     expect(prisma.loyaltyStamp.create).not.toHaveBeenCalled();
   });
 
@@ -264,7 +265,51 @@ describe("the order.status_changed listener", () => {
     const { s, prisma } = listen();
     prisma.order.findUnique.mockRejectedValue(new Error("database is on fire"));
     await expect(
-      s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" }),
+      s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" }),
     ).resolves.toBeUndefined();
+  });
+});
+
+// The 5am rollover is what makes "only on COMPLETED" a workable rule rather
+// than a rule that never fires. It completes orders with raw SQL and emits no
+// event on purpose — so it has to award the stamps itself, and if that call
+// ever goes missing, stamps quietly stop for every shop that does not press
+// the button.
+describe("awardForOrder as the rollover calls it", () => {
+  it("stamps an order the rollover has just completed", async () => {
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1",
+      tenantId: "t1",
+      locationId: "loc-1",
+      customerAccountId: "cust-1",
+      subtotal: 20,
+      total: 20,
+      // Written straight to the row by the sweep, with no event behind it.
+      status: "COMPLETED",
+    });
+    prisma.loyaltyCard.findUnique.mockResolvedValue(ACTIVE);
+    expect(await s.awardForOrder("order-1")).toEqual({
+      stamped: true,
+      earnedReward: false,
+    });
+  });
+
+  it("is safe to call twice on the same order", async () => {
+    // The sweep can overlap a manual completion, and a retry must not mint a
+    // second stamp — the unique orderId is what stops it.
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1",
+      tenantId: "t1",
+      locationId: "loc-1",
+      customerAccountId: "cust-1",
+      subtotal: 20,
+      total: 20,
+      status: "COMPLETED",
+    });
+    prisma.loyaltyCard.findUnique.mockResolvedValue(ACTIVE);
+    prisma.loyaltyStamp.create.mockRejectedValue({ code: "P2002" });
+    expect((await s.awardForOrder("order-1")).stamped).toBe(false);
   });
 });

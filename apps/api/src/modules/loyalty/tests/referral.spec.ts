@@ -153,7 +153,7 @@ describe("paying out", () => {
     customerAccountId: "friend-1",
     subtotal: 20,
     total: 24,
-    status: "ACCEPTED",
+    status: "COMPLETED",
     createdAt: new Date(),
     ...over,
   });
@@ -180,7 +180,7 @@ describe("paying out", () => {
     return { s, prisma };
   };
 
-  it("pays both sides when the shop accepts the friend's first order", async () => {
+  it("pays both sides on the friend's first completed order", async () => {
     const { s, prisma } = setup();
     expect(await s.qualifyForOrder("order-1")).toBe(true);
     // Both rewards and the status move in ONE transaction — paying one side
@@ -189,7 +189,7 @@ describe("paying out", () => {
     expect(prisma.$transaction.mock.calls[0][0]).toHaveLength(3);
   });
 
-  it("pays nothing until the shop has accepted the order", async () => {
+  it("pays nothing until the order is finished", async () => {
     const { s, prisma } = setup();
     prisma.order.findUnique.mockResolvedValue(order({ status: "PENDING" }));
     expect(await s.qualifyForOrder("order-1")).toBe(false);

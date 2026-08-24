@@ -1,6 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { LoyaltyService } from "../loyalty/loyalty.service";
+import { ReferralService } from "../loyalty/referral.service";
 
 // Phase AW-27 — Daily auto-complete at the business-day rollover.
 //
@@ -42,7 +44,11 @@ export class OrdersAutoCompleteCron {
     "RIDER_ARRIVED",
   ] as const;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly loyalty: LoyaltyService,
+    private readonly referrals: ReferralService,
+  ) {}
 
   // 05:00 UTC daily.
   @Cron("0 5 * * *")
@@ -119,5 +125,40 @@ export class OrdersAutoCompleteCron {
         new Set(rows.map((r) => r.status)),
       ).join(", ")}).`,
     );
+
+    // Pay out what these orders earned.
+    //
+    // Called directly rather than by emitting order.status_changed, for two
+    // reasons. The UPDATE above is deliberately raw SQL with no event — that
+    // is the whole trick that keeps updatedAt at yesterday so the board can
+    // age these off — so nothing is listening. And emitting at 5am would also
+    // wake every marketplace sync listener and push a status nobody asked for
+    // to Deliveroo, Uber and Careem in the middle of the night.
+    //
+    // Sequential, not Promise.all: this is a nightly sweep with no deadline,
+    // and a hundred concurrent writes would spike the pool for no benefit.
+    let stamped = 0;
+    let referred = 0;
+    for (const id of ids) {
+      try {
+        if ((await this.loyalty.awardForOrder(id)).stamped) stamped++;
+      } catch (err) {
+        this.logger.warn(
+          `Rollover stamp for order ${id} failed: ${(err as Error).message}`,
+        );
+      }
+      try {
+        if (await this.referrals.qualifyForOrder(id)) referred++;
+      } catch (err) {
+        this.logger.warn(
+          `Rollover referral for order ${id} failed: ${(err as Error).message}`,
+        );
+      }
+    }
+    if (stamped || referred) {
+      this.logger.log(
+        `Rollover awarded ${stamped} loyalty stamp(s) and settled ${referred} referral(s).`,
+      );
+    }
   }
 }

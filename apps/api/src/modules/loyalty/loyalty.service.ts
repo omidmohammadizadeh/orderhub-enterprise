@@ -9,19 +9,22 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 //
 // ── Where a stamp comes from ────────────────────────────────────────────────
 //
-// An ACCEPTED order, from a signed-in customer, at a location with an active
+// A COMPLETED order, from a signed-in customer, at a location with an active
 // card, meeting the minimum spend.
 //
-// Accepted, not completed. Nothing in this system marks an order COMPLETED on
-// its own — only staff pressing the button, or a dine-in tab closing. A busy
-// takeaway accepts a collection order, cooks it, hands it over and moves on,
-// and the board shows Accepted for the rest of the night. Keying stamps off
-// completion meant they mostly never arrived, which is worse than the problem
-// it was avoiding.
+// Completed rather than accepted, because an order that is cancelled or
+// refunded afterwards should never have earned anything, and taking a stamp
+// back that somebody has already seen is a worse experience than a stamp that
+// arrives a few hours late.
 //
-// Acceptance is the shop saying yes to the order, and it is also what the
-// customer thinks earned the stamp. The honesty is kept by the other half:
-// a cancelled or rejected order has its stamp TAKEN BACK.
+// The reason that works here and would not in most systems: the 5am rollover
+// completes anything still in flight. A shop that never presses the button
+// still pays out, by the following morning at the latest — and that cron
+// calls this directly, because it completes orders with raw SQL and emits no
+// event on purpose (see OrdersAutoCompleteCron for why).
+//
+// A refund after completion still takes the stamp back. That is the one case
+// the ladder cannot rule out.
 //
 // ── Why the order id is unique ──────────────────────────────────────────────
 //
@@ -38,16 +41,9 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 const DEFAULT_STAMPS = 6;
 
-/** The shop has said yes. Anything from here on has earned its stamp. */
-const EARNING = new Set([
-  "ACCEPTED",
-  "PREPARING",
-  "READY",
-  "ASSIGNED_DRIVER",
-  "RIDER_ARRIVED",
-  "OUT_FOR_DELIVERY",
-  "COMPLETED",
-]);
+/** Only a finished order earns. The 5am rollover is what makes this reachable
+ *  for shops that never press the button. */
+const EARNING = new Set(["COMPLETED"]);
 
 /** The order is not happening. Whatever it earned comes back. */
 const REVOKING = new Set(["CANCELLED", "REJECTED", "FAILED", "REFUNDED"]);
@@ -170,7 +166,7 @@ export class LoyaltyService {
         await this.revokeForOrder(payload.orderId);
         return;
       }
-      if (payload.toStatus !== "ACCEPTED") return;
+      if (payload.toStatus !== "COMPLETED") return;
       await this.awardForOrder(payload.orderId);
     } catch (err) {
       this.logger.warn(

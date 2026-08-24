@@ -2,6 +2,7 @@ import { Module, forwardRef } from "@nestjs/common";
 import { OrdersService } from "./orders.service";
 import { OrdersController } from "./orders.controller";
 import { OrdersAutoCompleteCron } from "./orders-auto-complete.cron";
+import { LoyaltyModule } from "../loyalty/loyalty.module";
 import { VoidItemsService } from "./void-items.service";
 import { SocketModule } from "../../infrastructure/socket/socket.module";
 import { AuthModule } from "../auth/auth.module";
@@ -14,6 +15,9 @@ import { CustomerPushModule } from "../customer-push/customer-push.module";
 
 @Module({
   imports: [
+    // The 5am rollover completes orders with raw SQL and no event, so it has
+    // to award their stamps itself. One-way: Loyalty never reaches back.
+    LoyaltyModule,
     SocketModule,
     AuthModule,
     OutboxModule,

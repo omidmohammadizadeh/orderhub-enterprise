@@ -17,14 +17,14 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 // people order as guests for years before they ever sign up, and they are not
 // new customers.
 //
-// ── Paid on ACCEPTANCE, never at checkout ───────────────────────────────────
+// ── Paid on COMPLETION, never at checkout ───────────────────────────────────
 //
-// Nothing marks an order COMPLETED on its own — only staff pressing the
-// button — so a busy takeaway leaves collection orders on Accepted all night.
-// Paying out on completion meant referrals mostly never paid at all.
+// An order cancelled or refunded afterwards must not have paid out two
+// discounts, and money is harder to take back than a stamp.
 //
-// Acceptance is the shop saying yes. A payload is not; an order that never
-// gets accepted has bought nothing.
+// A shop that never presses the button still pays out: the 5am rollover
+// completes anything in flight and calls this directly, because it completes
+// orders with raw SQL and emits no event on purpose.
 //
 // ── Every limit exists because it is money ──────────────────────────────────
 //
@@ -36,16 +36,8 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 /** No 0/O/1/I/5/S — these get read aloud and typed in by someone else. */
 const ALPHABET = "ABCDEFGHJKLMNPQRTUVWXYZ2346789";
 
-/** The shop has said yes to the order. Anything from here on has qualified. */
-const EARNING = new Set([
-  "ACCEPTED",
-  "PREPARING",
-  "READY",
-  "ASSIGNED_DRIVER",
-  "RIDER_ARRIVED",
-  "OUT_FOR_DELIVERY",
-  "COMPLETED",
-]);
+/** Only a finished order pays out. The 5am rollover makes that reachable. */
+const EARNING = new Set(["COMPLETED"]);
 
 export type ReferralRejection =
   | "ALREADY_A_CUSTOMER"
@@ -256,10 +248,7 @@ export class ReferralService {
   @OnEvent("order.status_changed")
   async onOrderStatusChanged(payload: { orderId?: string; toStatus?: string }) {
     // `toStatus` — the field OrdersService.updateStatus actually emits.
-    // ACCEPTED for the same reason the stamps use it: COMPLETED is a button
-    // nobody presses, and a referral that never pays out is not a referral
-    // scheme.
-    if (payload?.toStatus !== "ACCEPTED" || !payload.orderId) return;
+    if (payload?.toStatus !== "COMPLETED" || !payload.orderId) return;
     try {
       await this.qualifyForOrder(payload.orderId);
     } catch (err) {
