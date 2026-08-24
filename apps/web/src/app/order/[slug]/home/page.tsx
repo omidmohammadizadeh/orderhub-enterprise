@@ -27,6 +27,8 @@ import Link from "next/link";
 import { ArrowRight, Clock, MapPin, Phone } from "lucide-react";
 import { formatMoney } from "@orderhub/shared";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
+import { ReferAFriend } from "@/components/storefront/refer-a-friend";
+import { useCustomerAuth } from "@/hooks/use-customer-auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
@@ -48,6 +50,7 @@ export default function StorefrontHomePage() {
         .then((r) => r.data),
   });
 
+  const { token: customerToken } = useCustomerAuth();
   const brand = (data as any)?.brand;
   const location = (data as any)?.location;
   const menu = (data as any)?.menu;
@@ -259,6 +262,20 @@ export default function StorefrontHomePage() {
           ) : null}
         </div>
       </Section>
+
+      <section className="px-4 pt-6">
+        <ReferAFriend
+          locationId={location?.id}
+          brandName={brand?.name ?? location?.name}
+          shareUrl={
+            typeof window !== "undefined"
+              ? `${window.location.origin}/order/${encodeURIComponent(slug)}${brandId ? `?brand=${brandId}` : ""}`
+              : ""
+          }
+          currency={currency}
+          token={customerToken}
+        />
+      </section>
 
       <footer className="px-4 pb-8 pt-6 text-center">
         <a

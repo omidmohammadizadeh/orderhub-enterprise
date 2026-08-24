@@ -40,6 +40,7 @@ import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
 import { ReferralClaim } from "@/components/storefront/referral-claim";
+import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import { TipStep } from "@/components/storefront/tip-step";
 import {
@@ -1573,25 +1574,6 @@ function OrderPage() {
                 first-name dropdown post-auth. Lives next to the cart
                 pill so it stays visible the whole time the customer
                 is browsing. */}
-            {/* Order on WhatsApp — shown only when this location has
-                WhatsApp ordering configured and live. Opens the store's
-                WhatsApp chat with a prefilled opener. */}
-            {whatsappHref && (
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Try WhatsApp AI ordering"
-                aria-label="Try WhatsApp AI ordering"
-                className="oh-ai-glow inline-flex shrink-0 items-center gap-1 rounded-full bg-[#25D366] px-2.5 py-2 text-xs font-semibold text-white hover:bg-[#1ebe5d] sm:gap-1.5 sm:rounded-md sm:px-3 sm:text-sm"
-              >
-                <WhatsAppIcon className="h-4 w-4 shrink-0" />
-                <span className="whitespace-nowrap sm:hidden">WhatsApp AI</span>
-                <span className="hidden whitespace-nowrap sm:inline">
-                  Try WhatsApp AI ordering
-                </span>
-              </a>
-            )}
             {/* Book a table — sits next to Cart because booking and
                 ordering are the two things a diner comes here to do.
                 Outline, not solid, so it never competes with Cart. */}
@@ -1737,12 +1719,27 @@ function OrderPage() {
                 sub={`${cfg?.collectionPrepMinutes ?? 20} mins`}
               />
             )}
+            {/* WhatsApp ordering belongs HERE, not in the header: it is
+                another way to place the order, the same kind of choice as
+                collection or delivery. In the header it read as a banner and
+                competed with the Cart button on a phone. */}
+            {whatsappHref && (
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1ebe5d]"
+              >
+                <WhatsAppIcon className="h-3.5 w-3.5 shrink-0" />
+                WhatsApp AI ordering
+              </a>
+            )}
             {!groupMode && (
               <button
                 onClick={() => setScheduleOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-300"
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700 hover:border-zinc-300"
               >
-                <Clock className="h-4 w-4" />
+                <Clock className="h-3.5 w-3.5" />
                 {scheduledFor
                   ? `Scheduled ${formatScheduledFor(scheduledFor)}`
                   : "Schedule"}
@@ -1756,7 +1753,7 @@ function OrderPage() {
             {!groupMode && !storefront.closed && (
               <button
                 onClick={() => setStartGroupOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
+                className="inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
               >
                 <Users className="h-4 w-4" />
                 Order together
@@ -1769,7 +1766,7 @@ function OrderPage() {
             {bookingHref && (
               <a
                 href={bookingHref}
-                className="inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
+                className="inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
               >
                 <CalendarDays className="h-4 w-4" />
                 Book a table
@@ -2595,6 +2592,23 @@ function OrderPage() {
         customerId={authCustomer?.id}
       />
 
+      {/* Refer a friend. Unlike the loyalty card this one is meant to be
+          seen — it only works if somebody notices it and tells someone. It
+          renders nothing at all when the shop runs no referral programme. */}
+      <div className="px-4 pb-4">
+        <ReferAFriend
+          locationId={storefront?.location?.id}
+          brandName={storefront?.brand?.name ?? storefront?.location?.name}
+          shareUrl={
+            typeof window !== "undefined"
+              ? `${window.location.origin}/order/${encodeURIComponent(String(slug))}${brandId ? `?brand=${brandId}` : ""}`
+              : ""
+          }
+          currency={currency}
+          token={customerToken}
+        />
+      </div>
+
       {/* Mobile tab bar. On a phone a storefront is four places, not one long
           page — what's on, what to order, what you ordered, what you've
           earned — and a footer is the only navigation a thumb can reach while
@@ -2671,7 +2685,10 @@ function FulfillmentPill({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition",
+        // Smaller than it was: four choices now share this row, and on a
+        // 390px phone the old sizing wrapped them onto three lines and pushed
+        // the menu below the fold.
+        "flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition",
         active
           ? "border-zinc-900 bg-zinc-900 text-white"
           : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300",
@@ -3323,7 +3340,11 @@ function CartPanel(props: CartPanelProps) {
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+        {/* overflow-x-hidden, and min-w-0 so a long item name or a row that
+            refuses to wrap cannot widen the panel. On a phone the cart is the
+            whole screen, and a sideways drag to reach the payment buttons is
+            the last thing anyone wants at the paying step. */}
+        <div className="min-w-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-3">
           {freeItemPicker && freeItemPicker.options.length > 0 && (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
               <p className="font-semibold">
@@ -3393,8 +3414,8 @@ function CartPanel(props: CartPanelProps) {
                   key={l.id}
                   className="flex items-start gap-3 rounded-md border border-zinc-100 px-3 py-2"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-zinc-900">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-zinc-900 [overflow-wrap:anywhere]">
                       {l.displayName}
                     </p>
                     {l.modifiers.length > 0 && (
@@ -3430,7 +3451,10 @@ function CartPanel(props: CartPanelProps) {
 
           {/* Customer */}
           <Section title="Your details">
-            <div className="grid grid-cols-2 gap-2">
+            {/* Stacked on a phone. Side by side gives each field about 160px,
+                which is not enough for a full name and a phone number, and the
+                text scrolls inside the box while they type. */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <TextField
                 value={customerName}
                 onChange={setCustomerName}
@@ -3504,7 +3528,7 @@ function CartPanel(props: CartPanelProps) {
 
           {/* Fulfillment */}
           <Section title="Order type">
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 [&>*]:min-w-0 [&>*]:flex-1">
               {acceptCollection && (
                 <Toggle
                   active={fulfillmentType === "PICKUP"}
@@ -3748,7 +3772,7 @@ function CartPanel(props: CartPanelProps) {
 
           {/* Payment */}
           <Section title="Payment">
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 [&>*]:min-w-0 [&>*]:flex-1">
               {acceptsCash && (
                 <Toggle
                   active={paymentMethod === "CASH"}
@@ -4635,61 +4659,52 @@ function InfoModal({
             </div>
           </section>
 
-          {/* Delivery fees */}
+          {/* WHERE we deliver, not what it costs.
+              A customer opening Info wants to know whether their street is
+              covered. The price depends on their actual address and is quoted
+              in the cart the moment they type it — printing a fee table here
+              invites them to read off the wrong row and then argue about it. */}
           <section>
             <div className="mb-2 flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-zinc-500" />
-              <h3 className="text-sm font-bold text-zinc-900">Delivery fee</h3>
+              <Bike className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-zinc-900">Where we deliver</h3>
             </div>
             <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm">
               {deliveryZones.length === 0 ? (
                 <p className="text-zinc-600">
-                  Delivery fee depends on your address — enter it in the cart to
-                  see the price.
+                  Enter your address in the cart and we&apos;ll tell you if
+                  we can reach you.
                 </p>
               ) : (
-                <ul className="space-y-1.5">
-                  {deliveryZones.map((z) => {
-                    const fee = Number(z.fee);
-                    const min =
-                      z.minOrderValue != null ? Number(z.minOrderValue) : null;
-                    // One label for three modes. Distance bands read as the
-                    // range they cover, in whatever unit the country uses —
-                    // a Dubai customer should never be quoted "3 mi".
-                    const band = infoBands.find((b) => b.zone === z);
-                    const label = z.areaName
-                      ? z.areaName
-                      : band
-                        ? `${formatDistance(band.from, shopCountry).replace(/ .*/, "")}–${formatDistance(band.to, shopCountry)}`
-                        : (z.postcodePrefix ?? "");
-                    return (
-                      <li
-                        key={z.id}
-                        className="flex items-center justify-between gap-3 border-b border-zinc-200 pb-1.5 last:border-0 last:pb-0"
-                      >
-                        <span
+                <>
+                  <ul className="flex flex-wrap gap-1.5">
+                    {deliveryZones.map((z) => {
+                      const band = infoBands.find((b) => b.zone === z);
+                      const label = z.areaName
+                        ? z.areaName
+                        : band
+                          ? `Up to ${formatDistance(band.to, shopCountry)}`
+                          : (z.postcodePrefix ?? "");
+                      if (!label) return null;
+                      return (
+                        <li
+                          key={z.id}
                           className={
                             z.areaName
-                              ? "text-xs text-zinc-700"
-                              : "font-mono text-xs text-zinc-700"
+                              ? "rounded-md bg-white px-2 py-1 text-xs text-zinc-700 ring-1 ring-zinc-200"
+                              : "rounded-md bg-white px-2 py-1 font-mono text-xs uppercase text-zinc-700 ring-1 ring-zinc-200"
                           }
                         >
                           {label}
-                        </span>
-                        <span className="text-right">
-                          <span className="text-sm font-semibold text-zinc-900">
-                            {fee > 0 ? `${money(fee)}` : "Free"}
-                          </span>
-                          {min ? (
-                            <span className="block text-[10px] text-zinc-500">
-                              min {money(min)}
-                            </span>
-                          ) : null}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="mt-2 text-[11px] leading-snug text-zinc-500">
+                    Delivery fee depends on your address — you&apos;ll see it in
+                    the cart before you pay.
+                  </p>
+                </>
               )}
             </div>
           </section>
