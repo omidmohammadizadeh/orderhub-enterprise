@@ -669,6 +669,23 @@ export type LoyaltyStamp = $Result.DefaultSelection<Prisma.$LoyaltyStampPayload>
  * An earned reward, before and after it is spent.
  */
 export type LoyaltyReward = $Result.DefaultSelection<Prisma.$LoyaltyRewardPayload>
+/**
+ * Model ReferralProgram
+ * 
+ */
+export type ReferralProgram = $Result.DefaultSelection<Prisma.$ReferralProgramPayload>
+/**
+ * Model ReferralCode
+ * One reusable code per customer per shop. Reusable on purpose — it is shared
+ * with several friends. What is one-time is the REWARD it produces.
+ */
+export type ReferralCode = $Result.DefaultSelection<Prisma.$ReferralCodePayload>
+/**
+ * Model Referral
+ * One friend, claimed against one code. Unique on the friend so a person can
+ * only ever be referred once, whoever gets there first.
+ */
+export type Referral = $Result.DefaultSelection<Prisma.$ReferralPayload>
 
 /**
  * Enums
@@ -2916,6 +2933,36 @@ export class PrismaClient<
     * ```
     */
   get loyaltyReward(): Prisma.LoyaltyRewardDelegate<ExtArgs>;
+
+  /**
+   * `prisma.referralProgram`: Exposes CRUD operations for the **ReferralProgram** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReferralPrograms
+    * const referralPrograms = await prisma.referralProgram.findMany()
+    * ```
+    */
+  get referralProgram(): Prisma.ReferralProgramDelegate<ExtArgs>;
+
+  /**
+   * `prisma.referralCode`: Exposes CRUD operations for the **ReferralCode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReferralCodes
+    * const referralCodes = await prisma.referralCode.findMany()
+    * ```
+    */
+  get referralCode(): Prisma.ReferralCodeDelegate<ExtArgs>;
+
+  /**
+   * `prisma.referral`: Exposes CRUD operations for the **Referral** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Referrals
+    * const referrals = await prisma.referral.findMany()
+    * ```
+    */
+  get referral(): Prisma.ReferralDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3486,7 +3533,10 @@ export namespace Prisma {
     ContractEvent: 'ContractEvent',
     LoyaltyCard: 'LoyaltyCard',
     LoyaltyStamp: 'LoyaltyStamp',
-    LoyaltyReward: 'LoyaltyReward'
+    LoyaltyReward: 'LoyaltyReward',
+    ReferralProgram: 'ReferralProgram',
+    ReferralCode: 'ReferralCode',
+    Referral: 'Referral'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3502,7 +3552,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -12606,6 +12656,216 @@ export namespace Prisma {
           }
         }
       }
+      ReferralProgram: {
+        payload: Prisma.$ReferralProgramPayload<ExtArgs>
+        fields: Prisma.ReferralProgramFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReferralProgramFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReferralProgramFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>
+          }
+          findFirst: {
+            args: Prisma.ReferralProgramFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReferralProgramFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>
+          }
+          findMany: {
+            args: Prisma.ReferralProgramFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>[]
+          }
+          create: {
+            args: Prisma.ReferralProgramCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>
+          }
+          createMany: {
+            args: Prisma.ReferralProgramCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReferralProgramCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>[]
+          }
+          delete: {
+            args: Prisma.ReferralProgramDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>
+          }
+          update: {
+            args: Prisma.ReferralProgramUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>
+          }
+          deleteMany: {
+            args: Prisma.ReferralProgramDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReferralProgramUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ReferralProgramUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralProgramPayload>
+          }
+          aggregate: {
+            args: Prisma.ReferralProgramAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReferralProgram>
+          }
+          groupBy: {
+            args: Prisma.ReferralProgramGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReferralProgramGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReferralProgramCountArgs<ExtArgs>
+            result: $Utils.Optional<ReferralProgramCountAggregateOutputType> | number
+          }
+        }
+      }
+      ReferralCode: {
+        payload: Prisma.$ReferralCodePayload<ExtArgs>
+        fields: Prisma.ReferralCodeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReferralCodeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReferralCodeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>
+          }
+          findFirst: {
+            args: Prisma.ReferralCodeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReferralCodeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>
+          }
+          findMany: {
+            args: Prisma.ReferralCodeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>[]
+          }
+          create: {
+            args: Prisma.ReferralCodeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>
+          }
+          createMany: {
+            args: Prisma.ReferralCodeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReferralCodeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>[]
+          }
+          delete: {
+            args: Prisma.ReferralCodeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>
+          }
+          update: {
+            args: Prisma.ReferralCodeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>
+          }
+          deleteMany: {
+            args: Prisma.ReferralCodeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReferralCodeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ReferralCodeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralCodePayload>
+          }
+          aggregate: {
+            args: Prisma.ReferralCodeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReferralCode>
+          }
+          groupBy: {
+            args: Prisma.ReferralCodeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReferralCodeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReferralCodeCountArgs<ExtArgs>
+            result: $Utils.Optional<ReferralCodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      Referral: {
+        payload: Prisma.$ReferralPayload<ExtArgs>
+        fields: Prisma.ReferralFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReferralFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReferralFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>
+          }
+          findFirst: {
+            args: Prisma.ReferralFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReferralFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>
+          }
+          findMany: {
+            args: Prisma.ReferralFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>[]
+          }
+          create: {
+            args: Prisma.ReferralCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>
+          }
+          createMany: {
+            args: Prisma.ReferralCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReferralCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>[]
+          }
+          delete: {
+            args: Prisma.ReferralDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>
+          }
+          update: {
+            args: Prisma.ReferralUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>
+          }
+          deleteMany: {
+            args: Prisma.ReferralDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReferralUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ReferralUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReferralPayload>
+          }
+          aggregate: {
+            args: Prisma.ReferralAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReferral>
+          }
+          groupBy: {
+            args: Prisma.ReferralGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReferralGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReferralCountArgs<ExtArgs>
+            result: $Utils.Optional<ReferralCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -13075,12 +13335,16 @@ export namespace Prisma {
     orders: number
     loyaltyStamps: number
     loyaltyRewards: number
+    referralCodes: number
+    referralsMade: number
   }
 
   export type CustomerAccountCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     orders?: boolean | CustomerAccountCountOutputTypeCountOrdersArgs
     loyaltyStamps?: boolean | CustomerAccountCountOutputTypeCountLoyaltyStampsArgs
     loyaltyRewards?: boolean | CustomerAccountCountOutputTypeCountLoyaltyRewardsArgs
+    referralCodes?: boolean | CustomerAccountCountOutputTypeCountReferralCodesArgs
+    referralsMade?: boolean | CustomerAccountCountOutputTypeCountReferralsMadeArgs
   }
 
   // Custom InputTypes
@@ -13113,6 +13377,20 @@ export namespace Prisma {
    */
   export type CustomerAccountCountOutputTypeCountLoyaltyRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LoyaltyRewardWhereInput
+  }
+
+  /**
+   * CustomerAccountCountOutputType without action
+   */
+  export type CustomerAccountCountOutputTypeCountReferralCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralCodeWhereInput
+  }
+
+  /**
+   * CustomerAccountCountOutputType without action
+   */
+  export type CustomerAccountCountOutputTypeCountReferralsMadeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralWhereInput
   }
 
 
@@ -13269,6 +13547,7 @@ export namespace Prisma {
     menuAssignments: number
     itemChannelSnoozes: number
     homeDrivers: number
+    loyaltyRewards: number
   }
 
   export type LocationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13290,6 +13569,7 @@ export namespace Prisma {
     menuAssignments?: boolean | LocationCountOutputTypeCountMenuAssignmentsArgs
     itemChannelSnoozes?: boolean | LocationCountOutputTypeCountItemChannelSnoozesArgs
     homeDrivers?: boolean | LocationCountOutputTypeCountHomeDriversArgs
+    loyaltyRewards?: boolean | LocationCountOutputTypeCountLoyaltyRewardsArgs
   }
 
   // Custom InputTypes
@@ -13427,6 +13707,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountHomeDriversArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DriverWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountLoyaltyRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LoyaltyRewardWhereInput
   }
 
 
@@ -14761,6 +15048,77 @@ export namespace Prisma {
    */
   export type LoyaltyCardCountOutputTypeCountRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LoyaltyRewardWhereInput
+  }
+
+
+  /**
+   * Count Type ReferralProgramCountOutputType
+   */
+
+  export type ReferralProgramCountOutputType = {
+    codes: number
+    referrals: number
+  }
+
+  export type ReferralProgramCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    codes?: boolean | ReferralProgramCountOutputTypeCountCodesArgs
+    referrals?: boolean | ReferralProgramCountOutputTypeCountReferralsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ReferralProgramCountOutputType without action
+   */
+  export type ReferralProgramCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgramCountOutputType
+     */
+    select?: ReferralProgramCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ReferralProgramCountOutputType without action
+   */
+  export type ReferralProgramCountOutputTypeCountCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralCodeWhereInput
+  }
+
+  /**
+   * ReferralProgramCountOutputType without action
+   */
+  export type ReferralProgramCountOutputTypeCountReferralsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralWhereInput
+  }
+
+
+  /**
+   * Count Type ReferralCodeCountOutputType
+   */
+
+  export type ReferralCodeCountOutputType = {
+    referrals: number
+  }
+
+  export type ReferralCodeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    referrals?: boolean | ReferralCodeCountOutputTypeCountReferralsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ReferralCodeCountOutputType without action
+   */
+  export type ReferralCodeCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCodeCountOutputType
+     */
+    select?: ReferralCodeCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ReferralCodeCountOutputType without action
+   */
+  export type ReferralCodeCountOutputTypeCountReferralsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralWhereInput
   }
 
 
@@ -21739,6 +22097,9 @@ export namespace Prisma {
     orders?: boolean | CustomerAccount$ordersArgs<ExtArgs>
     loyaltyStamps?: boolean | CustomerAccount$loyaltyStampsArgs<ExtArgs>
     loyaltyRewards?: boolean | CustomerAccount$loyaltyRewardsArgs<ExtArgs>
+    referralCodes?: boolean | CustomerAccount$referralCodesArgs<ExtArgs>
+    referralsMade?: boolean | CustomerAccount$referralsMadeArgs<ExtArgs>
+    referredBy?: boolean | CustomerAccount$referredByArgs<ExtArgs>
     _count?: boolean | CustomerAccountCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerAccount"]>
 
@@ -21780,6 +22141,9 @@ export namespace Prisma {
     orders?: boolean | CustomerAccount$ordersArgs<ExtArgs>
     loyaltyStamps?: boolean | CustomerAccount$loyaltyStampsArgs<ExtArgs>
     loyaltyRewards?: boolean | CustomerAccount$loyaltyRewardsArgs<ExtArgs>
+    referralCodes?: boolean | CustomerAccount$referralCodesArgs<ExtArgs>
+    referralsMade?: boolean | CustomerAccount$referralsMadeArgs<ExtArgs>
+    referredBy?: boolean | CustomerAccount$referredByArgs<ExtArgs>
     _count?: boolean | CustomerAccountCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerAccountIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -21790,6 +22154,9 @@ export namespace Prisma {
       orders: Prisma.$OrderPayload<ExtArgs>[]
       loyaltyStamps: Prisma.$LoyaltyStampPayload<ExtArgs>[]
       loyaltyRewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
+      referralCodes: Prisma.$ReferralCodePayload<ExtArgs>[]
+      referralsMade: Prisma.$ReferralPayload<ExtArgs>[]
+      referredBy: Prisma.$ReferralPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -22173,6 +22540,9 @@ export namespace Prisma {
     orders<T extends CustomerAccount$ordersArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
     loyaltyStamps<T extends CustomerAccount$loyaltyStampsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$loyaltyStampsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyStampPayload<ExtArgs>, T, "findMany"> | Null>
     loyaltyRewards<T extends CustomerAccount$loyaltyRewardsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$loyaltyRewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
+    referralCodes<T extends CustomerAccount$referralCodesArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$referralCodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findMany"> | Null>
+    referralsMade<T extends CustomerAccount$referralsMadeArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$referralsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findMany"> | Null>
+    referredBy<T extends CustomerAccount$referredByArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$referredByArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -22587,6 +22957,61 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: LoyaltyRewardScalarFieldEnum | LoyaltyRewardScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerAccount.referralCodes
+   */
+  export type CustomerAccount$referralCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    where?: ReferralCodeWhereInput
+    orderBy?: ReferralCodeOrderByWithRelationInput | ReferralCodeOrderByWithRelationInput[]
+    cursor?: ReferralCodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReferralCodeScalarFieldEnum | ReferralCodeScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerAccount.referralsMade
+   */
+  export type CustomerAccount$referralsMadeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    where?: ReferralWhereInput
+    orderBy?: ReferralOrderByWithRelationInput | ReferralOrderByWithRelationInput[]
+    cursor?: ReferralWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReferralScalarFieldEnum | ReferralScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerAccount.referredBy
+   */
+  export type CustomerAccount$referredByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    where?: ReferralWhereInput
   }
 
   /**
@@ -30004,6 +30429,8 @@ export namespace Prisma {
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
+    referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
+    loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -30172,6 +30599,8 @@ export namespace Prisma {
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
+    referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
+    loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -30212,6 +30641,8 @@ export namespace Prisma {
       stuartConfig: Prisma.$StuartConfigPayload<ExtArgs> | null
       uberDirectConfig: Prisma.$UberDirectConfigPayload<ExtArgs> | null
       loyaltyCard: Prisma.$LoyaltyCardPayload<ExtArgs> | null
+      referralProgram: Prisma.$ReferralProgramPayload<ExtArgs> | null
+      loyaltyRewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -30673,6 +31104,8 @@ export namespace Prisma {
     stuartConfig<T extends Location$stuartConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$stuartConfigArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     uberDirectConfig<T extends Location$uberDirectConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$uberDirectConfigArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyCard<T extends Location$loyaltyCardArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyCardArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    referralProgram<T extends Location$referralProgramArgs<ExtArgs> = {}>(args?: Subset<T, Location$referralProgramArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    loyaltyRewards<T extends Location$loyaltyRewardsArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyRewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -31575,6 +32008,41 @@ export namespace Prisma {
      */
     include?: LoyaltyCardInclude<ExtArgs> | null
     where?: LoyaltyCardWhereInput
+  }
+
+  /**
+   * Location.referralProgram
+   */
+  export type Location$referralProgramArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    where?: ReferralProgramWhereInput
+  }
+
+  /**
+   * Location.loyaltyRewards
+   */
+  export type Location$loyaltyRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyReward
+     */
+    select?: LoyaltyRewardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyRewardInclude<ExtArgs> | null
+    where?: LoyaltyRewardWhereInput
+    orderBy?: LoyaltyRewardOrderByWithRelationInput | LoyaltyRewardOrderByWithRelationInput[]
+    cursor?: LoyaltyRewardWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LoyaltyRewardScalarFieldEnum | LoyaltyRewardScalarFieldEnum[]
   }
 
   /**
@@ -154238,14 +154706,27 @@ export namespace Prisma {
 
   export type AggregateLoyaltyReward = {
     _count: LoyaltyRewardCountAggregateOutputType | null
+    _avg: LoyaltyRewardAvgAggregateOutputType | null
+    _sum: LoyaltyRewardSumAggregateOutputType | null
     _min: LoyaltyRewardMinAggregateOutputType | null
     _max: LoyaltyRewardMaxAggregateOutputType | null
+  }
+
+  export type LoyaltyRewardAvgAggregateOutputType = {
+    amountOff: Decimal | null
+  }
+
+  export type LoyaltyRewardSumAggregateOutputType = {
+    amountOff: Decimal | null
   }
 
   export type LoyaltyRewardMinAggregateOutputType = {
     id: string | null
     tenantId: string | null
     cardId: string | null
+    locationId: string | null
+    source: string | null
+    amountOff: Decimal | null
     customerAccountId: string | null
     label: string | null
     rewardItemId: string | null
@@ -154259,6 +154740,9 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     cardId: string | null
+    locationId: string | null
+    source: string | null
+    amountOff: Decimal | null
     customerAccountId: string | null
     label: string | null
     rewardItemId: string | null
@@ -154272,6 +154756,9 @@ export namespace Prisma {
     id: number
     tenantId: number
     cardId: number
+    locationId: number
+    source: number
+    amountOff: number
     customerAccountId: number
     label: number
     rewardItemId: number
@@ -154283,10 +154770,21 @@ export namespace Prisma {
   }
 
 
+  export type LoyaltyRewardAvgAggregateInputType = {
+    amountOff?: true
+  }
+
+  export type LoyaltyRewardSumAggregateInputType = {
+    amountOff?: true
+  }
+
   export type LoyaltyRewardMinAggregateInputType = {
     id?: true
     tenantId?: true
     cardId?: true
+    locationId?: true
+    source?: true
+    amountOff?: true
     customerAccountId?: true
     label?: true
     rewardItemId?: true
@@ -154300,6 +154798,9 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     cardId?: true
+    locationId?: true
+    source?: true
+    amountOff?: true
     customerAccountId?: true
     label?: true
     rewardItemId?: true
@@ -154313,6 +154814,9 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     cardId?: true
+    locationId?: true
+    source?: true
+    amountOff?: true
     customerAccountId?: true
     label?: true
     rewardItemId?: true
@@ -154361,6 +154865,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: LoyaltyRewardAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: LoyaltyRewardSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: LoyaltyRewardMinAggregateInputType
@@ -154391,6 +154907,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: LoyaltyRewardCountAggregateInputType | true
+    _avg?: LoyaltyRewardAvgAggregateInputType
+    _sum?: LoyaltyRewardSumAggregateInputType
     _min?: LoyaltyRewardMinAggregateInputType
     _max?: LoyaltyRewardMaxAggregateInputType
   }
@@ -154398,7 +154916,10 @@ export namespace Prisma {
   export type LoyaltyRewardGroupByOutputType = {
     id: string
     tenantId: string
-    cardId: string
+    cardId: string | null
+    locationId: string
+    source: string
+    amountOff: Decimal | null
     customerAccountId: string
     label: string
     rewardItemId: string | null
@@ -154407,6 +154928,8 @@ export namespace Prisma {
     claimedAt: Date | null
     claimedOrderId: string | null
     _count: LoyaltyRewardCountAggregateOutputType | null
+    _avg: LoyaltyRewardAvgAggregateOutputType | null
+    _sum: LoyaltyRewardSumAggregateOutputType | null
     _min: LoyaltyRewardMinAggregateOutputType | null
     _max: LoyaltyRewardMaxAggregateOutputType | null
   }
@@ -154429,6 +154952,9 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     cardId?: boolean
+    locationId?: boolean
+    source?: boolean
+    amountOff?: boolean
     customerAccountId?: boolean
     label?: boolean
     rewardItemId?: boolean
@@ -154436,7 +154962,8 @@ export namespace Prisma {
     expiresAt?: boolean
     claimedAt?: boolean
     claimedOrderId?: boolean
-    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    card?: boolean | LoyaltyReward$cardArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
     customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["loyaltyReward"]>
 
@@ -154444,6 +154971,9 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     cardId?: boolean
+    locationId?: boolean
+    source?: boolean
+    amountOff?: boolean
     customerAccountId?: boolean
     label?: boolean
     rewardItemId?: boolean
@@ -154451,7 +154981,8 @@ export namespace Prisma {
     expiresAt?: boolean
     claimedAt?: boolean
     claimedOrderId?: boolean
-    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    card?: boolean | LoyaltyReward$cardArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
     customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["loyaltyReward"]>
 
@@ -154459,6 +154990,9 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     cardId?: boolean
+    locationId?: boolean
+    source?: boolean
+    amountOff?: boolean
     customerAccountId?: boolean
     label?: boolean
     rewardItemId?: boolean
@@ -154469,24 +155003,45 @@ export namespace Prisma {
   }
 
   export type LoyaltyRewardInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    card?: boolean | LoyaltyReward$cardArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
     customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
   }
   export type LoyaltyRewardIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
+    card?: boolean | LoyaltyReward$cardArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
     customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
   }
 
   export type $LoyaltyRewardPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "LoyaltyReward"
     objects: {
-      card: Prisma.$LoyaltyCardPayload<ExtArgs>
+      card: Prisma.$LoyaltyCardPayload<ExtArgs> | null
+      location: Prisma.$LocationPayload<ExtArgs>
       customerAccount: Prisma.$CustomerAccountPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       tenantId: string
-      cardId: string
+      /**
+       * Null for a referral reward — it comes from no card.
+       */
+      cardId: string | null
+      /**
+       * Where this reward can be spent. Always set, including for card rewards,
+       * because a reward has to know its own shop once cardId can be null.
+       */
+      locationId: string
+      /**
+       * LOYALTY | REFERRAL. What earned it — it changes the wording, not the
+       * mechanics: both are one-time, both expire, both spend the same way.
+       */
+      source: string
+      /**
+       * Money off, for referral rewards. Free-item rewards leave this null and
+       * carry rewardItemId instead.
+       */
+      amountOff: Prisma.Decimal | null
       customerAccountId: string
       /**
        * Frozen at the moment it was earned. The operator can change the reward
@@ -154865,7 +155420,8 @@ export namespace Prisma {
    */
   export interface Prisma__LoyaltyRewardClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    card<T extends LoyaltyCardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyCardDefaultArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    card<T extends LoyaltyReward$cardArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyReward$cardArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     customerAccount<T extends CustomerAccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccountDefaultArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -154899,6 +155455,9 @@ export namespace Prisma {
     readonly id: FieldRef<"LoyaltyReward", 'String'>
     readonly tenantId: FieldRef<"LoyaltyReward", 'String'>
     readonly cardId: FieldRef<"LoyaltyReward", 'String'>
+    readonly locationId: FieldRef<"LoyaltyReward", 'String'>
+    readonly source: FieldRef<"LoyaltyReward", 'String'>
+    readonly amountOff: FieldRef<"LoyaltyReward", 'Decimal'>
     readonly customerAccountId: FieldRef<"LoyaltyReward", 'String'>
     readonly label: FieldRef<"LoyaltyReward", 'String'>
     readonly rewardItemId: FieldRef<"LoyaltyReward", 'String'>
@@ -155224,6 +155783,21 @@ export namespace Prisma {
   }
 
   /**
+   * LoyaltyReward.card
+   */
+  export type LoyaltyReward$cardArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LoyaltyCard
+     */
+    select?: LoyaltyCardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LoyaltyCardInclude<ExtArgs> | null
+    where?: LoyaltyCardWhereInput
+  }
+
+  /**
    * LoyaltyReward without action
    */
   export type LoyaltyRewardDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -155235,6 +155809,3145 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: LoyaltyRewardInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReferralProgram
+   */
+
+  export type AggregateReferralProgram = {
+    _count: ReferralProgramCountAggregateOutputType | null
+    _avg: ReferralProgramAvgAggregateOutputType | null
+    _sum: ReferralProgramSumAggregateOutputType | null
+    _min: ReferralProgramMinAggregateOutputType | null
+    _max: ReferralProgramMaxAggregateOutputType | null
+  }
+
+  export type ReferralProgramAvgAggregateOutputType = {
+    referrerAmount: Decimal | null
+    friendAmount: Decimal | null
+    minimumSpend: Decimal | null
+    maxPerCustomer: number | null
+    rewardExpiryDays: number | null
+  }
+
+  export type ReferralProgramSumAggregateOutputType = {
+    referrerAmount: Decimal | null
+    friendAmount: Decimal | null
+    minimumSpend: Decimal | null
+    maxPerCustomer: number | null
+    rewardExpiryDays: number | null
+  }
+
+  export type ReferralProgramMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    isActive: boolean | null
+    referrerAmount: Decimal | null
+    friendAmount: Decimal | null
+    minimumSpend: Decimal | null
+    maxPerCustomer: number | null
+    rewardExpiryDays: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ReferralProgramMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    isActive: boolean | null
+    referrerAmount: Decimal | null
+    friendAmount: Decimal | null
+    minimumSpend: Decimal | null
+    maxPerCustomer: number | null
+    rewardExpiryDays: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ReferralProgramCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    isActive: number
+    referrerAmount: number
+    friendAmount: number
+    minimumSpend: number
+    maxPerCustomer: number
+    rewardExpiryDays: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ReferralProgramAvgAggregateInputType = {
+    referrerAmount?: true
+    friendAmount?: true
+    minimumSpend?: true
+    maxPerCustomer?: true
+    rewardExpiryDays?: true
+  }
+
+  export type ReferralProgramSumAggregateInputType = {
+    referrerAmount?: true
+    friendAmount?: true
+    minimumSpend?: true
+    maxPerCustomer?: true
+    rewardExpiryDays?: true
+  }
+
+  export type ReferralProgramMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    isActive?: true
+    referrerAmount?: true
+    friendAmount?: true
+    minimumSpend?: true
+    maxPerCustomer?: true
+    rewardExpiryDays?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ReferralProgramMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    isActive?: true
+    referrerAmount?: true
+    friendAmount?: true
+    minimumSpend?: true
+    maxPerCustomer?: true
+    rewardExpiryDays?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ReferralProgramCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    isActive?: true
+    referrerAmount?: true
+    friendAmount?: true
+    minimumSpend?: true
+    maxPerCustomer?: true
+    rewardExpiryDays?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ReferralProgramAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReferralProgram to aggregate.
+     */
+    where?: ReferralProgramWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralPrograms to fetch.
+     */
+    orderBy?: ReferralProgramOrderByWithRelationInput | ReferralProgramOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ReferralProgramWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralPrograms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralPrograms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ReferralPrograms
+    **/
+    _count?: true | ReferralProgramCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ReferralProgramAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ReferralProgramSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReferralProgramMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReferralProgramMaxAggregateInputType
+  }
+
+  export type GetReferralProgramAggregateType<T extends ReferralProgramAggregateArgs> = {
+        [P in keyof T & keyof AggregateReferralProgram]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReferralProgram[P]>
+      : GetScalarType<T[P], AggregateReferralProgram[P]>
+  }
+
+
+
+
+  export type ReferralProgramGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralProgramWhereInput
+    orderBy?: ReferralProgramOrderByWithAggregationInput | ReferralProgramOrderByWithAggregationInput[]
+    by: ReferralProgramScalarFieldEnum[] | ReferralProgramScalarFieldEnum
+    having?: ReferralProgramScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReferralProgramCountAggregateInputType | true
+    _avg?: ReferralProgramAvgAggregateInputType
+    _sum?: ReferralProgramSumAggregateInputType
+    _min?: ReferralProgramMinAggregateInputType
+    _max?: ReferralProgramMaxAggregateInputType
+  }
+
+  export type ReferralProgramGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    isActive: boolean
+    referrerAmount: Decimal
+    friendAmount: Decimal
+    minimumSpend: Decimal | null
+    maxPerCustomer: number
+    rewardExpiryDays: number | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ReferralProgramCountAggregateOutputType | null
+    _avg: ReferralProgramAvgAggregateOutputType | null
+    _sum: ReferralProgramSumAggregateOutputType | null
+    _min: ReferralProgramMinAggregateOutputType | null
+    _max: ReferralProgramMaxAggregateOutputType | null
+  }
+
+  type GetReferralProgramGroupByPayload<T extends ReferralProgramGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReferralProgramGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReferralProgramGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReferralProgramGroupByOutputType[P]>
+            : GetScalarType<T[P], ReferralProgramGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReferralProgramSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    isActive?: boolean
+    referrerAmount?: boolean
+    friendAmount?: boolean
+    minimumSpend?: boolean
+    maxPerCustomer?: boolean
+    rewardExpiryDays?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    codes?: boolean | ReferralProgram$codesArgs<ExtArgs>
+    referrals?: boolean | ReferralProgram$referralsArgs<ExtArgs>
+    _count?: boolean | ReferralProgramCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["referralProgram"]>
+
+  export type ReferralProgramSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    isActive?: boolean
+    referrerAmount?: boolean
+    friendAmount?: boolean
+    minimumSpend?: boolean
+    maxPerCustomer?: boolean
+    rewardExpiryDays?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["referralProgram"]>
+
+  export type ReferralProgramSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    isActive?: boolean
+    referrerAmount?: boolean
+    friendAmount?: boolean
+    minimumSpend?: boolean
+    maxPerCustomer?: boolean
+    rewardExpiryDays?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ReferralProgramInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    codes?: boolean | ReferralProgram$codesArgs<ExtArgs>
+    referrals?: boolean | ReferralProgram$referralsArgs<ExtArgs>
+    _count?: boolean | ReferralProgramCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ReferralProgramIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $ReferralProgramPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReferralProgram"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+      codes: Prisma.$ReferralCodePayload<ExtArgs>[]
+      referrals: Prisma.$ReferralPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      isActive: boolean
+      /**
+       * What the existing customer gets when their friend's first order lands.
+       */
+      referrerAmount: Prisma.Decimal
+      /**
+       * What the new customer gets. Often larger — it is buying the first order.
+       */
+      friendAmount: Prisma.Decimal
+      /**
+       * The friend's qualifying order must reach this, or a bag of chips triggers
+       * two payouts and the shop is down more than the order was worth.
+       */
+      minimumSpend: Prisma.Decimal | null
+      /**
+       * Per referrer. Uncapped, one person with a group chat is an unbounded
+       * liability.
+       */
+      maxPerCustomer: number
+      rewardExpiryDays: number | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["referralProgram"]>
+    composites: {}
+  }
+
+  type ReferralProgramGetPayload<S extends boolean | null | undefined | ReferralProgramDefaultArgs> = $Result.GetResult<Prisma.$ReferralProgramPayload, S>
+
+  type ReferralProgramCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ReferralProgramFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ReferralProgramCountAggregateInputType | true
+    }
+
+  export interface ReferralProgramDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReferralProgram'], meta: { name: 'ReferralProgram' } }
+    /**
+     * Find zero or one ReferralProgram that matches the filter.
+     * @param {ReferralProgramFindUniqueArgs} args - Arguments to find a ReferralProgram
+     * @example
+     * // Get one ReferralProgram
+     * const referralProgram = await prisma.referralProgram.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReferralProgramFindUniqueArgs>(args: SelectSubset<T, ReferralProgramFindUniqueArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ReferralProgram that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ReferralProgramFindUniqueOrThrowArgs} args - Arguments to find a ReferralProgram
+     * @example
+     * // Get one ReferralProgram
+     * const referralProgram = await prisma.referralProgram.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReferralProgramFindUniqueOrThrowArgs>(args: SelectSubset<T, ReferralProgramFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ReferralProgram that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralProgramFindFirstArgs} args - Arguments to find a ReferralProgram
+     * @example
+     * // Get one ReferralProgram
+     * const referralProgram = await prisma.referralProgram.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReferralProgramFindFirstArgs>(args?: SelectSubset<T, ReferralProgramFindFirstArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ReferralProgram that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralProgramFindFirstOrThrowArgs} args - Arguments to find a ReferralProgram
+     * @example
+     * // Get one ReferralProgram
+     * const referralProgram = await prisma.referralProgram.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReferralProgramFindFirstOrThrowArgs>(args?: SelectSubset<T, ReferralProgramFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ReferralPrograms that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralProgramFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReferralPrograms
+     * const referralPrograms = await prisma.referralProgram.findMany()
+     * 
+     * // Get first 10 ReferralPrograms
+     * const referralPrograms = await prisma.referralProgram.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const referralProgramWithIdOnly = await prisma.referralProgram.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ReferralProgramFindManyArgs>(args?: SelectSubset<T, ReferralProgramFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ReferralProgram.
+     * @param {ReferralProgramCreateArgs} args - Arguments to create a ReferralProgram.
+     * @example
+     * // Create one ReferralProgram
+     * const ReferralProgram = await prisma.referralProgram.create({
+     *   data: {
+     *     // ... data to create a ReferralProgram
+     *   }
+     * })
+     * 
+     */
+    create<T extends ReferralProgramCreateArgs>(args: SelectSubset<T, ReferralProgramCreateArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ReferralPrograms.
+     * @param {ReferralProgramCreateManyArgs} args - Arguments to create many ReferralPrograms.
+     * @example
+     * // Create many ReferralPrograms
+     * const referralProgram = await prisma.referralProgram.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ReferralProgramCreateManyArgs>(args?: SelectSubset<T, ReferralProgramCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReferralPrograms and returns the data saved in the database.
+     * @param {ReferralProgramCreateManyAndReturnArgs} args - Arguments to create many ReferralPrograms.
+     * @example
+     * // Create many ReferralPrograms
+     * const referralProgram = await prisma.referralProgram.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ReferralPrograms and only return the `id`
+     * const referralProgramWithIdOnly = await prisma.referralProgram.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ReferralProgramCreateManyAndReturnArgs>(args?: SelectSubset<T, ReferralProgramCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ReferralProgram.
+     * @param {ReferralProgramDeleteArgs} args - Arguments to delete one ReferralProgram.
+     * @example
+     * // Delete one ReferralProgram
+     * const ReferralProgram = await prisma.referralProgram.delete({
+     *   where: {
+     *     // ... filter to delete one ReferralProgram
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ReferralProgramDeleteArgs>(args: SelectSubset<T, ReferralProgramDeleteArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ReferralProgram.
+     * @param {ReferralProgramUpdateArgs} args - Arguments to update one ReferralProgram.
+     * @example
+     * // Update one ReferralProgram
+     * const referralProgram = await prisma.referralProgram.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ReferralProgramUpdateArgs>(args: SelectSubset<T, ReferralProgramUpdateArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ReferralPrograms.
+     * @param {ReferralProgramDeleteManyArgs} args - Arguments to filter ReferralPrograms to delete.
+     * @example
+     * // Delete a few ReferralPrograms
+     * const { count } = await prisma.referralProgram.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ReferralProgramDeleteManyArgs>(args?: SelectSubset<T, ReferralProgramDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReferralPrograms.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralProgramUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReferralPrograms
+     * const referralProgram = await prisma.referralProgram.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ReferralProgramUpdateManyArgs>(args: SelectSubset<T, ReferralProgramUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ReferralProgram.
+     * @param {ReferralProgramUpsertArgs} args - Arguments to update or create a ReferralProgram.
+     * @example
+     * // Update or create a ReferralProgram
+     * const referralProgram = await prisma.referralProgram.upsert({
+     *   create: {
+     *     // ... data to create a ReferralProgram
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReferralProgram we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReferralProgramUpsertArgs>(args: SelectSubset<T, ReferralProgramUpsertArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ReferralPrograms.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralProgramCountArgs} args - Arguments to filter ReferralPrograms to count.
+     * @example
+     * // Count the number of ReferralPrograms
+     * const count = await prisma.referralProgram.count({
+     *   where: {
+     *     // ... the filter for the ReferralPrograms we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReferralProgramCountArgs>(
+      args?: Subset<T, ReferralProgramCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReferralProgramCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReferralProgram.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralProgramAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReferralProgramAggregateArgs>(args: Subset<T, ReferralProgramAggregateArgs>): Prisma.PrismaPromise<GetReferralProgramAggregateType<T>>
+
+    /**
+     * Group by ReferralProgram.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralProgramGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ReferralProgramGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReferralProgramGroupByArgs['orderBy'] }
+        : { orderBy?: ReferralProgramGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReferralProgramGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReferralProgramGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReferralProgram model
+   */
+  readonly fields: ReferralProgramFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReferralProgram.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReferralProgramClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    codes<T extends ReferralProgram$codesArgs<ExtArgs> = {}>(args?: Subset<T, ReferralProgram$codesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findMany"> | Null>
+    referrals<T extends ReferralProgram$referralsArgs<ExtArgs> = {}>(args?: Subset<T, ReferralProgram$referralsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReferralProgram model
+   */ 
+  interface ReferralProgramFieldRefs {
+    readonly id: FieldRef<"ReferralProgram", 'String'>
+    readonly tenantId: FieldRef<"ReferralProgram", 'String'>
+    readonly locationId: FieldRef<"ReferralProgram", 'String'>
+    readonly isActive: FieldRef<"ReferralProgram", 'Boolean'>
+    readonly referrerAmount: FieldRef<"ReferralProgram", 'Decimal'>
+    readonly friendAmount: FieldRef<"ReferralProgram", 'Decimal'>
+    readonly minimumSpend: FieldRef<"ReferralProgram", 'Decimal'>
+    readonly maxPerCustomer: FieldRef<"ReferralProgram", 'Int'>
+    readonly rewardExpiryDays: FieldRef<"ReferralProgram", 'Int'>
+    readonly createdAt: FieldRef<"ReferralProgram", 'DateTime'>
+    readonly updatedAt: FieldRef<"ReferralProgram", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ReferralProgram findUnique
+   */
+  export type ReferralProgramFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralProgram to fetch.
+     */
+    where: ReferralProgramWhereUniqueInput
+  }
+
+  /**
+   * ReferralProgram findUniqueOrThrow
+   */
+  export type ReferralProgramFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralProgram to fetch.
+     */
+    where: ReferralProgramWhereUniqueInput
+  }
+
+  /**
+   * ReferralProgram findFirst
+   */
+  export type ReferralProgramFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralProgram to fetch.
+     */
+    where?: ReferralProgramWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralPrograms to fetch.
+     */
+    orderBy?: ReferralProgramOrderByWithRelationInput | ReferralProgramOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReferralPrograms.
+     */
+    cursor?: ReferralProgramWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralPrograms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralPrograms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReferralPrograms.
+     */
+    distinct?: ReferralProgramScalarFieldEnum | ReferralProgramScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralProgram findFirstOrThrow
+   */
+  export type ReferralProgramFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralProgram to fetch.
+     */
+    where?: ReferralProgramWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralPrograms to fetch.
+     */
+    orderBy?: ReferralProgramOrderByWithRelationInput | ReferralProgramOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReferralPrograms.
+     */
+    cursor?: ReferralProgramWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralPrograms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralPrograms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReferralPrograms.
+     */
+    distinct?: ReferralProgramScalarFieldEnum | ReferralProgramScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralProgram findMany
+   */
+  export type ReferralProgramFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralPrograms to fetch.
+     */
+    where?: ReferralProgramWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralPrograms to fetch.
+     */
+    orderBy?: ReferralProgramOrderByWithRelationInput | ReferralProgramOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ReferralPrograms.
+     */
+    cursor?: ReferralProgramWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralPrograms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralPrograms.
+     */
+    skip?: number
+    distinct?: ReferralProgramScalarFieldEnum | ReferralProgramScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralProgram create
+   */
+  export type ReferralProgramCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReferralProgram.
+     */
+    data: XOR<ReferralProgramCreateInput, ReferralProgramUncheckedCreateInput>
+  }
+
+  /**
+   * ReferralProgram createMany
+   */
+  export type ReferralProgramCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReferralPrograms.
+     */
+    data: ReferralProgramCreateManyInput | ReferralProgramCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReferralProgram createManyAndReturn
+   */
+  export type ReferralProgramCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ReferralPrograms.
+     */
+    data: ReferralProgramCreateManyInput | ReferralProgramCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReferralProgram update
+   */
+  export type ReferralProgramUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReferralProgram.
+     */
+    data: XOR<ReferralProgramUpdateInput, ReferralProgramUncheckedUpdateInput>
+    /**
+     * Choose, which ReferralProgram to update.
+     */
+    where: ReferralProgramWhereUniqueInput
+  }
+
+  /**
+   * ReferralProgram updateMany
+   */
+  export type ReferralProgramUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReferralPrograms.
+     */
+    data: XOR<ReferralProgramUpdateManyMutationInput, ReferralProgramUncheckedUpdateManyInput>
+    /**
+     * Filter which ReferralPrograms to update
+     */
+    where?: ReferralProgramWhereInput
+  }
+
+  /**
+   * ReferralProgram upsert
+   */
+  export type ReferralProgramUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReferralProgram to update in case it exists.
+     */
+    where: ReferralProgramWhereUniqueInput
+    /**
+     * In case the ReferralProgram found by the `where` argument doesn't exist, create a new ReferralProgram with this data.
+     */
+    create: XOR<ReferralProgramCreateInput, ReferralProgramUncheckedCreateInput>
+    /**
+     * In case the ReferralProgram was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReferralProgramUpdateInput, ReferralProgramUncheckedUpdateInput>
+  }
+
+  /**
+   * ReferralProgram delete
+   */
+  export type ReferralProgramDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+    /**
+     * Filter which ReferralProgram to delete.
+     */
+    where: ReferralProgramWhereUniqueInput
+  }
+
+  /**
+   * ReferralProgram deleteMany
+   */
+  export type ReferralProgramDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReferralPrograms to delete
+     */
+    where?: ReferralProgramWhereInput
+  }
+
+  /**
+   * ReferralProgram.codes
+   */
+  export type ReferralProgram$codesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    where?: ReferralCodeWhereInput
+    orderBy?: ReferralCodeOrderByWithRelationInput | ReferralCodeOrderByWithRelationInput[]
+    cursor?: ReferralCodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReferralCodeScalarFieldEnum | ReferralCodeScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralProgram.referrals
+   */
+  export type ReferralProgram$referralsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    where?: ReferralWhereInput
+    orderBy?: ReferralOrderByWithRelationInput | ReferralOrderByWithRelationInput[]
+    cursor?: ReferralWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReferralScalarFieldEnum | ReferralScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralProgram without action
+   */
+  export type ReferralProgramDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralProgram
+     */
+    select?: ReferralProgramSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralProgramInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReferralCode
+   */
+
+  export type AggregateReferralCode = {
+    _count: ReferralCodeCountAggregateOutputType | null
+    _min: ReferralCodeMinAggregateOutputType | null
+    _max: ReferralCodeMaxAggregateOutputType | null
+  }
+
+  export type ReferralCodeMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    programId: string | null
+    customerAccountId: string | null
+    code: string | null
+    createdAt: Date | null
+  }
+
+  export type ReferralCodeMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    programId: string | null
+    customerAccountId: string | null
+    code: string | null
+    createdAt: Date | null
+  }
+
+  export type ReferralCodeCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    programId: number
+    customerAccountId: number
+    code: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ReferralCodeMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    programId?: true
+    customerAccountId?: true
+    code?: true
+    createdAt?: true
+  }
+
+  export type ReferralCodeMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    programId?: true
+    customerAccountId?: true
+    code?: true
+    createdAt?: true
+  }
+
+  export type ReferralCodeCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    programId?: true
+    customerAccountId?: true
+    code?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ReferralCodeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReferralCode to aggregate.
+     */
+    where?: ReferralCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralCodes to fetch.
+     */
+    orderBy?: ReferralCodeOrderByWithRelationInput | ReferralCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ReferralCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ReferralCodes
+    **/
+    _count?: true | ReferralCodeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReferralCodeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReferralCodeMaxAggregateInputType
+  }
+
+  export type GetReferralCodeAggregateType<T extends ReferralCodeAggregateArgs> = {
+        [P in keyof T & keyof AggregateReferralCode]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReferralCode[P]>
+      : GetScalarType<T[P], AggregateReferralCode[P]>
+  }
+
+
+
+
+  export type ReferralCodeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralCodeWhereInput
+    orderBy?: ReferralCodeOrderByWithAggregationInput | ReferralCodeOrderByWithAggregationInput[]
+    by: ReferralCodeScalarFieldEnum[] | ReferralCodeScalarFieldEnum
+    having?: ReferralCodeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReferralCodeCountAggregateInputType | true
+    _min?: ReferralCodeMinAggregateInputType
+    _max?: ReferralCodeMaxAggregateInputType
+  }
+
+  export type ReferralCodeGroupByOutputType = {
+    id: string
+    tenantId: string
+    programId: string
+    customerAccountId: string
+    code: string
+    createdAt: Date
+    _count: ReferralCodeCountAggregateOutputType | null
+    _min: ReferralCodeMinAggregateOutputType | null
+    _max: ReferralCodeMaxAggregateOutputType | null
+  }
+
+  type GetReferralCodeGroupByPayload<T extends ReferralCodeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReferralCodeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReferralCodeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReferralCodeGroupByOutputType[P]>
+            : GetScalarType<T[P], ReferralCodeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReferralCodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    programId?: boolean
+    customerAccountId?: boolean
+    code?: boolean
+    createdAt?: boolean
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    referrals?: boolean | ReferralCode$referralsArgs<ExtArgs>
+    _count?: boolean | ReferralCodeCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["referralCode"]>
+
+  export type ReferralCodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    programId?: boolean
+    customerAccountId?: boolean
+    code?: boolean
+    createdAt?: boolean
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["referralCode"]>
+
+  export type ReferralCodeSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    programId?: boolean
+    customerAccountId?: boolean
+    code?: boolean
+    createdAt?: boolean
+  }
+
+  export type ReferralCodeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    referrals?: boolean | ReferralCode$referralsArgs<ExtArgs>
+    _count?: boolean | ReferralCodeCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ReferralCodeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    customerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }
+
+  export type $ReferralCodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReferralCode"
+    objects: {
+      program: Prisma.$ReferralProgramPayload<ExtArgs>
+      customerAccount: Prisma.$CustomerAccountPayload<ExtArgs>
+      referrals: Prisma.$ReferralPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      programId: string
+      customerAccountId: string
+      code: string
+      createdAt: Date
+    }, ExtArgs["result"]["referralCode"]>
+    composites: {}
+  }
+
+  type ReferralCodeGetPayload<S extends boolean | null | undefined | ReferralCodeDefaultArgs> = $Result.GetResult<Prisma.$ReferralCodePayload, S>
+
+  type ReferralCodeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ReferralCodeFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ReferralCodeCountAggregateInputType | true
+    }
+
+  export interface ReferralCodeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReferralCode'], meta: { name: 'ReferralCode' } }
+    /**
+     * Find zero or one ReferralCode that matches the filter.
+     * @param {ReferralCodeFindUniqueArgs} args - Arguments to find a ReferralCode
+     * @example
+     * // Get one ReferralCode
+     * const referralCode = await prisma.referralCode.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReferralCodeFindUniqueArgs>(args: SelectSubset<T, ReferralCodeFindUniqueArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ReferralCode that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ReferralCodeFindUniqueOrThrowArgs} args - Arguments to find a ReferralCode
+     * @example
+     * // Get one ReferralCode
+     * const referralCode = await prisma.referralCode.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReferralCodeFindUniqueOrThrowArgs>(args: SelectSubset<T, ReferralCodeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ReferralCode that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCodeFindFirstArgs} args - Arguments to find a ReferralCode
+     * @example
+     * // Get one ReferralCode
+     * const referralCode = await prisma.referralCode.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReferralCodeFindFirstArgs>(args?: SelectSubset<T, ReferralCodeFindFirstArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ReferralCode that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCodeFindFirstOrThrowArgs} args - Arguments to find a ReferralCode
+     * @example
+     * // Get one ReferralCode
+     * const referralCode = await prisma.referralCode.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReferralCodeFindFirstOrThrowArgs>(args?: SelectSubset<T, ReferralCodeFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ReferralCodes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCodeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReferralCodes
+     * const referralCodes = await prisma.referralCode.findMany()
+     * 
+     * // Get first 10 ReferralCodes
+     * const referralCodes = await prisma.referralCode.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const referralCodeWithIdOnly = await prisma.referralCode.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ReferralCodeFindManyArgs>(args?: SelectSubset<T, ReferralCodeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ReferralCode.
+     * @param {ReferralCodeCreateArgs} args - Arguments to create a ReferralCode.
+     * @example
+     * // Create one ReferralCode
+     * const ReferralCode = await prisma.referralCode.create({
+     *   data: {
+     *     // ... data to create a ReferralCode
+     *   }
+     * })
+     * 
+     */
+    create<T extends ReferralCodeCreateArgs>(args: SelectSubset<T, ReferralCodeCreateArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ReferralCodes.
+     * @param {ReferralCodeCreateManyArgs} args - Arguments to create many ReferralCodes.
+     * @example
+     * // Create many ReferralCodes
+     * const referralCode = await prisma.referralCode.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ReferralCodeCreateManyArgs>(args?: SelectSubset<T, ReferralCodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReferralCodes and returns the data saved in the database.
+     * @param {ReferralCodeCreateManyAndReturnArgs} args - Arguments to create many ReferralCodes.
+     * @example
+     * // Create many ReferralCodes
+     * const referralCode = await prisma.referralCode.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ReferralCodes and only return the `id`
+     * const referralCodeWithIdOnly = await prisma.referralCode.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ReferralCodeCreateManyAndReturnArgs>(args?: SelectSubset<T, ReferralCodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ReferralCode.
+     * @param {ReferralCodeDeleteArgs} args - Arguments to delete one ReferralCode.
+     * @example
+     * // Delete one ReferralCode
+     * const ReferralCode = await prisma.referralCode.delete({
+     *   where: {
+     *     // ... filter to delete one ReferralCode
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ReferralCodeDeleteArgs>(args: SelectSubset<T, ReferralCodeDeleteArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ReferralCode.
+     * @param {ReferralCodeUpdateArgs} args - Arguments to update one ReferralCode.
+     * @example
+     * // Update one ReferralCode
+     * const referralCode = await prisma.referralCode.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ReferralCodeUpdateArgs>(args: SelectSubset<T, ReferralCodeUpdateArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ReferralCodes.
+     * @param {ReferralCodeDeleteManyArgs} args - Arguments to filter ReferralCodes to delete.
+     * @example
+     * // Delete a few ReferralCodes
+     * const { count } = await prisma.referralCode.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ReferralCodeDeleteManyArgs>(args?: SelectSubset<T, ReferralCodeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReferralCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCodeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReferralCodes
+     * const referralCode = await prisma.referralCode.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ReferralCodeUpdateManyArgs>(args: SelectSubset<T, ReferralCodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ReferralCode.
+     * @param {ReferralCodeUpsertArgs} args - Arguments to update or create a ReferralCode.
+     * @example
+     * // Update or create a ReferralCode
+     * const referralCode = await prisma.referralCode.upsert({
+     *   create: {
+     *     // ... data to create a ReferralCode
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReferralCode we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReferralCodeUpsertArgs>(args: SelectSubset<T, ReferralCodeUpsertArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ReferralCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCodeCountArgs} args - Arguments to filter ReferralCodes to count.
+     * @example
+     * // Count the number of ReferralCodes
+     * const count = await prisma.referralCode.count({
+     *   where: {
+     *     // ... the filter for the ReferralCodes we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReferralCodeCountArgs>(
+      args?: Subset<T, ReferralCodeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReferralCodeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReferralCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCodeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReferralCodeAggregateArgs>(args: Subset<T, ReferralCodeAggregateArgs>): Prisma.PrismaPromise<GetReferralCodeAggregateType<T>>
+
+    /**
+     * Group by ReferralCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCodeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ReferralCodeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReferralCodeGroupByArgs['orderBy'] }
+        : { orderBy?: ReferralCodeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReferralCodeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReferralCodeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReferralCode model
+   */
+  readonly fields: ReferralCodeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReferralCode.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReferralCodeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    program<T extends ReferralProgramDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ReferralProgramDefaultArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    customerAccount<T extends CustomerAccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccountDefaultArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    referrals<T extends ReferralCode$referralsArgs<ExtArgs> = {}>(args?: Subset<T, ReferralCode$referralsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReferralCode model
+   */ 
+  interface ReferralCodeFieldRefs {
+    readonly id: FieldRef<"ReferralCode", 'String'>
+    readonly tenantId: FieldRef<"ReferralCode", 'String'>
+    readonly programId: FieldRef<"ReferralCode", 'String'>
+    readonly customerAccountId: FieldRef<"ReferralCode", 'String'>
+    readonly code: FieldRef<"ReferralCode", 'String'>
+    readonly createdAt: FieldRef<"ReferralCode", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ReferralCode findUnique
+   */
+  export type ReferralCodeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralCode to fetch.
+     */
+    where: ReferralCodeWhereUniqueInput
+  }
+
+  /**
+   * ReferralCode findUniqueOrThrow
+   */
+  export type ReferralCodeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralCode to fetch.
+     */
+    where: ReferralCodeWhereUniqueInput
+  }
+
+  /**
+   * ReferralCode findFirst
+   */
+  export type ReferralCodeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralCode to fetch.
+     */
+    where?: ReferralCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralCodes to fetch.
+     */
+    orderBy?: ReferralCodeOrderByWithRelationInput | ReferralCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReferralCodes.
+     */
+    cursor?: ReferralCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReferralCodes.
+     */
+    distinct?: ReferralCodeScalarFieldEnum | ReferralCodeScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralCode findFirstOrThrow
+   */
+  export type ReferralCodeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralCode to fetch.
+     */
+    where?: ReferralCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralCodes to fetch.
+     */
+    orderBy?: ReferralCodeOrderByWithRelationInput | ReferralCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReferralCodes.
+     */
+    cursor?: ReferralCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReferralCodes.
+     */
+    distinct?: ReferralCodeScalarFieldEnum | ReferralCodeScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralCode findMany
+   */
+  export type ReferralCodeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ReferralCodes to fetch.
+     */
+    where?: ReferralCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReferralCodes to fetch.
+     */
+    orderBy?: ReferralCodeOrderByWithRelationInput | ReferralCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ReferralCodes.
+     */
+    cursor?: ReferralCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReferralCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReferralCodes.
+     */
+    skip?: number
+    distinct?: ReferralCodeScalarFieldEnum | ReferralCodeScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralCode create
+   */
+  export type ReferralCodeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReferralCode.
+     */
+    data: XOR<ReferralCodeCreateInput, ReferralCodeUncheckedCreateInput>
+  }
+
+  /**
+   * ReferralCode createMany
+   */
+  export type ReferralCodeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReferralCodes.
+     */
+    data: ReferralCodeCreateManyInput | ReferralCodeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReferralCode createManyAndReturn
+   */
+  export type ReferralCodeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ReferralCodes.
+     */
+    data: ReferralCodeCreateManyInput | ReferralCodeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReferralCode update
+   */
+  export type ReferralCodeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReferralCode.
+     */
+    data: XOR<ReferralCodeUpdateInput, ReferralCodeUncheckedUpdateInput>
+    /**
+     * Choose, which ReferralCode to update.
+     */
+    where: ReferralCodeWhereUniqueInput
+  }
+
+  /**
+   * ReferralCode updateMany
+   */
+  export type ReferralCodeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReferralCodes.
+     */
+    data: XOR<ReferralCodeUpdateManyMutationInput, ReferralCodeUncheckedUpdateManyInput>
+    /**
+     * Filter which ReferralCodes to update
+     */
+    where?: ReferralCodeWhereInput
+  }
+
+  /**
+   * ReferralCode upsert
+   */
+  export type ReferralCodeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReferralCode to update in case it exists.
+     */
+    where: ReferralCodeWhereUniqueInput
+    /**
+     * In case the ReferralCode found by the `where` argument doesn't exist, create a new ReferralCode with this data.
+     */
+    create: XOR<ReferralCodeCreateInput, ReferralCodeUncheckedCreateInput>
+    /**
+     * In case the ReferralCode was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReferralCodeUpdateInput, ReferralCodeUncheckedUpdateInput>
+  }
+
+  /**
+   * ReferralCode delete
+   */
+  export type ReferralCodeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+    /**
+     * Filter which ReferralCode to delete.
+     */
+    where: ReferralCodeWhereUniqueInput
+  }
+
+  /**
+   * ReferralCode deleteMany
+   */
+  export type ReferralCodeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReferralCodes to delete
+     */
+    where?: ReferralCodeWhereInput
+  }
+
+  /**
+   * ReferralCode.referrals
+   */
+  export type ReferralCode$referralsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    where?: ReferralWhereInput
+    orderBy?: ReferralOrderByWithRelationInput | ReferralOrderByWithRelationInput[]
+    cursor?: ReferralWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReferralScalarFieldEnum | ReferralScalarFieldEnum[]
+  }
+
+  /**
+   * ReferralCode without action
+   */
+  export type ReferralCodeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReferralCode
+     */
+    select?: ReferralCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralCodeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Referral
+   */
+
+  export type AggregateReferral = {
+    _count: ReferralCountAggregateOutputType | null
+    _min: ReferralMinAggregateOutputType | null
+    _max: ReferralMaxAggregateOutputType | null
+  }
+
+  export type ReferralMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    programId: string | null
+    codeId: string | null
+    referrerAccountId: string | null
+    friendAccountId: string | null
+    friendPhone: string | null
+    status: string | null
+    rejectedReason: string | null
+    qualifyingOrderId: string | null
+    qualifiedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type ReferralMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    programId: string | null
+    codeId: string | null
+    referrerAccountId: string | null
+    friendAccountId: string | null
+    friendPhone: string | null
+    status: string | null
+    rejectedReason: string | null
+    qualifyingOrderId: string | null
+    qualifiedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type ReferralCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    programId: number
+    codeId: number
+    referrerAccountId: number
+    friendAccountId: number
+    friendPhone: number
+    status: number
+    rejectedReason: number
+    qualifyingOrderId: number
+    qualifiedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ReferralMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    programId?: true
+    codeId?: true
+    referrerAccountId?: true
+    friendAccountId?: true
+    friendPhone?: true
+    status?: true
+    rejectedReason?: true
+    qualifyingOrderId?: true
+    qualifiedAt?: true
+    createdAt?: true
+  }
+
+  export type ReferralMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    programId?: true
+    codeId?: true
+    referrerAccountId?: true
+    friendAccountId?: true
+    friendPhone?: true
+    status?: true
+    rejectedReason?: true
+    qualifyingOrderId?: true
+    qualifiedAt?: true
+    createdAt?: true
+  }
+
+  export type ReferralCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    programId?: true
+    codeId?: true
+    referrerAccountId?: true
+    friendAccountId?: true
+    friendPhone?: true
+    status?: true
+    rejectedReason?: true
+    qualifyingOrderId?: true
+    qualifiedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ReferralAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Referral to aggregate.
+     */
+    where?: ReferralWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Referrals to fetch.
+     */
+    orderBy?: ReferralOrderByWithRelationInput | ReferralOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ReferralWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Referrals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Referrals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Referrals
+    **/
+    _count?: true | ReferralCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReferralMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReferralMaxAggregateInputType
+  }
+
+  export type GetReferralAggregateType<T extends ReferralAggregateArgs> = {
+        [P in keyof T & keyof AggregateReferral]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReferral[P]>
+      : GetScalarType<T[P], AggregateReferral[P]>
+  }
+
+
+
+
+  export type ReferralGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReferralWhereInput
+    orderBy?: ReferralOrderByWithAggregationInput | ReferralOrderByWithAggregationInput[]
+    by: ReferralScalarFieldEnum[] | ReferralScalarFieldEnum
+    having?: ReferralScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReferralCountAggregateInputType | true
+    _min?: ReferralMinAggregateInputType
+    _max?: ReferralMaxAggregateInputType
+  }
+
+  export type ReferralGroupByOutputType = {
+    id: string
+    tenantId: string
+    programId: string
+    codeId: string
+    referrerAccountId: string
+    friendAccountId: string
+    friendPhone: string | null
+    status: string
+    rejectedReason: string | null
+    qualifyingOrderId: string | null
+    qualifiedAt: Date | null
+    createdAt: Date
+    _count: ReferralCountAggregateOutputType | null
+    _min: ReferralMinAggregateOutputType | null
+    _max: ReferralMaxAggregateOutputType | null
+  }
+
+  type GetReferralGroupByPayload<T extends ReferralGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReferralGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReferralGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReferralGroupByOutputType[P]>
+            : GetScalarType<T[P], ReferralGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReferralSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    programId?: boolean
+    codeId?: boolean
+    referrerAccountId?: boolean
+    friendAccountId?: boolean
+    friendPhone?: boolean
+    status?: boolean
+    rejectedReason?: boolean
+    qualifyingOrderId?: boolean
+    qualifiedAt?: boolean
+    createdAt?: boolean
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    code?: boolean | ReferralCodeDefaultArgs<ExtArgs>
+    referrerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    friendAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["referral"]>
+
+  export type ReferralSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    programId?: boolean
+    codeId?: boolean
+    referrerAccountId?: boolean
+    friendAccountId?: boolean
+    friendPhone?: boolean
+    status?: boolean
+    rejectedReason?: boolean
+    qualifyingOrderId?: boolean
+    qualifiedAt?: boolean
+    createdAt?: boolean
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    code?: boolean | ReferralCodeDefaultArgs<ExtArgs>
+    referrerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    friendAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["referral"]>
+
+  export type ReferralSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    programId?: boolean
+    codeId?: boolean
+    referrerAccountId?: boolean
+    friendAccountId?: boolean
+    friendPhone?: boolean
+    status?: boolean
+    rejectedReason?: boolean
+    qualifyingOrderId?: boolean
+    qualifiedAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type ReferralInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    code?: boolean | ReferralCodeDefaultArgs<ExtArgs>
+    referrerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    friendAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }
+  export type ReferralIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    program?: boolean | ReferralProgramDefaultArgs<ExtArgs>
+    code?: boolean | ReferralCodeDefaultArgs<ExtArgs>
+    referrerAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+    friendAccount?: boolean | CustomerAccountDefaultArgs<ExtArgs>
+  }
+
+  export type $ReferralPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Referral"
+    objects: {
+      program: Prisma.$ReferralProgramPayload<ExtArgs>
+      code: Prisma.$ReferralCodePayload<ExtArgs>
+      referrerAccount: Prisma.$CustomerAccountPayload<ExtArgs>
+      friendAccount: Prisma.$CustomerAccountPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      programId: string
+      codeId: string
+      referrerAccountId: string
+      friendAccountId: string
+      /**
+       * Normalised at claim time, and kept: it is what the "already a customer"
+       * check runs against, and the account's phone can be edited afterwards.
+       */
+      friendPhone: string | null
+      /**
+       * PENDING until the friend's first order completes, then QUALIFIED, or
+       * REJECTED with a reason we can show and audit.
+       */
+      status: string
+      rejectedReason: string | null
+      qualifyingOrderId: string | null
+      qualifiedAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["referral"]>
+    composites: {}
+  }
+
+  type ReferralGetPayload<S extends boolean | null | undefined | ReferralDefaultArgs> = $Result.GetResult<Prisma.$ReferralPayload, S>
+
+  type ReferralCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ReferralFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ReferralCountAggregateInputType | true
+    }
+
+  export interface ReferralDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Referral'], meta: { name: 'Referral' } }
+    /**
+     * Find zero or one Referral that matches the filter.
+     * @param {ReferralFindUniqueArgs} args - Arguments to find a Referral
+     * @example
+     * // Get one Referral
+     * const referral = await prisma.referral.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReferralFindUniqueArgs>(args: SelectSubset<T, ReferralFindUniqueArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Referral that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ReferralFindUniqueOrThrowArgs} args - Arguments to find a Referral
+     * @example
+     * // Get one Referral
+     * const referral = await prisma.referral.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReferralFindUniqueOrThrowArgs>(args: SelectSubset<T, ReferralFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Referral that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralFindFirstArgs} args - Arguments to find a Referral
+     * @example
+     * // Get one Referral
+     * const referral = await prisma.referral.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReferralFindFirstArgs>(args?: SelectSubset<T, ReferralFindFirstArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Referral that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralFindFirstOrThrowArgs} args - Arguments to find a Referral
+     * @example
+     * // Get one Referral
+     * const referral = await prisma.referral.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReferralFindFirstOrThrowArgs>(args?: SelectSubset<T, ReferralFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Referrals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Referrals
+     * const referrals = await prisma.referral.findMany()
+     * 
+     * // Get first 10 Referrals
+     * const referrals = await prisma.referral.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const referralWithIdOnly = await prisma.referral.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ReferralFindManyArgs>(args?: SelectSubset<T, ReferralFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Referral.
+     * @param {ReferralCreateArgs} args - Arguments to create a Referral.
+     * @example
+     * // Create one Referral
+     * const Referral = await prisma.referral.create({
+     *   data: {
+     *     // ... data to create a Referral
+     *   }
+     * })
+     * 
+     */
+    create<T extends ReferralCreateArgs>(args: SelectSubset<T, ReferralCreateArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Referrals.
+     * @param {ReferralCreateManyArgs} args - Arguments to create many Referrals.
+     * @example
+     * // Create many Referrals
+     * const referral = await prisma.referral.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ReferralCreateManyArgs>(args?: SelectSubset<T, ReferralCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Referrals and returns the data saved in the database.
+     * @param {ReferralCreateManyAndReturnArgs} args - Arguments to create many Referrals.
+     * @example
+     * // Create many Referrals
+     * const referral = await prisma.referral.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Referrals and only return the `id`
+     * const referralWithIdOnly = await prisma.referral.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ReferralCreateManyAndReturnArgs>(args?: SelectSubset<T, ReferralCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Referral.
+     * @param {ReferralDeleteArgs} args - Arguments to delete one Referral.
+     * @example
+     * // Delete one Referral
+     * const Referral = await prisma.referral.delete({
+     *   where: {
+     *     // ... filter to delete one Referral
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ReferralDeleteArgs>(args: SelectSubset<T, ReferralDeleteArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Referral.
+     * @param {ReferralUpdateArgs} args - Arguments to update one Referral.
+     * @example
+     * // Update one Referral
+     * const referral = await prisma.referral.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ReferralUpdateArgs>(args: SelectSubset<T, ReferralUpdateArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Referrals.
+     * @param {ReferralDeleteManyArgs} args - Arguments to filter Referrals to delete.
+     * @example
+     * // Delete a few Referrals
+     * const { count } = await prisma.referral.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ReferralDeleteManyArgs>(args?: SelectSubset<T, ReferralDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Referrals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Referrals
+     * const referral = await prisma.referral.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ReferralUpdateManyArgs>(args: SelectSubset<T, ReferralUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Referral.
+     * @param {ReferralUpsertArgs} args - Arguments to update or create a Referral.
+     * @example
+     * // Update or create a Referral
+     * const referral = await prisma.referral.upsert({
+     *   create: {
+     *     // ... data to create a Referral
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Referral we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReferralUpsertArgs>(args: SelectSubset<T, ReferralUpsertArgs<ExtArgs>>): Prisma__ReferralClient<$Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Referrals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralCountArgs} args - Arguments to filter Referrals to count.
+     * @example
+     * // Count the number of Referrals
+     * const count = await prisma.referral.count({
+     *   where: {
+     *     // ... the filter for the Referrals we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReferralCountArgs>(
+      args?: Subset<T, ReferralCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReferralCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Referral.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReferralAggregateArgs>(args: Subset<T, ReferralAggregateArgs>): Prisma.PrismaPromise<GetReferralAggregateType<T>>
+
+    /**
+     * Group by Referral.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReferralGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ReferralGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReferralGroupByArgs['orderBy'] }
+        : { orderBy?: ReferralGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReferralGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReferralGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Referral model
+   */
+  readonly fields: ReferralFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Referral.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReferralClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    program<T extends ReferralProgramDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ReferralProgramDefaultArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    code<T extends ReferralCodeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ReferralCodeDefaultArgs<ExtArgs>>): Prisma__ReferralCodeClient<$Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    referrerAccount<T extends CustomerAccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccountDefaultArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    friendAccount<T extends CustomerAccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccountDefaultArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Referral model
+   */ 
+  interface ReferralFieldRefs {
+    readonly id: FieldRef<"Referral", 'String'>
+    readonly tenantId: FieldRef<"Referral", 'String'>
+    readonly programId: FieldRef<"Referral", 'String'>
+    readonly codeId: FieldRef<"Referral", 'String'>
+    readonly referrerAccountId: FieldRef<"Referral", 'String'>
+    readonly friendAccountId: FieldRef<"Referral", 'String'>
+    readonly friendPhone: FieldRef<"Referral", 'String'>
+    readonly status: FieldRef<"Referral", 'String'>
+    readonly rejectedReason: FieldRef<"Referral", 'String'>
+    readonly qualifyingOrderId: FieldRef<"Referral", 'String'>
+    readonly qualifiedAt: FieldRef<"Referral", 'DateTime'>
+    readonly createdAt: FieldRef<"Referral", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Referral findUnique
+   */
+  export type ReferralFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * Filter, which Referral to fetch.
+     */
+    where: ReferralWhereUniqueInput
+  }
+
+  /**
+   * Referral findUniqueOrThrow
+   */
+  export type ReferralFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * Filter, which Referral to fetch.
+     */
+    where: ReferralWhereUniqueInput
+  }
+
+  /**
+   * Referral findFirst
+   */
+  export type ReferralFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * Filter, which Referral to fetch.
+     */
+    where?: ReferralWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Referrals to fetch.
+     */
+    orderBy?: ReferralOrderByWithRelationInput | ReferralOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Referrals.
+     */
+    cursor?: ReferralWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Referrals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Referrals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Referrals.
+     */
+    distinct?: ReferralScalarFieldEnum | ReferralScalarFieldEnum[]
+  }
+
+  /**
+   * Referral findFirstOrThrow
+   */
+  export type ReferralFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * Filter, which Referral to fetch.
+     */
+    where?: ReferralWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Referrals to fetch.
+     */
+    orderBy?: ReferralOrderByWithRelationInput | ReferralOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Referrals.
+     */
+    cursor?: ReferralWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Referrals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Referrals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Referrals.
+     */
+    distinct?: ReferralScalarFieldEnum | ReferralScalarFieldEnum[]
+  }
+
+  /**
+   * Referral findMany
+   */
+  export type ReferralFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * Filter, which Referrals to fetch.
+     */
+    where?: ReferralWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Referrals to fetch.
+     */
+    orderBy?: ReferralOrderByWithRelationInput | ReferralOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Referrals.
+     */
+    cursor?: ReferralWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Referrals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Referrals.
+     */
+    skip?: number
+    distinct?: ReferralScalarFieldEnum | ReferralScalarFieldEnum[]
+  }
+
+  /**
+   * Referral create
+   */
+  export type ReferralCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Referral.
+     */
+    data: XOR<ReferralCreateInput, ReferralUncheckedCreateInput>
+  }
+
+  /**
+   * Referral createMany
+   */
+  export type ReferralCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Referrals.
+     */
+    data: ReferralCreateManyInput | ReferralCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Referral createManyAndReturn
+   */
+  export type ReferralCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Referrals.
+     */
+    data: ReferralCreateManyInput | ReferralCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Referral update
+   */
+  export type ReferralUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Referral.
+     */
+    data: XOR<ReferralUpdateInput, ReferralUncheckedUpdateInput>
+    /**
+     * Choose, which Referral to update.
+     */
+    where: ReferralWhereUniqueInput
+  }
+
+  /**
+   * Referral updateMany
+   */
+  export type ReferralUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Referrals.
+     */
+    data: XOR<ReferralUpdateManyMutationInput, ReferralUncheckedUpdateManyInput>
+    /**
+     * Filter which Referrals to update
+     */
+    where?: ReferralWhereInput
+  }
+
+  /**
+   * Referral upsert
+   */
+  export type ReferralUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Referral to update in case it exists.
+     */
+    where: ReferralWhereUniqueInput
+    /**
+     * In case the Referral found by the `where` argument doesn't exist, create a new Referral with this data.
+     */
+    create: XOR<ReferralCreateInput, ReferralUncheckedCreateInput>
+    /**
+     * In case the Referral was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReferralUpdateInput, ReferralUncheckedUpdateInput>
+  }
+
+  /**
+   * Referral delete
+   */
+  export type ReferralDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
+    /**
+     * Filter which Referral to delete.
+     */
+    where: ReferralWhereUniqueInput
+  }
+
+  /**
+   * Referral deleteMany
+   */
+  export type ReferralDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Referrals to delete
+     */
+    where?: ReferralWhereInput
+  }
+
+  /**
+   * Referral without action
+   */
+  export type ReferralDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Referral
+     */
+    select?: ReferralSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReferralInclude<ExtArgs> | null
   }
 
 
@@ -157820,6 +161533,9 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     cardId: 'cardId',
+    locationId: 'locationId',
+    source: 'source',
+    amountOff: 'amountOff',
     customerAccountId: 'customerAccountId',
     label: 'label',
     rewardItemId: 'rewardItemId',
@@ -157830,6 +161546,53 @@ export namespace Prisma {
   };
 
   export type LoyaltyRewardScalarFieldEnum = (typeof LoyaltyRewardScalarFieldEnum)[keyof typeof LoyaltyRewardScalarFieldEnum]
+
+
+  export const ReferralProgramScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    isActive: 'isActive',
+    referrerAmount: 'referrerAmount',
+    friendAmount: 'friendAmount',
+    minimumSpend: 'minimumSpend',
+    maxPerCustomer: 'maxPerCustomer',
+    rewardExpiryDays: 'rewardExpiryDays',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ReferralProgramScalarFieldEnum = (typeof ReferralProgramScalarFieldEnum)[keyof typeof ReferralProgramScalarFieldEnum]
+
+
+  export const ReferralCodeScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    programId: 'programId',
+    customerAccountId: 'customerAccountId',
+    code: 'code',
+    createdAt: 'createdAt'
+  };
+
+  export type ReferralCodeScalarFieldEnum = (typeof ReferralCodeScalarFieldEnum)[keyof typeof ReferralCodeScalarFieldEnum]
+
+
+  export const ReferralScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    programId: 'programId',
+    codeId: 'codeId',
+    referrerAccountId: 'referrerAccountId',
+    friendAccountId: 'friendAccountId',
+    friendPhone: 'friendPhone',
+    status: 'status',
+    rejectedReason: 'rejectedReason',
+    qualifyingOrderId: 'qualifyingOrderId',
+    qualifiedAt: 'qualifiedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type ReferralScalarFieldEnum = (typeof ReferralScalarFieldEnum)[keyof typeof ReferralScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -159628,6 +163391,8 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     cardId: 'cardId',
+    locationId: 'locationId',
+    source: 'source',
     customerAccountId: 'customerAccountId',
     label: 'label',
     rewardItemId: 'rewardItemId',
@@ -159635,6 +163400,42 @@ export namespace Prisma {
   };
 
   export type LoyaltyRewardOrderByRelevanceFieldEnum = (typeof LoyaltyRewardOrderByRelevanceFieldEnum)[keyof typeof LoyaltyRewardOrderByRelevanceFieldEnum]
+
+
+  export const ReferralProgramOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId'
+  };
+
+  export type ReferralProgramOrderByRelevanceFieldEnum = (typeof ReferralProgramOrderByRelevanceFieldEnum)[keyof typeof ReferralProgramOrderByRelevanceFieldEnum]
+
+
+  export const ReferralCodeOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    programId: 'programId',
+    customerAccountId: 'customerAccountId',
+    code: 'code'
+  };
+
+  export type ReferralCodeOrderByRelevanceFieldEnum = (typeof ReferralCodeOrderByRelevanceFieldEnum)[keyof typeof ReferralCodeOrderByRelevanceFieldEnum]
+
+
+  export const ReferralOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    programId: 'programId',
+    codeId: 'codeId',
+    referrerAccountId: 'referrerAccountId',
+    friendAccountId: 'friendAccountId',
+    friendPhone: 'friendPhone',
+    status: 'status',
+    rejectedReason: 'rejectedReason',
+    qualifyingOrderId: 'qualifyingOrderId'
+  };
+
+  export type ReferralOrderByRelevanceFieldEnum = (typeof ReferralOrderByRelevanceFieldEnum)[keyof typeof ReferralOrderByRelevanceFieldEnum]
 
 
   /**
@@ -161054,6 +164855,9 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     loyaltyStamps?: LoyaltyStampListRelationFilter
     loyaltyRewards?: LoyaltyRewardListRelationFilter
+    referralCodes?: ReferralCodeListRelationFilter
+    referralsMade?: ReferralListRelationFilter
+    referredBy?: XOR<ReferralNullableRelationFilter, ReferralWhereInput> | null
   }
 
   export type CustomerAccountOrderByWithRelationInput = {
@@ -161074,6 +164878,9 @@ export namespace Prisma {
     orders?: OrderOrderByRelationAggregateInput
     loyaltyStamps?: LoyaltyStampOrderByRelationAggregateInput
     loyaltyRewards?: LoyaltyRewardOrderByRelationAggregateInput
+    referralCodes?: ReferralCodeOrderByRelationAggregateInput
+    referralsMade?: ReferralOrderByRelationAggregateInput
+    referredBy?: ReferralOrderByWithRelationInput
     _relevance?: CustomerAccountOrderByRelevanceInput
   }
 
@@ -161098,6 +164905,9 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     loyaltyStamps?: LoyaltyStampListRelationFilter
     loyaltyRewards?: LoyaltyRewardListRelationFilter
+    referralCodes?: ReferralCodeListRelationFilter
+    referralsMade?: ReferralListRelationFilter
+    referredBy?: XOR<ReferralNullableRelationFilter, ReferralWhereInput> | null
   }, "id" | "email" | "googleId">
 
   export type CustomerAccountOrderByWithAggregationInput = {
@@ -161917,6 +165727,8 @@ export namespace Prisma {
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
+    referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
+    loyaltyRewards?: LoyaltyRewardListRelationFilter
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -162011,6 +165823,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigOrderByWithRelationInput
     uberDirectConfig?: UberDirectConfigOrderByWithRelationInput
     loyaltyCard?: LoyaltyCardOrderByWithRelationInput
+    referralProgram?: ReferralProgramOrderByWithRelationInput
+    loyaltyRewards?: LoyaltyRewardOrderByRelationAggregateInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
@@ -162109,6 +165923,8 @@ export namespace Prisma {
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
+    referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
+    loyaltyRewards?: LoyaltyRewardListRelationFilter
   }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
@@ -174072,7 +177888,10 @@ export namespace Prisma {
     NOT?: LoyaltyRewardWhereInput | LoyaltyRewardWhereInput[]
     id?: StringFilter<"LoyaltyReward"> | string
     tenantId?: StringFilter<"LoyaltyReward"> | string
-    cardId?: StringFilter<"LoyaltyReward"> | string
+    cardId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    locationId?: StringFilter<"LoyaltyReward"> | string
+    source?: StringFilter<"LoyaltyReward"> | string
+    amountOff?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringFilter<"LoyaltyReward"> | string
     label?: StringFilter<"LoyaltyReward"> | string
     rewardItemId?: StringNullableFilter<"LoyaltyReward"> | string | null
@@ -174080,14 +177899,18 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedOrderId?: StringNullableFilter<"LoyaltyReward"> | string | null
-    card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
+    card?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
     customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
   }
 
   export type LoyaltyRewardOrderByWithRelationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    cardId?: SortOrder
+    cardId?: SortOrderInput | SortOrder
+    locationId?: SortOrder
+    source?: SortOrder
+    amountOff?: SortOrderInput | SortOrder
     customerAccountId?: SortOrder
     label?: SortOrder
     rewardItemId?: SortOrderInput | SortOrder
@@ -174096,6 +177919,7 @@ export namespace Prisma {
     claimedAt?: SortOrderInput | SortOrder
     claimedOrderId?: SortOrderInput | SortOrder
     card?: LoyaltyCardOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
     customerAccount?: CustomerAccountOrderByWithRelationInput
     _relevance?: LoyaltyRewardOrderByRelevanceInput
   }
@@ -174107,21 +177931,28 @@ export namespace Prisma {
     OR?: LoyaltyRewardWhereInput[]
     NOT?: LoyaltyRewardWhereInput | LoyaltyRewardWhereInput[]
     tenantId?: StringFilter<"LoyaltyReward"> | string
-    cardId?: StringFilter<"LoyaltyReward"> | string
+    cardId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    locationId?: StringFilter<"LoyaltyReward"> | string
+    source?: StringFilter<"LoyaltyReward"> | string
+    amountOff?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringFilter<"LoyaltyReward"> | string
     label?: StringFilter<"LoyaltyReward"> | string
     rewardItemId?: StringNullableFilter<"LoyaltyReward"> | string | null
     earnedAt?: DateTimeFilter<"LoyaltyReward"> | Date | string
     expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
-    card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
+    card?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
     customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
   }, "id" | "claimedOrderId">
 
   export type LoyaltyRewardOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    cardId?: SortOrder
+    cardId?: SortOrderInput | SortOrder
+    locationId?: SortOrder
+    source?: SortOrder
+    amountOff?: SortOrderInput | SortOrder
     customerAccountId?: SortOrder
     label?: SortOrder
     rewardItemId?: SortOrderInput | SortOrder
@@ -174130,8 +177961,10 @@ export namespace Prisma {
     claimedAt?: SortOrderInput | SortOrder
     claimedOrderId?: SortOrderInput | SortOrder
     _count?: LoyaltyRewardCountOrderByAggregateInput
+    _avg?: LoyaltyRewardAvgOrderByAggregateInput
     _max?: LoyaltyRewardMaxOrderByAggregateInput
     _min?: LoyaltyRewardMinOrderByAggregateInput
+    _sum?: LoyaltyRewardSumOrderByAggregateInput
   }
 
   export type LoyaltyRewardScalarWhereWithAggregatesInput = {
@@ -174140,7 +177973,10 @@ export namespace Prisma {
     NOT?: LoyaltyRewardScalarWhereWithAggregatesInput | LoyaltyRewardScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"LoyaltyReward"> | string
     tenantId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
-    cardId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    cardId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
+    locationId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    source?: StringWithAggregatesFilter<"LoyaltyReward"> | string
+    amountOff?: DecimalNullableWithAggregatesFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
     label?: StringWithAggregatesFilter<"LoyaltyReward"> | string
     rewardItemId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
@@ -174148,6 +177984,268 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyReward"> | Date | string | null
     claimedOrderId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
+  }
+
+  export type ReferralProgramWhereInput = {
+    AND?: ReferralProgramWhereInput | ReferralProgramWhereInput[]
+    OR?: ReferralProgramWhereInput[]
+    NOT?: ReferralProgramWhereInput | ReferralProgramWhereInput[]
+    id?: StringFilter<"ReferralProgram"> | string
+    tenantId?: StringFilter<"ReferralProgram"> | string
+    locationId?: StringFilter<"ReferralProgram"> | string
+    isActive?: BoolFilter<"ReferralProgram"> | boolean
+    referrerAmount?: DecimalFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string
+    minimumSpend?: DecimalNullableFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFilter<"ReferralProgram"> | number
+    rewardExpiryDays?: IntNullableFilter<"ReferralProgram"> | number | null
+    createdAt?: DateTimeFilter<"ReferralProgram"> | Date | string
+    updatedAt?: DateTimeFilter<"ReferralProgram"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    codes?: ReferralCodeListRelationFilter
+    referrals?: ReferralListRelationFilter
+  }
+
+  export type ReferralProgramOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    referrerAmount?: SortOrder
+    friendAmount?: SortOrder
+    minimumSpend?: SortOrderInput | SortOrder
+    maxPerCustomer?: SortOrder
+    rewardExpiryDays?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    codes?: ReferralCodeOrderByRelationAggregateInput
+    referrals?: ReferralOrderByRelationAggregateInput
+    _relevance?: ReferralProgramOrderByRelevanceInput
+  }
+
+  export type ReferralProgramWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: ReferralProgramWhereInput | ReferralProgramWhereInput[]
+    OR?: ReferralProgramWhereInput[]
+    NOT?: ReferralProgramWhereInput | ReferralProgramWhereInput[]
+    tenantId?: StringFilter<"ReferralProgram"> | string
+    isActive?: BoolFilter<"ReferralProgram"> | boolean
+    referrerAmount?: DecimalFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string
+    minimumSpend?: DecimalNullableFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFilter<"ReferralProgram"> | number
+    rewardExpiryDays?: IntNullableFilter<"ReferralProgram"> | number | null
+    createdAt?: DateTimeFilter<"ReferralProgram"> | Date | string
+    updatedAt?: DateTimeFilter<"ReferralProgram"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    codes?: ReferralCodeListRelationFilter
+    referrals?: ReferralListRelationFilter
+  }, "id" | "locationId">
+
+  export type ReferralProgramOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    referrerAmount?: SortOrder
+    friendAmount?: SortOrder
+    minimumSpend?: SortOrderInput | SortOrder
+    maxPerCustomer?: SortOrder
+    rewardExpiryDays?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ReferralProgramCountOrderByAggregateInput
+    _avg?: ReferralProgramAvgOrderByAggregateInput
+    _max?: ReferralProgramMaxOrderByAggregateInput
+    _min?: ReferralProgramMinOrderByAggregateInput
+    _sum?: ReferralProgramSumOrderByAggregateInput
+  }
+
+  export type ReferralProgramScalarWhereWithAggregatesInput = {
+    AND?: ReferralProgramScalarWhereWithAggregatesInput | ReferralProgramScalarWhereWithAggregatesInput[]
+    OR?: ReferralProgramScalarWhereWithAggregatesInput[]
+    NOT?: ReferralProgramScalarWhereWithAggregatesInput | ReferralProgramScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ReferralProgram"> | string
+    tenantId?: StringWithAggregatesFilter<"ReferralProgram"> | string
+    locationId?: StringWithAggregatesFilter<"ReferralProgram"> | string
+    isActive?: BoolWithAggregatesFilter<"ReferralProgram"> | boolean
+    referrerAmount?: DecimalWithAggregatesFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalWithAggregatesFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string
+    minimumSpend?: DecimalNullableWithAggregatesFilter<"ReferralProgram"> | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntWithAggregatesFilter<"ReferralProgram"> | number
+    rewardExpiryDays?: IntNullableWithAggregatesFilter<"ReferralProgram"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"ReferralProgram"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ReferralProgram"> | Date | string
+  }
+
+  export type ReferralCodeWhereInput = {
+    AND?: ReferralCodeWhereInput | ReferralCodeWhereInput[]
+    OR?: ReferralCodeWhereInput[]
+    NOT?: ReferralCodeWhereInput | ReferralCodeWhereInput[]
+    id?: StringFilter<"ReferralCode"> | string
+    tenantId?: StringFilter<"ReferralCode"> | string
+    programId?: StringFilter<"ReferralCode"> | string
+    customerAccountId?: StringFilter<"ReferralCode"> | string
+    code?: StringFilter<"ReferralCode"> | string
+    createdAt?: DateTimeFilter<"ReferralCode"> | Date | string
+    program?: XOR<ReferralProgramRelationFilter, ReferralProgramWhereInput>
+    customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+    referrals?: ReferralListRelationFilter
+  }
+
+  export type ReferralCodeOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    customerAccountId?: SortOrder
+    code?: SortOrder
+    createdAt?: SortOrder
+    program?: ReferralProgramOrderByWithRelationInput
+    customerAccount?: CustomerAccountOrderByWithRelationInput
+    referrals?: ReferralOrderByRelationAggregateInput
+    _relevance?: ReferralCodeOrderByRelevanceInput
+  }
+
+  export type ReferralCodeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    programId_customerAccountId?: ReferralCodeProgramIdCustomerAccountIdCompoundUniqueInput
+    AND?: ReferralCodeWhereInput | ReferralCodeWhereInput[]
+    OR?: ReferralCodeWhereInput[]
+    NOT?: ReferralCodeWhereInput | ReferralCodeWhereInput[]
+    tenantId?: StringFilter<"ReferralCode"> | string
+    programId?: StringFilter<"ReferralCode"> | string
+    customerAccountId?: StringFilter<"ReferralCode"> | string
+    createdAt?: DateTimeFilter<"ReferralCode"> | Date | string
+    program?: XOR<ReferralProgramRelationFilter, ReferralProgramWhereInput>
+    customerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+    referrals?: ReferralListRelationFilter
+  }, "id" | "code" | "programId_customerAccountId">
+
+  export type ReferralCodeOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    customerAccountId?: SortOrder
+    code?: SortOrder
+    createdAt?: SortOrder
+    _count?: ReferralCodeCountOrderByAggregateInput
+    _max?: ReferralCodeMaxOrderByAggregateInput
+    _min?: ReferralCodeMinOrderByAggregateInput
+  }
+
+  export type ReferralCodeScalarWhereWithAggregatesInput = {
+    AND?: ReferralCodeScalarWhereWithAggregatesInput | ReferralCodeScalarWhereWithAggregatesInput[]
+    OR?: ReferralCodeScalarWhereWithAggregatesInput[]
+    NOT?: ReferralCodeScalarWhereWithAggregatesInput | ReferralCodeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ReferralCode"> | string
+    tenantId?: StringWithAggregatesFilter<"ReferralCode"> | string
+    programId?: StringWithAggregatesFilter<"ReferralCode"> | string
+    customerAccountId?: StringWithAggregatesFilter<"ReferralCode"> | string
+    code?: StringWithAggregatesFilter<"ReferralCode"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ReferralCode"> | Date | string
+  }
+
+  export type ReferralWhereInput = {
+    AND?: ReferralWhereInput | ReferralWhereInput[]
+    OR?: ReferralWhereInput[]
+    NOT?: ReferralWhereInput | ReferralWhereInput[]
+    id?: StringFilter<"Referral"> | string
+    tenantId?: StringFilter<"Referral"> | string
+    programId?: StringFilter<"Referral"> | string
+    codeId?: StringFilter<"Referral"> | string
+    referrerAccountId?: StringFilter<"Referral"> | string
+    friendAccountId?: StringFilter<"Referral"> | string
+    friendPhone?: StringNullableFilter<"Referral"> | string | null
+    status?: StringFilter<"Referral"> | string
+    rejectedReason?: StringNullableFilter<"Referral"> | string | null
+    qualifyingOrderId?: StringNullableFilter<"Referral"> | string | null
+    qualifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
+    createdAt?: DateTimeFilter<"Referral"> | Date | string
+    program?: XOR<ReferralProgramRelationFilter, ReferralProgramWhereInput>
+    code?: XOR<ReferralCodeRelationFilter, ReferralCodeWhereInput>
+    referrerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+    friendAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+  }
+
+  export type ReferralOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    codeId?: SortOrder
+    referrerAccountId?: SortOrder
+    friendAccountId?: SortOrder
+    friendPhone?: SortOrderInput | SortOrder
+    status?: SortOrder
+    rejectedReason?: SortOrderInput | SortOrder
+    qualifyingOrderId?: SortOrderInput | SortOrder
+    qualifiedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    program?: ReferralProgramOrderByWithRelationInput
+    code?: ReferralCodeOrderByWithRelationInput
+    referrerAccount?: CustomerAccountOrderByWithRelationInput
+    friendAccount?: CustomerAccountOrderByWithRelationInput
+    _relevance?: ReferralOrderByRelevanceInput
+  }
+
+  export type ReferralWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    friendAccountId?: string
+    qualifyingOrderId?: string
+    AND?: ReferralWhereInput | ReferralWhereInput[]
+    OR?: ReferralWhereInput[]
+    NOT?: ReferralWhereInput | ReferralWhereInput[]
+    tenantId?: StringFilter<"Referral"> | string
+    programId?: StringFilter<"Referral"> | string
+    codeId?: StringFilter<"Referral"> | string
+    referrerAccountId?: StringFilter<"Referral"> | string
+    friendPhone?: StringNullableFilter<"Referral"> | string | null
+    status?: StringFilter<"Referral"> | string
+    rejectedReason?: StringNullableFilter<"Referral"> | string | null
+    qualifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
+    createdAt?: DateTimeFilter<"Referral"> | Date | string
+    program?: XOR<ReferralProgramRelationFilter, ReferralProgramWhereInput>
+    code?: XOR<ReferralCodeRelationFilter, ReferralCodeWhereInput>
+    referrerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+    friendAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
+  }, "id" | "friendAccountId" | "qualifyingOrderId">
+
+  export type ReferralOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    codeId?: SortOrder
+    referrerAccountId?: SortOrder
+    friendAccountId?: SortOrder
+    friendPhone?: SortOrderInput | SortOrder
+    status?: SortOrder
+    rejectedReason?: SortOrderInput | SortOrder
+    qualifyingOrderId?: SortOrderInput | SortOrder
+    qualifiedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ReferralCountOrderByAggregateInput
+    _max?: ReferralMaxOrderByAggregateInput
+    _min?: ReferralMinOrderByAggregateInput
+  }
+
+  export type ReferralScalarWhereWithAggregatesInput = {
+    AND?: ReferralScalarWhereWithAggregatesInput | ReferralScalarWhereWithAggregatesInput[]
+    OR?: ReferralScalarWhereWithAggregatesInput[]
+    NOT?: ReferralScalarWhereWithAggregatesInput | ReferralScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Referral"> | string
+    tenantId?: StringWithAggregatesFilter<"Referral"> | string
+    programId?: StringWithAggregatesFilter<"Referral"> | string
+    codeId?: StringWithAggregatesFilter<"Referral"> | string
+    referrerAccountId?: StringWithAggregatesFilter<"Referral"> | string
+    friendAccountId?: StringWithAggregatesFilter<"Referral"> | string
+    friendPhone?: StringNullableWithAggregatesFilter<"Referral"> | string | null
+    status?: StringWithAggregatesFilter<"Referral"> | string
+    rejectedReason?: StringNullableWithAggregatesFilter<"Referral"> | string | null
+    qualifyingOrderId?: StringNullableWithAggregatesFilter<"Referral"> | string | null
+    qualifiedAt?: DateTimeNullableWithAggregatesFilter<"Referral"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Referral"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -174834,6 +178932,9 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutCustomerAccountInput
     loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountUncheckedCreateInput = {
@@ -174854,6 +178955,9 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
     loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralUncheckedCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralUncheckedCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountUpdateInput = {
@@ -174874,6 +178978,9 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
     loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUpdateOneWithoutFriendAccountNestedInput
   }
 
   export type CustomerAccountUncheckedUpdateInput = {
@@ -174894,6 +179001,9 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
     loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUncheckedUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUncheckedUpdateOneWithoutFriendAccountNestedInput
   }
 
   export type CustomerAccountCreateManyInput = {
@@ -175836,6 +179946,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -175926,6 +180038,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -176016,6 +180130,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -176106,6 +180222,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -189835,20 +193953,26 @@ export namespace Prisma {
   export type LoyaltyRewardCreateInput = {
     id?: string
     tenantId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
-    card: LoyaltyCardCreateNestedOneWithoutRewardsInput
+    card?: LoyaltyCardCreateNestedOneWithoutRewardsInput
+    location: LocationCreateNestedOneWithoutLoyaltyRewardsInput
     customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
   }
 
   export type LoyaltyRewardUncheckedCreateInput = {
     id?: string
     tenantId: string
-    cardId: string
+    cardId?: string | null
+    locationId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     customerAccountId: string
     label: string
     rewardItemId?: string | null
@@ -189861,20 +193985,26 @@ export namespace Prisma {
   export type LoyaltyRewardUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
-    card?: LoyaltyCardUpdateOneRequiredWithoutRewardsNestedInput
+    card?: LoyaltyCardUpdateOneWithoutRewardsNestedInput
+    location?: LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
     customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
   }
 
   export type LoyaltyRewardUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    cardId?: StringFieldUpdateOperationsInput | string
+    cardId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringFieldUpdateOperationsInput | string
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -189887,7 +194017,10 @@ export namespace Prisma {
   export type LoyaltyRewardCreateManyInput = {
     id?: string
     tenantId: string
-    cardId: string
+    cardId?: string | null
+    locationId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     customerAccountId: string
     label: string
     rewardItemId?: string | null
@@ -189900,6 +194033,8 @@ export namespace Prisma {
   export type LoyaltyRewardUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -189911,7 +194046,10 @@ export namespace Prisma {
   export type LoyaltyRewardUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    cardId?: StringFieldUpdateOperationsInput | string
+    cardId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringFieldUpdateOperationsInput | string
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -189919,6 +194057,277 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ReferralProgramCreateInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutReferralProgramInput
+    codes?: ReferralCodeCreateNestedManyWithoutProgramInput
+    referrals?: ReferralCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    codes?: ReferralCodeUncheckedCreateNestedManyWithoutProgramInput
+    referrals?: ReferralUncheckedCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutReferralProgramNestedInput
+    codes?: ReferralCodeUpdateManyWithoutProgramNestedInput
+    referrals?: ReferralUpdateManyWithoutProgramNestedInput
+  }
+
+  export type ReferralProgramUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codes?: ReferralCodeUncheckedUpdateManyWithoutProgramNestedInput
+    referrals?: ReferralUncheckedUpdateManyWithoutProgramNestedInput
+  }
+
+  export type ReferralProgramCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReferralProgramUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralProgramUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralCodeCreateInput = {
+    id?: string
+    tenantId: string
+    code: string
+    createdAt?: Date | string
+    program: ReferralProgramCreateNestedOneWithoutCodesInput
+    customerAccount: CustomerAccountCreateNestedOneWithoutReferralCodesInput
+    referrals?: ReferralCreateNestedManyWithoutCodeInput
+  }
+
+  export type ReferralCodeUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    customerAccountId: string
+    code: string
+    createdAt?: Date | string
+    referrals?: ReferralUncheckedCreateNestedManyWithoutCodeInput
+  }
+
+  export type ReferralCodeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    program?: ReferralProgramUpdateOneRequiredWithoutCodesNestedInput
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutReferralCodesNestedInput
+    referrals?: ReferralUpdateManyWithoutCodeNestedInput
+  }
+
+  export type ReferralCodeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    referrals?: ReferralUncheckedUpdateManyWithoutCodeNestedInput
+  }
+
+  export type ReferralCodeCreateManyInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    customerAccountId: string
+    code: string
+    createdAt?: Date | string
+  }
+
+  export type ReferralCodeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralCodeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralCreateInput = {
+    id?: string
+    tenantId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+    program: ReferralProgramCreateNestedOneWithoutReferralsInput
+    code: ReferralCodeCreateNestedOneWithoutReferralsInput
+    referrerAccount: CustomerAccountCreateNestedOneWithoutReferralsMadeInput
+    friendAccount: CustomerAccountCreateNestedOneWithoutReferredByInput
+  }
+
+  export type ReferralUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    codeId: string
+    referrerAccountId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    program?: ReferralProgramUpdateOneRequiredWithoutReferralsNestedInput
+    code?: ReferralCodeUpdateOneRequiredWithoutReferralsNestedInput
+    referrerAccount?: CustomerAccountUpdateOneRequiredWithoutReferralsMadeNestedInput
+    friendAccount?: CustomerAccountUpdateOneRequiredWithoutReferredByNestedInput
+  }
+
+  export type ReferralUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    codeId?: StringFieldUpdateOperationsInput | string
+    referrerAccountId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralCreateManyInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    codeId: string
+    referrerAccountId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    codeId?: StringFieldUpdateOperationsInput | string
+    referrerAccountId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -190801,11 +195210,36 @@ export namespace Prisma {
     none?: LoyaltyRewardWhereInput
   }
 
+  export type ReferralCodeListRelationFilter = {
+    every?: ReferralCodeWhereInput
+    some?: ReferralCodeWhereInput
+    none?: ReferralCodeWhereInput
+  }
+
+  export type ReferralListRelationFilter = {
+    every?: ReferralWhereInput
+    some?: ReferralWhereInput
+    none?: ReferralWhereInput
+  }
+
+  export type ReferralNullableRelationFilter = {
+    is?: ReferralWhereInput | null
+    isNot?: ReferralWhereInput | null
+  }
+
   export type LoyaltyStampOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type LoyaltyRewardOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ReferralCodeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ReferralOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -191561,6 +195995,11 @@ export namespace Prisma {
   export type LoyaltyCardNullableRelationFilter = {
     is?: LoyaltyCardWhereInput | null
     isNot?: LoyaltyCardWhereInput | null
+  }
+
+  export type ReferralProgramNullableRelationFilter = {
+    is?: ReferralProgramWhereInput | null
+    isNot?: ReferralProgramWhereInput | null
   }
 
   export type IntegrationOrderByRelationAggregateInput = {
@@ -200513,6 +204952,9 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     cardId?: SortOrder
+    locationId?: SortOrder
+    source?: SortOrder
+    amountOff?: SortOrder
     customerAccountId?: SortOrder
     label?: SortOrder
     rewardItemId?: SortOrder
@@ -200522,10 +204964,17 @@ export namespace Prisma {
     claimedOrderId?: SortOrder
   }
 
+  export type LoyaltyRewardAvgOrderByAggregateInput = {
+    amountOff?: SortOrder
+  }
+
   export type LoyaltyRewardMaxOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
     cardId?: SortOrder
+    locationId?: SortOrder
+    source?: SortOrder
+    amountOff?: SortOrder
     customerAccountId?: SortOrder
     label?: SortOrder
     rewardItemId?: SortOrder
@@ -200539,6 +204988,9 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     cardId?: SortOrder
+    locationId?: SortOrder
+    source?: SortOrder
+    amountOff?: SortOrder
     customerAccountId?: SortOrder
     label?: SortOrder
     rewardItemId?: SortOrder
@@ -200546,6 +204998,173 @@ export namespace Prisma {
     expiresAt?: SortOrder
     claimedAt?: SortOrder
     claimedOrderId?: SortOrder
+  }
+
+  export type LoyaltyRewardSumOrderByAggregateInput = {
+    amountOff?: SortOrder
+  }
+
+  export type ReferralProgramOrderByRelevanceInput = {
+    fields: ReferralProgramOrderByRelevanceFieldEnum | ReferralProgramOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ReferralProgramCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    referrerAmount?: SortOrder
+    friendAmount?: SortOrder
+    minimumSpend?: SortOrder
+    maxPerCustomer?: SortOrder
+    rewardExpiryDays?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ReferralProgramAvgOrderByAggregateInput = {
+    referrerAmount?: SortOrder
+    friendAmount?: SortOrder
+    minimumSpend?: SortOrder
+    maxPerCustomer?: SortOrder
+    rewardExpiryDays?: SortOrder
+  }
+
+  export type ReferralProgramMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    referrerAmount?: SortOrder
+    friendAmount?: SortOrder
+    minimumSpend?: SortOrder
+    maxPerCustomer?: SortOrder
+    rewardExpiryDays?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ReferralProgramMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    isActive?: SortOrder
+    referrerAmount?: SortOrder
+    friendAmount?: SortOrder
+    minimumSpend?: SortOrder
+    maxPerCustomer?: SortOrder
+    rewardExpiryDays?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ReferralProgramSumOrderByAggregateInput = {
+    referrerAmount?: SortOrder
+    friendAmount?: SortOrder
+    minimumSpend?: SortOrder
+    maxPerCustomer?: SortOrder
+    rewardExpiryDays?: SortOrder
+  }
+
+  export type ReferralProgramRelationFilter = {
+    is?: ReferralProgramWhereInput
+    isNot?: ReferralProgramWhereInput
+  }
+
+  export type ReferralCodeOrderByRelevanceInput = {
+    fields: ReferralCodeOrderByRelevanceFieldEnum | ReferralCodeOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ReferralCodeProgramIdCustomerAccountIdCompoundUniqueInput = {
+    programId: string
+    customerAccountId: string
+  }
+
+  export type ReferralCodeCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    customerAccountId?: SortOrder
+    code?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ReferralCodeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    customerAccountId?: SortOrder
+    code?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ReferralCodeMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    customerAccountId?: SortOrder
+    code?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ReferralCodeRelationFilter = {
+    is?: ReferralCodeWhereInput
+    isNot?: ReferralCodeWhereInput
+  }
+
+  export type ReferralOrderByRelevanceInput = {
+    fields: ReferralOrderByRelevanceFieldEnum | ReferralOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ReferralCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    codeId?: SortOrder
+    referrerAccountId?: SortOrder
+    friendAccountId?: SortOrder
+    friendPhone?: SortOrder
+    status?: SortOrder
+    rejectedReason?: SortOrder
+    qualifyingOrderId?: SortOrder
+    qualifiedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ReferralMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    codeId?: SortOrder
+    referrerAccountId?: SortOrder
+    friendAccountId?: SortOrder
+    friendPhone?: SortOrder
+    status?: SortOrder
+    rejectedReason?: SortOrder
+    qualifyingOrderId?: SortOrder
+    qualifiedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ReferralMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    programId?: SortOrder
+    codeId?: SortOrder
+    referrerAccountId?: SortOrder
+    friendAccountId?: SortOrder
+    friendPhone?: SortOrder
+    status?: SortOrder
+    rejectedReason?: SortOrder
+    qualifyingOrderId?: SortOrder
+    qualifiedAt?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type BrandCreateNestedManyWithoutTenantInput = {
@@ -202066,6 +206685,26 @@ export namespace Prisma {
     connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
   }
 
+  export type ReferralCodeCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<ReferralCodeCreateWithoutCustomerAccountInput, ReferralCodeUncheckedCreateWithoutCustomerAccountInput> | ReferralCodeCreateWithoutCustomerAccountInput[] | ReferralCodeUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutCustomerAccountInput | ReferralCodeCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: ReferralCodeCreateManyCustomerAccountInputEnvelope
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+  }
+
+  export type ReferralCreateNestedManyWithoutReferrerAccountInput = {
+    create?: XOR<ReferralCreateWithoutReferrerAccountInput, ReferralUncheckedCreateWithoutReferrerAccountInput> | ReferralCreateWithoutReferrerAccountInput[] | ReferralUncheckedCreateWithoutReferrerAccountInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutReferrerAccountInput | ReferralCreateOrConnectWithoutReferrerAccountInput[]
+    createMany?: ReferralCreateManyReferrerAccountInputEnvelope
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+  }
+
+  export type ReferralCreateNestedOneWithoutFriendAccountInput = {
+    create?: XOR<ReferralCreateWithoutFriendAccountInput, ReferralUncheckedCreateWithoutFriendAccountInput>
+    connectOrCreate?: ReferralCreateOrConnectWithoutFriendAccountInput
+    connect?: ReferralWhereUniqueInput
+  }
+
   export type OrderUncheckedCreateNestedManyWithoutCustomerAccountInput = {
     create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
     connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
@@ -202085,6 +206724,26 @@ export namespace Prisma {
     connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput | LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput[]
     createMany?: LoyaltyRewardCreateManyCustomerAccountInputEnvelope
     connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+  }
+
+  export type ReferralCodeUncheckedCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<ReferralCodeCreateWithoutCustomerAccountInput, ReferralCodeUncheckedCreateWithoutCustomerAccountInput> | ReferralCodeCreateWithoutCustomerAccountInput[] | ReferralCodeUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutCustomerAccountInput | ReferralCodeCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: ReferralCodeCreateManyCustomerAccountInputEnvelope
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+  }
+
+  export type ReferralUncheckedCreateNestedManyWithoutReferrerAccountInput = {
+    create?: XOR<ReferralCreateWithoutReferrerAccountInput, ReferralUncheckedCreateWithoutReferrerAccountInput> | ReferralCreateWithoutReferrerAccountInput[] | ReferralUncheckedCreateWithoutReferrerAccountInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutReferrerAccountInput | ReferralCreateOrConnectWithoutReferrerAccountInput[]
+    createMany?: ReferralCreateManyReferrerAccountInputEnvelope
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+  }
+
+  export type ReferralUncheckedCreateNestedOneWithoutFriendAccountInput = {
+    create?: XOR<ReferralCreateWithoutFriendAccountInput, ReferralUncheckedCreateWithoutFriendAccountInput>
+    connectOrCreate?: ReferralCreateOrConnectWithoutFriendAccountInput
+    connect?: ReferralWhereUniqueInput
   }
 
   export type OrderUpdateManyWithoutCustomerAccountNestedInput = {
@@ -202129,6 +206788,44 @@ export namespace Prisma {
     deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
   }
 
+  export type ReferralCodeUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<ReferralCodeCreateWithoutCustomerAccountInput, ReferralCodeUncheckedCreateWithoutCustomerAccountInput> | ReferralCodeCreateWithoutCustomerAccountInput[] | ReferralCodeUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutCustomerAccountInput | ReferralCodeCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: ReferralCodeUpsertWithWhereUniqueWithoutCustomerAccountInput | ReferralCodeUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: ReferralCodeCreateManyCustomerAccountInputEnvelope
+    set?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    disconnect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    delete?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    update?: ReferralCodeUpdateWithWhereUniqueWithoutCustomerAccountInput | ReferralCodeUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: ReferralCodeUpdateManyWithWhereWithoutCustomerAccountInput | ReferralCodeUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: ReferralCodeScalarWhereInput | ReferralCodeScalarWhereInput[]
+  }
+
+  export type ReferralUpdateManyWithoutReferrerAccountNestedInput = {
+    create?: XOR<ReferralCreateWithoutReferrerAccountInput, ReferralUncheckedCreateWithoutReferrerAccountInput> | ReferralCreateWithoutReferrerAccountInput[] | ReferralUncheckedCreateWithoutReferrerAccountInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutReferrerAccountInput | ReferralCreateOrConnectWithoutReferrerAccountInput[]
+    upsert?: ReferralUpsertWithWhereUniqueWithoutReferrerAccountInput | ReferralUpsertWithWhereUniqueWithoutReferrerAccountInput[]
+    createMany?: ReferralCreateManyReferrerAccountInputEnvelope
+    set?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    disconnect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    delete?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    update?: ReferralUpdateWithWhereUniqueWithoutReferrerAccountInput | ReferralUpdateWithWhereUniqueWithoutReferrerAccountInput[]
+    updateMany?: ReferralUpdateManyWithWhereWithoutReferrerAccountInput | ReferralUpdateManyWithWhereWithoutReferrerAccountInput[]
+    deleteMany?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+  }
+
+  export type ReferralUpdateOneWithoutFriendAccountNestedInput = {
+    create?: XOR<ReferralCreateWithoutFriendAccountInput, ReferralUncheckedCreateWithoutFriendAccountInput>
+    connectOrCreate?: ReferralCreateOrConnectWithoutFriendAccountInput
+    upsert?: ReferralUpsertWithoutFriendAccountInput
+    disconnect?: ReferralWhereInput | boolean
+    delete?: ReferralWhereInput | boolean
+    connect?: ReferralWhereUniqueInput
+    update?: XOR<XOR<ReferralUpdateToOneWithWhereWithoutFriendAccountInput, ReferralUpdateWithoutFriendAccountInput>, ReferralUncheckedUpdateWithoutFriendAccountInput>
+  }
+
   export type OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput = {
     create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
     connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
@@ -202169,6 +206866,44 @@ export namespace Prisma {
     update?: LoyaltyRewardUpdateWithWhereUniqueWithoutCustomerAccountInput | LoyaltyRewardUpdateWithWhereUniqueWithoutCustomerAccountInput[]
     updateMany?: LoyaltyRewardUpdateManyWithWhereWithoutCustomerAccountInput | LoyaltyRewardUpdateManyWithWhereWithoutCustomerAccountInput[]
     deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
+  }
+
+  export type ReferralCodeUncheckedUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<ReferralCodeCreateWithoutCustomerAccountInput, ReferralCodeUncheckedCreateWithoutCustomerAccountInput> | ReferralCodeCreateWithoutCustomerAccountInput[] | ReferralCodeUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutCustomerAccountInput | ReferralCodeCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: ReferralCodeUpsertWithWhereUniqueWithoutCustomerAccountInput | ReferralCodeUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: ReferralCodeCreateManyCustomerAccountInputEnvelope
+    set?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    disconnect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    delete?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    update?: ReferralCodeUpdateWithWhereUniqueWithoutCustomerAccountInput | ReferralCodeUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: ReferralCodeUpdateManyWithWhereWithoutCustomerAccountInput | ReferralCodeUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: ReferralCodeScalarWhereInput | ReferralCodeScalarWhereInput[]
+  }
+
+  export type ReferralUncheckedUpdateManyWithoutReferrerAccountNestedInput = {
+    create?: XOR<ReferralCreateWithoutReferrerAccountInput, ReferralUncheckedCreateWithoutReferrerAccountInput> | ReferralCreateWithoutReferrerAccountInput[] | ReferralUncheckedCreateWithoutReferrerAccountInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutReferrerAccountInput | ReferralCreateOrConnectWithoutReferrerAccountInput[]
+    upsert?: ReferralUpsertWithWhereUniqueWithoutReferrerAccountInput | ReferralUpsertWithWhereUniqueWithoutReferrerAccountInput[]
+    createMany?: ReferralCreateManyReferrerAccountInputEnvelope
+    set?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    disconnect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    delete?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    update?: ReferralUpdateWithWhereUniqueWithoutReferrerAccountInput | ReferralUpdateWithWhereUniqueWithoutReferrerAccountInput[]
+    updateMany?: ReferralUpdateManyWithWhereWithoutReferrerAccountInput | ReferralUpdateManyWithWhereWithoutReferrerAccountInput[]
+    deleteMany?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+  }
+
+  export type ReferralUncheckedUpdateOneWithoutFriendAccountNestedInput = {
+    create?: XOR<ReferralCreateWithoutFriendAccountInput, ReferralUncheckedCreateWithoutFriendAccountInput>
+    connectOrCreate?: ReferralCreateOrConnectWithoutFriendAccountInput
+    upsert?: ReferralUpsertWithoutFriendAccountInput
+    disconnect?: ReferralWhereInput | boolean
+    delete?: ReferralWhereInput | boolean
+    connect?: ReferralWhereUniqueInput
+    update?: XOR<XOR<ReferralUpdateToOneWithWhereWithoutFriendAccountInput, ReferralUpdateWithoutFriendAccountInput>, ReferralUncheckedUpdateWithoutFriendAccountInput>
   }
 
   export type UserCreateNestedOneWithoutPasswordResetTokensInput = {
@@ -203033,6 +207768,19 @@ export namespace Prisma {
     connect?: LoyaltyCardWhereUniqueInput
   }
 
+  export type ReferralProgramCreateNestedOneWithoutLocationInput = {
+    create?: XOR<ReferralProgramCreateWithoutLocationInput, ReferralProgramUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutLocationInput
+    connect?: ReferralProgramWhereUniqueInput
+  }
+
+  export type LoyaltyRewardCreateNestedManyWithoutLocationInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutLocationInput, LoyaltyRewardUncheckedCreateWithoutLocationInput> | LoyaltyRewardCreateWithoutLocationInput[] | LoyaltyRewardUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutLocationInput | LoyaltyRewardCreateOrConnectWithoutLocationInput[]
+    createMany?: LoyaltyRewardCreateManyLocationInputEnvelope
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -203193,6 +207941,19 @@ export namespace Prisma {
     create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
     connect?: LoyaltyCardWhereUniqueInput
+  }
+
+  export type ReferralProgramUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<ReferralProgramCreateWithoutLocationInput, ReferralProgramUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutLocationInput
+    connect?: ReferralProgramWhereUniqueInput
+  }
+
+  export type LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutLocationInput, LoyaltyRewardUncheckedCreateWithoutLocationInput> | LoyaltyRewardCreateWithoutLocationInput[] | LoyaltyRewardUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutLocationInput | LoyaltyRewardCreateOrConnectWithoutLocationInput[]
+    createMany?: LoyaltyRewardCreateManyLocationInputEnvelope
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -203565,6 +208326,30 @@ export namespace Prisma {
     update?: XOR<XOR<LoyaltyCardUpdateToOneWithWhereWithoutLocationInput, LoyaltyCardUpdateWithoutLocationInput>, LoyaltyCardUncheckedUpdateWithoutLocationInput>
   }
 
+  export type ReferralProgramUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<ReferralProgramCreateWithoutLocationInput, ReferralProgramUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutLocationInput
+    upsert?: ReferralProgramUpsertWithoutLocationInput
+    disconnect?: ReferralProgramWhereInput | boolean
+    delete?: ReferralProgramWhereInput | boolean
+    connect?: ReferralProgramWhereUniqueInput
+    update?: XOR<XOR<ReferralProgramUpdateToOneWithWhereWithoutLocationInput, ReferralProgramUpdateWithoutLocationInput>, ReferralProgramUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type LoyaltyRewardUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutLocationInput, LoyaltyRewardUncheckedCreateWithoutLocationInput> | LoyaltyRewardCreateWithoutLocationInput[] | LoyaltyRewardUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutLocationInput | LoyaltyRewardCreateOrConnectWithoutLocationInput[]
+    upsert?: LoyaltyRewardUpsertWithWhereUniqueWithoutLocationInput | LoyaltyRewardUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: LoyaltyRewardCreateManyLocationInputEnvelope
+    set?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    disconnect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    delete?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    update?: LoyaltyRewardUpdateWithWhereUniqueWithoutLocationInput | LoyaltyRewardUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: LoyaltyRewardUpdateManyWithWhereWithoutLocationInput | LoyaltyRewardUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -203875,6 +208660,30 @@ export namespace Prisma {
     delete?: LoyaltyCardWhereInput | boolean
     connect?: LoyaltyCardWhereUniqueInput
     update?: XOR<XOR<LoyaltyCardUpdateToOneWithWhereWithoutLocationInput, LoyaltyCardUpdateWithoutLocationInput>, LoyaltyCardUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<ReferralProgramCreateWithoutLocationInput, ReferralProgramUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutLocationInput
+    upsert?: ReferralProgramUpsertWithoutLocationInput
+    disconnect?: ReferralProgramWhereInput | boolean
+    delete?: ReferralProgramWhereInput | boolean
+    connect?: ReferralProgramWhereUniqueInput
+    update?: XOR<XOR<ReferralProgramUpdateToOneWithWhereWithoutLocationInput, ReferralProgramUpdateWithoutLocationInput>, ReferralProgramUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<LoyaltyRewardCreateWithoutLocationInput, LoyaltyRewardUncheckedCreateWithoutLocationInput> | LoyaltyRewardCreateWithoutLocationInput[] | LoyaltyRewardUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutLocationInput | LoyaltyRewardCreateOrConnectWithoutLocationInput[]
+    upsert?: LoyaltyRewardUpsertWithWhereUniqueWithoutLocationInput | LoyaltyRewardUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: LoyaltyRewardCreateManyLocationInputEnvelope
+    set?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    disconnect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    delete?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+    update?: LoyaltyRewardUpdateWithWhereUniqueWithoutLocationInput | LoyaltyRewardUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: LoyaltyRewardUpdateManyWithWhereWithoutLocationInput | LoyaltyRewardUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -209184,18 +213993,34 @@ export namespace Prisma {
     connect?: LoyaltyCardWhereUniqueInput
   }
 
+  export type LocationCreateNestedOneWithoutLoyaltyRewardsInput = {
+    create?: XOR<LocationCreateWithoutLoyaltyRewardsInput, LocationUncheckedCreateWithoutLoyaltyRewardsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutLoyaltyRewardsInput
+    connect?: LocationWhereUniqueInput
+  }
+
   export type CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput = {
     create?: XOR<CustomerAccountCreateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput>
     connectOrCreate?: CustomerAccountCreateOrConnectWithoutLoyaltyRewardsInput
     connect?: CustomerAccountWhereUniqueInput
   }
 
-  export type LoyaltyCardUpdateOneRequiredWithoutRewardsNestedInput = {
+  export type LoyaltyCardUpdateOneWithoutRewardsNestedInput = {
     create?: XOR<LoyaltyCardCreateWithoutRewardsInput, LoyaltyCardUncheckedCreateWithoutRewardsInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutRewardsInput
     upsert?: LoyaltyCardUpsertWithoutRewardsInput
+    disconnect?: LoyaltyCardWhereInput | boolean
+    delete?: LoyaltyCardWhereInput | boolean
     connect?: LoyaltyCardWhereUniqueInput
     update?: XOR<XOR<LoyaltyCardUpdateToOneWithWhereWithoutRewardsInput, LoyaltyCardUpdateWithoutRewardsInput>, LoyaltyCardUncheckedUpdateWithoutRewardsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput = {
+    create?: XOR<LocationCreateWithoutLoyaltyRewardsInput, LocationUncheckedCreateWithoutLoyaltyRewardsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutLoyaltyRewardsInput
+    upsert?: LocationUpsertWithoutLoyaltyRewardsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutLoyaltyRewardsInput, LocationUpdateWithoutLoyaltyRewardsInput>, LocationUncheckedUpdateWithoutLoyaltyRewardsInput>
   }
 
   export type CustomerAccountUpdateOneRequiredWithoutLoyaltyRewardsNestedInput = {
@@ -209204,6 +214029,230 @@ export namespace Prisma {
     upsert?: CustomerAccountUpsertWithoutLoyaltyRewardsInput
     connect?: CustomerAccountWhereUniqueInput
     update?: XOR<XOR<CustomerAccountUpdateToOneWithWhereWithoutLoyaltyRewardsInput, CustomerAccountUpdateWithoutLoyaltyRewardsInput>, CustomerAccountUncheckedUpdateWithoutLoyaltyRewardsInput>
+  }
+
+  export type LocationCreateNestedOneWithoutReferralProgramInput = {
+    create?: XOR<LocationCreateWithoutReferralProgramInput, LocationUncheckedCreateWithoutReferralProgramInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutReferralProgramInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type ReferralCodeCreateNestedManyWithoutProgramInput = {
+    create?: XOR<ReferralCodeCreateWithoutProgramInput, ReferralCodeUncheckedCreateWithoutProgramInput> | ReferralCodeCreateWithoutProgramInput[] | ReferralCodeUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutProgramInput | ReferralCodeCreateOrConnectWithoutProgramInput[]
+    createMany?: ReferralCodeCreateManyProgramInputEnvelope
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+  }
+
+  export type ReferralCreateNestedManyWithoutProgramInput = {
+    create?: XOR<ReferralCreateWithoutProgramInput, ReferralUncheckedCreateWithoutProgramInput> | ReferralCreateWithoutProgramInput[] | ReferralUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutProgramInput | ReferralCreateOrConnectWithoutProgramInput[]
+    createMany?: ReferralCreateManyProgramInputEnvelope
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+  }
+
+  export type ReferralCodeUncheckedCreateNestedManyWithoutProgramInput = {
+    create?: XOR<ReferralCodeCreateWithoutProgramInput, ReferralCodeUncheckedCreateWithoutProgramInput> | ReferralCodeCreateWithoutProgramInput[] | ReferralCodeUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutProgramInput | ReferralCodeCreateOrConnectWithoutProgramInput[]
+    createMany?: ReferralCodeCreateManyProgramInputEnvelope
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+  }
+
+  export type ReferralUncheckedCreateNestedManyWithoutProgramInput = {
+    create?: XOR<ReferralCreateWithoutProgramInput, ReferralUncheckedCreateWithoutProgramInput> | ReferralCreateWithoutProgramInput[] | ReferralUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutProgramInput | ReferralCreateOrConnectWithoutProgramInput[]
+    createMany?: ReferralCreateManyProgramInputEnvelope
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+  }
+
+  export type LocationUpdateOneRequiredWithoutReferralProgramNestedInput = {
+    create?: XOR<LocationCreateWithoutReferralProgramInput, LocationUncheckedCreateWithoutReferralProgramInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutReferralProgramInput
+    upsert?: LocationUpsertWithoutReferralProgramInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutReferralProgramInput, LocationUpdateWithoutReferralProgramInput>, LocationUncheckedUpdateWithoutReferralProgramInput>
+  }
+
+  export type ReferralCodeUpdateManyWithoutProgramNestedInput = {
+    create?: XOR<ReferralCodeCreateWithoutProgramInput, ReferralCodeUncheckedCreateWithoutProgramInput> | ReferralCodeCreateWithoutProgramInput[] | ReferralCodeUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutProgramInput | ReferralCodeCreateOrConnectWithoutProgramInput[]
+    upsert?: ReferralCodeUpsertWithWhereUniqueWithoutProgramInput | ReferralCodeUpsertWithWhereUniqueWithoutProgramInput[]
+    createMany?: ReferralCodeCreateManyProgramInputEnvelope
+    set?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    disconnect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    delete?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    update?: ReferralCodeUpdateWithWhereUniqueWithoutProgramInput | ReferralCodeUpdateWithWhereUniqueWithoutProgramInput[]
+    updateMany?: ReferralCodeUpdateManyWithWhereWithoutProgramInput | ReferralCodeUpdateManyWithWhereWithoutProgramInput[]
+    deleteMany?: ReferralCodeScalarWhereInput | ReferralCodeScalarWhereInput[]
+  }
+
+  export type ReferralUpdateManyWithoutProgramNestedInput = {
+    create?: XOR<ReferralCreateWithoutProgramInput, ReferralUncheckedCreateWithoutProgramInput> | ReferralCreateWithoutProgramInput[] | ReferralUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutProgramInput | ReferralCreateOrConnectWithoutProgramInput[]
+    upsert?: ReferralUpsertWithWhereUniqueWithoutProgramInput | ReferralUpsertWithWhereUniqueWithoutProgramInput[]
+    createMany?: ReferralCreateManyProgramInputEnvelope
+    set?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    disconnect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    delete?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    update?: ReferralUpdateWithWhereUniqueWithoutProgramInput | ReferralUpdateWithWhereUniqueWithoutProgramInput[]
+    updateMany?: ReferralUpdateManyWithWhereWithoutProgramInput | ReferralUpdateManyWithWhereWithoutProgramInput[]
+    deleteMany?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+  }
+
+  export type ReferralCodeUncheckedUpdateManyWithoutProgramNestedInput = {
+    create?: XOR<ReferralCodeCreateWithoutProgramInput, ReferralCodeUncheckedCreateWithoutProgramInput> | ReferralCodeCreateWithoutProgramInput[] | ReferralCodeUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutProgramInput | ReferralCodeCreateOrConnectWithoutProgramInput[]
+    upsert?: ReferralCodeUpsertWithWhereUniqueWithoutProgramInput | ReferralCodeUpsertWithWhereUniqueWithoutProgramInput[]
+    createMany?: ReferralCodeCreateManyProgramInputEnvelope
+    set?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    disconnect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    delete?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    connect?: ReferralCodeWhereUniqueInput | ReferralCodeWhereUniqueInput[]
+    update?: ReferralCodeUpdateWithWhereUniqueWithoutProgramInput | ReferralCodeUpdateWithWhereUniqueWithoutProgramInput[]
+    updateMany?: ReferralCodeUpdateManyWithWhereWithoutProgramInput | ReferralCodeUpdateManyWithWhereWithoutProgramInput[]
+    deleteMany?: ReferralCodeScalarWhereInput | ReferralCodeScalarWhereInput[]
+  }
+
+  export type ReferralUncheckedUpdateManyWithoutProgramNestedInput = {
+    create?: XOR<ReferralCreateWithoutProgramInput, ReferralUncheckedCreateWithoutProgramInput> | ReferralCreateWithoutProgramInput[] | ReferralUncheckedCreateWithoutProgramInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutProgramInput | ReferralCreateOrConnectWithoutProgramInput[]
+    upsert?: ReferralUpsertWithWhereUniqueWithoutProgramInput | ReferralUpsertWithWhereUniqueWithoutProgramInput[]
+    createMany?: ReferralCreateManyProgramInputEnvelope
+    set?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    disconnect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    delete?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    update?: ReferralUpdateWithWhereUniqueWithoutProgramInput | ReferralUpdateWithWhereUniqueWithoutProgramInput[]
+    updateMany?: ReferralUpdateManyWithWhereWithoutProgramInput | ReferralUpdateManyWithWhereWithoutProgramInput[]
+    deleteMany?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+  }
+
+  export type ReferralProgramCreateNestedOneWithoutCodesInput = {
+    create?: XOR<ReferralProgramCreateWithoutCodesInput, ReferralProgramUncheckedCreateWithoutCodesInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutCodesInput
+    connect?: ReferralProgramWhereUniqueInput
+  }
+
+  export type CustomerAccountCreateNestedOneWithoutReferralCodesInput = {
+    create?: XOR<CustomerAccountCreateWithoutReferralCodesInput, CustomerAccountUncheckedCreateWithoutReferralCodesInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutReferralCodesInput
+    connect?: CustomerAccountWhereUniqueInput
+  }
+
+  export type ReferralCreateNestedManyWithoutCodeInput = {
+    create?: XOR<ReferralCreateWithoutCodeInput, ReferralUncheckedCreateWithoutCodeInput> | ReferralCreateWithoutCodeInput[] | ReferralUncheckedCreateWithoutCodeInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutCodeInput | ReferralCreateOrConnectWithoutCodeInput[]
+    createMany?: ReferralCreateManyCodeInputEnvelope
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+  }
+
+  export type ReferralUncheckedCreateNestedManyWithoutCodeInput = {
+    create?: XOR<ReferralCreateWithoutCodeInput, ReferralUncheckedCreateWithoutCodeInput> | ReferralCreateWithoutCodeInput[] | ReferralUncheckedCreateWithoutCodeInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutCodeInput | ReferralCreateOrConnectWithoutCodeInput[]
+    createMany?: ReferralCreateManyCodeInputEnvelope
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+  }
+
+  export type ReferralProgramUpdateOneRequiredWithoutCodesNestedInput = {
+    create?: XOR<ReferralProgramCreateWithoutCodesInput, ReferralProgramUncheckedCreateWithoutCodesInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutCodesInput
+    upsert?: ReferralProgramUpsertWithoutCodesInput
+    connect?: ReferralProgramWhereUniqueInput
+    update?: XOR<XOR<ReferralProgramUpdateToOneWithWhereWithoutCodesInput, ReferralProgramUpdateWithoutCodesInput>, ReferralProgramUncheckedUpdateWithoutCodesInput>
+  }
+
+  export type CustomerAccountUpdateOneRequiredWithoutReferralCodesNestedInput = {
+    create?: XOR<CustomerAccountCreateWithoutReferralCodesInput, CustomerAccountUncheckedCreateWithoutReferralCodesInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutReferralCodesInput
+    upsert?: CustomerAccountUpsertWithoutReferralCodesInput
+    connect?: CustomerAccountWhereUniqueInput
+    update?: XOR<XOR<CustomerAccountUpdateToOneWithWhereWithoutReferralCodesInput, CustomerAccountUpdateWithoutReferralCodesInput>, CustomerAccountUncheckedUpdateWithoutReferralCodesInput>
+  }
+
+  export type ReferralUpdateManyWithoutCodeNestedInput = {
+    create?: XOR<ReferralCreateWithoutCodeInput, ReferralUncheckedCreateWithoutCodeInput> | ReferralCreateWithoutCodeInput[] | ReferralUncheckedCreateWithoutCodeInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutCodeInput | ReferralCreateOrConnectWithoutCodeInput[]
+    upsert?: ReferralUpsertWithWhereUniqueWithoutCodeInput | ReferralUpsertWithWhereUniqueWithoutCodeInput[]
+    createMany?: ReferralCreateManyCodeInputEnvelope
+    set?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    disconnect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    delete?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    update?: ReferralUpdateWithWhereUniqueWithoutCodeInput | ReferralUpdateWithWhereUniqueWithoutCodeInput[]
+    updateMany?: ReferralUpdateManyWithWhereWithoutCodeInput | ReferralUpdateManyWithWhereWithoutCodeInput[]
+    deleteMany?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+  }
+
+  export type ReferralUncheckedUpdateManyWithoutCodeNestedInput = {
+    create?: XOR<ReferralCreateWithoutCodeInput, ReferralUncheckedCreateWithoutCodeInput> | ReferralCreateWithoutCodeInput[] | ReferralUncheckedCreateWithoutCodeInput[]
+    connectOrCreate?: ReferralCreateOrConnectWithoutCodeInput | ReferralCreateOrConnectWithoutCodeInput[]
+    upsert?: ReferralUpsertWithWhereUniqueWithoutCodeInput | ReferralUpsertWithWhereUniqueWithoutCodeInput[]
+    createMany?: ReferralCreateManyCodeInputEnvelope
+    set?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    disconnect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    delete?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    connect?: ReferralWhereUniqueInput | ReferralWhereUniqueInput[]
+    update?: ReferralUpdateWithWhereUniqueWithoutCodeInput | ReferralUpdateWithWhereUniqueWithoutCodeInput[]
+    updateMany?: ReferralUpdateManyWithWhereWithoutCodeInput | ReferralUpdateManyWithWhereWithoutCodeInput[]
+    deleteMany?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+  }
+
+  export type ReferralProgramCreateNestedOneWithoutReferralsInput = {
+    create?: XOR<ReferralProgramCreateWithoutReferralsInput, ReferralProgramUncheckedCreateWithoutReferralsInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutReferralsInput
+    connect?: ReferralProgramWhereUniqueInput
+  }
+
+  export type ReferralCodeCreateNestedOneWithoutReferralsInput = {
+    create?: XOR<ReferralCodeCreateWithoutReferralsInput, ReferralCodeUncheckedCreateWithoutReferralsInput>
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutReferralsInput
+    connect?: ReferralCodeWhereUniqueInput
+  }
+
+  export type CustomerAccountCreateNestedOneWithoutReferralsMadeInput = {
+    create?: XOR<CustomerAccountCreateWithoutReferralsMadeInput, CustomerAccountUncheckedCreateWithoutReferralsMadeInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutReferralsMadeInput
+    connect?: CustomerAccountWhereUniqueInput
+  }
+
+  export type CustomerAccountCreateNestedOneWithoutReferredByInput = {
+    create?: XOR<CustomerAccountCreateWithoutReferredByInput, CustomerAccountUncheckedCreateWithoutReferredByInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutReferredByInput
+    connect?: CustomerAccountWhereUniqueInput
+  }
+
+  export type ReferralProgramUpdateOneRequiredWithoutReferralsNestedInput = {
+    create?: XOR<ReferralProgramCreateWithoutReferralsInput, ReferralProgramUncheckedCreateWithoutReferralsInput>
+    connectOrCreate?: ReferralProgramCreateOrConnectWithoutReferralsInput
+    upsert?: ReferralProgramUpsertWithoutReferralsInput
+    connect?: ReferralProgramWhereUniqueInput
+    update?: XOR<XOR<ReferralProgramUpdateToOneWithWhereWithoutReferralsInput, ReferralProgramUpdateWithoutReferralsInput>, ReferralProgramUncheckedUpdateWithoutReferralsInput>
+  }
+
+  export type ReferralCodeUpdateOneRequiredWithoutReferralsNestedInput = {
+    create?: XOR<ReferralCodeCreateWithoutReferralsInput, ReferralCodeUncheckedCreateWithoutReferralsInput>
+    connectOrCreate?: ReferralCodeCreateOrConnectWithoutReferralsInput
+    upsert?: ReferralCodeUpsertWithoutReferralsInput
+    connect?: ReferralCodeWhereUniqueInput
+    update?: XOR<XOR<ReferralCodeUpdateToOneWithWhereWithoutReferralsInput, ReferralCodeUpdateWithoutReferralsInput>, ReferralCodeUncheckedUpdateWithoutReferralsInput>
+  }
+
+  export type CustomerAccountUpdateOneRequiredWithoutReferralsMadeNestedInput = {
+    create?: XOR<CustomerAccountCreateWithoutReferralsMadeInput, CustomerAccountUncheckedCreateWithoutReferralsMadeInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutReferralsMadeInput
+    upsert?: CustomerAccountUpsertWithoutReferralsMadeInput
+    connect?: CustomerAccountWhereUniqueInput
+    update?: XOR<XOR<CustomerAccountUpdateToOneWithWhereWithoutReferralsMadeInput, CustomerAccountUpdateWithoutReferralsMadeInput>, CustomerAccountUncheckedUpdateWithoutReferralsMadeInput>
+  }
+
+  export type CustomerAccountUpdateOneRequiredWithoutReferredByNestedInput = {
+    create?: XOR<CustomerAccountCreateWithoutReferredByInput, CustomerAccountUncheckedCreateWithoutReferredByInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutReferredByInput
+    upsert?: CustomerAccountUpsertWithoutReferredByInput
+    connect?: CustomerAccountWhereUniqueInput
+    update?: XOR<XOR<CustomerAccountUpdateToOneWithWhereWithoutReferredByInput, CustomerAccountUpdateWithoutReferredByInput>, CustomerAccountUncheckedUpdateWithoutReferredByInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -213595,6 +218644,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutUserLocationsInput = {
@@ -213684,6 +218735,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -213854,6 +218907,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutUserLocationsInput = {
@@ -213943,6 +218998,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -214898,19 +219955,25 @@ export namespace Prisma {
   export type LoyaltyRewardCreateWithoutCustomerAccountInput = {
     id?: string
     tenantId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
-    card: LoyaltyCardCreateNestedOneWithoutRewardsInput
+    card?: LoyaltyCardCreateNestedOneWithoutRewardsInput
+    location: LocationCreateNestedOneWithoutLoyaltyRewardsInput
   }
 
   export type LoyaltyRewardUncheckedCreateWithoutCustomerAccountInput = {
     id?: string
     tenantId: string
-    cardId: string
+    cardId?: string | null
+    locationId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
@@ -214927,6 +219990,105 @@ export namespace Prisma {
   export type LoyaltyRewardCreateManyCustomerAccountInputEnvelope = {
     data: LoyaltyRewardCreateManyCustomerAccountInput | LoyaltyRewardCreateManyCustomerAccountInput[]
     skipDuplicates?: boolean
+  }
+
+  export type ReferralCodeCreateWithoutCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    code: string
+    createdAt?: Date | string
+    program: ReferralProgramCreateNestedOneWithoutCodesInput
+    referrals?: ReferralCreateNestedManyWithoutCodeInput
+  }
+
+  export type ReferralCodeUncheckedCreateWithoutCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    code: string
+    createdAt?: Date | string
+    referrals?: ReferralUncheckedCreateNestedManyWithoutCodeInput
+  }
+
+  export type ReferralCodeCreateOrConnectWithoutCustomerAccountInput = {
+    where: ReferralCodeWhereUniqueInput
+    create: XOR<ReferralCodeCreateWithoutCustomerAccountInput, ReferralCodeUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type ReferralCodeCreateManyCustomerAccountInputEnvelope = {
+    data: ReferralCodeCreateManyCustomerAccountInput | ReferralCodeCreateManyCustomerAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReferralCreateWithoutReferrerAccountInput = {
+    id?: string
+    tenantId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+    program: ReferralProgramCreateNestedOneWithoutReferralsInput
+    code: ReferralCodeCreateNestedOneWithoutReferralsInput
+    friendAccount: CustomerAccountCreateNestedOneWithoutReferredByInput
+  }
+
+  export type ReferralUncheckedCreateWithoutReferrerAccountInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    codeId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralCreateOrConnectWithoutReferrerAccountInput = {
+    where: ReferralWhereUniqueInput
+    create: XOR<ReferralCreateWithoutReferrerAccountInput, ReferralUncheckedCreateWithoutReferrerAccountInput>
+  }
+
+  export type ReferralCreateManyReferrerAccountInputEnvelope = {
+    data: ReferralCreateManyReferrerAccountInput | ReferralCreateManyReferrerAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReferralCreateWithoutFriendAccountInput = {
+    id?: string
+    tenantId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+    program: ReferralProgramCreateNestedOneWithoutReferralsInput
+    code: ReferralCodeCreateNestedOneWithoutReferralsInput
+    referrerAccount: CustomerAccountCreateNestedOneWithoutReferralsMadeInput
+  }
+
+  export type ReferralUncheckedCreateWithoutFriendAccountInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    codeId: string
+    referrerAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralCreateOrConnectWithoutFriendAccountInput = {
+    where: ReferralWhereUniqueInput
+    create: XOR<ReferralCreateWithoutFriendAccountInput, ReferralUncheckedCreateWithoutFriendAccountInput>
   }
 
   export type OrderUpsertWithWhereUniqueWithoutCustomerAccountInput = {
@@ -214996,7 +220158,10 @@ export namespace Prisma {
     NOT?: LoyaltyRewardScalarWhereInput | LoyaltyRewardScalarWhereInput[]
     id?: StringFilter<"LoyaltyReward"> | string
     tenantId?: StringFilter<"LoyaltyReward"> | string
-    cardId?: StringFilter<"LoyaltyReward"> | string
+    cardId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    locationId?: StringFilter<"LoyaltyReward"> | string
+    source?: StringFilter<"LoyaltyReward"> | string
+    amountOff?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringFilter<"LoyaltyReward"> | string
     label?: StringFilter<"LoyaltyReward"> | string
     rewardItemId?: StringNullableFilter<"LoyaltyReward"> | string | null
@@ -215004,6 +220169,107 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedOrderId?: StringNullableFilter<"LoyaltyReward"> | string | null
+  }
+
+  export type ReferralCodeUpsertWithWhereUniqueWithoutCustomerAccountInput = {
+    where: ReferralCodeWhereUniqueInput
+    update: XOR<ReferralCodeUpdateWithoutCustomerAccountInput, ReferralCodeUncheckedUpdateWithoutCustomerAccountInput>
+    create: XOR<ReferralCodeCreateWithoutCustomerAccountInput, ReferralCodeUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type ReferralCodeUpdateWithWhereUniqueWithoutCustomerAccountInput = {
+    where: ReferralCodeWhereUniqueInput
+    data: XOR<ReferralCodeUpdateWithoutCustomerAccountInput, ReferralCodeUncheckedUpdateWithoutCustomerAccountInput>
+  }
+
+  export type ReferralCodeUpdateManyWithWhereWithoutCustomerAccountInput = {
+    where: ReferralCodeScalarWhereInput
+    data: XOR<ReferralCodeUpdateManyMutationInput, ReferralCodeUncheckedUpdateManyWithoutCustomerAccountInput>
+  }
+
+  export type ReferralCodeScalarWhereInput = {
+    AND?: ReferralCodeScalarWhereInput | ReferralCodeScalarWhereInput[]
+    OR?: ReferralCodeScalarWhereInput[]
+    NOT?: ReferralCodeScalarWhereInput | ReferralCodeScalarWhereInput[]
+    id?: StringFilter<"ReferralCode"> | string
+    tenantId?: StringFilter<"ReferralCode"> | string
+    programId?: StringFilter<"ReferralCode"> | string
+    customerAccountId?: StringFilter<"ReferralCode"> | string
+    code?: StringFilter<"ReferralCode"> | string
+    createdAt?: DateTimeFilter<"ReferralCode"> | Date | string
+  }
+
+  export type ReferralUpsertWithWhereUniqueWithoutReferrerAccountInput = {
+    where: ReferralWhereUniqueInput
+    update: XOR<ReferralUpdateWithoutReferrerAccountInput, ReferralUncheckedUpdateWithoutReferrerAccountInput>
+    create: XOR<ReferralCreateWithoutReferrerAccountInput, ReferralUncheckedCreateWithoutReferrerAccountInput>
+  }
+
+  export type ReferralUpdateWithWhereUniqueWithoutReferrerAccountInput = {
+    where: ReferralWhereUniqueInput
+    data: XOR<ReferralUpdateWithoutReferrerAccountInput, ReferralUncheckedUpdateWithoutReferrerAccountInput>
+  }
+
+  export type ReferralUpdateManyWithWhereWithoutReferrerAccountInput = {
+    where: ReferralScalarWhereInput
+    data: XOR<ReferralUpdateManyMutationInput, ReferralUncheckedUpdateManyWithoutReferrerAccountInput>
+  }
+
+  export type ReferralScalarWhereInput = {
+    AND?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+    OR?: ReferralScalarWhereInput[]
+    NOT?: ReferralScalarWhereInput | ReferralScalarWhereInput[]
+    id?: StringFilter<"Referral"> | string
+    tenantId?: StringFilter<"Referral"> | string
+    programId?: StringFilter<"Referral"> | string
+    codeId?: StringFilter<"Referral"> | string
+    referrerAccountId?: StringFilter<"Referral"> | string
+    friendAccountId?: StringFilter<"Referral"> | string
+    friendPhone?: StringNullableFilter<"Referral"> | string | null
+    status?: StringFilter<"Referral"> | string
+    rejectedReason?: StringNullableFilter<"Referral"> | string | null
+    qualifyingOrderId?: StringNullableFilter<"Referral"> | string | null
+    qualifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
+    createdAt?: DateTimeFilter<"Referral"> | Date | string
+  }
+
+  export type ReferralUpsertWithoutFriendAccountInput = {
+    update: XOR<ReferralUpdateWithoutFriendAccountInput, ReferralUncheckedUpdateWithoutFriendAccountInput>
+    create: XOR<ReferralCreateWithoutFriendAccountInput, ReferralUncheckedCreateWithoutFriendAccountInput>
+    where?: ReferralWhereInput
+  }
+
+  export type ReferralUpdateToOneWithWhereWithoutFriendAccountInput = {
+    where?: ReferralWhereInput
+    data: XOR<ReferralUpdateWithoutFriendAccountInput, ReferralUncheckedUpdateWithoutFriendAccountInput>
+  }
+
+  export type ReferralUpdateWithoutFriendAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    program?: ReferralProgramUpdateOneRequiredWithoutReferralsNestedInput
+    code?: ReferralCodeUpdateOneRequiredWithoutReferralsNestedInput
+    referrerAccount?: CustomerAccountUpdateOneRequiredWithoutReferralsMadeNestedInput
+  }
+
+  export type ReferralUncheckedUpdateWithoutFriendAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    codeId?: StringFieldUpdateOperationsInput | string
+    referrerAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserCreateWithoutPasswordResetTokensInput = {
@@ -215845,6 +221111,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -215934,6 +221202,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -218811,6 +224081,81 @@ export namespace Prisma {
     create: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
   }
 
+  export type ReferralProgramCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    codes?: ReferralCodeCreateNestedManyWithoutProgramInput
+    referrals?: ReferralCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    codes?: ReferralCodeUncheckedCreateNestedManyWithoutProgramInput
+    referrals?: ReferralUncheckedCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramCreateOrConnectWithoutLocationInput = {
+    where: ReferralProgramWhereUniqueInput
+    create: XOR<ReferralProgramCreateWithoutLocationInput, ReferralProgramUncheckedCreateWithoutLocationInput>
+  }
+
+  export type LoyaltyRewardCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+    card?: LoyaltyCardCreateNestedOneWithoutRewardsInput
+    customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
+  }
+
+  export type LoyaltyRewardUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    cardId?: string | null
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    customerAccountId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
+  export type LoyaltyRewardCreateOrConnectWithoutLocationInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    create: XOR<LoyaltyRewardCreateWithoutLocationInput, LoyaltyRewardUncheckedCreateWithoutLocationInput>
+  }
+
+  export type LoyaltyRewardCreateManyLocationInputEnvelope = {
+    data: LoyaltyRewardCreateManyLocationInput | LoyaltyRewardCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandUpsertWithoutLocationsInput = {
     update: XOR<BrandUpdateWithoutLocationsInput, BrandUncheckedUpdateWithoutLocationsInput>
     create: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
@@ -219882,6 +225227,63 @@ export namespace Prisma {
     rewards?: LoyaltyRewardUncheckedUpdateManyWithoutCardNestedInput
   }
 
+  export type ReferralProgramUpsertWithoutLocationInput = {
+    update: XOR<ReferralProgramUpdateWithoutLocationInput, ReferralProgramUncheckedUpdateWithoutLocationInput>
+    create: XOR<ReferralProgramCreateWithoutLocationInput, ReferralProgramUncheckedCreateWithoutLocationInput>
+    where?: ReferralProgramWhereInput
+  }
+
+  export type ReferralProgramUpdateToOneWithWhereWithoutLocationInput = {
+    where?: ReferralProgramWhereInput
+    data: XOR<ReferralProgramUpdateWithoutLocationInput, ReferralProgramUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ReferralProgramUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codes?: ReferralCodeUpdateManyWithoutProgramNestedInput
+    referrals?: ReferralUpdateManyWithoutProgramNestedInput
+  }
+
+  export type ReferralProgramUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codes?: ReferralCodeUncheckedUpdateManyWithoutProgramNestedInput
+    referrals?: ReferralUncheckedUpdateManyWithoutProgramNestedInput
+  }
+
+  export type LoyaltyRewardUpsertWithWhereUniqueWithoutLocationInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    update: XOR<LoyaltyRewardUpdateWithoutLocationInput, LoyaltyRewardUncheckedUpdateWithoutLocationInput>
+    create: XOR<LoyaltyRewardCreateWithoutLocationInput, LoyaltyRewardUncheckedCreateWithoutLocationInput>
+  }
+
+  export type LoyaltyRewardUpdateWithWhereUniqueWithoutLocationInput = {
+    where: LoyaltyRewardWhereUniqueInput
+    data: XOR<LoyaltyRewardUpdateWithoutLocationInput, LoyaltyRewardUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type LoyaltyRewardUpdateManyWithWhereWithoutLocationInput = {
+    where: LoyaltyRewardScalarWhereInput
+    data: XOR<LoyaltyRewardUpdateManyMutationInput, LoyaltyRewardUncheckedUpdateManyWithoutLocationInput>
+  }
+
   export type BrandCreateWithoutPlatformConnectionsInput = {
     id?: string
     name: string
@@ -220078,6 +225480,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -220167,6 +225571,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -220387,6 +225793,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -220476,6 +225884,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -220565,6 +225975,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -220654,6 +226066,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -220759,6 +226173,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -220848,6 +226264,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -221503,6 +226921,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMenuAssignmentsInput = {
@@ -221592,6 +227012,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMenuAssignmentsInput = {
@@ -221788,6 +227210,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMenuAssignmentsInput = {
@@ -221877,6 +227301,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutChannelSourcesInput = {
@@ -223014,6 +228440,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutChannelPausesInput = {
@@ -223103,6 +228531,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutChannelPausesInput = {
@@ -223208,6 +228638,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutChannelPausesInput = {
@@ -223297,6 +228729,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -223495,6 +228929,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutItemChannelSnoozesInput = {
@@ -223584,6 +229020,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutItemChannelSnoozesInput = {
@@ -223804,6 +229242,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutItemChannelSnoozesInput = {
@@ -223893,6 +229333,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type MenuCategoryCreateWithoutItemsInput = {
@@ -227295,6 +232737,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDirectOrderingConfigInput = {
@@ -227384,6 +232828,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -227598,6 +233044,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDirectOrderingConfigInput = {
@@ -227687,6 +233135,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -229152,6 +234602,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
@@ -229241,6 +234693,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -229455,6 +234909,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
@@ -229544,6 +235000,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDeliveryZonesInput = {
@@ -229748,6 +235206,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPaymentConfigInput = {
@@ -229837,6 +235297,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -229942,6 +235404,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
@@ -230031,6 +235495,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -230189,6 +235655,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -230278,6 +235746,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -230347,6 +235817,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountUncheckedCreateWithoutOrdersInput = {
@@ -230366,6 +235839,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralUncheckedCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralUncheckedCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountCreateOrConnectWithoutOrdersInput = {
@@ -230963,6 +236439,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -231052,6 +236530,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -231133,6 +236613,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUpdateOneWithoutFriendAccountNestedInput
   }
 
   export type CustomerAccountUncheckedUpdateWithoutOrdersInput = {
@@ -231152,6 +236635,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUncheckedUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUncheckedUpdateOneWithoutFriendAccountNestedInput
   }
 
   export type BrandUpsertWithoutOrdersInput = {
@@ -232308,6 +237794,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -232397,6 +237885,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -232530,6 +238020,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -232619,6 +238111,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -232724,6 +238218,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutSignageDisplaysInput = {
@@ -232813,6 +238309,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutSignageDisplaysInput = {
@@ -233027,6 +238525,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutSignageDisplaysInput = {
@@ -233116,6 +238616,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutSignageDisplaysInput = {
@@ -233320,6 +238822,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutTablesInput = {
@@ -233409,6 +238913,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutTablesInput = {
@@ -233566,6 +239072,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutTablesInput = {
@@ -233655,6 +239163,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TableReservationUpsertWithWhereUniqueWithoutTableInput = {
@@ -233760,6 +239270,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKioskDevicesInput = {
@@ -233849,6 +239361,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKioskDevicesInput = {
@@ -233954,6 +239468,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKioskDevicesInput = {
@@ -234043,6 +239559,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutTableReservationsInput = {
@@ -234132,6 +239650,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutTableReservationsInput = {
@@ -234221,6 +239741,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutTableReservationsInput = {
@@ -234389,6 +239911,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutTableReservationsInput = {
@@ -234478,6 +240002,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TableUpsertWithoutReservationsInput = {
@@ -235060,6 +240586,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
@@ -235149,6 +240677,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -235404,6 +240934,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutReceiptPrinterInput = {
@@ -235493,6 +241025,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -235592,6 +241126,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDispatchPrinterInput = {
@@ -235681,6 +241217,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -235791,6 +241329,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -235880,6 +241420,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -237025,6 +242567,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrinterStationsInput = {
@@ -237114,6 +242658,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -237471,6 +243017,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDefaultKitchenStationInput = {
@@ -237560,6 +243108,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -237811,6 +243361,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrinterStationsInput = {
@@ -237900,6 +243452,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -238243,6 +243797,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintAgentsInput = {
@@ -238332,6 +243888,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -238666,6 +244224,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintAgentsInput = {
@@ -238755,6 +244315,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -239697,6 +245259,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutHomeDriversInput = {
@@ -239786,6 +245350,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutHomeDriversInput = {
@@ -240085,6 +245651,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutHomeDriversInput = {
@@ -240174,6 +245742,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type DriverAssignmentUpsertWithWhereUniqueWithoutDriverInput = {
@@ -244972,6 +250542,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutMerchantSubscriptionInput = {
@@ -245061,6 +250633,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMerchantSubscriptionInput = {
@@ -245241,6 +250815,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutMerchantSubscriptionInput = {
@@ -245330,6 +250906,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantSubscriptionCreateWithoutInvoicesInput = {
@@ -246657,6 +252235,8 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutStuartConfigInput = {
@@ -246746,6 +252326,8 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutStuartConfigInput = {
@@ -246851,6 +252433,8 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutStuartConfigInput = {
@@ -246940,6 +252524,8 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutUberDirectConfigInput = {
@@ -247029,6 +252615,8 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutUberDirectConfigInput = {
@@ -247118,6 +252706,8 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUberDirectConfigInput = {
@@ -247223,6 +252813,8 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutUberDirectConfigInput = {
@@ -247312,6 +252904,8 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type CustomerPushOrderCreateWithoutSubscriptionInput = {
@@ -247898,6 +253492,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutContractsInput = {
@@ -247987,6 +253583,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutContractsInput = {
@@ -248238,6 +253836,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutContractsInput = {
@@ -248327,6 +253927,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type ContractEventUpsertWithWhereUniqueWithoutContractInput = {
@@ -248625,6 +254227,8 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutLoyaltyCardInput = {
@@ -248714,6 +254318,8 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutLoyaltyCardInput = {
@@ -248861,18 +254467,24 @@ export namespace Prisma {
   export type LoyaltyRewardCreateWithoutCardInput = {
     id?: string
     tenantId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    location: LocationCreateNestedOneWithoutLoyaltyRewardsInput
     customerAccount: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
   }
 
   export type LoyaltyRewardUncheckedCreateWithoutCardInput = {
     id?: string
     tenantId: string
+    locationId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     customerAccountId: string
     label: string
     rewardItemId?: string | null
@@ -248990,6 +254602,8 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutLoyaltyCardInput = {
@@ -249079,6 +254693,8 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type MenuItemUpsertWithoutLoyaltyCardsInput = {
@@ -249280,6 +254896,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     orders?: OrderCreateNestedManyWithoutCustomerAccountInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountUncheckedCreateWithoutLoyaltyStampsInput = {
@@ -249299,6 +254918,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralUncheckedCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralUncheckedCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountCreateOrConnectWithoutLoyaltyStampsInput = {
@@ -249552,6 +255174,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUpdateOneWithoutFriendAccountNestedInput
   }
 
   export type CustomerAccountUncheckedUpdateWithoutLoyaltyStampsInput = {
@@ -249571,6 +255196,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUncheckedUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUncheckedUpdateOneWithoutFriendAccountNestedInput
   }
 
   export type OrderUpsertWithoutLoyaltyStampInput = {
@@ -249791,6 +255419,193 @@ export namespace Prisma {
     create: XOR<LoyaltyCardCreateWithoutRewardsInput, LoyaltyCardUncheckedCreateWithoutRewardsInput>
   }
 
+  export type LocationCreateWithoutLoyaltyRewardsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutLoyaltyRewardsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutLoyaltyRewardsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutLoyaltyRewardsInput, LocationUncheckedCreateWithoutLoyaltyRewardsInput>
+  }
+
   export type CustomerAccountCreateWithoutLoyaltyRewardsInput = {
     id?: string
     email: string
@@ -249808,6 +255623,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     orders?: OrderCreateNestedManyWithoutCustomerAccountInput
     loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput = {
@@ -249827,6 +255645,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
     loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralUncheckedCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralUncheckedCreateNestedOneWithoutFriendAccountInput
   }
 
   export type CustomerAccountCreateOrConnectWithoutLoyaltyRewardsInput = {
@@ -249875,6 +255696,199 @@ export namespace Prisma {
     stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
   }
 
+  export type LocationUpsertWithoutLoyaltyRewardsInput = {
+    update: XOR<LocationUpdateWithoutLoyaltyRewardsInput, LocationUncheckedUpdateWithoutLoyaltyRewardsInput>
+    create: XOR<LocationCreateWithoutLoyaltyRewardsInput, LocationUncheckedCreateWithoutLoyaltyRewardsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutLoyaltyRewardsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutLoyaltyRewardsInput, LocationUncheckedUpdateWithoutLoyaltyRewardsInput>
+  }
+
+  export type LocationUpdateWithoutLoyaltyRewardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutLoyaltyRewardsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
   export type CustomerAccountUpsertWithoutLoyaltyRewardsInput = {
     update: XOR<CustomerAccountUpdateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedUpdateWithoutLoyaltyRewardsInput>
     create: XOR<CustomerAccountCreateWithoutLoyaltyRewardsInput, CustomerAccountUncheckedCreateWithoutLoyaltyRewardsInput>
@@ -249903,6 +255917,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
     loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUpdateOneWithoutFriendAccountNestedInput
   }
 
   export type CustomerAccountUncheckedUpdateWithoutLoyaltyRewardsInput = {
@@ -249922,6 +255939,1057 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
     loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUncheckedUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUncheckedUpdateOneWithoutFriendAccountNestedInput
+  }
+
+  export type LocationCreateWithoutReferralProgramInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutReferralProgramInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutReferralProgramInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutReferralProgramInput, LocationUncheckedCreateWithoutReferralProgramInput>
+  }
+
+  export type ReferralCodeCreateWithoutProgramInput = {
+    id?: string
+    tenantId: string
+    code: string
+    createdAt?: Date | string
+    customerAccount: CustomerAccountCreateNestedOneWithoutReferralCodesInput
+    referrals?: ReferralCreateNestedManyWithoutCodeInput
+  }
+
+  export type ReferralCodeUncheckedCreateWithoutProgramInput = {
+    id?: string
+    tenantId: string
+    customerAccountId: string
+    code: string
+    createdAt?: Date | string
+    referrals?: ReferralUncheckedCreateNestedManyWithoutCodeInput
+  }
+
+  export type ReferralCodeCreateOrConnectWithoutProgramInput = {
+    where: ReferralCodeWhereUniqueInput
+    create: XOR<ReferralCodeCreateWithoutProgramInput, ReferralCodeUncheckedCreateWithoutProgramInput>
+  }
+
+  export type ReferralCodeCreateManyProgramInputEnvelope = {
+    data: ReferralCodeCreateManyProgramInput | ReferralCodeCreateManyProgramInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReferralCreateWithoutProgramInput = {
+    id?: string
+    tenantId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+    code: ReferralCodeCreateNestedOneWithoutReferralsInput
+    referrerAccount: CustomerAccountCreateNestedOneWithoutReferralsMadeInput
+    friendAccount: CustomerAccountCreateNestedOneWithoutReferredByInput
+  }
+
+  export type ReferralUncheckedCreateWithoutProgramInput = {
+    id?: string
+    tenantId: string
+    codeId: string
+    referrerAccountId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralCreateOrConnectWithoutProgramInput = {
+    where: ReferralWhereUniqueInput
+    create: XOR<ReferralCreateWithoutProgramInput, ReferralUncheckedCreateWithoutProgramInput>
+  }
+
+  export type ReferralCreateManyProgramInputEnvelope = {
+    data: ReferralCreateManyProgramInput | ReferralCreateManyProgramInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LocationUpsertWithoutReferralProgramInput = {
+    update: XOR<LocationUpdateWithoutReferralProgramInput, LocationUncheckedUpdateWithoutReferralProgramInput>
+    create: XOR<LocationCreateWithoutReferralProgramInput, LocationUncheckedCreateWithoutReferralProgramInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutReferralProgramInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutReferralProgramInput, LocationUncheckedUpdateWithoutReferralProgramInput>
+  }
+
+  export type LocationUpdateWithoutReferralProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutReferralProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type ReferralCodeUpsertWithWhereUniqueWithoutProgramInput = {
+    where: ReferralCodeWhereUniqueInput
+    update: XOR<ReferralCodeUpdateWithoutProgramInput, ReferralCodeUncheckedUpdateWithoutProgramInput>
+    create: XOR<ReferralCodeCreateWithoutProgramInput, ReferralCodeUncheckedCreateWithoutProgramInput>
+  }
+
+  export type ReferralCodeUpdateWithWhereUniqueWithoutProgramInput = {
+    where: ReferralCodeWhereUniqueInput
+    data: XOR<ReferralCodeUpdateWithoutProgramInput, ReferralCodeUncheckedUpdateWithoutProgramInput>
+  }
+
+  export type ReferralCodeUpdateManyWithWhereWithoutProgramInput = {
+    where: ReferralCodeScalarWhereInput
+    data: XOR<ReferralCodeUpdateManyMutationInput, ReferralCodeUncheckedUpdateManyWithoutProgramInput>
+  }
+
+  export type ReferralUpsertWithWhereUniqueWithoutProgramInput = {
+    where: ReferralWhereUniqueInput
+    update: XOR<ReferralUpdateWithoutProgramInput, ReferralUncheckedUpdateWithoutProgramInput>
+    create: XOR<ReferralCreateWithoutProgramInput, ReferralUncheckedCreateWithoutProgramInput>
+  }
+
+  export type ReferralUpdateWithWhereUniqueWithoutProgramInput = {
+    where: ReferralWhereUniqueInput
+    data: XOR<ReferralUpdateWithoutProgramInput, ReferralUncheckedUpdateWithoutProgramInput>
+  }
+
+  export type ReferralUpdateManyWithWhereWithoutProgramInput = {
+    where: ReferralScalarWhereInput
+    data: XOR<ReferralUpdateManyMutationInput, ReferralUncheckedUpdateManyWithoutProgramInput>
+  }
+
+  export type ReferralProgramCreateWithoutCodesInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutReferralProgramInput
+    referrals?: ReferralCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramUncheckedCreateWithoutCodesInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    referrals?: ReferralUncheckedCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramCreateOrConnectWithoutCodesInput = {
+    where: ReferralProgramWhereUniqueInput
+    create: XOR<ReferralProgramCreateWithoutCodesInput, ReferralProgramUncheckedCreateWithoutCodesInput>
+  }
+
+  export type CustomerAccountCreateWithoutReferralCodesInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralCreateNestedOneWithoutFriendAccountInput
+  }
+
+  export type CustomerAccountUncheckedCreateWithoutReferralCodesInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralUncheckedCreateNestedManyWithoutReferrerAccountInput
+    referredBy?: ReferralUncheckedCreateNestedOneWithoutFriendAccountInput
+  }
+
+  export type CustomerAccountCreateOrConnectWithoutReferralCodesInput = {
+    where: CustomerAccountWhereUniqueInput
+    create: XOR<CustomerAccountCreateWithoutReferralCodesInput, CustomerAccountUncheckedCreateWithoutReferralCodesInput>
+  }
+
+  export type ReferralCreateWithoutCodeInput = {
+    id?: string
+    tenantId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+    program: ReferralProgramCreateNestedOneWithoutReferralsInput
+    referrerAccount: CustomerAccountCreateNestedOneWithoutReferralsMadeInput
+    friendAccount: CustomerAccountCreateNestedOneWithoutReferredByInput
+  }
+
+  export type ReferralUncheckedCreateWithoutCodeInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    referrerAccountId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralCreateOrConnectWithoutCodeInput = {
+    where: ReferralWhereUniqueInput
+    create: XOR<ReferralCreateWithoutCodeInput, ReferralUncheckedCreateWithoutCodeInput>
+  }
+
+  export type ReferralCreateManyCodeInputEnvelope = {
+    data: ReferralCreateManyCodeInput | ReferralCreateManyCodeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReferralProgramUpsertWithoutCodesInput = {
+    update: XOR<ReferralProgramUpdateWithoutCodesInput, ReferralProgramUncheckedUpdateWithoutCodesInput>
+    create: XOR<ReferralProgramCreateWithoutCodesInput, ReferralProgramUncheckedCreateWithoutCodesInput>
+    where?: ReferralProgramWhereInput
+  }
+
+  export type ReferralProgramUpdateToOneWithWhereWithoutCodesInput = {
+    where?: ReferralProgramWhereInput
+    data: XOR<ReferralProgramUpdateWithoutCodesInput, ReferralProgramUncheckedUpdateWithoutCodesInput>
+  }
+
+  export type ReferralProgramUpdateWithoutCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutReferralProgramNestedInput
+    referrals?: ReferralUpdateManyWithoutProgramNestedInput
+  }
+
+  export type ReferralProgramUncheckedUpdateWithoutCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    referrals?: ReferralUncheckedUpdateManyWithoutProgramNestedInput
+  }
+
+  export type CustomerAccountUpsertWithoutReferralCodesInput = {
+    update: XOR<CustomerAccountUpdateWithoutReferralCodesInput, CustomerAccountUncheckedUpdateWithoutReferralCodesInput>
+    create: XOR<CustomerAccountCreateWithoutReferralCodesInput, CustomerAccountUncheckedCreateWithoutReferralCodesInput>
+    where?: CustomerAccountWhereInput
+  }
+
+  export type CustomerAccountUpdateToOneWithWhereWithoutReferralCodesInput = {
+    where?: CustomerAccountWhereInput
+    data: XOR<CustomerAccountUpdateWithoutReferralCodesInput, CustomerAccountUncheckedUpdateWithoutReferralCodesInput>
+  }
+
+  export type CustomerAccountUpdateWithoutReferralCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUpdateOneWithoutFriendAccountNestedInput
+  }
+
+  export type CustomerAccountUncheckedUpdateWithoutReferralCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUncheckedUpdateManyWithoutReferrerAccountNestedInput
+    referredBy?: ReferralUncheckedUpdateOneWithoutFriendAccountNestedInput
+  }
+
+  export type ReferralUpsertWithWhereUniqueWithoutCodeInput = {
+    where: ReferralWhereUniqueInput
+    update: XOR<ReferralUpdateWithoutCodeInput, ReferralUncheckedUpdateWithoutCodeInput>
+    create: XOR<ReferralCreateWithoutCodeInput, ReferralUncheckedCreateWithoutCodeInput>
+  }
+
+  export type ReferralUpdateWithWhereUniqueWithoutCodeInput = {
+    where: ReferralWhereUniqueInput
+    data: XOR<ReferralUpdateWithoutCodeInput, ReferralUncheckedUpdateWithoutCodeInput>
+  }
+
+  export type ReferralUpdateManyWithWhereWithoutCodeInput = {
+    where: ReferralScalarWhereInput
+    data: XOR<ReferralUpdateManyMutationInput, ReferralUncheckedUpdateManyWithoutCodeInput>
+  }
+
+  export type ReferralProgramCreateWithoutReferralsInput = {
+    id?: string
+    tenantId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutReferralProgramInput
+    codes?: ReferralCodeCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramUncheckedCreateWithoutReferralsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    isActive?: boolean
+    referrerAmount?: Decimal | DecimalJsLike | number | string
+    friendAmount?: Decimal | DecimalJsLike | number | string
+    minimumSpend?: Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: number
+    rewardExpiryDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    codes?: ReferralCodeUncheckedCreateNestedManyWithoutProgramInput
+  }
+
+  export type ReferralProgramCreateOrConnectWithoutReferralsInput = {
+    where: ReferralProgramWhereUniqueInput
+    create: XOR<ReferralProgramCreateWithoutReferralsInput, ReferralProgramUncheckedCreateWithoutReferralsInput>
+  }
+
+  export type ReferralCodeCreateWithoutReferralsInput = {
+    id?: string
+    tenantId: string
+    code: string
+    createdAt?: Date | string
+    program: ReferralProgramCreateNestedOneWithoutCodesInput
+    customerAccount: CustomerAccountCreateNestedOneWithoutReferralCodesInput
+  }
+
+  export type ReferralCodeUncheckedCreateWithoutReferralsInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    customerAccountId: string
+    code: string
+    createdAt?: Date | string
+  }
+
+  export type ReferralCodeCreateOrConnectWithoutReferralsInput = {
+    where: ReferralCodeWhereUniqueInput
+    create: XOR<ReferralCodeCreateWithoutReferralsInput, ReferralCodeUncheckedCreateWithoutReferralsInput>
+  }
+
+  export type CustomerAccountCreateWithoutReferralsMadeInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeCreateNestedManyWithoutCustomerAccountInput
+    referredBy?: ReferralCreateNestedOneWithoutFriendAccountInput
+  }
+
+  export type CustomerAccountUncheckedCreateWithoutReferralsMadeInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referredBy?: ReferralUncheckedCreateNestedOneWithoutFriendAccountInput
+  }
+
+  export type CustomerAccountCreateOrConnectWithoutReferralsMadeInput = {
+    where: CustomerAccountWhereUniqueInput
+    create: XOR<CustomerAccountCreateWithoutReferralsMadeInput, CustomerAccountUncheckedCreateWithoutReferralsMadeInput>
+  }
+
+  export type CustomerAccountCreateWithoutReferredByInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralCreateNestedManyWithoutReferrerAccountInput
+  }
+
+  export type CustomerAccountUncheckedCreateWithoutReferredByInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyStamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCustomerAccountInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralCodes?: ReferralCodeUncheckedCreateNestedManyWithoutCustomerAccountInput
+    referralsMade?: ReferralUncheckedCreateNestedManyWithoutReferrerAccountInput
+  }
+
+  export type CustomerAccountCreateOrConnectWithoutReferredByInput = {
+    where: CustomerAccountWhereUniqueInput
+    create: XOR<CustomerAccountCreateWithoutReferredByInput, CustomerAccountUncheckedCreateWithoutReferredByInput>
+  }
+
+  export type ReferralProgramUpsertWithoutReferralsInput = {
+    update: XOR<ReferralProgramUpdateWithoutReferralsInput, ReferralProgramUncheckedUpdateWithoutReferralsInput>
+    create: XOR<ReferralProgramCreateWithoutReferralsInput, ReferralProgramUncheckedCreateWithoutReferralsInput>
+    where?: ReferralProgramWhereInput
+  }
+
+  export type ReferralProgramUpdateToOneWithWhereWithoutReferralsInput = {
+    where?: ReferralProgramWhereInput
+    data: XOR<ReferralProgramUpdateWithoutReferralsInput, ReferralProgramUncheckedUpdateWithoutReferralsInput>
+  }
+
+  export type ReferralProgramUpdateWithoutReferralsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutReferralProgramNestedInput
+    codes?: ReferralCodeUpdateManyWithoutProgramNestedInput
+  }
+
+  export type ReferralProgramUncheckedUpdateWithoutReferralsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    referrerAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    friendAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxPerCustomer?: IntFieldUpdateOperationsInput | number
+    rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codes?: ReferralCodeUncheckedUpdateManyWithoutProgramNestedInput
+  }
+
+  export type ReferralCodeUpsertWithoutReferralsInput = {
+    update: XOR<ReferralCodeUpdateWithoutReferralsInput, ReferralCodeUncheckedUpdateWithoutReferralsInput>
+    create: XOR<ReferralCodeCreateWithoutReferralsInput, ReferralCodeUncheckedCreateWithoutReferralsInput>
+    where?: ReferralCodeWhereInput
+  }
+
+  export type ReferralCodeUpdateToOneWithWhereWithoutReferralsInput = {
+    where?: ReferralCodeWhereInput
+    data: XOR<ReferralCodeUpdateWithoutReferralsInput, ReferralCodeUncheckedUpdateWithoutReferralsInput>
+  }
+
+  export type ReferralCodeUpdateWithoutReferralsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    program?: ReferralProgramUpdateOneRequiredWithoutCodesNestedInput
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutReferralCodesNestedInput
+  }
+
+  export type ReferralCodeUncheckedUpdateWithoutReferralsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerAccountUpsertWithoutReferralsMadeInput = {
+    update: XOR<CustomerAccountUpdateWithoutReferralsMadeInput, CustomerAccountUncheckedUpdateWithoutReferralsMadeInput>
+    create: XOR<CustomerAccountCreateWithoutReferralsMadeInput, CustomerAccountUncheckedCreateWithoutReferralsMadeInput>
+    where?: CustomerAccountWhereInput
+  }
+
+  export type CustomerAccountUpdateToOneWithWhereWithoutReferralsMadeInput = {
+    where?: CustomerAccountWhereInput
+    data: XOR<CustomerAccountUpdateWithoutReferralsMadeInput, CustomerAccountUncheckedUpdateWithoutReferralsMadeInput>
+  }
+
+  export type CustomerAccountUpdateWithoutReferralsMadeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUpdateManyWithoutCustomerAccountNestedInput
+    referredBy?: ReferralUpdateOneWithoutFriendAccountNestedInput
+  }
+
+  export type CustomerAccountUncheckedUpdateWithoutReferralsMadeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referredBy?: ReferralUncheckedUpdateOneWithoutFriendAccountNestedInput
+  }
+
+  export type CustomerAccountUpsertWithoutReferredByInput = {
+    update: XOR<CustomerAccountUpdateWithoutReferredByInput, CustomerAccountUncheckedUpdateWithoutReferredByInput>
+    create: XOR<CustomerAccountCreateWithoutReferredByInput, CustomerAccountUncheckedCreateWithoutReferredByInput>
+    where?: CustomerAccountWhereInput
+  }
+
+  export type CustomerAccountUpdateToOneWithWhereWithoutReferredByInput = {
+    where?: CustomerAccountWhereInput
+    data: XOR<CustomerAccountUpdateWithoutReferredByInput, CustomerAccountUncheckedUpdateWithoutReferredByInput>
+  }
+
+  export type CustomerAccountUpdateWithoutReferredByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUpdateManyWithoutReferrerAccountNestedInput
+  }
+
+  export type CustomerAccountUncheckedUpdateWithoutReferredByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyStamps?: LoyaltyStampUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralCodes?: ReferralCodeUncheckedUpdateManyWithoutCustomerAccountNestedInput
+    referralsMade?: ReferralUncheckedUpdateManyWithoutReferrerAccountNestedInput
   }
 
   export type BrandCreateManyTenantInput = {
@@ -252336,13 +259404,38 @@ export namespace Prisma {
   export type LoyaltyRewardCreateManyCustomerAccountInput = {
     id?: string
     tenantId: string
-    cardId: string
+    cardId?: string | null
+    locationId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+  }
+
+  export type ReferralCodeCreateManyCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    code: string
+    createdAt?: Date | string
+  }
+
+  export type ReferralCreateManyReferrerAccountInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    codeId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
   }
 
   export type OrderUpdateWithoutCustomerAccountInput = {
@@ -252625,19 +259718,25 @@ export namespace Prisma {
   export type LoyaltyRewardUpdateWithoutCustomerAccountInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
-    card?: LoyaltyCardUpdateOneRequiredWithoutRewardsNestedInput
+    card?: LoyaltyCardUpdateOneWithoutRewardsNestedInput
+    location?: LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
   }
 
   export type LoyaltyRewardUncheckedUpdateWithoutCustomerAccountInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    cardId?: StringFieldUpdateOperationsInput | string
+    cardId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -252649,13 +259748,84 @@ export namespace Prisma {
   export type LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    cardId?: StringFieldUpdateOperationsInput | string
+    cardId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ReferralCodeUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    program?: ReferralProgramUpdateOneRequiredWithoutCodesNestedInput
+    referrals?: ReferralUpdateManyWithoutCodeNestedInput
+  }
+
+  export type ReferralCodeUncheckedUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    referrals?: ReferralUncheckedUpdateManyWithoutCodeNestedInput
+  }
+
+  export type ReferralCodeUncheckedUpdateManyWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralUpdateWithoutReferrerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    program?: ReferralProgramUpdateOneRequiredWithoutReferralsNestedInput
+    code?: ReferralCodeUpdateOneRequiredWithoutReferralsNestedInput
+    friendAccount?: CustomerAccountUpdateOneRequiredWithoutReferredByNestedInput
+  }
+
+  export type ReferralUncheckedUpdateWithoutReferrerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    codeId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralUncheckedUpdateManyWithoutReferrerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    codeId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type LocationCreateManyBrandInput = {
@@ -253079,6 +260249,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -253168,6 +260340,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -254459,6 +261633,21 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type LoyaltyRewardCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    cardId?: string | null
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    customerAccountId: string
+    label: string
+    rewardItemId?: string | null
+    earnedAt?: Date | string
+    expiresAt?: Date | string | null
+    claimedAt?: Date | string | null
+    claimedOrderId?: string | null
+  }
+
   export type IntegrationUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
@@ -255652,6 +262841,51 @@ export namespace Prisma {
     postcodeFees?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LoyaltyRewardUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    card?: LoyaltyCardUpdateOneWithoutRewardsNestedInput
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
+  }
+
+  export type LoyaltyRewardUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type LoyaltyRewardUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    cardId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MenuCategoryCreateManyMenuInput = {
@@ -257891,6 +265125,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutReceiptPrinterInput = {
@@ -257980,6 +265216,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -258134,6 +265372,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDispatchPrinterInput = {
@@ -258223,6 +265463,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -258724,6 +265966,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDefaultKitchenStationInput = {
@@ -258813,6 +266057,8 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -260658,6 +267904,9 @@ export namespace Prisma {
   export type LoyaltyRewardCreateManyCardInput = {
     id?: string
     tenantId: string
+    locationId: string
+    source?: string
+    amountOff?: Decimal | DecimalJsLike | number | string | null
     customerAccountId: string
     label: string
     rewardItemId?: string | null
@@ -260697,18 +267946,24 @@ export namespace Prisma {
   export type LoyaltyRewardUpdateWithoutCardInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
     customerAccount?: CustomerAccountUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
   }
 
   export type LoyaltyRewardUncheckedUpdateWithoutCardInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringFieldUpdateOperationsInput | string
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -260721,6 +267976,9 @@ export namespace Prisma {
   export type LoyaltyRewardUncheckedUpdateManyWithoutCardInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringFieldUpdateOperationsInput | string
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -260728,6 +267986,152 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ReferralCodeCreateManyProgramInput = {
+    id?: string
+    tenantId: string
+    customerAccountId: string
+    code: string
+    createdAt?: Date | string
+  }
+
+  export type ReferralCreateManyProgramInput = {
+    id?: string
+    tenantId: string
+    codeId: string
+    referrerAccountId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralCodeUpdateWithoutProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customerAccount?: CustomerAccountUpdateOneRequiredWithoutReferralCodesNestedInput
+    referrals?: ReferralUpdateManyWithoutCodeNestedInput
+  }
+
+  export type ReferralCodeUncheckedUpdateWithoutProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    referrals?: ReferralUncheckedUpdateManyWithoutCodeNestedInput
+  }
+
+  export type ReferralCodeUncheckedUpdateManyWithoutProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralUpdateWithoutProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    code?: ReferralCodeUpdateOneRequiredWithoutReferralsNestedInput
+    referrerAccount?: CustomerAccountUpdateOneRequiredWithoutReferralsMadeNestedInput
+    friendAccount?: CustomerAccountUpdateOneRequiredWithoutReferredByNestedInput
+  }
+
+  export type ReferralUncheckedUpdateWithoutProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    codeId?: StringFieldUpdateOperationsInput | string
+    referrerAccountId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralUncheckedUpdateManyWithoutProgramInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    codeId?: StringFieldUpdateOperationsInput | string
+    referrerAccountId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralCreateManyCodeInput = {
+    id?: string
+    tenantId: string
+    programId: string
+    referrerAccountId: string
+    friendAccountId: string
+    friendPhone?: string | null
+    status?: string
+    rejectedReason?: string | null
+    qualifyingOrderId?: string | null
+    qualifiedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ReferralUpdateWithoutCodeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    program?: ReferralProgramUpdateOneRequiredWithoutReferralsNestedInput
+    referrerAccount?: CustomerAccountUpdateOneRequiredWithoutReferralsMadeNestedInput
+    friendAccount?: CustomerAccountUpdateOneRequiredWithoutReferredByNestedInput
+  }
+
+  export type ReferralUncheckedUpdateWithoutCodeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    referrerAccountId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReferralUncheckedUpdateManyWithoutCodeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    programId?: StringFieldUpdateOperationsInput | string
+    referrerAccountId?: StringFieldUpdateOperationsInput | string
+    friendAccountId?: StringFieldUpdateOperationsInput | string
+    friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
@@ -260883,6 +268287,14 @@ export namespace Prisma {
      * @deprecated Use LoyaltyCardCountOutputTypeDefaultArgs instead
      */
     export type LoyaltyCardCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LoyaltyCardCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ReferralProgramCountOutputTypeDefaultArgs instead
+     */
+    export type ReferralProgramCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReferralProgramCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ReferralCodeCountOutputTypeDefaultArgs instead
+     */
+    export type ReferralCodeCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReferralCodeCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TenantDefaultArgs instead
      */
@@ -261403,6 +268815,18 @@ export namespace Prisma {
      * @deprecated Use LoyaltyRewardDefaultArgs instead
      */
     export type LoyaltyRewardArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LoyaltyRewardDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ReferralProgramDefaultArgs instead
+     */
+    export type ReferralProgramArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReferralProgramDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ReferralCodeDefaultArgs instead
+     */
+    export type ReferralCodeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReferralCodeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ReferralDefaultArgs instead
+     */
+    export type ReferralArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReferralDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

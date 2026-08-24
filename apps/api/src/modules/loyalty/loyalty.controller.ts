@@ -9,6 +9,7 @@ import {
   CurrentCustomer,
 } from "../customer-auth/customer.decorator";
 import { LoyaltyService } from "./loyalty.service";
+import { ReferralService } from "./referral.service";
 
 // Two audiences, two very different sets of rules.
 //
@@ -20,7 +21,10 @@ import { LoyaltyService } from "./loyalty.service";
 @ApiTags("loyalty")
 @Controller({ path: "loyalty", version: "1" })
 export class LoyaltyController {
-  constructor(private readonly loyalty: LoyaltyService) {}
+  constructor(
+    private readonly loyalty: LoyaltyService,
+    private readonly referrals: ReferralService,
+  ) {}
 
   // ── Operator ─────────────────────────────────────────────────────────────
 
@@ -77,5 +81,64 @@ export class LoyaltyController {
     @CurrentCustomer() customer: { id: string },
   ) {
     return this.loyalty.claimableAt(customer.id, locationId);
+  }
+
+  // ── Referrals ────────────────────────────────────────────────────────────
+
+  @Get("referrals/:locationId")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "This location's refer-a-friend settings" })
+  getProgram(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.referrals.getProgram(user.tenantId, locationId);
+  }
+
+  @Put("referrals/:locationId")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Save this location's refer-a-friend settings" })
+  saveProgram(
+    @Param("locationId") locationId: string,
+    @Body()
+    body: {
+      isActive?: boolean;
+      referrerAmount?: number;
+      friendAmount?: number;
+      minimumSpend?: number | null;
+      maxPerCustomer?: number;
+      rewardExpiryDays?: number | null;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.referrals.upsertProgram(user.tenantId, locationId, body);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Get("referral-code")
+  @ApiOperation({ summary: "My code for this shop, minted on first ask" })
+  myCode(
+    @Query("locationId") locationId: string,
+    @CurrentCustomer() customer: { id: string },
+  ) {
+    return this.referrals.myCode(customer.id, locationId);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Post("referral-code/claim")
+  @ApiOperation({ summary: "Use a friend's code" })
+  claimCode(
+    @Body() body: { locationId: string; code: string },
+    @CurrentCustomer() customer: { id: string },
+  ) {
+    return this.referrals.claimCode({
+      customerAccountId: customer.id,
+      locationId: body.locationId,
+      code: body.code,
+    });
   }
 }

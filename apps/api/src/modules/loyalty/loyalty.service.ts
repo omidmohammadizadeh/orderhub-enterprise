@@ -210,6 +210,7 @@ export class LoyaltyService {
     card: {
       id: string;
       tenantId: string;
+      locationId: string;
       stampsRequired: number;
       rewardLabel: string;
       rewardItemId: string | null;
@@ -233,6 +234,10 @@ export class LoyaltyService {
       data: {
         tenantId: card.tenantId,
         cardId: card.id,
+        // Also stamped on the reward itself. Referral rewards come from no
+        // card at all, so a reward has to know its own shop.
+        locationId: card.locationId,
+        source: "LOYALTY",
         customerAccountId,
         // Frozen. Tomorrow's offer does not rewrite today's promise.
         label: card.rewardLabel,
@@ -259,8 +264,10 @@ export class LoyaltyService {
       this.prisma.loyaltyStamp.count({
         where: { cardId: card.id, customerAccountId },
       }),
+      // Every unclaimed reward at this shop, whatever earned it — the card
+      // and a referral both land here, and a customer does not care which.
       this.prisma.loyaltyReward.findMany({
-        where: { cardId: card.id, customerAccountId, claimedAt: null },
+        where: { locationId, customerAccountId, claimedAt: null },
         orderBy: { earnedAt: "asc" },
       }),
     ]);
@@ -281,6 +288,8 @@ export class LoyaltyService {
         id: r.id,
         label: r.label,
         rewardItemId: r.rewardItemId,
+        source: r.source,
+        amountOff: r.amountOff ? Number(r.amountOff) : null,
         earnedAt: r.earnedAt,
         expiresAt: r.expiresAt,
       })),
@@ -289,14 +298,9 @@ export class LoyaltyService {
 
   /** Rewards this customer can spend at this location right now. */
   async claimableAt(customerAccountId: string, locationId: string) {
-    const card = await this.prisma.loyaltyCard.findUnique({
-      where: { locationId },
-      select: { id: true, isActive: true },
-    });
-    if (!card?.isActive) return [];
     const rewards = await this.prisma.loyaltyReward.findMany({
       where: {
-        cardId: card.id,
+        locationId,
         customerAccountId,
         claimedAt: null,
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],

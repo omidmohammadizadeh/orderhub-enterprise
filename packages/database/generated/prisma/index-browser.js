@@ -2303,6 +2303,9 @@ exports.Prisma.LoyaltyRewardScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   cardId: 'cardId',
+  locationId: 'locationId',
+  source: 'source',
+  amountOff: 'amountOff',
   customerAccountId: 'customerAccountId',
   label: 'label',
   rewardItemId: 'rewardItemId',
@@ -2310,6 +2313,44 @@ exports.Prisma.LoyaltyRewardScalarFieldEnum = {
   expiresAt: 'expiresAt',
   claimedAt: 'claimedAt',
   claimedOrderId: 'claimedOrderId'
+};
+
+exports.Prisma.ReferralProgramScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  isActive: 'isActive',
+  referrerAmount: 'referrerAmount',
+  friendAmount: 'friendAmount',
+  minimumSpend: 'minimumSpend',
+  maxPerCustomer: 'maxPerCustomer',
+  rewardExpiryDays: 'rewardExpiryDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReferralCodeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  programId: 'programId',
+  customerAccountId: 'customerAccountId',
+  code: 'code',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ReferralScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  programId: 'programId',
+  codeId: 'codeId',
+  referrerAccountId: 'referrerAccountId',
+  friendAccountId: 'friendAccountId',
+  friendPhone: 'friendPhone',
+  status: 'status',
+  rejectedReason: 'rejectedReason',
+  qualifyingOrderId: 'qualifyingOrderId',
+  qualifiedAt: 'qualifiedAt',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -3703,10 +3744,39 @@ exports.Prisma.LoyaltyRewardOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   cardId: 'cardId',
+  locationId: 'locationId',
+  source: 'source',
   customerAccountId: 'customerAccountId',
   label: 'label',
   rewardItemId: 'rewardItemId',
   claimedOrderId: 'claimedOrderId'
+};
+
+exports.Prisma.ReferralProgramOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId'
+};
+
+exports.Prisma.ReferralCodeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  programId: 'programId',
+  customerAccountId: 'customerAccountId',
+  code: 'code'
+};
+
+exports.Prisma.ReferralOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  programId: 'programId',
+  codeId: 'codeId',
+  referrerAccountId: 'referrerAccountId',
+  friendAccountId: 'friendAccountId',
+  friendPhone: 'friendPhone',
+  status: 'status',
+  rejectedReason: 'rejectedReason',
+  qualifyingOrderId: 'qualifyingOrderId'
 };
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
@@ -4289,7 +4359,10 @@ exports.Prisma.ModelName = {
   ContractEvent: 'ContractEvent',
   LoyaltyCard: 'LoyaltyCard',
   LoyaltyStamp: 'LoyaltyStamp',
-  LoyaltyReward: 'LoyaltyReward'
+  LoyaltyReward: 'LoyaltyReward',
+  ReferralProgram: 'ReferralProgram',
+  ReferralCode: 'ReferralCode',
+  Referral: 'Referral'
 };
 
 /**

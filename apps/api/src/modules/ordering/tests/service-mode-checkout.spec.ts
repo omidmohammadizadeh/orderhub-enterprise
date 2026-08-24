@@ -177,7 +177,9 @@ describe("checkout — spending a loyalty reward", () => {
       id: "r1",
       customerAccountId: "cust-1",
       claimedAt: null,
-      card: { locationId: "loc-9", isActive: true },
+      // locationId sits on the reward itself now — a referral reward comes
+      // from no card, so a card can no longer be what scopes it to a shop.
+      locationId: "loc-9",
     });
     expect(where.OR).toBeTruthy();
   });

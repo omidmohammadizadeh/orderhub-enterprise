@@ -267,6 +267,11 @@ model CustomerAccount {
   orders         Order[] // Phase AP-5 — back-relation for "My Orders"
   loyaltyStamps  LoyaltyStamp[]
   loyaltyRewards LoyaltyReward[]
+  // One code per SHOP — a customer referring friends to two of your
+  // locations holds two codes.
+  referralCodes  ReferralCode[]  @relation("ReferralCodeOwner")
+  referralsMade  Referral[]      @relation("ReferralReferrer")
+  referredBy     Referral?       @relation("ReferralFriend")
 
   @@index([email])
   @@index([googleId])
@@ -688,9 +693,11 @@ model Location {
   latitude  Float?
   longitude Float?
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  loyaltyCard LoyaltyCard?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  loyaltyCard     LoyaltyCard?
+  referralProgram ReferralProgram?
+  loyaltyRewards  LoyaltyReward[]
 
   @@index([brandId])
   @@index([brandId, deletedAt])
@@ -1224,7 +1231,7 @@ model MenuItemOnCategory {
   @@map("menu_items_on_categories")
 }
 
-// ── Modifier Groups ───────────────────────────────────────────────────────────
+// ── Modifier Groups ─────────────────────────────────────────���─────────────────
 model ModifierGroup {
   id          String  @id @default(cuid())
   brandId     String
@@ -2400,7 +2407,7 @@ model KdsTicket {
   @@map("kds_tickets")
 }
 
-// ── Printer ─────────────────────────────────────────���─────────────────────────
+// ── Printer ───────────────────────────────────────────────────────────────────
 model Printer {
   id             String                @id @default(cuid())
   tenantId       String
@@ -3636,7 +3643,7 @@ model ItemPerformanceSnapshot {
   @@map("item_performance_snapshots")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════���══════════════════════════
 // PHASE F — PROVIDER / MARKETPLACE REGISTRY
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -5053,10 +5060,21 @@ model LoyaltyStamp {
 
 /// An earned reward, before and after it is spent.
 model LoyaltyReward {
-  id       String      @id @default(cuid())
-  tenantId String
-  cardId   String
-  card     LoyaltyCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  id         String       @id @default(cuid())
+  tenantId   String
+  /// Null for a referral reward — it comes from no card.
+  cardId     String?
+  card       LoyaltyCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  /// Where this reward can be spent. Always set, including for card rewards,
+  /// because a reward has to know its own shop once cardId can be null.
+  locationId String
+  location   Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  /// LOYALTY | REFERRAL. What earned it — it changes the wording, not the
+  /// mechanics: both are one-time, both expire, both spend the same way.
+  source     String       @default("LOYALTY")
+  /// Money off, for referral rewards. Free-item rewards leave this null and
+  /// carry rewardItemId instead.
+  amountOff  Decimal?     @db.Decimal(10, 2)
 
   customerAccountId String
   customerAccount   CustomerAccount @relation(fields: [customerAccountId], references: [id], onDelete: Cascade)
@@ -5075,4 +5093,101 @@ model LoyaltyReward {
   @@index([customerAccountId, claimedAt])
   @@index([tenantId])
   @@map("loyalty_rewards")
+}
+
+// ── Referrals ───────────────────────────────────────────────────────────────
+//
+// A customer shares a code, a NEW customer orders, and both get money off.
+//
+// Per LOCATION, like the loyalty card: the shop paying for the discount is the
+// shop that decides it is worth paying.
+//
+// The whole risk in a referral scheme is what counts as "new". An email is
+// free to create, so email alone means a regular can pay themselves a discount
+// whenever they like. Qualification checks the PHONE against every account and
+// against the order history — plenty of people order as guests for years
+// before they ever sign up, and they are not new customers.
+model ReferralProgram {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  isActive         Boolean  @default(false)
+  /// What the existing customer gets when their friend's first order lands.
+  referrerAmount   Decimal  @default(5) @db.Decimal(10, 2)
+  /// What the new customer gets. Often larger — it is buying the first order.
+  friendAmount     Decimal  @default(5) @db.Decimal(10, 2)
+  /// The friend's qualifying order must reach this, or a bag of chips triggers
+  /// two payouts and the shop is down more than the order was worth.
+  minimumSpend     Decimal? @db.Decimal(10, 2)
+  /// Per referrer. Uncapped, one person with a group chat is an unbounded
+  /// liability.
+  maxPerCustomer   Int      @default(10)
+  rewardExpiryDays Int?
+
+  codes     ReferralCode[]
+  referrals Referral[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("referral_programs")
+}
+
+/// One reusable code per customer per shop. Reusable on purpose — it is shared
+/// with several friends. What is one-time is the REWARD it produces.
+model ReferralCode {
+  id        String          @id @default(cuid())
+  tenantId  String
+  programId String
+  program   ReferralProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  customerAccountId String
+  customerAccount   CustomerAccount @relation("ReferralCodeOwner", fields: [customerAccountId], references: [id], onDelete: Cascade)
+
+  code String @unique
+
+  referrals Referral[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([programId, customerAccountId])
+  @@index([tenantId])
+  @@map("referral_codes")
+}
+
+/// One friend, claimed against one code. Unique on the friend so a person can
+/// only ever be referred once, whoever gets there first.
+model Referral {
+  id        String          @id @default(cuid())
+  tenantId  String
+  programId String
+  program   ReferralProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  codeId    String
+  code      ReferralCode    @relation(fields: [codeId], references: [id], onDelete: Cascade)
+
+  referrerAccountId String
+  referrerAccount   CustomerAccount @relation("ReferralReferrer", fields: [referrerAccountId], references: [id], onDelete: Cascade)
+
+  friendAccountId String          @unique
+  friendAccount   CustomerAccount @relation("ReferralFriend", fields: [friendAccountId], references: [id], onDelete: Cascade)
+  /// Normalised at claim time, and kept: it is what the "already a customer"
+  /// check runs against, and the account's phone can be edited afterwards.
+  friendPhone     String?
+
+  /// PENDING until the friend's first order completes, then QUALIFIED, or
+  /// REJECTED with a reason we can show and audit.
+  status         String  @default("PENDING")
+  rejectedReason String?
+
+  qualifyingOrderId String?   @unique
+  qualifiedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([referrerAccountId, status])
+  @@map("referrals")
 }

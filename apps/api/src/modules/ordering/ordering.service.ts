@@ -1120,9 +1120,9 @@ export class OrderingService {
         id: rewardId,
         customerAccountId,
         claimedAt: null,
-        // The card is per location, so a reward earned at one shop cannot be
-        // spent at another.
-        card: { locationId, isActive: true },
+        // Stamped on the reward itself, because a referral reward comes from
+        // no card. Either way: earned at one shop, spent at that shop.
+        locationId,
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
     });
