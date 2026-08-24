@@ -5182,6 +5182,18 @@ model Referral {
   status         String  @default("PENDING")
   rejectedReason String?
 
+  /// Proof that the friend holds the number they gave.
+  ///
+  /// Per REFERRAL, not per code: one code is shared with several friends, so
+  /// a shared token could not say which of them just messaged. Short, because
+  /// it is typed into a WhatsApp message by a human — or rather, pre-filled
+  /// into one, but it still has to survive being read.
+  verifyToken   String?   @unique
+  /// The number the message actually came FROM, which Meta guarantees is one
+  /// the sender holds. Eligibility runs against THIS, not what they typed.
+  verifiedPhone String?
+  verifiedAt    DateTime?
+
   qualifyingOrderId String?   @unique
   qualifiedAt       DateTime?
 

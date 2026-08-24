@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { LoyaltyModule } from "../loyalty/loyalty.module";
 import { WhatsAppController } from "./whatsapp.controller";
 import { WhatsAppConnectionController } from "./whatsapp-connection.controller";
 import { WhatsAppConnectionService } from "./whatsapp-connection.service";
@@ -22,6 +23,9 @@ import { VariantPriceResolverModule } from "../menus/variant-price-resolver.modu
 //   P3+: order creation, payments, status replies, dashboard connect.
 @Module({
   imports: [
+    // Referral verification is answered before the ordering AI sees the
+    // message. One-way: Loyalty never reaches back into WhatsApp.
+    LoyaltyModule,
     OrdersModule,
     PaymentsModule,
     PauseModule,

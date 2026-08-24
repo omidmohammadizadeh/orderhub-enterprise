@@ -8,6 +8,24 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 // reward lands on the same card the loyalty stamps do, because to a customer
 // they are the same thing — something waiting that they spend once.
 //
+// ── Proving the number ──────────────────────────────────────────────────────
+//
+// The checks below all run on a phone number, and until it is verified they
+// run on a number somebody typed. Typing 07999 000000 costs nothing.
+//
+// So the friend sends ONE WhatsApp message to the shop, from a wa.me link with
+// the text already filled in. Meta only lets a message originate from a number
+// registered on that device, so the `from` on the inbound webhook is a number
+// the sender demonstrably holds — at least as strong as an SMS code, and
+// harder to spoof.
+//
+// It costs nothing. Inbound messages are never billed, and the message opens a
+// 24-hour service window, so the reply is free too. An outbound OTP would need
+// a paid authentication template AND would put the number the ordering bot
+// depends on at quality risk.
+//
+// Eligibility then runs against the VERIFIED number, not the typed one.
+//
 // ── "New" is the whole scheme ───────────────────────────────────────────────
 //
 // Everything else here is bookkeeping. An email address is free to create, so
@@ -45,7 +63,8 @@ export type ReferralRejection =
   | "SELF_REFERRAL"
   | "REFERRER_AT_CAP"
   | "BELOW_MINIMUM_SPEND"
-  | "NO_PHONE";
+  | "NO_PHONE"
+  | "NOT_VERIFIED";
 
 @Injectable()
 export class ReferralService {
@@ -222,6 +241,7 @@ export class ReferralService {
     });
     if (rejection) throw new BadRequestException(this.explain(rejection));
 
+    const verifyToken = await this.uniqueVerifyToken();
     try {
       await this.prisma.referral.create({
         data: {
@@ -231,6 +251,7 @@ export class ReferralService {
           referrerAccountId: referralCode.customerAccountId,
           friendAccountId: friend.id,
           friendPhone: normalisePhone(friend.phone),
+          verifyToken,
         },
       });
     } catch (err) {
@@ -241,7 +262,106 @@ export class ReferralService {
       throw err;
     }
 
-    return { ok: true, friendAmount: Number(program.friendAmount) };
+    // Where the shop has WhatsApp, the friend proves the number before
+    // anything pays out. Where it does not, the unverified checks stand — a
+    // shop with no WhatsApp should not simply be unable to run referrals.
+    const wa = await this.whatsAppNumberFor(args.locationId);
+    return {
+      ok: true,
+      friendAmount: Number(program.friendAmount),
+      verification: wa
+        ? {
+            required: true as const,
+            // Pre-filled, so the friend taps twice and types nothing.
+            url: `https://wa.me/${wa}?text=${encodeURIComponent(`VERIFY ${verifyToken}`)}`,
+          }
+        : { required: false as const },
+    };
+  }
+
+  /**
+   * A friend's WhatsApp message, proving the number.
+   *
+   * Called from the inbound router BEFORE the ordering AI sees the message —
+   * otherwise "VERIFY 7QK2" is answered as an attempt to order something.
+   *
+   * Returns the line to reply with, or null when the message was not one of
+   * ours and should carry on to the AI.
+   */
+  async verifyFromWhatsApp(
+    text: string,
+    fromPhone: string,
+  ): Promise<string | null> {
+    const match = /^\s*verify\s+([a-z0-9]{4,10})\s*$/i.exec(text ?? "");
+    if (!match) return null;
+
+    const token = match[1]!.toUpperCase();
+    const referral = await this.prisma.referral.findFirst({
+      where: { verifyToken: token },
+      include: { program: true },
+    });
+    // A wrong or expired token is still OUR message to answer — falling
+    // through would have the ordering bot try to sell them something.
+    if (!referral) return "That verification code isn't recognised.";
+    if (referral.verifiedAt) return "You're already verified.";
+
+    const phone = normalisePhone(fromPhone);
+    if (!phone) return "We couldn't read your number. Please try again.";
+
+    // The number they MESSAGED FROM replaces the number they typed, and the
+    // checks re-run against it. This is the entire point.
+    const rejection = await this.eligibility({
+      friendId: referral.friendAccountId,
+      friendPhone: phone,
+      referrerId: referral.referrerAccountId,
+      tenantId: referral.tenantId,
+      programId: referral.programId,
+      maxPerCustomer: referral.program.maxPerCustomer,
+    });
+    if (rejection) {
+      await this.prisma.referral.update({
+        where: { id: referral.id },
+        data: { status: "REJECTED", rejectedReason: rejection },
+      });
+      return this.explain(rejection);
+    }
+
+    await this.prisma.referral.update({
+      where: { id: referral.id },
+      data: { verifiedPhone: phone, verifiedAt: new Date(), friendPhone: phone },
+    });
+
+    const amount = Number(referral.program.friendAmount);
+    return amount > 0
+      ? `Verified. ${money(amount)} lands on your card once your first order is complete.`
+      : "Verified.";
+  }
+
+  /** The shop's own WhatsApp number, digits only, for a wa.me link. */
+  private async whatsAppNumberFor(locationId: string): Promise<string | null> {
+    const integration = await this.prisma.integration.findUnique({
+      where: {
+        locationId_platform: { locationId, platform: "WHATSAPP" as never },
+      },
+      select: { settings: true },
+    });
+    const display = (integration?.settings as any)?.displayPhoneNumber;
+    return normalisePhone(display);
+  }
+
+  private async uniqueVerifyToken(): Promise<string> {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const token = Array.from(
+        { length: 5 },
+        () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)],
+      ).join("");
+      const clash = await this.prisma.referral.findFirst({
+        where: { verifyToken: token },
+        select: { id: true },
+      });
+      if (!clash) return token;
+    }
+    throw new Error("Could not mint a unique verification token");
   }
 
   // ── Qualification ────────────────────────────────────────────────────────
@@ -308,9 +428,24 @@ export class ReferralService {
       select: { id: true, phone: true },
     });
 
+    // Unverified pays nothing, wherever the shop can verify.
+    //
+    // Held rather than rejected: the friend can still send the message
+    // afterwards, and the reward is waiting when they do. Rejecting here would
+    // punish somebody who ordered before finishing a step we asked for.
+    const wa = await this.whatsAppNumberFor(order.locationId);
+    if (wa && !referral.verifiedAt) {
+      this.logger.log(
+        `Referral ${referral.id} held: number not verified on WhatsApp yet`,
+      );
+      return false;
+    }
+
     const rejection = await this.eligibility({
       friendId: order.customerAccountId,
-      friendPhone: friend?.phone ?? referral.friendPhone,
+      // The VERIFIED number when we have one. What they typed is only ever a
+      // fallback for a shop that cannot verify at all.
+      friendPhone: referral.verifiedPhone ?? friend?.phone ?? referral.friendPhone,
       referrerId: referral.referrerAccountId,
       tenantId: order.tenantId,
       programId: program.id,
@@ -480,6 +615,8 @@ export class ReferralService {
         return "That order didn't reach the minimum for a referral reward.";
       case "NO_PHONE":
         return "Add a mobile number to your account to use a referral code.";
+      case "NOT_VERIFIED":
+        return "Verify your number on WhatsApp to unlock your reward.";
     }
   }
 

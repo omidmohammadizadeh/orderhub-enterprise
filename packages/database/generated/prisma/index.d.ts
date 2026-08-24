@@ -157928,6 +157928,9 @@ export namespace Prisma {
     friendPhone: string | null
     status: string | null
     rejectedReason: string | null
+    verifyToken: string | null
+    verifiedPhone: string | null
+    verifiedAt: Date | null
     qualifyingOrderId: string | null
     qualifiedAt: Date | null
     createdAt: Date | null
@@ -157943,6 +157946,9 @@ export namespace Prisma {
     friendPhone: string | null
     status: string | null
     rejectedReason: string | null
+    verifyToken: string | null
+    verifiedPhone: string | null
+    verifiedAt: Date | null
     qualifyingOrderId: string | null
     qualifiedAt: Date | null
     createdAt: Date | null
@@ -157958,6 +157964,9 @@ export namespace Prisma {
     friendPhone: number
     status: number
     rejectedReason: number
+    verifyToken: number
+    verifiedPhone: number
+    verifiedAt: number
     qualifyingOrderId: number
     qualifiedAt: number
     createdAt: number
@@ -157975,6 +157984,9 @@ export namespace Prisma {
     friendPhone?: true
     status?: true
     rejectedReason?: true
+    verifyToken?: true
+    verifiedPhone?: true
+    verifiedAt?: true
     qualifyingOrderId?: true
     qualifiedAt?: true
     createdAt?: true
@@ -157990,6 +158002,9 @@ export namespace Prisma {
     friendPhone?: true
     status?: true
     rejectedReason?: true
+    verifyToken?: true
+    verifiedPhone?: true
+    verifiedAt?: true
     qualifyingOrderId?: true
     qualifiedAt?: true
     createdAt?: true
@@ -158005,6 +158020,9 @@ export namespace Prisma {
     friendPhone?: true
     status?: true
     rejectedReason?: true
+    verifyToken?: true
+    verifiedPhone?: true
+    verifiedAt?: true
     qualifyingOrderId?: true
     qualifiedAt?: true
     createdAt?: true
@@ -158093,6 +158111,9 @@ export namespace Prisma {
     friendPhone: string | null
     status: string
     rejectedReason: string | null
+    verifyToken: string | null
+    verifiedPhone: string | null
+    verifiedAt: Date | null
     qualifyingOrderId: string | null
     qualifiedAt: Date | null
     createdAt: Date
@@ -158125,6 +158146,9 @@ export namespace Prisma {
     friendPhone?: boolean
     status?: boolean
     rejectedReason?: boolean
+    verifyToken?: boolean
+    verifiedPhone?: boolean
+    verifiedAt?: boolean
     qualifyingOrderId?: boolean
     qualifiedAt?: boolean
     createdAt?: boolean
@@ -158144,6 +158168,9 @@ export namespace Prisma {
     friendPhone?: boolean
     status?: boolean
     rejectedReason?: boolean
+    verifyToken?: boolean
+    verifiedPhone?: boolean
+    verifiedAt?: boolean
     qualifyingOrderId?: boolean
     qualifiedAt?: boolean
     createdAt?: boolean
@@ -158163,6 +158190,9 @@ export namespace Prisma {
     friendPhone?: boolean
     status?: boolean
     rejectedReason?: boolean
+    verifyToken?: boolean
+    verifiedPhone?: boolean
+    verifiedAt?: boolean
     qualifyingOrderId?: boolean
     qualifiedAt?: boolean
     createdAt?: boolean
@@ -158207,6 +158237,21 @@ export namespace Prisma {
        */
       status: string
       rejectedReason: string | null
+      /**
+       * Proof that the friend holds the number they gave.
+       * 
+       * Per REFERRAL, not per code: one code is shared with several friends, so
+       * a shared token could not say which of them just messaged. Short, because
+       * it is typed into a WhatsApp message by a human — or rather, pre-filled
+       * into one, but it still has to survive being read.
+       */
+      verifyToken: string | null
+      /**
+       * The number the message actually came FROM, which Meta guarantees is one
+       * the sender holds. Eligibility runs against THIS, not what they typed.
+       */
+      verifiedPhone: string | null
+      verifiedAt: Date | null
       qualifyingOrderId: string | null
       qualifiedAt: Date | null
       createdAt: Date
@@ -158616,6 +158661,9 @@ export namespace Prisma {
     readonly friendPhone: FieldRef<"Referral", 'String'>
     readonly status: FieldRef<"Referral", 'String'>
     readonly rejectedReason: FieldRef<"Referral", 'String'>
+    readonly verifyToken: FieldRef<"Referral", 'String'>
+    readonly verifiedPhone: FieldRef<"Referral", 'String'>
+    readonly verifiedAt: FieldRef<"Referral", 'DateTime'>
     readonly qualifyingOrderId: FieldRef<"Referral", 'String'>
     readonly qualifiedAt: FieldRef<"Referral", 'DateTime'>
     readonly createdAt: FieldRef<"Referral", 'DateTime'>
@@ -161587,6 +161635,9 @@ export namespace Prisma {
     friendPhone: 'friendPhone',
     status: 'status',
     rejectedReason: 'rejectedReason',
+    verifyToken: 'verifyToken',
+    verifiedPhone: 'verifiedPhone',
+    verifiedAt: 'verifiedAt',
     qualifyingOrderId: 'qualifyingOrderId',
     qualifiedAt: 'qualifiedAt',
     createdAt: 'createdAt'
@@ -163432,6 +163483,8 @@ export namespace Prisma {
     friendPhone: 'friendPhone',
     status: 'status',
     rejectedReason: 'rejectedReason',
+    verifyToken: 'verifyToken',
+    verifiedPhone: 'verifiedPhone',
     qualifyingOrderId: 'qualifyingOrderId'
   };
 
@@ -178161,6 +178214,9 @@ export namespace Prisma {
     friendPhone?: StringNullableFilter<"Referral"> | string | null
     status?: StringFilter<"Referral"> | string
     rejectedReason?: StringNullableFilter<"Referral"> | string | null
+    verifyToken?: StringNullableFilter<"Referral"> | string | null
+    verifiedPhone?: StringNullableFilter<"Referral"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
     qualifyingOrderId?: StringNullableFilter<"Referral"> | string | null
     qualifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
     createdAt?: DateTimeFilter<"Referral"> | Date | string
@@ -178180,6 +178236,9 @@ export namespace Prisma {
     friendPhone?: SortOrderInput | SortOrder
     status?: SortOrder
     rejectedReason?: SortOrderInput | SortOrder
+    verifyToken?: SortOrderInput | SortOrder
+    verifiedPhone?: SortOrderInput | SortOrder
+    verifiedAt?: SortOrderInput | SortOrder
     qualifyingOrderId?: SortOrderInput | SortOrder
     qualifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -178193,6 +178252,7 @@ export namespace Prisma {
   export type ReferralWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     friendAccountId?: string
+    verifyToken?: string
     qualifyingOrderId?: string
     AND?: ReferralWhereInput | ReferralWhereInput[]
     OR?: ReferralWhereInput[]
@@ -178204,13 +178264,15 @@ export namespace Prisma {
     friendPhone?: StringNullableFilter<"Referral"> | string | null
     status?: StringFilter<"Referral"> | string
     rejectedReason?: StringNullableFilter<"Referral"> | string | null
+    verifiedPhone?: StringNullableFilter<"Referral"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
     qualifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
     createdAt?: DateTimeFilter<"Referral"> | Date | string
     program?: XOR<ReferralProgramRelationFilter, ReferralProgramWhereInput>
     code?: XOR<ReferralCodeRelationFilter, ReferralCodeWhereInput>
     referrerAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
     friendAccount?: XOR<CustomerAccountRelationFilter, CustomerAccountWhereInput>
-  }, "id" | "friendAccountId" | "qualifyingOrderId">
+  }, "id" | "friendAccountId" | "verifyToken" | "qualifyingOrderId">
 
   export type ReferralOrderByWithAggregationInput = {
     id?: SortOrder
@@ -178222,6 +178284,9 @@ export namespace Prisma {
     friendPhone?: SortOrderInput | SortOrder
     status?: SortOrder
     rejectedReason?: SortOrderInput | SortOrder
+    verifyToken?: SortOrderInput | SortOrder
+    verifiedPhone?: SortOrderInput | SortOrder
+    verifiedAt?: SortOrderInput | SortOrder
     qualifyingOrderId?: SortOrderInput | SortOrder
     qualifiedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -178243,6 +178308,9 @@ export namespace Prisma {
     friendPhone?: StringNullableWithAggregatesFilter<"Referral"> | string | null
     status?: StringWithAggregatesFilter<"Referral"> | string
     rejectedReason?: StringNullableWithAggregatesFilter<"Referral"> | string | null
+    verifyToken?: StringNullableWithAggregatesFilter<"Referral"> | string | null
+    verifiedPhone?: StringNullableWithAggregatesFilter<"Referral"> | string | null
+    verifiedAt?: DateTimeNullableWithAggregatesFilter<"Referral"> | Date | string | null
     qualifyingOrderId?: StringNullableWithAggregatesFilter<"Referral"> | string | null
     qualifiedAt?: DateTimeNullableWithAggregatesFilter<"Referral"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Referral"> | Date | string
@@ -194235,6 +194303,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -194254,6 +194325,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -194265,6 +194339,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -194284,6 +194361,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -194299,6 +194379,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -194310,6 +194393,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -194325,6 +194411,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -205132,6 +205221,9 @@ export namespace Prisma {
     friendPhone?: SortOrder
     status?: SortOrder
     rejectedReason?: SortOrder
+    verifyToken?: SortOrder
+    verifiedPhone?: SortOrder
+    verifiedAt?: SortOrder
     qualifyingOrderId?: SortOrder
     qualifiedAt?: SortOrder
     createdAt?: SortOrder
@@ -205147,6 +205239,9 @@ export namespace Prisma {
     friendPhone?: SortOrder
     status?: SortOrder
     rejectedReason?: SortOrder
+    verifyToken?: SortOrder
+    verifiedPhone?: SortOrder
+    verifiedAt?: SortOrder
     qualifyingOrderId?: SortOrder
     qualifiedAt?: SortOrder
     createdAt?: SortOrder
@@ -205162,6 +205257,9 @@ export namespace Prisma {
     friendPhone?: SortOrder
     status?: SortOrder
     rejectedReason?: SortOrder
+    verifyToken?: SortOrder
+    verifiedPhone?: SortOrder
+    verifiedAt?: SortOrder
     qualifyingOrderId?: SortOrder
     qualifiedAt?: SortOrder
     createdAt?: SortOrder
@@ -220026,6 +220124,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -220043,6 +220144,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -220064,6 +220168,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -220081,6 +220188,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -220228,6 +220338,9 @@ export namespace Prisma {
     friendPhone?: StringNullableFilter<"Referral"> | string | null
     status?: StringFilter<"Referral"> | string
     rejectedReason?: StringNullableFilter<"Referral"> | string | null
+    verifyToken?: StringNullableFilter<"Referral"> | string | null
+    verifiedPhone?: StringNullableFilter<"Referral"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
     qualifyingOrderId?: StringNullableFilter<"Referral"> | string | null
     qualifiedAt?: DateTimeNullableFilter<"Referral"> | Date | string | null
     createdAt?: DateTimeFilter<"Referral"> | Date | string
@@ -220250,6 +220363,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -220267,6 +220383,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -256165,6 +256284,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -256182,6 +256304,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -256512,6 +256637,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -256529,6 +256657,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -259433,6 +259564,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -259792,6 +259926,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -259809,6 +259946,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -259823,6 +259963,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -268005,6 +268148,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -268042,6 +268188,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -268059,6 +268208,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -268073,6 +268225,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -268087,6 +268242,9 @@ export namespace Prisma {
     friendPhone?: string | null
     status?: string
     rejectedReason?: string | null
+    verifyToken?: string | null
+    verifiedPhone?: string | null
+    verifiedAt?: Date | string | null
     qualifyingOrderId?: string | null
     qualifiedAt?: Date | string | null
     createdAt?: Date | string
@@ -268098,6 +268256,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -268115,6 +268276,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -268129,6 +268293,9 @@ export namespace Prisma {
     friendPhone?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     rejectedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     qualifyingOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     qualifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

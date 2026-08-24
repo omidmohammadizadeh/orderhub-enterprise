@@ -61,6 +61,7 @@ const svc = (over: Record<string, any> = {}) => {
     order: { findUnique: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     loyaltyReward: { create: jest.fn().mockResolvedValue({}) },
     location: { findFirst: jest.fn().mockResolvedValue({ id: "loc-1" }) },
+    integration: { findUnique: jest.fn().mockResolvedValue(null) },
     $transaction: jest.fn().mockResolvedValue([]),
     ...over,
   };
@@ -334,5 +335,174 @@ describe("an account with no phone number", () => {
     prisma.customerAccount.findUnique.mockResolvedValue({ id: "friend-1", phone: null });
     expect(await s.qualifyForOrder("order-1")).toBe(false);
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+});
+
+// Verification is the difference between checking a number somebody TYPED and
+// checking one they demonstrably hold. Meta only lets a message originate from
+// a number registered on that device, so the `from` on the webhook is proof —
+// and it costs nothing, unlike an outbound OTP.
+describe("verifying by WhatsApp", () => {
+  const referral = (over: Record<string, any> = {}) => ({
+    id: "ref-1",
+    tenantId: "t1",
+    programId: "prog-1",
+    referrerAccountId: "referrer-1",
+    friendAccountId: "friend-1",
+    friendPhone: "447999000000",
+    status: "PENDING",
+    verifiedAt: null,
+    program: PROGRAM_FOR_PAYOUT,
+    ...over,
+  });
+
+  const setup = (over: Record<string, any> = {}) => {
+    const { s, prisma } = svc();
+    prisma.referral.findFirst.mockResolvedValue(referral());
+    prisma.customerAccount.findUnique.mockResolvedValue({
+      id: "referrer-1",
+      phone: "07111 111111",
+    });
+    Object.assign(prisma, over);
+    return { s, prisma };
+  };
+
+  it("leaves an ordinary message alone for the ordering bot", async () => {
+    // Anything that is not ours must fall through, or the referral code eats
+    // somebody's attempt to order a kebab.
+    const { s } = setup();
+    expect(await s.verifyFromWhatsApp("2 large pepperoni please", "447700900123")).toBeNull();
+  });
+
+  it("accepts the pre-filled message", async () => {
+    const { s } = setup();
+    const reply = await s.verifyFromWhatsApp("VERIFY 7QK2A", "447700900123");
+    expect(reply).toMatch(/verified/i);
+  });
+
+  it("is not case- or whitespace-fussy", async () => {
+    // It is typed by a human on a phone often enough to matter.
+    const { s } = setup();
+    expect(await s.verifyFromWhatsApp("  verify 7qk2a  ", "447700900123")).toMatch(
+      /verified/i,
+    );
+  });
+
+  it("stores the number the message CAME FROM, not the one they typed", async () => {
+    // The whole point. They signed up with 07999 000000; this is what they
+    // actually hold.
+    const { s, prisma } = setup();
+    await s.verifyFromWhatsApp("VERIFY 7QK2A", "+44 7700 900123");
+    expect(prisma.referral.update.mock.calls[0][0].data).toMatchObject({
+      verifiedPhone: "447700900123",
+      friendPhone: "447700900123",
+    });
+  });
+
+  it("re-runs eligibility against the verified number and can reject", async () => {
+    // Someone typing a clean number and messaging from one that has ordered
+    // here for years is exactly what this catches.
+    const { s, prisma } = setup();
+    prisma.order.findMany.mockResolvedValue([
+      { id: "o1", customerAccountId: null, customer: { phone: "+447700900123" } },
+    ]);
+    const reply = await s.verifyFromWhatsApp("VERIFY 7QK2A", "447700900123");
+    expect(reply).toMatch(/first time/i);
+    expect(prisma.referral.update.mock.calls[0][0].data.status).toBe("REJECTED");
+  });
+
+  it("answers an unknown code instead of leaving them on silence", async () => {
+    // Still OUR message. Falling through would have the bot try to sell them
+    // something in reply to a code.
+    const { s, prisma } = setup();
+    prisma.referral.findFirst.mockResolvedValue(null);
+    expect(await s.verifyFromWhatsApp("VERIFY ZZZZZ", "447700900123")).toMatch(
+      /isn't recognised/i,
+    );
+  });
+
+  it("says so when they verify twice", async () => {
+    const { s, prisma } = setup();
+    prisma.referral.findFirst.mockResolvedValue(referral({ verifiedAt: new Date() }));
+    expect(await s.verifyFromWhatsApp("VERIFY 7QK2A", "447700900123")).toMatch(
+      /already verified/i,
+    );
+  });
+});
+
+describe("payout waits for verification", () => {
+  const order = {
+    id: "order-1",
+    tenantId: "t1",
+    locationId: "loc-1",
+    customerAccountId: "friend-1",
+    subtotal: 20,
+    total: 20,
+    status: "COMPLETED",
+    createdAt: new Date(),
+  };
+
+  const pending = {
+    id: "ref-1",
+    programId: "prog-1",
+    referrerAccountId: "referrer-1",
+    friendAccountId: "friend-1",
+    friendPhone: "447700900123",
+    verifiedPhone: null,
+    verifiedAt: null,
+    status: "PENDING",
+    program: PROGRAM_FOR_PAYOUT,
+  };
+
+  it("holds the payout when the shop can verify and the friend has not", async () => {
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue(order);
+    prisma.referral.findFirst.mockResolvedValue(pending);
+    prisma.integration = {
+      findUnique: jest
+        .fn()
+        .mockResolvedValue({ settings: { displayPhoneNumber: "+44 7700 111222" } }),
+    };
+    expect(await s.qualifyForOrder("order-1")).toBe(false);
+    // HELD, not rejected — they can still send the message afterwards, and
+    // the reward is waiting when they do.
+    expect(prisma.referral.update).not.toHaveBeenCalled();
+  });
+
+  it("pays out once verified", async () => {
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue(order);
+    prisma.referral.findFirst.mockResolvedValue({
+      ...pending,
+      verifiedPhone: "447700900123",
+      verifiedAt: new Date(),
+    });
+    prisma.integration = {
+      findUnique: jest
+        .fn()
+        .mockResolvedValue({ settings: { displayPhoneNumber: "+44 7700 111222" } }),
+    };
+    prisma.customerAccount.findUnique.mockImplementation(async ({ where }: any) =>
+      where.id === "referrer-1"
+        ? { id: "referrer-1", phone: "07111 111111" }
+        : { id: "friend-1", phone: "07700 900123" },
+    );
+    expect(await s.qualifyForOrder("order-1")).toBe(true);
+  });
+
+  it("still pays at a shop with no WhatsApp, on the unverified checks", async () => {
+    // A shop that cannot verify should not simply be unable to run referrals.
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue(order);
+    prisma.referral.findFirst.mockResolvedValue(pending);
+    prisma.integration = { findUnique: jest.fn().mockResolvedValue(null) };
+    // Two different people — the referrer and the friend must not share a
+    // phone, or the self-referral guard fires and the test proves nothing.
+    prisma.customerAccount.findUnique.mockImplementation(async ({ where }: any) =>
+      where.id === "referrer-1"
+        ? { id: "referrer-1", phone: "07111 111111" }
+        : { id: "friend-1", phone: "07700 900123" },
+    );
+    expect(await s.qualifyForOrder("order-1")).toBe(true);
   });
 });

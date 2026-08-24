@@ -2348,6 +2348,9 @@ exports.Prisma.ReferralScalarFieldEnum = {
   friendPhone: 'friendPhone',
   status: 'status',
   rejectedReason: 'rejectedReason',
+  verifyToken: 'verifyToken',
+  verifiedPhone: 'verifiedPhone',
+  verifiedAt: 'verifiedAt',
   qualifyingOrderId: 'qualifyingOrderId',
   qualifiedAt: 'qualifiedAt',
   createdAt: 'createdAt'
@@ -3776,6 +3779,8 @@ exports.Prisma.ReferralOrderByRelevanceFieldEnum = {
   friendPhone: 'friendPhone',
   status: 'status',
   rejectedReason: 'rejectedReason',
+  verifyToken: 'verifyToken',
+  verifiedPhone: 'verifiedPhone',
   qualifyingOrderId: 'qualifyingOrderId'
 };
 exports.TenantPlan = exports.$Enums.TenantPlan = {

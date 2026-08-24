@@ -33,6 +33,9 @@ export function ReferralClaim({
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(
     null,
   );
+  // Where the shop has WhatsApp, the friend proves the number before anything
+  // pays out — one tap, one pre-filled message, and it costs the shop nothing.
+  const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
   // Claimed once per mount. The effect below depends on values that change as
   // a session settles, and a second POST would just be a 400.
   const attempted = useRef(false);
@@ -70,12 +73,13 @@ export function ReferralClaim({
         } catch {
           /* nothing to clean up */
         }
-        const amount = (r.data as any)?.friendAmount;
+        const v = (r.data as any)?.verification;
+        if (v?.required && v.url) setVerifyUrl(v.url as string);
         setMessage({
           ok: true,
-          text: amount
-            ? `Code accepted. Your reward lands once your first order is complete.`
-            : "Code accepted.",
+          text: v?.required
+            ? "Code accepted. One tap to prove your number and it's yours."
+            : "Code accepted. Your reward lands once your first order is complete.",
         });
       })
       .catch((err) => {
@@ -96,6 +100,41 @@ export function ReferralClaim({
   }, [token, customerId, locationId, ref]);
 
   if (!message) return null;
+
+  if (verifyUrl && message.ok) {
+    return (
+      <div className="mx-4 mt-3 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+        <div className="flex items-start gap-3">
+          <Gift className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-emerald-900">
+              Almost there
+            </p>
+            <p className="mt-0.5 text-sm leading-relaxed text-emerald-800">
+              Send us one WhatsApp message so we know the number is yours. It
+              opens with the text already written — just hit send.
+            </p>
+            <a
+              href={verifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white"
+            >
+              Verify on WhatsApp
+            </a>
+          </div>
+          <button
+            type="button"
+            onClick={() => setVerifyUrl(null)}
+            className="shrink-0 rounded p-0.5 text-emerald-700 opacity-60 hover:opacity-100"
+            aria-label="Dismiss"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

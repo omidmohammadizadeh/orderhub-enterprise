@@ -2,6 +2,8 @@ import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 import { WhatsAppAiService } from "./whatsapp-ai.service";
+import { WhatsAppSendService } from "./whatsapp-send.service";
+import { ReferralService } from "../loyalty/referral.service";
 
 // Phase AY — WhatsApp Cloud API webhook plumbing. Handles Meta's GET
 // verification handshake, verifies + parses inbound POST events, and routes
@@ -13,6 +15,8 @@ export class WhatsAppService {
   constructor(
     private readonly config: ConfigService,
     private readonly ai: WhatsAppAiService,
+    private readonly referrals: ReferralService,
+    private readonly send: WhatsAppSendService,
   ) {}
 
   /** Meta webhook verification (GET): echo the challenge when the token matches. */
@@ -78,6 +82,26 @@ export class WhatsAppService {
             `WhatsApp inbound: from=${from} phoneNumberId=${phoneNumberId} type=${msg.type} text=${body ?? "—"}`,
           );
           if (!body) continue;
+
+          // A referral verification, BEFORE the AI sees it. "VERIFY 7QK2" is
+          // not an attempt to order anything, and letting the engine answer it
+          // would have the shop try to sell a confused new customer a kebab.
+          //
+          // Free on both legs: inbound is never billed, and their message
+          // opens the 24-hour window this reply goes out in.
+          try {
+            const reply = await this.referrals.verifyFromWhatsApp(body, from);
+            if (reply) {
+              await this.send.sendText(phoneNumberId, from, reply);
+              continue;
+            }
+          } catch (err: any) {
+            this.logger.error(
+              `Referral verify failed for ${from}: ${err?.message ?? err}`,
+            );
+            // Falls through to the AI rather than leaving them on silence.
+          }
+
           // Route into the AI conversation engine. Errors are swallowed so the
           // webhook still returns 200 (the engine sends its own error reply).
           try {
