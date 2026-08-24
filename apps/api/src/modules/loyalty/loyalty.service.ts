@@ -9,10 +9,19 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 //
 // ── Where a stamp comes from ────────────────────────────────────────────────
 //
-// A COMPLETED order, from a signed-in customer, at a location with an active
-// card, meeting the minimum spend. Not at checkout: an order that is cancelled
-// or refunded five minutes later must not have paid for a stamp, and giving
-// one at payment then taking it back is worse than giving it late.
+// An ACCEPTED order, from a signed-in customer, at a location with an active
+// card, meeting the minimum spend.
+//
+// Accepted, not completed. Nothing in this system marks an order COMPLETED on
+// its own — only staff pressing the button, or a dine-in tab closing. A busy
+// takeaway accepts a collection order, cooks it, hands it over and moves on,
+// and the board shows Accepted for the rest of the night. Keying stamps off
+// completion meant they mostly never arrived, which is worse than the problem
+// it was avoiding.
+//
+// Acceptance is the shop saying yes to the order, and it is also what the
+// customer thinks earned the stamp. The honesty is kept by the other half:
+// a cancelled or rejected order has its stamp TAKEN BACK.
 //
 // ── Why the order id is unique ──────────────────────────────────────────────
 //
@@ -28,6 +37,20 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 // customer was already promised.
 
 const DEFAULT_STAMPS = 6;
+
+/** The shop has said yes. Anything from here on has earned its stamp. */
+const EARNING = new Set([
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+  "ASSIGNED_DRIVER",
+  "RIDER_ARRIVED",
+  "OUT_FOR_DELIVERY",
+  "COMPLETED",
+]);
+
+/** The order is not happening. Whatever it earned comes back. */
+const REVOKING = new Set(["CANCELLED", "REJECTED", "FAILED", "REFUNDED"]);
 
 @Injectable()
 export class LoyaltyService {
@@ -138,8 +161,16 @@ export class LoyaltyService {
     // `toStatus`, which is what OrdersService.updateStatus emits. This read
     // `newStatus` and matched nothing, so no stamp was ever awarded — the
     // guard returned on the first line of every transition.
-    if (payload?.toStatus !== "COMPLETED" || !payload.orderId) return;
+    if (!payload.orderId) return;
     try {
+      // Taken back as readily as it is given. An order that is cancelled or
+      // rejected after acceptance must not leave a stamp behind, or six
+      // cancellations are a free main.
+      if (REVOKING.has(payload.toStatus ?? "")) {
+        await this.revokeForOrder(payload.orderId);
+        return;
+      }
+      if (payload.toStatus !== "ACCEPTED") return;
       await this.awardForOrder(payload.orderId);
     } catch (err) {
       this.logger.warn(
@@ -162,7 +193,9 @@ export class LoyaltyService {
       },
     });
     const none = { stamped: false, earnedReward: false };
-    if (!order || order.status !== "COMPLETED") return none;
+    // Anything at or past acceptance counts — a shop that goes straight to
+    // PREPARING, or an order completed by a tab closing, has still accepted it.
+    if (!order || !EARNING.has(order.status)) return none;
     // Guest checkouts cannot hold a card — there is nobody to give it to.
     if (!order.customerAccountId) return none;
 
@@ -200,6 +233,57 @@ export class LoyaltyService {
       order.customerAccountId,
     );
     return { stamped: true, earnedReward };
+  }
+
+  /**
+   * Take back the stamp an order earned.
+   *
+   * If it had completed a card, the reward goes too — but only while it is
+   * still UNCLAIMED. Once someone has eaten the free chicken, clawing it back
+   * over a cancelled order is a worse outcome than absorbing it.
+   */
+  async revokeForOrder(orderId: string): Promise<void> {
+    const stamp = await this.prisma.loyaltyStamp.findUnique({
+      where: { orderId },
+      select: { id: true, cardId: true, customerAccountId: true },
+    });
+    if (!stamp) return;
+
+    await this.prisma.loyaltyStamp.delete({ where: { id: stamp.id } });
+
+    const card = await this.prisma.loyaltyCard.findUnique({
+      where: { id: stamp.cardId },
+      select: { id: true, stampsRequired: true },
+    });
+    if (!card) return;
+
+    const [stamps, rewards] = await Promise.all([
+      this.prisma.loyaltyStamp.count({
+        where: { cardId: card.id, customerAccountId: stamp.customerAccountId },
+      }),
+      this.prisma.loyaltyReward.count({
+        where: { cardId: card.id, customerAccountId: stamp.customerAccountId },
+      }),
+    ]);
+
+    // One reward too many for the stamps that remain.
+    if (rewards > Math.floor(stamps / card.stampsRequired)) {
+      const spare = await this.prisma.loyaltyReward.findFirst({
+        where: {
+          cardId: card.id,
+          customerAccountId: stamp.customerAccountId,
+          claimedAt: null,
+        },
+        orderBy: { earnedAt: "desc" },
+      });
+      if (spare) {
+        await this.prisma.loyaltyReward.delete({ where: { id: spare.id } });
+        this.logger.log(
+          `Reward ${spare.id} withdrawn — order ${orderId} was cancelled`,
+        );
+      }
+    }
+    this.logger.log(`Stamp for order ${orderId} withdrawn`);
   }
 
   /**

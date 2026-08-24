@@ -17,10 +17,14 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 // people order as guests for years before they ever sign up, and they are not
 // new customers.
 //
-// ── Paid on COMPLETION, never at checkout ───────────────────────────────────
+// ── Paid on ACCEPTANCE, never at checkout ───────────────────────────────────
 //
-// An order cancelled five minutes later must not have paid out two discounts.
-// Same rule as the stamps, for the same reason.
+// Nothing marks an order COMPLETED on its own — only staff pressing the
+// button — so a busy takeaway leaves collection orders on Accepted all night.
+// Paying out on completion meant referrals mostly never paid at all.
+//
+// Acceptance is the shop saying yes. A payload is not; an order that never
+// gets accepted has bought nothing.
 //
 // ── Every limit exists because it is money ──────────────────────────────────
 //
@@ -31,6 +35,17 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 /** No 0/O/1/I/5/S — these get read aloud and typed in by someone else. */
 const ALPHABET = "ABCDEFGHJKLMNPQRTUVWXYZ2346789";
+
+/** The shop has said yes to the order. Anything from here on has qualified. */
+const EARNING = new Set([
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+  "ASSIGNED_DRIVER",
+  "RIDER_ARRIVED",
+  "OUT_FOR_DELIVERY",
+  "COMPLETED",
+]);
 
 export type ReferralRejection =
   | "ALREADY_A_CUSTOMER"
@@ -241,7 +256,10 @@ export class ReferralService {
   @OnEvent("order.status_changed")
   async onOrderStatusChanged(payload: { orderId?: string; toStatus?: string }) {
     // `toStatus` — the field OrdersService.updateStatus actually emits.
-    if (payload?.toStatus !== "COMPLETED" || !payload.orderId) return;
+    // ACCEPTED for the same reason the stamps use it: COMPLETED is a button
+    // nobody presses, and a referral that never pays out is not a referral
+    // scheme.
+    if (payload?.toStatus !== "ACCEPTED" || !payload.orderId) return;
     try {
       await this.qualifyForOrder(payload.orderId);
     } catch (err) {
@@ -272,9 +290,8 @@ export class ReferralService {
         createdAt: true,
       },
     });
-    if (!order || order.status !== "COMPLETED" || !order.customerAccountId) {
-      return false;
-    }
+    if (!order || !order.customerAccountId) return false;
+    if (!EARNING.has(order.status)) return false;
 
     const referral = await this.prisma.referral.findFirst({
       where: {

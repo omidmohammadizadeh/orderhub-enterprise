@@ -42,7 +42,7 @@ const order = (over: Record<string, any> = {}) => ({
   customerAccountId: "cust-1",
   subtotal: 12,
   total: 15,
-  status: "COMPLETED",
+  status: "ACCEPTED",
   ...over,
 });
 
@@ -64,12 +64,19 @@ describe("earning a stamp", () => {
     expect((await s.awardForOrder("order-1")).stamped).toBe(false);
   });
 
-  it("gives nothing for an order that is not completed", async () => {
-    // A stamp at payment is a stamp that has to be taken back when the order
-    // is cancelled five minutes later.
+  it("gives nothing for an order the shop has not accepted yet", async () => {
+    // A payload is not an order. Until the shop says yes, nothing is owed.
     const { s, prisma } = svc();
     prisma.order.findUnique.mockResolvedValue(order({ status: "PENDING" }));
     expect((await s.awardForOrder("order-1")).stamped).toBe(false);
+  });
+
+  it("stamps an order that has moved past acceptance", async () => {
+    // A shop that jumps straight to PREPARING has still accepted it.
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue(order({ status: "PREPARING" }));
+    prisma.loyaltyCard.findUnique.mockResolvedValue(ACTIVE);
+    expect((await s.awardForOrder("order-1")).stamped).toBe(true);
   });
 
   it("gives nothing when the card is switched off", async () => {
@@ -221,7 +228,7 @@ describe("the order.status_changed listener", () => {
       customerAccountId: "cust-1",
       subtotal: 20,
       total: 20,
-      status: "COMPLETED",
+      status: "ACCEPTED",
     });
     prisma.loyaltyCard.findUnique.mockResolvedValue(ACTIVE);
     return { s, prisma };
@@ -229,14 +236,26 @@ describe("the order.status_changed listener", () => {
 
   it("acts on the field OrdersService actually emits — toStatus", async () => {
     const { s, prisma } = listen();
-    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" });
     expect(prisma.loyaltyStamp.create).toHaveBeenCalled();
   });
 
-  it("ignores every other transition", async () => {
+  it("ignores a transition that is neither acceptance nor cancellation", async () => {
     const { s, prisma } = listen();
-    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "READY" });
     expect(prisma.loyaltyStamp.create).not.toHaveBeenCalled();
+  });
+
+  it("takes the stamp back when the order is cancelled", async () => {
+    // Otherwise six cancellations are a free main.
+    const { s, prisma } = listen();
+    prisma.loyaltyStamp.findUnique = jest
+      .fn()
+      .mockResolvedValue({ id: "st-1", cardId: "card-1", customerAccountId: "cust-1" });
+    prisma.loyaltyStamp.delete = jest.fn().mockResolvedValue({});
+    prisma.loyaltyReward.delete = jest.fn().mockResolvedValue({});
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "CANCELLED" });
+    expect(prisma.loyaltyStamp.delete).toHaveBeenCalled();
   });
 
   it("never throws into the transition that raised it", async () => {
@@ -245,7 +264,7 @@ describe("the order.status_changed listener", () => {
     const { s, prisma } = listen();
     prisma.order.findUnique.mockRejectedValue(new Error("database is on fire"));
     await expect(
-      s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" }),
+      s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" }),
     ).resolves.toBeUndefined();
   });
 });
