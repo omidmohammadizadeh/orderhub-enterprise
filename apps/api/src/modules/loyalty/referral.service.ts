@@ -239,8 +239,9 @@ export class ReferralService {
   // ── Qualification ────────────────────────────────────────────────────────
 
   @OnEvent("order.status_changed")
-  async onOrderStatusChanged(payload: { orderId?: string; newStatus?: string }) {
-    if (payload?.newStatus !== "COMPLETED" || !payload.orderId) return;
+  async onOrderStatusChanged(payload: { orderId?: string; toStatus?: string }) {
+    // `toStatus` — the field OrdersService.updateStatus actually emits.
+    if (payload?.toStatus !== "COMPLETED" || !payload.orderId) return;
     try {
       await this.qualifyForOrder(payload.orderId);
     } catch (err) {

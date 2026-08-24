@@ -918,10 +918,18 @@ export class OrdersService {
     const idPrefix = resolvedSource.toLowerCase();
 
     // POS display brand: a location can pin a "POS display name" brand in its
-    // settings (Location settings → POS display name). POS/phone orders are
-    // then attributed to that brand so the ticket, Orders board, and receipt
-    // all show that name regardless of which menu built the cart. Storefront
-    // (DIRECT) orders keep their own brand pin from the checkout.
+    // settings (Location settings → POS display name), so counter and phone
+    // orders show that name whichever menu built the cart.
+    //
+    // It must NEVER overwrite a brand the caller pinned. A customer who opened
+    // the Monster Burgerz storefront and ordered from it has told us which
+    // brand this is; the location's POS default is a fallback for orders that
+    // arrived without one, not a correction.
+    //
+    // This guard used to read `resolvedSource !== "DIRECT"`, and the storefront
+    // sends "ONLINE" — so every online order at a location with a POS display
+    // brand had the customer's own choice replaced by it, and Monster Burgerz
+    // orders landed on the board as Pizza Uno.
     let effectiveBrandId = (dto as any).brandId as string | undefined;
     // Also carries the service-charge config — one fetch, two uses.
     let locationSettings: unknown = null;
@@ -934,7 +942,8 @@ export class OrdersService {
       const posBrandId = (loc?.settings as any)?.posBrandId as
         | string
         | undefined;
-      if (resolvedSource !== "DIRECT" && posBrandId) {
+      const countertop = resolvedSource === "POS" || resolvedSource === "PHONE";
+      if (!effectiveBrandId && countertop && posBrandId) {
         effectiveBrandId = posBrandId;
       }
     }

@@ -206,3 +206,46 @@ describe("configuring the card", () => {
     ).rejects.toThrow(/Reward item not found/);
   });
 });
+
+// The listener reads a field off an event somebody else emits, and getting the
+// NAME wrong fails silently — every transition returns on the first line and
+// no stamp is ever awarded, with nothing in the logs to say so. That is
+// exactly what happened, so the shape is pinned here.
+describe("the order.status_changed listener", () => {
+  const listen = () => {
+    const { s, prisma } = svc();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1",
+      tenantId: "t1",
+      locationId: "loc-1",
+      customerAccountId: "cust-1",
+      subtotal: 20,
+      total: 20,
+      status: "COMPLETED",
+    });
+    prisma.loyaltyCard.findUnique.mockResolvedValue(ACTIVE);
+    return { s, prisma };
+  };
+
+  it("acts on the field OrdersService actually emits — toStatus", async () => {
+    const { s, prisma } = listen();
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" });
+    expect(prisma.loyaltyStamp.create).toHaveBeenCalled();
+  });
+
+  it("ignores every other transition", async () => {
+    const { s, prisma } = listen();
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" });
+    expect(prisma.loyaltyStamp.create).not.toHaveBeenCalled();
+  });
+
+  it("never throws into the transition that raised it", async () => {
+    // A loyalty scheme failing must not roll back a kitchen state staff can
+    // already see on the board.
+    const { s, prisma } = listen();
+    prisma.order.findUnique.mockRejectedValue(new Error("database is on fire"));
+    await expect(
+      s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" }),
+    ).resolves.toBeUndefined();
+  });
+});

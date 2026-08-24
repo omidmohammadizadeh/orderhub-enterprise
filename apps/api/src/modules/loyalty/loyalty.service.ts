@@ -133,9 +133,12 @@ export class LoyaltyService {
   @OnEvent("order.status_changed")
   async onOrderStatusChanged(payload: {
     orderId?: string;
-    newStatus?: string;
+    toStatus?: string;
   }): Promise<void> {
-    if (payload?.newStatus !== "COMPLETED" || !payload.orderId) return;
+    // `toStatus`, which is what OrdersService.updateStatus emits. This read
+    // `newStatus` and matched nothing, so no stamp was ever awarded — the
+    // guard returned on the first line of every transition.
+    if (payload?.toStatus !== "COMPLETED" || !payload.orderId) return;
     try {
       await this.awardForOrder(payload.orderId);
     } catch (err) {
