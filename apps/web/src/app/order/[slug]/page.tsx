@@ -1643,6 +1643,26 @@ function OrderPage() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4">
+        {/* Refer a friend, hung at the TOP of the menu.
+            It used to sit at the very bottom, below every category — on a
+            193-item menu that is several screens of scrolling past food
+            nobody has to scroll past to leave. Unlike the loyalty card this
+            one is MEANT to be seen: it only works if somebody notices it and
+            tells a friend. Renders nothing when the shop runs no programme,
+            so a shop without one loses nothing to it being here. */}
+        <div className="pt-4">
+          <ReferAFriend
+            locationId={storefront?.location?.id}
+            brandName={storefront?.brand?.name ?? storefront?.location?.name}
+            shareUrl={
+              typeof window !== "undefined"
+                ? `${window.location.origin}/order/${encodeURIComponent(String(slug))}${brandId ? `?brand=${brandId}` : ""}`
+                : ""
+            }
+            currency={currency}
+            token={customerToken}
+          />
+        </div>
         {/* Restaurant info card.
             Sat below the hero now — the previous -mt-12 made the
             title text clip into the banner image at certain viewport
@@ -2592,22 +2612,6 @@ function OrderPage() {
         customerId={authCustomer?.id}
       />
 
-      {/* Refer a friend. Unlike the loyalty card this one is meant to be
-          seen — it only works if somebody notices it and tells someone. It
-          renders nothing at all when the shop runs no referral programme. */}
-      <div className="px-4 pb-4">
-        <ReferAFriend
-          locationId={storefront?.location?.id}
-          brandName={storefront?.brand?.name ?? storefront?.location?.name}
-          shareUrl={
-            typeof window !== "undefined"
-              ? `${window.location.origin}/order/${encodeURIComponent(String(slug))}${brandId ? `?brand=${brandId}` : ""}`
-              : ""
-          }
-          currency={currency}
-          token={customerToken}
-        />
-      </div>
 
       {/* Mobile tab bar. On a phone a storefront is four places, not one long
           page — what's on, what to order, what you ordered, what you've

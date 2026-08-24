@@ -201,6 +201,23 @@ export default function StorefrontHomePage() {
         </Section>
       ) : null}
 
+      {/* Hung under the hero rather than at the foot of the page. A referral
+          sign at the bottom is a sign nobody reads — it only works if somebody
+          notices it and tells a friend. Renders nothing when the shop runs no
+          programme. */}
+      <section className="px-4 pt-6">
+        <ReferAFriend
+          locationId={location?.id}
+          brandName={brand?.name ?? location?.name}
+          shareUrl={
+            typeof window !== "undefined"
+              ? `${window.location.origin}/order/${encodeURIComponent(slug)}${brandId ? `?brand=${brandId}` : ""}`
+              : ""
+          }
+          currency={currency}
+          token={customerToken}
+        />
+      </section>
       {/* ── What's on ────────────────────────────────────────────────── */}
       {topSellers.length > 0 ? (
         <Section title="What's on" delay={140}>
@@ -263,19 +280,6 @@ export default function StorefrontHomePage() {
         </div>
       </Section>
 
-      <section className="px-4 pt-6">
-        <ReferAFriend
-          locationId={location?.id}
-          brandName={brand?.name ?? location?.name}
-          shareUrl={
-            typeof window !== "undefined"
-              ? `${window.location.origin}/order/${encodeURIComponent(slug)}${brandId ? `?brand=${brandId}` : ""}`
-              : ""
-          }
-          currency={currency}
-          token={customerToken}
-        />
-      </section>
 
       <footer className="px-4 pb-8 pt-6 text-center">
         <a
