@@ -86,8 +86,10 @@ const MANAGER_TIER = [
 ];
 const STAFF_TIER = [...MANAGER_TIER, "MANAGER", "STAFF"];
 // MANAGER's remit is deliberately narrow: the running of one shop. Anything
-// that shapes the business — menu, pricing, marketing, team, hardware,
-// locations — stays with owners. Kept as its own list rather than bolted onto
+// that shapes the business — menu, pricing, team, hardware, locations — stays
+// with owners. MARKETING is the exception, added on the owner's instruction:
+// a shop manager is who actually notices Tuesdays are quiet, and making them
+// ask upstairs to launch an offer is how offers stop being launched. Kept as its own list rather than bolted onto
 // STAFF_TIER so the boundary is visible in one place instead of inferred from
 // a dozen scattered role arrays.
 const MANAGER_TIER_PLUS = [...MANAGER_TIER, "MANAGER"];
@@ -153,7 +155,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/assistant", label: "AI Assistant", icon: Bot, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: [...MANAGER_TIER, "STAFF"] },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
-  { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
+  { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.

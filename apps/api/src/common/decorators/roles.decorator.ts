@@ -42,3 +42,31 @@ export const TILL_ROLES = [
   "OWNER",
   "DARK_KITCHEN_MANAGER",
 ] as const satisfies readonly UserRole[];
+
+/**
+ * Who can run the marketing side of a shop: campaigns, top sellers, the
+ * loyalty card, refer-a-friend.
+ *
+ * Same lesson as TILL_ROLES, one layer up. Phase AR's Team Roles sit OUTSIDE
+ * the RolesGuard hierarchy, so OWNER and DARK_KITCHEN_MANAGER only ever pass
+ * by exact match — listing "MANAGER, TENANT_OWNER, PLATFORM_ADMIN" on a route
+ * silently locks out the very people the Team Roles UI creates. Spreading one
+ * list is the only way the two generations cannot drift.
+ *
+ * MANAGER is included deliberately. Marketing was owner-only on the reasoning
+ * that it "shapes the business", but a shop manager is who actually notices
+ * that Tuesdays are quiet, and making them ask an owner to launch an offer is
+ * how offers stop being launched.
+ *
+ * Deliberately NOT for money-out routes — SMS credit top-ups, payouts and
+ * Stripe Connect keep their own narrower lists.
+ */
+export const MARKETING_ROLES = [
+  "MANAGER",
+  "TENANT_OWNER",
+  "PLATFORM_ADMIN",
+  // Phase AR equivalents of the three above.
+  "DARK_KITCHEN_MANAGER",
+  "OWNER",
+] as const satisfies readonly UserRole[];
+

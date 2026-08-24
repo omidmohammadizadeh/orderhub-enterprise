@@ -16,9 +16,18 @@ import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { MarketingService } from "./marketing.service";
 import { CreateCampaignDto, UpdateCampaignDto } from "./dto/campaign.dto";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { Roles, MARKETING_ROLES } from "../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
+// Guarded at the CLASS, which it was not before: these routes carried no
+// @Roles at all, so the RolesGuard waved through every authenticated caller —
+// a driver, a kiosk device, a kitchen screen. The sidebar hid the page, which
+// hides a link, not an endpoint.
+//
+// MARKETING_ROLES rather than a hand-written list, so the two generations of
+// role names cannot drift apart here the way they did on the till routes.
 @ApiTags("marketing")
+@Roles(...MARKETING_ROLES)
 @Controller({ path: "marketing", version: "1" })
 export class MarketingController {
   constructor(private readonly svc: MarketingService) {}

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Public } from "../../common/decorators/public.decorator";
-import { Roles } from "../../common/decorators/roles.decorator";
+import { Roles, MARKETING_ROLES } from "../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import {
@@ -30,7 +30,7 @@ export class LoyaltyController {
 
   @Get("cards/:locationId")
   @ApiBearerAuth()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MARKETING_ROLES)
   @ApiOperation({ summary: "This location's loyalty card settings" })
   getCard(
     @Param("locationId") locationId: string,
@@ -41,7 +41,7 @@ export class LoyaltyController {
 
   @Put("cards/:locationId")
   @ApiBearerAuth()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MARKETING_ROLES)
   @ApiOperation({ summary: "Save this location's loyalty card" })
   saveCard(
     @Param("locationId") locationId: string,
@@ -87,7 +87,7 @@ export class LoyaltyController {
 
   @Get("referrals/:locationId")
   @ApiBearerAuth()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MARKETING_ROLES)
   @ApiOperation({ summary: "This location's refer-a-friend settings" })
   getProgram(
     @Param("locationId") locationId: string,
@@ -98,7 +98,7 @@ export class LoyaltyController {
 
   @Put("referrals/:locationId")
   @ApiBearerAuth()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MARKETING_ROLES)
   @ApiOperation({ summary: "Save this location's refer-a-friend settings" })
   saveProgram(
     @Param("locationId") locationId: string,
