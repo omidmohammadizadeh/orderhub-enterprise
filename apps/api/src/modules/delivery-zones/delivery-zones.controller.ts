@@ -13,7 +13,7 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { DeliveryZonesService } from "./delivery-zones.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { Roles } from "../../common/decorators/roles.decorator";
+import { Roles, DELIVERY_PRICING_ROLES } from "../../common/decorators/roles.decorator";
 import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
@@ -66,7 +66,7 @@ export class DeliveryZonesController {
   }
 
   @Post()
-  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...DELIVERY_PRICING_ROLES)
   @ApiOperation({ summary: "Create delivery zone" })
   create(
     @CurrentUser() user: AuthenticatedUser,
@@ -86,7 +86,7 @@ export class DeliveryZonesController {
   }
 
   @Patch(":id")
-  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...DELIVERY_PRICING_ROLES)
   @ApiOperation({ summary: "Update delivery zone" })
   update(
     @CurrentUser() user: AuthenticatedUser,
@@ -105,7 +105,7 @@ export class DeliveryZonesController {
   }
 
   @Delete(":id")
-  @Roles("OWNER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...DELIVERY_PRICING_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete delivery zone" })
   remove(

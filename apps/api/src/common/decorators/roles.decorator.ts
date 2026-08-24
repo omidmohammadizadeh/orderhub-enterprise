@@ -70,3 +70,23 @@ export const MARKETING_ROLES = [
   "OWNER",
 ] as const satisfies readonly UserRole[];
 
+/**
+ * Who can set what a customer is charged to have food delivered: the postcode
+ * prefixes, the named areas, the distance bands and their fees.
+ *
+ * Owners, not managers. Delivery pricing is margin — it is the difference
+ * between a £2 fee that loses money on every order across town and a £5 one
+ * that stops the phone ringing — and it sits with whoever carries the P&L.
+ * The brand settings drawer has always drawn the line there; this list is the
+ * server agreeing with it, which it previously did not.
+ *
+ * DARK_KITCHEN_MANAGER is absent on purpose, not by oversight: it is the Phase
+ * AR twin of MANAGER, and MANAGER is not here either.
+ */
+export const DELIVERY_PRICING_ROLES = [
+  "TENANT_OWNER",
+  "PLATFORM_ADMIN",
+  // Phase AR equivalent of TENANT_OWNER.
+  "OWNER",
+] as const satisfies readonly UserRole[];
+

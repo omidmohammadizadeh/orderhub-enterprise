@@ -41,3 +41,33 @@ describe("MARKETING_ROLES", () => {
     expect(roles).not.toContain("FINANCIAL_AGENT");
   });
 });
+
+import { DELIVERY_PRICING_ROLES } from "../decorators/roles.decorator";
+
+// Delivery pricing is margin — the difference between a £2 fee that loses
+// money on every order across town and a £5 one that stops the phone ringing.
+// The brand settings drawer has always kept it with owners; the server used to
+// disagree and let managers through, which is the kind of split that only
+// surfaces when someone changes a fee nobody meant them to touch.
+describe("DELIVERY_PRICING_ROLES", () => {
+  const roles = DELIVERY_PRICING_ROLES as readonly string[];
+
+  it("admits owners under both naming generations", () => {
+    expect(roles).toEqual(
+      expect.arrayContaining(["TENANT_OWNER", "OWNER", "PLATFORM_ADMIN"]),
+    );
+  });
+
+  it("keeps managers out under both naming generations", () => {
+    // Deliberate, and the pair is asserted together so adding one back without
+    // the other cannot happen quietly.
+    expect(roles).not.toContain("MANAGER");
+    expect(roles).not.toContain("DARK_KITCHEN_MANAGER");
+  });
+
+  it("is narrower than marketing", () => {
+    // Marketing discounts an order; delivery pricing sets the floor under
+    // every order. The second is the tighter permission of the two.
+    expect(roles).not.toContain("MANAGER");
+  });
+});

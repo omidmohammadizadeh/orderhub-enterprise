@@ -1044,7 +1044,7 @@ export function BrandSettingsDrawer({
               matching delivery fee. The longest matching prefix wins
               (so &ldquo;SW1A&rdquo; beats &ldquo;SW&rdquo;).
             </p>
-            <DeliveryZonesEditor brandId={brand.id} isAdmin={canEdit} />
+            <DeliveryZonesEditor brandId={brand.id} canEdit={canEdit} />
           </Section>
 
           {save.isError && (
@@ -1121,10 +1121,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function DeliveryZonesEditor({
   brandId,
-  isAdmin,
+  canEdit,
 }: {
   brandId: string;
-  isAdmin: boolean;
+  // Named for what it means. It was called `canEdit` while being handed
+  // `canEdit`, which reads as admin-only to anyone scanning the file — and
+  // had us hunting for a restriction that was never there.
+  canEdit: boolean;
 }) {
   const { money, country } = useCurrency();
   const qc = useQueryClient();
@@ -1231,7 +1234,7 @@ function DeliveryZonesEditor({
           <button
             key={m}
             type="button"
-            disabled={!isAdmin || zones.length > 0}
+            disabled={!canEdit || zones.length > 0}
             onClick={() => setMode(m)}
             className={`rounded-md border px-3 py-1.5 text-[11px] font-medium disabled:opacity-60 ${
               mode === m
@@ -1313,7 +1316,7 @@ function DeliveryZonesEditor({
               </span>
               <button
                 type="button"
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 onClick={() => toggleActive.mutate(z)}
                 className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
                   z.isActive
@@ -1325,7 +1328,7 @@ function DeliveryZonesEditor({
               </button>
               <button
                 type="button"
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 onClick={() => remove.mutate(z.id)}
                 className="text-zinc-400 hover:text-red-600 disabled:opacity-50"
                 aria-label="Delete"
@@ -1348,7 +1351,7 @@ function DeliveryZonesEditor({
                 type="number"
                 min={String(nextFrom)}
                 step="0.1"
-                disabled={!isAdmin}
+                disabled={!canEdit}
                 className="input"
               />
               <span className="text-[11px] text-zinc-500">{unit}</span>
@@ -1360,7 +1363,7 @@ function DeliveryZonesEditor({
               value={newArea}
               onChange={(e) => setNewArea(e.target.value)}
               placeholder="Dubai Marina"
-              disabled={!isAdmin}
+              disabled={!canEdit}
               className="input"
             />
           </Field>
@@ -1370,7 +1373,7 @@ function DeliveryZonesEditor({
               value={newPrefix}
               onChange={(e) => setNewPrefix(e.target.value)}
               placeholder="SW1A"
-              disabled={!isAdmin}
+              disabled={!canEdit}
               className="input"
             />
           </Field>
@@ -1383,7 +1386,7 @@ function DeliveryZonesEditor({
             type="number"
             min="0"
             step="0.01"
-            disabled={!isAdmin}
+            disabled={!canEdit}
             className="input"
           />
         </Field>
@@ -1395,7 +1398,7 @@ function DeliveryZonesEditor({
             type="number"
             min="0"
             step="0.01"
-            disabled={!isAdmin}
+            disabled={!canEdit}
             className="input"
           />
         </Field>
@@ -1403,7 +1406,7 @@ function DeliveryZonesEditor({
           type="button"
           onClick={() => create.mutate()}
           disabled={
-            !isAdmin ||
+            !canEdit ||
             create.isPending ||
             !newFee ||
             (mode === "RADIUS"
