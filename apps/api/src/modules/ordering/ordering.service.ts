@@ -111,6 +111,14 @@ export interface CheckoutDto {
   // attributed to them for the "My Orders" page. Null/undefined
   // means guest checkout — order is still placed, just unlinked.
   customerAccountId?: string;
+  /**
+   * A loyalty reward the customer is spending on this order.
+   *
+   * The id only — the item and its price come from the reward, never from the
+   * client. A basket that says "this pizza is free" is a basket anyone can
+   * write.
+   */
+  loyaltyRewardId?: string;
 }
 
 /**
@@ -1089,6 +1097,73 @@ export class OrderingService {
   }
 
   /**
+   * The free item a loyalty reward buys, as an order line at zero.
+   *
+   * Everything comes from the REWARD, never from the basket — the id is the
+   * only thing the client gets a say in. Otherwise "this pizza is free" is
+   * something anyone can put in a payload.
+   *
+   * Returns null rather than throwing when the reward is not spendable. The
+   * customer is at the payment step; refusing the whole order because a stamp
+   * card is in a state they cannot see is worse than quietly charging them
+   * and leaving the reward on their card for next time.
+   */
+  private async buildLoyaltyLine(
+    rewardId: string | undefined,
+    customerAccountId: string | undefined,
+    locationId: string,
+  ) {
+    if (!rewardId || !customerAccountId) return null;
+
+    const reward = await this.prisma.loyaltyReward.findFirst({
+      where: {
+        id: rewardId,
+        customerAccountId,
+        claimedAt: null,
+        // The card is per location, so a reward earned at one shop cannot be
+        // spent at another.
+        card: { locationId, isActive: true },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    });
+    if (!reward) {
+      this.logger.warn(
+        `Loyalty reward ${rewardId} not spendable at ${locationId} — order placed without it`,
+      );
+      return null;
+    }
+
+    const item = reward.rewardItemId
+      ? await this.prisma.menuItem.findUnique({
+          where: { id: reward.rewardItemId },
+          select: { id: true, name: true, plu: true },
+        })
+      : null;
+
+    // A reward whose item has since been deleted still has to be honourable —
+    // the label was frozen when it was earned. Without a menu item it goes on
+    // the ticket by name alone, which is exactly what the paper card did.
+    if (!item) {
+      this.logger.warn(
+        `Loyalty reward ${reward.id} names a deleted item — printing "${reward.label}" by name`,
+      );
+    }
+
+    return {
+      menuItemId: item?.id ?? "",
+      name: item?.name ?? reward.label,
+      quantity: 1,
+      unitPrice: 0,
+      totalPrice: 0,
+      modifiers: [],
+      // Prints under the line on every ticket we already render, so the
+      // kitchen and the counter both see WHY it costs nothing without a
+      // single renderer needing to know loyalty exists.
+      notes: "★ LOYALTY REWARD — free on the card",
+    };
+  }
+
+  /**
    * Refuse a basket containing something the shop does not sell this way.
    *
    * Named in the error, because "your order could not be placed" at the
@@ -1481,6 +1556,18 @@ export class OrderingService {
         serverTip,
     );
 
+    // The loyalty reward, added as a real order line at zero.
+    //
+    // A line rather than a discount, because staff need to see the THING. A
+    // ticket that says "-£3.50" tells a kitchen nothing about what to put in
+    // the bag, and a customer querying it has nothing to point at.
+    const loyaltyLine = await this.buildLoyaltyLine(
+      dto.loyaltyRewardId,
+      dto.customerAccountId,
+      location.id,
+    );
+    if (loyaltyLine) items.push(loyaltyLine);
+
     const order = await this.ordersService.create(
       {
         locationId: location.id,
@@ -1518,6 +1605,28 @@ export class OrderingService {
       } as any,
       location.brand.tenantId,
     );
+
+    // Spend the reward, now that there is an order id to attach it to.
+    //
+    // claimedOrderId is UNIQUE, so a double-submitted checkout cannot spend
+    // one reward twice — the second write loses to the constraint. Awaited
+    // rather than fired and forgotten: the food is already on the ticket for
+    // free, and a card that still shows the reward afterwards would let it be
+    // spent again on the next order.
+    if (loyaltyLine && dto.loyaltyRewardId && dto.customerAccountId) {
+      try {
+        await this.prisma.loyaltyReward.updateMany({
+          where: { id: dto.loyaltyRewardId, claimedAt: null },
+          data: { claimedAt: new Date(), claimedOrderId: order.id },
+        });
+      } catch (err) {
+        // The order stands. A reward left showing is recoverable by hand;
+        // failing a paid order is not.
+        this.logger.error(
+          `Loyalty reward ${dto.loyaltyRewardId} was given away on order ${order.id} but not marked claimed: ${(err as Error).message}`,
+        );
+      }
+    }
 
     // Phase MK-INSIGHTS — attribute the order to whichever campaigns
     // actually applied, so the Marketing page can report real

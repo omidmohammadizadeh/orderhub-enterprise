@@ -1248,6 +1248,10 @@ function OrderPage() {
         // so it shows up on their My Orders page. Undefined means
         // guest checkout — server treats it as no link.
         customerAccountId: authCustomer?.id,
+        // The reward the customer chose to spend. The id only — the server
+        // takes the item and its price from the reward itself, because a
+        // basket that says "this is free" is a basket anyone can write.
+        loyaltyRewardId: useLoyaltyReward ? (loyaltyReward?.id ?? undefined) : undefined,
         // "Keep me updated by SMS" checkbox → SMS-marketing consent.
         marketingConsent: smsMarketingConsent,
       };
@@ -1313,7 +1317,28 @@ function OrderPage() {
   // it. Pre-fills cart name + phone with the customer's profile so
   // they don't retype, and auto-fires checkout if they hit "Place
   // order" before signing in.
-  const { customer: authCustomer, logout: logoutCustomer } = useCustomerAuth();
+  const { customer: authCustomer, token: customerToken, logout: logoutCustomer } =
+    useCustomerAuth();
+
+  // A reward waiting on this customer's card at this shop. Read at checkout
+  // rather than carried in the basket, so it reflects what they actually have
+  // right now — a reward spent on another device between adding to the basket
+  // and paying should not still be offered here.
+  const { data: claimable } = useQuery({
+    queryKey: ["loyalty-claimable", storefront?.location?.id, authCustomer?.id],
+    enabled: !!storefront?.location?.id && !!customerToken,
+    queryFn: () =>
+      axios
+        .get(`${API_BASE}/v1/loyalty/claimable`, {
+          params: { locationId: storefront!.location.id },
+          headers: { Authorization: `Bearer ${customerToken}` },
+        })
+        .then((r) => r.data as Array<{ id: string; label: string }>),
+  });
+  const loyaltyReward = claimable?.[0] ?? null;
+  // Opt IN, not out. Someone may be saving it for a bigger order, and
+  // spending it for them is spending something they earned.
+  const [useLoyaltyReward, setUseLoyaltyReward] = useState(false);
   useEffect(() => {
     if (!authCustomer) return;
     if (!customerName) {
@@ -2275,6 +2300,9 @@ function OrderPage() {
           customerEmail={customerEmail}
           setCustomerEmail={setCustomerEmail}
           smsMarketingConsent={smsMarketingConsent}
+          loyaltyReward={loyaltyReward}
+          useLoyaltyReward={useLoyaltyReward}
+          setUseLoyaltyReward={setUseLoyaltyReward}
           setSmsMarketingConsent={setSmsMarketingConsent}
           addrFlat={addrFlat}
           setAddrFlat={setAddrFlat}
@@ -3091,6 +3119,9 @@ interface CartPanelProps {
   customerPhone: string;
   setCustomerPhone: (v: string) => void;
   smsMarketingConsent: boolean;
+  loyaltyReward: { id: string; label: string } | null;
+  useLoyaltyReward: boolean;
+  setUseLoyaltyReward: (v: boolean) => void;
   setSmsMarketingConsent: (v: boolean) => void;
   customerEmail: string;
   setCustomerEmail: (v: string) => void;
@@ -3212,6 +3243,9 @@ function CartPanel(props: CartPanelProps) {
     customerEmail,
     setCustomerEmail,
     smsMarketingConsent,
+    loyaltyReward,
+    useLoyaltyReward,
+    setUseLoyaltyReward,
     setSmsMarketingConsent,
     addrLine1,
     setAddrLine1,
@@ -3388,6 +3422,50 @@ function CartPanel(props: CartPanelProps) {
               <span>Keep me updated with offers &amp; news by SMS</span>
             </label>
           </Section>
+
+          {/* The loyalty reward, offered rather than applied.
+              Opt IN, not out: someone may be saving it for a bigger order,
+              and spending it for them is spending something they earned. */}
+          {loyaltyReward && (
+            <Section title="Your reward">
+              <button
+                type="button"
+                onClick={() => setUseLoyaltyReward(!useLoyaltyReward)}
+                className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition ${
+                  useLoyaltyReward
+                    ? "border-amber-400 bg-amber-50"
+                    : "border-dashed border-zinc-300 bg-white"
+                }`}
+              >
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg ${
+                    useLoyaltyReward ? "bg-amber-400" : "bg-zinc-100"
+                  }`}
+                >
+                  ★
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-zinc-900">
+                    {loyaltyReward.label}
+                  </span>
+                  <span className="block text-xs text-zinc-500">
+                    {useLoyaltyReward
+                      ? "Added to this order — free"
+                      : "Your card is full. Tap to use it."}
+                  </span>
+                </span>
+                <span
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold ${
+                    useLoyaltyReward
+                      ? "bg-amber-400 text-amber-950"
+                      : "bg-zinc-900 text-white"
+                  }`}
+                >
+                  {useLoyaltyReward ? "Added" : "Use it"}
+                </span>
+              </button>
+            </Section>
+          )}
 
           {/* Fulfillment */}
           <Section title="Order type">
