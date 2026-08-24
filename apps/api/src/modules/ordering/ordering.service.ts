@@ -1654,7 +1654,16 @@ export class OrderingService {
     // hosted-checkout URL for the storefront to redirect to. The order
     // joins the staff board only once the Stripe webhook reports
     // authorization (payment_intent.amount_capturable_updated).
-    if (dto.paymentMethod === "CARD") {
+    // Nothing to charge. A card order for £0 is a payment provider rejecting
+    // a zero-amount intent, and the customer watching a spinner fail on an
+    // order that is genuinely free — which happens the moment somebody claims
+    // a reward and buys nothing else. Treat it as settled and send it to the
+    // kitchen.
+    if (dto.paymentMethod === "CARD" && serverTotal <= 0) {
+      this.logger.log(
+        `Order ${order.id} totals zero — skipping card payment, nothing to charge`,
+      );
+    } else if (dto.paymentMethod === "CARD") {
       const origin0 = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
       const brandQs0 = pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "";
       if (usesTap(location.country)) {

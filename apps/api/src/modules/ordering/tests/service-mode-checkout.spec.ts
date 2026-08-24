@@ -205,3 +205,35 @@ describe("checkout — spending a loyalty reward", () => {
     expect(line).toMatchObject({ name: "Free regular chips", totalPrice: 0 });
   });
 });
+
+// Claiming a reward and buying nothing else is a real order — somebody whose
+// card is full has earned a free thing and should be able to come and collect
+// it. Being made to add a drink to claim a free chicken is the sort of small
+// meanness people remember.
+describe("an order that is only a reward", () => {
+  it("still puts a line on the ticket", async () => {
+    // Otherwise the kitchen gets an order with nothing on it.
+    const prisma = {
+      loyaltyReward: {
+        findFirst: jest
+          .fn()
+          .mockResolvedValue({ id: "r1", label: "Free Whole Chicken", rewardItemId: "i1" }),
+      },
+      menuItem: {
+        findUnique: jest.fn().mockResolvedValue({ id: "i1", name: "Whole Chicken", plu: "9" }),
+      },
+    };
+    const s = Object.create(OrderingService.prototype) as OrderingService;
+    (s as unknown as { prisma: unknown }).prisma = prisma;
+    (s as unknown as { logger: unknown }).logger = { warn: jest.fn(), error: jest.fn() };
+
+    const line = await (
+      s as unknown as {
+        buildLoyaltyLine: (a?: string, b?: string, c?: string) => Promise<any>;
+      }
+    ).buildLoyaltyLine("r1", "cust-1", "loc-1");
+
+    expect(line).toMatchObject({ name: "Whole Chicken", quantity: 1, totalPrice: 0 });
+    expect(line.notes).toMatch(/LOYALTY REWARD/);
+  });
+});

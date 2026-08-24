@@ -3296,8 +3296,13 @@ function CartPanel(props: CartPanelProps) {
     !!addrCity &&
     (!needsPostcode || !!addrPostcode) &&
     (mode !== "AREA" || (!!addrArea && !areaUnserviceable));
+  // A claimed reward is an order in its own right. Somebody whose card is
+  // full has earned a free thing and should be able to come and collect it
+  // without buying something else first — being made to add a drink to claim
+  // a free chicken is the sort of small meanness people remember.
+  const rewardApplied = !!loyaltyReward && useLoyaltyReward;
   const canPlace =
-    cart.length > 0 &&
+    (cart.length > 0 || rewardApplied) &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
     (fulfillmentType === "PICKUP" || addressComplete);
@@ -3357,11 +3362,31 @@ function CartPanel(props: CartPanelProps) {
                 )}
             </div>
           )}
-          {cart.length === 0 ? (
+          {/* The reward as a line, priced at nothing.
+              DISPLAY ONLY — it is not in `cart` and is never sent as an item.
+              The server adds the real line from the reward itself, because a
+              basket that says "this is free" is a basket anyone can write. */}
+          {rewardApplied && (
+            <div className="mb-2 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
+              <span className="mt-0.5 text-amber-500">★</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-zinc-900">
+                  {loyaltyReward!.label}
+                </p>
+                <p className="mt-0.5 text-[11px] text-amber-800">
+                  Your reward — free
+                </p>
+              </div>
+              <span className="text-sm font-semibold text-zinc-900">
+                {money(0)}
+              </span>
+            </div>
+          )}
+          {cart.length === 0 && !rewardApplied ? (
             <p className="py-10 text-center text-sm text-zinc-400">
               Cart is empty
             </p>
-          ) : (
+          ) : cart.length === 0 ? null : (
             <ul className="space-y-2">
               {cart.map((l) => (
                 <li
