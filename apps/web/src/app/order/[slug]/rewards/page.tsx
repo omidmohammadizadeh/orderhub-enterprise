@@ -22,6 +22,7 @@ import { Heart, Lock, Sparkles, Ticket } from "lucide-react";
 import { formatMoney } from "@orderhub/shared";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
+import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
@@ -296,6 +297,22 @@ export default function StorefrontRewardsPage() {
           </ul>
         </section>
       )}
+
+      {/* Unlike the card above, this one is MEANT to be seen — a referral
+          only works if somebody notices it and tells someone else. */}
+      <section className="px-5 pb-2 pt-6">
+        <ReferAFriend
+          locationId={locationId}
+          brandName={(store as any)?.brand?.name ?? (store as any)?.location?.name}
+          shareUrl={
+            typeof window !== "undefined"
+              ? `${window.location.origin}/order/${encodeURIComponent(slug)}${brandId ? `?brand=${brandId}` : ""}`
+              : ""
+          }
+          currency={currency}
+          token={token}
+        />
+      </section>
 
       <StorefrontTabBar
         slug={slug}

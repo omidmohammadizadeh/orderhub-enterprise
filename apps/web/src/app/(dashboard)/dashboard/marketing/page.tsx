@@ -11,7 +11,7 @@
 import { useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart,
+import { Users, Heart,
   Megaphone,
   Plus,
   Loader2,
@@ -39,6 +39,7 @@ import {
 import { EditCampaignModal } from "@/components/marketing/edit-campaign-modal";
 import { TopSellersPanel } from "@/components/marketing/top-sellers-panel";
 import { LoyaltyCardPanel } from "@/components/marketing/loyalty-card-panel";
+import { ReferralPanel } from "@/components/marketing/referral-panel";
 import { PercentageOffCampaignForm } from "@/components/marketing/percentage-off-form";
 import { AmountOffCampaignForm } from "@/components/marketing/amount-off-form";
 import { PercentOffItemsCampaignForm } from "@/components/marketing/percent-off-items-form";
@@ -128,6 +129,7 @@ export default function MarketingPage() {
   const qc = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loyaltyOpen, setLoyaltyOpen] = useState(false);
+  const [referralOpen, setReferralOpen] = useState(false);
   const [formType, setFormType] = useState<CampaignType | null>(null);
   const [editing, setEditing] = useState<MarketingCampaign | null>(null);
 
@@ -295,6 +297,10 @@ export default function MarketingPage() {
             setPickerOpen(false);
             setLoyaltyOpen(true);
           }}
+          onReferral={() => {
+            setPickerOpen(false);
+            setReferralOpen(true);
+          }}
           onCancel={() => setPickerOpen(false)}
         />
       )}
@@ -310,6 +316,19 @@ export default function MarketingPage() {
         >
           <div className="mx-4 w-full max-w-2xl">
             <LoyaltyCardPanel onClose={() => setLoyaltyOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {referralOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 py-10 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setReferralOpen(false);
+          }}
+        >
+          <div className="mx-4 w-full max-w-2xl">
+            <ReferralPanel onClose={() => setReferralOpen(false)} />
           </div>
         </div>
       )}
@@ -718,10 +737,12 @@ function StatusChip({ status }: { status: string }) {
 function TypePicker({
   onPick,
   onLoyalty,
+  onReferral,
   onCancel,
 }: {
   onPick: (type: CampaignType) => void;
   onLoyalty: () => void;
+  onReferral: () => void;
   onCancel: () => void;
 }) {
   return (
@@ -788,6 +809,26 @@ function TypePicker({
             </p>
             <p className="text-[10px] text-zinc-400 mt-2">
               Private to each customer — never shown on your menu
+            </p>
+          </button>
+
+          {/* Also not a campaign: a code one customer hands another, rather
+              than an offer shown to everybody who opens the menu. */}
+          <button
+            type="button"
+            onClick={onReferral}
+            className="relative text-left rounded-xl border border-zinc-200 hover:border-sky-300 hover:bg-sky-50/40 p-4 transition-colors"
+          >
+            <span className="absolute top-3 right-3 rounded-full bg-sky-100 text-sky-700 text-[10px] font-semibold px-1.5 py-0.5">
+              New custom
+            </span>
+            <Users className="h-7 w-7 text-sky-500 mb-3" />
+            <p className="text-sm font-semibold text-zinc-900">Refer a friend</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Example: both get £5 off
+            </p>
+            <p className="text-[10px] text-zinc-400 mt-2">
+              Pays out only when someone NEW orders
             </p>
           </button>
         </div>

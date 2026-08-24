@@ -39,6 +39,7 @@ import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
+import { ReferralClaim } from "@/components/storefront/referral-claim";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import { TipStep } from "@/components/storefront/tip-step";
 import {
@@ -2583,6 +2584,15 @@ function OrderPage() {
           // The effect above sees authCustomer flip and replays
           // checkout.mutate(); nothing else to do here.
         }}
+      />
+
+      {/* A friend who arrived on someone's ?ref= link. Claimed as soon as
+          there is an account to attach it to, so they are told they qualify —
+          or that they do not — while they can still do something about it. */}
+      <ReferralClaim
+        locationId={storefront?.location?.id}
+        token={customerToken}
+        customerId={authCustomer?.id}
       />
 
       {/* Mobile tab bar. On a phone a storefront is four places, not one long
