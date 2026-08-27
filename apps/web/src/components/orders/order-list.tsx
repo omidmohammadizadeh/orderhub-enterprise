@@ -462,6 +462,7 @@ export function OrderList({ locationId }: Props) {
                 <Th>Brand</Th>
                 <Th>Type</Th>
                 <Th>Delivery</Th>
+                <Th>Rider</Th>
                 <Th>Customer</Th>
                 <Th>Payment</Th>
                 <Th>Status</Th>
@@ -883,6 +884,49 @@ function Th({ children }: { children: React.ReactNode }) {
 }
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-1.5 py-2.5 align-middle">{children}</td>;
+}
+
+/**
+ * Who is actually carrying this order.
+ *
+ * Two different things wearing one hat. A MARKETPLACE courier arrives as flat
+ * columns on the order — courierName, set by the platform's rider webhook. An
+ * IN-HOUSE rider is a real person with a Driver row and an assignment. The
+ * operator does not care which is which; they care whether somebody has it.
+ *
+ * Deliberately says nothing when nobody is assigned. A dash is honest — "no
+ * rider yet" is a real and common state, and inventing "Unassigned" makes an
+ * empty column look like a broken one.
+ */
+function RiderCell({ order }: { order: Order }) {
+  const assignment = (order as any).driverAssignment;
+  const inHouse = assignment?.driver
+    ? [assignment.driver.firstName, assignment.driver.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim()
+    : "";
+  const platform = ((order as any).courierName ?? "").trim();
+
+  // In-house wins when both exist: the shop dispatched it themselves, so
+  // whatever a marketplace last said about a courier is stale.
+  const name = inHouse || platform;
+  if (!name) return <span className="text-zinc-300">—</span>;
+
+  return (
+    <div className="flex max-w-[130px] flex-col gap-0.5">
+      <span className="truncate text-zinc-700">{name}</span>
+      <span
+        className={`w-fit rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+          inHouse
+            ? "bg-violet-100 text-violet-800"
+            : "bg-zinc-100 text-zinc-600"
+        }`}
+      >
+        {inHouse ? "Ours" : "Platform"}
+      </span>
+    </div>
+  );
 }
 
 // Phase AV — small badge for the new Delivery column. We deliberately

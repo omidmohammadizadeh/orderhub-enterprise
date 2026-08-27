@@ -74,6 +74,19 @@ const ORDER_INCLUDE = {
   // and onDelete: SetNull on the relation means the column may
   // legitimately be present-but-null after a brand is deleted.
   brand: { select: { id: true, name: true, logoUrl: true } },
+  // The shop's OWN driver, for the board's Riders column. Platform couriers
+  // arrive as flat courierName/courierPhone columns on the order itself; an
+  // in-house rider is a real person with a Driver row, so the two have to be
+  // read from different places and shown as one thing.
+  driverAssignment: {
+    select: {
+      status: true,
+      assignedAt: true,
+      driver: {
+        select: { id: true, firstName: true, lastName: true, phone: true },
+      },
+    },
+  },
 } satisfies Prisma.OrderInclude;
 
 type OrderWithRelations = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
