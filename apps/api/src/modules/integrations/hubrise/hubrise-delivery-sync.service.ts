@@ -137,6 +137,7 @@ export class HubRiseDeliverySyncService {
           args.hubriseLocationId,
           args.hubriseDeliveryId,
           args.credentialsBlob,
+          args.hubriseOrderId,
         );
       } catch (err: any) {
         this.logger.error(
@@ -277,6 +278,7 @@ export class HubRiseDeliverySyncService {
     hubriseLocationId: string,
     deliveryId: string,
     credentialsBlob: unknown,
+    hubriseOrderId?: string,
   ): Promise<HubRiseDelivery> {
     if (!credentialsBlob) {
       throw new Error("No HubRise credentials saved for this location");
@@ -291,13 +293,34 @@ export class HubRiseDeliverySyncService {
     const baseUrl =
       this.config.get<string>("app.platforms.hubrise.baseUrl") ??
       "https://api.hubrise.com/v1";
-    const url = `${baseUrl}/locations/${hubriseLocationId.toLowerCase()}/deliveries/${deliveryId}`;
-    const res = await fetch(url, {
-      headers: {
-        "X-Access-Token": accessToken,
-        Accept: "application/json",
-      },
-    });
+    // The flat path 404s with `routing_error` on every single delivery — that
+    // is HubRise saying the ROUTE does not exist, not that the delivery is
+    // missing. Deliveries hang off an order in their model, so the nested path
+    // is tried first and the flat one kept as a fallback. Whichever answers is
+    // logged, so the loser can be deleted once a real delivery has proved it.
+    const loc = hubriseLocationId.toLowerCase();
+    const candidates = [
+      ...(hubriseOrderId
+        ? [`${baseUrl}/locations/${loc}/orders/${hubriseOrderId}/deliveries/${deliveryId}`]
+        : []),
+      `${baseUrl}/locations/${loc}/deliveries/${deliveryId}`,
+    ];
+
+    let res!: Response;
+    let url = candidates[candidates.length - 1]!;
+    for (const candidate of candidates) {
+      res = await fetch(candidate, {
+        headers: {
+          "X-Access-Token": accessToken,
+          Accept: "application/json",
+        },
+      });
+      url = candidate;
+      if (res.ok) {
+        this.logger.log(`HubRise delivery hydrate OK via ${candidate}`);
+        break;
+      }
+    }
     if (!res.ok) {
       throw new Error(
         `HubRise GET ${url} → ${res.status}: ${await res.text()}`,
