@@ -955,6 +955,11 @@ function RiderCell({ order }: { order: Order }) {
 function PickupEtaCell({ order }: { order: Order }) {
   const raw = (order as any).courierPickupEtaAt as string | null | undefined;
   const inHouse = !!(order as any).driverAssignment?.driver;
+  // Once the rider has the food, a countdown to when they were due to ARRIVE
+  // is not just useless, it is wrong — it kept reading "39 min" on an order
+  // collected forty seconds earlier, because the platform stops refreshing
+  // that estimate the moment it stops mattering to them.
+  const collected = !!(order as any).courierPickedUpAt;
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -964,6 +969,14 @@ function PickupEtaCell({ order }: { order: Order }) {
   }, [raw, inHouse]);
 
   if (inHouse || !raw) return <span className="text-zinc-300">—</span>;
+
+  if (collected) {
+    // Said rather than blanked: "the rider has been and gone" is a different
+    // fact from "we never had an estimate", and the kitchen cares which.
+    return (
+      <span className="text-[11px] font-medium text-zinc-400">Collected</span>
+    );
+  }
 
   const eta = new Date(raw).getTime();
   if (!Number.isFinite(eta)) return <span className="text-zinc-300">—</span>;

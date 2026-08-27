@@ -57,9 +57,15 @@ interface HubRiseDelivery {
   // been wrong about field names twice on this integration, so every plausible
   // spelling is read and the raw object is kept until a real delivery settles
   // which one they actually send.
+  // CONFIRMED from a live delivery payload, not guessed:
+  //   estimated_pickup_at   — rider reaching the SHOP
+  //   estimated_dropoff_at  — rider reaching the CUSTOMER
+  // The other spellings stay as fallbacks; they cost nothing and HubRise's
+  // documented names have been wrong on this integration before.
   estimated_pickup_at?: string;
   expected_pickup_at?: string;
   pickup_eta?: string;
+  estimated_dropoff_at?: string;
   estimated_delivery_at?: string;
   expected_delivery_at?: string;
   delivery_eta?: string;
@@ -183,6 +189,7 @@ export class HubRiseDeliverySyncService {
     if (pickupEta) updates.courierPickupEtaAt = pickupEta;
 
     const deliveryEta = firstDate(
+      delivery.estimated_dropoff_at,
       delivery.estimated_delivery_at,
       delivery.expected_delivery_at,
       delivery.delivery_eta,
@@ -193,9 +200,18 @@ export class HubRiseDeliverySyncService {
     // estimate we could not place. HubRise's docs have misnamed fields on this
     // integration twice; this turns the third time into a one-line fix rather
     // than another round of guessing. Keys only — no customer data.
-    if (!pickupEta) {
-      const estimateish = Object.keys(delivery).filter((k) =>
-        /eta|estimat|expect/i.test(k),
+    {
+      const KNOWN = new Set([
+        "estimated_pickup_at",
+        "expected_pickup_at",
+        "pickup_eta",
+        "estimated_dropoff_at",
+        "estimated_delivery_at",
+        "expected_delivery_at",
+        "delivery_eta",
+      ]);
+      const estimateish = Object.keys(delivery).filter(
+        (k) => /eta|estimat|expect/i.test(k) && !KNOWN.has(k),
       );
       if (estimateish.length) {
         this.logger.warn(
