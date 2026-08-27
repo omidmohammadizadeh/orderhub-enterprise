@@ -354,15 +354,61 @@ export class DeliverooOrderService {
     // Write courier-tracking columns. Timestamps are set once (first event
     // wins) so a re-delivered event can't clobber the original pickup time.
     const updates: Record<string, any> = {};
+    const joined = [rider?.first_name, rider?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
     const riderName =
-      rider?.full_name ?? rider?.name ?? rider?.rider_name ?? inner?.rider_name;
+      rider?.full_name ??
+      rider?.name ??
+      rider?.rider_name ??
+      (joined || undefined) ??
+      inner?.rider_name;
     const riderPhone =
       rider?.contact_number ??
       rider?.bridge_number ??
       rider?.phone ??
       rider?.phone_number;
+    // The bridge number is a shared switchboard line: dialling it without the
+    // code reaches nobody. We were reading the number and dropping the code,
+    // which is the half that makes the call connect.
+    const riderPhoneCode =
+      rider?.bridge_code ??
+      rider?.contact_access_code ??
+      rider?.access_code ??
+      rider?.phone_access_code;
     if (riderName) updates.courierName = riderName;
     if (riderPhone) updates.courierPhone = riderPhone;
+    if (riderPhoneCode) updates.courierPhoneAccessCode = String(riderPhoneCode);
+
+    // WHY the board can read "Deliveroo Rider" where a name should be.
+    //
+    // Nothing in this codebase invents a courier name — line above is the only
+    // writer, and it copies the payload verbatim. So a generic name on the
+    // board means Deliveroo sent a generic name: they withhold rider identity
+    // from merchants and put a placeholder in `full_name`.
+    //
+    // This logs the KEYS on the rider object so a future payload that does
+    // carry a real name (a `first_name`, a `display_name` we don't read) is
+    // visible without going back to webhook_events. The name VALUE is logged
+    // only when it looks like a placeholder — that is the case worth
+    // diagnosing, and a real rider's name doesn't belong in the log stream.
+    const looksGeneric =
+      typeof riderName === "string" &&
+      /^(a |the )?(deliveroo |roo )?(rider|courier|driver)$/i.test(
+        riderName.trim(),
+      );
+    this.logger.log(
+      `Deliveroo rider identity ${externalId}: ` +
+        `name=${riderName ? (looksGeneric ? `PLACEHOLDER "${riderName}"` : "<present>") : "MISSING"} ` +
+        `phone=${riderPhone ? "<present>" : "MISSING"} ` +
+        `code=${riderPhoneCode ? "<present>" : "MISSING"} ` +
+        `riderKeys=[${Object.keys(rider ?? {}).join(",")}]` +
+        (looksGeneric
+          ? " — Deliveroo is withholding the rider's name; ask your account " +
+            "manager to enable rider details, this is not a bug our side."
+          : ""),
+    );
     // Deliveroo sends TWO different estimates and they answer different
     // questions. `estimated_arrival_time` is the rider reaching the SHOP;
     // `estimated_delivery_time` is them reaching the CUSTOMER.
