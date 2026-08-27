@@ -400,3 +400,40 @@ describe("classifyJetFailure", () => {
     expect(classifyJetFailure(undefined).message).toBeTruthy();
   });
 });
+
+// collect_at appears on TWO order types and means different things on each.
+// Per the JET Connect spec: present on delivery-by-delivery-partner and
+// collection-by-customer; deliver_at on delivery-by-merchant.
+describe("transformJetOrder — the pickup ETA", () => {
+  const at = 1787900000; // arbitrary unix seconds
+
+  const order = (type: string) =>
+    transformJetOrder(
+      {
+        id: "o1",
+        type,
+        posLocationId: "loc-1",
+        collect_at: String(at),
+        items: [{ name: "Burger", plu: "B1", price: 900, quantity: 1 }],
+      } as never,
+      { tenantId: "t1", locationId: "loc-1", brandId: "b1" } as never,
+    );
+
+  it("uses collect_at as the courier's ETA on a partner-delivered order", () => {
+    const out = order("delivery-by-delivery-partner") as any;
+    expect(out.canonical.courierPickupEtaAt?.getTime()).toBe(at * 1000);
+  });
+
+  it("does NOT on a customer collection — that is the customer coming, not a rider", () => {
+    // Same field, different meaning. Writing it into a courier column would
+    // invent a rider who does not exist and put an ETA on the board for one.
+    const out = order("collection-by-customer") as any;
+    expect(out.canonical.courierPickupEtaAt).toBeUndefined();
+  });
+
+  it("does NOT on a merchant-delivered order", () => {
+    // The shop's own driver. Nobody is sending us an estimate for them.
+    const out = order("delivery-by-merchant") as any;
+    expect(out.canonical.courierPickupEtaAt).toBeUndefined();
+  });
+});

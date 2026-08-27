@@ -254,6 +254,19 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
   // merchant-delivery ones. Either way it is when the food must be ready.
   const dueAt =
     jetUnixToDate(payload?.collect_at) ?? jetUnixToDate(payload?.deliver_at);
+
+  // collect_at is ALSO the board's pickup ETA — but only when a partner's
+  // driver is doing the collecting. On a collection-by-customer order the same
+  // field is when the CUSTOMER is coming, and putting that in a courier column
+  // would invent a rider who does not exist.
+  //
+  // Per the JET Connect spec: collect_at is present on
+  // delivery-by-delivery-partner and collection-by-customer; deliver_at on
+  // delivery-by-merchant.
+  const courierPickupEtaAt =
+    fulfillmentType === "PLATFORM_COURIER"
+      ? jetUnixToDate(payload?.collect_at)
+      : undefined;
   const createdAt = jetUnixToDate(payload?.created_at);
 
   // ── Notes ────────────────────────────────────────────────────────────
@@ -286,6 +299,7 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
     integrationSource: "DIRECT",
     viaHubrise: false,
     fulfillmentType,
+    ...(courierPickupEtaAt ? { courierPickupEtaAt } : {}),
     customerInfo: toCustomer(payload, isPickup, warnings),
     deliveryAddress: isPickup ? undefined : toAddress(payload),
     items,

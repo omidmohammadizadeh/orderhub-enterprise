@@ -595,6 +595,15 @@ export class OrdersService {
                     .courierPhoneAccessCode as string,
                 }
               : {}),
+            // Just Eat names the collection time on the order itself rather
+            // than waiting for a rider event, so the board can show an ETA
+            // before a driver is even assigned.
+            ...((canonical as any).courierPickupEtaAt
+              ? {
+                  courierPickupEtaAt: (canonical as any)
+                    .courierPickupEtaAt as Date,
+                }
+              : {}),
             // Phase AV — promote deliveryType from canonical metadata
             // onto the Order row so the dashboard can render the
             // MERCHANT/PLATFORM badge + gate post-READY transitions
