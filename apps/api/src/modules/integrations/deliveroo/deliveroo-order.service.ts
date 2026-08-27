@@ -393,12 +393,28 @@ export class DeliverooOrderService {
     const legacyEta = arrival ?? delivery;
     if (legacyEta) updates.courierEtaAt = legacyEta;
 
-    if (arrival && delivery) {
-      const gapMin = Math.round((delivery.getTime() - arrival.getTime()) / 60_000);
+    // One line per rider event carrying an estimate, whichever arrived.
+    //
+    // The gap between the two is the evidence that decides whether
+    // estimated_arrival_time means the SHOP or the CUSTOMER — and therefore
+    // whether courierEtaAt, which auto-completes these orders, is counting to
+    // the wrong moment. HubRise relaying the same couriers sends
+    // estimated_pickup_at and estimated_dropoff_at twenty minutes apart, so
+    // the equivalent gap here would settle it.
+    //
+    // Logged even when only ONE estimate arrives, because "Deliveroo only ever
+    // sends arrival" is itself the answer to a different question, and the
+    // previous version stayed silent in exactly that case.
+    if (arrival || delivery) {
+      const gap =
+        arrival && delivery
+          ? `${Math.round((delivery.getTime() - arrival.getTime()) / 60_000)}m apart`
+          : "only one sent";
       this.logger.log(
-        `Deliveroo rider estimates ${gapMin}m apart (arrival ${arrival.toISOString()}, ` +
-          `delivery ${delivery.toISOString()}) — a consistent positive gap confirms ` +
-          `arrival is the shop and courierEtaAt should switch to delivery.`,
+        `Deliveroo rider estimates [${gap}] arrival=${arrival?.toISOString() ?? "-"} ` +
+          `delivery=${delivery?.toISOString() ?? "-"} stage=${rawStatus ?? "-"} ` +
+          `— a consistent positive gap means arrival is the SHOP and courierEtaAt ` +
+          `should switch to delivery.`,
       );
     }
 
