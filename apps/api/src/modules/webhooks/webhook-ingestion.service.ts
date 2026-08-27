@@ -126,6 +126,39 @@ export class WebhookIngestionService {
       );
       const env = (payload ?? {}) as Record<string, any>;
 
+      // The 700-character slice above cuts off before `new_state` on every
+      // real payload, so the raw line shows only where an order HAS BEEN, never
+      // where it is going. This says the transition itself.
+      //
+      // It is also how we answer whether Just Eat's "don't cook / cook now"
+      // signal reaches us at all. HubRise's own status vocabulary has no such
+      // concept, so if it arrives it must be either a transition we are not
+      // expecting or a field we do not read — and both show up here.
+      //
+      // Status values and FIELD NAMES only. No customer data.
+      {
+        const prev = env.previous_state ?? {};
+        const next = env.new_state ?? {};
+        const KNOWN = new Set([
+          "id", "location_id", "ref", "private_ref", "status", "service_type",
+          "service_type_ref", "created_at", "created_by", "channel",
+          "connection_name", "expected_time", "expected_time_pickup", "asap",
+          "confirmed_time", "driver_pickup_url", "customer_notes",
+          "seller_notes", "collection_code", "coupon_codes", "total",
+          "total_discrepancy", "payments", "items", "customer", "deliveries",
+          "customer_list_id", "loyalty_operations", "charges", "discounts",
+          "deleted_items", "currency", "temporary_id",
+        ]);
+        const unknown = Object.keys(next).filter((k) => !KNOWN.has(k));
+        this.logger.log(
+          `HubRise ${env.resource_type}/${env.event_type} order=${env.order_id ?? "?"} ` +
+            `status ${prev.status ?? "-"} → ${next.status ?? "-"} ` +
+            `service=${next.service_type ?? prev.service_type ?? "-"} ` +
+            `by=${next.created_by ?? prev.created_by ?? "-"}` +
+            (unknown.length ? ` UNREAD_FIELDS=${unknown.join(",")}` : ""),
+        );
+      }
+
       // Courier/driver updates arrive as their OWN resource_type:"delivery"
       // webhook (driver name, phone, PIN, ETA + stage: pending → pickup_* →
       // dropoff_* → delivered). They must NOT go through the order-enrich
