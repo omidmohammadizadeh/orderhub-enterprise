@@ -463,6 +463,7 @@ export function OrderList({ locationId }: Props) {
                 <Th>Type</Th>
                 <Th>Delivery</Th>
                 <Th>Rider</Th>
+                <Th>ETA</Th>
                 <Th>Customer</Th>
                 <Th>Payment</Th>
                 <Th>Status</Th>
@@ -926,6 +927,63 @@ function RiderCell({ order }: { order: Order }) {
         {inHouse ? "Ours" : "Platform"}
       </span>
     </div>
+  );
+}
+
+/**
+ * How long until the platform's rider reaches the SHOP.
+ *
+ * Platform couriers only, deliberately. An in-house driver is the shop's own
+ * person — the operator knows where they are, and there is no third party
+ * sending us an estimate for them. Showing a blank cell for our own riders is
+ * correct rather than missing.
+ *
+ * Counts down from courierPickupEtaAt, which is NOT courierEtaAt: that one is
+ * arrival at the customer and drives auto-completion. Two different questions,
+ * two different columns.
+ *
+ * Recomputed on a timer rather than at render, because a board sits open on a
+ * wall for hours and a number that says "8 min" from forty minutes ago is
+ * worse than no number.
+ */
+function PickupEtaCell({ order }: { order: Order }) {
+  const raw = (order as any).courierPickupEtaAt as string | null | undefined;
+  const inHouse = !!(order as any).driverAssignment?.driver;
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!raw || inHouse) return;
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, [raw, inHouse]);
+
+  if (inHouse || !raw) return <span className="text-zinc-300">—</span>;
+
+  const eta = new Date(raw).getTime();
+  if (!Number.isFinite(eta)) return <span className="text-zinc-300">—</span>;
+
+  const mins = Math.round((eta - now) / 60_000);
+
+  // Past its estimate. "Due" rather than a negative number or a stale count:
+  // the rider is late or already inside, and either way the number has stopped
+  // being information.
+  if (mins <= 0) {
+    return (
+      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
+        Due
+      </span>
+    );
+  }
+  // Arriving. The one state worth catching from across a kitchen.
+  const urgent = mins <= 5;
+  return (
+    <span
+      className={`rounded px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+        urgent ? "bg-emerald-100 text-emerald-800" : "text-zinc-600"
+      }`}
+    >
+      {mins} min
+    </span>
   );
 }
 

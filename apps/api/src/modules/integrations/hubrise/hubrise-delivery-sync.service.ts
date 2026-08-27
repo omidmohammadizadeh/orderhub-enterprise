@@ -53,6 +53,28 @@ interface HubRiseDelivery {
   pickup_at?: string;
   delivered_at?: string;
   cancelled_at?: string;
+  // ESTIMATES, as opposed to the actual times above. HubRise's own docs have
+  // been wrong about field names twice on this integration, so every plausible
+  // spelling is read and the raw object is kept until a real delivery settles
+  // which one they actually send.
+  estimated_pickup_at?: string;
+  expected_pickup_at?: string;
+  pickup_eta?: string;
+  estimated_delivery_at?: string;
+  expected_delivery_at?: string;
+  delivery_eta?: string;
+  // Allows the defensive reads below without widening every call site.
+  [key: string]: unknown;
+}
+
+/** First value that parses as a real date. Undefined when none do. */
+function firstDate(...values: Array<unknown>): Date | undefined {
+  for (const v of values) {
+    if (!v) continue;
+    const d = new Date(String(v));
+    if (Number.isFinite(d.getTime())) return d;
+  }
+  return undefined;
 }
 
 @Injectable()
@@ -142,6 +164,45 @@ export class HubRiseDeliverySyncService {
     }
     if (delivery.delivered_at && !(order as any).courierDeliveredAt) {
       updates.courierDeliveredAt = new Date(delivery.delivered_at);
+    }
+
+    // ── The two estimates, kept apart ────────────────────────────────────────
+    //
+    // Pickup is when the rider reaches the SHOP; delivery is when they reach
+    // the CUSTOMER. The board's ETA column asks the first question, and
+    // courierEtaAt drives auto-completion off the second — so conflating them
+    // would close orders the moment a rider arrived at the door.
+    //
+    // Always overwritten rather than written once: an estimate that cannot
+    // move is not an estimate, and a rider's ETA changes as they travel.
+    const pickupEta = firstDate(
+      delivery.estimated_pickup_at,
+      delivery.expected_pickup_at,
+      delivery.pickup_eta,
+    );
+    if (pickupEta) updates.courierPickupEtaAt = pickupEta;
+
+    const deliveryEta = firstDate(
+      delivery.estimated_delivery_at,
+      delivery.expected_delivery_at,
+      delivery.delivery_eta,
+    );
+    if (deliveryEta) updates.courierEtaAt = deliveryEta;
+
+    // Log the field names we actually received, once per delivery that has an
+    // estimate we could not place. HubRise's docs have misnamed fields on this
+    // integration twice; this turns the third time into a one-line fix rather
+    // than another round of guessing. Keys only — no customer data.
+    if (!pickupEta) {
+      const estimateish = Object.keys(delivery).filter((k) =>
+        /eta|estimat|expect/i.test(k),
+      );
+      if (estimateish.length) {
+        this.logger.warn(
+          `HubRise delivery ${delivery.id ?? "?"} carries estimate fields we do ` +
+            `not read: ${estimateish.join(", ")}`,
+        );
+      }
     }
 
     if (Object.keys(updates).length) {

@@ -363,15 +363,43 @@ export class DeliverooOrderService {
       rider?.phone_number;
     if (riderName) updates.courierName = riderName;
     if (riderPhone) updates.courierPhone = riderPhone;
-    // Deliveroo's own arrival estimate, refreshed on every rider event.
-    // It is the ONLY per-order basis we have for completing a platform
-    // -courier order: they never report the delivery itself. Always take
-    // the latest value — the rider's ETA moves as they travel.
-    const rawEta =
-      rider?.estimated_arrival_time ?? rider?.estimated_delivery_time;
-    if (rawEta) {
-      const eta = new Date(rawEta);
-      if (!Number.isNaN(eta.getTime())) updates.courierEtaAt = eta;
+    // Deliveroo sends TWO different estimates and they answer different
+    // questions. `estimated_arrival_time` is the rider reaching the SHOP;
+    // `estimated_delivery_time` is them reaching the CUSTOMER.
+    //
+    // arrival_time now ALSO feeds the board's ETA column via
+    // courierPickupEtaAt. What it does NOT do is change what courierEtaAt has
+    // always been, because that column decides when a platform-courier order
+    // auto-completes — Deliveroo never reports the delivery itself — and
+    // narrowing it on an inference from two field names could close every
+    // Deliveroo order a whole delivery early, or stop closing them at all.
+    //
+    // So: new behaviour added, old behaviour untouched, and the two values
+    // logged side by side when both arrive. A handful of real orders will show
+    // whether arrival really is the shop and delivery really is the customer,
+    // and then this can be split properly on evidence.
+    //
+    // Always overwritten. An estimate that cannot move is not an estimate.
+    const asDate = (v: unknown) => {
+      if (!v) return null;
+      const d = new Date(String(v));
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
+    const arrival = asDate(rider?.estimated_arrival_time);
+    const delivery = asDate(rider?.estimated_delivery_time);
+
+    if (arrival) updates.courierPickupEtaAt = arrival;
+    // Unchanged from before this column existed.
+    const legacyEta = arrival ?? delivery;
+    if (legacyEta) updates.courierEtaAt = legacyEta;
+
+    if (arrival && delivery) {
+      const gapMin = Math.round((delivery.getTime() - arrival.getTime()) / 60_000);
+      this.logger.log(
+        `Deliveroo rider estimates ${gapMin}m apart (arrival ${arrival.toISOString()}, ` +
+          `delivery ${delivery.toISOString()}) — a consistent positive gap confirms ` +
+          `arrival is the shop and courierEtaAt should switch to delivery.`,
+      );
     }
 
     // The last MEANINGFUL stage, not the last line. Deliveroo appends

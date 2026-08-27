@@ -1974,6 +1974,15 @@ model Order {
   // this estimate is the only basis for closing a platform-courier order
   // before the 05:00 rollover. See DeliverooOrderPollService.
   courierEtaAt           DateTime?
+  // When the courier is expected to reach the SHOP — a different number from
+  // courierEtaAt above, which is when they reach the CUSTOMER.
+  //
+  // Kept apart deliberately. courierEtaAt drives auto-completion of
+  // platform-courier orders (Deliveroo never reports the delivery itself), so
+  // writing a pickup estimate into it would close orders the moment a rider
+  // reached the door. This one only ever answers the board's question: how
+  // long until somebody walks in for this bag.
+  courierPickupEtaAt     DateTime?
   // Which courier network fulfils this order + its job id there. Set when an
   // operator dispatches to a fleet provider (STUART). courierJobId is the
   // provider's delivery/job id — the webhook resolves the order by it.
@@ -3643,7 +3652,7 @@ model ItemPerformanceSnapshot {
   @@map("item_performance_snapshots")
 }
 
-// ═══════════════════════════════════════════════════���══════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — PROVIDER / MARKETPLACE REGISTRY
 // ══════════════════════════════════════════════════════════════════════════════
 
