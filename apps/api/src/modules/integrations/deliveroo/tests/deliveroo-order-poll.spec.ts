@@ -352,6 +352,55 @@ describe("DeliverooOrderPollService — completing on the rider's ETA", () => {
     }
   });
 
+  // Deliveroo's only estimate is `estimated_arrival_time`, and it is the ride
+  // to the SHOP: two production orders had it landing 3 and 7 minutes after
+  // the rider was assigned. So by the time the food is collected that moment
+  // has already passed, and ETA + 10 was completing the order on the board
+  // the instant the rider left the door.
+  it("ignores an ETA that predates the pickup — that is the shop leg", async () => {
+    const { svc, update } = build({
+      rows: [
+        inTransit({
+          // Rider reached the shop 12 minutes ago and collected 8 minutes
+          // ago. ETA + grace is already past, but they are still driving.
+          courierEtaAt: minsFromNow(-12),
+          courierPickedUpAt: minsFromNow(-8),
+        }),
+      ],
+      get: noTerminal(),
+    });
+    await svc.pollOnce();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("still closes it once the pickup clock runs out", async () => {
+    const { svc, update } = build({
+      rows: [
+        inTransit({
+          courierEtaAt: minsFromNow(-70),
+          courierPickedUpAt: minsFromNow(-60),
+        }),
+      ],
+      get: noTerminal(),
+    });
+    await svc.pollOnce();
+    expect(update).toHaveBeenCalled();
+  });
+
+  it("honours a real drop-off ETA that falls after the pickup", async () => {
+    const { svc, update } = build({
+      rows: [
+        inTransit({
+          courierEtaAt: minsFromNow(-15),
+          courierPickedUpAt: minsFromNow(-40),
+        }),
+      ],
+      get: noTerminal(),
+    });
+    await svc.pollOnce();
+    expect(update).toHaveBeenCalled();
+  });
+
   it("falls back to pickup time when Deliveroo sent no ETA", async () => {
     const { svc, update } = build({
       rows: [

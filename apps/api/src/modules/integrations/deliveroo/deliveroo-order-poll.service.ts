@@ -304,7 +304,22 @@ export class DeliverooOrderPollService {
     if (row.status !== "OUT_FOR_DELIVERY" && row.status !== "DISPATCHED") {
       return null;
     }
-    if (row.courierEtaAt) {
+    // Only when the estimate is actually for the DROP-OFF.
+    //
+    // Deliveroo sends `estimated_arrival_time` and never once sends
+    // `estimated_delivery_time` — and two real orders showed arrival landing
+    // 3 and 7 minutes after the rider was assigned, which is the ride to the
+    // SHOP, not a whole delivery. courierEtaAt therefore holds a moment that
+    // is already in the past by the time the rider collects, and adding ten
+    // minutes to it completed the order the instant it went out for delivery.
+    //
+    // An estimate that predates the collection it is supposed to follow can
+    // only be the shop leg, so fall through to the pickup clock. This still
+    // honours a genuine drop-off ETA from any courier that sends one.
+    const etaIsAfterPickup =
+      !row.courierPickedUpAt ||
+      (row.courierEtaAt?.getTime() ?? 0) > row.courierPickedUpAt.getTime();
+    if (row.courierEtaAt && etaIsAfterPickup) {
       return new Date(row.courierEtaAt.getTime() + ETA_BUFFER_MIN * 60_000);
     }
     if (row.courierPickedUpAt) {
