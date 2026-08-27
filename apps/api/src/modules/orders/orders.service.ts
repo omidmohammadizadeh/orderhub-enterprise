@@ -572,6 +572,29 @@ export class OrdersService {
               (canonical as any).paymentStatus ??
               (canonical.metadata as any)?.paymentStatus ??
               undefined,
+            // The courier, when the marketplace names one at order time.
+            //
+            // Deliveroo and Just Eat name their rider later, on a rider event,
+            // and write these columns directly. Uber sends the courier on the
+            // order itself, and without promoting it here the mapper's work
+            // was dropped on the floor — the Rider column stayed empty for the
+            // one platform that supplies it up front.
+            //
+            // Only written when present: a later rider webhook must be able to
+            // fill in a courier this order did not have yet, and an undefined
+            // here leaves the column alone rather than blanking it.
+            ...((canonical as any).courierName
+              ? { courierName: (canonical as any).courierName as string }
+              : {}),
+            ...((canonical as any).courierPhone
+              ? { courierPhone: (canonical as any).courierPhone as string }
+              : {}),
+            ...((canonical as any).courierPhoneAccessCode
+              ? {
+                  courierPhoneAccessCode: (canonical as any)
+                    .courierPhoneAccessCode as string,
+                }
+              : {}),
             // Phase AV — promote deliveryType from canonical metadata
             // onto the Order row so the dashboard can render the
             // MERCHANT/PLATFORM badge + gate post-READY transitions

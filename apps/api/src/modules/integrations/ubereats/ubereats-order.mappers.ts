@@ -162,6 +162,47 @@ export function mapUberEatsOrder(order: any): CanonicalOrder | null {
       }
     : undefined;
 
+  // ── The courier ───────────────────────────────────────────────────────────
+  //
+  // Read defensively across the plausible paths rather than betting on one.
+  // Uber Direct — Uber's own courier API — sends {courier:{name,phone_number}},
+  // so that shape is the strongest evidence we have for what the marketplace
+  // sends here, but the Order Fulfillment spec is not in front of us and the
+  // field has moved between their products before.
+  //
+  // The raw block is kept in metadata below, so the FIRST real courier order
+  // settles this from evidence instead of another guess.
+  const courierSrc =
+    deliveries.map((d) => d?.courier ?? d?.delivery_partner ?? d?.driver).find(Boolean) ??
+    order?.courier ??
+    null;
+  const courierName = (
+    courierSrc?.name ??
+    [courierSrc?.first_name, courierSrc?.last_name].filter(Boolean).join(" ") ??
+    ""
+  )
+    .toString()
+    .trim();
+  const courierPhone = (
+    courierSrc?.phone_number ??
+    courierSrc?.phone ??
+    courierSrc?.contact?.phone?.number ??
+    ""
+  )
+    .toString()
+    .trim();
+  // Uber anonymises numbers the same way for couriers as for eaters: the
+  // number connects only when the PIN is entered after it, so a phone without
+  // its pin is a call that will not connect.
+  const courierPin = (
+    courierSrc?.contact?.phone?.pin_code ??
+    courierSrc?.phone_pin ??
+    courierSrc?.pin_code ??
+    ""
+  )
+    .toString()
+    .trim();
+
   const scheduledStart =
     order?.scheduled_order_target_delivery_time_range?.start_time;
   const scheduledFor =
@@ -195,6 +236,9 @@ export function mapUberEatsOrder(order: any): CanonicalOrder | null {
     ...(scheduledFor && !Number.isNaN(scheduledFor.getTime())
       ? { scheduledFor }
       : {}),
+    ...(courierName ? { courierName } : {}),
+    ...(courierPhone ? { courierPhone } : {}),
+    ...(courierPin ? { courierPhoneAccessCode: courierPin } : {}),
     metadata: {
       uberState: order?.state ?? null,
       uberStatus: order?.status ?? null,
@@ -210,6 +254,10 @@ export function mapUberEatsOrder(order: any): CanonicalOrder | null {
           : order?.fulfillment_type === "DELIVERY_BY_MERCHANT"
             ? "MERCHANT"
             : undefined,
+      // Kept verbatim, and only when a courier is actually present, so the
+      // first real one shows us the true field names instead of us guessing a
+      // second time. Drop this once the shape is confirmed.
+      ...(courierSrc ? { uberCourierRaw: courierSrc } : {}),
     },
   } as CanonicalOrder;
 }
