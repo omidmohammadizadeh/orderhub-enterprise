@@ -507,19 +507,54 @@ export class DeliverooOrderService {
     // Advance the order lifecycle if the rider moved into a new stage.
     let statusChanged = false;
     if (mapped && mapped !== o.status) {
-      try {
-        await this.orders.updateStatus(
-          o.id,
-          o.tenantId,
-          { status: mapped as any } as any,
-          "deliveroo-rider-webhook",
-          "WEBHOOK",
-        );
-        statusChanged = true;
-      } catch (err: any) {
-        this.logger.warn(
-          `Deliveroo rider ${externalId} → ${mapped} rejected: ${err?.message}`,
-        );
+      // Deliveroo fans the SAME rider state out as several events with
+      // different sequence guids, milliseconds apart — three landed on one
+      // order inside a second. Each handler writes the courier columns, which
+      // bumps updatedAt, which invalidates the optimistic-concurrency snapshot
+      // the sibling handler is holding, and its transition is thrown away with
+      // "Order was modified by another request".
+      //
+      // Here that cost nothing, because a duplicate carried the same stage.
+      // The event that gets discarded is chosen by timing, though, so the one
+      // lost could just as easily be the only delivery of a real forward
+      // stage — and nothing would retry it.
+      //
+      // Retry on the conflict alone. updateStatus re-reads the order each
+      // attempt, so a retry cannot force a transition the fresh state
+      // disallows, and we stop early if a sibling already applied ours.
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          await this.orders.updateStatus(
+            o.id,
+            o.tenantId,
+            { status: mapped as any } as any,
+            "deliveroo-rider-webhook",
+            "WEBHOOK",
+          );
+          statusChanged = true;
+          break;
+        } catch (err: any) {
+          const conflict =
+            err?.status === 409 ||
+            /modified by another request/i.test(String(err?.message ?? ""));
+          if (!conflict || attempt === 3) {
+            this.logger.warn(
+              `Deliveroo rider ${externalId} → ${mapped} rejected` +
+                (conflict ? ` after ${attempt} attempts` : "") +
+                `: ${err?.message}`,
+            );
+            break;
+          }
+          const fresh = await this.prisma.order.findUnique({
+            where: { id: o.id },
+            select: { status: true },
+          });
+          if (fresh?.status === mapped) {
+            // A sibling event won the race with the same stage. Nothing lost.
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 40 * attempt));
+        }
       }
     }
 
