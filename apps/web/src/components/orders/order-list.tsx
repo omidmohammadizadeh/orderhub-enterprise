@@ -759,6 +759,12 @@ function OrderRow({
         <DeliveryTypeBadge type={(order as any).deliveryType} />
       </Td>
       <Td>
+        <RiderCell order={order} />
+      </Td>
+      <Td>
+        <PickupEtaCell order={order} />
+      </Td>
+      <Td>
         <div className="max-w-[150px] flex flex-col gap-0.5">
           <div className="truncate text-zinc-700">
             {order.customerInfo?.name ?? "—"}
