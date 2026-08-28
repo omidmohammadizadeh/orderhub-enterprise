@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import { payoutsClient, type PayoutRow } from "@/lib/api/payouts.client";
 import { cn } from "@/lib/utils";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 const STATUS: Record<string, { label: string; className: string }> = {
   PAID: { label: "Paid", className: "text-emerald-700 bg-emerald-100" },
@@ -48,14 +49,17 @@ const day = (d: string) =>
   });
 
 export default function PayoutsPage() {
+  // The sidebar's shop scope. Every other tab reads this; payouts did not,
+  // so an owner scoped to one shop was still shown every shop's money.
+  const { selectedLocationId } = useSelectedLocationStore();
   const [accountId, setAccountId] = useState<string | undefined>();
   // Which payout is showing its breakdown. One at a time — this is a
   // "what made up THIS one" question, not a comparison.
   const [openPayout, setOpenPayout] = useState<string | null>(null);
 
   const listQuery = useQuery({
-    queryKey: ["payouts", accountId ?? "all"],
-    queryFn: () => payoutsClient.list(accountId),
+    queryKey: ["payouts", accountId ?? "all", selectedLocationId ?? "all"],
+    queryFn: () => payoutsClient.list(accountId, selectedLocationId ?? undefined),
   });
 
   const accounts = listQuery.data?.accounts ?? [];
@@ -64,13 +68,18 @@ export default function PayoutsPage() {
   const balanceAccountId = accountId ?? (accounts.length === 1 ? accounts[0]!.id : undefined);
 
   const balanceQuery = useQuery({
-    queryKey: ["payout-balance", balanceAccountId],
-    queryFn: () => payoutsClient.balance(balanceAccountId),
+    queryKey: ["payout-balance", balanceAccountId, selectedLocationId ?? "all"],
+    queryFn: () =>
+      payoutsClient.balance(balanceAccountId, selectedLocationId ?? undefined),
     enabled: !!balanceAccountId,
   });
 
   const dashboard = useMutation({
-    mutationFn: () => payoutsClient.dashboardLink(balanceAccountId),
+    mutationFn: () =>
+      payoutsClient.dashboardLink(
+        balanceAccountId,
+        selectedLocationId ?? undefined,
+      ),
     onSuccess: ({ url, kind, message }) => {
       if (kind === "EXTERNAL") {
         // Their own Stripe account. Not a failure — don't dress it as one.
@@ -362,9 +371,16 @@ function PayoutBreakdownPanel({
   payoutId: string;
   accountId: string | null;
 }) {
+  // Same shop scope as the list this row came from, so the two can't drift.
+  const { selectedLocationId } = useSelectedLocationStore();
   const q = useQuery({
-    queryKey: ["payout-breakdown", payoutId],
-    queryFn: () => payoutsClient.breakdown(payoutId, accountId ?? undefined),
+    queryKey: ["payout-breakdown", payoutId, selectedLocationId ?? "all"],
+    queryFn: () =>
+      payoutsClient.breakdown(
+        payoutId,
+        accountId ?? undefined,
+        selectedLocationId ?? undefined,
+      ),
   });
 
   if (q.isLoading) {

@@ -78,28 +78,42 @@ export interface PayoutBreakdown {
   lines: PayoutBreakdownLine[];
 }
 
-export const payoutsClient = {
-  accounts: () =>
-    apiClient.get<PayoutAccount[]>("/v1/payouts/accounts").then((r) => r.data),
+// `locationId` is the sidebar's shop scope, sent on every read so this page
+// shows the same shop the rest of the dashboard is showing. It only ever
+// narrows: the API checks it against the caller's own assignments.
+const scoped = (accountId?: string, locationId?: string) => {
+  const params: Record<string, string> = {};
+  if (accountId) params.accountId = accountId;
+  if (locationId) params.locationId = locationId;
+  return Object.keys(params).length ? params : undefined;
+};
 
-  list: (accountId?: string) =>
+export const payoutsClient = {
+  accounts: (locationId?: string) =>
+    apiClient
+      .get<PayoutAccount[]>("/v1/payouts/accounts", {
+        params: scoped(undefined, locationId),
+      })
+      .then((r) => r.data),
+
+  list: (accountId?: string, locationId?: string) =>
     apiClient
       .get<{ accounts: PayoutAccount[]; payouts: PayoutRow[] }>("/v1/payouts", {
-        params: accountId ? { accountId } : undefined,
+        params: scoped(accountId, locationId),
       })
       .then((r) => r.data),
 
-  balance: (accountId?: string) =>
+  balance: (accountId?: string, locationId?: string) =>
     apiClient
       .get<PayoutBalance>("/v1/payouts/balance", {
-        params: accountId ? { accountId } : undefined,
+        params: scoped(accountId, locationId),
       })
       .then((r) => r.data),
 
-  breakdown: (payoutId: string, accountId?: string) =>
+  breakdown: (payoutId: string, accountId?: string, locationId?: string) =>
     apiClient
       .get<PayoutBreakdown>(`/v1/payouts/${payoutId}/breakdown`, {
-        params: accountId ? { accountId } : undefined,
+        params: scoped(accountId, locationId),
       })
       .then((r) => r.data),
 
@@ -107,7 +121,7 @@ export const payoutsClient = {
   // `kind` says which door it opens: the merchant's Express dashboard, the
   // Stripe-hosted update form (for accounts with no dashboard of their own),
   // or onboarding when the account was never finished.
-  dashboardLink: (accountId?: string) =>
+  dashboardLink: (accountId?: string, locationId?: string) =>
     apiClient
       .post<{
         url: string;
@@ -115,7 +129,7 @@ export const payoutsClient = {
         message?: string;
       }>(
         "/v1/payouts/dashboard-link",
-        { accountId },
+        { accountId, locationId },
       )
       .then((r) => r.data),
 };

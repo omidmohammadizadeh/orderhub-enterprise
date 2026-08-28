@@ -124,8 +124,23 @@ export class PayoutsService {
     tenantId: string,
     userId?: string,
     role?: string,
+    locationId?: string,
   ) {
     const allowed = await this.accessibleLocationIds(tenantId, userId, role);
+
+    // The sidebar's location scope, which every other tab in the dashboard
+    // honours and this page did not — an owner standing in one shop was shown
+    // every shop's takings side by side.
+    //
+    // Narrowing only, never widening: a location the caller has no assignment
+    // for returns nothing rather than reaching past `allowed`. The id arrives
+    // from the browser, so it is checked here and not trusted.
+    if (locationId && allowed !== null && !allowed.includes(locationId)) {
+      this.logger.warn(
+        `Payout scope requested for a location outside the caller's access — denying`,
+      );
+      return [];
+    }
 
     const accounts = await (this.prisma as any).stripeConnectAccount.findMany({
       where: { tenantId },
@@ -201,6 +216,12 @@ export class PayoutsService {
         if (!covered.some((id) => allowed.includes(id))) continue;
       }
 
+      // A brand account still counts here when the chosen shop is one of the
+      // shops whose money flows through it — that IS this location's payout
+      // account. Only the tenant-wide pot is dropped, because it cannot be
+      // attributed to one shop.
+      if (locationId && !(covered ?? []).includes(locationId)) continue;
+
       out.push({
         id: a.id,
         stripeAccountId: a.stripeAccountId,
@@ -219,8 +240,13 @@ export class PayoutsService {
   }
 
   /** The payout accounts the caller can see, for the page's account picker. */
-  async listAccounts(tenantId: string, userId?: string, role?: string) {
-    return this.visibleAccounts(tenantId, userId, role);
+  async listAccounts(
+    tenantId: string,
+    userId?: string,
+    role?: string,
+    locationId?: string,
+  ) {
+    return this.visibleAccounts(tenantId, userId, role, locationId);
   }
 
   // ── Payout history ────────────────────────────────────────────────────────
@@ -242,9 +268,14 @@ export class PayoutsService {
     tenantId: string,
     userId: string | undefined,
     role: string | undefined,
-    opts: { accountId?: string; limit?: number } = {},
+    opts: { accountId?: string; limit?: number; locationId?: string } = {},
   ) {
-    const accounts = await this.visibleAccounts(tenantId, userId, role);
+    const accounts = await this.visibleAccounts(
+      tenantId,
+      userId,
+      role,
+      opts.locationId,
+    );
     if (!accounts.length) return { payouts: [], accounts: [] };
 
     const picked = opts.accountId
@@ -351,8 +382,14 @@ export class PayoutsService {
     userId: string | undefined,
     role: string | undefined,
     accountId?: string,
+    locationId?: string,
   ) {
-    const accounts = await this.visibleAccounts(tenantId, userId, role);
+    const accounts = await this.visibleAccounts(
+      tenantId,
+      userId,
+      role,
+      locationId,
+    );
     const account = accountId
       ? accounts.find((a) => a.id === accountId)
       : accounts[0];
@@ -457,8 +494,14 @@ export class PayoutsService {
     role: string | undefined,
     payoutId: string,
     accountId?: string,
+    locationId?: string,
   ) {
-    const accounts = await this.visibleAccounts(tenantId, userId, role);
+    const accounts = await this.visibleAccounts(
+      tenantId,
+      userId,
+      role,
+      locationId,
+    );
     const account = accountId
       ? accounts.find((a) => a.id === accountId)
       : accounts[0];
@@ -629,12 +672,18 @@ export class PayoutsService {
     userId: string | undefined,
     role: string | undefined,
     accountId?: string,
+    locationId?: string,
   ): Promise<{
     url: string;
     kind: "DASHBOARD" | "ONBOARDING" | "ACCOUNT_UPDATE" | "EXTERNAL";
     message?: string;
   }> {
-    const accounts = await this.visibleAccounts(tenantId, userId, role);
+    const accounts = await this.visibleAccounts(
+      tenantId,
+      userId,
+      role,
+      locationId,
+    );
     const account = accountId
       ? accounts.find((a) => a.id === accountId)
       : accounts[0];

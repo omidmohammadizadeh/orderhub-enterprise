@@ -27,8 +27,19 @@ export class PayoutsController {
   @Get("accounts")
   @Roles(...FINANCE_ROLES)
   @ApiOperation({ summary: "Payout accounts this user can see" })
-  accounts(@CurrentUser() user: AuthenticatedUser) {
-    return this.payouts.listAccounts(user.tenantId, user.userId, user.role);
+  accounts(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    // `locationId` is the sidebar's shop scope. It can only ever narrow what
+    // the caller's own assignments already allow — the service checks it
+    // against them rather than taking the browser's word for it.
+    return this.payouts.listAccounts(
+      user.tenantId,
+      user.userId,
+      user.role,
+      locationId,
+    );
   }
 
   @Get()
@@ -38,10 +49,12 @@ export class PayoutsController {
     @CurrentUser() user: AuthenticatedUser,
     @Query("accountId") accountId?: string,
     @Query("limit") limit?: string,
+    @Query("locationId") locationId?: string,
   ) {
     return this.payouts.list(user.tenantId, user.userId, user.role, {
       accountId,
       limit: limit ? parseInt(limit, 10) : undefined,
+      locationId,
     });
   }
 
@@ -51,12 +64,14 @@ export class PayoutsController {
   balance(
     @CurrentUser() user: AuthenticatedUser,
     @Query("accountId") accountId?: string,
+    @Query("locationId") locationId?: string,
   ) {
     return this.payouts.balance(
       user.tenantId,
       user.userId,
       user.role,
       accountId,
+      locationId,
     );
   }
 
@@ -67,6 +82,7 @@ export class PayoutsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("payoutId") payoutId: string,
     @Query("accountId") accountId?: string,
+    @Query("locationId") locationId?: string,
   ) {
     return this.payouts.breakdown(
       user.tenantId,
@@ -74,6 +90,7 @@ export class PayoutsController {
       user.role,
       payoutId,
       accountId,
+      locationId,
     );
   }
 
@@ -85,13 +102,14 @@ export class PayoutsController {
   @ApiOperation({ summary: "One-time link to the Stripe Express dashboard" })
   dashboardLink(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { accountId?: string },
+    @Body() body: { accountId?: string; locationId?: string },
   ) {
     return this.payouts.dashboardLink(
       user.tenantId,
       user.userId,
       user.role,
       body?.accountId,
+      body?.locationId,
     );
   }
 }

@@ -113,6 +113,47 @@ describe("PayoutsService — access scope", () => {
     expect(prisma.userLocation.findMany).not.toHaveBeenCalled();
   });
 
+  // The sidebar's shop scope. An owner assigned to every shop still expects
+  // this page to show the ONE shop they are standing in, the way every other
+  // tab does — and the scope must never be a way to reach further.
+  it("narrows to the shop picked in the sidebar", async () => {
+    const prisma = prismaWith({ userLocations: [LOC_A, LOC_B] });
+    const svc = makeService({ prisma });
+
+    const all = await svc.listAccounts(TENANT, "u1", "OWNER");
+    const scoped = await svc.listAccounts(TENANT, "u1", "OWNER", LOC_B);
+
+    expect(all).toHaveLength(2);
+    expect(scoped.map((a: any) => a.label)).toEqual(["Pizza Uno Chester"]);
+  });
+
+  it("narrows a platform admin too, without widening them", async () => {
+    const prisma = prismaWith({});
+    const svc = makeService({ prisma });
+
+    const scoped = await svc.listAccounts(
+      TENANT,
+      "admin",
+      "PLATFORM_ADMIN",
+      LOC_A,
+    );
+
+    expect(scoped.map((a: any) => a.label)).toEqual(["Pizza Uno Pelton"]);
+    // The tenant-wide pot is every shop's money, so one shop's view drops it.
+    expect(scoped.some((a: any) => a.scope === "TENANT")).toBe(false);
+  });
+
+  it("refuses a shop the caller has no assignment for", async () => {
+    // The id comes from the browser. Asking for someone else's shop must not
+    // reach past the caller's own assignments.
+    const prisma = prismaWith({ userLocations: [LOC_A] });
+    const svc = makeService({ prisma });
+
+    const scoped = await svc.listAccounts(TENANT, "u1", "OWNER", LOC_B);
+
+    expect(scoped).toEqual([]);
+  });
+
   it("returns nothing when the caller can't be identified", async () => {
     const prisma = prismaWith({ userLocations: [LOC_A] });
     const svc = makeService({ prisma });
