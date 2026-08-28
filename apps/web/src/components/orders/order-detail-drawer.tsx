@@ -137,14 +137,22 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const actions = NEXT_ACTIONS[order.status] ?? [];
   const total = order.items.reduce((s, i) => s + i.quantity, 0);
 
-  // Phase AW-22 — Edit eligibility mirrors the server-side gate so
-  // the button never shows up for an order the API would reject.
-  // Manager-tier roles only; cash; POS; status < READY.
+  // Edit eligibility mirrors the server-side gate so the button never shows
+  // up for an order the API would reject: till roles, POS, status < READY,
+  // and the money not already taken by card.
+  //
+  // Must list BOTH generations of role name. This set previously omitted
+  // OWNER — the Team Roles equivalent of TENANT_OWNER — so an owner the API
+  // would have accepted was shown no button at all, which is how this looked
+  // like "admin only" from the floor.
   const EDIT_ROLES = new Set([
+    "PLATFORM_ADMIN",
+    "TENANT_OWNER",
+    "OWNER",
     "MANAGER",
     "DARK_KITCHEN_MANAGER",
-    "TENANT_OWNER",
-    "PLATFORM_ADMIN",
+    "CASHIER",
+    "STAFF",
   ]);
   const editableStatus = ["PENDING", "ACCEPTED", "PREPARING"].includes(
     order.status,

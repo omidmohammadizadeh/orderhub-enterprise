@@ -44,7 +44,7 @@ const POS_STAFF: UserRole[] = [
   "CASHIER",
   "STAFF",
 ];
-// POS_MANAGER — supervisory actions (edit an order, create a test order):
+// POS_MANAGER — supervisory actions (the manager PIN, creating a test order):
 // everyone above except front-line staff/cashier.
 const POS_MANAGER: UserRole[] = [
   "PLATFORM_ADMIN",
@@ -241,11 +241,19 @@ export class OrdersController {
   }
 
   // ── PATCH /api/v1/orders/:id/edit ────────────────────
-  // Phase AW-22 — Manager amends a POS order the customer rang back
-  // about. Constraints (status, payment, source) enforced server-
-  // side too — this gate is just for permissions.
+  // Amending a POS order the customer changed their mind about.
+  // Constraints (status, payment, source) are enforced in the service too —
+  // this gate is just for permissions.
+  //
+  // POS_STAFF, not POS_MANAGER. Whoever took the order at the till is the one
+  // standing there when the customer adds chips, and a cashier who cannot
+  // amend has to cancel and re-key the whole order instead — which is worse
+  // for the till and worse for the customer. The genuinely dangerous edits are
+  // already blocked by the service for everyone: a PAID card order can't be
+  // amended, and neither can one past READY. Voiding a line still needs the
+  // manager PIN.
   @Patch(":id/edit")
-  @Roles(...POS_MANAGER)
+  @Roles(...POS_STAFF)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
