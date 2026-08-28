@@ -62,7 +62,8 @@ export function TagBrandModal({
           <div className="mt-3 max-h-72 space-y-1.5 overflow-y-auto">
             {brands.length === 0 ? (
               <p className="rounded-md border border-zinc-200 px-3 py-4 text-center text-sm text-zinc-400">
-                No brands available.
+                No brands are based at this location. Create one under
+                Locations → Brands, or switch location.
               </p>
             ) : (
               brands.map((b) => (

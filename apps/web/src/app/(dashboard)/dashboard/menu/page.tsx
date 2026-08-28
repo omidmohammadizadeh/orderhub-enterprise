@@ -23,6 +23,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
 import { menusClient, brandsClient, type Menu, type Brand } from "@/lib/api/menus.client";
+// The location-aware brand list. `brandsClient` above has no locationId
+// parameter; this one does, and the API scopes strictly by primaryLocationId.
+import { brandsClient as scopedBrandsClient } from "@/lib/api/locations.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 import { AddMenuModal } from "@/components/menu/add-menu-modal";
@@ -104,6 +107,22 @@ export default function MenuPage() {
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
+
+  // Brands that operate FROM this kitchen, for the "Tag brand" dialog.
+  //
+  // Kept separate from the `brands` list above on purpose: that one drives
+  // the page's own brand selection and the "no brands yet — create one" CTA,
+  // and narrowing it would black out the page for a location whose brands
+  // are all homed elsewhere. This list only ever fills the tag dialog, where
+  // offering a brand from another site is just an invitation to mis-tag a
+  // whole menu.
+  //
+  // With "All locations" picked there is no kitchen to scope to, so it falls
+  // back to the full list rather than showing nothing.
+  const { data: locationBrands = [] } = useQuery({
+    queryKey: ["brands", "at-location", selectedLocationId ?? "all"],
+    queryFn: () => scopedBrandsClient.list(selectedLocationId ?? undefined),
+  });
 
   const translateMutation = useMutation({
     mutationFn: async (menuId: string) => {
@@ -731,7 +750,7 @@ export default function MenuPage() {
         open={!!taggingMenu}
         menuId={taggingMenu?.id ?? ""}
         menuName={taggingMenu?.name ?? ""}
-        brands={brands}
+        brands={locationBrands as Brand[]}
         onClose={() => setTaggingMenu(null)}
         onTagged={(count) => {
           qc.invalidateQueries({ queryKey: ["menus"] });
