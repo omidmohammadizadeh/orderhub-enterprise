@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // "Where's my money, and which bank does it go to?"
 //
@@ -11,8 +11,8 @@
 // owner is sent to Stripe's own dashboard through a one-time link — no account
 // number ever passes through OrderHub.
 
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Banknote,
   Building2,
@@ -20,32 +20,32 @@ import {
   Loader2,
   AlertTriangle,
   ChevronRight,
-} from "lucide-react";
-import toast from "react-hot-toast";
-import { payoutsClient, type PayoutRow } from "@/lib/api/payouts.client";
-import { cn } from "@/lib/utils";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { useSelectedLocationStore } from "@/stores/selected-location.store";
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+import { payoutsClient, type PayoutRow } from '@/lib/api/payouts.client';
+import { cn } from '@/lib/utils';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useSelectedLocationStore } from '@/stores/selected-location.store';
 
 const STATUS: Record<string, { label: string; className: string }> = {
-  PAID: { label: "Paid", className: "text-emerald-700 bg-emerald-100" },
-  IN_TRANSIT: { label: "On its way", className: "text-blue-700 bg-blue-100" },
-  PENDING: { label: "Pending", className: "text-amber-700 bg-amber-100" },
-  FAILED: { label: "Failed", className: "text-red-700 bg-red-100" },
-  CANCELLED: { label: "Cancelled", className: "text-zinc-600 bg-zinc-100" },
+  PAID: { label: 'Paid', className: 'text-emerald-700 bg-emerald-100' },
+  IN_TRANSIT: { label: 'On its way', className: 'text-blue-700 bg-blue-100' },
+  PENDING: { label: 'Pending', className: 'text-amber-700 bg-amber-100' },
+  FAILED: { label: 'Failed', className: 'text-red-700 bg-red-100' },
+  CANCELLED: { label: 'Cancelled', className: 'text-zinc-600 bg-zinc-100' },
 };
 
-const money = (n: number, ccy = "gbp") =>
-  new Intl.NumberFormat("en-GB", {
-    style: "currency",
+const money = (n: number, ccy = 'gbp') =>
+  new Intl.NumberFormat('en-GB', {
+    style: 'currency',
     currency: ccy.toUpperCase(),
   }).format(n);
 
 const day = (d: string) =>
-  new Date(d).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+  new Date(d).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
   });
 
 export default function PayoutsPage() {
@@ -56,9 +56,13 @@ export default function PayoutsPage() {
   // Which payout is showing its breakdown. One at a time — this is a
   // "what made up THIS one" question, not a comparison.
   const [openPayout, setOpenPayout] = useState<string | null>(null);
+  // Shown when the button is pressed with more than one shop in view: which
+  // shop's bank details? Telling someone to "choose a shop" without giving
+  // them anything to choose from is just a closed door with a label.
+  const [pickingShop, setPickingShop] = useState(false);
 
   const listQuery = useQuery({
-    queryKey: ["payouts", accountId ?? "all", selectedLocationId ?? "all"],
+    queryKey: ['payouts', accountId ?? 'all', selectedLocationId ?? 'all'],
     queryFn: () => payoutsClient.list(accountId, selectedLocationId ?? undefined),
   });
 
@@ -68,53 +72,48 @@ export default function PayoutsPage() {
   const balanceAccountId = accountId ?? (accounts.length === 1 ? accounts[0]!.id : undefined);
 
   const balanceQuery = useQuery({
-    queryKey: ["payout-balance", balanceAccountId, selectedLocationId ?? "all"],
-    queryFn: () =>
-      payoutsClient.balance(balanceAccountId, selectedLocationId ?? undefined),
+    queryKey: ['payout-balance', balanceAccountId, selectedLocationId ?? 'all'],
+    queryFn: () => payoutsClient.balance(balanceAccountId, selectedLocationId ?? undefined),
     enabled: !!balanceAccountId,
   });
 
   const dashboard = useMutation({
-    mutationFn: () =>
-      payoutsClient.dashboardLink(
-        balanceAccountId,
-        selectedLocationId ?? undefined,
-      ),
+    // Takes the account explicitly so the shop chooser below can name one
+    // without first changing the whole page's filter.
+    mutationFn: (id?: string) =>
+      payoutsClient.dashboardLink(id ?? balanceAccountId, selectedLocationId ?? undefined),
     onSuccess: ({ url, kind, message }) => {
-      if (kind === "EXTERNAL") {
+      if (kind === 'EXTERNAL') {
         // Their own Stripe account. Not a failure — don't dress it as one.
-        toast(message ?? "Opening Stripe.", { icon: "🔗", duration: 6000 });
+        toast(message ?? 'Opening Stripe.', { icon: '🔗', duration: 6000 });
       }
-      if (kind === "ONBOARDING") {
+      if (kind === 'ONBOARDING') {
         // This account never finished Stripe setup, so there's no dashboard to
         // open yet. Say so before the tab appears, or the owner lands on a
         // form they weren't expecting.
-        toast("Finishing Stripe setup first — add your bank details there.", {
-          icon: "🏦",
+        toast('Finishing Stripe setup first — add your bank details there.', {
+          icon: '🏦',
         });
-      } else if (kind === "ACCOUNT_UPDATE") {
+      } else if (kind === 'ACCOUNT_UPDATE') {
         // No Stripe dashboard on this account, so they get the hosted update
         // form. It edits bank details but has no statements, hence the
         // narrower promise than the button makes.
-        toast("Opening your Stripe details form to update bank details.", {
-          icon: "🏦",
+        toast('Opening your Stripe details form to update bank details.', {
+          icon: '🏦',
         });
       }
       // Single-use link — open it straight away rather than rendering it.
-      window.open(url, "_blank", "noopener,noreferrer");
+      window.open(url, '_blank', 'noopener,noreferrer');
     },
     onError: (e: any) =>
-      toast.error(
-        e?.response?.data?.message ?? "Couldn't open your Stripe dashboard",
-      ),
+      toast.error(e?.response?.data?.message ?? "Couldn't open your Stripe dashboard"),
   });
 
   const payouts = listQuery.data?.payouts ?? [];
   const balance = balanceQuery.data;
   // A Standard account belongs to the merchant, not to us — say so plainly
   // rather than letting them find out by pressing a button that can't work.
-  const ownStripe =
-    accounts.find((a) => a.id === balanceAccountId)?.dashboardType === "full";
+  const ownStripe = accounts.find((a) => a.id === balanceAccountId)?.dashboardType === 'full';
   // Several shops and none picked. The backend would fall back to the first
   // account, which is the one thing we must not do here: it would open some
   // other shop's bank details.
@@ -129,43 +128,67 @@ export default function PayoutsPage() {
             Money Stripe has sent to your bank, and where it lands.
           </p>
         </div>
-        <button
-          onClick={() => {
-            // A Stripe link is per shop, and with several to choose from we
-            // must not guess which bank account the owner meant. Ask, rather
-            // than disabling the only route to their bank details.
-            if (mustPickShop) {
-              toast("Choose a shop first — bank details are held per shop.", {
-                icon: "🏦",
-              });
-              return;
+        <div className="relative flex-shrink-0">
+          <button
+            onClick={() => {
+              // A Stripe link is per shop, and with several to choose from we
+              // must not guess which bank account the owner meant. Offer the
+              // choice here rather than sending them back to the filter.
+              if (mustPickShop) {
+                setPickingShop((v) => !v);
+                return;
+              }
+              dashboard.mutate(undefined);
+            }}
+            // Only ever disabled while a link is being minted or before we know
+            // of any account at all. It used to also require a SELECTED shop,
+            // which greyed the button out permanently for every operator with
+            // more than one — the whole page defaults to "All shops" — and left
+            // them no way to reach Stripe to change their bank details.
+            disabled={dashboard.isPending || accounts.length === 0}
+            title={
+              accounts.length === 0
+                ? 'No Stripe account is connected yet.'
+                : mustPickShop
+                  ? 'Choose a shop — bank details are held per shop.'
+                  : undefined
             }
-            dashboard.mutate();
-          }}
-          // Only ever disabled while a link is being minted or before we know
-          // of any account at all. It used to also require a SELECTED shop,
-          // which greyed the button out permanently for every operator with
-          // more than one — the whole page defaults to "All shops" — and left
-          // them no way to reach Stripe to change their bank details.
-          disabled={dashboard.isPending || accounts.length === 0}
-          title={
-            accounts.length === 0
-              ? "No Stripe account is connected yet."
-              : mustPickShop
-                ? "Choose a shop — bank details are held per shop."
-                : undefined
-          }
-          className="flex flex-shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-        >
-          {dashboard.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Building2 className="h-4 w-4" />
-          )}
-          {/* Once we know it's the merchant's own Stripe, promise less: this
+            className="flex flex-shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+          >
+            {dashboard.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Building2 className="h-4 w-4" />
+            )}
+            {/* Once we know it's the merchant's own Stripe, promise less: this
               button can only send them to the sign-in page. */}
-          {ownStripe ? "Open Stripe" : "Bank details & statements"}
-        </button>
+            {ownStripe ? 'Open Stripe' : 'Bank details & statements'}
+          </button>
+
+          {/* Which shop's bank account. Each row is a separate Stripe account,
+            so this is a real question — but one click answers it. */}
+          {pickingShop && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setPickingShop(false)} />
+              <div className="absolute right-0 z-20 mt-2 w-64 overflow-hidden rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
+                <p className="px-3 py-1.5 text-xs text-zinc-500">Which shop&apos;s bank details?</p>
+                {accounts.map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => {
+                      setPickingShop(false);
+                      dashboard.mutate(a.id);
+                    }}
+                    className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50"
+                  >
+                    <span className="truncate">{a.label}</span>
+                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-300" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Shop picker — only earns its space with more than one. A dozen shops
@@ -188,9 +211,7 @@ export default function PayoutsPage() {
             }}
             options={accounts.map((a) => ({ value: a.id, label: a.label }))}
           />
-          <span className="text-xs text-zinc-400">
-            {accounts.length} shops
-          </span>
+          <span className="text-xs text-zinc-400">{accounts.length} shops</span>
         </div>
       )}
 
@@ -201,49 +222,44 @@ export default function PayoutsPage() {
           <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
-              Balance unavailable right now — {balance.unavailableReason} Your
-              payout history below is unaffected.
+              Balance unavailable right now — {balance.unavailableReason} Your payout history below
+              is unaffected.
             </span>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
               {
-                label: "On its way to your bank",
+                label: 'On its way to your bank',
                 value: balance?.inTransit,
                 hint: balance?.nextPayout?.arrivalDate
                   ? `Arrives ${day(balance.nextPayout.arrivalDate)}`
                   : undefined,
-                accent: "text-blue-700",
+                accent: 'text-blue-700',
               },
               {
-                label: "Available",
+                label: 'Available',
                 value: balance?.available,
-                hint: "Ready for the next payout",
-                accent: "text-emerald-700",
+                hint: 'Ready for the next payout',
+                accent: 'text-emerald-700',
               },
               {
-                label: "Pending",
+                label: 'Pending',
                 value: balance?.pending,
-                hint: "Still clearing at Stripe",
-                accent: "text-zinc-900",
+                hint: 'Still clearing at Stripe',
+                accent: 'text-zinc-900',
               },
             ].map((c) => (
-              <div
-                key={c.label}
-                className="rounded-xl border border-zinc-200 bg-white p-4"
-              >
+              <div key={c.label} className="rounded-xl border border-zinc-200 bg-white p-4">
                 <div className="text-xs text-zinc-500">{c.label}</div>
-                <div className={cn("mt-1 text-2xl font-bold tabular-nums", c.accent)}>
+                <div className={cn('mt-1 text-2xl font-bold tabular-nums', c.accent)}>
                   {balanceQuery.isLoading || c.value == null ? (
                     <span className="text-zinc-300">—</span>
                   ) : (
                     money(c.value, balance?.currency)
                   )}
                 </div>
-                {c.hint && (
-                  <div className="mt-0.5 text-[11px] text-zinc-400">{c.hint}</div>
-                )}
+                {c.hint && <div className="mt-0.5 text-[11px] text-zinc-400">{c.hint}</div>}
               </div>
             ))}
           </div>
@@ -279,9 +295,7 @@ export default function PayoutsPage() {
                 showAccount={!accountId && accounts.length > 1}
                 expanded={openPayout === p.stripePayoutId}
                 onToggle={() =>
-                  setOpenPayout(
-                    openPayout === p.stripePayoutId ? null : p.stripePayoutId,
-                  )
+                  setOpenPayout(openPayout === p.stripePayoutId ? null : p.stripePayoutId)
                 }
               />
             ))}
@@ -292,8 +306,8 @@ export default function PayoutsPage() {
       <p className="flex items-center gap-1.5 px-1 text-xs text-zinc-400">
         <ExternalLink className="h-3 w-3" />
         {ownStripe
-          ? "This location uses its own Stripe account — sign in there to change its bank details."
-          : "Bank details are held and verified by Stripe, not by OrderHub."}
+          ? 'This location uses its own Stripe account — sign in there to change its bank details.'
+          : 'Bank details are held and verified by Stripe, not by OrderHub.'}
       </p>
     </div>
   );
@@ -312,7 +326,7 @@ function PayoutLine({
 }) {
   const s = STATUS[p.status] ?? {
     label: p.status,
-    className: "bg-zinc-100 text-zinc-600",
+    className: 'bg-zinc-100 text-zinc-600',
   };
   return (
     <div>
@@ -324,8 +338,8 @@ function PayoutLine({
         <div className="flex min-w-0 items-center gap-2">
           <ChevronRight
             className={cn(
-              "h-4 w-4 flex-shrink-0 text-zinc-400 transition-transform",
-              expanded && "rotate-90",
+              'h-4 w-4 flex-shrink-0 text-zinc-400 transition-transform',
+              expanded && 'rotate-90',
             )}
           />
           <div className="min-w-0">
@@ -338,24 +352,19 @@ function PayoutLine({
               )}
               <span>
                 {p.arrivalDate
-                  ? `${p.status === "PAID" ? "Paid" : "Arrives"} ${day(p.arrivalDate)}`
+                  ? `${p.status === 'PAID' ? 'Paid' : 'Arrives'} ${day(p.arrivalDate)}`
                   : day(p.createdAt)}
               </span>
             </div>
           </div>
         </div>
         <span
-          className={cn(
-            "flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
-            s.className,
-          )}
+          className={cn('flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', s.className)}
         >
           {s.label}
         </span>
       </button>
-      {expanded && (
-        <PayoutBreakdownPanel payoutId={p.stripePayoutId} accountId={p.accountId} />
-      )}
+      {expanded && <PayoutBreakdownPanel payoutId={p.stripePayoutId} accountId={p.accountId} />}
     </div>
   );
 }
@@ -374,13 +383,9 @@ function PayoutBreakdownPanel({
   // Same shop scope as the list this row came from, so the two can't drift.
   const { selectedLocationId } = useSelectedLocationStore();
   const q = useQuery({
-    queryKey: ["payout-breakdown", payoutId, selectedLocationId ?? "all"],
+    queryKey: ['payout-breakdown', payoutId, selectedLocationId ?? 'all'],
     queryFn: () =>
-      payoutsClient.breakdown(
-        payoutId,
-        accountId ?? undefined,
-        selectedLocationId ?? undefined,
-      ),
+      payoutsClient.breakdown(payoutId, accountId ?? undefined, selectedLocationId ?? undefined),
   });
 
   if (q.isLoading) {
@@ -403,12 +408,12 @@ function PayoutBreakdownPanel({
   // Deductions are already negative from Stripe, so they render with their own
   // sign and the column still adds up to the payout.
   const rows: Array<{ label: string; value: number; muted?: boolean }> = [
-    { label: `Sales${b.orderCount ? ` (${b.orderCount} orders)` : ""}`, value: b.sales },
-    { label: "Refunds", value: b.refunds },
-    { label: "Card processing (Stripe)", value: b.stripeFees },
-    { label: "OrderHub commission", value: b.commission },
+    { label: `Sales${b.orderCount ? ` (${b.orderCount} orders)` : ''}`, value: b.sales },
+    { label: 'Refunds', value: b.refunds },
+    { label: 'Card processing (Stripe)', value: b.stripeFees },
+    { label: 'OrderHub commission', value: b.commission },
   ];
-  if (b.other) rows.push({ label: "Other adjustments", value: b.other, muted: true });
+  if (b.other) rows.push({ label: 'Other adjustments', value: b.other, muted: true });
 
   const orderLines = b.lines.filter((l) => l.order);
 
@@ -419,15 +424,8 @@ function PayoutBreakdownPanel({
           .filter((r) => r.value !== 0)
           .map((r) => (
             <div key={r.label} className="flex justify-between text-xs">
-              <span className={r.muted ? "text-zinc-400" : "text-zinc-600"}>
-                {r.label}
-              </span>
-              <span
-                className={cn(
-                  "tabular-nums",
-                  r.value < 0 ? "text-red-600" : "text-zinc-700",
-                )}
-              >
+              <span className={r.muted ? 'text-zinc-400' : 'text-zinc-600'}>{r.label}</span>
+              <span className={cn('tabular-nums', r.value < 0 ? 'text-red-600' : 'text-zinc-700')}>
                 {money(r.value, ccy)}
               </span>
             </div>
@@ -440,8 +438,7 @@ function PayoutBreakdownPanel({
 
       {b.truncated && (
         <p className="text-[11px] text-amber-700">
-          Showing the first 100 transactions — the lines below don&apos;t add up
-          to the total above.
+          Showing the first 100 transactions — the lines below don&apos;t add up to the total above.
         </p>
       )}
 
@@ -454,8 +451,8 @@ function PayoutBreakdownPanel({
             {orderLines.map((l) => (
               <div key={l.id} className="flex justify-between gap-2 text-xs">
                 <span className="min-w-0 truncate text-zinc-600">
-                  {l.order?.reference ?? "Order"}
-                  {l.order?.customerName ? ` · ${l.order.customerName}` : ""}
+                  {l.order?.reference ?? 'Order'}
+                  {l.order?.customerName ? ` · ${l.order.customerName}` : ''}
                 </span>
                 <span className="flex-shrink-0 tabular-nums text-zinc-700">
                   {money(l.gross, l.currency)}
@@ -468,8 +465,8 @@ function PayoutBreakdownPanel({
 
       {orderLines.length === 0 && b.lines.length > 0 && (
         <p className="text-[11px] text-zinc-400">
-          We couldn&apos;t match these transactions to orders in OrderHub — they
-          may predate the integration.
+          We couldn&apos;t match these transactions to orders in OrderHub — they may predate the
+          integration.
         </p>
       )}
     </div>
