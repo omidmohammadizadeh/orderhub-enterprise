@@ -106,6 +106,10 @@ export default function PayoutsPage() {
   // rather than letting them find out by pressing a button that can't work.
   const ownStripe =
     accounts.find((a) => a.id === balanceAccountId)?.dashboardType === "full";
+  // Several shops and none picked. The backend would fall back to the first
+  // account, which is the one thing we must not do here: it would open some
+  // other shop's bank details.
+  const mustPickShop = !balanceAccountId && accounts.length > 1;
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -117,8 +121,31 @@ export default function PayoutsPage() {
           </p>
         </div>
         <button
-          onClick={() => dashboard.mutate()}
-          disabled={dashboard.isPending || !balanceAccountId}
+          onClick={() => {
+            // A Stripe link is per shop, and with several to choose from we
+            // must not guess which bank account the owner meant. Ask, rather
+            // than disabling the only route to their bank details.
+            if (mustPickShop) {
+              toast("Choose a shop first — bank details are held per shop.", {
+                icon: "🏦",
+              });
+              return;
+            }
+            dashboard.mutate();
+          }}
+          // Only ever disabled while a link is being minted or before we know
+          // of any account at all. It used to also require a SELECTED shop,
+          // which greyed the button out permanently for every operator with
+          // more than one — the whole page defaults to "All shops" — and left
+          // them no way to reach Stripe to change their bank details.
+          disabled={dashboard.isPending || accounts.length === 0}
+          title={
+            accounts.length === 0
+              ? "No Stripe account is connected yet."
+              : mustPickShop
+                ? "Choose a shop — bank details are held per shop."
+                : undefined
+          }
           className="flex flex-shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
         >
           {dashboard.isPending ? (
