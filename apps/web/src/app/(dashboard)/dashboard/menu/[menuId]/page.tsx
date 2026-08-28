@@ -43,6 +43,7 @@ import {
   SlidersHorizontal,
   Percent,
   Camera,
+  ArrowDownAZ,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -60,6 +61,19 @@ import { ProductEditorModal } from "@/components/products/product-editor-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { GeneratePhotosModal } from "@/components/menu/generate-photos-modal";
+
+/**
+ * How names are compared when sorting a category A-Z.
+ *
+ * `sensitivity: "base"` is what actually delivers "everything starting with
+ * the same letter sits together": a case-sensitive sort puts "chips" after
+ * "Zinger", which is not what anyone means by alphabetical. `numeric` keeps
+ * "6 Wings" before "12 Wings" instead of ordering them as text.
+ */
+const NAME_COLLATOR = new Intl.Collator("en", {
+  numeric: true,
+  sensitivity: "base",
+});
 
 export default function MenuEditorPage() {
   const { menuId } = useParams<{ menuId: string }>();
@@ -590,6 +604,44 @@ export default function MenuEditorPage() {
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
                   Add Existing
+                </Button>
+                {/* Sort this category A-Z.
+                    Confirmed first because it overwrites an order the
+                    operator may have spent time dragging into place, and the
+                    only way back is to drag it all again. */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={
+                    products.length < 2 || reorderItemsMutation.isPending
+                  }
+                  onClick={() => {
+                    if (
+                      !confirm(
+                        `Sort the ${products.length} products in "${activeCat.name}" A-Z? This replaces their current order.`,
+                      )
+                    ) {
+                      return;
+                    }
+                    // Sorts every product in the category, not just the ones
+                    // matching the search box — numbering only the visible
+                    // ones would push the rest to the end.
+                    const sorted = [...products].sort((a: any, b: any) =>
+                      NAME_COLLATOR.compare(a.name ?? "", b.name ?? ""),
+                    );
+                    reorderItemsMutation.mutate({
+                      catId: activeCat.id,
+                      order: sorted.map((p: any, i: number) => ({
+                        itemId: p.linkId,
+                        sortOrder: i,
+                      })),
+                    });
+                  }}
+                  className="h-9"
+                  title="Put this category's products in alphabetical order"
+                >
+                  <ArrowDownAZ className="h-4 w-4 mr-1.5" />
+                  A-Z
                 </Button>
                 {/* Admin only while this is being trialled: it spends real
                     money per photo and replaces customer-facing images, so
