@@ -61,6 +61,39 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
       return 0;
     };
 
+    /**
+     * Deliveroo nests selections arbitrarily deep, and has two shapes for it:
+     * `modifiers[]` directly on the item (Live Orders) and the older
+     * `modifier_groups[].modifiers[]`. Both can appear at any level.
+     *
+     * Depth-capped and cycle-safe by construction — the cap is what stops a
+     * hand-edited catalog turning one order into an infinite walk.
+     */
+    const MAX_MODIFIER_DEPTH = 5;
+    const flattenModifiers = (
+      node: any,
+      depth = 0,
+      out: Array<{ name: string; price: number; quantity: number }> = [],
+    ) => {
+      if (!node || depth > MAX_MODIFIER_DEPTH) return out;
+      const children = [
+        ...(node.modifiers ?? []),
+        ...(node.modifier_groups ?? []).flatMap((g: any) => g?.modifiers ?? []),
+      ];
+      for (const m of children) {
+        if (!m) continue;
+        out.push({
+          name: m.name ?? m.operational_name ?? "Modifier",
+          price: parseMoney(
+            m.unit_price ?? m.menu_unit_price ?? m.total_price,
+          ),
+          quantity: m.quantity ?? m.count ?? 1,
+        });
+        flattenModifiers(m, depth + 1, out);
+      }
+      return out;
+    };
+
     const items = (order.items ?? []).map((item: any) => {
       const qty = item.quantity ?? item.count ?? 1;
       const unit = parseMoney(
@@ -78,22 +111,18 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
         quantity: qty,
         unitPrice: unit || (qty ? total / qty : 0),
         totalPrice: total || unit * qty,
-        // Live Orders API nests selections under item.modifiers[]; the older
-        // shape grouped them under modifier_groups[].modifiers[].
-        modifiers: [
-          ...(item.modifiers ?? []).map((m: any) => ({
-            name: m.name ?? m.operational_name ?? "Modifier",
-            price: parseMoney(m.unit_price ?? m.menu_unit_price ?? m.total_price),
-            quantity: m.quantity ?? m.count ?? 1,
-          })),
-          ...(item.modifier_groups ?? []).flatMap((g: any) =>
-            (g.modifiers ?? []).map((m: any) => ({
-              name: m.name,
-              price: parseMoney(m.unit_price),
-              quantity: m.quantity ?? m.count ?? 1,
-            })),
-          ),
-        ],
+        // Every selection, however deep.
+        //
+        // A Deliveroo modifier is itself an item and carries its OWN
+        // `modifiers[]`, so a sauce chosen inside a "On its own" option hangs
+        // one level below the option. Reading only the first level dropped it
+        // in silence: order #4509's Veggie Burger printed "On its own" while
+        // Deliveroo's own ticket showed "On its own / BBQ", and the kitchen
+        // made the burger without the sauce the customer paid for.
+        //
+        // Parent before child, so a ticket reads top-down the way the
+        // customer chose.
+        modifiers: flattenModifiers(item),
         notes: item.notes ?? null,
       };
     });

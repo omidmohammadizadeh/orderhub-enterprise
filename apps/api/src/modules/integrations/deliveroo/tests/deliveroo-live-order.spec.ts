@@ -312,3 +312,117 @@ describe("DeliverooOrderSyncService", () => {
     expect(calls).toHaveLength(0);
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────
+// Nested modifiers — order #4509, The Grill Stop, 28 Aug 2026.
+//
+// Deliveroo's own ticket showed "Veggie Burger / On its own / BBQ". Ours
+// showed "On its own" alone, and the kitchen sent the burger out without the
+// sauce. A Deliveroo modifier is itself an item with its own `modifiers[]`,
+// and the adapter only ever read the first level.
+// ──────────────────────────────────────────────────────────────────────────
+
+describe("DeliverooAdapter — nested modifiers (#4509)", () => {
+  const adapter = new DeliverooAdapter();
+
+  it("keeps a modifier nested under another modifier", () => {
+    const c = adapter.normalize(
+      liveOrder({
+        items: [
+          {
+            name: "Veggie Burger",
+            quantity: 1,
+            unit_price: { fractional: 549, currency_code: "GBP" },
+            modifiers: [
+              {
+                name: "On its own",
+                quantity: 1,
+                unit_price: { fractional: 0, currency_code: "GBP" },
+                // The sauce hangs off the option, not off the item.
+                modifiers: [
+                  {
+                    name: "BBQ",
+                    quantity: 1,
+                    unit_price: { fractional: 0, currency_code: "GBP" },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+      "loc-1",
+    )!;
+
+    expect(c.items[0]!.modifiers!.map((m: any) => m.name)).toEqual([
+      "On its own",
+      "BBQ",
+    ]);
+  });
+
+  it("reads the older modifier_groups shape at depth too", () => {
+    const c = adapter.normalize(
+      liveOrder({
+        items: [
+          {
+            name: "Portuguese",
+            quantity: 1,
+            unit_price: { fractional: 799, currency_code: "GBP" },
+            modifiers: [
+              {
+                name: "Wrap",
+                quantity: 1,
+                unit_price: { fractional: 0, currency_code: "GBP" },
+                modifier_groups: [
+                  { modifiers: [{ name: "Garlic Sauce", quantity: 1 }] },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+      "loc-1",
+    )!;
+
+    expect(c.items[0]!.modifiers!.map((m: any) => m.name)).toEqual([
+      "Wrap",
+      "Garlic Sauce",
+    ]);
+  });
+
+  it("survives a catalog that nests into itself", () => {
+    const loop: any = { name: "Loop", quantity: 1 };
+    loop.modifiers = [loop];
+    const c = adapter.normalize(
+      liveOrder({
+        items: [{ name: "Odd", quantity: 1, modifiers: [loop] }],
+      }),
+      "loc-1",
+    )!;
+    // Capped, not hung — the point is that it returns at all.
+    expect(c.items[0]!.modifiers!.length).toBeLessThanOrEqual(7);
+  });
+
+  it("still reads a flat single-level list unchanged", () => {
+    const c = adapter.normalize(
+      liveOrder({
+        items: [
+          {
+            name: "Chips",
+            quantity: 1,
+            unit_price: { fractional: 250, currency_code: "GBP" },
+            modifiers: [
+              { name: "Salt", quantity: 1 },
+              { name: "Vinegar", quantity: 1 },
+            ],
+          },
+        ],
+      }),
+      "loc-1",
+    )!;
+    expect(c.items[0]!.modifiers!.map((m: any) => m.name)).toEqual([
+      "Salt",
+      "Vinegar",
+    ]);
+  });
+});
