@@ -45,6 +45,15 @@ export interface NestableGroup {
   selectionType?: "VARIANT" | "ADDON" | null;
   minSelections?: number | null;
   maxSelections?: number | null;
+  /**
+   * "Extra cheese × 2". When true the same option may be taken more than
+   * once, up to the group's own maxSelections, which counts COPIES and not
+   * distinct options — two garlic sauces spend a max of 2.
+   *
+   * Stored on the group and already published to Deliveroo and Just Eat as
+   * `repeatable`; the till and the storefront simply never honoured it.
+   */
+  allowDuplicateSelections?: boolean | null;
   options?: NestableOption[] | null;
 }
 
@@ -53,6 +62,8 @@ export interface ModifierTreeOption {
   price: number;
   plu: string | null;
   selected: boolean;
+  /** How many copies are taken. 0 when unselected, 1 for an ordinary tick. */
+  quantity: number;
   /** Groups this option opens — populated only while it is selected. */
   children: ModifierTreeNode[];
 }
@@ -125,7 +136,10 @@ export function buildModifierTree(args: {
       const options: ModifierTreeOption[] = [];
       for (const option of group.options ?? []) {
         if (!isModifierAvailable(option, sizeKey, { audience })) continue;
-        const selected = picked.includes(option.id);
+        // Selections are a LIST, not a set: a repeated id is a repeated
+        // choice. That is what carries "× 2" through pricing and the ticket.
+        const quantity = picked.filter((id) => id === option.id).length;
+        const selected = quantity > 0;
         const childGroups = selected
           ? (option.nestedGroupIds ?? [])
               .map((id) => groupsById.get(id))
@@ -137,6 +151,7 @@ export function buildModifierTree(args: {
           price: getModifierPrice(option, sizeKey),
           plu: getModifierPlu(option, sizeKey),
           selected,
+          quantity,
           children: walk(
             childGroups,
             depth + 1,
@@ -174,17 +189,24 @@ export function collectSelectedModifiers(
     for (const node of list) {
       for (const entry of node.options) {
         if (!entry.selected) continue;
-        out.push({
-          id: entry.option.id,
-          name: entry.option.name,
-          groupId: node.group.id,
-          groupName: node.group.name,
-          price: entry.price,
-          plu: entry.plu,
-          parentOptionId: node.parentOptionId,
-          depth: node.depth,
-          path: [...node.ancestorNames, entry.option.name],
-        });
+        // One entry PER COPY. The list stays flat and every consumer keeps
+        // reading {name, price, groupId} unchanged, so the second cheese is
+        // charged and printed by the same code that handles the first. Nested
+        // children are walked once — a branch opens or it doesn't, and
+        // charging its sub-selections twice would be wrong.
+        for (let i = 0; i < entry.quantity; i++) {
+          out.push({
+            id: entry.option.id,
+            name: entry.option.name,
+            groupId: node.group.id,
+            groupName: node.group.name,
+            price: entry.price,
+            plu: entry.plu,
+            parentOptionId: node.parentOptionId,
+            depth: node.depth,
+            path: [...node.ancestorNames, entry.option.name],
+          });
+        }
         visit(entry.children);
       }
     }
@@ -217,7 +239,9 @@ export function findUnmetRequirements(
   const visit = (list: ModifierTreeNode[]) => {
     for (const node of list) {
       const min = node.group.minSelections ?? 0;
-      const picked = node.options.filter((o) => o.selected).length;
+      // Copies, not distinct options: "choose 2 sauces" is answered by two
+      // of the same one when the group allows duplicates.
+      const picked = node.options.reduce((n, o) => n + o.quantity, 0);
       if (picked < min) {
         out.push({
           groupId: node.group.id,
@@ -255,6 +279,8 @@ export function toggleModifierSelection(
     maxSelections?: number | null;
     /** VARIANT groups that aren't required can be un-picked. */
     minSelections?: number | null;
+    /** See NestableGroup.allowDuplicateSelections. */
+    allowDuplicates?: boolean | null;
   },
 ): Record<string, string[]> {
   const current = selections[args.key] ?? [];
@@ -268,15 +294,56 @@ export function toggleModifierSelection(
     return { ...selections, [args.key]: [args.optionId] };
   }
 
+  const max = args.maxSelections ?? Infinity;
+
+  // A group that allows duplicates has no "untick" in a single tap — tapping
+  // again means "another one". Removal is the stepper's minus, below. Without
+  // this branch the second tap removed the first, which is exactly the bug:
+  // a group set to allow two of the same could only ever hold one.
+  if (args.allowDuplicates) {
+    if (current.length >= max) return selections;
+    return { ...selections, [args.key]: [...current, args.optionId] };
+  }
+
   if (current.includes(args.optionId)) {
     return {
       ...selections,
       [args.key]: current.filter((id) => id !== args.optionId),
     };
   }
-  const max = args.maxSelections ?? Infinity;
   if (current.length >= max) return selections;
   return { ...selections, [args.key]: [...current, args.optionId] };
+}
+
+/**
+ * Add or remove ONE copy of an option — the stepper behind "extra cheese × 2".
+ *
+ * Separate from toggleModifierSelection because the two answer different
+ * questions: a tick is "do I want this at all", a step is "how many". Removing
+ * the last copy closes the branch exactly as unticking would.
+ */
+export function adjustModifierQuantity(
+  selections: Record<string, string[]>,
+  args: {
+    key: string;
+    optionId: string;
+    delta: number;
+    maxSelections?: number | null;
+  },
+): Record<string, string[]> {
+  const current = selections[args.key] ?? [];
+  const max = args.maxSelections ?? Infinity;
+
+  if (args.delta > 0) {
+    if (current.length >= max) return selections;
+    return { ...selections, [args.key]: [...current, args.optionId] };
+  }
+
+  const at = current.lastIndexOf(args.optionId);
+  if (at === -1) return selections;
+  const next = [...current];
+  next.splice(at, 1);
+  return { ...selections, [args.key]: next };
 }
 
 /** Index a flat group list by id, for `groupsById` above. */

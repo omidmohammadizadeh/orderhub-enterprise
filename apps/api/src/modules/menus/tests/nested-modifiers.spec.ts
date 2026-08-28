@@ -3,6 +3,7 @@ import {
   collectSelectedModifiers,
   findUnmetRequirements,
   toggleModifierSelection,
+  adjustModifierQuantity,
   indexGroups,
   selectionKey,
   hasNestedGroups,
@@ -592,5 +593,106 @@ describe("stepped picker — auto-advance", () => {
       selections: {},
     });
     expect(shouldAutoAdvance(nodes[0]!)).toBe(false);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────
+// "Allow duplicate selections" — extra cheese × 2
+//
+// The flag has always existed on the group and has always been published to
+// Deliveroo and Just Eat as `repeatable`. The till and the storefront simply
+// never honoured it: a second tap removed the first pick, so a group set to
+// allow two of the same could only ever hold one.
+// ──────────────────────────────────────────────────────────────────────────
+
+describe("duplicate selections", () => {
+  const sauces = (): NestableGroup[] => [
+    {
+      id: "g-sauce",
+      name: "Kebab - Sauce",
+      selectionType: "ADDON",
+      minSelections: 1,
+      maxSelections: 2,
+      allowDuplicateSelections: true,
+      options: [opt("o-garlic", "Garlic Sauce", 0.5), opt("o-chilli", "Chilli Sauce")],
+    },
+  ];
+
+  const build = (selections: Record<string, string[]>) =>
+    buildModifierTree({
+      rootGroups: sauces(),
+      groupsById: indexGroups(sauces()),
+      selections,
+    });
+
+  const tap = (selections: Record<string, string[]>, optionId: string) =>
+    toggleModifierSelection(selections, {
+      key: "g-sauce",
+      optionId,
+      selectionType: "ADDON",
+      minSelections: 1,
+      maxSelections: 2,
+      allowDuplicates: true,
+    });
+
+  it("takes the same option twice", () => {
+    const once = tap({}, "o-garlic");
+    const twice = tap(once, "o-garlic");
+    expect(twice["g-sauce"]).toEqual(["o-garlic", "o-garlic"]);
+  });
+
+  it("still stops at the group's maximum, counting copies", () => {
+    const twice = tap(tap({}, "o-garlic"), "o-garlic");
+    expect(tap(twice, "o-chilli")).toEqual(twice);
+  });
+
+  it("charges for every copy", () => {
+    const picked = collectSelectedModifiers(
+      build({ "g-sauce": ["o-garlic", "o-garlic"] }),
+    );
+    expect(picked).toHaveLength(2);
+    expect(picked.reduce((n, m) => n + m.price, 0)).toBeCloseTo(1.0);
+  });
+
+  it("reports the quantity on the tree so the picker can show a stepper", () => {
+    const node = build({ "g-sauce": ["o-garlic", "o-garlic"] })[0]!;
+    const garlic = node.options.find((o) => o.option.id === "o-garlic")!;
+    expect(garlic.quantity).toBe(2);
+    expect(garlic.selected).toBe(true);
+    expect(node.options.find((o) => o.option.id === "o-chilli")!.quantity).toBe(0);
+  });
+
+  it("counts copies toward a required minimum", () => {
+    // "Choose 2 sauces" is answered by two of the same one.
+    const nodes = build({ "g-sauce": ["o-garlic", "o-garlic"] });
+    sauces()[0]!.minSelections = 2;
+    expect(findUnmetRequirements(nodes)).toEqual([]);
+  });
+
+  it("removes one copy at a time, newest first", () => {
+    const state = { "g-sauce": ["o-garlic", "o-chilli", "o-garlic"] };
+    const next = adjustModifierQuantity(state, {
+      key: "g-sauce",
+      optionId: "o-garlic",
+      delta: -1,
+      maxSelections: 2,
+    });
+    expect(next["g-sauce"]).toEqual(["o-garlic", "o-chilli"]);
+  });
+
+  it("leaves an ordinary group alone — a second tap still unticks", () => {
+    const state = toggleModifierSelection({}, {
+      key: "g-plain",
+      optionId: "o-garlic",
+      selectionType: "ADDON",
+      maxSelections: 2,
+    });
+    const off = toggleModifierSelection(state, {
+      key: "g-plain",
+      optionId: "o-garlic",
+      selectionType: "ADDON",
+      maxSelections: 2,
+    });
+    expect(off["g-plain"]).toEqual([]);
   });
 });

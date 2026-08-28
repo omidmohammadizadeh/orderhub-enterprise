@@ -15,6 +15,7 @@ import {
   isStepSatisfied,
   shouldAutoAdvance,
   toggleModifierSelection,
+  adjustModifierQuantity,
   indexGroups,
   type ModifierTreeNode,
   type NestableGroup,
@@ -230,6 +231,19 @@ export function ModifierSelectionModal({
         selectionType: node.group.selectionType ?? "VARIANT",
         maxSelections: node.group.maxSelections,
         minSelections: node.group.minSelections,
+        allowDuplicates: (node.group as any).allowDuplicateSelections,
+      }),
+    );
+  };
+
+  // "Extra cheese × 2" — one copy at a time, on the groups that allow it.
+  const step = (node: ModifierTreeNode, optionId: string, delta: number) => {
+    setSelections((prev) =>
+      adjustModifierQuantity(prev, {
+        key: node.key,
+        optionId,
+        delta,
+        maxSelections: node.group.maxSelections,
       }),
     );
   };
@@ -442,6 +456,7 @@ export function ModifierSelectionModal({
                 goNext();
               }}
               onToggle={toggleStepped}
+              onStep={step}
               selectedModifiers={selectedModifiers}
               quantity={quantity}
               setQuantity={setQuantity}
@@ -483,7 +498,13 @@ export function ModifierSelectionModal({
           )}
 
           {nodes.map((node) => (
-            <GroupNode key={node.key} node={node} onToggle={toggle} money={money} />
+            <GroupNode
+              key={node.key}
+              node={node}
+              onToggle={toggle}
+              onStep={step}
+              money={money}
+            />
           ))}
 
           <Section title="Notes (optional)">
@@ -621,16 +642,24 @@ export function ModifierSelectionModal({
 function GroupNode({
   node,
   onToggle,
+  onStep,
   money,
 }: {
   node: ModifierTreeNode;
   onToggle: (node: ModifierTreeNode, optionId: string) => void;
+  onStep: (node: ModifierTreeNode, optionId: string, delta: number) => void;
   /** Bound to the location's currency by the parent — never format here. */
   money: (n: number | string | null | undefined) => string;
 }) {
   const selectionType = node.group.selectionType ?? "VARIANT";
   const min = node.group.minSelections ?? 0;
   const nested = node.depth > 0;
+  // Only ADDON groups can repeat — "pick one size" twice is meaningless.
+  const repeatable =
+    selectionType === "ADDON" &&
+    !!(node.group as any).allowDuplicateSelections;
+  const taken = node.options.reduce((n, o) => n + o.quantity, 0);
+  const atMax = taken >= (node.group.maxSelections ?? Infinity);
 
   return (
     <div
@@ -647,12 +676,57 @@ function GroupNode({
             ? min > 0
               ? "Pick one"
               : "Pick one (optional)"
-            : `Choose up to ${node.group.maxSelections ?? "any"}`
+            : `Choose up to ${node.group.maxSelections ?? "any"}${
+                repeatable ? " — repeats allowed" : ""
+              }`
         }
       >
         <div className="grid grid-cols-1 gap-2">
           {node.options.map((entry) => (
             <div key={entry.option.id}>
+              {repeatable ? (
+                /* A stepper, not a tick. The question here is "how many",
+                   and a checkbox has no way to say two. */
+                <div
+                  className={`flex items-center justify-between rounded-lg border px-3 py-2 ${
+                    entry.selected
+                      ? "border-zinc-900 bg-zinc-50"
+                      : "border-zinc-200"
+                  }`}
+                >
+                  <span className="text-sm text-zinc-900">
+                    {entry.option.name}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-zinc-500">
+                      {entry.price > 0 ? `+${money(entry.price)}` : ""}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        aria-label={`Remove one ${entry.option.name}`}
+                        disabled={entry.quantity === 0}
+                        onClick={() => onStep(node, entry.option.id, -1)}
+                        className="h-7 w-7 rounded-md border border-zinc-300 text-zinc-700 disabled:opacity-30"
+                      >
+                        −
+                      </button>
+                      <span className="w-5 text-center text-sm tabular-nums text-zinc-900">
+                        {entry.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`Add one ${entry.option.name}`}
+                        disabled={atMax}
+                        onClick={() => onStep(node, entry.option.id, 1)}
+                        className="h-7 w-7 rounded-md border border-zinc-300 text-zinc-700 disabled:opacity-30"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
               <label
                 className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 ${
                   entry.selected
@@ -676,11 +750,18 @@ function GroupNode({
                   {entry.price > 0 ? `+${money(entry.price)}` : ""}
                 </span>
               </label>
+              )}
 
               {entry.children.length > 0 && (
                 <div className="mt-1 pl-3">
                   {entry.children.map((child) => (
-                    <GroupNode key={child.key} node={child} onToggle={onToggle} money={money} />
+                    <GroupNode
+                      key={child.key}
+                      node={child}
+                      onToggle={onToggle}
+                      onStep={onStep}
+                      money={money}
+                    />
                   ))}
                 </div>
               )}
@@ -733,6 +814,7 @@ function SteppedBody({
   productSkus,
   onPickSku,
   onToggle,
+  onStep,
   selectedModifiers,
   quantity,
   setQuantity,
@@ -749,6 +831,7 @@ function SteppedBody({
   productSkus: ProductSku[];
   onPickSku: (sku: ProductSku) => void;
   onToggle: (node: ModifierTreeNode, optionId: string) => void;
+  onStep: (node: ModifierTreeNode, optionId: string, delta: number) => void;
   selectedModifiers: SelectedModifier[];
   quantity: number;
   setQuantity: (fn: (q: number) => number) => void;
@@ -804,7 +887,12 @@ function SteppedBody({
       )}
 
       {step.kind === "group" && (
-        <GroupNode node={step.node} onToggle={onToggle} money={money} />
+        <GroupNode
+          node={step.node}
+          onToggle={onToggle}
+          onStep={onStep}
+          money={money}
+        />
       )}
 
       {step.kind === "review" && (
