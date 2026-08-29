@@ -39,7 +39,16 @@ describe("PauseService → direct Deliveroo store", () => {
   it("CLOSES the Deliveroo store when a pause covers it", async () => {
     const { svc, setStoreOpen } = makeService({
       activePauseRows: [pausedRow],
-      deliverooConns: [{ id: "conn-1", brandId: "b-1", tenantId: "t-1" }],
+      deliverooConns: [
+        // externalBrandId is part of a real row — reconcileDeliveroo now
+        // checks it explicitly instead of relying on the query to guarantee it.
+        {
+          id: "conn-1",
+          brandId: "b-1",
+          tenantId: "t-1",
+          externalBrandId: "the-grill-stop-gb",
+        },
+      ],
     });
 
     await (svc as any).reconcileDeliveroo(
@@ -54,7 +63,16 @@ describe("PauseService → direct Deliveroo store", () => {
   it("REOPENS the Deliveroo store when nothing keeps it paused", async () => {
     const { svc, setStoreOpen } = makeService({
       activePauseRows: [], // no active pause → open
-      deliverooConns: [{ id: "conn-1", brandId: "b-1", tenantId: "t-1" }],
+      deliverooConns: [
+        // externalBrandId is part of a real row — reconcileDeliveroo now
+        // checks it explicitly instead of relying on the query to guarantee it.
+        {
+          id: "conn-1",
+          brandId: "b-1",
+          tenantId: "t-1",
+          externalBrandId: "the-grill-stop-gb",
+        },
+      ],
     });
 
     await (svc as any).reconcileDeliveroo(
@@ -68,7 +86,16 @@ describe("PauseService → direct Deliveroo store", () => {
   it("does NOT touch Deliveroo for a non-Deliveroo channel pause", async () => {
     const { svc, setStoreOpen, prisma } = makeService({
       activePauseRows: [pausedRow],
-      deliverooConns: [{ id: "conn-1", brandId: "b-1", tenantId: "t-1" }],
+      deliverooConns: [
+        // externalBrandId is part of a real row — reconcileDeliveroo now
+        // checks it explicitly instead of relying on the query to guarantee it.
+        {
+          id: "conn-1",
+          brandId: "b-1",
+          tenantId: "t-1",
+          externalBrandId: "the-grill-stop-gb",
+        },
+      ],
     });
 
     await (svc as any).reconcileDeliveroo(
@@ -83,7 +110,16 @@ describe("PauseService → direct Deliveroo store", () => {
   it("acts on a Deliveroo-channel pause", async () => {
     const { svc, setStoreOpen } = makeService({
       activePauseRows: [{ ...pausedRow, channel: "DELIVEROO" }],
-      deliverooConns: [{ id: "conn-1", brandId: "b-1", tenantId: "t-1" }],
+      deliverooConns: [
+        // externalBrandId is part of a real row — reconcileDeliveroo now
+        // checks it explicitly instead of relying on the query to guarantee it.
+        {
+          id: "conn-1",
+          brandId: "b-1",
+          tenantId: "t-1",
+          externalBrandId: "the-grill-stop-gb",
+        },
+      ],
     });
 
     await (svc as any).reconcileDeliveroo(
@@ -97,7 +133,16 @@ describe("PauseService → direct Deliveroo store", () => {
   it("swallows Deliveroo API failures (never throws)", async () => {
     const { svc, setStoreOpen } = makeService({
       activePauseRows: [pausedRow],
-      deliverooConns: [{ id: "conn-1", brandId: "b-1", tenantId: "t-1" }],
+      deliverooConns: [
+        // externalBrandId is part of a real row — reconcileDeliveroo now
+        // checks it explicitly instead of relying on the query to guarantee it.
+        {
+          id: "conn-1",
+          brandId: "b-1",
+          tenantId: "t-1",
+          externalBrandId: "the-grill-stop-gb",
+        },
+      ],
     });
     setStoreOpen.mockRejectedValueOnce(new Error("Deliveroo 500"));
 
@@ -107,5 +152,67 @@ describe("PauseService → direct Deliveroo store", () => {
         "t-1",
       ),
     ).resolves.toBeUndefined();
+  });
+});
+
+// The gap the tests above did not cover: they mock findMany, so the WHERE
+// clause was never exercised. The query used to require externalBrandId,
+// which no other platform's reconcile did — a connection missing it was
+// dropped before any of the logic below ever ran, and nothing was logged.
+describe("PauseService → Deliveroo connections the query used to drop", () => {
+  it("does not filter on externalBrandId — that silence was the bug", async () => {
+    const { svc, prisma } = makeService({
+      activePauseRows: [pausedRow],
+      deliverooConns: [],
+    });
+
+    await (svc as any).reconcileDeliveroo(
+      { locationId: "loc-1" },
+      "t-1",
+    );
+
+    const where = prisma.brandPlatformConnection.findMany.mock.calls[0][0].where;
+    expect(where).not.toHaveProperty("externalBrandId");
+    // The conditions that genuinely matter are still there.
+    expect(where.platform).toBe("DELIVEROO");
+    expect(where.externalStoreId).toEqual({ not: null });
+  });
+
+  it("reports a connection with no brand id instead of skipping it quietly", async () => {
+    const { svc, setStoreOpen } = makeService({
+      activePauseRows: [pausedRow],
+      deliverooConns: [
+        { id: "c-1", brandId: "b-1", tenantId: "t-1", externalBrandId: null },
+      ],
+    });
+    const record = jest.fn();
+    (svc as any).activity = { record };
+
+    await (svc as any).reconcileDeliveroo({ locationId: "loc-1" }, "t-1");
+
+    // Can't be called — the URL needs the brand id — but the operator must
+    // be told, because their shop is still taking Deliveroo orders.
+    expect(setStoreOpen).not.toHaveBeenCalled();
+    expect(record).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "DELIVEROO", status: "ERROR" }),
+    );
+  });
+
+  it("still closes a connection that has one", async () => {
+    const { svc, setStoreOpen } = makeService({
+      activePauseRows: [pausedRow],
+      deliverooConns: [
+        {
+          id: "c-1",
+          brandId: "b-1",
+          tenantId: "t-1",
+          externalBrandId: "the-grill-stop-gb",
+        },
+      ],
+    });
+
+    await (svc as any).reconcileDeliveroo({ locationId: "loc-1" }, "t-1");
+
+    expect(setStoreOpen).toHaveBeenCalledWith("t-1", "c-1", false);
   });
 });

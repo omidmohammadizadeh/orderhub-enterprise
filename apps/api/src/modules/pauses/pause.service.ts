@@ -489,19 +489,67 @@ export class PauseService {
       // A channel-scoped pause only touches Deliveroo when it IS Deliveroo.
       if (scope.channel && scope.channel !== "DELIVEROO") return;
 
+      // externalBrandId is NOT part of this filter, unlike every other
+      // condition here.
+      //
+      // It used to be, and it is the one thing Deliveroo required that Uber
+      // Eats and Just Eat did not. A connection whose Deliveroo brand id was
+      // never stored — the field is labelled "optional, auto-resolved" in the
+      // UI, and fetchBrandId can come back empty — was excluded by the query
+      // and skipped in complete silence. The operator pressed "Stop taking
+      // orders", watched Uber Eats, Just Eat and HubRise all close, and
+      // Deliveroo kept taking orders with nothing in the log to say why.
+      //
+      // Missing ids are now found and reported below instead of filtered out,
+      // because a loud failure is worth more than a tidy query.
       const conns = await this.prisma.brandPlatformConnection.findMany({
         where: {
           locationId: scope.locationId,
           platform: "DELIVEROO",
           ...(scope.brandId ? { brandId: scope.brandId } : {}),
           externalStoreId: { not: null },
-          externalBrandId: { not: null },
           status: { in: ["connected", "suspended"] },
         },
-        select: { id: true, brandId: true, tenantId: true },
+        select: {
+          id: true,
+          brandId: true,
+          tenantId: true,
+          externalBrandId: true,
+        },
       });
 
+      // "Nothing happened" and "there was nothing to do" used to look
+      // identical from the outside. One line, always, so the next report of
+      // this is answered by a grep rather than a reading of the source.
+      this.logger.log(
+        `Deliveroo pause reconcile: ${conns.length} connection(s) for ` +
+          `location=${scope.locationId} brand=${scope.brandId ?? "*"} ` +
+          `channel=${scope.channel ?? "*"}`,
+      );
+
       for (const c of conns) {
+        if (!c.externalBrandId) {
+          // setStoreOpen cannot build the URL without it, so this connection
+          // can never be paused or reopened until it is reconnected.
+          this.logger.warn(
+            `Deliveroo store NOT closed for conn ${c.id}: no Deliveroo brand id ` +
+              `stored. Reconnect Deliveroo for this brand (Locations → Brands → ` +
+              `Manage Deliveroo) so the Brand ID is saved.`,
+          );
+          this.activity?.record({
+            tenantId: c.tenantId ?? tenantId,
+            locationId: scope.locationId,
+            brandId: c.brandId,
+            category: "STATUS",
+            channel: "DELIVEROO",
+            action: "store.pause",
+            status: "ERROR",
+            message:
+              "Deliveroo store could not be paused — no Deliveroo Brand ID " +
+              "stored on the connection. Reconnect Deliveroo for this brand.",
+          });
+          continue;
+        }
         const snap = await this.isPaused({
           locationId: scope.locationId,
           brandId: c.brandId,
