@@ -318,8 +318,12 @@ export default function DispatchPage() {
         />
       )}
 
-      {/* Floating driver chat */}
-      <DispatchChatWidget />
+      {/* Floating driver chat — same shop scope as the map and fleet above.
+          "all" means every location this user can reach, which the API
+          resolves from their own assignments rather than the tenant. */}
+      <DispatchChatWidget
+        locationId={location === "all" ? undefined : location}
+      />
     </div>
   );
 }
