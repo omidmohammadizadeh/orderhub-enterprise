@@ -49,3 +49,58 @@ describe("HubRise delivery — the two estimates", () => {
     );
   });
 });
+
+// Captured live on 29 Aug 2026 from Uber Eats order 4jymed7, relayed through
+// HubRise. The position fields were sitting in the payload the whole time and
+// the sync discarded them — they appeared in UNREAD_FIELDS on every single
+// delivery event and nobody read the list.
+//
+// This matters beyond one field: it means marketplace riders bridged through
+// HubRise CAN be plotted, which contradicts the assumption that only direct
+// Deliveroo sends a position.
+describe("HubRise delivery — the courier's position", () => {
+  const REAL = {
+    id: "yk9g3r",
+    order_id: "4jymed7",
+    carrier: "Uber Eats",
+    status: "dropoff_enroute",
+    driver_name: "ISMAT",
+    driver_phone: "+441388436844",
+    driver_phone_access_code: "60054857",
+    // Strings on the wire, not numbers.
+    driver_latitude: "51.456041",
+    driver_longitude: "-2.606658",
+    assigned_at: "2026-08-29T21:50:21+01:00",
+  };
+
+  const parse = (d: {
+    driver_latitude?: string | number;
+    driver_longitude?: string | number;
+  }) => {
+    const lat = Number(d.driver_latitude);
+    const lng = Number(d.driver_longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0)
+      ? { lat, lng }
+      : null;
+  };
+
+  it("arrives as strings and must be parsed, not assigned", () => {
+    expect(typeof REAL.driver_latitude).toBe("string");
+    expect(parse(REAL)).toEqual({ lat: 51.456041, lng: -2.606658 });
+  });
+
+  it("puts the rider in Bristol, where that shop is", () => {
+    const p = parse(REAL)!;
+    expect(p.lat).toBeGreaterThan(51.3);
+    expect(p.lat).toBeLessThan(51.6);
+    expect(p.lng).toBeLessThan(-2.4);
+  });
+
+  it("refuses null island rather than plotting the Atlantic", () => {
+    expect(parse({ driver_latitude: "0", driver_longitude: "0" })).toBeNull();
+  });
+
+  it("refuses a delivery that carries no position at all", () => {
+    expect(parse({})).toBeNull();
+  });
+});

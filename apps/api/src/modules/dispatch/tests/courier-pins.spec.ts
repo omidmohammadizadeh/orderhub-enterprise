@@ -2,10 +2,10 @@ import { DispatchService } from "../dispatch.service";
 
 // Third-party riders on the dispatch map.
 //
-// Only some providers send a position at all: Deliveroo puts lat/lon on every
-// rider event, Uber Direct and Stuart send one on their own webhooks. Uber
-// Eats marketplace, Just Eat and HubRise-relayed orders send NO coordinates,
-// so those couriers can never be plotted however the UI is written.
+// Deliveroo puts lat/lon on every rider event; Uber Direct and Stuart send one
+// on their own webhooks; and HubRise relays driver_latitude/driver_longitude
+// for the marketplaces it bridges, so Uber Eats riders coming through HubRise
+// ARE plottable. Direct Just Eat sends no position of any kind.
 //
 // What these tests pin down is the honesty of the pin: a position without a
 // fresh timestamp must not be drawn, because an operator will believe it.
@@ -93,7 +93,7 @@ describe("dispatch feed — third-party couriers", () => {
     expect(feed.couriers).toEqual([]);
   });
 
-  it("says nothing about a provider that sends no position (Just Eat, Uber Eats)", async () => {
+  it("says nothing about a provider that sends no position (direct Just Eat)", async () => {
     const svc = svcWith([
       baseOrder({
         platform: "JUST_EAT",

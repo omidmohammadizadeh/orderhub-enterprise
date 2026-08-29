@@ -48,6 +48,15 @@ interface HubRiseDelivery {
   // code the carrier doesn't know which active delivery the call
   // belongs to and the call fails.
   driver_phone_access_code?: string;
+  // The courier's live position. HubRise relays this for marketplace orders
+  // it bridges — a real Uber Eats delivery (order 4jymed7) carried
+  // driver_latitude "51.456041" and driver_longitude "-2.606658".
+  //
+  // They arrive as STRINGS, not numbers, so they are parsed rather than
+  // assigned. driver_position_updated_at is when the fix was taken.
+  driver_latitude?: string | number;
+  driver_longitude?: string | number;
+  driver_position_updated_at?: string;
   tracking_url?: string;
   assigned_at?: string;
   pickup_at?: string;
@@ -160,6 +169,28 @@ export class HubRiseDeliverySyncService {
     if (delivery.driver_phone) updates.courierPhone = delivery.driver_phone;
     if (delivery.driver_phone_access_code) {
       updates.courierPhoneAccessCode = delivery.driver_phone_access_code;
+    }
+    // Courier position → the dispatch map.
+    //
+    // These were arriving on every delivery event and going straight in the
+    // bin, which is why marketplace riders bridged through HubRise could not
+    // be tracked. Strings from the wire, so parse; 0,0 is a null island, not
+    // a place; and the pin carries the time the fix was taken so the map can
+    // drop a stale one instead of showing a rider who stopped reporting.
+    const hLat = Number(delivery.driver_latitude);
+    const hLng = Number(delivery.driver_longitude);
+    if (
+      Number.isFinite(hLat) &&
+      Number.isFinite(hLng) &&
+      !(hLat === 0 && hLng === 0)
+    ) {
+      updates.courierLat = hLat;
+      updates.courierLng = hLng;
+      const fixedAt = delivery.driver_position_updated_at
+        ? new Date(delivery.driver_position_updated_at)
+        : null;
+      updates.courierLocationAt =
+        fixedAt && !Number.isNaN(fixedAt.getTime()) ? fixedAt : new Date();
     }
     if (delivery.tracking_url) updates.courierTrackingUrl = delivery.tracking_url;
     if (delivery.status) updates.courierStatus = delivery.status;

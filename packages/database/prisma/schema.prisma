@@ -1985,11 +1985,13 @@ model Order {
   courierPickupEtaAt     DateTime?
   // Where the marketplace/third-party courier is right now.
   //
-  // Only some providers send this. Deliveroo's rider.status_update carries
-  // lat/lon/accuracy on every event; Uber Direct and Stuart send a courier
-  // location on their own webhooks. Uber Eats marketplace, Just Eat and
-  // HubRise-relayed orders send NO coordinates at all, so those couriers can
-  // never appear on the map however the UI is written.
+  // Deliveroo's rider.status_update carries lat/lon/accuracy on every event;
+  // Uber Direct and Stuart send a courier location on their own webhooks; and
+  // HubRise relays driver_latitude/driver_longitude for the marketplaces it
+  // bridges — confirmed on a live Uber Eats delivery (order 4jymed7), which
+  // disproves the earlier note here claiming HubRise sends none.
+  //
+  // Direct Just Eat remains the one integration with no position of any kind.
   //
   // courierLocationAt is what makes the pin honest: a position with no
   // timestamp is indistinguishable from a rider who stopped reporting an hour
