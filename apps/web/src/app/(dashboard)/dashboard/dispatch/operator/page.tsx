@@ -204,7 +204,11 @@ export default function OperatorDashboardPage() {
       </Section>
 
       {/* Floating driver chat */}
-      <DispatchChatWidget />
+      {/* Same shop scope as the rest of this page. "all" means every location
+          the user can reach, which the API resolves from their assignments. */}
+      <DispatchChatWidget
+        locationId={location === "all" ? undefined : location}
+      />
 
       {manageDriver && (
         <DriverManageModal

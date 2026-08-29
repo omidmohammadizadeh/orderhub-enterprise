@@ -13,13 +13,17 @@ import {
 // Floating operator chat — a customer-service-style widget docked bottom-right.
 // Collapsed = a bubble with the total unread badge; expanded = driver inbox →
 // per-driver conversation. Polls (threads 5s, open conversation 2s).
-export function DispatchChatWidget() {
+export function DispatchChatWidget({
+  /** The shop the dashboard is showing. Omitted = every shop the user can
+   *  reach, which the API decides — this prop can only narrow. */
+  locationId,
+}: { locationId?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<ChatThread | null>(null);
 
   const threadsQuery = useQuery({
-    queryKey: ["chat-threads"],
-    queryFn: getChatThreads,
+    queryKey: ["chat-threads", locationId ?? "accessible"],
+    queryFn: () => getChatThreads(locationId),
     refetchInterval: 5000,
   });
   const threads = threadsQuery.data ?? [];

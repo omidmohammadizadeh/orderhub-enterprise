@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { ExpoPushService } from "../driver-app/expo-push.service";
+import { accessibleLocationIds } from "../../common/access/accessible-locations";
+import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export type ChatSender = "OPERATOR" | "DRIVER" | "CUSTOMER";
 
@@ -101,10 +103,59 @@ export class ChatService {
     }
   }
 
-  /** Operator inbox: every active driver with their last message + unread count. */
-  async operatorThreads(tenantId: string) {
+  /**
+   * The drivers this operator is allowed to talk to.
+   *
+   * A driver has a home location (Driver.locationId). Scoped to one shop we
+   * list that shop's drivers; with no shop picked we list every driver across
+   * the locations the caller can actually reach. Unassigned drivers (null
+   * home) appear only in the unscoped view, which is the documented Phase BG
+   * behaviour — there is no shop to file them under.
+   *
+   * `locationId` comes from a dropdown in the browser, so it may only ever
+   * NARROW: a location the caller has no assignment for yields nothing rather
+   * than reaching past their own set.
+   */
+  private async driverScopeWhere(
+    user: Pick<AuthenticatedUser, "userId" | "tenantId" | "role">,
+    locationId?: string,
+  ): Promise<Record<string, unknown> | null> {
+    const allowed = await accessibleLocationIds(this.prisma, user);
+    if (locationId) {
+      if (!allowed.includes(locationId)) return null;
+      return { locationId };
+    }
+    if (allowed.length === 0) return null;
+    return { OR: [{ locationId: { in: allowed } }, { locationId: null }] };
+  }
+
+  /** Whether this operator may read or write one driver's thread. */
+  async assertDriverInScope(
+    user: Pick<AuthenticatedUser, "userId" | "tenantId" | "role">,
+    driverId: string,
+  ): Promise<void> {
+    const scope = await this.driverScopeWhere(user);
+    const driver = scope
+      ? await this.prisma.driver.findFirst({
+          where: { id: driverId, tenantId: user.tenantId, ...scope },
+          select: { id: true },
+        })
+      : null;
+    // Not found and not permitted are the same answer on purpose — probing
+    // ids should not reveal which drivers exist at other shops.
+    if (!driver) throw new NotFoundException("Driver not found");
+  }
+
+  /** Operator inbox: every driver IN SCOPE with their last message + unread count. */
+  async operatorThreads(
+    user: Pick<AuthenticatedUser, "userId" | "tenantId" | "role">,
+    locationId?: string,
+  ) {
+    const tenantId = user.tenantId;
+    const scope = await this.driverScopeWhere(user, locationId);
+    if (!scope) return [];
     const drivers = await this.prisma.driver.findMany({
-      where: { tenantId, isActive: true },
+      where: { tenantId, isActive: true, ...scope },
       select: {
         id: true,
         firstName: true,

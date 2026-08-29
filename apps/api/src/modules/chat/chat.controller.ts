@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, HttpCode, HttpStatus } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ChatService } from "./chat.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -16,8 +16,15 @@ export class ChatController {
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
   @ApiOperation({ summary: "Operator inbox: drivers with last message + unread count" })
-  threads(@CurrentUser() user: AuthenticatedUser) {
-    return this.chat.operatorThreads(user.tenantId);
+  threads(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    // The inbox used to be the whole TENANT: every manager at every shop saw
+    // every driver's conversation, including shops they have no access to.
+    // Scope is derived from the caller; locationId is the operator dashboard's
+    // own shop picker and can only narrow it further.
+    return this.chat.operatorThreads(user, locationId);
   }
 
   @Get("driver/:driverId")
@@ -25,6 +32,9 @@ export class ChatController {
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
   @ApiOperation({ summary: "Operator: full conversation with a driver (marks read)" })
   async driverThread(@CurrentUser() user: AuthenticatedUser, @Param("driverId") driverId: string) {
+    // Hiding a thread from the inbox is not the same as protecting it — the
+    // id is all this route needs, so check it here too.
+    await this.chat.assertDriverInScope(user, driverId);
     const messages = await this.chat.driverThread(user.tenantId, driverId);
     await this.chat.readDriverThread(user.tenantId, driverId, "OPERATOR");
     return { messages };
@@ -34,11 +44,12 @@ export class ChatController {
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
   @ApiOperation({ summary: "Operator: send a message to a driver" })
-  sendToDriver(
+  async sendToDriver(
     @CurrentUser() user: AuthenticatedUser,
     @Param("driverId") driverId: string,
     @Body() body: { body: string },
   ) {
+    await this.chat.assertDriverInScope(user, driverId);
     return this.chat.postDriverOperator(user.tenantId, driverId, "OPERATOR", body.body, "Operator");
   }
 

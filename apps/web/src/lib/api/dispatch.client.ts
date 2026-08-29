@@ -233,8 +233,12 @@ export interface ChatThread {
   lastAt: string | null;
   unread: number;
 }
-export async function getChatThreads(): Promise<ChatThread[]> {
-  const res = await apiClient.get<ChatThread[]>("/v1/chat/threads");
+export async function getChatThreads(locationId?: string): Promise<ChatThread[]> {
+  // Narrows to one shop. Omitted, the API returns every driver across the
+  // locations the caller can reach — never the whole tenant.
+  const res = await apiClient.get<ChatThread[]>("/v1/chat/threads", {
+    params: locationId ? { locationId } : undefined,
+  });
   return res.data;
 }
 export async function getDriverChat(driverId: string): Promise<ChatMessageDto[]> {
