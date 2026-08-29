@@ -59,6 +59,22 @@ export class UberDirectWebhookService {
     if (status) updates.courierStatus = status;
     if (courier?.name) updates.courierName = courier.name;
     if (courier?.phone_number) updates.courierPhone = courier.phone_number;
+
+    // Courier position, when the network sends one. Same reasoning as the
+    // Deliveroo path: store the point with the time it was taken, never
+    // invent freshness, and refuse 0,0.
+    const cLat = Number(courier?.location?.lat ?? courier?.latitude);
+    const cLng = Number(courier?.location?.lng ?? courier?.location?.lon ?? courier?.longitude);
+    if (
+      Number.isFinite(cLat) &&
+      Number.isFinite(cLng) &&
+      !(cLat === 0 && cLng === 0)
+    ) {
+      updates.courierLat = cLat;
+      updates.courierLng = cLng;
+      updates.courierLocationAt = new Date();
+    }
+
     const trackingUrl = data?.tracking_url ?? body?.tracking_url;
     if (trackingUrl) updates.courierTrackingUrl = trackingUrl;
     if (courier?.name && !order.courierAssignedAt) {

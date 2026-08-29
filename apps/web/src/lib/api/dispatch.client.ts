@@ -53,11 +53,27 @@ export interface DispatchDriverDot {
   lastPingAt: string | null;
 }
 
+/** A marketplace/third-party rider, plotted from the provider's own position.
+ *  Not assignable — see DispatchCourierPin on the API. */
+export interface DispatchCourierPin {
+  orderId: string;
+  ref: string | null;
+  platform: string;
+  name: string | null;
+  phone: string | null;
+  status: string | null;
+  lat: number;
+  lng: number;
+  seenAt: string;
+  ageMinutes: number;
+}
+
 export interface DispatchFeed {
   scope: string[];
   locations: DispatchLocationPin[];
   orders: DispatchOrderPin[];
   drivers: DispatchDriverDot[];
+  couriers?: DispatchCourierPin[];
 }
 
 /** Own-fleet: assign an ordered list of orders to a driver (multi-drop). */

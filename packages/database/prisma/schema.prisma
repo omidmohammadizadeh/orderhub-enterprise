@@ -1983,6 +1983,20 @@ model Order {
   // reached the door. This one only ever answers the board's question: how
   // long until somebody walks in for this bag.
   courierPickupEtaAt     DateTime?
+  // Where the marketplace/third-party courier is right now.
+  //
+  // Only some providers send this. Deliveroo's rider.status_update carries
+  // lat/lon/accuracy on every event; Uber Direct and Stuart send a courier
+  // location on their own webhooks. Uber Eats marketplace, Just Eat and
+  // HubRise-relayed orders send NO coordinates at all, so those couriers can
+  // never appear on the map however the UI is written.
+  //
+  // courierLocationAt is what makes the pin honest: a position with no
+  // timestamp is indistinguishable from a rider who stopped reporting an hour
+  // ago, and the map drops a stale one rather than show a lie.
+  courierLat             Float?
+  courierLng             Float?
+  courierLocationAt      DateTime?
   // Which courier network fulfils this order + its job id there. Set when an
   // operator dispatches to a fleet provider (STUART). courierJobId is the
   // provider's delivery/job id — the webhook resolves the order by it.

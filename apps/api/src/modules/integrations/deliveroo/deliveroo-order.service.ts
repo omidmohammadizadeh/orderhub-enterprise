@@ -381,6 +381,7 @@ export class DeliverooOrderService {
     if (riderPhone) updates.courierPhone = riderPhone;
     if (riderPhoneCode) updates.courierPhoneAccessCode = String(riderPhoneCode);
 
+
     // WHY the board can read "Deliveroo Rider" where a name should be.
     //
     // Nothing in this codebase invents a courier name — line above is the only
@@ -431,6 +432,26 @@ export class DeliverooOrderService {
       const d = new Date(String(v));
       return Number.isNaN(d.getTime()) ? null : d;
     };
+    // Live rider position, for the dispatch map.
+    //
+    // Deliveroo puts lat/lon/accuracy_in_meters/at on every rider event and we
+    // were dropping all four. `at` is the moment the fix was taken, not the
+    // moment we received it — a pin is only honest if the map can tell how old
+    // it is, so the timestamp is stored with the point and never invented.
+    // 0,0 is Deliveroo's "we have stopped sharing" value, not a place in the
+    // Atlantic, so it is rejected rather than plotted.
+    const lat = Number(rider?.lat);
+    const lng = Number(rider?.lon ?? rider?.lng);
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      !(lat === 0 && lng === 0)
+    ) {
+      updates.courierLat = lat;
+      updates.courierLng = lng;
+      updates.courierLocationAt = asDate(rider?.at) ?? new Date();
+    }
+
     const arrival = asDate(rider?.estimated_arrival_time);
     const delivery = asDate(rider?.estimated_delivery_time);
 

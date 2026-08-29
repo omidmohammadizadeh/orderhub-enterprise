@@ -89,11 +89,37 @@ export interface DispatchDriverDot {
   lastPingAt: string | null;
 }
 
+/**
+ * A marketplace or third-party courier we do not employ, plotted from the
+ * position the provider sends.
+ *
+ * Kept apart from DispatchDriverDot deliberately: these riders cannot be
+ * assigned work, re-routed or messaged, and folding them into the fleet list
+ * would offer the operator controls that do nothing.
+ *
+ * Only some providers send a position at all — see Order.courierLat.
+ */
+export interface DispatchCourierPin {
+  orderId: string;
+  ref: string | null;
+  platform: string;
+  name: string | null;
+  phone: string | null;
+  status: string | null;
+  lat: number;
+  lng: number;
+  /** When the provider took the fix. The map fades and then drops a stale one. */
+  seenAt: string;
+  /** Minutes old at the moment the feed was built. */
+  ageMinutes: number;
+}
+
 export interface DispatchFeed {
   scope: string[];
   locations: DispatchLocationPin[];
   orders: DispatchOrderPin[];
   drivers: DispatchDriverDot[];
+  couriers: DispatchCourierPin[];
 }
 
 // ── Operator dashboard shapes ─────────────────────────────────────────────────
@@ -445,7 +471,7 @@ export class DispatchService {
       scope = [locationParam!];
     }
     if (scope.length === 0) {
-      return { scope: [], locations: [], orders: [], drivers: [] };
+      return { scope: [], locations: [], orders: [], drivers: [], couriers: [] };
     }
 
     const orderSelect = {
@@ -461,6 +487,12 @@ export class DispatchService {
       paymentMethod: true,
       deliveryLat: true,
       deliveryLng: true,
+      courierLat: true,
+      courierLng: true,
+      courierLocationAt: true,
+      courierName: true,
+      courierPhone: true,
+      courierStatus: true,
       addressLine1: true,
       city: true,
       postcode: true,
@@ -587,7 +619,36 @@ export class DispatchService {
       lastPingAt: p.lastPingAt ? p.lastPingAt.toISOString() : null,
     }));
 
-    return { scope, locations, orders, drivers };
+    // Third-party riders, from whatever position their provider last sent.
+    //
+    // Anything older than STALE_COURIER_MIN is dropped rather than drawn: a
+    // rider who stopped reporting twenty minutes ago is not "there", and a
+    // pin frozen at their last known spot is worse than no pin, because the
+    // operator will believe it.
+    const STALE_COURIER_MIN = 15;
+    const nowMs = Date.now();
+    const couriers: DispatchCourierPin[] = orderRows
+      .filter(
+        (o: any) =>
+          o.courierLat != null && o.courierLng != null && o.courierLocationAt,
+      )
+      .map((o: any) => ({
+        orderId: o.id,
+        ref: o.displayId ?? (o.orderNumber != null ? `#${o.orderNumber}` : null),
+        platform: o.platform,
+        name: o.courierName ?? null,
+        phone: o.courierPhone ?? null,
+        status: o.courierStatus ?? null,
+        lat: o.courierLat,
+        lng: o.courierLng,
+        seenAt: o.courierLocationAt.toISOString(),
+        ageMinutes: Math.round(
+          (nowMs - new Date(o.courierLocationAt).getTime()) / 60_000,
+        ),
+      }))
+      .filter((c: DispatchCourierPin) => c.ageMinutes <= STALE_COURIER_MIN);
+
+    return { scope, locations, orders, drivers, couriers };
   }
 
   /**
@@ -742,8 +803,36 @@ export class DispatchService {
     const now = Date.now();
     const ref = (o: { displayId: string | null; orderNumber: number | null }, id: string) =>
       `#${o.displayId ?? o.orderNumber ?? id.slice(-5)}`;
-    const addr = (o: { addressLine1: string | null; city: string | null; postcode: string | null }) =>
-      [o.addressLine1, o.city, o.postcode].filter(Boolean).join(", ") || null;
+    // Marketplace orders arrive through a webhook and their address lands in
+    // the deliveryAddress JSON, not always in the flat columns. This helper
+    // read only the flat three, so a Deliveroo or Uber delivery showed
+    // "No address" on the operator board while the same order had a perfectly
+    // good pin on the map — the map walks the JSON too.
+    //
+    // orderAddressString is that walk, already written and already used by the
+    // geocoder, so the board and the map now answer from the same place.
+    const addr = (o: {
+      addressLine1: string | null;
+      city: string | null;
+      postcode: string | null;
+      deliveryAddress?: unknown;
+    }) => {
+      const flat = [o.addressLine1, o.city, o.postcode].filter(Boolean).join(", ");
+      if (flat) return flat;
+      const full = this.orderAddressString(
+        {
+          addressLine1: o.addressLine1,
+          city: o.city,
+          postcode: o.postcode,
+          deliveryAddress: o.deliveryAddress ?? null,
+        },
+        "",
+      );
+      // orderAddressString appends the shop's country for the geocoder; the
+      // board is for a human reading it at a glance, so trim the trailing
+      // separator that leaves behind.
+      return full ? full.replace(/,\s*$/, "") : null;
+    };
 
     const [activeOrders, deliveredToday, failedRows, drivers] = await Promise.all([
       this.prisma.order.findMany({
@@ -767,6 +856,7 @@ export class DispatchService {
           addressLine1: true,
           city: true,
           postcode: true,
+          deliveryAddress: true,
           driverAssignment: { select: { driver: { select: { firstName: true, lastName: true } } } },
         },
         orderBy: { createdAt: "asc" },
@@ -841,6 +931,7 @@ export class DispatchService {
                   addressLine1: true,
                   city: true,
                   postcode: true,
+                  deliveryAddress: true,
                 },
               },
             },

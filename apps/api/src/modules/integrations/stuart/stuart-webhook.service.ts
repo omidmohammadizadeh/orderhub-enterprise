@@ -67,6 +67,22 @@ export class StuartWebhookService {
     if (status) updates.courierStatus = status;
     if (driver?.name) updates.courierName = driver.name;
     if (driver?.phone) updates.courierPhone = driver.phone;
+
+    // Courier position, when the network sends one. Same reasoning as the
+    // Deliveroo path: store the point with the time it was taken, never
+    // invent freshness, and refuse 0,0.
+    const cLat = Number(driver?.latitude ?? driver?.location?.lat);
+    const cLng = Number(driver?.longitude ?? driver?.location?.lng);
+    if (
+      Number.isFinite(cLat) &&
+      Number.isFinite(cLng) &&
+      !(cLat === 0 && cLng === 0)
+    ) {
+      updates.courierLat = cLat;
+      updates.courierLng = cLng;
+      updates.courierLocationAt = new Date();
+    }
+
     const trackingUrl = delivery?.tracking_url ?? data.tracking_url;
     if (trackingUrl) updates.courierTrackingUrl = trackingUrl;
 

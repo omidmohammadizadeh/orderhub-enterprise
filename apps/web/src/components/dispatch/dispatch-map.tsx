@@ -258,6 +258,54 @@ export function DispatchMap({
       });
     }
 
+    // Marketplace riders (Deliveroo, Uber Direct, Stuart) — scooter markers,
+    // visually distinct from our own drivers because the operator can do
+    // nothing to them: no assigning, no re-routing, no messaging.
+    //
+    // The API only sends a courier whose position is fresh, so anything here
+    // is worth drawing. Fading the last few minutes still tells the operator
+    // at a glance whether they are watching a live rider or the last thing a
+    // provider said before it went quiet.
+    for (const c of feed.couriers ?? []) {
+      const key = `cour:${c.orderId}`;
+      seen.add(key);
+      let m = markersRef.current.get(key);
+      if (!m) {
+        m = new g.maps.Marker({ map, zIndex: 70 });
+        markersRef.current.set(key, m);
+      }
+      m.setPosition({ lat: c.lat, lng: c.lng });
+      m.setTitle(`${c.name || "Courier"} · ${c.platform}`);
+      m.setIcon({
+        path: g.maps.SymbolPath.CIRCLE,
+        fillColor: "#7c3aed",
+        // Older fix = fainter pin. 0 min → solid, 10+ min → clearly washed out.
+        fillOpacity: Math.max(0.35, 1 - c.ageMinutes / 12),
+        strokeColor: "#ffffff",
+        strokeWeight: 2,
+        scale: 13,
+      });
+      m.setLabel({ text: "🛵", fontSize: "15px" });
+
+      g.maps.event.clearListeners(m, "click");
+      m.addListener("click", () => {
+        const seenLabel = new Date(c.seenAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        infoRef.current.setContent(
+          `<div style="font-family:system-ui;font-size:13px;min-width:200px">
+            <strong>${c.name || "Courier"}</strong><br/>
+            <span style="color:#7c3aed;font-weight:700">${c.platform}</span>${c.ref ? ` · ${c.ref}` : ""}<br/>
+            ${c.status ? `<span style="color:#475569">${c.status}</span><br/>` : ""}
+            <span style="color:#475569">Seen ${seenLabel}${c.ageMinutes > 1 ? ` · ${c.ageMinutes} min ago` : ""}</span>
+            ${c.phone ? `<br/><a href="tel:${c.phone}" style="color:#2563eb">${c.phone}</a>` : ""}
+          </div>`,
+        );
+        infoRef.current.open(map, m);
+      });
+    }
+
     // Remove stale markers (e.g. completed orders that left the feed).
     for (const [key, marker] of markersRef.current.entries()) {
       if (!seen.has(key)) {

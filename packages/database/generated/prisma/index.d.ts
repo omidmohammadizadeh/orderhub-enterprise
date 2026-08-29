@@ -61976,6 +61976,8 @@ export namespace Prisma {
 
   export type OrderAvgAggregateOutputType = {
     orderNumber: number | null
+    courierLat: number | null
+    courierLng: number | null
     covers: number | null
     deliveryLat: number | null
     deliveryLng: number | null
@@ -61992,6 +61994,8 @@ export namespace Prisma {
 
   export type OrderSumAggregateOutputType = {
     orderNumber: number | null
+    courierLat: number | null
+    courierLng: number | null
     covers: number | null
     deliveryLat: number | null
     deliveryLng: number | null
@@ -62031,6 +62035,9 @@ export namespace Prisma {
     courierDeliveredAt: Date | null
     courierEtaAt: Date | null
     courierPickupEtaAt: Date | null
+    courierLat: number | null
+    courierLng: number | null
+    courierLocationAt: Date | null
     courierProvider: string | null
     courierJobId: string | null
     status: $Enums.OrderStatus | null
@@ -62107,6 +62114,9 @@ export namespace Prisma {
     courierDeliveredAt: Date | null
     courierEtaAt: Date | null
     courierPickupEtaAt: Date | null
+    courierLat: number | null
+    courierLng: number | null
+    courierLocationAt: Date | null
     courierProvider: string | null
     courierJobId: string | null
     status: $Enums.OrderStatus | null
@@ -62183,6 +62193,9 @@ export namespace Prisma {
     courierDeliveredAt: number
     courierEtaAt: number
     courierPickupEtaAt: number
+    courierLat: number
+    courierLng: number
+    courierLocationAt: number
     courierProvider: number
     courierJobId: number
     status: number
@@ -62242,6 +62255,8 @@ export namespace Prisma {
 
   export type OrderAvgAggregateInputType = {
     orderNumber?: true
+    courierLat?: true
+    courierLng?: true
     covers?: true
     deliveryLat?: true
     deliveryLng?: true
@@ -62258,6 +62273,8 @@ export namespace Prisma {
 
   export type OrderSumAggregateInputType = {
     orderNumber?: true
+    courierLat?: true
+    courierLng?: true
     covers?: true
     deliveryLat?: true
     deliveryLng?: true
@@ -62297,6 +62314,9 @@ export namespace Prisma {
     courierDeliveredAt?: true
     courierEtaAt?: true
     courierPickupEtaAt?: true
+    courierLat?: true
+    courierLng?: true
+    courierLocationAt?: true
     courierProvider?: true
     courierJobId?: true
     status?: true
@@ -62373,6 +62393,9 @@ export namespace Prisma {
     courierDeliveredAt?: true
     courierEtaAt?: true
     courierPickupEtaAt?: true
+    courierLat?: true
+    courierLng?: true
+    courierLocationAt?: true
     courierProvider?: true
     courierJobId?: true
     status?: true
@@ -62449,6 +62472,9 @@ export namespace Prisma {
     courierDeliveredAt?: true
     courierEtaAt?: true
     courierPickupEtaAt?: true
+    courierLat?: true
+    courierLng?: true
+    courierLocationAt?: true
     courierProvider?: true
     courierJobId?: true
     status?: true
@@ -62616,6 +62642,9 @@ export namespace Prisma {
     courierDeliveredAt: Date | null
     courierEtaAt: Date | null
     courierPickupEtaAt: Date | null
+    courierLat: number | null
+    courierLng: number | null
+    courierLocationAt: Date | null
     courierProvider: string | null
     courierJobId: string | null
     status: $Enums.OrderStatus
@@ -62715,6 +62744,9 @@ export namespace Prisma {
     courierDeliveredAt?: boolean
     courierEtaAt?: boolean
     courierPickupEtaAt?: boolean
+    courierLat?: boolean
+    courierLng?: boolean
+    courierLocationAt?: boolean
     courierProvider?: boolean
     courierJobId?: boolean
     status?: boolean
@@ -62809,6 +62841,9 @@ export namespace Prisma {
     courierDeliveredAt?: boolean
     courierEtaAt?: boolean
     courierPickupEtaAt?: boolean
+    courierLat?: boolean
+    courierLng?: boolean
+    courierLocationAt?: boolean
     courierProvider?: boolean
     courierJobId?: boolean
     status?: boolean
@@ -62894,6 +62929,9 @@ export namespace Prisma {
     courierDeliveredAt?: boolean
     courierEtaAt?: boolean
     courierPickupEtaAt?: boolean
+    courierLat?: boolean
+    courierLng?: boolean
+    courierLocationAt?: boolean
     courierProvider?: boolean
     courierJobId?: boolean
     status?: boolean
@@ -63015,6 +63053,9 @@ export namespace Prisma {
       courierDeliveredAt: Date | null
       courierEtaAt: Date | null
       courierPickupEtaAt: Date | null
+      courierLat: number | null
+      courierLng: number | null
+      courierLocationAt: Date | null
       courierProvider: string | null
       courierJobId: string | null
       status: $Enums.OrderStatus
@@ -63498,6 +63539,9 @@ export namespace Prisma {
     readonly courierDeliveredAt: FieldRef<"Order", 'DateTime'>
     readonly courierEtaAt: FieldRef<"Order", 'DateTime'>
     readonly courierPickupEtaAt: FieldRef<"Order", 'DateTime'>
+    readonly courierLat: FieldRef<"Order", 'Float'>
+    readonly courierLng: FieldRef<"Order", 'Float'>
+    readonly courierLocationAt: FieldRef<"Order", 'DateTime'>
     readonly courierProvider: FieldRef<"Order", 'String'>
     readonly courierJobId: FieldRef<"Order", 'String'>
     readonly status: FieldRef<"Order", 'OrderStatus'>
@@ -159939,6 +159983,9 @@ export namespace Prisma {
     courierDeliveredAt: 'courierDeliveredAt',
     courierEtaAt: 'courierEtaAt',
     courierPickupEtaAt: 'courierPickupEtaAt',
+    courierLat: 'courierLat',
+    courierLng: 'courierLng',
+    courierLocationAt: 'courierLocationAt',
     courierProvider: 'courierProvider',
     courierJobId: 'courierJobId',
     status: 'status',
@@ -169238,6 +169285,9 @@ export namespace Prisma {
     courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierEtaAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierPickupEtaAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierLat?: FloatNullableFilter<"Order"> | number | null
+    courierLng?: FloatNullableFilter<"Order"> | number | null
+    courierLocationAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierProvider?: StringNullableFilter<"Order"> | string | null
     courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
@@ -169331,6 +169381,9 @@ export namespace Prisma {
     courierDeliveredAt?: SortOrderInput | SortOrder
     courierEtaAt?: SortOrderInput | SortOrder
     courierPickupEtaAt?: SortOrderInput | SortOrder
+    courierLat?: SortOrderInput | SortOrder
+    courierLng?: SortOrderInput | SortOrder
+    courierLocationAt?: SortOrderInput | SortOrder
     courierProvider?: SortOrderInput | SortOrder
     courierJobId?: SortOrderInput | SortOrder
     status?: SortOrder
@@ -169430,6 +169483,9 @@ export namespace Prisma {
     courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierEtaAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierPickupEtaAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierLat?: FloatNullableFilter<"Order"> | number | null
+    courierLng?: FloatNullableFilter<"Order"> | number | null
+    courierLocationAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierProvider?: StringNullableFilter<"Order"> | string | null
     courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
@@ -169522,6 +169578,9 @@ export namespace Prisma {
     courierDeliveredAt?: SortOrderInput | SortOrder
     courierEtaAt?: SortOrderInput | SortOrder
     courierPickupEtaAt?: SortOrderInput | SortOrder
+    courierLat?: SortOrderInput | SortOrder
+    courierLng?: SortOrderInput | SortOrder
+    courierLocationAt?: SortOrderInput | SortOrder
     courierProvider?: SortOrderInput | SortOrder
     courierJobId?: SortOrderInput | SortOrder
     status?: SortOrder
@@ -169610,6 +169669,9 @@ export namespace Prisma {
     courierDeliveredAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     courierEtaAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     courierPickupEtaAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    courierLat?: FloatNullableWithAggregatesFilter<"Order"> | number | null
+    courierLng?: FloatNullableWithAggregatesFilter<"Order"> | number | null
+    courierLocationAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     courierProvider?: StringNullableWithAggregatesFilter<"Order"> | string | null
     courierJobId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     status?: EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
@@ -184063,6 +184125,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -184156,6 +184221,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -184239,6 +184307,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -184332,6 +184403,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -184420,6 +184494,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -184495,6 +184572,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -184575,6 +184655,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -198819,6 +198902,9 @@ export namespace Prisma {
     courierDeliveredAt?: SortOrder
     courierEtaAt?: SortOrder
     courierPickupEtaAt?: SortOrder
+    courierLat?: SortOrder
+    courierLng?: SortOrder
+    courierLocationAt?: SortOrder
     courierProvider?: SortOrder
     courierJobId?: SortOrder
     status?: SortOrder
@@ -198876,6 +198962,8 @@ export namespace Prisma {
 
   export type OrderAvgOrderByAggregateInput = {
     orderNumber?: SortOrder
+    courierLat?: SortOrder
+    courierLng?: SortOrder
     covers?: SortOrder
     deliveryLat?: SortOrder
     deliveryLng?: SortOrder
@@ -198915,6 +199003,9 @@ export namespace Prisma {
     courierDeliveredAt?: SortOrder
     courierEtaAt?: SortOrder
     courierPickupEtaAt?: SortOrder
+    courierLat?: SortOrder
+    courierLng?: SortOrder
+    courierLocationAt?: SortOrder
     courierProvider?: SortOrder
     courierJobId?: SortOrder
     status?: SortOrder
@@ -198991,6 +199082,9 @@ export namespace Prisma {
     courierDeliveredAt?: SortOrder
     courierEtaAt?: SortOrder
     courierPickupEtaAt?: SortOrder
+    courierLat?: SortOrder
+    courierLng?: SortOrder
+    courierLocationAt?: SortOrder
     courierProvider?: SortOrder
     courierJobId?: SortOrder
     status?: SortOrder
@@ -199044,6 +199138,8 @@ export namespace Prisma {
 
   export type OrderSumOrderByAggregateInput = {
     orderNumber?: SortOrder
+    courierLat?: SortOrder
+    courierLng?: SortOrder
     covers?: SortOrder
     deliveryLat?: SortOrder
     deliveryLng?: SortOrder
@@ -215834,6 +215930,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -215925,6 +216024,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -217034,6 +217136,9 @@ export namespace Prisma {
     courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierEtaAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierPickupEtaAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierLat?: FloatNullableFilter<"Order"> | number | null
+    courierLng?: FloatNullableFilter<"Order"> | number | null
+    courierLocationAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     courierProvider?: StringNullableFilter<"Order"> | string | null
     courierJobId?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
@@ -219891,6 +219996,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -219982,6 +220090,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -221552,6 +221663,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -221643,6 +221757,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -222890,6 +223007,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -222981,6 +223101,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -232390,6 +232513,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -232481,6 +232607,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -234266,6 +234395,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -234358,6 +234490,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -234523,6 +234658,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -234615,6 +234753,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -237169,6 +237310,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -237261,6 +237405,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -237359,6 +237506,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -237451,6 +237601,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -237533,6 +237686,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -237625,6 +237781,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -237723,6 +237882,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -237815,6 +237977,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -240294,6 +240459,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -240386,6 +240554,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -240519,6 +240690,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -240611,6 +240785,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -241889,6 +242066,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -241981,6 +242161,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -242333,6 +242516,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -242425,6 +242611,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -246250,6 +246439,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -246342,6 +246534,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -246517,6 +246712,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -246609,6 +246807,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -247124,6 +247325,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -247216,6 +247420,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -247429,6 +247636,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -247521,6 +247731,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -255134,6 +255347,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -255226,6 +255442,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -255420,6 +255639,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -255512,6 +255734,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -257286,6 +257511,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -257898,6 +258126,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -257989,6 +258220,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -258076,6 +258310,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -259544,6 +259781,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -259668,6 +259908,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -259759,6 +260002,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -259846,6 +260092,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -260202,6 +260451,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -260859,6 +261111,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -260950,6 +261205,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -261037,6 +261295,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -261519,6 +261780,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -261946,6 +262210,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -262037,6 +262304,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -262124,6 +262394,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -264019,6 +264292,9 @@ export namespace Prisma {
     courierDeliveredAt?: Date | string | null
     courierEtaAt?: Date | string | null
     courierPickupEtaAt?: Date | string | null
+    courierLat?: number | null
+    courierLng?: number | null
+    courierLocationAt?: Date | string | null
     courierProvider?: string | null
     courierJobId?: string | null
     status?: $Enums.OrderStatus
@@ -264145,6 +264421,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -264236,6 +264515,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
@@ -264323,6 +264605,9 @@ export namespace Prisma {
     courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierPickupEtaAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    courierLocationAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     courierProvider?: NullableStringFieldUpdateOperationsInput | string | null
     courierJobId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
