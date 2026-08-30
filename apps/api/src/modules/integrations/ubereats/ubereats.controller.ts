@@ -80,6 +80,13 @@ export class UberEatsController {
         "eats.store.promotion.write",
         "eats.store.promotion.read",
         "eats.report",
+        // Uber's go-live guide requires each store to be "provisioned to the
+        // production developer account" before a pilot can start, and that is
+        // what this scope is for. It was missing from the probe, so the one
+        // question blocking go-live — can we provision a store yet? — was the
+        // one question this endpoint could not answer.
+        "eats.pos_provisioning",
+        "eats.byoc.fulfillment.config",
       ]);
       return { configured, redirectUriSet, build, tokenMint: "ok", scopes };
     } catch (err: any) {
