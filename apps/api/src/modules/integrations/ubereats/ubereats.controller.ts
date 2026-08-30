@@ -70,22 +70,32 @@ export class UberEatsController {
       // Which client-credentials scopes is the app ACTUALLY whitelisted for?
       // Uber silently drops unapproved scopes at mint time, so this is the
       // authoritative answer (e.g. pause/resume needs eats.store.status.write).
+      // CLIENT-CREDENTIALS scopes only.
+      //
+      // eats.pos_provisioning is deliberately NOT here. It is an
+      // authorization-code scope — the merchant grants it by signing in
+      // through "Connect Uber Eats" — and Uber rejects it outright on a
+      // client-credentials mint. Probing it here produced a permanent
+      // `granted: false` with an invalid_scope error that read exactly like a
+      // missing whitelist, which sent us looking for a go-live blocker that
+      // was never there. Its real state is visible on a connected store, not
+      // in this list.
+      //
+      // eats.store.orders.write is gone for a plainer reason: nothing in this
+      // codebase ever requested it. It was a name in a probe list and nowhere
+      // else, and Uber has no such scope — accept/deny/cancel live under
+      // eats.order.
       const scopes = await this.client.probeScopes([
         "eats.store",
         "eats.store.status.write",
         "eats.order",
         "eats.store.orders.read",
-        "eats.store.orders.write",
         "eats.store.orders.restaurantdelivery.status",
         "eats.store.promotion.write",
         "eats.store.promotion.read",
         "eats.report",
-        // Uber's go-live guide requires each store to be "provisioned to the
-        // production developer account" before a pilot can start, and that is
-        // what this scope is for. It was missing from the probe, so the one
-        // question blocking go-live — can we provision a store yet? — was the
-        // one question this endpoint could not answer.
-        "eats.pos_provisioning",
+        // Bring Your Own Courier. Genuinely separate — only needed if a
+        // merchant self-delivers through Uber's BYOC flow.
         "eats.byoc.fulfillment.config",
       ]);
       return { configured, redirectUriSet, build, tokenMint: "ok", scopes };
