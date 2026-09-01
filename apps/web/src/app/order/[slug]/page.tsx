@@ -232,17 +232,60 @@ type CartAction =
   | { type: "SET"; lines: CartLine[] }
   | { type: "CLEAR" };
 
+/**
+ * Two cart lines are the same order when everything a customer chose matches.
+ *
+ * Modifiers are sorted before comparing so picking the same three sauces in a
+ * different order still counts as the same line. Promo pricing rides on
+ * unitPrice, so a discounted line never merges with a full-price one.
+ *
+ * bogoOf / freeItemOf are deliberately part of the key: a freebie mirrors a
+ * specific trigger line and must not be folded into the paid one.
+ */
+function cartLineKey(line: Omit<CartLine, "id">): string {
+  const mods = (line.modifiers ?? [])
+    .map((m) => `${m.id ?? ""}~${m.name ?? ""}~${m.price ?? 0}`)
+    .sort()
+    .join("|");
+  return [
+    line.menuItemId,
+    line.unitPrice,
+    (line.notes ?? "").trim(),
+    line.selectedSku?.name ?? "",
+    line.plu ?? "",
+    line.bogoOf ?? "",
+    line.freeItemOf ?? "",
+    mods,
+  ].join("\u0000");
+}
+
 function cartReducer(state: CartLine[], action: CartAction): CartLine[] {
   switch (action.type) {
     // Replace the whole cart — used to hydrate a saved basket from
     // localStorage on mount so a refresh/login doesn't lose it.
     case "SET":
       return action.lines;
-    case "ADD":
+    // Adding something already in the cart raises its quantity instead of
+    // laying a second identical line beside the first.
+    //
+    // Pushing every time is what made the row stepper look broken: tap + on a
+    // sauce twice and you got two lines of one, so the stepper — which reads
+    // the FIRST matching line — sat at 1 while the cart badge climbed. It also
+    // sent the kitchen "1x Garlic Sauce" printed nine times instead of
+    // "9x Garlic Sauce".
+    case "ADD": {
+      const key = cartLineKey(action.line);
+      const at = state.findIndex((l) => cartLineKey(l) === key);
+      if (at >= 0) {
+        return state.map((l, i) =>
+          i === at ? { ...l, quantity: l.quantity + action.line.quantity } : l,
+        );
+      }
       return [
         ...state,
         { ...action.line, id: Math.random().toString(36).slice(2) },
       ];
+    }
     case "INCREMENT":
       return state.map((l) =>
         l.id === action.id ? { ...l, quantity: l.quantity + 1 } : l,
