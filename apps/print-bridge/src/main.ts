@@ -95,27 +95,64 @@ async function main() {
     console.log(`✓ Server: printer ${remote.name} now routes to this agent.`);
 
     // Save the matching local entry so the bridge knows where to send
-    // bytes for jobs claimed under this printerId. Reuse whatever the
-    // operator typed in the dashboard for IP/port; only prompt if the
-    // server record is missing them.
-    const host =
-      remote.ipAddress ?? (await ask("Printer IP: ")).trim();
-    const portStr = remote.port
-      ? String(remote.port)
-      : (await ask("Printer port [9100]: ")).trim() || "9100";
-    const port = parseInt(portStr, 10);
-
+    // bytes for jobs claimed under this printerId.
+    //
+    // The transport comes from the SERVER's connectionType. This used to be
+    // hardcoded to "lan", so binding a Bluetooth or USB printer wrote a LAN
+    // entry and then asked for an IP address that does not exist — the
+    // operator's only way out was to hand-edit config.json. Whatever the
+    // dashboard says the printer is, is what gets written here.
+    const paperWidth = remote.paperWidth === 58 ? 58 : 80;
     const next = cfg.printers.filter((p) => p.printerId !== printerId);
-    next.push({
-      printerId,
-      transport: "lan",
-      host,
-      port,
-      paperWidth: remote.paperWidth === 58 ? 58 : 80,
-    });
-    cfg.printers = next;
-    saveConfig(cfg);
-    console.log(`✓ Local: saved ${host}:${port} for ${remote.name}.`);
+
+    if (remote.connectionType === "USB") {
+      // Addressed by vendor + product, the way LAN is addressed by host +
+      // port. Set them in the dashboard; only ask if the record is bare.
+      const vendor =
+        remote.usbVendor ??
+        parseInt((await ask("USB vendor id (decimal): ")).trim(), 10);
+      const product =
+        remote.usbProduct ??
+        parseInt((await ask("USB product id (decimal): ")).trim(), 10);
+      if (!Number.isFinite(vendor) || !Number.isFinite(product)) {
+        console.log("✗ USB printers need both a vendor and a product id.");
+        return;
+      }
+      next.push({
+        printerId,
+        transport: "usb",
+        usbVendor: vendor,
+        usbProduct: product,
+        paperWidth,
+      });
+      cfg.printers = next;
+      saveConfig(cfg);
+      console.log(
+        `✓ Local: saved USB ${vendor}/${product} for ${remote.name}.`,
+      );
+    } else if (remote.connectionType === "BLUETOOTH") {
+      const btMac = (await ask("Printer Bluetooth MAC: ")).trim();
+      if (!btMac) {
+        console.log("✗ Bluetooth printers need a MAC address.");
+        return;
+      }
+      next.push({ printerId, transport: "bluetooth", btMac, paperWidth });
+      cfg.printers = next;
+      saveConfig(cfg);
+      console.log(`✓ Local: saved Bluetooth ${btMac} for ${remote.name}.`);
+    } else {
+      // Reuse whatever the operator typed in the dashboard for IP/port; only
+      // prompt if the server record is missing them.
+      const host = remote.ipAddress ?? (await ask("Printer IP: ")).trim();
+      const portStr = remote.port
+        ? String(remote.port)
+        : (await ask("Printer port [9100]: ")).trim() || "9100";
+      const port = parseInt(portStr, 10);
+      next.push({ printerId, transport: "lan", host, port, paperWidth });
+      cfg.printers = next;
+      saveConfig(cfg);
+      console.log(`✓ Local: saved ${host}:${port} for ${remote.name}.`);
+    }
     console.log("\nNow run:  node dist/main.js");
     return;
   }

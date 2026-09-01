@@ -211,6 +211,10 @@ export class PrintAgentsService {
         agentId: true,
         paperWidth: true,
         model: true,
+        // So the bridge can address a cabled printer without the operator
+        // hand-editing config.json on the shop's machine.
+        usbVendor: true,
+        usbProduct: true,
       },
     });
   }

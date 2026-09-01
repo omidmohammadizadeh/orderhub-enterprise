@@ -2441,6 +2441,16 @@ model Printer {
   name           String
   type           PrinterType
   connectionType PrinterConnectionType @default(LAN)
+  // USB printers are addressed by their USB vendor and product id, the way a
+  // LAN printer is addressed by host and port. The print bridge's USB
+  // transport has always needed these; until now they existed only in the
+  // bridge's own config.json on the shop's machine, so a cabled printer could
+  // not be set up from the dashboard at all.
+  //
+  // Decimal, not hex. libusb wants numbers, and an operator reading a label or
+  // Device Manager will be looking at something like 1155 / 22304.
+  usbVendor      Int?
+  usbProduct     Int?
   // Phase AS-1 — used to be `station: PrinterStation` (enum). Now this
   // is just a classification ("what kind of station is this printer
   // associated with"); the row-shaped PrinterStation model owns real

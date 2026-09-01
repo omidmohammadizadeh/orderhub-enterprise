@@ -75407,11 +75407,15 @@ export namespace Prisma {
   }
 
   export type PrinterAvgAggregateOutputType = {
+    usbVendor: number | null
+    usbProduct: number | null
     port: number | null
     paperWidth: number | null
   }
 
   export type PrinterSumAggregateOutputType = {
+    usbVendor: number | null
+    usbProduct: number | null
     port: number | null
     paperWidth: number | null
   }
@@ -75423,6 +75427,8 @@ export namespace Prisma {
     name: string | null
     type: $Enums.PrinterType | null
     connectionType: $Enums.PrinterConnectionType | null
+    usbVendor: number | null
+    usbProduct: number | null
     kind: $Enums.PrinterStationKind | null
     ipAddress: string | null
     port: number | null
@@ -75455,6 +75461,8 @@ export namespace Prisma {
     name: string | null
     type: $Enums.PrinterType | null
     connectionType: $Enums.PrinterConnectionType | null
+    usbVendor: number | null
+    usbProduct: number | null
     kind: $Enums.PrinterStationKind | null
     ipAddress: string | null
     port: number | null
@@ -75487,6 +75495,8 @@ export namespace Prisma {
     name: number
     type: number
     connectionType: number
+    usbVendor: number
+    usbProduct: number
     kind: number
     ipAddress: number
     port: number
@@ -75519,11 +75529,15 @@ export namespace Prisma {
 
 
   export type PrinterAvgAggregateInputType = {
+    usbVendor?: true
+    usbProduct?: true
     port?: true
     paperWidth?: true
   }
 
   export type PrinterSumAggregateInputType = {
+    usbVendor?: true
+    usbProduct?: true
     port?: true
     paperWidth?: true
   }
@@ -75535,6 +75549,8 @@ export namespace Prisma {
     name?: true
     type?: true
     connectionType?: true
+    usbVendor?: true
+    usbProduct?: true
     kind?: true
     ipAddress?: true
     port?: true
@@ -75567,6 +75583,8 @@ export namespace Prisma {
     name?: true
     type?: true
     connectionType?: true
+    usbVendor?: true
+    usbProduct?: true
     kind?: true
     ipAddress?: true
     port?: true
@@ -75599,6 +75617,8 @@ export namespace Prisma {
     name?: true
     type?: true
     connectionType?: true
+    usbVendor?: true
+    usbProduct?: true
     kind?: true
     ipAddress?: true
     port?: true
@@ -75722,6 +75742,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType: $Enums.PrinterConnectionType
+    usbVendor: number | null
+    usbProduct: number | null
     kind: $Enums.PrinterStationKind
     ipAddress: string | null
     port: number | null
@@ -75777,6 +75799,8 @@ export namespace Prisma {
     name?: boolean
     type?: boolean
     connectionType?: boolean
+    usbVendor?: boolean
+    usbProduct?: boolean
     kind?: boolean
     ipAddress?: boolean
     port?: boolean
@@ -75820,6 +75844,8 @@ export namespace Prisma {
     name?: boolean
     type?: boolean
     connectionType?: boolean
+    usbVendor?: boolean
+    usbProduct?: boolean
     kind?: boolean
     ipAddress?: boolean
     port?: boolean
@@ -75858,6 +75884,8 @@ export namespace Prisma {
     name?: boolean
     type?: boolean
     connectionType?: boolean
+    usbVendor?: boolean
+    usbProduct?: boolean
     kind?: boolean
     ipAddress?: boolean
     port?: boolean
@@ -75918,6 +75946,8 @@ export namespace Prisma {
       name: string
       type: $Enums.PrinterType
       connectionType: $Enums.PrinterConnectionType
+      usbVendor: number | null
+      usbProduct: number | null
       kind: $Enums.PrinterStationKind
       ipAddress: string | null
       port: number | null
@@ -76350,6 +76380,8 @@ export namespace Prisma {
     readonly name: FieldRef<"Printer", 'String'>
     readonly type: FieldRef<"Printer", 'PrinterType'>
     readonly connectionType: FieldRef<"Printer", 'PrinterConnectionType'>
+    readonly usbVendor: FieldRef<"Printer", 'Int'>
+    readonly usbProduct: FieldRef<"Printer", 'Int'>
     readonly kind: FieldRef<"Printer", 'PrinterStationKind'>
     readonly ipAddress: FieldRef<"Printer", 'String'>
     readonly port: FieldRef<"Printer", 'Int'>
@@ -160248,6 +160280,8 @@ export namespace Prisma {
     name: 'name',
     type: 'type',
     connectionType: 'connectionType',
+    usbVendor: 'usbVendor',
+    usbProduct: 'usbProduct',
     kind: 'kind',
     ipAddress: 'ipAddress',
     port: 'port',
@@ -170751,6 +170785,8 @@ export namespace Prisma {
     name?: StringFilter<"Printer"> | string
     type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFilter<"Printer"> | $Enums.PrinterConnectionType
+    usbVendor?: IntNullableFilter<"Printer"> | number | null
+    usbProduct?: IntNullableFilter<"Printer"> | number | null
     kind?: EnumPrinterStationKindFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableFilter<"Printer"> | string | null
     port?: IntNullableFilter<"Printer"> | number | null
@@ -170793,6 +170829,8 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
+    usbVendor?: SortOrderInput | SortOrder
+    usbProduct?: SortOrderInput | SortOrder
     kind?: SortOrder
     ipAddress?: SortOrderInput | SortOrder
     port?: SortOrderInput | SortOrder
@@ -170839,6 +170877,8 @@ export namespace Prisma {
     name?: StringFilter<"Printer"> | string
     type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFilter<"Printer"> | $Enums.PrinterConnectionType
+    usbVendor?: IntNullableFilter<"Printer"> | number | null
+    usbProduct?: IntNullableFilter<"Printer"> | number | null
     kind?: EnumPrinterStationKindFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableFilter<"Printer"> | string | null
     port?: IntNullableFilter<"Printer"> | number | null
@@ -170881,6 +170921,8 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
+    usbVendor?: SortOrderInput | SortOrder
+    usbProduct?: SortOrderInput | SortOrder
     kind?: SortOrder
     ipAddress?: SortOrderInput | SortOrder
     port?: SortOrderInput | SortOrder
@@ -170925,6 +170967,8 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Printer"> | string
     type?: EnumPrinterTypeWithAggregatesFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeWithAggregatesFilter<"Printer"> | $Enums.PrinterConnectionType
+    usbVendor?: IntNullableWithAggregatesFilter<"Printer"> | number | null
+    usbProduct?: IntNullableWithAggregatesFilter<"Printer"> | number | null
     kind?: EnumPrinterStationKindWithAggregatesFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableWithAggregatesFilter<"Printer"> | string | null
     port?: IntNullableWithAggregatesFilter<"Printer"> | number | null
@@ -185864,6 +185908,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -185905,6 +185951,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -185944,6 +185992,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -185985,6 +186035,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -186025,6 +186077,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -186060,6 +186114,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -186095,6 +186151,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -199901,6 +199959,8 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
+    usbVendor?: SortOrder
+    usbProduct?: SortOrder
     kind?: SortOrder
     ipAddress?: SortOrder
     port?: SortOrder
@@ -199931,6 +199991,8 @@ export namespace Prisma {
   }
 
   export type PrinterAvgOrderByAggregateInput = {
+    usbVendor?: SortOrder
+    usbProduct?: SortOrder
     port?: SortOrder
     paperWidth?: SortOrder
   }
@@ -199942,6 +200004,8 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
+    usbVendor?: SortOrder
+    usbProduct?: SortOrder
     kind?: SortOrder
     ipAddress?: SortOrder
     port?: SortOrder
@@ -199974,6 +200038,8 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
+    usbVendor?: SortOrder
+    usbProduct?: SortOrder
     kind?: SortOrder
     ipAddress?: SortOrder
     port?: SortOrder
@@ -200000,6 +200066,8 @@ export namespace Prisma {
   }
 
   export type PrinterSumOrderByAggregateInput = {
+    usbVendor?: SortOrder
+    usbProduct?: SortOrder
     port?: SortOrder
     paperWidth?: SortOrder
   }
@@ -223183,6 +223251,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -223222,6 +223292,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -224113,6 +224185,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -224153,6 +224227,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -224196,6 +224272,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -224236,6 +224314,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -224629,6 +224709,8 @@ export namespace Prisma {
     name?: StringFilter<"Printer"> | string
     type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFilter<"Printer"> | $Enums.PrinterConnectionType
+    usbVendor?: IntNullableFilter<"Printer"> | number | null
+    usbProduct?: IntNullableFilter<"Printer"> | number | null
     kind?: EnumPrinterStationKindFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableFilter<"Printer"> | string | null
     port?: IntNullableFilter<"Printer"> | number | null
@@ -225240,6 +225322,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -225280,6 +225364,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -225329,6 +225415,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -225369,6 +225457,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -241969,6 +242059,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -242009,6 +242101,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -242413,6 +242507,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -242453,6 +242549,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -243040,6 +243138,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -243080,6 +243180,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -243840,6 +243942,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -243880,6 +243984,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -244270,6 +244376,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -244310,6 +244418,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -261844,6 +261954,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -262458,6 +262570,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -262497,6 +262611,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -262536,6 +262652,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -266736,6 +266854,8 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
+    usbVendor?: number | null
+    usbProduct?: number | null
     kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
@@ -266798,6 +266918,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -266838,6 +266960,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
@@ -266877,6 +267001,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    usbVendor?: NullableIntFieldUpdateOperationsInput | number | null
+    usbProduct?: NullableIntFieldUpdateOperationsInput | number | null
     kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null

@@ -267,6 +267,11 @@ function PrinterWizard({
   const [ipAddress, setIp] = useState("");
   const [port, setPort] = useState("9100");
   const [btMac, setBtMac] = useState("");
+  // USB printers are addressed by vendor + product id, the way a LAN printer
+  // is addressed by host + port. Held as strings so a half-typed value does
+  // not become NaN while the operator is still typing.
+  const [usbVendor, setUsbVendor] = useState("");
+  const [usbProduct, setUsbProduct] = useState("");
   const [paperWidth, setPaperWidth] = useState<58 | 80>(80);
   const [model, setModel] = useState("");
   // Receipt command language. Star printers speak Star Line Mode; Epson,
@@ -352,6 +357,10 @@ function PrinterWizard({
         // BLUETOOTH. We'll promote to a dedicated column once we add
         // BT-specific stats (signal strength, last-seen).
         ...(connectionType === "BLUETOOTH" && btMac && { ipAddress: btMac }),
+        ...(connectionType === "USB" && {
+          usbVendor: parseInt(usbVendor, 10) || null,
+          usbProduct: parseInt(usbProduct, 10) || null,
+        }),
         paperWidth,
         model: model || null,
         // Renderer picks the right byte stream per printer: Star Line Mode
@@ -498,6 +507,43 @@ function PrinterWizard({
                     />
                   </Field>
                 </>
+              )}
+              {connectionType === "USB" && (
+                <div className="space-y-2">
+                  <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2">
+                    <p className="text-xs leading-relaxed text-zinc-600">
+                      A cabled printer plugs into the machine running the Print
+                      Bridge — a PC, Mac or mini PC — and every till, tablet and
+                      iPad in the shop prints through it. A printer cabled
+                      straight into an iPad cannot be reached; Apple does not
+                      allow it.
+                    </p>
+                  </div>
+                  <Field label="USB vendor ID *">
+                    <input
+                      value={usbVendor}
+                      onChange={(e) => setUsbVendor(e.target.value)}
+                      placeholder="1155"
+                      inputMode="numeric"
+                      className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    />
+                  </Field>
+                  <Field label="USB product ID *">
+                    <input
+                      value={usbProduct}
+                      onChange={(e) => setUsbProduct(e.target.value)}
+                      placeholder="22304"
+                      inputMode="numeric"
+                      className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    />
+                  </Field>
+                  <p className="text-[11px] leading-relaxed text-zinc-500">
+                    Decimal, not hex — Windows Device Manager and macOS System
+                    Information both show these on the device&rsquo;s details
+                    page, often written as hex like 0483 / 5740. Convert them,
+                    or run the bridge&rsquo;s bind command and it will ask.
+                  </p>
+                </div>
               )}
               {connectionType === "BLUETOOTH" && (
                 <div className="space-y-2">

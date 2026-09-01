@@ -1142,6 +1142,8 @@ exports.Prisma.PrinterScalarFieldEnum = {
   name: 'name',
   type: 'type',
   connectionType: 'connectionType',
+  usbVendor: 'usbVendor',
+  usbProduct: 'usbProduct',
   kind: 'kind',
   ipAddress: 'ipAddress',
   port: 'port',

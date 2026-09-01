@@ -88,6 +88,8 @@ export class ApiClient {
       agentId: string | null;
       paperWidth: number;
       model: string | null;
+      usbVendor: number | null;
+      usbProduct: number | null;
     }>
   > {
     const res = await fetch(
