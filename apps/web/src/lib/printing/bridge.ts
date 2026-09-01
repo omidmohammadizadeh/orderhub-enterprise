@@ -1029,13 +1029,19 @@ export function buildOrderReceipt(
       }
       buf.push(...MOD_OFF);
     }
-    // Item note — bold, because a missed "NO ONIONS" is a remake. Sized
-    // with the options, since it's the same class of "don't miss this".
+    // Item note — reversed out, like the payment banner.
+    //
+    // It used to print as "** seperate", which shops read as a footnote
+    // marker rather than an instruction, and asked what the stars meant. A
+    // missed "NO ONIONS" is a remake, so it now says Note: and carries the
+    // same black bar the payment line uses — the one thing on the ticket
+    // staff already know means read this. Lines are padded to the full width
+    // so the bar is a rectangle rather than ragged around the text.
     if (it?.notes) {
-      buf.push(...BOLD_ON, ...MOD_ON);
-      for (const w of indented(String(it.notes), "  ** ", modCols))
-        line(buf, w);
-      buf.push(...MOD_OFF, ...BOLD_OFF);
+      buf.push(...BOLD_ON, ...MOD_ON, ...reverseOn());
+      for (const w of indented(String(it.notes), "  Note: ", modCols))
+        line(buf, w.padEnd(modCols, " "));
+      buf.push(...reverseOff(), ...MOD_OFF, ...BOLD_OFF);
     }
     if (idx < items.length - 1) line(buf, dashes(cols));
   });
@@ -1297,11 +1303,12 @@ export function buildOrderReceiptStar(
       }
       buf.push(...STAR_MOD_OFF);
     }
+    // Item note — see the note in the ESC/POS variant above.
     if (it?.notes) {
-      buf.push(...STAR_BOLD_ON, ...STAR_MOD_ON);
-      for (const w of indented(String(it.notes), "  ** ", modCols))
-        line(buf, w);
-      buf.push(...STAR_MOD_OFF, ...STAR_BOLD_OFF);
+      buf.push(...STAR_BOLD_ON, ...STAR_MOD_ON, ...reverseOn());
+      for (const w of indented(String(it.notes), "  Note: ", modCols))
+        line(buf, w.padEnd(modCols, " "));
+      buf.push(...reverseOff(), ...STAR_MOD_OFF, ...STAR_BOLD_OFF);
     }
     if (idx < items.length - 1) line(buf, dashes(cols));
   });

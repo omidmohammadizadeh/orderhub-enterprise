@@ -247,9 +247,15 @@ export function renderToEscPos(
       newline();
       if (modScale !== "NORMAL") out.push(...textScale("NORMAL"));
     }
+    // Item note — reversed out, the same black bar the payment banner uses.
+    // Shops were reading the old marker as a footnote rather than an
+    // instruction, and a missed "NO ONIONS" is a remake. Padded to the full
+    // width so the bar is a rectangle rather than ragged around the text.
     if (it.notes) {
       if (modScale !== "NORMAL") out.push(...textScale(modScale));
-      write(`  Note: ${it.notes}`);
+      out.push(...reverseOn());
+      write(`  Note: ${it.notes}`.padEnd(width, " "));
+      out.push(...reverseOff());
       newline();
       if (modScale !== "NORMAL") out.push(...textScale("NORMAL"));
     }
