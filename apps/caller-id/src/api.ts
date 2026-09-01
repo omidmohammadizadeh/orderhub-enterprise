@@ -30,11 +30,47 @@ async function seenRecently(num: string): Promise<boolean> {
 // A UK-friendly number sniff: keep a leading +, strip spacing/dashes/parens,
 // accept 7–15 digits. Mirrors the server's extractVoipPhone() so anything we
 // send is something it will accept.
+//
+// The subtlety that bit us: this used to strip separators from the WHOLE
+// string first and then take the first 7–15 digit run. A bOnline notification
+// carries the caller's number twice — once in the title, once in the text —
+// so once the space between them was gone the run read as one 22-digit
+// number, and the 15-digit cap sliced it into 074384673800743. The till
+// showed staff a number that does not exist.
+//
+// Now: find number-SHAPED runs with their separators intact, so the boundary
+// between two numbers survives, and REJECT a run that is too long instead of
+// truncating it. Truncating invents a number; rejecting means no ring, and
+// the caller reads the title first anyway, where the real number is.
+const MAX_DIGITS = 15;
+const MIN_DIGITS = 7;
+
 export function normalisePhone(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const cleaned = String(raw).replace(/[\s\-()]/g, "");
-  const m = cleaned.match(/\+?\d{7,15}/);
-  return m ? m[0] : null;
+  const text = String(raw);
+  // Number-SHAPED runs, separators intact, so the gap between two numbers is
+  // still visible when we come to split them.
+  const runs = text.match(/\+?\d[\d\s\-()]*\d|\+?\d/g) ?? [];
+
+  for (const run of runs) {
+    // A run can be one number written with spaces ("07438 467380",
+    // "(0113) 496 0000") or two numbers side by side. Both look identical
+    // until you count digits, so take the LONGEST run of whole space-
+    // separated pieces that still fits a phone number, and stop before the
+    // piece that would push it over. That keeps a spaced number intact and
+    // cuts a doubled one at the join.
+    const pieces = run.split(/\s+/).filter(Boolean);
+    let acc = "";
+    for (const piece of pieces) {
+      const next = acc + piece.replace(/[-()]/g, "");
+      const bare = next.startsWith("+") ? next.slice(1) : next;
+      if (bare.length > MAX_DIGITS) break;
+      acc = next;
+    }
+    const bare = acc.startsWith("+") ? acc.slice(1) : acc;
+    if (bare.length >= MIN_DIGITS) return acc;
+  }
+  return null;
 }
 
 /**
