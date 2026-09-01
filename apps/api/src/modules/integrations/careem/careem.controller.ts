@@ -123,8 +123,45 @@ export class CareemController {
     // 2. What can those credentials actually see? Doubles as the list of ids
     //    every later phase needs — a catalog is uploaded per BRANCH, and an
     //    order names the branch it came from.
-    out.brands = await this.safe(() => this.client.request("/brands"));
-    out.branches = await this.safe(() => this.client.request("/branches"));
+    const brands = await this.safe(() => this.client.request<any>("/brands"));
+    out.brands = brands;
+
+    // GET /branches requires a Brand-Id HEADER — Careem mark it required in
+    // the 2.1.0 spec, and without it they answer 400 "Validation Error".
+    // Asking bare put a raw rejection on the diagnostics page that looked like
+    // a broken integration when it was a missing header on our side, and an
+    // account with nothing registered yet has no brand id to send at all.
+    //
+    // So: read the brands we just listed, ask per brand, and when there are
+    // none say what to do instead of showing Careem's complaint.
+    const brandIds: string[] = Array.isArray(brands?.data)
+      ? brands.data
+          .map((b: any) => b?.id)
+          .filter((id: unknown): id is string => typeof id === "string")
+      : [];
+
+    if (brandIds.length === 0) {
+      out.branches = {
+        note:
+          "No brands are registered with Careem yet, and a branch lookup needs " +
+          "a Brand-Id. Register a brand and its branch from Locations → the " +
+          "shop → Careem, then this will fill in.",
+      };
+    } else {
+      // One entry per brand, so a chain can see which brand a branch sits
+      // under rather than a flat list with no parent.
+      const perBrand: Record<string, unknown> = {};
+      for (const brandId of brandIds.slice(0, 10)) {
+        perBrand[brandId] = await this.safe(() =>
+          this.client.request("/branches", { method: "GET", brandId }),
+        );
+      }
+      out.branches = perBrand;
+      if (brandIds.length > 10) {
+        out.branchesTruncated = `showing 10 of ${brandIds.length} brands`;
+      }
+    }
+
     out.webhooks = this.webhookSummary();
     return out;
   }
