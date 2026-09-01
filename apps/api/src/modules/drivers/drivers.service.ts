@@ -55,10 +55,14 @@ export class DriversService {
    * opened Fleet and saw every other shop's drivers — and could set them
    * online or move them.
    *
-   * Unassigned drivers (no home location) are deliberately still shown when a
-   * shop is picked. Fleet is where a driver's location gets set, so hiding
-   * the ones that need setting would make them unreachable — the one thing
-   * worse than showing too many.
+   * With a shop picked, ONLY drivers homed at that shop are listed. This
+   * mirrors the dispatch map exactly, which has always worked that way: a
+   * driver with no home location does not appear under a shop, and assigning
+   * their location is what makes them show.
+   *
+   * Drivers with no home are still listed under "All locations", which is
+   * where a stray gets found and assigned. Without that they would be
+   * invisible everywhere and impossible to fix.
    */
   async findAll(
     user: Pick<AuthenticatedUser, "userId" | "tenantId" | "role">,
@@ -74,7 +78,7 @@ export class DriversService {
     if (allowed.length === 0) return [];
 
     const scope = opts.locationId
-      ? { OR: [{ locationId: opts.locationId }, { locationId: null }] }
+      ? { locationId: opts.locationId }
       : { OR: [{ locationId: { in: allowed } }, { locationId: null }] };
 
     return this.prisma.driver.findMany({
