@@ -23,6 +23,22 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
+// Who may change a shop's settings.
+//
+// Both generations of role name, which is the whole point. The schema carries
+// the legacy names (TENANT_OWNER, MANAGER) alongside the Phase AR Team Roles
+// names (OWNER, DARK_KITCHEN_MANAGER), and RolesGuard matches EXACTLY — it
+// has no hierarchy that maps one onto the other. Listing only the legacy set
+// meant an owner or a dark-kitchen manager silently could not save opening
+// hours, auto-accept, or POS tile colours, and only a platform admin could.
+const LOCATION_WRITE = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "MANAGER",
+  "DARK_KITCHEN_MANAGER",
+] as const;
+
 @ApiTags("locations")
 @ApiBearerAuth()
 @Controller({ path: "locations", version: "1" })
@@ -63,7 +79,7 @@ export class LocationsController {
   }
 
   @Post()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...LOCATION_WRITE)
   @ApiOperation({ summary: "Create a location" })
   create(
     @Body() dto: CreateLocationDto,
@@ -73,7 +89,7 @@ export class LocationsController {
   }
 
   @Patch(":locationId")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...LOCATION_WRITE)
   @ApiOperation({ summary: "Update location" })
   update(
     @Param("locationId") locationId: string,
@@ -103,7 +119,7 @@ export class LocationsController {
   }
 
   @Post(":locationId/generate-slug")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...LOCATION_WRITE)
   @ApiOperation({ summary: "Generate a unique online-ordering slug" })
   async generateSlug(
     @Param("locationId") locationId: string,
@@ -135,7 +151,7 @@ export class LocationsController {
   }
 
   @Patch(":locationId/opening-hours")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...LOCATION_WRITE)
   @ApiOperation({ summary: "Replace opening hours" })
   setHours(
     @Param("locationId") locationId: string,
@@ -146,7 +162,7 @@ export class LocationsController {
   }
 
   @Post(":locationId/opening-hours/apply-to")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...LOCATION_WRITE)
   @ApiOperation({ summary: "Apply this location's hours to other locations" })
   applyHoursTo(
     @Param("locationId") locationId: string,
@@ -169,7 +185,7 @@ export class LocationsController {
   }
 
   @Delete(":locationId")
-  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles("TENANT_OWNER", "OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Soft-delete location" })
   remove(
