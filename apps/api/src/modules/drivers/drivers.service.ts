@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, Logger } from "@nestjs/common";
+import { accessibleLocationIds } from "../../common/access/accessible-locations";
+import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ExpoPushService } from "../driver-app/expo-push.service";
@@ -46,9 +48,37 @@ export class DriversService {
     private readonly expoPush: ExpoPushService,
   ) {}
 
-  async findAll(tenantId: string, activeOnly = true) {
+  /**
+   * The drivers this operator may see, optionally narrowed to one shop.
+   *
+   * This used to return every driver in the tenant, so a manager at one shop
+   * opened Fleet and saw every other shop's drivers — and could set them
+   * online or move them.
+   *
+   * Unassigned drivers (no home location) are deliberately still shown when a
+   * shop is picked. Fleet is where a driver's location gets set, so hiding
+   * the ones that need setting would make them unreachable — the one thing
+   * worse than showing too many.
+   */
+  async findAll(
+    user: Pick<AuthenticatedUser, "userId" | "tenantId" | "role">,
+    opts: { activeOnly?: boolean; locationId?: string } = {},
+  ) {
+    const activeOnly = opts.activeOnly ?? true;
+    const tenantId = user.tenantId;
+    const allowed = await accessibleLocationIds(this.prisma, user);
+
+    // The id comes from a picker in the browser, so it may only ever narrow
+    // what the caller's own assignments already allow.
+    if (opts.locationId && !allowed.includes(opts.locationId)) return [];
+    if (allowed.length === 0) return [];
+
+    const scope = opts.locationId
+      ? { OR: [{ locationId: opts.locationId }, { locationId: null }] }
+      : { OR: [{ locationId: { in: allowed } }, { locationId: null }] };
+
     return this.prisma.driver.findMany({
-      where: { tenantId, ...(activeOnly ? { isActive: true } : {}) },
+      where: { tenantId, ...(activeOnly ? { isActive: true } : {}), ...scope },
       include: {
         _count: { select: { assignments: true } },
         assignments: {

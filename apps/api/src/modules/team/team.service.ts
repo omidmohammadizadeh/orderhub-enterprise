@@ -451,6 +451,23 @@ export class TeamService {
           })),
         });
       }
+
+      // A driver's shop follows the role assignment.
+      //
+      // Driver.locationId is what the dispatch map and the Fleet list filter
+      // on, and it is a different field from the UserLocation rows above.
+      // Assigning someone the DRIVER role here left that null, so they were
+      // invisible on their own shop's map until somebody went to Fleet and
+      // set it a second time — with nothing on this screen saying so.
+      //
+      // Only when exactly one location is given: a driver working two shops
+      // has no single home, and guessing one would put them on the wrong map.
+      if (dto.role === "DRIVER" && dto.locationIds.length === 1) {
+        await tx.driver.updateMany({
+          where: { userId: dto.userId, tenantId: actorTenantId },
+          data: { locationId: dto.locationIds[0] },
+        });
+      }
     });
 
     this.logger.log(

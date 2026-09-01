@@ -49,8 +49,16 @@ export default function DispatchPage() {
   });
 
   const fleetQuery = useQuery({
-    queryKey: ["fleet-drivers"],
-    queryFn: () => apiClient.get<FleetDriver[]>("/v1/drivers").then((r) => r.data),
+    // Same shop scope as the map. "all" means every location this user can
+    // reach, which the API resolves from their own assignments — never the
+    // whole tenant.
+    queryKey: ["fleet-drivers", location],
+    queryFn: () =>
+      apiClient
+        .get<FleetDriver[]>("/v1/drivers", {
+          params: location === "all" ? undefined : { locationId: location },
+        })
+        .then((r) => r.data),
     enabled: tab === "fleet",
   });
 

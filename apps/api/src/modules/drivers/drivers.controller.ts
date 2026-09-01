@@ -33,8 +33,14 @@ export class DriversController {
   findAll(
     @CurrentUser() user: AuthenticatedUser,
     @Query("activeOnly") activeOnly?: string,
+    @Query("locationId") locationId?: string,
   ) {
-    return this.drivers.findAll(user.tenantId, activeOnly !== "false");
+    // Scope comes from the caller's own assignments; locationId is the Fleet
+    // tab's shop picker and can only narrow it further.
+    return this.drivers.findAll(user, {
+      activeOnly: activeOnly !== "false",
+      locationId,
+    });
   }
 
   @Get(":driverId")
