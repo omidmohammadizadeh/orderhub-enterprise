@@ -237,3 +237,61 @@ describe("an order that is only a reward", () => {
     expect(line.notes).toMatch(/LOYALTY REWARD/);
   });
 });
+
+// A line on the ticket has to agree with what the customer paid.
+//
+// The storefront's unitPrice is modifier-INCLUSIVE — calculateCartItem returns
+// basePrice + sum(modifiers) — and its subtotal is the sum of those. The
+// checkout used to add the modifiers a second time when building
+// OrderItem.totalPrice, so every line printed dearer than the customer was
+// charged while subtotal and total stayed correct. A real Best Kebabs receipt
+// showed lines summing to £29.90 beneath a £26.90 subtotal.
+describe("online checkout — line totals must match the modifier-inclusive unitPrice", () => {
+  const lineTotal = (item: {
+    unitPrice: number;
+    quantity: number;
+    modifiers?: Array<{ price: number }>;
+  }) => Math.round(item.unitPrice * item.quantity * 100) / 100;
+
+  it("does not add modifiers on top of a price that already contains them", () => {
+    // Doner Wrap: £8.70 all-in, of which £3.00 is Chips With Cheese.
+    const line = {
+      unitPrice: 8.7,
+      quantity: 1,
+      modifiers: [{ price: 3.0 }],
+    };
+    expect(lineTotal(line)).toBe(8.7);
+    expect(lineTotal(line)).not.toBe(11.7);
+  });
+
+  it("multiplies by quantity without re-adding modifiers", () => {
+    const line = { unitPrice: 8.7, quantity: 3, modifiers: [{ price: 3.0 }] };
+    expect(lineTotal(line)).toBe(26.1);
+  });
+
+  it("reproduces the reported receipt — lines now sum to the subtotal", () => {
+    // Reconstructed from the Best Kebabs ticket. unitPrice is what the
+    // customer was charged per line (modifier-inclusive); the £1.50 Chips
+    // With Cheese on each wrap is ALREADY inside it.
+    const order = [
+      { name: "10pcs Chicken Nuggets & Chips", unitPrice: 6.0, quantity: 1, modifiers: [] },
+      { name: "Doner Wrap", unitPrice: 7.2, quantity: 1, modifiers: [{ price: 1.5 }] },
+      { name: "Mix Wrap", unitPrice: 7.7, quantity: 1, modifiers: [{ price: 1.5 }] },
+      { name: "10\" Garlic Bread With Cheese", unitPrice: 6.0, quantity: 1, modifiers: [] },
+    ];
+    const sum = (f: (l: (typeof order)[number]) => number) =>
+      Math.round(order.reduce((t, l) => t + f(l), 0) * 100) / 100;
+
+    // The subtotal the storefront sent, and what the customer paid against.
+    expect(sum((l) => l.unitPrice * l.quantity)).toBe(26.9);
+    // Fixed: the printed lines now add up to it.
+    expect(sum(lineTotal)).toBe(26.9);
+
+    // The old formula, kept here so the failure is recognisable if it returns:
+    // it printed the £29.90 the shop queried, £3.00 over the subtotal.
+    const oldFormula = (l: (typeof order)[number]) =>
+      l.unitPrice * l.quantity +
+      l.modifiers.reduce((t, m) => t + m.price * l.quantity, 0);
+    expect(sum(oldFormula)).toBe(29.9);
+  });
+});

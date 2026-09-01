@@ -247,6 +247,9 @@ export function resolveUnpinnedBrandId(input: {
   return input.locationBrandId;
 }
 
+/** Money rounding, shared by the line totals and the order totals below. */
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 @Injectable()
 export class OrderingService {
   private readonly logger = new Logger(OrderingService.name);
@@ -1334,7 +1337,20 @@ export class OrderingService {
       name: item.name,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      totalPrice: item.unitPrice * item.quantity + (item.modifiers?.reduce((s, m) => s + m.price * item.quantity, 0) ?? 0),
+      // unitPrice ALREADY includes the modifiers.
+      //
+      // calculateCartItem() returns basePrice + sum(modifiers), and that is
+      // what the storefront shows, what it charges, and what it sends as the
+      // subtotal — its own code carries the same warning, from the time a 12"
+      // stuffed-crust Toscana rang up at £16.10 instead of £12.00.
+      //
+      // Adding them again here made every line on the ticket dearer than the
+      // customer paid, while subtotal and total stayed right, so nothing
+      // added up: a Best Kebabs order printed lines summing to £29.90 under a
+      // £26.90 subtotal, the £3.00 gap being exactly its modifier total.
+      // OrderItem.totalPrice is also what reporting sums, so the inflation
+      // was not confined to paper.
+      totalPrice: round2(item.unitPrice * item.quantity),
       modifiers: item.modifiers ?? [],
       notes: item.notes,
     }));
@@ -1537,7 +1553,6 @@ export class OrderingService {
         );
       }
     }
-    const round2 = (n: number) => Math.round(n * 100) / 100;
     const serverDiscount = round2(Math.max(dto.discount ?? 0, campaignDiscount));
     // Tip is customer-set, so it's an untrusted number that raises the
     // charge. Floor at zero, and cap it against the basket rather than
