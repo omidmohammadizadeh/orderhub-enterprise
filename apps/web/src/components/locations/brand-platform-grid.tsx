@@ -424,7 +424,8 @@ function ConnectionRow({
           {isCareem ? (
             <p className="text-[10px] text-zinc-500">
               Careem uses this brand and location&apos;s own IDs — there is no
-              store ID to enter. Register them from the Careem page.
+              store ID to enter. Register them with &ldquo;Onboard the
+              shop&rdquo; on the Careem page.
             </p>
           ) : (
             connection?.externalStoreId &&

@@ -454,26 +454,29 @@ export default function CareemPage() {
         )}
       </section>
 
-      {/* ── Sandbox ───────────────────────────────────────────────────── */}
+      {/* ── Run the integration ───────────────────────────────────────── */}
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-900">Sandbox</h2>
+          <h2 className="text-sm font-semibold text-zinc-900">
+            Set up this shop
+          </h2>
           <p className="mt-1 text-xs text-zinc-500">
-            Careem&apos;s API answering on our own server, so the whole
-            integration can be run before they issue a client. Nothing here
-            leaves the box.
+            Registering a brand and branch, and publishing a menu, are real
+            calls to Careem — they run whether or not the sandbox is on. The
+            steps marked <span className="font-medium">Sandbox</span> are
+            answered by our own server and only appear when it is enabled.
           </p>
-          <p className="mt-1 text-xs text-amber-700">
-            It is held in memory, so any API restart or deploy empties it. If a
-            step says a branch does not exist, run step 2 again.
-          </p>
+          {sandboxOn && (
+            <p className="mt-1 text-xs text-amber-700">
+              The sandbox is ON, so Careem is not seeing any of this. It is held
+              in memory, so any API restart or deploy empties it — if a step
+              says a branch does not exist, run &ldquo;Onboard the shop&rdquo;
+              again.
+            </p>
+          )}
         </div>
 
-        {sandbox.data?.enabled === false ? (
-          <p className="rounded-lg border border-dashed border-zinc-200 p-4 text-xs text-zinc-600">
-            {sandbox.data.howToEnable}
-          </p>
-        ) : !locationId ? (
+        {!locationId ? (
           <p className="rounded-lg border border-dashed border-zinc-200 p-4 text-xs text-zinc-600">
             Pick a location in the switcher first — every step below runs
             against it.
@@ -483,7 +486,7 @@ export default function CareemPage() {
             <ol className="space-y-2">
               {[
                 {
-                  n: 1,
+                  sandboxOnly: true,
                   label: "Check the menu",
                   hint: "Sends nothing. Read a price and check the unit is right.",
                   run: () =>
@@ -492,7 +495,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 2,
+                  sandboxOnly: false,
                   label: "Onboard the shop",
                   hint: "Brand, branch, POS integration, opening hours.",
                   run: () =>
@@ -501,7 +504,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 3,
+                  sandboxOnly: false,
                   label: "Publish the menu — expect this to FAIL",
                   hint: 'A new branch is unmapped. "branch_id is not mapped" is the right answer here.',
                   run: () =>
@@ -510,7 +513,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 4,
+                  sandboxOnly: true,
                   label: "Map the branch",
                   hint: "What Careem's operations team does by hand.",
                   run: () =>
@@ -519,7 +522,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 5,
+                  sandboxOnly: false,
                   label: "Publish the menu again",
                   hint: "Same call as step 3. It should work now.",
                   run: () =>
@@ -528,7 +531,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 6,
+                  sandboxOnly: true,
                   label: "Send a Careem order",
                   hint: "Built from this shop's real menu. It should land on the orders board.",
                   run: () =>
@@ -538,7 +541,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 7,
+                  sandboxOnly: true,
                   label: "Send a self-delivery order",
                   hint: "Careem send customer details ONLY for self-delivery — this one should carry an address, step 6 should not.",
                   run: () =>
@@ -548,7 +551,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 8,
+                  sandboxOnly: true,
                   label: "Take an item off (86)",
                   hint: "Snooze reaches Careem as PATCH /catalogs/{id}/items — not a menu republish.",
                   run: () =>
@@ -557,7 +560,7 @@ export default function CareemPage() {
                     ),
                 },
                 {
-                  n: 9,
+                  sandboxOnly: true,
                   label: "What did we actually send?",
                   hint: "Every request the mock received, newest first.",
                   run: () =>
@@ -565,7 +568,10 @@ export default function CareemPage() {
                       params: { limit: 25 },
                     }),
                 },
-              ].map((s) => (
+              ]
+                .filter((s) => sandboxOn || !s.sandboxOnly)
+                .map((s, i) => ({ ...s, n: i + 1 }))
+                .map((s) => (
                 <li
                   key={s.n}
                   className="flex items-start justify-between gap-4 rounded-lg border border-zinc-200 p-3"
@@ -574,6 +580,11 @@ export default function CareemPage() {
                     <p className="text-sm font-medium text-zinc-900">
                       <span className="mr-2 text-zinc-400">{s.n}</span>
                       {s.label}
+                      {s.sandboxOnly && (
+                        <span className="ml-2 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                          Sandbox
+                        </span>
+                      )}
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-500">{s.hint}</p>
                   </div>

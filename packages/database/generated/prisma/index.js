@@ -4353,7 +4353,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/private/tmp/oh-c2/packages/database/generated/prisma",
+      "value": "/private/tmp/oh-c3/packages/database/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -4378,7 +4378,7 @@ const config = {
       "fullTextSearch",
       "metrics"
     ],
-    "sourceFilePath": "/private/tmp/oh-c2/packages/database/prisma/schema.prisma",
+    "sourceFilePath": "/private/tmp/oh-c3/packages/database/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

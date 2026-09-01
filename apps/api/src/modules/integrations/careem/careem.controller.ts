@@ -144,8 +144,9 @@ export class CareemController {
       out.branches = {
         note:
           "No brands are registered with Careem yet, and a branch lookup needs " +
-          "a Brand-Id. Register a brand and its branch from Locations → the " +
-          "shop → Careem, then this will fill in.",
+          "a Brand-Id. Pick this shop in the location switcher and run " +
+          "\"Onboard the shop\" below — that registers the brand and the " +
+          "branch, and then this fills in.",
       };
     } else {
       // One entry per brand, so a chain can see which brand a branch sits
