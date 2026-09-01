@@ -42,6 +42,10 @@ import {
   type PartialDraft,
 } from "@/components/pos/pos-cart-panel";
 import { PosStartScreen } from "@/components/pos/pos-start-screen";
+import {
+  PENDING_FILL_KEY,
+  type CallerIdFill,
+} from "@/components/pos/caller-id-popup";
 import { TileColoursModal } from "@/components/pos/tile-colours-modal";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
@@ -155,6 +159,61 @@ export default function PosPage() {
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [draft, setDraft] = useState<PartialDraft>({});
+
+  // Caller ID → the order being started.
+  //
+  // The popup's "Start order" used to dispatch only at PosCartPanel, which is
+  // the SECOND step. The operator sees the start screen first — order type,
+  // phone, name, address — and that screen reads this draft, so the fill
+  // landed somewhere nobody was looking and the fields stayed empty.
+  //
+  // Filling the draft covers both: the start screen renders from it, and the
+  // cart panel is seeded from it as initialDraft.
+  useEffect(() => {
+    const apply = (d: CallerIdFill | null | undefined) => {
+      if (!d?.phone) return;
+      setDraft((prev) => ({
+        ...prev,
+        callerId: d.phone,
+        customerPhone: d.phone,
+        // Only overwrite a name we actually know. A saved customer gets
+        // theirs; an unknown caller leaves the field for the operator.
+        ...(d.name ? { customerName: d.name } : {}),
+        ...(d.address
+          ? {
+              addressLine1: d.address.line1,
+              addressLine2: d.address.line2 ?? "",
+              city: d.address.city ?? "",
+              postcode: d.address.postcode ?? "",
+            }
+          : {}),
+        // Someone on the phone is not a counter customer.
+        walkIn: false,
+        // Suggest, never override. If the operator has already chosen a type
+        // their choice stands; otherwise a known address means delivery, and
+        // anyone else starts as collection with just their number.
+        fulfillmentType:
+          prev.fulfillmentType ?? (d.address ? "DELIVERY" : "PICKUP"),
+      }));
+    };
+
+    const onFill = (e: Event) => apply((e as CustomEvent).detail as CallerIdFill);
+    window.addEventListener("pos:callerid-fill", onFill);
+
+    // Stashed by the popup when "Start order" was tapped from another screen
+    // (the Orders tab) and we navigated here.
+    try {
+      const raw = sessionStorage.getItem(PENDING_FILL_KEY);
+      if (raw) {
+        sessionStorage.removeItem(PENDING_FILL_KEY);
+        apply(JSON.parse(raw) as CallerIdFill);
+      }
+    } catch {
+      /* a caller is not worth breaking the till over */
+    }
+
+    return () => window.removeEventListener("pos:callerid-fill", onFill);
+  }, []);
   // Bumped after each placed order to force the cart panel to remount —
   // its customer/address/payment fields are internal state seeded from
   // initialDraft, so clearing `draft` alone doesn't wipe them.
