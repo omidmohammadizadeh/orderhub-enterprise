@@ -110,7 +110,7 @@ export class CustomersController {
     this.logger.log(
       `VoIP ring → location ${locationId}: ${phone} (${digits} digits` +
         (digits >= 15 ? ', SUSPICIOUS — at the length ceiling' : '') +
-        `)${match ? ` matched customer ${match.id}` : ' no match'}`,
+        `)${match ? ' matched a known customer' : ' no match'}`,
     );
     return { ok: true };
   }
