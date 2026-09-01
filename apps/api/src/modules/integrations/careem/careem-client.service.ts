@@ -25,7 +25,19 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 
 /** Careem's identity provider. Shared across environments — the client_id
  *  determines which one you get a token for. */
+// The identity provider is PER ENVIRONMENT. Careem's POS API 2.1.0 spec gives
+// /token its own `servers` block, separate from the gateway's:
+//
+//   production  https://identity.careem.com
+//   staging     https://identity.qa.careem-engineering.com
+//
+// We had only the production host and used it for both, so staging
+// credentials were being presented to the production identity server. It
+// answers "Bad credentials", which is correct and unhelpful: the credentials
+// are real, they are simply unknown to that host.
 const IDENTITY_TOKEN_URL = "https://identity.careem.com/token";
+const IDENTITY_TOKEN_URL_STAGING =
+  "https://identity.qa.careem-engineering.com/token";
 
 /** Careem lists User-Agent as a REQUIRED header on every POS endpoint, beside
  *  Authorization. Node's fetch does not reliably send one on its own, and a
@@ -206,19 +218,19 @@ export class CareemClientService {
   /**
    * Where we ask for a token — the IDENTITY provider, not the API gateway.
    *
-   * The spec contradicts itself here and only one side of it works. `/token`
-   * is listed under `paths`, which puts it on the gateway; `securitySchemes`
-   * gives `tokenUrl: https://identity.careem.com/token`; and their auth
-   * diagram draws the identity provider as a participant separate from the
-   * API. Tested against both:
+   * `/token` appears under `paths`, which puts it on the gateway, but it
+   * carries its own `servers` block naming the identity hosts instead.
+   * Tested against both:
    *
-   *   POST {gateway}/token          → 404, a bare Symfony NotFoundHttpException
-   *   POST identity.careem.com/token → 401 {"error":"invalid_client"}
+   *   POST {gateway}/token           → 404, a bare Symfony NotFoundHttpException
+   *   POST {identity}/token          → speaks OAuth2
    *
-   * A 401 invalid_client is an OAuth2 server correctly rejecting bad
-   * credentials, i.e. the endpoint exists and speaks the protocol. The `paths`
-   * entry does not. One identity host serves both environments — the client_id
-   * decides which — so this is not derived from CAREEM_ENV.
+   * The correction that matters: there are TWO identity hosts, one per
+   * environment, and we previously used the production one for both. Staging
+   * credentials sent to the production identity server come back "Bad
+   * credentials" — a true statement about that host, and a completely
+   * misleading one about the credentials, which cost us months of chasing a
+   * provisioning problem that may never have existed.
    */
   get tokenUrl(): string {
     if (process.env.CAREEM_TOKEN_URL?.trim()) {
@@ -229,7 +241,9 @@ export class CareemClientService {
     // for a token, which is exactly the request we have no credentials for —
     // so every call failed at the first step, before reaching the mock at all.
     if (this.sandbox) return `${this.baseUrl}/token`;
-    return IDENTITY_TOKEN_URL;
+    return this.env === "production"
+      ? IDENTITY_TOKEN_URL
+      : IDENTITY_TOKEN_URL_STAGING;
   }
 
   /** Mirrors CareemSandboxService.enabled. Duplicated rather than injected

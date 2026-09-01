@@ -82,7 +82,9 @@ describe("CareemClientService — token", () => {
     await expect(svc.accessToken()).resolves.toBe("tok_1");
 
     const [url, init] = fetchMock.mock.calls[0] as [string, any];
-    expect(url).toBe("https://identity.careem.com/token");
+    // Staging is the default environment, and staging has its own identity
+    // host — see "token host per environment" below.
+    expect(url).toBe("https://identity.qa.careem-engineering.com/token");
     expect(init.headers["Content-Type"]).toBe("application/x-www-form-urlencoded");
     const sent = new URLSearchParams(init.body as string);
     expect(sent.get("grant_type")).toBe("client_credentials");
@@ -266,20 +268,21 @@ describe("CareemAuthError", () => {
   });
 
   it("asks the IDENTITY provider for tokens, not the gateway", () => {
-    // The spec contradicts itself: /token is under `paths` (the gateway) while
-    // securitySchemes gives the identity host. Only one works —
-    //   POST {gateway}/token           → 404 Symfony NotFoundHttpException
-    //   POST identity.careem.com/token → 401 {"error":"invalid_client"}
-    // — and a 401 invalid_client is an OAuth2 server correctly rejecting bad
-    // credentials, i.e. the endpoint is real.
+    // /token sits under `paths` (the gateway) but carries its own `servers`
+    // block naming the identity hosts. Only the latter works —
+    //   POST {gateway}/token  → 404 Symfony NotFoundHttpException
+    //   POST {identity}/token → speaks OAuth2
     const svc = new CareemClientService();
-    expect(svc.tokenUrl).toBe("https://identity.careem.com/token");
+    expect(svc.tokenUrl).toContain("/token");
     expect(svc.tokenUrl).not.toContain("careemdash");
   });
 
-  it("uses one identity host for both environments", () => {
-    // The client_id decides which environment the token is for, so this is
-    // deliberately NOT derived from CAREEM_ENV.
+  it("uses the environment's own identity host", () => {
+    // This test previously asserted the opposite — that ONE host served both
+    // environments and the client_id decided which. Careem's 2.1.0 spec gives
+    // /token a `servers` block with a distinct staging host, and presenting
+    // staging credentials to the production server is answered with "Bad
+    // credentials". The old assumption was the bug, and this test pinned it.
     process.env.CAREEM_ENV = "production";
     expect(new CareemClientService().tokenUrl).toBe(
       "https://identity.careem.com/token",
@@ -610,7 +613,9 @@ describe("CareemClientService — sandbox wiring", () => {
 
   it("goes back to Careem's identity provider once the sandbox is off", () => {
     process.env.CAREEM_SANDBOX = "false";
-    expect(svc().tokenUrl).toBe("https://identity.careem.com/token");
+    expect(svc().tokenUrl).toBe(
+      "https://identity.qa.careem-engineering.com/token",
+    );
     expect(svc().configured()).toBe(false);
   });
 
@@ -678,5 +683,54 @@ describe("describeCareemError", () => {
 
   it("says something for an empty body", () => {
     expect(describeCareemError("")).toBe("(empty response)");
+  });
+});
+
+// The identity provider is per environment.
+//
+// Careem's POS API 2.1.0 spec gives /token its own `servers` block, separate
+// from the gateway's: identity.careem.com for production,
+// identity.qa.careem-engineering.com for staging. We used the production host
+// for both, so staging credentials were presented to the production identity
+// server, which answered "Bad credentials" — true of that host, and utterly
+// misleading about the credentials themselves.
+describe("CareemClientService — token host per environment", () => {
+  const svc = () => Object.create(CareemClientService.prototype) as any;
+  const env = { ...process.env };
+  afterEach(() => {
+    process.env = { ...env };
+  });
+
+  it("uses the STAGING identity host when CAREEM_ENV is not production", () => {
+    process.env.CAREEM_ENV = "staging";
+    delete process.env.CAREEM_TOKEN_URL;
+    delete process.env.CAREEM_SANDBOX;
+    expect(svc().tokenUrl).toBe(
+      "https://identity.qa.careem-engineering.com/token",
+    );
+  });
+
+  it("uses the PRODUCTION identity host when CAREEM_ENV=production", () => {
+    process.env.CAREEM_ENV = "production";
+    delete process.env.CAREEM_TOKEN_URL;
+    delete process.env.CAREEM_SANDBOX;
+    expect(svc().tokenUrl).toBe("https://identity.careem.com/token");
+  });
+
+  it("treats an unset CAREEM_ENV as staging, not production", () => {
+    // Failing open to production here is how a test client ends up
+    // authenticating against the live identity server.
+    delete process.env.CAREEM_ENV;
+    delete process.env.CAREEM_TOKEN_URL;
+    delete process.env.CAREEM_SANDBOX;
+    expect(svc().tokenUrl).toBe(
+      "https://identity.qa.careem-engineering.com/token",
+    );
+  });
+
+  it("still lets CAREEM_TOKEN_URL override either host", () => {
+    process.env.CAREEM_ENV = "staging";
+    process.env.CAREEM_TOKEN_URL = "https://example.test/token";
+    expect(svc().tokenUrl).toBe("https://example.test/token");
   });
 });

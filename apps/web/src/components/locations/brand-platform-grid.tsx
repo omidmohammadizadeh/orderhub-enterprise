@@ -391,6 +391,20 @@ function ConnectionRow({
   const [editing, setEditing] = useState(false);
   const [storeId, setStoreId] = useState(connection?.externalStoreId ?? "");
 
+  // Careem has no external store ID to enter, and asking for one sends the
+  // operator looking for a value that does not exist.
+  //
+  // Uber and Deliveroo each mint an identifier on their side which we store
+  // and send back. Careem inverts that: their POS API 2.1.0 registers a brand
+  // as POST /brands {id: <our brand id>} and a branch as
+  // PUT /branches/{our location id}. Our ids ARE their ids — there is no
+  // mapping table and nothing to paste. Careem then moves the record from
+  // UNMAPPED to MAPPED on their side.
+  //
+  // So this row points at the Careem page, which runs that registration,
+  // rather than offering a text box that can only ever be wrong.
+  const isCareem = platform === "CAREEM";
+
   useEffect(() => {
     setStoreId(connection?.externalStoreId ?? "");
   }, [connection?.externalStoreId]);
@@ -407,13 +421,28 @@ function ConnectionRow({
             <span className="text-xs font-semibold text-zinc-900">{platformLabel(platform)}</span>
             <StatusChip status={status} />
           </div>
-          {connection?.externalStoreId && !editing && (
+          {isCareem ? (
             <p className="text-[10px] text-zinc-500">
-              Store ID: {connection.externalStoreId}
+              Careem uses this brand and location&apos;s own IDs — there is no
+              store ID to enter. Register them from the Careem page.
             </p>
+          ) : (
+            connection?.externalStoreId &&
+            !editing && (
+              <p className="text-[10px] text-zinc-500">
+                Store ID: {connection.externalStoreId}
+              </p>
+            )
           )}
         </div>
-        {editing ? (
+        {isCareem ? (
+          <a
+            href="/dashboard/integrations/careem"
+            className="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50"
+          >
+            Set up on the Careem page
+          </a>
+        ) : editing ? (
           <div className="flex items-center gap-1">
             <input
               value={storeId}
