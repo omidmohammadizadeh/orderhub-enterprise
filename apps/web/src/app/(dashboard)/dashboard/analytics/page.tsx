@@ -673,7 +673,8 @@ export default function AnalyticsPage() {
                 Order hours by day
               </h2>
               <p className="text-[11px] text-zinc-500">
-                Darker = more orders. Helps spot peak windows.
+                Orders per hour, darker where it is busier. A row runs 6am to
+                5am, so a late Saturday stays on Saturday.
               </p>
             </header>
             <Heatmap data={data.hourlyHeatmap} />
@@ -1153,45 +1154,95 @@ function Heatmap({
   data: AnalyticsOverview["hourlyHeatmap"];
 }) {
   const max = Math.max(1, ...data.map((d) => d.orders));
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  // Render as a 7x24 grid, day rows
+
+  // Monday-first. The data keys days 0=Sunday (JS convention), but a
+  // restaurant week reads Monday→Sunday, and the weekend is the part the
+  // operator is looking for.
+  const DAYS = [
+    { key: 1, label: "Monday" },
+    { key: 2, label: "Tuesday" },
+    { key: 3, label: "Wednesday" },
+    { key: 4, label: "Thursday" },
+    { key: 5, label: "Friday" },
+    { key: 6, label: "Saturday" },
+    { key: 0, label: "Sunday" },
+  ];
+
+  // A trading day, not a calendar day: 6am through to 5am the next morning,
+  // so a Saturday night that runs past midnight stays on the Saturday row
+  // instead of being cut in half at the left edge of the grid.
+  const HOURS = [
+    ...Array.from({ length: 18 }, (_, i) => i + 6), // 6h → 23h
+    ...Array.from({ length: 6 }, (_, i) => i), // 0h → 5h
+  ];
+  // Where the day rolls over, drawn as a rule so the small hours read as
+  // "after midnight" rather than as the start of the row.
+  const MIDNIGHT_INDEX = 18;
+
+  const cols = `grid grid-cols-[92px_repeat(24,minmax(0,1fr))] gap-px`;
+
   return (
-    <div className="space-y-1">
-      <div className="grid grid-cols-[40px_repeat(24,minmax(0,1fr))] gap-0.5 text-[9px] text-zinc-400">
-        <div />
-        {Array.from({ length: 24 }).map((_, h) => (
-          <div key={h} className="text-center">
-            {h}
+    <div className="overflow-x-auto">
+      <div className="min-w-[720px] space-y-px">
+        {/* Hour scale */}
+        <div className={`${cols} text-[10px] text-zinc-400`}>
+          <div />
+          {HOURS.map((h, i) => (
+            <div
+              key={h}
+              className={`pb-1 text-center ${
+                i === MIDNIGHT_INDEX ? "border-l border-zinc-300" : ""
+              }`}
+            >
+              {h}h
+            </div>
+          ))}
+        </div>
+
+        {DAYS.map(({ key, label }) => (
+          <div key={key} className={cols}>
+            <div className="self-center pr-3 text-right text-xs text-zinc-500">
+              {label}
+            </div>
+            {HOURS.map((h, i) => {
+              const cell = data.find(
+                (x) => x.dayOfWeek === key && x.hour === h,
+              ) ?? { orders: 0, revenue: 0 };
+              const intensity = cell.orders / max;
+              // Empty cells stay plain grey and carry no number — a grid of
+              // zeroes is noise, and the point of the chart is where the
+              // orders are, not where they aren't.
+              const empty = cell.orders === 0;
+              return (
+                <div
+                  key={h}
+                  title={`${label} ${h}:00 — ${cell.orders} order${
+                    cell.orders === 1 ? "" : "s"
+                  } (${fmtGBP(cell.revenue)})`}
+                  className={`flex h-8 items-center justify-center rounded-sm text-[11px] font-semibold tabular-nums ${
+                    i === MIDNIGHT_INDEX ? "border-l border-zinc-300" : ""
+                  }`}
+                  style={{
+                    background: empty
+                      ? "rgb(244, 244, 245)"
+                      : `rgba(16, 185, 129, ${Math.max(0.14, intensity)})`,
+                    // Flip to white once the green is dark enough to swallow
+                    // dark text — otherwise the busiest cell, the one worth
+                    // reading, is the hardest to read.
+                    color: empty
+                      ? "transparent"
+                      : intensity > 0.55
+                        ? "#ffffff"
+                        : "#065f46",
+                  }}
+                >
+                  {empty ? "" : cell.orders}
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>
-      {days.map((label, d) => (
-        <div
-          key={d}
-          className="grid grid-cols-[40px_repeat(24,minmax(0,1fr))] gap-0.5"
-        >
-          <div className="text-[10px] text-zinc-500 self-center">{label}</div>
-          {Array.from({ length: 24 }).map((_, h) => {
-            const cell = data.find(
-              (x) => x.dayOfWeek === d && x.hour === h,
-            ) ?? { orders: 0, revenue: 0 };
-            const opacity = cell.orders / max;
-            return (
-              <div
-                key={h}
-                title={`${label} ${h}:00 · ${cell.orders} orders · ${fmtGBP(cell.revenue)}`}
-                className="aspect-square rounded-sm"
-                style={{
-                  background:
-                    opacity > 0
-                      ? `rgba(16, 185, 129, ${Math.max(0.08, opacity)})`
-                      : "rgb(244, 244, 245)",
-                }}
-              />
-            );
-          })}
-        </div>
-      ))}
     </div>
   );
 }
