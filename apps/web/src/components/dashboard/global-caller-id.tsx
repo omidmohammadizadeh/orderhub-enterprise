@@ -7,6 +7,7 @@
 // shop and the person who answers it is stood in that shop, so a ring from
 // another site is noise nobody can act on.
 
+import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { locationsClient } from "@/lib/api/locations.client";
 import { useAuthStore } from "@/stores/auth.store";
@@ -15,9 +16,19 @@ import { CallerIdPopup } from "@/components/pos/caller-id-popup";
 
 export function GlobalCallerIdPopup() {
   const accessToken = useAuthStore((s) => s.accessToken);
+  const role = useAuthStore((s) => s.user?.role);
+  const pathname = usePathname();
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
+
+  // Never on the kiosk. That screen faces the customer queue, unattended —
+  // a ringing landline is for staff to answer, and putting a stranger's name
+  // and number in front of whoever is stood at the screen is both useless to
+  // them and a leak of somebody else's details. Gated on the route as well as
+  // the role so it also stays away when staff open the kiosk on a shared
+  // tablet. Every other screen is unaffected.
+  const isKiosk = role === "KIOSK" || pathname?.startsWith("/dashboard/kiosk");
 
   const { data: locations } = useQuery({
     queryKey: ["locations", "list"], // canonical shared locations cache (was a private duplicate)
@@ -42,6 +53,8 @@ export function GlobalCallerIdPopup() {
   // state. With exactly one accessible location that location still rings.
   // With several and no choice made, nothing rings — pick a shop to answer its
   // phone.
+  if (isKiosk) return null;
+
   const ids = selectedLocationId
     ? [selectedLocationId]
     : allIds.length === 1

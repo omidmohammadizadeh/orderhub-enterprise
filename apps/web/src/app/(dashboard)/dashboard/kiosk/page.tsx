@@ -85,6 +85,21 @@ export default function KioskPage() {
   const menu = menuQuery.data as any;
   const brandId = menu?.brandId as string | undefined;
 
+  // What this shop lets the kiosk take. Read from the location rather than
+  // baked in: a screen in a doorway with no card reader beside it must not
+  // offer a card, and a shop with no till drawer must not offer the counter.
+  const locationQuery = useQuery({
+    queryKey: ["kiosk-location", locationId],
+    queryFn: () =>
+      apiClient.get(`/v1/locations/${locationId}`).then((r) => r.data as any),
+    enabled: !!locationId,
+  });
+  const kioskSettings = locationQuery.data?.settings?.kiosk;
+  // Absent means "not configured yet", which is every location that existed
+  // before this setting — both stay on until somebody turns one off.
+  const acceptCash = kioskSettings?.acceptCash !== false;
+  const acceptCard = kioskSettings?.acceptCard !== false;
+
   const groupsQuery = useQuery({
     queryKey: ["kiosk-groups", brandId],
     queryFn: () => modifierGroupsClient.list(brandId!),
@@ -277,6 +292,11 @@ export default function KioskPage() {
   });
 
   const submit = (payment: "CARD" | "COUNTER") => {
+    // The button for a switched-off method isn't rendered; this is the second
+    // lock, for the moment between an operator changing the setting and this
+    // screen re-reading it.
+    if (payment === "CARD" && !acceptCard) return;
+    if (payment === "COUNTER" && !acceptCash) return;
     if (placingRef.current || place.isPending || !cart.length) return;
     placingRef.current = true;
     place.mutate(payment);
@@ -539,22 +559,41 @@ export default function KioskPage() {
                 </span>
               </p>
             )}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <button
-                onClick={() => submit("CARD")}
-                disabled={place.isPending}
-                className="rounded-xl bg-emerald-600 py-7 text-xl font-bold text-white disabled:opacity-60"
+            {!acceptCash && !acceptCard ? (
+              // Both switched off. Say so plainly rather than showing a
+              // basket that has no way to be paid for.
+              <p className="rounded-lg bg-zinc-100 p-4 text-center text-base text-zinc-700">
+                Please order at the counter — a member of staff will take this
+                for you.
+              </p>
+            ) : (
+              <div
+                className={
+                  acceptCash && acceptCard
+                    ? "grid gap-3 sm:grid-cols-2"
+                    : "grid gap-3"
+                }
               >
-                {place.isPending ? "Sending…" : "Pay by card"}
-              </button>
-              <button
-                onClick={() => submit("COUNTER")}
-                disabled={place.isPending}
-                className="rounded-xl bg-zinc-900 py-7 text-xl font-bold text-white disabled:opacity-60"
-              >
-                {place.isPending ? "Sending…" : "Pay at the counter"}
-              </button>
-            </div>
+                {acceptCard && (
+                  <button
+                    onClick={() => submit("CARD")}
+                    disabled={place.isPending}
+                    className="rounded-xl bg-emerald-600 py-7 text-xl font-bold text-white disabled:opacity-60"
+                  >
+                    {place.isPending ? "Sending…" : "Pay by card"}
+                  </button>
+                )}
+                {acceptCash && (
+                  <button
+                    onClick={() => submit("COUNTER")}
+                    disabled={place.isPending}
+                    className="rounded-xl bg-zinc-900 py-7 text-xl font-bold text-white disabled:opacity-60"
+                  >
+                    {place.isPending ? "Sending…" : "Pay at the counter"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

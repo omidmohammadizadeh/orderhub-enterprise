@@ -252,6 +252,16 @@ function GeneralTab({
   const [voiceTestMode, setVoiceTestMode] = useState<boolean>(
     (location as any)?.settings?.voiceTestMode === true,
   );
+
+  // Kiosk payment options. Default ON: every kiosk before this setting
+  // existed took both, and a silent default of false would have switched
+  // them all off on the next save of an unrelated field.
+  const [kioskAcceptCash, setKioskAcceptCash] = useState<boolean>(
+    (location as any)?.settings?.kiosk?.acceptCash !== false,
+  );
+  const [kioskAcceptCard, setKioskAcceptCard] = useState<boolean>(
+    (location as any)?.settings?.kiosk?.acceptCard !== false,
+  );
   const posBrandsQuery = useQuery({
     queryKey: ["brands", "location", location?.id, "pos-display"],
     queryFn: () => brandsClient.list(location!.id),
@@ -380,6 +390,10 @@ function GeneralTab({
           voiceAiEnabled: voiceAiEnabled === true,
           voiceTransferNumber: voiceTransferNumber.trim() || null,
           voiceTestMode: voiceTestMode === true,
+          kiosk: {
+            acceptCash: kioskAcceptCash,
+            acceptCard: kioskAcceptCard,
+          },
         },
       } as any),
     onSuccess: () => {
@@ -700,6 +714,56 @@ function GeneralTab({
         settings now live on each brand individually. Open the Brands
         tab, expand a brand, and click Connect on the "Direct online
         ordering" channel to configure payouts.
+      </div>
+
+      {/* Kiosk — what the self-service screen is allowed to take.
+          Per location, not per brand: the kiosk is a physical screen in one
+          shop's doorway, and whether that shop has a till drawer or a reader
+          beside it is a property of the shop. */}
+      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">Kiosk</h3>
+          <p className="text-[11px] text-zinc-500">
+            How customers may pay at the self-service screen. Turning one off
+            hides that button — it is never shown and then refused.
+          </p>
+        </div>
+        <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
+          <input
+            type="checkbox"
+            checked={kioskAcceptCash}
+            onChange={(e) => setKioskAcceptCash(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="text-xs text-zinc-700">
+            <strong>Accept cash</strong>
+            <span className="mt-0.5 block text-[11px] text-zinc-500">
+              Shows &ldquo;Pay at the counter&rdquo;. The order reaches the
+              kitchen immediately and staff take the money on collection.
+            </span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
+          <input
+            type="checkbox"
+            checked={kioskAcceptCard}
+            onChange={(e) => setKioskAcceptCard(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="text-xs text-zinc-700">
+            <strong>Accept card</strong>
+            <span className="mt-0.5 block text-[11px] text-zinc-500">
+              Shows &ldquo;Pay by card&rdquo; and opens the reader. The kitchen
+              only sees the order once the payment settles.
+            </span>
+          </span>
+        </label>
+        {!kioskAcceptCash && !kioskAcceptCard && (
+          <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-800">
+            With both off the kiosk can take no payment at all, so it will ask
+            customers to order at the counter instead.
+          </p>
+        )}
       </div>
 
       {/* Payment link settings — the Connect account + platform fee that
