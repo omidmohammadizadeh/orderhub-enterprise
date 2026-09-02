@@ -145,7 +145,11 @@ export function CallerIdPopup({
 
   const use = (address: CallerIdFill["address"]) => {
     const detail: CallerIdFill = { phone, name: match?.name ?? null, address };
-    if (pathname === "/dashboard/pos") {
+    // startsWith, not equality. Any POS route that isn't the bare path — a
+    // trailing slash, an order being edited — fell to the branch below, and
+    // that branch pushes to the page the operator is already on: no remount,
+    // so the stashed fill was never read and nothing appeared in the fields.
+    if (pathname?.startsWith("/dashboard/pos")) {
       // Already on POS — fill the open cart directly.
       fillOrderFromCaller(detail);
     } else {

@@ -176,6 +176,11 @@ export default function PosPage() {
   // phone, name, address — and that screen reads this draft, so the fill
   // landed somewhere nobody was looking and the fields stayed empty.
   //
+  // Bumped after each placed order to force the cart panel to remount —
+  // its customer/address/payment fields are internal state seeded from
+  // initialDraft, so clearing `draft` alone doesn't wipe them.
+  const [cartResetKey, setCartResetKey] = useState(0);
+
   // Filling the draft covers both: the start screen renders from it, and the
   // cart panel is seeded from it as initialDraft.
   useEffect(() => {
@@ -206,7 +211,18 @@ export default function PosPage() {
       }));
     };
 
-    const onFill = (e: Event) => apply((e as CustomEvent).detail as CallerIdFill);
+    // Seeding is not enough on its own. PosCartPanel copies the draft into
+    // its own customer/address fields when it mounts, so a caller arriving
+    // while the operator is already on the cart updated `draft` and changed
+    // nothing on screen. Remounting it re-reads the draft we just filled.
+    const applyAndReseed = (d: CallerIdFill | null | undefined) => {
+      if (!d?.phone) return;
+      apply(d);
+      setCartResetKey((k) => k + 1);
+    };
+
+    const onFill = (e: Event) =>
+      applyAndReseed((e as CustomEvent).detail as CallerIdFill);
     window.addEventListener("pos:callerid-fill", onFill);
 
     // Stashed by the popup when "Start order" was tapped from another screen
@@ -215,7 +231,7 @@ export default function PosPage() {
       const raw = sessionStorage.getItem(PENDING_FILL_KEY);
       if (raw) {
         sessionStorage.removeItem(PENDING_FILL_KEY);
-        apply(JSON.parse(raw) as CallerIdFill);
+        applyAndReseed(JSON.parse(raw) as CallerIdFill);
       }
     } catch {
       /* a caller is not worth breaking the till over */
@@ -223,10 +239,6 @@ export default function PosPage() {
 
     return () => window.removeEventListener("pos:callerid-fill", onFill);
   }, []);
-  // Bumped after each placed order to force the cart panel to remount —
-  // its customer/address/payment fields are internal state seeded from
-  // initialDraft, so clearing `draft` alone doesn't wipe them.
-  const [cartResetKey, setCartResetKey] = useState(0);
   /**
    * Which half of the till we're on.
    *
