@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as Notifications from "expo-notifications";
+import * as Location from "expo-location";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { registerPushToken, jobAction } from "./auth";
@@ -73,6 +74,68 @@ export async function pushPermissionGranted(): Promise<boolean> {
     // when we are sure it is off.
     return true;
   }
+}
+
+/**
+ * "Allow all permissions" — everything the app needs, in one tap.
+ *
+ * The hard part is that iOS only ever shows a permission dialog ONCE. After a
+ * driver taps "Don't Allow", requestPermissionsAsync returns denied instantly
+ * with no dialog at all, so a button that only re-requests would look broken:
+ * tap, nothing happens, still no job alerts.
+ *
+ * So this asks for whatever has never been asked, and reports back what is
+ * still blocked. Only the Settings app can undo a denial, and the caller sends
+ * them there.
+ */
+export async function requestAllPermissions(): Promise<{
+  notifications: boolean;
+  location: boolean;
+  /** True when something is denied and only Settings can fix it. */
+  needsSettings: boolean;
+}> {
+  let notifications = false;
+  try {
+    const current = await Notifications.getPermissionsAsync();
+    notifications = current.status === "granted";
+    // canAskAgain is false once the one dialog has been used up.
+    if (!notifications && current.canAskAgain !== false) {
+      notifications =
+        (await Notifications.requestPermissionsAsync()).status === "granted";
+    }
+  } catch {
+    notifications = false;
+  }
+
+  // Registering the token is the point of the notification permission — do it
+  // here so a driver who has just granted it starts receiving jobs without
+  // signing out and back in.
+  if (notifications) {
+    try {
+      await registerForPush();
+    } catch {
+      // not fatal — retried on next launch
+    }
+  }
+
+  let location = false;
+  try {
+    // Foreground only. BACKGROUND location is deliberately not requested here:
+    // Google Play requires a prominent disclosure before that ask, which this
+    // app shows on the online toggle (LocationDisclosure). Requesting it from
+    // a menu button would skip that screen and put the build at risk of
+    // rejection. Going online still asks for it, with the disclosure first.
+    const fg = await Location.requestForegroundPermissionsAsync();
+    location = fg.status === "granted";
+  } catch {
+    location = false;
+  }
+
+  return {
+    notifications,
+    location,
+    needsSettings: !notifications || !location,
+  };
 }
 
 export async function registerForPush(): Promise<string | null> {

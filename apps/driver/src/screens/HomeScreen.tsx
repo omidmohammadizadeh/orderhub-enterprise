@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Linking,
   Pressable,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { DriverProfile, MyDay } from "@/services/auth";
 import { Drawer } from "@/components/Drawer";
+import { requestAllPermissions } from "@/services/notifications";
 import type { LatLng } from "../../App";
 
 const UK_REGION = {
@@ -144,6 +146,37 @@ export function HomeScreen({
         onOpenChat={() => {
           setDrawer(false);
           onOpenChat();
+        }}
+        onFixPermissions={async () => {
+          setDrawer(false);
+          const r = await requestAllPermissions();
+          if (!r.needsSettings) {
+            Alert.alert(
+              "All set",
+              "Job alerts and location are on. You'll be told the moment a delivery is sent to you.",
+            );
+            return;
+          }
+          // iOS spends its one permission dialog on the first ask. Once that
+          // has been declined nothing in the app can bring it back, so say
+          // plainly what is off and take them to the only screen that fixes
+          // it rather than leaving a button that appears to do nothing.
+          const off = [
+            !r.notifications ? "job alerts" : null,
+            !r.location ? "location" : null,
+          ]
+            .filter(Boolean)
+            .join(" and ");
+          Alert.alert(
+            "Finish in Settings",
+            `Your phone still has ${off} switched off, and only the Settings app can turn ${
+              off.includes("and") ? "them" : "it"
+            } back on.`,
+            [
+              { text: "Not now", style: "cancel" },
+              { text: "Open Settings", onPress: () => Linking.openSettings() },
+            ],
+          );
         }}
         onOpenProfile={() => {
           setDrawer(false);

@@ -24,6 +24,7 @@ export function Drawer({
   onOpenOrders,
   onOpenCashUp,
   onOpenProfile,
+  onFixPermissions,
   onOpenChat,
   onSignOut,
 }: {
@@ -35,6 +36,7 @@ export function Drawer({
   onOpenOrders: (tab: OrdersTab) => void;
   onOpenCashUp: () => void;
   onOpenProfile: () => void;
+  onFixPermissions: () => void;
   onOpenChat: () => void;
   onSignOut: () => void;
 }) {
@@ -89,6 +91,9 @@ export function Drawer({
 
         <View style={{ flex: 1 }} />
 
+        {/* Above Profile on purpose: this is the thing a driver is sent here
+            to find when the shop says "you're not getting the jobs". */}
+        <Item label="Allow all permissions" onPress={onFixPermissions} />
         <Item label="Profile & account" onPress={onOpenProfile} />
         <Pressable style={styles.logout} onPress={onSignOut}>
           <Text style={styles.logoutText}>Log out</Text>
