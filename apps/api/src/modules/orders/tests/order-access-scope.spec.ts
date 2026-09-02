@@ -280,3 +280,76 @@ describe("live orders — scoping must survive the query build", () => {
     expect(svc.prisma.order.findMany).not.toHaveBeenCalled();
   });
 });
+
+// Order history (findMany) runs through the same resolveOrderAccessWhere, and
+// has the same failure mode the live board once had: the scope resolves
+// correctly and is then lost while the rest of the query is built. It also now
+// merges a NOT clause for simulated orders, which is exactly the kind of
+// addition that quietly clobbers a spread.
+//
+// Staff, managers, owners and dark-kitchen managers all reach history — it
+// carries no @Roles gate — so what stops one shop reading another's takings
+// is this scoping and nothing else.
+describe("order history — scoping must survive the query build", () => {
+  function historyWhere(svc: any, role: string) {
+    let captured: any;
+    svc.prisma.order = {
+      count: jest.fn(async () => 0),
+      findMany: jest.fn(async (args: any) => {
+        captured = args.where;
+        return [];
+      }),
+    };
+    return {
+      run: (locationId?: string) =>
+        svc.findMany(user(role), { page: 1, limit: 50, locationId }),
+      get: () => captured,
+    };
+  }
+
+  it.each(["STAFF", "MANAGER", "OWNER", "DARK_KITCHEN_MANAGER"])(
+    "%s sees history for their own locations",
+    async (role) => {
+      const svc: any = makeService({ userLocations: ["l1"] });
+      const h = historyWhere(svc, role);
+      await h.run();
+      const asText = JSON.stringify(h.get());
+      expect(asText).toContain("l1");
+      // tenantId alone would be every shop in the tenant.
+      expect(Object.keys(h.get())).not.toEqual(["tenantId"]);
+    },
+  );
+
+  it.each(["STAFF", "MANAGER", "OWNER", "DARK_KITCHEN_MANAGER"])(
+    "%s gets nothing for a location they are not assigned to",
+    async (role) => {
+      const svc: any = makeService({ userLocations: ["l1"] });
+      const h = historyWhere(svc, role);
+      const res = await h.run("l2-someone-elses-shop");
+      expect(res).toMatchObject({ total: 0, orders: [] });
+      // Must short-circuit rather than run an unscoped query.
+      expect(svc.prisma.order.findMany).not.toHaveBeenCalled();
+    },
+  );
+
+  it("returns nothing for a user with no assignments at all", async () => {
+    const svc: any = makeService({ userLocations: [], userBrands: [] });
+    const h = historyWhere(svc, "STAFF");
+    await expect(h.run()).resolves.toMatchObject({ total: 0, orders: [] });
+    expect(svc.prisma.order.findMany).not.toHaveBeenCalled();
+  });
+
+  it("hides simulated marketplace orders from a non-admin", async () => {
+    const svc: any = makeService({ userLocations: ["l1"] });
+    const h = historyWhere(svc, "OWNER");
+    await h.run();
+    expect(JSON.stringify(h.get())).toContain("isSandbox");
+  });
+
+  it("shows them to a platform admin", async () => {
+    const svc: any = makeService({ userLocations: [] });
+    const h = historyWhere(svc, "PLATFORM_ADMIN");
+    await h.run();
+    expect(JSON.stringify(h.get())).not.toContain("isSandbox");
+  });
+});
