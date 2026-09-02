@@ -1032,10 +1032,17 @@ export class OrdersService {
         // Carried through to OrderItem.menuItemId so KDS station rules
         // (category/item routing) can match POS lines.
         menuItemId: i.menuItemId,
+        // Keep the nested-selection fields. Rebuilding the modifier from three
+        // properties quietly flattened Phase BN lines: the receipt lost its
+        // indentation, and two identically-named options from different
+        // branches became the same line.
         modifiers: (i.modifiers ?? []).map((m) => ({
           name: m.name,
           price: m.price,
           quantity: m.quantity ?? 1,
+          ...(m.depth ? { depth: m.depth } : {}),
+          ...(m.path?.length ? { path: m.path } : {}),
+          ...(m.parentOptionId ? { parentOptionId: m.parentOptionId } : {}),
         })),
       })),
       subtotal: dto.subtotal,

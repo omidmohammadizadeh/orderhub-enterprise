@@ -18,6 +18,24 @@ export class OrderModifierDto {
   @ApiProperty() @IsString() name!: string;
   @ApiProperty() @IsNumber() price!: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() quantity?: number;
+
+  // Phase BN nested selections. toOrderLineModifier() has emitted these since
+  // nested modifier groups shipped, and every client that builds a line
+  // through it — POS, kiosk, storefront, table tabs — sends them. They were
+  // never added here, and with forbidNonWhitelisted the pipe rejected the
+  // whole order with "property path should not exist": a 400 before the order
+  // existed, for any item whose options sit inside a nested group. That is
+  // what stopped the kiosk placing a meal deal.
+  //
+  // They are carried, not just tolerated: receipts indent by depth, and path
+  // is what tells two identically-named options in different branches apart.
+  @ApiPropertyOptional() @IsOptional() @IsNumber() depth?: number;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  path?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsString() parentOptionId?: string;
 }
 
 export class CreateOrderItemDto {
