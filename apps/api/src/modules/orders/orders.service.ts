@@ -2400,6 +2400,21 @@ export class OrdersService {
 
     const where: Prisma.OrderWhereInput = {
       ...access,
+      // Simulated marketplace orders stay ours, here too.
+      //
+      // findLiveOrders hides them from everyone but a platform admin. History
+      // has to apply the same rule or the board hides a fake Deliveroo order
+      // and the history screen hands it straight back.
+      ...(user.role === "PLATFORM_ADMIN"
+        ? {}
+        : {
+            NOT: {
+              AND: [
+                { isSandbox: true },
+                { orderSource: { notIn: ["POS", "DIRECT"] } },
+              ],
+            },
+          }),
       ...(status && {
         status: Array.isArray(status) ? { in: status } : status,
       }),

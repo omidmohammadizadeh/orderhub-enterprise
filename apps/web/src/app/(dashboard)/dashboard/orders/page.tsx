@@ -2,11 +2,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical } from "lucide-react";
+import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical, History } from "lucide-react";
 import { OrderList } from "@/components/orders/order-list";
 import { ScheduledOrdersStrip } from "@/components/orders/scheduled-orders-strip";
 import { StopTakingOrdersModal } from "@/components/orders/stop-taking-orders-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { OrderHistoryModal } from "@/components/orders/order-history-modal";
 import { useAuthStore } from "@/stores/auth.store";
 import { apiClient } from "@/lib/api/client";
 
@@ -47,6 +48,7 @@ export default function OrdersPage() {
   // too — this just keeps the buttons out of an operator's way.
   const canSimulate = role === "PLATFORM_ADMIN";
   const [pauseModalOpen, setPauseModalOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Simulate a marketplace order so the marketplace receipt path can be
   // exercised on a real till — the QR especially, which is only ever printed
@@ -166,6 +168,14 @@ export default function OrdersPage() {
             </button>
           </div>
         )}
+        <button
+          type="button"
+          onClick={() => setHistoryOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+        >
+          <History className="h-4 w-4" />
+          Order history
+        </button>
         {canSimulate && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-500">
@@ -194,6 +204,11 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+      <OrderHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        locationId={selectedLocationId ?? undefined}
+      />
       {feedback && (
         <div className="mb-3 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-700">
           {feedback}
