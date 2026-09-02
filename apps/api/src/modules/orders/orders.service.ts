@@ -1191,7 +1191,19 @@ export class OrdersService {
     tenantId: string,
     locationId: string,
     userId: string,
-    overrides: { customerName?: string; fulfillmentType?: "PICKUP" | "DELIVERY" } = {},
+    overrides: {
+      customerName?: string;
+      fulfillmentType?: "PICKUP" | "DELIVERY";
+      /**
+       * Pretend the order came from a marketplace.
+       *
+       * The receipt QR is only baked for marketplace channels — the whole
+       * point of it is winning back a customer who ordered through someone
+       * else — so a DIRECT test order can never exercise that path. Passing a
+       * platform here is what makes the QR print.
+       */
+      platform?: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+    } = {},
   ): Promise<Order> {
     // Verify the user can touch this location.
     const location = await this.prisma.location.findFirst({
@@ -1216,14 +1228,19 @@ export class OrdersService {
     const deliveryFee = fulfillmentType === "DELIVERY" ? 2.5 : 0;
     const total = subtotal + taxAmount + deliveryFee;
 
+    // A simulated marketplace order carries that marketplace's identity all
+    // the way through, because everything downstream keys off these three:
+    // the board's channel badge, the QR decision, station routing and
+    // reporting. Half-dressing it as DIRECT would test the wrong path.
+    const simulated = overrides.platform;
     const canonical = {
       externalId,
-      platform: "DIRECT" as const,
-      orderSource: "POS" as const,
-      integrationSource: "DIRECT" as const,
+      platform: (simulated ?? "DIRECT") as any,
+      orderSource: (simulated ?? "POS") as any,
+      integrationSource: (simulated ?? "DIRECT") as any,
       viaHubrise: false,
       fulfillmentType,
-      displayId: `TEST-${externalId.slice(-4).toUpperCase()}`,
+      displayId: `${simulated ? "SIM" : "TEST"}-${externalId.slice(-4).toUpperCase()}`,
       customerInfo: { name: customerName, phone: "+440000000000" },
       deliveryAddress:
         fulfillmentType === "DELIVERY"
@@ -1240,8 +1257,14 @@ export class OrdersService {
       deliveryFee,
       discount: 0,
       total,
-      specialInstructions: "Phase AJ manual test order — safe to discard",
-      metadata: { isTestOrder: true, createdByUserId: userId },
+      specialInstructions: simulated
+        ? `Simulated ${simulated} order — not real, safe to discard`
+        : "Phase AJ manual test order — safe to discard",
+      metadata: {
+        isTestOrder: true,
+        createdByUserId: userId,
+        ...(simulated ? { simulatedPlatform: simulated } : {}),
+      },
     };
 
     const order = await this.ingestCanonical(
@@ -2557,6 +2580,32 @@ export class OrdersService {
         // later.
         AND: [
           access,
+          // Simulated marketplace orders are ours, not the shop's.
+          //
+          // They exist so we can exercise the marketplace receipt path — the
+          // QR especially — against a real till without asking Uber or
+          // Deliveroo to send anything. A shop's staff seeing a Deliveroo
+          // order that nobody can deliver is worse than useless, so they are
+          // visible to platform admins only.
+          //
+          // The ordinary DIRECT test order is untouched: operators use that
+          // to check printer and board wiring, and it stays visible to them.
+          ...(user.role === "PLATFORM_ADMIN"
+            ? []
+            : [
+                {
+                  NOT: {
+                    AND: [
+                      { isSandbox: true },
+                      {
+                        orderSource: {
+                          notIn: ["POS", "DIRECT"],
+                        },
+                      },
+                    ],
+                  },
+                } satisfies Prisma.OrderWhereInput,
+              ]),
           {
         // Phase AP-8 — card orders aren't real to the kitchen until the
         // customer's authorization webhook lands and we flip paymentStatus

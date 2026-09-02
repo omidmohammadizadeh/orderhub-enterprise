@@ -7,8 +7,7 @@ import {
   Param,
   Query,
   HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
+  HttpStatus, ForbiddenException } from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -137,12 +136,25 @@ export class OrdersController {
       locationId: string;
       customerName?: string;
       fulfillmentType?: "PICKUP" | "DELIVERY";
+      /** Simulate a marketplace order. Platform admins only — see below. */
+      platform?: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
+    // A simulated Deliveroo/Uber/Just Eat order lands on a real shop's board
+    // looking exactly like the real thing, which is the point — and the
+    // reason a manager must not be able to make one. The @Roles decorator
+    // above already admits POS_MANAGER for the ordinary DIRECT test order, so
+    // the narrower rule is enforced here rather than by widening that.
+    if (body.platform && user.role !== "PLATFORM_ADMIN") {
+      throw new ForbiddenException(
+        "Simulated marketplace orders are restricted to platform admins.",
+      );
+    }
     return this.orders.createTest(user.tenantId, body.locationId, user.userId, {
       customerName: body.customerName,
       fulfillmentType: body.fulfillmentType,
+      platform: body.platform,
     });
   }
 

@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle } from "lucide-react";
+import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical } from "lucide-react";
 import { OrderList } from "@/components/orders/order-list";
 import { ScheduledOrdersStrip } from "@/components/orders/scheduled-orders-strip";
 import { StopTakingOrdersModal } from "@/components/orders/stop-taking-orders-modal";
@@ -15,6 +15,13 @@ import { apiClient } from "@/lib/api/client";
 // something a Manager / Staff / Owner should see during normal
 // operations because triggering one creates a noisy ghost order on
 // the live board.
+/** What each simulated platform is called on screen. */
+const SIM_LABEL: Record<"DELIVEROO" | "UBER_EATS" | "JUST_EAT", string> = {
+  DELIVEROO: "Deliveroo",
+  UBER_EATS: "Uber Eats",
+  JUST_EAT: "Just Eat",
+};
+
 const CAN_RUN_TEST_ORDERS = new Set(["PLATFORM_ADMIN", "ONBOARDING_AGENT"]);
 
 // Phase AJ — the live orders board with location filter and a "Create test
@@ -35,7 +42,39 @@ export default function OrdersPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const role = useAuthStore((s) => s.user?.role);
   const canRunTests = !!role && CAN_RUN_TEST_ORDERS.has(role);
+  // Simulated marketplace orders look exactly like the real thing on a live
+  // shop's board, which is why only we can make them. The API enforces this
+  // too — this just keeps the buttons out of an operator's way.
+  const canSimulate = role === "PLATFORM_ADMIN";
   const [pauseModalOpen, setPauseModalOpen] = useState(false);
+
+  // Simulate a marketplace order so the marketplace receipt path can be
+  // exercised on a real till — the QR especially, which is only ever printed
+  // for marketplace channels and so cannot be tested with a DIRECT order.
+  const simulateOrder = useMutation({
+    mutationFn: async (platform: "DELIVEROO" | "UBER_EATS" | "JUST_EAT") => {
+      if (!selectedLocationId) {
+        throw new Error("Select a specific location first");
+      }
+      const res = await apiClient.post("/v1/orders/test", {
+        locationId: selectedLocationId,
+        fulfillmentType: "DELIVERY",
+        platform,
+      });
+      return res.data;
+    },
+    onSuccess: (_data, platform) => {
+      setFeedback(
+        `Simulated ${SIM_LABEL[platform]} order created — accept it to print the ticket and its QR. Only you can see it.`,
+      );
+      queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+      window.setTimeout(() => setFeedback(null), 6000);
+    },
+    onError: (err: any) => {
+      setFeedback(err?.response?.data?.message ?? err?.message ?? "Failed");
+      window.setTimeout(() => setFeedback(null), 5000);
+    },
+  });
 
   const testOrder = useMutation({
     mutationFn: async (fulfillmentType: "DELIVERY" | "PICKUP") => {
@@ -125,6 +164,33 @@ export default function OrdersPage() {
               )}
               Test collection
             </button>
+          </div>
+        )}
+        {canSimulate && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-500">
+              Simulate
+            </span>
+            {(
+              ["DELIVEROO", "UBER_EATS", "JUST_EAT"] as const
+            ).map((platform) => (
+              <button
+                key={platform}
+                type="button"
+                onClick={() => simulateOrder.mutate(platform)}
+                disabled={disabled}
+                title={`Create a fake ${SIM_LABEL[platform]} order on this shop's board — visible to platform admins only`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:border-violet-300 hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {simulateOrder.isPending &&
+                simulateOrder.variables === platform ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FlaskConical className="h-4 w-4" />
+                )}
+                {SIM_LABEL[platform]}
+              </button>
+            ))}
           </div>
         )}
       </div>
