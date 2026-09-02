@@ -745,6 +745,22 @@ function RoleModal({
     );
   }, [brandsQuery.data, locationIds]);
 
+  // Unticking a location must drop that location's brands from the SELECTION,
+  // not just from the picker. Hiding them alone left a brand selected,
+  // invisible and unremovable: taking a driver off BEST KEBAB removed the
+  // location and resubmitted BEST KEBABS anyway, so the brand column kept
+  // showing a shop they no longer worked at and nothing on screen could
+  // clear it.
+  useEffect(() => {
+    // Not while the list is still loading — an empty picker then would wipe
+    // every brand the member already has.
+    if (!brandsQuery.data) return;
+    setBrandIds((prev) => {
+      const next = prev.filter((id) => visibleBrands.some((b: any) => b.id === id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [visibleBrands, brandsQuery.data]);
+
   // A brand with no primaryLocationId shows up here for every location —
   // that's correct for a deliberate multi-location "virtual brand", but it's
   // also what's left behind when a location gets deleted (the brand's FK is

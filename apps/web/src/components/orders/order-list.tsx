@@ -905,8 +905,24 @@ function Td({ children }: { children: React.ReactNode }) {
  * rider yet" is a real and common state, and inventing "Unassigned" makes an
  * empty column look like a broken one.
  */
+/**
+ * The rider currently on this order, or nothing.
+ *
+ * Cancelling a dispatch keeps the assignment row and marks it CANCELLED — the
+ * history of who was sent is worth having. But the board read the row without
+ * looking at its status, so taking an order off a driver left their name
+ * sitting in the Rider column as though they were still bringing it.
+ *
+ * DELIVERED stays: the person who took it is still the answer to "who had
+ * this?".
+ */
+function activeAssignment(order: Order) {
+  const a = (order as any).driverAssignment;
+  return a && a.status !== "CANCELLED" ? a : null;
+}
+
 function RiderCell({ order }: { order: Order }) {
-  const assignment = (order as any).driverAssignment;
+  const assignment = activeAssignment(order);
   const inHouse = assignment?.driver
     ? [assignment.driver.firstName, assignment.driver.lastName]
         .filter(Boolean)
@@ -954,7 +970,7 @@ function RiderCell({ order }: { order: Order }) {
  */
 function PickupEtaCell({ order }: { order: Order }) {
   const raw = (order as any).courierPickupEtaAt as string | null | undefined;
-  const inHouse = !!(order as any).driverAssignment?.driver;
+  const inHouse = !!activeAssignment(order)?.driver;
   // Once the rider has the food, a countdown to when they were due to ARRIVE
   // is not just useless, it is wrong — it kept reading "39 min" on an order
   // collected forty seconds earlier, because the platform stops refreshing

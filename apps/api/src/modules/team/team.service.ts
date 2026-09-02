@@ -426,6 +426,31 @@ export class TeamService {
       }
     }
 
+    // A brand the member has no location for is a brand they don't work at.
+    // The picker hides those, but hiding is not removing: the id stayed in the
+    // form's selection and came back on save, so unticking a shop left its
+    // brand attached with nothing on screen able to clear it.
+    //
+    // Brands with no primaryLocationId are deliberate multi-location brands
+    // and belong to no single shop, so they are left alone.
+    let brandIds = dto.brandIds;
+    if (dto.locationIds.length && brandIds.length) {
+      const brands = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId: actorTenantId },
+        select: { id: true, primaryLocationId: true },
+      });
+      const keep = new Set(
+        brands
+          .filter(
+            (b: any) =>
+              !b.primaryLocationId ||
+              dto.locationIds.includes(b.primaryLocationId),
+          )
+          .map((b: any) => b.id),
+      );
+      brandIds = brandIds.filter((id: string) => keep.has(id));
+    }
+
     await this.prisma.$transaction(async (tx: any) => {
       await tx.user.update({
         where: { id: dto.userId },
@@ -443,9 +468,9 @@ export class TeamService {
           })),
         });
       }
-      if (dto.brandIds.length) {
+      if (brandIds.length) {
         await tx.userBrand.createMany({
-          data: dto.brandIds.map((brandId: string) => ({
+          data: brandIds.map((brandId: string) => ({
             userId: dto.userId,
             brandId,
           })),
