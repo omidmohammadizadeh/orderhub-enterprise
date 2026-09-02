@@ -530,6 +530,57 @@ describe("stepped picker — the step list", () => {
   });
 });
 
+// Meal Deal 2 at Best Kebab: "MD2 - Parmo - Sauce", choose up to 2, repeats
+// allowed. Two of the same sauce is a real answer — a customer who wants
+// double garlic mayo is not asking for something exotic.
+const SAUCES: NestableGroup[] = [
+  {
+    id: "g-sauce",
+    name: "MD2 - Parmo - Sauce",
+    selectionType: "VARIANT",
+    minSelections: 2,
+    maxSelections: 2,
+    allowDuplicateSelections: true,
+    options: [
+      opt("o-gmayo", "Garlic Mayo"),
+      opt("o-gsauce", "Garlic Sauce"),
+      opt("o-ketchup", "Ketchup"),
+    ],
+  } as NestableGroup,
+];
+
+function sauceTree(picked: string[]) {
+  return buildModifierTree({
+    rootGroups: SAUCES,
+    groupsById: indexGroups(SAUCES),
+    selections: { [selectionKey([], "g-sauce")]: picked },
+  });
+}
+
+describe("stepped picker — a group that allows the same option twice", () => {
+  it("counts two of the same sauce as two choices", () => {
+    // The bug: Next stayed dead on double garlic mayo while two DIFFERENT
+    // sauces walked straight through.
+    expect(isStepSatisfied(sauceTree(["o-gmayo", "o-gmayo"])[0]!)).toBe(true);
+  });
+
+  it("still allows two different sauces", () => {
+    expect(isStepSatisfied(sauceTree(["o-gmayo", "o-gsauce"])[0]!)).toBe(true);
+  });
+
+  it("still blocks a single sauce when two are required", () => {
+    expect(isStepSatisfied(sauceTree(["o-gmayo"])[0]!)).toBe(false);
+  });
+
+  it("agrees with findUnmetRequirements on the duplicate case", () => {
+    // The two checks disagreeing is the whole bug: Add accepted the order
+    // that Next refused to move past.
+    const doubled = sauceTree(["o-gmayo", "o-gmayo"]);
+    expect(doubled.filter((n) => !isStepSatisfied(n))).toHaveLength(0);
+    expect(findUnmetRequirements(doubled)).toHaveLength(0);
+  });
+});
+
 describe("stepped picker — when Next is allowed", () => {
   it("blocks a required group with nothing chosen", () => {
     const steps = flattenModifierSteps(

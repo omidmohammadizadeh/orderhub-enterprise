@@ -486,7 +486,13 @@ export function flattenModifierSteps(
 export function isStepSatisfied(node: ModifierTreeNode): boolean {
   const min = node.group.minSelections ?? 0;
   if (min <= 0) return true;
-  return node.options.filter((o) => o.selected).length >= min;
+  // Copies, not distinct options — the same count findUnmetRequirements uses.
+  // Counting distinct options meant "choose 2 sauces, repeats allowed" was
+  // answered by two different sauces but NOT by two of the same one: the Next
+  // button stayed dead with a full basket of garlic mayo on screen. The two
+  // checks disagreeing is what made it look arbitrary — Add accepted the order
+  // the step refused to advance past.
+  return node.options.reduce((n, o) => n + o.quantity, 0) >= min;
 }
 
 /**
