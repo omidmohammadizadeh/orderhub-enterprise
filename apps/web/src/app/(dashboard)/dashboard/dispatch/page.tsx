@@ -18,9 +18,11 @@ interface FleetDriver {
   phone: string | null;
   vehicleType: string | null;
   isActive: boolean;
-  // Phase BG home location — which location this driver belongs to (null =
-  // unassigned shared fleet). Drives dispatch scoping.
+  // Phase BG home location. No longer read for scoping — a driver's shops
+  // come from their Team Roles assignment, which the API resolves and returns
+  // as locationNames.
   locationId?: string | null;
+  locationNames?: string[];
   presence?: { status: "OFFLINE" | "ONLINE" | "ON_JOB"; locationId: string | null } | null;
 }
 
@@ -66,19 +68,6 @@ export default function DispatchPage() {
   async function toggleDriver(driverId: string, online: boolean) {
     try {
       await apiClient.patch(`/v1/drivers/${driverId}/presence`, { online });
-      queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
-      queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
-    } catch {
-      /* ignore */
-    }
-  }
-
-  // Assign a driver's home location straight from the Fleet tab, so the
-  // operator can scope the fleet without opening each driver's earnings modal.
-  // Reuses the earnings endpoint (sets only locationId, leaving fees intact).
-  async function assignDriverLocation(driverId: string, locationId: string | null) {
-    try {
-      await apiClient.patch(`/v1/dispatch/drivers/${driverId}/earnings`, { locationId });
       queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
       queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
     } catch {
@@ -321,8 +310,6 @@ export default function DispatchPage() {
           drivers={fleetQuery.data}
           loading={fleetQuery.isLoading}
           onToggle={toggleDriver}
-          locations={locationOptions}
-          onAssignLocation={assignDriverLocation}
         />
       )}
 
@@ -349,14 +336,10 @@ function FleetTab({
   drivers,
   loading,
   onToggle,
-  locations,
-  onAssignLocation,
 }: {
   drivers?: FleetDriver[];
   loading: boolean;
   onToggle: (id: string, online: boolean) => void;
-  locations: { id: string; name: string }[];
-  onAssignLocation: (id: string, locationId: string | null) => void;
 }) {
   if (loading) {
     return (
@@ -397,20 +380,23 @@ function FleetTab({
                 <td className="px-4 py-2">{d.name ?? `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim()}</td>
                 <td className="px-4 py-2">{d.phone ?? "—"}</td>
                 <td className="px-4 py-2">{d.vehicleType ?? "—"}</td>
-                <td className="px-4 py-2">
-                  <select
-                    value={d.locationId ?? ""}
-                    onChange={(e) => onAssignLocation(d.id, e.target.value || null)}
-                    className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs"
-                    title="Which location this driver belongs to. Unassigned drivers only show under 'All locations'."
-                  >
-                    <option value="">Unassigned (all)</option>
-                    {locations.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.name}
-                      </option>
-                    ))}
-                  </select>
+                {/* Read-only. This used to be a second place to say where a
+                    driver works, and the two never agreed: giving somebody the
+                    DRIVER role and their shops on Team Roles left them off
+                    that shop's map until an operator came here and picked it
+                    again, with nothing on either screen saying so. Team Roles
+                    is the one answer now; this shows it. */}
+                <td className="px-4 py-2 text-xs">
+                  {d.locationNames?.length ? (
+                    d.locationNames.join(", ")
+                  ) : (
+                    <span
+                      className="text-amber-600"
+                      title="Set this driver's shops on the Team Roles tab."
+                    >
+                      No shop — set on Team Roles
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-2">
                   <span className="inline-flex items-center gap-1.5">

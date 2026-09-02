@@ -14,6 +14,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { coercePostcodeFees, matchPostcodeFee } from "./driver-earnings.service";
+import { driverIdsForLocations } from "../../common/access/accessible-locations";
 import { GeocodingService } from "./geocoding.service";
 import { ExpoPushService } from "../driver-app/expo-push.service";
 
@@ -223,12 +224,21 @@ export class DispatchService {
     }>
   > {
     const accessible = await this.resolveAccessibleLocationIds(user);
-    const locFilter =
+    // A driver's shop is their Team Roles assignment — see
+    // driverIdsForLocations. Reading Driver.locationId here is what kept a
+    // newly-assigned driver off their own shop's map.
+    const inScope =
       locationId && locationId !== "all"
         ? accessible.includes(locationId)
-          ? { locationId }
-          : { locationId: "__no_access__" }
-        : { OR: [{ locationId: { in: accessible } }, { locationId: null }] };
+          ? [locationId]
+          : []
+        : accessible;
+    const driverIds = await driverIdsForLocations(
+      this.prisma,
+      user.tenantId,
+      inScope,
+    );
+    const locFilter = { id: { in: driverIds } };
     const drivers = await this.prisma.driver.findMany({
       where: {
         tenantId: user.tenantId,
@@ -474,6 +484,13 @@ export class DispatchService {
       return { scope: [], locations: [], orders: [], drivers: [], couriers: [] };
     }
 
+    // Team Roles decides which shops a driver works at.
+    const dashboardDriverIds = await driverIdsForLocations(
+      this.prisma,
+      user.tenantId,
+      scope,
+    );
+
     const orderSelect = {
       id: true,
       displayId: true,
@@ -542,25 +559,22 @@ export class DispatchService {
         select: orderSelect,
         orderBy: { updatedAt: "desc" },
       }),
-      // Which online drivers to show for the selected scope, by the driver's
-      // HOME location (Driver.locationId, Phase BG):
-      //   * Specific location → ONLY drivers assigned to that location. The
-      //     map + the Dispatch "Assign delivery" panel then list exactly that
-      //     shop's drivers. A driver with no home location does NOT appear
-      //     here — assign their home location to make them show.
-      //   * All locations → the whole online fleet the operator can see:
-      //     homed to an accessible location, unassigned (no home), or clocked
-      //     into an accessible location (legacy presence fallback).
+      // Which online drivers to show for the selected scope. Their shop is
+      // their Team Roles assignment (dashboardDriverIds), so a driver given
+      // the DRIVER role and a location appears here immediately — no second
+      // assignment on the Fleet tab, which is what nobody knew to do.
+      //   * Specific location → ONLY that shop's drivers.
+      //   * All locations → every driver across the operator's shops, plus
+      //     anyone clocked into one of them (legacy presence fallback).
       this.prisma.driverPresence.findMany({
         where: {
           tenantId: user.tenantId,
           status: { in: [DriverPresenceStatus.ONLINE, DriverPresenceStatus.ON_JOB] },
           ...(specificLocation
-            ? { driver: { locationId: { in: scope } } }
+            ? { driverId: { in: dashboardDriverIds } }
             : {
                 OR: [
-                  { driver: { locationId: { in: scope } } },
-                  { driver: { locationId: null } },
+                  { driverId: { in: dashboardDriverIds } },
                   { locationId: { in: scope } },
                 ],
               }),
@@ -797,6 +811,14 @@ export class DispatchService {
       return { scope: [], stats: emptyStats, attention: [], outForDelivery: [], drivers: [], recentFailed: [] };
     }
 
+    // Team Roles decides which shops a driver works at — the same resolve the
+    // map and Fleet use, so the three boards can't disagree.
+    const dashboardDriverIds = await driverIdsForLocations(
+      this.prisma,
+      user.tenantId,
+      scope,
+    );
+
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const liveSince = new Date(Date.now() - 24 * 60 * 60_000);
@@ -890,15 +912,13 @@ export class DispatchService {
         orderBy: { updatedAt: "desc" },
       }),
       this.prisma.driver.findMany({
-        // Phase BG — drivers belong to a home location. A specific location
-        // shows only its own drivers; "All" shows every driver across the
-        // operator's accessible locations plus any still-unassigned ones.
+        // Where a driver works is their Team Roles assignment, resolved above
+        // into dashboardDriverIds — one answer, the same one Fleet and the map
+        // use, so a driver can't be on one board and missing from another.
         where: {
           tenantId: user.tenantId,
           isActive: true,
-          ...(locationParam && locationParam !== "all"
-            ? { locationId: locationParam }
-            : { OR: [{ locationId: { in: scope } }, { locationId: null }] }),
+          id: { in: dashboardDriverIds },
         },
         include: {
           presence: { select: { status: true, lastPingAt: true } },

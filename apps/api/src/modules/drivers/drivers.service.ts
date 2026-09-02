@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException, ConflictException, Logger } from "@nestjs/common";
-import { accessibleLocationIds } from "../../common/access/accessible-locations";
+import {
+  accessibleLocationIds,
+  driverIdsForLocations,
+} from "../../common/access/accessible-locations";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
@@ -77,11 +80,23 @@ export class DriversService {
     if (opts.locationId && !allowed.includes(opts.locationId)) return [];
     if (allowed.length === 0) return [];
 
+    // Where a driver works comes from Team Roles now, not from a second
+    // location picked on this screen. Assigning the DRIVER role and the
+    // locations there is the whole job; Fleet reflects it.
+    const ids = await driverIdsForLocations(
+      this.prisma,
+      tenantId,
+      opts.locationId ? [opts.locationId] : allowed,
+    );
     const scope = opts.locationId
-      ? { locationId: opts.locationId }
-      : { OR: [{ locationId: { in: allowed } }, { locationId: null }] };
+      ? { id: { in: ids } }
+      : // "All locations" also lists anyone Team Roles can't place — a driver
+        // record with no login attached. They belong to no shop, so they never
+        // appear under one, but hiding them everywhere would leave a row
+        // nobody could see to clean up.
+        { OR: [{ id: { in: ids } }, { userId: null }] };
 
-    return this.prisma.driver.findMany({
+    const rows = await this.prisma.driver.findMany({
       where: { tenantId, ...(activeOnly ? { isActive: true } : {}), ...scope },
       include: {
         _count: { select: { assignments: true } },
@@ -94,6 +109,31 @@ export class DriversService {
       },
       orderBy: { firstName: "asc" },
     });
+
+    // Where each driver works, for the column that used to be a dropdown.
+    // Read, not editable: Team Roles is where this is set, and offering a
+    // second place to set it is what created the bug — a driver assigned
+    // there stayed off their shop's map until somebody set it again here.
+    const userIds = rows
+      .map((d) => d.userId)
+      .filter((id): id is string => !!id);
+    const links = userIds.length
+      ? await this.prisma.userLocation.findMany({
+          where: { userId: { in: userIds } },
+          select: { userId: true, location: { select: { name: true } } },
+        })
+      : [];
+    const namesByUser = new Map<string, string[]>();
+    for (const l of links) {
+      const list = namesByUser.get(l.userId) ?? [];
+      list.push(l.location.name);
+      namesByUser.set(l.userId, list);
+    }
+
+    return rows.map((d) => ({
+      ...d,
+      locationNames: d.userId ? (namesByUser.get(d.userId) ?? []) : [],
+    }));
   }
 
   /** Operator toggles a driver online/offline from the Fleet tab. */
