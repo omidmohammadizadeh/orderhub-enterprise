@@ -47,7 +47,6 @@ import {
   type CallerIdFill,
 } from "@/components/pos/caller-id-popup";
 import { TileColoursModal } from "@/components/pos/tile-colours-modal";
-import { OpenPriceModal } from "@/components/pos/open-price-modal";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
 import {
@@ -67,7 +66,16 @@ import { PromosModal } from "@/components/pos/promos-modal";
 // own sidebar entry (/dashboard/direct-ordering). The modal import and
 // button below are gone; the settings page itself still uses
 // DirectOrderingSettings (re-exported from this file).
-import { Truck, Tag, Percent, Ban, KeyRound, Banknote } from "lucide-react";
+import {
+  Truck,
+  Tag,
+  Percent,
+  Ban,
+  KeyRound,
+  Banknote,
+  CirclePlus,
+} from "lucide-react";
+import { ExtraChargeModal } from "@/components/pos/extra-charge-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
@@ -232,7 +240,6 @@ export default function PosPage() {
   const [step, setStep] = useState<"start" | "menu">("start");
   /** The cart is a sheet over the menu at every size — see the render. */
   const [cartOpen, setCartOpen] = useState(false);
-  const [openPriceItem, setOpenPriceItem] = useState<MenuItem | null>(null);
   /** Phone only — the header tools live in a bottom sheet. */
   const [toolsOpen, setToolsOpen] = useState(false);
   /** Summary for the phone bottom bar. Modifier prices are included so the
@@ -268,6 +275,7 @@ export default function PosPage() {
   // Phase AM — manager-side modals on the POS top bar.
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showPromosModal, setShowPromosModal] = useState(false);
+  const [showExtraCharge, setShowExtraCharge] = useState(false);
   const [showServiceCharge, setShowServiceCharge] = useState(false);
   const [voidOpen, setVoidOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
@@ -925,13 +933,6 @@ export default function PosPage() {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const onProductClick = (item: MenuItem) => {
-    // "Ask for the price at the till" — the off-menu request. Ask for the
-    // amount before anything reaches the cart, and before the modifier sheet:
-    // an item with no price is not something to configure options on first.
-    if ((item as any).openPrice) {
-      setOpenPriceItem(item);
-      return;
-    }
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     if (hasMods || item.hasMultipleSkus) {
       setModalItem(item);
@@ -1130,6 +1131,15 @@ export default function PosPage() {
       title: "Add a service charge automatically to bills",
       icon: Percent,
       onClick: () => setShowServiceCharge(true),
+      disabled: !selectedLocationId,
+      show: true,
+    },
+    {
+      key: "extra-charge",
+      label: "Extra charge",
+      title: "Price something that isn't on the menu",
+      icon: CirclePlus,
+      onClick: () => setShowExtraCharge(true),
       disabled: !selectedLocationId,
       show: true,
     },
@@ -1625,27 +1635,6 @@ export default function PosPage() {
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
 
-      <OpenPriceModal
-        open={!!openPriceItem}
-        itemName={openPriceItem?.name ?? ""}
-        money={money}
-        onCancel={() => setOpenPriceItem(null)}
-        onConfirm={(price) => {
-          const item = openPriceItem;
-          setOpenPriceItem(null);
-          if (!item) return;
-          addToCart({
-            menuItemId: item.id,
-            displayName: item.name,
-            unitPrice: price,
-            quantity: 1,
-            plu: item.plu ?? null,
-            modifiers: [],
-            selectedSku: null,
-          });
-        }}
-      />
-
       <TileColoursModal
         open={coloursOpen}
         categories={colourableCategories}
@@ -1762,6 +1751,30 @@ export default function PosPage() {
           onClose={() => setShowFeeModal(false)}
         />
       )}
+      <ExtraChargeModal
+        open={showExtraCharge}
+        money={money}
+        onClose={() => setShowExtraCharge(false)}
+        onAdd={({ amount, description }) =>
+          addToCart({
+            // No menuItemId: there is no menu row behind this, and the
+            // create-order DTO takes it as optional — the POS already sends
+            // `line.menuItemId || undefined`. KDS station routing matches on
+            // that id, so an extra charge routes nowhere in particular, which
+            // is right: it is money, not something the kitchen makes.
+            menuItemId: "",
+            displayName: description
+              ? `Extra charge - ${description}`
+              : "Extra charge",
+            unitPrice: amount,
+            quantity: 1,
+            plu: null,
+            modifiers: [],
+            selectedSku: null,
+          })
+        }
+      />
+
       {showPromosModal && selectedLocationId && (
         <PromosModal
           locationId={selectedLocationId}

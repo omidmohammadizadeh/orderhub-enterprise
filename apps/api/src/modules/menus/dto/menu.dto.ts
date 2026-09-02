@@ -149,7 +149,6 @@ export class UpdateCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) sortOrder?: number;
   // Which service modes the whole category is sold in. main.ts ships
   // forbidNonWhitelisted, so an unlisted field 400s before the service runs.
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() openPrice?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableCollection?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDelivery?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDineIn?: boolean;
@@ -207,7 +206,6 @@ export class CreateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
   // Which service modes this item is sold in. Absent = unchanged; the columns
   // default true so an older client that never sends them changes nothing.
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() openPrice?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableCollection?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDelivery?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDineIn?: boolean;
@@ -257,7 +255,6 @@ export class UpdateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
   // Which service modes this item is sold in. Absent = unchanged; the columns
   // default true so an older client that never sends them changes nothing.
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() openPrice?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableCollection?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDelivery?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() availableDineIn?: boolean;

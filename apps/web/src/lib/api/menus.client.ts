@@ -74,7 +74,6 @@ export interface MenuCategory {
   sortOrder: number;
   // Which service modes the whole category is sold in. Optional because rows
   // saved before the feature have them absent, and absent means "all three".
-  openPrice?: boolean;
   availableCollection?: boolean;
   availableDelivery?: boolean;
   availableDineIn?: boolean;
@@ -132,7 +131,6 @@ export interface MenuItem {
   calories?: number | null;
   // Phase AK fields
   visibleToCustomers?: boolean;
-  openPrice?: boolean;
   availableCollection?: boolean;
   availableDelivery?: boolean;
   availableDineIn?: boolean;
