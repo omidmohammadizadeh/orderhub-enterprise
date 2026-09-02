@@ -3172,6 +3172,11 @@ export class MenusService {
       const skus = Array.isArray(item.productSkus) ? [...item.productSkus] : [];
       let skusTouched = false;
       const nextSkus = skus.map((sku: any) => {
+        // productSkus is a JSON column, so a null or a stray string in the
+        // array is possible and reading .priceOverrides off it takes the whole
+        // apply down with an anonymous 500 — one bad row, and none of the
+        // menu's prices move.
+        if (!sku || typeof sku !== "object") return sku;
         const po: Record<string, any> = { ...(sku.priceOverrides ?? {}) };
         for (const ch of dto.channels) {
           for (const b of itemBrands) {
@@ -3189,13 +3194,23 @@ export class MenusService {
       if (skusTouched) skusUpdated += nextSkus.length;
 
       if (touched || skusTouched) {
-        await this.prisma.menuItem.update({
-          where: { id: item.id },
-          data: {
-            ...(touched ? { platformPricingOverrides: overrides as any } : {}),
-            ...(skusTouched ? { productSkus: nextSkus as any } : {}),
-          },
-        });
+        try {
+          await this.prisma.menuItem.update({
+            where: { id: item.id },
+            data: {
+              ...(touched ? { platformPricingOverrides: overrides as any } : {}),
+              ...(skusTouched ? { productSkus: nextSkus as any } : {}),
+            },
+          });
+        } catch (err: any) {
+          // Name the product. A bare 500 on "Apply to menu" says nothing about
+          // which of several hundred rows refused, and the operator is left
+          // re-clicking a button that will always fail.
+          this.logger.error(
+            `Channel pricing failed on product ${item.id} of menu ${menuId}: ${err?.message ?? err}`,
+          );
+          throw err;
+        }
         itemsUpdated++;
       }
     }
