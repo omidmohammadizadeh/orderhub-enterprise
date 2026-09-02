@@ -1237,7 +1237,12 @@ export class OrdersService {
       externalId,
       platform: (simulated ?? "DIRECT") as any,
       orderSource: (simulated ?? "POS") as any,
-      integrationSource: (simulated ?? "DIRECT") as any,
+      // NOT the marketplace name. IntegrationSource is only DIRECT | HUBRISE
+      // — it records HOW an order reached us, not who sent it. A real direct
+      // Deliveroo order is platform DELIVEROO with integrationSource DIRECT;
+      // a HubRise-relayed one is the same platform with HUBRISE. Setting this
+      // to "DELIVEROO" is rejected by Prisma, and 500'd every simulate.
+      integrationSource: "DIRECT" as const,
       viaHubrise: false,
       fulfillmentType,
       displayId: `${simulated ? "SIM" : "TEST"}-${externalId.slice(-4).toUpperCase()}`,
