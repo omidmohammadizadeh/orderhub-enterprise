@@ -109,13 +109,13 @@ export default function App() {
   }, []);
 
   const refresh = useCallback(async () => {
-    try {
-      const [m, d] = await Promise.all([getMe(), getMyDay()]);
-      setMe(m);
-      setDay(d);
-    } catch {
-      // transient — keep showing what we have
-    }
+    // Settled, not all: these two calls are independent, and Promise.all made
+    // them share a fate. One failing /driver/me (a refresh-token race, a blip)
+    // rejected the pair, so setDay never ran and a freshly dispatched job never
+    // surfaced — while the poll kept logging a healthy my-day 200 every 8s.
+    const [m, d] = await Promise.allSettled([getMe(), getMyDay()]);
+    if (m.status === "fulfilled") setMe(m.value);
+    if (d.status === "fulfilled") setDay(d.value);
     try {
       setChatUnread(await getOperatorChatUnread());
     } catch {

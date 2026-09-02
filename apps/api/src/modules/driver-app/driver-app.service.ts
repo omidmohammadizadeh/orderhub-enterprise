@@ -135,6 +135,40 @@ export class DriverAppService {
       });
     }
 
+    // Fall back to the name. The Fleet form only requires a name and a phone,
+    // so operator-created rows usually carry no email and the match above
+    // misses — and then the create below made a SECOND driver for the same
+    // person. That is the duplicate-name pairs seen in Fleet, and it silently
+    // breaks dispatch: the operator assigns the row they can see, while the
+    // phone polls my-day as the row the app made, so the job never arrives.
+    // Only when exactly one candidate matches — two same-named drivers in one
+    // tenant must not have their jobs merged.
+    const byName = await this.prisma.driver.findMany({
+      where: {
+        tenantId: user.tenantId,
+        userId: null,
+        firstName: { equals: account.firstName, mode: "insensitive" },
+        lastName: { equals: account.lastName, mode: "insensitive" },
+      },
+      take: 2,
+    });
+    const twin = byName.length === 1 ? byName[0] : undefined;
+    if (twin) {
+      this.logger.log(
+        `Driver app: linked user ${user.userId} to existing driver ${twin.id} by name`,
+      );
+      return this.prisma.driver.update({
+        where: { id: twin.id },
+        data: { userId: user.userId, email: twin.email ?? account.email },
+      });
+    }
+    if (byName.length > 1) {
+      this.logger.warn(
+        `Driver app: ${byName.length}+ unlinked drivers named "${account.firstName} ${account.lastName}" ` +
+          `in tenant ${user.tenantId} — creating a new one. Dispatching to the wrong row will not reach this phone.`,
+      );
+    }
+
     return this.prisma.driver.create({
       data: {
         tenantId: user.tenantId,
