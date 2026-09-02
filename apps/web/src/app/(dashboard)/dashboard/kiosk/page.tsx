@@ -37,6 +37,21 @@ import { apiClient } from "@/lib/api/client";
 import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 
+/** The server's own reason, for the small print under the friendly message. */
+function placeErrorDetail(err: unknown): string {
+  const e = err as
+    | { response?: { status?: number; data?: { message?: unknown } }; message?: string }
+    | undefined;
+  const status = e?.response?.status;
+  const raw = e?.response?.data?.message;
+  const detail = Array.isArray(raw) ? raw.join(", ") : (raw ?? e?.message);
+  // No response at all means it never left the device — a dead network reads
+  // very differently from a server that said no, and staff need to tell them
+  // apart without a laptop.
+  if (!status) return `No connection to the server${detail ? ` (${detail})` : ""}`;
+  return `Error ${status}${detail ? `: ${detail}` : ""}`;
+}
+
 interface Line {
   key: string;
   menuItemId: string;
@@ -514,6 +529,14 @@ export default function KioskPage() {
               <p className="mb-3 rounded-lg bg-red-50 p-3 text-center text-base text-red-700">
                 That didn&rsquo;t go through. Try again, or order at the
                 counter.
+                {/* The customer gets the friendly line; staff get something
+                    they can actually report. Swallowing the server's reason
+                    entirely left a kiosk that failed in total silence — the
+                    rejection never reached the API log either, because guards
+                    run before the logging interceptor. */}
+                <span className="mt-1 block text-xs text-red-500">
+                  {placeErrorDetail(place.error)}
+                </span>
               </p>
             )}
             <div className="grid gap-3 sm:grid-cols-2">

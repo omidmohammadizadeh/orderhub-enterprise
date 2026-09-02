@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { NestFactory } from "@nestjs/core";
+import { NestFactory, HttpAdapterHost } from "@nestjs/core";
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -8,6 +8,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { WinstonModule } from "nest-winston";
 import { AppModule } from "./app.module";
+import { LoggingExceptionFilter } from "./common/filters/logging-exception.filter";
 import { winstonConfig } from "./config/logger.config";
 import { PrismaService } from "./infrastructure/database/prisma.service";
 import { createCorsOriginCheck } from "./config/cors.config";
@@ -104,6 +105,13 @@ async function bootstrap() {
   // ── API Versioning ───────────────────────────────────────
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: "1" });
   app.setGlobalPrefix("api");
+
+  // ── Error logging ───────────────────────────────────────
+  // Guards run before interceptors, so LoggingInterceptor never saw a single
+  // 401/403/429 — those requests vanished from the log entirely.
+  app.useGlobalFilters(
+    new LoggingExceptionFilter(app.get(HttpAdapterHost).httpAdapter),
+  );
 
   // ── Validation ──────────────────────────────────────────
   app.useGlobalPipes(
