@@ -130,6 +130,7 @@ export function ProductForm({
   const [visibleToCustomers, setVisibleToCustomers] = useState(true);
   // Which service modes this product is sold in. All three on by default —
   // unticking one is the exception, not the setup step.
+  const [openPrice, setOpenPrice] = useState(false);
   const [availableCollection, setAvailableCollection] = useState(true);
   const [availableDelivery, setAvailableDelivery] = useState(true);
   const [availableDineIn, setAvailableDineIn] = useState(true);
@@ -200,6 +201,7 @@ export function ProductForm({
     setVisibleToCustomers(existing.visibleToCustomers);
     // `!== false` rather than `?? true`: products saved before this existed
     // have the field absent, and they are sold everywhere.
+    setOpenPrice(!!(existing as any).openPrice);
     setAvailableCollection((existing as any).availableCollection !== false);
     setAvailableDelivery((existing as any).availableDelivery !== false);
     setAvailableDineIn((existing as any).availableDineIn !== false);
@@ -256,6 +258,7 @@ export function ProductForm({
         isAvailable,
         outOfStock,
         visibleToCustomers,
+        openPrice,
         availableCollection,
         availableDelivery,
         availableDineIn,
@@ -892,6 +895,22 @@ export function ProductForm({
                 onChange={setVisibleToCustomers}
               />
             </div>
+          </Card>
+
+          <Card title="Price">
+            <Toggle
+              label="Ask for the price at the till"
+              hint="For something a customer asks for that is not on the menu. The operator types the amount when they ring it up, and the price above is ignored."
+              checked={openPrice}
+              onChange={setOpenPrice}
+            />
+            {openPrice && (
+              <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+                This takes the product off your website and every marketplace.
+                They would publish it at the price above, and a customer would
+                order it for that. It stays on the till only.
+              </p>
+            )}
           </Card>
 
           <Card title="How it can be ordered">

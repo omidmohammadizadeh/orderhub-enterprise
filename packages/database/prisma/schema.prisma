@@ -1032,6 +1032,18 @@ model MenuItem {
   availableCollection Boolean  @default(true)
   availableDelivery   Boolean  @default(true)
   availableDineIn     Boolean  @default(true)
+  // "Ask for the price at the till."
+  //
+  // For the thing a customer asks for that is not on the menu — a tray for a
+  // party, a one-off special, a replacement for a spoiled order. basePrice is
+  // ignored and the operator types the amount when they ring it up.
+  //
+  // An item like this can never face a customer: a storefront or a
+  // marketplace would publish it at whatever basePrice happens to be, which
+  // is free food. Writing openPrice forces visibleToCustomers false, and every
+  // publisher already honours that flag, so no transformer needs to learn
+  // about this one.
+  openPrice           Boolean  @default(false)
   // When set, the autoProgressOrders cron flips outOfStock back to false
   // at this time. Used for "out for an hour" scheduling.
   availableRestoreAt DateTime?

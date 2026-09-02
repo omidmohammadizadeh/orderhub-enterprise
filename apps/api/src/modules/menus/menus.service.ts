@@ -1547,7 +1547,15 @@ export class MenusService {
         inventoryCount: (dto as any).inventoryCount ?? null,
         platformPricingOverrides: (dto as any).platformPricingOverrides ?? {},
         // Phase AK fields — all optional, sensible defaults from schema:
-        visibleToCustomers: (dto as any).visibleToCustomers ?? true,
+        // An open-price item can never face a customer: a storefront or a
+        // marketplace would publish it at whatever basePrice happens to be,
+        // which is free food. Every publisher already honours
+        // visibleToCustomers, so forcing it here is enough — no transformer
+        // needs to learn about openPrice.
+        visibleToCustomers: (dto as any).openPrice
+          ? false
+          : ((dto as any).visibleToCustomers ?? true),
+        openPrice: (dto as any).openPrice ?? false,
         // Sold in every service mode unless the caller says otherwise, so a
         // product created by any existing client behaves as it always has.
         availableCollection: (dto as any).availableCollection ?? true,
@@ -1594,6 +1602,14 @@ export class MenusService {
         ...(dto.outOfStock !== undefined && { outOfStock: dto.outOfStock }),
         ...(dto.visibleToCustomers !== undefined && {
           visibleToCustomers: dto.visibleToCustomers,
+        }),
+        ...(dto.openPrice !== undefined && {
+          openPrice: dto.openPrice,
+          // Turning it ON takes the item off every customer channel. Turning
+          // it off does NOT put it back — restoring visibility is a separate,
+          // deliberate decision, and doing it silently here could publish a
+          // product to a marketplace nobody meant to list.
+          ...(dto.openPrice ? { visibleToCustomers: false } : {}),
         }),
         // Which service modes this item is sold in. `!== undefined` so an
         // older client that never sends them leaves them alone.
