@@ -363,7 +363,22 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       deliveryFee,
       discount,
       total: total || subtotal,
-      specialInstructions: order.customer_notes ?? undefined,
+      // The delivery note — "press the black doorbell", "we're at the rear of
+      // the house" — is the one line the driver actually needs, and it never
+      // reached our ticket. customer_notes is the ORDER note; HubRise carries
+      // the delivery instruction on the customer/delivery record instead, and
+      // which key it lands in varies by marketplace. So take the first
+      // non-empty candidate, and keep both when a shop has each.
+      specialInstructions: joinNotes(
+        firstText(order.customer_notes),
+        firstText(
+          (delivery as any)?.delivery_notes,
+          (delivery as any)?.notes,
+          (customer as any)?.delivery_notes,
+          (customer as any)?.notes,
+          (order as any)?.delivery_notes,
+        ),
+      ),
       // HubRise `expected_time` is the promised ready/ETA time and is set
       // on EVERY order — including ASAP ones (≈ now + prep). It is NOT a
       // "scheduled for later" flag. Mapping it straight to scheduledFor
@@ -420,6 +435,22 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
 // HubRise serialises money as "<amount> <currency>" strings; strip the
 // suffix and parse what's left. Anything we can't parse becomes 0 so a
 // malformed field doesn't drop the whole order.
+/** First candidate that is a non-blank string, trimmed. */
+function firstText(...values: unknown[]): string | undefined {
+  for (const v of values) {
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return undefined;
+}
+
+/** Both notes when they differ, on one line — the renderer writes this as a
+ *  single string, so a newline here would not survive the ticket. */
+function joinNotes(...notes: (string | undefined)[]): string | undefined {
+  const kept = notes.filter((n): n is string => !!n);
+  const unique = kept.filter((n, i) => kept.indexOf(n) === i);
+  return unique.length ? unique.join(" — ") : undefined;
+}
+
 function parseMoney(value: unknown): number {
   if (value == null) return 0;
   if (typeof value === "number") return value;
