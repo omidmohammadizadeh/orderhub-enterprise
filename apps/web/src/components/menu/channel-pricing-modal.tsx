@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
 
 /** The uplifts an operator actually uses. 0 = list at the base price. */
-const PERCENT_CHOICES = [0, 10, 15, 20, 25, 30] as const;
+const PERCENT_CHOICES = [0, 5, 10, 15, 20, 25, 30] as const;
 
 interface Props {
   open: boolean;
