@@ -3063,6 +3063,38 @@ export class MenusService {
   // The uplift is stored as a per-channel OVERRIDE, never folded into
   // basePrice, so the base menu stays true and the markup stays visible,
   // adjustable, and reversible.
+  /**
+   * Apply a pile of single-row writes a batch at a time.
+   *
+   * Channel pricing awaited one update per product, per size and per modifier
+   * option — about 2,700 sequential round-trips on Best Kebab's menu, and a
+   * 47-second request. Nearly all of that was waiting, not working. Ten in
+   * flight keeps the connection pool comfortable and cuts the wall clock by
+   * roughly the same factor.
+   *
+   * describe() names the offending row when one refuses: a bare 500 on "Apply
+   * to menu" says nothing about which of several hundred rows failed.
+   */
+  private async writeInBatches<T>(
+    rows: T[],
+    write: (row: T) => Promise<unknown>,
+    describe: (row: T, err: unknown) => string,
+    size = 10,
+  ): Promise<void> {
+    for (let i = 0; i < rows.length; i += size) {
+      await Promise.all(
+        rows.slice(i, i + size).map(async (row) => {
+          try {
+            await write(row);
+          } catch (err: any) {
+            this.logger.error(describe(row, err?.message ?? err));
+            throw err;
+          }
+        }),
+      );
+    }
+  }
+
   async applyChannelPricing(
     menuId: string,
     tenantId: string,
@@ -3146,6 +3178,11 @@ export class MenusService {
 
     let itemsUpdated = 0;
     let skusUpdated = 0;
+    // Collected, then written a batch at a time. One awaited update per row
+    // meant ~2,700 sequential round-trips on this menu and a 47-second
+    // request — long enough that a slower run trips whatever timeout sits in
+    // front of the API, which is what "Apply to menu" failing looked like.
+    const itemWrites: Array<{ id: string; data: Record<string, unknown> }> = [];
     for (const item of items.values()) {
       const itemBrands = brandsFor(item);
       const overrides: Record<string, any> = {
@@ -3194,31 +3231,28 @@ export class MenusService {
       if (skusTouched) skusUpdated += nextSkus.length;
 
       if (touched || skusTouched) {
-        try {
-          await this.prisma.menuItem.update({
-            where: { id: item.id },
-            data: {
-              ...(touched ? { platformPricingOverrides: overrides as any } : {}),
-              ...(skusTouched ? { productSkus: nextSkus as any } : {}),
-            },
-          });
-        } catch (err: any) {
-          // Name the product. A bare 500 on "Apply to menu" says nothing about
-          // which of several hundred rows refused, and the operator is left
-          // re-clicking a button that will always fail.
-          this.logger.error(
-            `Channel pricing failed on product ${item.id} of menu ${menuId}: ${err?.message ?? err}`,
-          );
-          throw err;
-        }
+        itemWrites.push({
+          id: item.id,
+          data: {
+            ...(touched ? { platformPricingOverrides: overrides as any } : {}),
+            ...(skusTouched ? { productSkus: nextSkus as any } : {}),
+          },
+        });
         itemsUpdated++;
       }
     }
+
+    await this.writeInBatches(itemWrites, (w) =>
+      this.prisma.menuItem.update({ where: { id: w.id }, data: w.data as any }),
+      (w, err) =>
+        `Channel pricing failed on product ${w.id} of menu ${menuId}: ${err}`,
+    );
 
     // Modifier options reachable from this menu — including nested ones, which
     // hang off an option and so never appear in an item's own group links.
     const groupIds = await this.reachableGroupIdsForMenu(menuId, tenantId);
     let optionsUpdated = 0;
+    const optionWrites: Array<{ id: string; data: Record<string, unknown> }> = [];
     if (groupIds.length) {
       const options = await this.prisma.modifierOption.findMany({
         where: { groupId: { in: groupIds } },
@@ -3249,14 +3283,20 @@ export class MenusService {
           }
         }
         if (touched) {
-          await this.prisma.modifierOption.update({
-            where: { id: o.id },
-            data: { platformPricingOverrides: po as any },
-          });
+          optionWrites.push({ id: o.id, data: { platformPricingOverrides: po } });
           optionsUpdated++;
         }
       }
     }
+
+    await this.writeInBatches(optionWrites, (w) =>
+      this.prisma.modifierOption.update({
+        where: { id: w.id },
+        data: w.data as any,
+      }),
+      (w, err) =>
+        `Channel pricing failed on option ${w.id} of menu ${menuId}: ${err}`,
+    );
 
     const brandNames = new Map(
       (
