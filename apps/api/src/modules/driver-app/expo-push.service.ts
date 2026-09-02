@@ -49,7 +49,19 @@ export class ExpoPushService {
     payload: Record<string, unknown>,
     label: string,
   ): Promise<void> {
-    if (!pushToken) return;
+    if (!pushToken) {
+      // Silent until now, which is why "it works on my phone but not theirs"
+      // had nothing behind it in the log. No token means one of two things:
+      // the driver declined the iOS notification prompt (it is asked once and
+      // never again), or the phone registered against a DIFFERENT driver row
+      // than the one dispatch just assigned. Both look identical from the
+      // operator's side — the assign succeeds and the phone stays quiet.
+      this.logger.warn(
+        `No push token for ${label} — the driver's phone will not be told. ` +
+          `Either notifications are denied on the device, or the token is on another driver record.`,
+      );
+      return;
+    }
     try {
       const res = await fetch("https://exp.host/--/api/v2/push/send", {
         method: "POST",

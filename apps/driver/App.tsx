@@ -41,6 +41,7 @@ import {
 import {
   attachJobResponseHandler,
   clearNotificationBadges,
+  pushPermissionGranted,
   registerForPush,
   setupJobCategory,
 } from "@/services/notifications";
@@ -98,12 +99,26 @@ export default function App() {
     configureGoogleSignIn();
   }, []);
 
+  // Whether this phone will actually ring for a job. iOS asks once, so a
+  // driver who declined is silently unreachable for ever — HomeScreen says so
+  // rather than leaving them wondering why work never arrives.
+  const [pushBlocked, setPushBlocked] = useState(false);
+
   // Clear the app-icon badge + tray notifications on launch and whenever the
   // app returns to the foreground.
   useEffect(() => {
     clearNotificationBadges();
     const sub = AppState.addEventListener("change", (s) => {
-      if (s === "active") clearNotificationBadges();
+      if (s !== "active") return;
+      clearNotificationBadges();
+      // They may have just come back from Settings having turned alerts on —
+      // and if so, register the token we could never get before.
+      pushPermissionGranted()
+        .then((ok) => {
+          setPushBlocked(!ok);
+          if (ok) registerForPush();
+        })
+        .catch(() => undefined);
     });
     return () => sub.remove();
   }, []);
@@ -139,7 +154,11 @@ export default function App() {
   useEffect(() => {
     if (!tokens) return;
     setupJobCategory();
-    registerForPush();
+    registerForPush().then(() =>
+      pushPermissionGranted()
+        .then((ok) => setPushBlocked(!ok))
+        .catch(() => setPushBlocked(false)),
+    );
     const detach = attachJobResponseHandler({
       onJobAccepted: () => refresh(),
       onOpenChat: (info) => {
@@ -451,6 +470,7 @@ export default function App() {
         busy={busy}
         pos={pos}
         hasActiveJob={!!current}
+        pushBlocked={pushBlocked}
         onToggleOnline={toggleOnline}
         onResumeJob={() => setMinimized(false)}
         onSignOut={() => setTokens(null)}

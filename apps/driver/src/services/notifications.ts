@@ -57,6 +57,24 @@ export async function setupJobCategory() {
   ]);
 }
 
+/**
+ * Are notifications actually allowed on this device?
+ *
+ * iOS asks once. A driver who taps "Don't Allow" is never asked again, no
+ * token is ever registered, and dispatch's push goes nowhere — with nothing on
+ * the phone or in the app to say so. From the shop's side the job simply never
+ * arrives, on that one driver's phone, for ever.
+ */
+export async function pushPermissionGranted(): Promise<boolean> {
+  try {
+    return (await Notifications.getPermissionsAsync()).status === "granted";
+  } catch {
+    // Don't cry wolf on an unknown state — the banner is only worth showing
+    // when we are sure it is off.
+    return true;
+  }
+}
+
 export async function registerForPush(): Promise<string | null> {
   let status = (await Notifications.getPermissionsAsync()).status;
   if (status !== "granted") {

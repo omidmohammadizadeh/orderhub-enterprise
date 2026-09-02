@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   StyleSheet,
   Switch,
@@ -28,6 +29,7 @@ export function HomeScreen({
   busy,
   pos,
   hasActiveJob,
+  pushBlocked,
   onToggleOnline,
   onResumeJob,
   onSignOut,
@@ -43,6 +45,7 @@ export function HomeScreen({
   busy: boolean;
   pos: LatLng | null;
   hasActiveJob: boolean;
+  pushBlocked: boolean;
   onToggleOnline: (next: boolean) => void;
   onResumeJob: () => void;
   onSignOut: () => void;
@@ -98,6 +101,27 @@ export function HomeScreen({
           )}
         </View>
       </View>
+
+      {/* Notifications are off on this phone. iOS asks once and never again,
+          so a driver who declined gets no job alerts at all and has no way to
+          know why — the shop dispatches, the phone stays silent, and it looks
+          like the app is broken for that one person. Say so, and open the
+          settings page that can undo it. */}
+      {pushBlocked && (
+        <Pressable
+          style={styles.pushWarn}
+          onPress={() => Linking.openSettings()}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.pushWarnTitle}>Job alerts are turned off</Text>
+            <Text style={styles.pushWarnSub}>
+              You won&apos;t be told when a delivery is sent to you. Tap to turn
+              notifications on.
+            </Text>
+          </View>
+          <Text style={styles.pushWarnOpen}>Settings ›</Text>
+        </Pressable>
+      )}
 
       {/* Resume the active delivery (shown only when the driver peeked the map) */}
       {hasActiveJob && (
@@ -166,6 +190,19 @@ const styles = StyleSheet.create({
   iconBtn: { width: 28, gap: 5, paddingVertical: 4 },
   bar: { height: 2.5, borderRadius: 2, backgroundColor: "#fff" },
   logo: { color: "#fff", fontSize: 16, fontWeight: "800" },
+  pushWarn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 12,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#7f1d1d",
+  },
+  pushWarnTitle: { color: "#fff", fontSize: 14, fontWeight: "700" },
+  pushWarnSub: { color: "#fecaca", fontSize: 12, marginTop: 2 },
+  pushWarnOpen: { color: "#fff", fontSize: 13, fontWeight: "700" },
   onlineWrap: { flexDirection: "row", alignItems: "center", gap: 8 },
   onlineLabel: { fontSize: 13, fontWeight: "700" },
   resumeCard: {
