@@ -12,8 +12,26 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
+import {
+  Calendar,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Loader2,
+  X,
+} from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { PlatformBadge } from "./platform-badge";
+
+interface HistoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  totalPrice: string | number;
+  notes?: string | null;
+  modifiers?: Array<{ name?: string | null }> | null;
+}
 
 interface HistoryOrder {
   id: string;
@@ -25,8 +43,24 @@ interface HistoryOrder {
   customerName: string | null;
   total: string | number;
   createdAt: string;
+  items?: HistoryItem[] | null;
   location?: { name?: string | null } | null;
   brand?: { name?: string | null } | null;
+}
+
+/**
+ * The marketplace the customer actually ordered from.
+ *
+ * HubRise is transport, not a channel. An order relayed through it carries
+ * the real marketplace in `orderSource` (UBER_EATS / DELIVEROO / JUST_EAT),
+ * and a shop asked about a Just Eat order wants to see Just Eat — the same
+ * rule the live board uses.
+ */
+function displayPlatform(o: HistoryOrder): string {
+  if (o.platform === "HUBRISE" && o.orderSource && o.orderSource !== "HUBRISE") {
+    return o.orderSource;
+  }
+  return o.platform;
 }
 
 interface HistoryResponse {
@@ -76,6 +110,9 @@ export function OrderHistoryModal({
   const [to, setTo] = useState(() => daysAgo(0));
   const [page, setPage] = useState(1);
   const [completedOnly, setCompletedOnly] = useState(true);
+  // Which order is showing its items. One at a time — this is "what did they
+  // order", asked about a single order, not a comparison.
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
 
   const params = useMemo(
     () => ({
@@ -207,9 +244,9 @@ export function OrderHistoryModal({
               No orders in this range.
             </p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500">
-                <tr>
+            <table className="w-full min-w-[760px] table-fixed text-sm">
+              <thead className="sticky top-0 z-10 bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500">
+                <tr className="grid grid-cols-[150px_120px_150px_1fr_120px_100px]">
                   <th className="px-5 py-2 text-left font-semibold">Date</th>
                   <th className="px-3 py-2 text-left font-semibold">Order</th>
                   <th className="px-3 py-2 text-left font-semibold">Channel</th>
@@ -219,31 +256,92 @@ export function OrderHistoryModal({
                 </tr>
               </thead>
               <tbody>
-                {data.orders.map((o) => (
-                  <tr key={o.id} className="border-t border-zinc-100">
-                    <td className="whitespace-nowrap px-5 py-2 text-zinc-600">
-                      {new Date(o.createdAt).toLocaleString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="px-3 py-2 font-medium text-zinc-900">
-                      {o.displayId ?? (o.orderNumber ? `#${o.orderNumber}` : "—")}
-                    </td>
-                    <td className="px-3 py-2 text-zinc-600">
-                      {o.platform ?? o.orderSource ?? "—"}
-                    </td>
-                    <td className="max-w-[180px] truncate px-3 py-2 text-zinc-600">
-                      {o.customerName ?? "—"}
-                    </td>
-                    <td className="px-3 py-2 text-zinc-600">{o.status}</td>
-                    <td className="px-5 py-2 text-right tabular-nums text-zinc-900">
-                      {money(o.total)}
-                    </td>
-                  </tr>
-                ))}
+                {data.orders.map((o) => {
+                  const expanded = openOrderId === o.id;
+                  return (
+                    <tr key={o.id} className="contents">
+                      <td colSpan={6} className="p-0">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenOrderId(expanded ? null : o.id)
+                          }
+                          className={`grid w-full grid-cols-[150px_120px_150px_1fr_120px_100px] items-center border-t border-zinc-100 text-left hover:bg-zinc-50 ${
+                            expanded ? "bg-zinc-50" : ""
+                          }`}
+                        >
+                          <span className="flex items-center gap-1.5 px-5 py-2 text-zinc-600">
+                            {expanded ? (
+                              <ChevronUp className="h-3.5 w-3.5 text-zinc-400" />
+                            ) : (
+                              <ChevronDown className="h-3.5 w-3.5 text-zinc-300" />
+                            )}
+                            {new Date(o.createdAt).toLocaleString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          <span className="px-3 py-2 font-medium text-zinc-900">
+                            {o.displayId ??
+                              (o.orderNumber ? `#${o.orderNumber}` : "—")}
+                          </span>
+                          <span className="px-3 py-2">
+                            <PlatformBadge platform={displayPlatform(o)} />
+                          </span>
+                          <span className="truncate px-3 py-2 text-zinc-600">
+                            {o.customerName ?? "—"}
+                          </span>
+                          <span className="px-3 py-2 text-xs text-zinc-600">
+                            {o.status}
+                          </span>
+                          <span className="px-5 py-2 text-right tabular-nums text-zinc-900">
+                            {money(o.total)}
+                          </span>
+                        </button>
+
+                        {expanded && (
+                          <div className="border-t border-zinc-100 bg-zinc-50 px-5 py-3">
+                            {o.items && o.items.length > 0 ? (
+                              <ul className="space-y-1.5">
+                                {o.items.map((it) => (
+                                  <li key={it.id} className="text-sm">
+                                    <div className="flex justify-between gap-4">
+                                      <span className="text-zinc-900">
+                                        {it.quantity}x {it.name}
+                                      </span>
+                                      <span className="tabular-nums text-zinc-600">
+                                        {money(it.totalPrice)}
+                                      </span>
+                                    </div>
+                                    {(it.modifiers ?? []).length > 0 && (
+                                      <div className="pl-4 text-xs text-zinc-500">
+                                        {(it.modifiers ?? [])
+                                          .map((m) => m?.name)
+                                          .filter(Boolean)
+                                          .join(", ")}
+                                      </div>
+                                    )}
+                                    {it.notes && (
+                                      <div className="pl-4 text-xs font-medium text-amber-700">
+                                        Note: {it.notes}
+                                      </div>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-xs text-zinc-400">
+                                No item detail stored for this order.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
