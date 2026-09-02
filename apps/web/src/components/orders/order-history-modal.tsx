@@ -10,7 +10,7 @@
 //
 // The API caps `limit` at 200 and we ask for 50, so one page is one query.
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
@@ -244,9 +244,9 @@ export function OrderHistoryModal({
               No orders in this range.
             </p>
           ) : (
-            <table className="w-full min-w-[760px] table-fixed text-sm">
+            <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500">
-                <tr className="grid grid-cols-[150px_120px_150px_1fr_120px_100px]">
+                <tr>
                   <th className="px-5 py-2 text-left font-semibold">Date</th>
                   <th className="px-3 py-2 text-left font-semibold">Order</th>
                   <th className="px-3 py-2 text-left font-semibold">Channel</th>
@@ -259,18 +259,15 @@ export function OrderHistoryModal({
                 {data.orders.map((o) => {
                   const expanded = openOrderId === o.id;
                   return (
-                    <tr key={o.id} className="contents">
-                      <td colSpan={6} className="p-0">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setOpenOrderId(expanded ? null : o.id)
-                          }
-                          className={`grid w-full grid-cols-[150px_120px_150px_1fr_120px_100px] items-center border-t border-zinc-100 text-left hover:bg-zinc-50 ${
-                            expanded ? "bg-zinc-50" : ""
-                          }`}
-                        >
-                          <span className="flex items-center gap-1.5 px-5 py-2 text-zinc-600">
+                    <Fragment key={o.id}>
+                      <tr
+                        onClick={() => setOpenOrderId(expanded ? null : o.id)}
+                        className={`cursor-pointer border-t border-zinc-100 hover:bg-zinc-50 ${
+                          expanded ? "bg-zinc-50" : ""
+                        }`}
+                      >
+                        <td className="whitespace-nowrap px-5 py-2 text-zinc-600">
+                          <span className="inline-flex items-center gap-1.5">
                             {expanded ? (
                               <ChevronUp className="h-3.5 w-3.5 text-zinc-400" />
                             ) : (
@@ -283,26 +280,27 @@ export function OrderHistoryModal({
                               minute: "2-digit",
                             })}
                           </span>
-                          <span className="px-3 py-2 font-medium text-zinc-900">
-                            {o.displayId ??
-                              (o.orderNumber ? `#${o.orderNumber}` : "—")}
-                          </span>
-                          <span className="px-3 py-2">
-                            <PlatformBadge platform={displayPlatform(o)} />
-                          </span>
-                          <span className="truncate px-3 py-2 text-zinc-600">
-                            {o.customerName ?? "—"}
-                          </span>
-                          <span className="px-3 py-2 text-xs text-zinc-600">
-                            {o.status}
-                          </span>
-                          <span className="px-5 py-2 text-right tabular-nums text-zinc-900">
-                            {money(o.total)}
-                          </span>
-                        </button>
-
-                        {expanded && (
-                          <div className="border-t border-zinc-100 bg-zinc-50 px-5 py-3">
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 font-medium text-zinc-900">
+                          {o.displayId ??
+                            (o.orderNumber ? `#${o.orderNumber}` : "—")}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2">
+                          <PlatformBadge platform={displayPlatform(o)} />
+                        </td>
+                        <td className="max-w-[200px] truncate px-3 py-2 text-zinc-600">
+                          {o.customerName ?? "—"}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-zinc-600">
+                          {o.status}
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-2 text-right tabular-nums text-zinc-900">
+                          {money(o.total)}
+                        </td>
+                      </tr>
+                      {expanded && (
+                        <tr className="bg-zinc-50">
+                          <td colSpan={6} className="px-5 pb-3 pt-1">
                             {o.items && o.items.length > 0 ? (
                               <ul className="space-y-1.5">
                                 {o.items.map((it) => (
@@ -336,10 +334,10 @@ export function OrderHistoryModal({
                                 No item detail stored for this order.
                               </p>
                             )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
