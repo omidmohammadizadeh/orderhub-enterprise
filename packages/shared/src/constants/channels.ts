@@ -57,6 +57,12 @@ const GULF: ChannelDef[] = [
   { id: "DELIVEROO" },
 ];
 
+// NOTE: SUPPORTED_COUNTRIES (currency.ts) offers US as well, and it is
+// deliberately absent here — nobody has confirmed which US marketplaces we
+// integrate with, and the rule at the top of this file is that a market goes
+// in with a source, not from memory. The consequence is real though: a shop
+// set to US falls back to UNIVERSAL and sees only direct ordering, which the
+// brand grid now says out loud instead of leaving the operator to wonder.
 export const CHANNELS_BY_COUNTRY: Record<string, ChannelDef[]> = {
   GB: UK,
   IE: [DIRECT, { id: "JUST_EAT" }, { id: "UBER_EATS" }, { id: "DELIVEROO" }],

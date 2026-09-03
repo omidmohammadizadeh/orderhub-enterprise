@@ -94,6 +94,14 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
       .map((c) => c.platform as string),
   ) as PlatformId[];
 
+  // Only "Direct online ordering" left means this shop's country has no
+  // marketplaces mapped — the country picker offers more countries than the
+  // channel table covers, and the difference showed up here as Just Eat, Uber
+  // Eats and Deliveroo quietly not existing. Silently short is the worst way
+  // to be wrong: nothing on the page said the country was the reason, so it
+  // read as a bug in the brand.
+  const onlyDirect = PLATFORMS.length <= 1;
+
   const upsert = useMutation({
     mutationFn: brandConnectionsClient.upsert,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["brand-connections", brandId] }),
@@ -227,6 +235,14 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
           made a page of near-identical bars where the only thing that
           differed was a logo and a chip. A tile grid is scannable — the
           operator is looking for one channel, not reading a list. */}
+      {onlyDirect && (
+        <p className="mb-2.5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+          No marketplaces are set up for this shop&apos;s country
+          {country ? ` (${country})` : ""}, so only direct ordering is shown.
+          If that&apos;s wrong, check the country on the location — it is what
+          decides which channels a brand can sell through.
+        </p>
+      )}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] gap-2.5">
         {PLATFORMS.map((platform) => (
           <ChannelTile
