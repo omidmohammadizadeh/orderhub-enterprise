@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical, History } from "lucide-react";
 import { OrderList } from "@/components/orders/order-list";
-import { ScheduledOrdersStrip } from "@/components/orders/scheduled-orders-strip";
 import { StopTakingOrdersModal } from "@/components/orders/stop-taking-orders-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { OrderHistoryModal } from "@/components/orders/order-history-modal";
@@ -214,7 +213,6 @@ export default function OrdersPage() {
           {feedback}
         </div>
       )}
-      <ScheduledOrdersStrip locationId={selectedLocationId ?? undefined} />
       <OrderList locationId={selectedLocationId ?? undefined} />
       {selectedLocationId && (
         <StopTakingOrdersModal
