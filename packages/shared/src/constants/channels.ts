@@ -1,3 +1,4 @@
+import { resolveCountryCode } from "../lib/currency";
 // ── Which sales channels exist in which country ─────────────────────────────
 //
 // Careem and talabat trade in the Gulf; Just Eat, Uber Eats and Deliveroo are
@@ -78,7 +79,10 @@ export const CHANNELS_BY_COUNTRY: Record<string, ChannelDef[]> = {
 
 /** Channels a shop in this country can actually sell through. */
 export function channelsForCountry(country: string | null | undefined): ChannelDef[] {
-  const c = String(country ?? "").trim().toUpperCase();
+  // Through resolveCountryCode, so a location saved as "United Kingdom" or
+  // "UK" — free text from before the country picker existed — resolves to GB
+  // instead of matching nothing and silently losing every marketplace.
+  const c = resolveCountryCode(country);
   return CHANNELS_BY_COUNTRY[c] ?? UNIVERSAL;
 }
 

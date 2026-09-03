@@ -289,6 +289,42 @@ export const SUPPORTED_COUNTRIES: CountryOption[] = [
   { code: "US", name: "United States", dialCode: "+1" },
 ];
 
+/**
+ * Whatever is stored on the location → an ISO country code.
+ *
+ * The country picker saves codes, but rows written before it existed hold free
+ * text — "United Kingdom", "UK" — and everything downstream keys off this value
+ * by exact code. A shop saved as "United Kingdom" matched nothing in the
+ * channel table and lost every marketplace with no clue as to why.
+ *
+ * Accepting the name as well as the code fixes every one of those rows without
+ * a migration. Returns the input uppercased when nothing matches, so an
+ * unknown value still fails the same way it always did rather than silently
+ * becoming GB.
+ */
+export function resolveCountryCode(input: string | null | undefined): string {
+  const raw = String(input ?? "").trim().toUpperCase();
+  if (!raw) return raw;
+  if (SUPPORTED_COUNTRIES.some((c) => c.code === raw)) return raw;
+  const byName = SUPPORTED_COUNTRIES.find(
+    (c) => c.name.toUpperCase() === raw,
+  );
+  if (byName) return byName.code;
+  const ALIASES: Record<string, string> = {
+    UK: "GB",
+    "GREAT BRITAIN": "GB",
+    ENGLAND: "GB",
+    SCOTLAND: "GB",
+    WALES: "GB",
+    "NORTHERN IRELAND": "GB",
+    UAE: "AE",
+    "U.A.E.": "AE",
+    EIRE: "IE",
+    "REPUBLIC OF IRELAND": "IE",
+  };
+  return ALIASES[raw] ?? raw;
+}
+
 export function countryOption(code: string | null | undefined): CountryOption | undefined {
   const c = String(code ?? "").trim().toUpperCase();
   return SUPPORTED_COUNTRIES.find((x) => x.code === c);

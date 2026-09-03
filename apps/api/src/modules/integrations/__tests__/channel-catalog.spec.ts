@@ -87,3 +87,30 @@ describe("visibleChannelIds — never hide a live connection", () => {
     expect(visibleChannelIds("GB", ["WOLT", ""])).toEqual(ids("GB"));
   });
 });
+
+// PIZZA UNO's location held "United Kingdom" rather than "GB" — free text from
+// before the country picker existed. The exact-code lookup matched nothing, so
+// the brand fell back to direct ordering alone and every marketplace vanished
+// from the Brands page with no explanation.
+describe("channelsForCountry — a country stored as free text", () => {
+  it("reads a location saved as the country's name", () => {
+    expect(ids("United Kingdom")).toEqual(ids("GB"));
+  });
+
+  it("reads UK, which nobody types as GB", () => {
+    expect(ids("UK")).toEqual(ids("GB"));
+    expect(ids("uk")).toEqual(ids("GB"));
+  });
+
+  it("reads UAE the same way", () => {
+    expect(ids("United Arab Emirates")).toEqual(ids("AE"));
+    expect(ids("UAE")).toEqual(ids("AE"));
+  });
+
+  it("still falls back for a country we genuinely do not cover", () => {
+    // US is in the country picker with no channels mapped. It must keep
+    // failing the way it always did rather than quietly becoming GB.
+    expect(ids("US")).toEqual(["DIRECT_ONLINE"]);
+    expect(ids("Atlantis")).toEqual(["DIRECT_ONLINE"]);
+  });
+});
