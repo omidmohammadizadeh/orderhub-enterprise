@@ -368,20 +368,13 @@ export class OrdersService {
         );
         return;
       }
-      // POS "scheduled for later" orders (metadata.isScheduled, set at
-      // creation — see create() below) must stay PENDING until the operator
-      // clicks "Start preparing now"; that's the entire point of the
-      // Scheduled Orders strip. This check was documented above the emit
-      // call further down but never actually implemented, so a location
-      // with auto-accept ON would silently accept a scheduled order early —
-      // which then vanished from BOTH the scheduled strip (no longer
-      // PENDING) and the live board (scheduledAt still in the future).
-      if ((fresh.metadata as any)?.isScheduled === true) {
-        this.logger.log(
-          `Auto-accept skipped order ${orderId} — scheduled for later`,
-        );
-        return;
-      }
+      // Scheduled orders auto-accept like any other. They used to be held
+      // PENDING for the operator to start by hand, which made sense when the
+      // Scheduled strip was their only home. The shop wants them treated as
+      // ordinary incoming orders — accepted and printed the moment they
+      // arrive, with the slot on the ticket — and shown under Scheduled on the
+      // board rather than New. Holding the accept only meant the order sat
+      // there waiting for somebody to notice it.
       await this.updateStatus(
         orderId,
         tenantId,

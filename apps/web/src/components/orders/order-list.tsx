@@ -171,7 +171,13 @@ const BUCKETS: Bucket[] = [
   {
     key: "ACCEPTED",
     label: "Accepted",
-    match: (o) => o.status === "ACCEPTED" && !isWaitingForPayment(o),
+    // Not the pre-orders. They are accepted on arrival now, and the board
+    // columns are filtered independently rather than first-match — so without
+    // this the same order is listed under Scheduled AND Accepted.
+    match: (o) =>
+      o.status === "ACCEPTED" &&
+      !isWaitingForPayment(o) &&
+      !isScheduledForLater(o as any),
     pill: "bg-sky-50 text-sky-700",
     icon: CheckCircle2,
   },

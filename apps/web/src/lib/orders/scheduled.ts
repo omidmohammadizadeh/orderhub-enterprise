@@ -34,13 +34,20 @@ export function scheduledWhen(o: SchedulableOrder): Date | null {
 }
 
 /**
- * Waiting for its slot: due comfortably in the future and nobody has started
- * it yet. Once an operator accepts it, it leaves this bucket and travels the
- * normal path, so a scheduled order that is being cooked shows where the work
- * actually is.
+ * Waiting for its slot: due comfortably in the future and not yet being made.
+ *
+ * ACCEPTED counts. A pre-order is auto-accepted and printed on arrival like
+ * any other order — that is what the shop wants — so gating this on PENDING
+ * alone emptied the bucket seconds after the order landed and dropped it into
+ * Accepted among the live work, which is the one place it must not look like.
+ *
+ * PREPARING onwards does NOT count: somebody has started cooking it, and from
+ * that moment the board should show where the work actually is.
  */
+const WAITING_STATUSES = new Set(["PENDING", "ACCEPTED"]);
+
 export function isScheduledForLater(o: SchedulableOrder): boolean {
-  if (o.status !== "PENDING") return false;
+  if (!WAITING_STATUSES.has(String(o.status ?? ""))) return false;
   const when = scheduledWhen(o);
   return !!when && when.getTime() - Date.now() > FUTURE_THRESHOLD_MS;
 }

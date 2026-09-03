@@ -95,7 +95,9 @@ const COLUMNS: Column[] = [
   {
     key: "ACCEPTED",
     title: "Accepted",
-    match: (o) => o.status === "ACCEPTED",
+    // Pre-orders belong to Scheduled until somebody starts cooking. Columns
+    // filter independently, so an accepted one would otherwise sit in both.
+    match: (o) => o.status === "ACCEPTED" && !isScheduledForLater(o as any),
     color: "bg-sky-500",
     icon: <CheckCircle2 className="h-4 w-4" />,
   },

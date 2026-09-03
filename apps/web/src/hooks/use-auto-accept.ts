@@ -26,7 +26,6 @@ import { locationsClient } from "../lib/api/locations.client";
 import { useLiveOrdersFeed } from "./use-live-orders-feed";
 import { queryKeys } from "../lib/api/query-keys";
 import { isAwaitingOurPayment } from "../lib/orders/awaiting-payment";
-import { isScheduledForLater } from "../lib/orders/scheduled";
 
 export function useAutoAccept(locationId?: string) {
   const acceptedRef = useRef<Set<string>>(new Set());
@@ -60,14 +59,6 @@ export function useAutoAccept(locationId?: string) {
       if (isAwaitingOurPayment(o as any)) continue;
       if (acceptedRef.current.has(o.id) || inFlightRef.current.has(o.id))
         continue;
-      // A pre-order is not accepted on arrival. It still PRINTS on arrival —
-      // that's the auto-print hook, a separate pipeline, and the ticket
-      // carries the SCHEDULED banner and the slot — but accepting it here
-      // would move it straight out of the Scheduled bucket into Accepted and
-      // put it in front of the kitchen hours early. The server's own
-      // auto-accept has skipped these all along (metadata.isScheduled); this
-      // hook is the second of the two accept paths and never got the guard.
-      if (isScheduledForLater(o as any)) continue;
       inFlightRef.current.add(o.id);
       ordersClient
         .updateStatus(o.id, "ACCEPTED", { note: "auto-accept" } as any)
