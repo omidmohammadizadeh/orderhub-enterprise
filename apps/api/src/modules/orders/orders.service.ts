@@ -2695,13 +2695,19 @@ export class OrdersService {
                 "DISPATCHED",
               ],
             },
-            // Phase AM — scheduled-for-later orders live in their own
-            // section of the Orders board; exclude them here so they don't
-            // clutter the "happening now" columns.
-            OR: [
-              { scheduledAt: null },
-              { scheduledAt: { lt: new Date() } },
-            ],
+            // Scheduled orders stay ON the board. They used to be filtered
+            // out here because there was nowhere sensible to put them — the
+            // only home was the strip above the board, fed by a separate
+            // query. The board now has a Scheduled bucket that holds them and
+            // keeps them out of New, so hiding them from the feed only made
+            // them invisible: a POS pre-order (create() mirrors scheduledFor
+            // onto scheduledAt) matched this filter and never reached the
+            // board, the auto-print hook, or the Scheduled bucket itself.
+            //
+            // Online pre-orders were hidden by a different accident — the
+            // storefront goes through ingestCanonical, which never writes
+            // scheduledAt, so they slipped through this filter and landed in
+            // New looking like ASAP work.
           },
           {
             status: { in: ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"] },
