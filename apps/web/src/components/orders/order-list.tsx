@@ -30,8 +30,14 @@ import {
   Filter as FilterIcon,
   X as XIcon,
   Check,
+  CalendarClock,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import {
+  isScheduledForLater,
+  scheduledWhen,
+  formatScheduledWhen,
+} from "@/lib/orders/scheduled";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { OrderActions } from "./order-actions";
 import { DispatchModal } from "./dispatch-modal";
@@ -144,9 +150,21 @@ const BUCKETS: Bucket[] = [
     icon: CreditCard,
   },
   {
+    key: "SCHEDULED",
+    label: "Scheduled",
+    match: (o) => isScheduledForLater(o as any),
+    pill: "bg-indigo-50 text-indigo-700",
+    icon: CalendarClock,
+  },
+  {
     key: "PENDING",
     label: "New",
-    match: (o) => o.status === "PENDING" && !isWaitingForPayment(o),
+    match: (o) =>
+      o.status === "PENDING" &&
+      !isWaitingForPayment(o) &&
+      // A pre-order is not work to start now. Without this the kitchen makes
+      // a 9pm delivery at 5pm because it looked like every other new order.
+      !isScheduledForLater(o as any),
     pill: "bg-blue-50 text-blue-700",
     icon: Clock,
   },
@@ -586,6 +604,20 @@ function OrderCard({ order, onOpen }: { order: Order; onOpen: () => void }) {
             </span>
             <span>·</span>
             <span>{timeAgo(order.createdAt)}</span>
+            {/* When it's due, not when it arrived. On a pre-order the placed
+                time is the one number nobody needs — the slot the customer
+                chose is what the kitchen works back from. */}
+            {(() => {
+              const due = isScheduledForLater(order as any)
+                ? scheduledWhen(order as any)
+                : null;
+              return due ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-1.5 py-0.5 font-semibold text-indigo-700">
+                  <CalendarClock className="h-3 w-3" />
+                  for {formatScheduledWhen(due)}
+                </span>
+              ) : null;
+            })()}
           </div>
         </div>
         <span

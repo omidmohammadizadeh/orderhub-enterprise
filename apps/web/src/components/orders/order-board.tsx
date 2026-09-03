@@ -17,7 +17,13 @@ import {
   XCircle,
   Ban,
   CreditCard,
+  CalendarClock,
 } from "lucide-react";
+import {
+  isScheduledForLater,
+  scheduledWhen,
+  formatScheduledWhen,
+} from "@/lib/orders/scheduled";
 import { StatusColumn } from "./status-column";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { useLiveOrders } from "../../hooks/use-live-orders";
@@ -67,9 +73,22 @@ const COLUMNS: Column[] = [
     icon: <CreditCard className="h-4 w-4" />,
   },
   {
+    key: "SCHEDULED",
+    title: "Scheduled",
+    match: (o) => isScheduledForLater(o as any),
+    color: "bg-indigo-500",
+    icon: <CalendarClock className="h-4 w-4" />,
+  },
+  {
     key: "NEW",
     title: "New",
-    match: (o) => o.status === "PENDING" && !isWaitingForPayment(o),
+    match: (o) =>
+      o.status === "PENDING" &&
+      !isWaitingForPayment(o) &&
+      // Same rule as the list view, from the same predicate — a column that
+      // disagreed with the list about what "new" means would have the kitchen
+      // cooking a pre-order hours early on one screen and not the other.
+      !isScheduledForLater(o as any),
     color: "bg-blue-500",
     icon: <Clock className="h-4 w-4" />,
   },

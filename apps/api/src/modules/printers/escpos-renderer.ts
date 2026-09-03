@@ -207,6 +207,24 @@ export function renderToEscPos(
   newline();
   out.push(...doubleSizeOff(), ...boldOff(), ...alignLeft());
 
+  // A pre-order has to announce itself. The tablet's own renderer has printed
+  // this banner for a while; the server path never did, so the same order
+  // printed from the bridge said SCHEDULED and printed from here looked like
+  // an ASAP ticket — and a kitchen works from whichever piece of paper it is
+  // handed.
+  if (payload.scheduledFor) {
+    const when = new Date(payload.scheduledFor);
+    if (Number.isFinite(when.getTime())) {
+      out.push(...alignCenter(), ...boldOn(), ...doubleSizeOn(), ...reverseOn());
+      write("SCHEDULED");
+      newline();
+      out.push(...reverseOff(), ...doubleSizeOff());
+      write(when.toLocaleString("en-GB"));
+      newline();
+      out.push(...boldOff(), ...alignLeft());
+    }
+  }
+
   if (payload.customerName) {
     write(`Customer: ${payload.customerName}`);
     newline();

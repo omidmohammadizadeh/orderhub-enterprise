@@ -2479,14 +2479,25 @@ export class OrdersService {
   async findScheduledOrders(user: AuthenticatedUser, locationId?: string) {
     const access = await this.resolveOrderAccessWhere(user, locationId);
     if (!access) return [];
+    // An hour's grace, so a slot that has just passed is still on screen for
+    // whoever has to deal with it.
+    const since = new Date(Date.now() - 60 * 60 * 1000);
     return this.prisma.order.findMany({
       where: {
         ...access,
         status: { in: ["PENDING"] },
-        scheduledAt: { not: null, gte: new Date(Date.now() - 60 * 60 * 1000) },
+        // Either field. scheduledAt is the POS-side mirror, written only by
+        // create(); ingestCanonical sets scheduledFor alone, so a Just Eat or
+        // Deliveroo pre-order arriving through HubRise matched nothing here and
+        // never appeared as scheduled anywhere — it sat in New like an ASAP
+        // order, which is how a 9pm delivery gets cooked at 5pm.
+        OR: [
+          { scheduledAt: { not: null, gte: since } },
+          { scheduledFor: { not: null, gte: since } },
+        ],
       },
       include: ORDER_INCLUDE,
-      orderBy: { scheduledAt: "asc" },
+      orderBy: { scheduledFor: "asc" },
     });
   }
 
