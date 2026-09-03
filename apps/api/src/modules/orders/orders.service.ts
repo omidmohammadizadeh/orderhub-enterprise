@@ -762,14 +762,16 @@ export class OrdersService {
         void this.maybeAutoAccept(order.id, tenantId, locationId);
       }
 
-      // Same "parked until the operator starts it" rule applies to the
-      // realtime board: a POS scheduled order must not flash onto the live
-      // "happening now" board via the socket push only to vanish once a
-      // page refresh re-syncs with /orders/live, which correctly excludes
-      // it. It's still visible immediately via the Scheduled Orders strip's
-      // own poll of /orders/scheduled.
-      const isScheduledForLater = meta.isScheduled === true;
-      if (!isUnpaidCard && !isUnpaidPaymentLink && !isScheduledForLater) this.socket.emitNewOrder(locationId, {
+      // Scheduled orders are pushed like any other. They used to be held back
+      // because /orders/live excluded them, so the socket would flash one onto
+      // the board and the next refresh would take it away again. The board
+      // keeps them now, in the Scheduled bucket — so suppressing the push only
+      // meant the order sat in the database, unannounced, until somebody
+      // happened to reload. Nothing arrived, nothing printed.
+      //
+      // Unpaid card and payment-link orders are still held: those are not real
+      // to the kitchen until the money lands, which is a different rule.
+      if (!isUnpaidCard && !isUnpaidPaymentLink) this.socket.emitNewOrder(locationId, {
         orderId: order.id,
         tenantId,
         locationId,
