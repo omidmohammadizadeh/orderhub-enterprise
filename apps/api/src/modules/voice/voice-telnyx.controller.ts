@@ -223,6 +223,7 @@ export class VoiceTelnyxController {
     const relayUrl = this.relay.relayUrl(ccid);
     if (relayUrl) {
       if (await this.telnyx.startConversationRelay(ccid, { url: relayUrl, greeting })) {
+        this.relay.watchForConnection(ccid);
         return;
       }
       // Falling back is the whole reason the old path is still here.

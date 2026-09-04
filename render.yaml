@@ -135,6 +135,22 @@ services:
         sync: false
       - key: TELNYX_PUBLIC_KEY
         sync: false
+      # ── AI phone line: Conversation Relay ──
+      # One WebSocket per call, exchanging TEXT — Telnyx does the listening,
+      # the endpointing and the speaking, we bring the AI. It is what makes the
+      # first sentence of an answer play while the model is still writing the
+      # second; on the webhook transport the caller waits for the whole reply
+      # to be written before hearing any of it, which is a hard floor of about
+      # two seconds a turn.
+      #
+      # Unset this key and the line falls back to the webhook transport, which
+      # is still there and still works. That is the off switch.
+      - key: VOICE_RELAY_URL
+        value: wss://orderhub-api-0re6.onrender.com/voice/relay
+      # Signs the per-call token on that URL. Falls back to TELNYX_API_KEY when
+      # unset, so it is optional.
+      - key: VOICE_RELAY_SECRET
+        sync: false
       # ── Optional: provider credentials ──
       - key: UBER_EATS_CLIENT_ID
         sync: false

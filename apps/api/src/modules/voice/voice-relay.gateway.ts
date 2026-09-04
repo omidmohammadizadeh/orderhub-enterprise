@@ -138,6 +138,29 @@ export class VoiceRelayGateway implements OnModuleInit {
     this.logger.log("Voice relay listening on /voice/relay");
   }
 
+  /** Has Telnyx actually dialled us back for this call? */
+  isConnected(callControlId: string): boolean {
+    return this.sockets.has(callControlId);
+  }
+
+  /**
+   * Telnyx accepted the start command — but did it reach us?
+   *
+   * A relay that starts and never connects is the one failure this design
+   * cannot recover from on its own: Telnyx is holding the call, and speaking
+   * over it from here would talk across whatever it is already saying. So this
+   * does not try to be clever. It says so, loudly, in the one place someone
+   * will be looking after a test call.
+   */
+  watchForConnection(callControlId: string): void {
+    setTimeout(() => {
+      if (this.isConnected(callControlId)) return;
+      this.logger.error(
+        `Conversation Relay started on ${callControlId.slice(-8)} but nothing connected to ${this.config.get<string>("VOICE_RELAY_URL")} — the caller is on a line that cannot hear them. Unset VOICE_RELAY_URL to fall back to the webhook transport.`,
+      );
+    }, 8000);
+  }
+
   private attach(ws: WebSocket, callControlId: string): void {
     this.sockets.set(callControlId, ws);
     this.logger.log(`relay open for call ${callControlId.slice(-8)}`);
