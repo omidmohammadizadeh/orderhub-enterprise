@@ -340,3 +340,35 @@ describe("get_order_status", () => {
     expect(out).toContain("read it out again");
   });
 });
+
+describe("phoneReallyMatches", () => {
+  // Reached through the prototype like the rest — this one lives on
+  // VoiceService, but the hazard it guards belongs with the order-status work.
+  const { VoiceService } = require("../voice.service");
+  const vs = () => Object.create(VoiceService.prototype) as any;
+
+  it("matches a caller against their own number", () => {
+    expect(vs().phoneReallyMatches("+447700900123", "447700900123")).toBe(true);
+    expect(vs().phoneReallyMatches("07700900123", "447700900123")).toBe(true);
+  });
+
+  it("will not match a caller against a stored PIN", () => {
+    // Marketplace orders store "442033195035 PIN 962535892". A `contains`
+    // match on the last nine digits of a caller's number can land on the PIN
+    // instead of the phone, which would read a stranger's order out loud.
+    expect(vs().phoneReallyMatches("442033195035 PIN 962535892", "962535892")).toBe(
+      false,
+    );
+  });
+
+  it("still matches the phone half of a proxy-plus-PIN string", () => {
+    expect(
+      vs().phoneReallyMatches("+447533006408 PIN 096959189", "447533006408"),
+    ).toBe(true);
+  });
+
+  it("refuses when either side is missing", () => {
+    expect(vs().phoneReallyMatches(null, "447700900123")).toBe(false);
+    expect(vs().phoneReallyMatches("+447700900123", "")).toBe(false);
+  });
+});

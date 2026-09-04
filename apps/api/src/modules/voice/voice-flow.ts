@@ -285,12 +285,73 @@ export function spokenDigits(value: string | number): string {
  * standing in their kitchen, and every one of these lines has to end in a way
  * that doesn't invite a follow-up question we can't answer.
  */
+/** Channels whose delivery, and whose customer relationship, are not ours. */
+const MARKETPLACES: Record<string, string> = {
+  UBER_EATS: "Uber Eats",
+  DELIVEROO: "Deliveroo",
+  JUST_EAT: "Just Eat",
+  TALABAT: "talabat",
+  CAREEM: "Careem",
+  DOORDASH: "DoorDash",
+  GRUBHUB: "Grubhub",
+};
+
+/** The customer-facing name of the channel an order came in on, or null when
+ *  it is one of the shop's own. */
+export function marketplaceName(source?: string | null): string | null {
+  return MARKETPLACES[String(source ?? "").toUpperCase()] ?? null;
+}
+
 export function spokenOrderStatus(args: {
   status: string;
   fulfillmentType?: string | null;
   minutesAway?: number | null;
+  /** orderSource — decides whose driver this is and who can actually help. */
+  source?: string | null;
+  /** Courier fields, when the platform has told us. */
+  courierName?: string | null;
+  courierMinutesAway?: number | null;
 }): { say: string; transfer?: boolean } {
   const delivery = args.fulfillmentType === "DELIVERY";
+  const via = marketplaceName(args.source);
+
+  // A marketplace order is out of the shop's hands the moment it leaves, and
+  // saying "we're getting a driver to it" when Uber Eats owns the driver is
+  // both wrong and sets up a complaint the shop cannot answer. Name the
+  // platform, use their courier when we have it, and send the caller to the
+  // people who can actually change something.
+  if (via && delivery) {
+    const eta =
+      args.courierMinutesAway != null && args.courierMinutesAway > 0
+        ? ` It should be about ${args.courierMinutesAway} minutes.`
+        : "";
+    const driver = args.courierName ? ` ${args.courierName} is bringing it.` : "";
+    switch (args.status) {
+      case "OUT_FOR_DELIVERY":
+      case "DISPATCHED":
+        return { say: `That's your ${via} order, and it's with the driver now.${driver}${eta}` };
+      case "RIDER_ARRIVED":
+        return { say: `The ${via} driver is at the shop collecting it right now.` };
+      case "PENDING_DISPATCH":
+      case "ASSIGNED_DRIVER":
+      case "ACCEPTED_BY_DRIVER":
+        return { say: `That's your ${via} order. It's ready and a driver is on the way to collect it.${eta}` };
+      case "READY":
+        return { say: `That's your ${via} order and it's ready — it's waiting for their driver.` };
+      case "COMPLETED":
+        return { say: `${via} have that one down as delivered.` };
+      case "CANCELLED":
+      case "REJECTED":
+      case "FAILED":
+        // The shop cannot refund or reinstate a marketplace order.
+        return {
+          say: `That ${via} order has been cancelled. ${via} handle the refund on those, so you'll need to go through the app — but let me put you through to the shop if you'd like a word.`,
+          transfer: true,
+        };
+      default:
+        return { say: `That's your ${via} order and the kitchen is on it.${eta}` };
+    }
+  }
   const eta =
     args.minutesAway != null && args.minutesAway > 0
       ? ` It should be about ${args.minutesAway} minutes.`

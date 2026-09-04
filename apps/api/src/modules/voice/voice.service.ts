@@ -17,6 +17,7 @@ import {
   parsePayment,
   parseYesNo,
   spokenDigits,
+  marketplaceName,
   spokenOrderStatus,
   wantsHuman,
   type MenuChoice,
@@ -30,6 +31,18 @@ import {
 // behind forward-on-no-answer, so every path that declines a call leaves it
 // ringing at the shop exactly as it did before we existed. We are allowed to
 // degrade to the old world. We are never allowed to swallow a call.
+
+/** What answering "where's my order" needs off the row. */
+const STATUS_FIELDS = {
+  orderNumber: true,
+  status: true,
+  fulfillmentType: true,
+  estimatedReadyAt: true,
+  customerPhone: true,
+  orderSource: true,
+  courierName: true,
+  courierEtaAt: true,
+} as const;
 
 @Injectable()
 export class VoiceService {
@@ -305,13 +318,7 @@ export class VoiceService {
       ? await this.db().order.findFirst({
           where: { locationId: ctx.locationId, OR: byReference },
           orderBy: { createdAt: "desc" },
-          select: {
-            orderNumber: true,
-            status: true,
-            fulfillmentType: true,
-            estimatedReadyAt: true,
-            customerPhone: true,
-          },
+          select: STATUS_FIELDS,
         })
       : // No number heard. Fall back to the number they are ringing from,
         // which is right far more often than it is wrong.
@@ -322,13 +329,7 @@ export class VoiceService {
               customerPhone: { contains: caller.slice(-9) },
             },
             orderBy: { createdAt: "desc" },
-            select: {
-              orderNumber: true,
-              status: true,
-              fulfillmentType: true,
-              estimatedReadyAt: true,
-              customerPhone: true,
-            },
+            select: STATUS_FIELDS,
           })
         : null;
 
@@ -343,16 +344,17 @@ export class VoiceService {
               customerPhone: { contains: caller.slice(-9) },
             },
             orderBy: { createdAt: "desc" },
-            select: {
-              orderNumber: true,
-              status: true,
-              fulfillmentType: true,
-              estimatedReadyAt: true,
-              customerPhone: true,
-            },
+            select: STATUS_FIELDS,
           })
         : null;
-    if (fallback) order = fallback;
+    // The caller-ID fallback must not reach a marketplace order. Those store a
+    // SHARED proxy number — "442033195035 PIN 962535892" was two different
+    // Deliveroo customers in one evening — so matching on it would read one
+    // stranger's dinner out to another. Their own reference is the only safe
+    // way in, and asking for it is the correct outcome.
+    if (fallback && !marketplaceName(fallback.orderSource) && this.phoneReallyMatches(fallback.customerPhone, caller)) {
+      order = fallback;
+    }
 
     if (!order) {
       // Not finding it first time is not a reason to end the call. A number
@@ -386,10 +388,22 @@ export class VoiceService {
           (new Date(order.estimatedReadyAt).getTime() - Date.now()) / 60000,
         )
       : null;
+    const courierMins = order.courierEtaAt
+      ? Math.round((new Date(order.courierEtaAt).getTime() - Date.now()) / 60000)
+      : null;
     const spoken = spokenOrderStatus({
       status: order.status,
       fulfillmentType: order.fulfillmentType,
       minutesAway: mins,
+      source: order.orderSource,
+      // A placeholder is worse than nothing — Deliveroo sends the literal
+      // string "Deliveroo Rider" when it is withholding the real name, and
+      // reading that out loud sounds like we do not know either.
+      courierName:
+        order.courierName && !/rider|driver|courier/i.test(order.courierName)
+          ? order.courierName
+          : null,
+      courierMinutesAway: courierMins,
     });
     if (spoken.transfer) return this.handOver(call, ctx, state, spoken.say);
 
@@ -558,6 +572,21 @@ export class VoiceService {
     return ctx.transferNumber
       ? { say: line, transferTo: ctx.transferNumber, outcome: "TRANSFERRED" }
       : { say: line };
+  }
+
+  /**
+   * Does the number they are ringing from really belong to this order?
+   *
+   * `customerPhone` on a marketplace order is "442033195035 PIN 962535892" —
+   * a proxy number AND a nine-digit PIN. A `contains` match on the last nine
+   * digits of a caller's number can therefore hit the PIN rather than the
+   * phone, so the match is confirmed here against the phone portion only.
+   */
+  private phoneReallyMatches(stored?: string | null, caller?: string): boolean {
+    if (!stored || !caller) return false;
+    const phonePart = String(stored).split(/\s*PIN\s*/i)[0] ?? "";
+    const digits = phonePart.replace(/\D/g, "");
+    return digits.length >= 9 && digits.endsWith(caller.slice(-9));
   }
 
   /** Call row + context + state, or null if any of them has gone. */

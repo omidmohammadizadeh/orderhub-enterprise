@@ -2,6 +2,7 @@ import {
   digitChoice,
   interpretMenuChoice,
   isLikelyHallucination,
+  marketplaceName,
   normalisePostcode,
   parseFulfillment,
   parseOrderReference,
@@ -432,5 +433,80 @@ describe("parseOrderReference", () => {
         "my order was 2 large pepperoni pizzas and a garlic bread on tuesday the 4th",
       ).code,
     ).toBeNull();
+  });
+});
+
+describe("spokenOrderStatus — marketplace orders", () => {
+  const uber = { source: "UBER_EATS", fulfillmentType: "DELIVERY" };
+
+  it("names the platform, because the shop's driver is not the one coming", () => {
+    const out = spokenOrderStatus({ ...uber, status: "OUT_FOR_DELIVERY" });
+    expect(out.say).toContain("Uber Eats");
+    expect(out.say).toContain("driver");
+  });
+
+  it("does not promise the shop is getting a driver to it", () => {
+    // Our own wording — "we're getting a driver to it" — is wrong when the
+    // platform owns the driver, and sets up a complaint the shop can't answer.
+    const out = spokenOrderStatus({ ...uber, status: "ASSIGNED_DRIVER" });
+    expect(out.say).toContain("Uber Eats");
+    expect(out.say).not.toContain("we're getting");
+  });
+
+  it("sends a cancelled marketplace order to the platform, not the shop", () => {
+    // The shop cannot refund or reinstate a Deliveroo order.
+    const out = spokenOrderStatus({
+      source: "DELIVEROO",
+      fulfillmentType: "DELIVERY",
+      status: "CANCELLED",
+    });
+    expect(out.say).toContain("Deliveroo");
+    expect(out.say).toMatch(/refund|app/i);
+    expect(out.transfer).toBe(true);
+  });
+
+  it("quotes the platform's own courier ETA when they gave one", () => {
+    const out = spokenOrderStatus({
+      ...uber,
+      status: "OUT_FOR_DELIVERY",
+      courierMinutesAway: 12,
+    });
+    expect(out.say).toContain("12 minutes");
+  });
+
+  it("keeps the shop's own wording for the shop's own channels", () => {
+    for (const source of ["ONLINE", "VOICE", "POS", "DIRECT", null]) {
+      const out = spokenOrderStatus({
+        source,
+        fulfillmentType: "DELIVERY",
+        status: "ASSIGNED_DRIVER",
+      });
+      expect(out.say).not.toMatch(/Uber Eats|Deliveroo|Just Eat/);
+    }
+  });
+
+  it("uses shop wording for a marketplace COLLECTION order", () => {
+    // Nobody else's driver is involved, so the platform framing would be
+    // confusing rather than helpful.
+    const out = spokenOrderStatus({
+      source: "UBER_EATS",
+      fulfillmentType: "PICKUP",
+      status: "READY",
+    });
+    expect(out.say).toContain("collection");
+  });
+});
+
+describe("marketplaceName", () => {
+  it("knows the platforms whose drivers and refunds are not the shop's", () => {
+    expect(marketplaceName("UBER_EATS")).toBe("Uber Eats");
+    expect(marketplaceName("JUST_EAT")).toBe("Just Eat");
+    expect(marketplaceName("DELIVEROO")).toBe("Deliveroo");
+  });
+
+  it("treats the shop's own channels as its own", () => {
+    for (const own of ["ONLINE", "VOICE", "POS", "DIRECT", "WHATSAPP", null, ""]) {
+      expect(marketplaceName(own)).toBeNull();
+    }
   });
 });
