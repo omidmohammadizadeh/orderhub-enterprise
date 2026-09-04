@@ -48,25 +48,36 @@ export default function OrdersPage() {
   const canSimulate = role === "PLATFORM_ADMIN";
   const [pauseModalOpen, setPauseModalOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  /** Which platform the driver-simulation chooser is open for. */
+  const [simChoice, setSimChoice] = useState<
+    "DELIVEROO" | "UBER_EATS" | "JUST_EAT" | null
+  >(null);
 
   // Simulate a marketplace order so the marketplace receipt path can be
   // exercised on a real till — the QR especially, which is only ever printed
   // for marketplace channels and so cannot be tested with a DIRECT order.
   const simulateOrder = useMutation({
-    mutationFn: async (platform: "DELIVEROO" | "UBER_EATS" | "JUST_EAT") => {
+    mutationFn: async (v: {
+      platform: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+      withDriver: boolean;
+    }) => {
       if (!selectedLocationId) {
         throw new Error("Select a specific location first");
       }
       const res = await apiClient.post("/v1/orders/test", {
         locationId: selectedLocationId,
         fulfillmentType: "DELIVERY",
-        platform,
+        platform: v.platform,
+        withDriver: v.withDriver,
       });
       return res.data;
     },
-    onSuccess: (_data, platform) => {
+    onSuccess: (_data, v) => {
+      setSimChoice(null);
       setFeedback(
-        `Simulated ${SIM_LABEL[platform]} order created — accept it to print the ticket and its QR. Only you can see it.`,
+        v.withDriver
+          ? `Simulated ${SIM_LABEL[v.platform]} order created — accept it to print, then watch it go driver assigned (20s), out for delivery (45s), delivered (75s). Only you can see it.`
+          : `Simulated ${SIM_LABEL[v.platform]} order created — accept it to print the ticket and its QR. Only you can see it.`,
       );
       queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
       window.setTimeout(() => setFeedback(null), 6000);
@@ -186,13 +197,13 @@ export default function OrdersPage() {
               <button
                 key={platform}
                 type="button"
-                onClick={() => simulateOrder.mutate(platform)}
+                onClick={() => setSimChoice(platform)}
                 disabled={disabled}
                 title={`Create a fake ${SIM_LABEL[platform]} order on this shop's board — visible to platform admins only`}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:border-violet-300 hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {simulateOrder.isPending &&
-                simulateOrder.variables === platform ? (
+                simulateOrder.variables?.platform === platform ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <FlaskConical className="h-4 w-4" />
@@ -214,6 +225,69 @@ export default function OrdersPage() {
         </div>
       )}
       <OrderList locationId={selectedLocationId ?? undefined} />
+        {/* Driver simulation chooser. Two ways to run a marketplace test and
+            they rehearse different things: without a driver you check the
+            ticket, the QR and the board; with one you watch the courier
+            stages land the way a real rider's would. Asking beats guessing —
+            a test order that finishes on its own is no use for the first. */}
+        {simChoice && (
+          <div
+            className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
+            onClick={() => !simulateOrder.isPending && setSimChoice(null)}
+          >
+            <div
+              className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-base font-semibold text-zinc-900">
+                Simulate a {SIM_LABEL[simChoice]} order
+              </h2>
+              <p className="mt-1 text-xs text-zinc-500">
+                A fake order on this shop&rsquo;s board, with a{" "}
+                {SIM_LABEL[simChoice]} badge and a real delivery address for
+                this shop&rsquo;s country. Only platform admins can see it.
+              </p>
+              <div className="mt-4 grid gap-2">
+                <button
+                  type="button"
+                  disabled={simulateOrder.isPending}
+                  onClick={() =>
+                    simulateOrder.mutate({ platform: simChoice, withDriver: true })
+                  }
+                  className="rounded-lg bg-zinc-900 px-4 py-3 text-left text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  With driver simulation
+                  <span className="mt-0.5 block text-[11px] font-normal text-zinc-300">
+                    Driver assigned, out for delivery, then delivered — 20, 45
+                    and 75 seconds after it lands.
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  disabled={simulateOrder.isPending}
+                  onClick={() =>
+                    simulateOrder.mutate({ platform: simChoice, withDriver: false })
+                  }
+                  className="rounded-lg border border-zinc-200 px-4 py-3 text-left text-sm font-semibold text-zinc-800 hover:border-zinc-300 disabled:opacity-50"
+                >
+                  Without driver simulation
+                  <span className="mt-0.5 block text-[11px] font-normal text-zinc-500">
+                    Sits on the board for you to drive by hand.
+                  </span>
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSimChoice(null)}
+                disabled={simulateOrder.isPending}
+                className="mt-3 w-full rounded-lg px-4 py-2 text-xs font-medium text-zinc-500 hover:text-zinc-800 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
       {selectedLocationId && (
         <StopTakingOrdersModal
           open={pauseModalOpen}

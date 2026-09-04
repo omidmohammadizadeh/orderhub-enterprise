@@ -138,6 +138,8 @@ export class OrdersController {
       fulfillmentType?: "PICKUP" | "DELIVERY";
       /** Simulate a marketplace order. Platform admins only — see below. */
       platform?: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+      /** Walk it through assigned → out for delivery → delivered. */
+      withDriver?: boolean;
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
@@ -155,6 +157,7 @@ export class OrdersController {
       customerName: body.customerName,
       fulfillmentType: body.fulfillmentType,
       platform: body.platform,
+      withDriver: body.withDriver === true,
     });
   }
 

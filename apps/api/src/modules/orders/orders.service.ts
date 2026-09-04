@@ -120,6 +120,46 @@ export function canAmendOrderPayment(input: {
   return input.paymentStatus !== "PAID";
 }
 
+/**
+ * A believable delivery address for a test order, in the shop's own country.
+ *
+ * Every simulated order used to land at "1 Test Street, Sandbox, TE5 7ER" —
+ * a UK postcode, on a Dubai board, in a Dubai driver app. Anything that reads
+ * the address for real (geocoding, delivery-zone matching, the courier quote
+ * panel) then behaves nothing like it would on a live order, which is the one
+ * thing a test order exists to rehearse.
+ *
+ * Keyed off Location.country, the same field that already decides currency,
+ * timezone and which channels a shop can sell through.
+ */
+/** The pretend rider's name on a simulated courier run. */
+const SIM_COURIER_NAME = "Test Rider";
+
+const TEST_ADDRESSES: Record<
+  string,
+  { line1: string; city: string; postcode: string }
+> = {
+  GB: { line1: "10 Grainger Street", city: "Newcastle upon Tyne", postcode: "NE1 5JQ" },
+  IE: { line1: "12 Grafton Street", city: "Dublin", postcode: "D02 XY45" },
+  // Gulf addressing is area + street, and postcodes are not used the way they
+  // are in the UK — an empty postcode here is correct, not missing data.
+  AE: { line1: "Villa 12, Al Wasl Road, Jumeirah 1", city: "Dubai", postcode: "" },
+  SA: { line1: "3421 Olaya Street, Al Olaya", city: "Riyadh", postcode: "12244" },
+  KW: { line1: "Block 4, Street 12, Salmiya", city: "Kuwait City", postcode: "" },
+  QA: { line1: "Building 24, Al Sadd Street", city: "Doha", postcode: "" },
+  BH: { line1: "Road 2827, Block 428, Seef", city: "Manama", postcode: "" },
+  OM: { line1: "Way 3021, Al Khuwair", city: "Muscat", postcode: "" },
+  JO: { line1: "23 Rainbow Street, Jabal Amman", city: "Amman", postcode: "11181" },
+  EG: { line1: "15 Road 9, Maadi", city: "Cairo", postcode: "11728" },
+};
+
+/** Falls back to the UK address for a shop whose country is unset. */
+function testAddressFor(country: string | null | undefined) {
+  const key = String(country ?? "").trim().toUpperCase();
+  const hit = TEST_ADDRESSES[key] ?? TEST_ADDRESSES.GB!;
+  return { ...hit, country: key || "GB" };
+}
+
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
@@ -1205,12 +1245,21 @@ export class OrdersService {
        * platform here is what makes the QR print.
        */
       platform?: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+      /**
+       * Walk the order through the courier stages after it lands:
+       * driver assigned → out for delivery → delivered.
+       *
+       * Off by default. A test order that finishes by itself is useless for
+       * rehearsing the parts a shop actually drives by hand, and a board full
+       * of ghost orders completing on their own is worse than no test at all.
+       */
+      withDriver?: boolean;
     } = {},
   ): Promise<Order> {
     // Verify the user can touch this location.
     const location = await this.prisma.location.findFirst({
       where: { id: locationId, brand: { tenantId } },
-      select: { id: true, brandId: true, name: true },
+      select: { id: true, brandId: true, name: true, country: true },
     });
     if (!location) throw new NotFoundException("Location not found");
 
@@ -1251,12 +1300,7 @@ export class OrdersService {
       customerInfo: { name: customerName, phone: "+440000000000" },
       deliveryAddress:
         fulfillmentType === "DELIVERY"
-          ? {
-              line1: "1 Test Street",
-              city: "Sandbox",
-              postcode: "TE5 7ER",
-              country: "GB",
-            }
+          ? testAddressFor(location.country)
           : undefined,
       items,
       subtotal,
@@ -1287,10 +1331,102 @@ export class OrdersService {
       event: "order.test.created",
       resource: "order",
       resourceId: order.id,
-      meta: { locationId, externalId, fulfillmentType },
+      meta: { locationId, externalId, fulfillmentType, withDriver: !!overrides.withDriver },
     });
 
+    if (overrides.withDriver && fulfillmentType === "DELIVERY") {
+      void this.simulateCourier(order.id, tenantId, simulated ?? null);
+    }
+
     return order;
+  }
+
+  /**
+   * Drive a test order through the courier stages, on a timer.
+   *
+   * Deliberately slow enough to be watched and to leave room to accept and
+   * print the ticket first — the whole reason someone makes one of these is
+   * to see each stage land on the board, the driver app and the customer's
+   * tracking page in turn.
+   *
+   * Timers only, no queue: this is a rehearsal aid, and if the API restarts
+   * mid-simulation the order simply stops advancing, which is a great deal
+   * better than a job that resurrects a ghost order days later.
+   */
+  private async simulateCourier(
+    orderId: string,
+    tenantId: string,
+    platform: string | null,
+  ): Promise<void> {
+    const courierName = platform ? `${SIM_COURIER_NAME}` : SIM_COURIER_NAME;
+    const steps: Array<{ afterMs: number; run: () => Promise<unknown> }> = [
+      {
+        afterMs: 20_000,
+        run: () =>
+          this.prisma.order
+            .update({
+              where: { id: orderId },
+              data: {
+                status: "ASSIGNED_DRIVER" as any,
+                courierName,
+                courierPhone: "+440000000000",
+                courierStatus: "assigned",
+                courierAssignedAt: new Date(),
+              },
+            })
+            .then((o) => this.emitSimUpdate(o)),
+      },
+      {
+        afterMs: 45_000,
+        run: () =>
+          this.prisma.order
+            .update({
+              where: { id: orderId },
+              data: {
+                status: "OUT_FOR_DELIVERY" as any,
+                courierStatus: "in_delivery",
+                courierPickedUpAt: new Date(),
+              },
+            })
+            .then((o) => this.emitSimUpdate(o)),
+      },
+      {
+        afterMs: 75_000,
+        run: () =>
+          this.prisma.order
+            .update({
+              where: { id: orderId },
+              data: {
+                status: "COMPLETED" as any,
+                courierStatus: "delivered",
+                courierDeliveredAt: new Date(),
+              },
+            })
+            .then((o) => this.emitSimUpdate(o)),
+      },
+    ];
+
+    for (const step of steps) {
+      setTimeout(() => {
+        void step.run().catch((err: any) => {
+          // A cancelled or deleted test order is the normal way this ends.
+          this.logger.warn(
+            `Courier simulation for ${orderId} stopped: ${err?.message ?? err}`,
+          );
+        });
+      }, step.afterMs);
+    }
+    this.logger.log(
+      `Courier simulation armed for test order ${orderId} (assigned 20s, out 45s, delivered 75s)`,
+    );
+  }
+
+  /** Push a simulated courier step to the board the same way a real one goes. */
+  private emitSimUpdate(order: { id: string; locationId: string; status: string }) {
+    this.socket.emitOrderUpdated(order.locationId, {
+      orderId: order.id,
+      status: order.status,
+    } as any);
   }
 
   // ── Edit order (Phase AW-22) ──────────────────────────
