@@ -1267,7 +1267,16 @@ ${menu || "(no items available — apologise and transfer)"}`;
   ): Promise<string> {
     const where: any = { locationId: ctx.locationId };
     if (orderNumber) {
-      where.orderNumber = String(orderNumber).replace(/\D/g, "");
+      // Order.orderNumber is an Int. Handing Prisma the digits as a STRING is
+      // not a near miss it coerces — it throws, the turn dies, and the caller
+      // who just carefully read out their number hears an apology instead of
+      // their order. Anything that is not a plausible order number is treated
+      // as "no number given" rather than crashing the turn.
+      const n = Number(String(orderNumber).replace(/\D/g, ""));
+      if (!Number.isSafeInteger(n) || n <= 0) {
+        return "That isn't a number I can look up. Ask them to read it out again, digit by digit.";
+      }
+      where.orderNumber = n;
     } else {
       const digits = normaliseNumber(callerNumber);
       if (!digits) return "No caller number — ask them for their order number.";

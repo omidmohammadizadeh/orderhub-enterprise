@@ -309,3 +309,34 @@ describe("never giving up", () => {
     expect(say).toContain("another address");
   });
 });
+
+describe("get_order_status", () => {
+  it("looks the order up as a number, not a string", async () => {
+    // Order.orderNumber is an Int. Prisma does not coerce a string here, it
+    // throws — and the caller who had just read out their number heard an
+    // apology instead of their order.
+    const svcWithDb = () => {
+      const s = svc();
+      s.db = () => ({
+        order: {
+          findFirst: jest.fn().mockImplementation((args: any) => {
+            captured = args;
+            return Promise.resolve(null);
+          }),
+        },
+      });
+      return s;
+    };
+    let captured: any;
+    await svcWithDb().orderStatus(ctx(), "+447700900123", "24");
+    expect(captured.where.orderNumber).toBe(24);
+    expect(typeof captured.where.orderNumber).toBe("number");
+  });
+
+  it("asks again rather than throwing on something that isn't a number", async () => {
+    const s = svc();
+    s.db = () => ({ order: { findFirst: jest.fn() } });
+    const out = await s.orderStatus(ctx(), "+447700900123", "the big one");
+    expect(out).toContain("read it out again");
+  });
+});

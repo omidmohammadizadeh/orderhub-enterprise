@@ -367,3 +367,30 @@ describe("wantsHuman", () => {
     expect(wantsHuman("")).toBe(false);
   });
 });
+
+describe("parseSpokenNumber — spoken cardinals", () => {
+  it("reads a number said as a number, not as its digits", () => {
+    // A live call: the caller said "twenty four" for order 24 and the parser
+    // returned "4", because it only knew single digits.
+    expect(parseSpokenNumber("twenty four")).toBe("24");
+    expect(parseSpokenNumber("it's ninety")).toBe("90");
+    expect(parseSpokenNumber("two hundred and forty")).toBe("240");
+    expect(parseSpokenNumber("one hundred and thirty three")).toBe("133");
+  });
+
+  it("still reads a number said digit by digit", () => {
+    expect(parseSpokenNumber("four oh one two")).toBe("4012");
+    expect(parseSpokenNumber("one three three")).toBe("133");
+  });
+
+  it("prefers digits the engine already wrote as digits", () => {
+    expect(parseSpokenNumber("order 24 please")).toBe("24");
+    expect(parseSpokenNumber("4012")).toBe("4012");
+  });
+
+  it("still refuses homophones", () => {
+    // A mis-parsed digit reads a DIFFERENT customer's order down the line.
+    expect(parseSpokenNumber("it's for delivery")).toBeNull();
+    expect(parseSpokenNumber("I want to know")).toBeNull();
+  });
+});

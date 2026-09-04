@@ -319,11 +319,31 @@ export class VoiceService {
         : null;
 
     if (!order) {
-      const say = number
-        ? `I can't find an order with that number. Let me put you through to the shop.`
-        : `Sorry, I didn't catch a number. Let me put you through to the shop.`;
-      return this.handOver(call, ctx, state, say);
+      // Not finding it first time is not a reason to end the call. A number
+      // misheard by one digit is the most likely explanation, and reading it
+      // back digit by digit is what fixes that — so ask, and stay in the
+      // status branch so the next thing they say is treated as the number
+      // rather than falling through to the model.
+      const misses = (state.confusion ?? 0) + 1;
+      state.confusion = misses;
+      if (misses < 3) {
+        const say = number
+          ? `Sorry, I can't find order number ${spokenDigits(number)}. Could you read it out to me one digit at a time?`
+          : `Sorry, I didn't catch a number there. Could you read it out one digit at a time?`;
+        state.turns.push({ role: "user", text });
+        state.turns.push({ role: "assistant", text: say });
+        state.stage = "STATUS";
+        await this.save(call.id, state);
+        return { say };
+      }
+      return this.handOver(
+        call,
+        ctx,
+        state,
+        "I'm sorry, I still can't find that one. Let me put you through to the shop.",
+      );
     }
+    state.confusion = 0;
 
     const mins = order.estimatedReadyAt
       ? Math.round(

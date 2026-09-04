@@ -192,14 +192,79 @@ const WORD_DIGITS: Record<string, string> = {
  * is a far smaller cost than that.
  */
 export function parseSpokenNumber(text: string): string | null {
+  const tokens = clean(text).split(" ").filter(Boolean);
+
+  // Anything written as actual digits wins. "order 24" is 24, and "four oh
+  // one two" typed out as 4012 is 4012.
+  const explicit = tokens.filter((t) => /^\d+$/.test(t));
+  if (explicit.length) return explicit.join("");
+
+  // A caller reading out "two four oh one" means the digits in that order. A
+  // caller saying "twenty four" means the NUMBER twenty-four — and reading it
+  // as the digits 2 and 4 happens to give the same answer, but "two hundred
+  // and forty" as digits gives 240 by luck and "ninety" gives 90 by none.
+  // The tell is whether any word can only appear in a cardinal: a teen, a
+  // ten, or a hundred.
+  const cardinal = tokens.some((t) => TEENS[t] || TENS[t] || t === "hundred" || t === "thousand");
+  if (cardinal) {
+    let total = 0;
+    let current = 0;
+    let saw = false;
+    for (const t of tokens) {
+      if (WORD_DIGITS[t] && !TENS[t]) {
+        current += Number(WORD_DIGITS[t]);
+        saw = true;
+      } else if (TEENS[t]) {
+        current += TEENS[t];
+        saw = true;
+      } else if (TENS[t]) {
+        current += TENS[t];
+        saw = true;
+      } else if (t === "hundred") {
+        current = (current || 1) * 100;
+        saw = true;
+      } else if (t === "thousand") {
+        total += (current || 1) * 1000;
+        current = 0;
+        saw = true;
+      }
+    }
+    total += current;
+    return saw && total > 0 ? String(total) : null;
+  }
+
   const out: string[] = [];
-  for (const token of clean(text).split(" ")) {
-    if (/^\d+$/.test(token)) out.push(token);
-    else if (WORD_DIGITS[token]) out.push(WORD_DIGITS[token]);
+  for (const token of tokens) {
+    if (WORD_DIGITS[token]) out.push(WORD_DIGITS[token]);
   }
   const digits = out.join("");
   return digits.length ? digits : null;
 }
+
+const TEENS: Record<string, number> = {
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  thirteen: 13,
+  fourteen: 14,
+  fifteen: 15,
+  sixteen: 16,
+  seventeen: 17,
+  eighteen: 18,
+  nineteen: 19,
+};
+
+const TENS: Record<string, number> = {
+  twenty: 20,
+  thirty: 30,
+  forty: 40,
+  fourty: 40,
+  fifty: 50,
+  sixty: 60,
+  seventy: 70,
+  eighty: 80,
+  ninety: 90,
+};
 
 /**
  * Read a number back one digit at a time. "4012" spoken as "four thousand and
