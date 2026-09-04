@@ -62,6 +62,9 @@ export interface VoiceTurn {
   orderId?: string;
   /** ORDER | RESERVATION | ORDER_STATUS | ENQUIRY | TRANSFERRED | ABANDONED */
   outcome?: string;
+  /** The text was already streamed to the caller sentence by sentence, so the
+   *  transport must not speak it a second time. */
+  streamed?: boolean;
 }
 
 export interface VoiceState {
@@ -254,6 +257,15 @@ export class VoiceAiService {
     state: VoiceState;
     userText: string;
     callerNumber?: string | null;
+    /**
+     * Speak this now, with more to follow.
+     *
+     * Given by the relay transport, absent on the webhook one. When present,
+     * the caller hears the first sentence while the model is still writing the
+     * second — which is the difference between a line that answers in half a
+     * second and one that answers in four.
+     */
+    onPartial?: (chunk: string) => void;
   }): Promise<{ turn: VoiceTurn; state: VoiceState }> {
     const { ctx } = args;
     const state = args.state;
@@ -290,8 +302,13 @@ export class VoiceAiService {
       const tools = this.toolDefs(ctx);
       let spoken = "";
 
+      // Did the caller already hear this, sentence by sentence, as it was
+      // written? Only true on the relay transport, and only for text the model
+      // itself produced.
+      let streamedOut = false;
+      let directUsed = false;
       for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
-        const response = await this.anthropic.messages.create({
+        const params = {
           model: this.model,
           // A spoken turn is one or two sentences. The ceiling was 700, and
           // generation time scales with what the model actually writes — on a
@@ -301,14 +318,24 @@ export class VoiceAiService {
           system,
           tools,
           messages,
-        });
+        };
+
+        const response = args.onPartial
+          ? await this.streamTurn(params, args.onPartial, () => {
+              streamedOut = true;
+            })
+          : await this.anthropic.messages.create(params);
 
         const text = response.content
           .filter((b): b is Anthropic.TextBlock => b.type === "text")
           .map((b) => b.text)
           .join(" ")
           .trim();
-        if (text) spoken = text;
+        // Accumulated, not replaced. A turn that says "let me just add that",
+        // calls a tool, then says "done, anything else?" spoke BOTH out loud —
+        // recording only the second leaves the transcript disagreeing with
+        // what the caller actually heard.
+        if (text) spoken = spoken ? `${spoken} ${text}` : text;
 
         const toolUses = response.content.filter(
           (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
@@ -333,13 +360,17 @@ export class VoiceAiService {
         // guaranteed verbatim rather than paraphrased by a model that might
         // round a price or drop a line.
         if (direct) {
+          // Ours, not the model's, so it has not been streamed even if a
+          // preamble before it was. The transport still has to say it.
           spoken = direct;
+          directUsed = true;
           break;
         }
         messages.push({ role: "user", content: results });
       }
 
       turn.say = this.speakable(spoken || turn.say);
+      turn.streamed = streamedOut && !directUsed;
     } catch (err: any) {
       this.logger.error(`Voice turn failed: ${err?.message ?? err}`);
       // A model failure mid-call must not become dead air. Hand to a human —
@@ -357,6 +388,72 @@ export class VoiceAiService {
     state.turns.push({ role: "assistant", text: turn.say });
     if (turn.outcome) state.outcome = turn.outcome;
     return { turn, state };
+  }
+
+  /**
+   * One model call, spoken as it is written.
+   *
+   * Text is forwarded a sentence at a time rather than a token at a time:
+   * a speech engine handed "Great," then "that's" then "£12.50" reads them as
+   * three separate utterances with a gap between each, which sounds worse than
+   * waiting. A sentence is the smallest unit that still sounds like speech.
+   *
+   * Text the model writes BEFORE deciding to call a tool is forwarded too —
+   * that is the natural "let me just check that for you" which covers the
+   * lookup, and is exactly the moment a caller would otherwise hear silence.
+   */
+  private async streamTurn(
+    params: Anthropic.MessageCreateParamsNonStreaming,
+    onPartial: (chunk: string) => void,
+    markStreamed: () => void,
+  ): Promise<Anthropic.Message> {
+    const stream = this.anthropic!.messages.stream(params);
+
+    let buffer = "";
+    let inText = false;
+    stream.on("contentBlock", () => {
+      // Flush whatever is left of a text block when it ends.
+      if (inText && buffer.trim()) {
+        onPartial(this.speakable(buffer));
+        markStreamed();
+        buffer = "";
+      }
+      inText = false;
+    });
+    stream.on("streamEvent", (event) => {
+      if (event.type === "content_block_start") {
+        inText = event.content_block.type === "text";
+        return;
+      }
+      if (
+        !inText ||
+        event.type !== "content_block_delta" ||
+        event.delta.type !== "text_delta"
+      ) {
+        return;
+      }
+      buffer += event.delta.text;
+      // Emit on sentence boundaries only.
+      const boundary = buffer.search(/[.!?](\s|$)/);
+      if (boundary === -1) return;
+      const sentence = buffer.slice(0, boundary + 1);
+      buffer = buffer.slice(boundary + 1);
+      const say = this.speakable(sentence);
+      if (say) {
+        onPartial(say);
+        markStreamed();
+      }
+    });
+
+    const message = await stream.finalMessage();
+    if (buffer.trim()) {
+      const say = this.speakable(buffer);
+      if (say) {
+        onPartial(say);
+        markStreamed();
+      }
+    }
+    return message;
   }
 
   /**

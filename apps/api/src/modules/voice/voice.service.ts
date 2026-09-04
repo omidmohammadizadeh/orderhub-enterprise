@@ -143,7 +143,12 @@ export class VoiceService {
    * conversation reaches Claude, which is the one part of a call that actually
    * benefits from a model.
    */
-  async onCallerSaid(args: { callId: string; text: string }): Promise<VoiceTurn> {
+  async onCallerSaid(args: {
+    callId: string;
+    text: string;
+    /** Relay transport only: speak this now, more to follow. */
+    onPartial?: (chunk: string) => void;
+  }): Promise<VoiceTurn> {
     const loaded = await this.load(args.callId);
     // Silence, not an apology. This is reached when the call has already been
     // handed to a human or closed — a late transcript arriving on a bridged
@@ -173,7 +178,7 @@ export class VoiceService {
           const answer = parseYesNo(args.text);
           if (answer) return this.answerSlot(call, ctx, state, slot, answer, args.text);
         }
-        return this.runBrain(call, ctx, state, args.text);
+        return this.runBrain(call, ctx, state, args.text, args.onPartial);
       }
     }
   }
@@ -357,12 +362,14 @@ export class VoiceService {
     ctx: any,
     state: VoiceState,
     text: string,
+    onPartial?: (chunk: string) => void,
   ): Promise<VoiceTurn> {
     const { turn, state: next } = await this.ai.respond({
       ctx,
       state,
       userText: text,
       callerNumber: call.fromNumber,
+      onPartial,
     });
     if (turn.endCall || turn.transferTo) next.stage = "DONE";
 

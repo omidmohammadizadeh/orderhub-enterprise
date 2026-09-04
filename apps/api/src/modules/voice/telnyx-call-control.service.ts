@@ -213,6 +213,32 @@ export class TelnyxCallControlService {
   }
 
   /**
+   * Hand the call to Conversation Relay.
+   *
+   * Replaces answer + speak + transcription_start in one command: Telnyx does
+   * the listening, the endpointing and the speaking, and talks to us over a
+   * WebSocket in TEXT. The greeting goes here rather than being a speak
+   * command afterwards, so the caller hears it the instant the leg is up.
+   *
+   * `interruptible` is what lets a caller talk over us without us having to
+   * notice and issue a stop — barge-in stops being something we implement.
+   */
+  async startConversationRelay(
+    callControlId: string,
+    args: { url: string; greeting: string },
+  ): Promise<boolean> {
+    return this.command(callControlId, "conversation_relay_start", {
+      url: args.url,
+      greeting: args.greeting,
+      voice: this.voice,
+      language: this.language,
+      transcription_engine: this.engine,
+      dtmf_detection: true,
+      interruptible: true,
+    });
+  }
+
+  /**
    * Hand the caller to a human.
    *
    * Normalised here rather than at the call sites, because the number comes

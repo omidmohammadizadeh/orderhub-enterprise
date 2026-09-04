@@ -14,6 +14,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { VoiceService } from "./voice.service";
 import { VoiceContextService } from "./voice-context.service";
 import { TelnyxCallControlService } from "./telnyx-call-control.service";
+import { VoiceRelayGateway } from "./voice-relay.gateway";
 import { isLikelyHallucination, soundsComplete } from "./voice-flow";
 
 // Where a real phone call meets the brain.
@@ -38,6 +39,7 @@ export class VoiceTelnyxController {
     private readonly voice: VoiceService,
     private readonly contexts: VoiceContextService,
     private readonly telnyx: TelnyxCallControlService,
+    private readonly relay: VoiceRelayGateway,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -212,6 +214,21 @@ export class VoiceTelnyxController {
       typeof first?.text === "string" && first.text
         ? first.text
         : "Hello, thanks for calling. How can I help?";
+
+    // Conversation Relay when it is configured: one WebSocket for the whole
+    // call, Telnyx doing the listening and the speaking, and the first
+    // sentence of an answer spoken while the model is still writing the
+    // second. The webhook path below is unchanged and stays the default — a
+    // shop mid-service is not where a new transport should be proven.
+    const relayUrl = this.relay.relayUrl(ccid);
+    if (relayUrl) {
+      if (await this.telnyx.startConversationRelay(ccid, { url: relayUrl, greeting })) {
+        return;
+      }
+      // Falling back is the whole reason the old path is still here.
+      this.logger.error(`Conversation Relay failed to start on ${ccid} — using webhooks`);
+    }
+
     await this.telnyx.speak(ccid, greeting);
 
     // If we can't listen, say so and hand over. A failed transcription command
