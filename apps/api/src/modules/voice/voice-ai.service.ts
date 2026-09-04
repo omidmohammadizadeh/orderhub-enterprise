@@ -111,6 +111,15 @@ export interface VoiceState {
   /** How they said they'd pay, held while we ask for a name. */
   pendingPayment?: "CASH" | "CARD";
   /**
+   * We are ADDING to an order that already exists, not building a new one.
+   *
+   * When set, the cart holds that order's existing lines plus whatever the
+   * caller is adding, and the turn ends in an edit rather than a placement.
+   */
+  amendOrderId?: string;
+  /** What the board calls the order being amended, for reading back. */
+  amendReference?: string;
+  /**
    * How many turns running we have failed to understand.
    *
    * Kept so that "I didn't catch that" can escalate into a different question
@@ -164,6 +173,8 @@ export function coerceState(raw: unknown): VoiceState {
       r.pendingPayment === "CASH" || r.pendingPayment === "CARD"
         ? r.pendingPayment
         : undefined,
+    amendOrderId: r.amendOrderId ? String(r.amendOrderId) : undefined,
+    amendReference: r.amendReference ? String(r.amendReference) : undefined,
     confusion: Number.isFinite(Number(r.confusion)) ? Number(r.confusion) : 0,
     askedForHuman: r.askedForHuman === true,
     callId: r.callId ? String(r.callId) : undefined,
@@ -218,7 +229,48 @@ export class VoiceAiService {
    */
   greeting(ctx: VoiceContext, knownName?: string | null): string {
     const who = knownName ? `Hello ${knownName}, welcome back to` : "Hello and welcome to";
-    return `${who} ${ctx.locationName}. To place an order, press 1. For an update on an order you've already placed, press 2.`;
+    return `${who} ${ctx.locationName}. ${this.menuOptions()}`;
+  }
+
+  /**
+   * The options, on their own, so option 5 can say them again without the
+   * greeting attached — nobody wants to be welcomed to the shop twice.
+   *
+   * Five options is a lot to listen to, and the reason that is tolerable here
+   * is that none of it has to be heard: the menu is interruptible, a keypress
+   * lands at any point, and a caller who just starts talking is taken straight
+   * into their order.
+   */
+  menuOptions(): string {
+    return [
+      "To place an order, press 1.",
+      "For an update on an order, press 2.",
+      "To change an order you've already placed, press 3.",
+      "To report a problem with an order, press 4.",
+      "To hear these again, press 5.",
+    ].join(" ");
+  }
+
+  /** Option 3. */
+  amendOpener(): string {
+    return "No problem. Can I have your order number?";
+  }
+
+  /**
+   * Option 4. Straight to a person, with no attempt to handle it.
+   *
+   * A complaint is the one thing on this line that must never be absorbed by
+   * a machine. Someone whose food arrived cold does not want a menu, and any
+   * apology from us is worth nothing because we cannot put it right.
+   */
+  complaintOpener(): string {
+    return "I'm sorry to hear that. Let me put you straight through to the shop.";
+  }
+
+  /** What the caller hears when the order they want to change is not ours to
+   *  change — the platform owns it, and so does the correction. */
+  amendElsewhere(via: string): string {
+    return `That order came through ${via}, so I can't change it from here. Let me put you through to the shop.`;
   }
 
   /** What the caller hears the moment they choose to order. Fixed, because
@@ -831,6 +883,12 @@ ${menu || "(no items available — apologise and transfer)"}`;
         },
       },
       {
+        name: "amend_order",
+        description:
+          "Add the items now on the order to an order the caller placed earlier. Only available while changing an existing order. Read the WHOLE order back and get a yes first, exactly as you would before placing one.",
+        input_schema: { type: "object", properties: {} },
+      },
+      {
         name: "place_order",
         description:
           "Place the order. Only after order_confirmed, and after asking how they want to pay.",
@@ -1071,7 +1129,18 @@ ${menu || "(no items available — apologise and transfer)"}`;
         return { result: this.openingHours(ctx) };
       case "get_order_status":
         return { result: await this.orderStatus(ctx, callerNumber, input?.orderNumber) };
+      case "amend_order":
+        return this.amendOrder(ctx, state);
       case "place_order":
+        // An amendment is not a new order. Placing one here would leave the
+        // caller with two — the one they rang about and a duplicate of it
+        // carrying the extras.
+        if (state.amendOrderId) {
+          return {
+            result:
+              "This caller is CHANGING an order that already exists. Use amend_order, not place_order.",
+          };
+        }
         return this.placeOrder(input, ctx, state, callerNumber);
       case "take_message": {
         state.message = String(input?.message ?? "").slice(0, 1000);
@@ -1446,6 +1515,116 @@ ${menu || "(no items available — apologise and transfer)"}`;
         turn: { transferTo: ctx.transferNumber ?? undefined, outcome: "TRANSFERRED" },
       };
     }
+  }
+
+  /**
+   * Apply the caller's additions to the order they rang about.
+   *
+   * Goes through OrdersService.editOrder rather than writing items directly,
+   * because that is where the rules about WHEN an order may still be changed
+   * live: not past Ready, and not once the money has moved. Those are the
+   * shop's rules, not this line's, and a phone call is not a reason to have a
+   * different set.
+   */
+  private async amendOrder(
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+    if (!state.amendOrderId) {
+      return { result: "There is no existing order being changed here." };
+    }
+    if (!state.orderConfirmed) {
+      return {
+        result:
+          "You have not read the whole order back yet. Call read_back_order, say it, and get a yes — the same as before placing one.",
+      };
+    }
+
+    const items = state.cart.items.map((l) => ({
+      name: l.name,
+      quantity: l.quantity,
+      unitPrice: round2(lineUnitPrice(l)),
+      totalPrice: round2(lineTotal(l)),
+      ...(l.modifiers.length
+        ? { modifiers: l.modifiers.map((m) => ({ name: m.name, price: m.price })) }
+        : {}),
+      ...(l.notes ? { notes: l.notes } : {}),
+    }));
+    const subtotal = cartSubtotal(state.cart);
+    const isDelivery = state.cart.fulfillmentType === "DELIVERY";
+    const deliveryFee = isDelivery
+      ? this.feeForAddress(state.cart.deliveryAddress, ctx)
+      : 0;
+
+    try {
+      await this.orders.editOrder(
+        state.amendOrderId,
+        ctx.tenantId,
+        {
+          items,
+          subtotal,
+          ...(deliveryFee > 0 ? { deliveryFee } : {}),
+          total: round2(subtotal + deliveryFee),
+        } as any,
+        // The change was made by the phone line, not by a member of staff.
+        // The audit trail should say so.
+        "voice-ai",
+      );
+      const done = state.amendOrderId;
+      state.amendOrderId = undefined;
+      return {
+        result: `Order ${state.amendReference ?? done} updated. Tell them it's been added and the kitchen has the new ticket.`,
+        turn: { orderId: done, outcome: "ORDER" },
+      };
+    } catch (e: any) {
+      // editOrder refuses for good reasons — past Ready, already paid by card.
+      // Say what it said rather than inventing an explanation, and get them a
+      // person, because from here only a human can help.
+      this.logger.warn(`Voice amend failed for ${state.amendOrderId}: ${e?.message}`);
+      return {
+        result: `That order can't be changed now: ${
+          e?.message ?? "it has gone too far through the kitchen"
+        }. Tell them plainly and offer to put them through to the shop.`,
+        turn: { transferTo: ctx.transferNumber ?? undefined, outcome: "TRANSFERRED" },
+      };
+    }
+  }
+
+  /**
+   * Load an existing order into the cart so the caller can add to it.
+   *
+   * Everything already on the order comes across, because editOrder replaces
+   * the item list wholesale — send only the additions and the customer loses
+   * the food they actually ordered.
+   */
+  loadOrderForAmend(
+    state: VoiceState,
+    order: {
+      id: string;
+      reference: string;
+      fulfillmentType?: string | null;
+      items: Array<{
+        name: string;
+        quantity: number;
+        unitPrice: number | string;
+        notes?: string | null;
+      }>;
+    },
+  ): void {
+    state.amendOrderId = order.id;
+    state.amendReference = order.reference;
+    state.orderConfirmed = false;
+    state.cart.fulfillmentType = order.fulfillmentType === "DELIVERY" ? "DELIVERY" : "PICKUP";
+    state.cart.fulfillmentChosen = true;
+    state.cart.items = order.items.map((it) => ({
+      lineId: Math.random().toString(36).slice(2, 9),
+      itemId: "",
+      name: String(it.name),
+      quantity: Math.max(1, Math.round(Number(it.quantity) || 1)),
+      unitBasePrice: Number(it.unitPrice) || 0,
+      modifiers: [],
+      ...(it.notes ? { notes: String(it.notes) } : {}),
+    }));
   }
 
   /** The delivery fee for whatever address the caller gave.

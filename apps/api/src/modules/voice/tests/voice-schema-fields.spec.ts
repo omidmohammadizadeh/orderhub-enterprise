@@ -50,6 +50,18 @@ function balancedFrom(src: string, openIndex: number): string {
   return src.slice(openIndex);
 }
 
+/** One brace level only — nested objects removed. */
+function withoutNested(block: string): string {
+  let depth = 0;
+  let out = "";
+  for (const ch of block.slice(1, -1)) {
+    if (ch === "{") depth++;
+    else if (ch === "}") depth--;
+    else if (depth === 0) out += ch;
+  }
+  return out;
+}
+
 /** Every `<model>.findX({...})` select key used in the voice module. */
 function selectedFields(model: string): Array<{ file: string; field: string }> {
   const out: Array<{ file: string; field: string }> = [];
@@ -66,9 +78,15 @@ function selectedFields(model: string): Array<{ file: string; field: string }> {
       // past the end of one query into the next one and blamed the wrong
       // model for its fields.
       const chunk = balancedFrom(src, (call.index ?? 0) + call[0].length - 1);
-      const sel = /select:\s*\{([^}]*)\}/.exec(chunk);
-      if (!sel?.[1]) continue;
-      for (const m of sel[1].matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*:\s*true/g)) {
+      const at = chunk.indexOf("select:");
+      if (at === -1) continue;
+      const open = chunk.indexOf("{", at);
+      if (open === -1) continue;
+      // A nested select belongs to a RELATION, not this model — `items: {
+      // select: { name: true } }` selects OrderItem.name, and reading it as
+      // Order.name is a false positive, not a bug.
+      const block = withoutNested(balancedFrom(chunk, open));
+      for (const m of block.matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*:\s*true/g)) {
         if (m[1]) out.push({ file, field: m[1] });
       }
     }

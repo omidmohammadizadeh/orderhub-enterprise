@@ -200,6 +200,8 @@ export class VoiceService {
         );
       case "STATUS":
         return this.answerOrderStatus(call, ctx, state, args.text);
+      case "AMEND":
+        return this.answerAmendLookup(call, ctx, state, args.text);
       default: {
         // A read-back was just spoken, and the only answer that matters is
         // whether they agreed. Asking a model to work that out costs two to
@@ -258,6 +260,30 @@ export class VoiceService {
       state.turns.push({ role: "assistant", text: say });
       await this.save(call.id, state);
       return { say, outcome: "ORDER_STATUS" };
+    }
+
+    if (choice.kind === "AMEND") {
+      state.stage = "AMEND";
+      const say = this.ai.amendOpener();
+      state.turns.push({ role: "assistant", text: say });
+      await this.save(call.id, state);
+      return { say };
+    }
+
+    if (choice.kind === "COMPLAINT") {
+      // No triage, no apology loop, no attempt to fix it. A complaint is the
+      // one thing on this line that must reach a person immediately.
+      return this.handOver(call, ctx, state, this.ai.complaintOpener());
+    }
+
+    if (choice.kind === "REPEAT") {
+      // The options only — not the greeting. Nobody wants to be welcomed to
+      // the shop a second time.
+      const say = this.ai.menuOptions();
+      state.turns.push({ role: "assistant", text: say });
+      state.stage = "MENU";
+      await this.save(call.id, state);
+      return { say };
     }
 
     state.stage = "ORDER";
@@ -556,6 +582,106 @@ export class VoiceService {
     const first = words[0];
     if (!first || first.length < 2 || first.length > 20) return null;
     return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+  }
+
+  /**
+   * Option 3 — the caller wants to CHANGE an order they already placed.
+   *
+   * Which orders can be changed is not this line's decision. An order the shop
+   * took itself — at the till or on this phone — is its own to amend. One that
+   * came through online ordering or a marketplace belongs to that channel,
+   * along with its correction flow and its refunds, so the honest answer is to
+   * say which channel it was and fetch a person.
+   */
+  private async answerAmendLookup(
+    call: any,
+    ctx: any,
+    state: VoiceState,
+    text: string,
+  ): Promise<VoiceTurn> {
+    const { forms } = parseOrderReference(text);
+    state.turns.push({ role: "user", text });
+
+    const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const recent = forms.length
+      ? await this.db().order.findMany({
+          where: { locationId: ctx.locationId, createdAt: { gte: since } },
+          orderBy: { createdAt: "desc" },
+          take: 500,
+          select: {
+            id: true,
+            displayId: true,
+            collectionCode: true,
+            orderNumber: true,
+            orderSource: true,
+            status: true,
+            fulfillmentType: true,
+            items: { select: { name: true, quantity: true, unitPrice: true, notes: true } },
+          },
+        })
+      : [];
+
+    const order = recent.find((o: any) =>
+      [o.displayId, o.collectionCode, o.orderNumber != null ? String(o.orderNumber) : null, o.id].some(
+        (identifier) => referenceMatches(forms, identifier),
+      ),
+    );
+
+    if (!order) {
+      const misses = (state.confusion ?? 0) + 1;
+      state.confusion = misses;
+      if (misses < 3) {
+        const say = `Sorry, I can't find that one. Could you read the order number out one character at a time?`;
+        state.turns.push({ role: "assistant", text: say });
+        state.stage = "AMEND";
+        await this.save(call.id, state);
+        return { say };
+      }
+      return this.handOver(
+        call,
+        ctx,
+        state,
+        "I'm sorry, I still can't find that order. Let me put you through to the shop.",
+      );
+    }
+    state.confusion = 0;
+
+    const reference = boardReference(order);
+    const via = marketplaceName(order.orderSource);
+    // ONLINE and DIRECT are the shop's own storefront, but they are still a
+    // channel with its own basket and its own refund path — the caller placed
+    // it themselves, so a person should handle the change.
+    const ownPhoneOrder = order.orderSource === "POS" || order.orderSource === "VOICE";
+    if (!ownPhoneOrder) {
+      const where = via ?? "online ordering";
+      return this.handOver(call, ctx, state, this.ai.amendElsewhere(where));
+    }
+
+    // Past Ready the kitchen has it, and editOrder refuses anyway — better to
+    // say so now than to take the addition and fail at the end.
+    if (!["PENDING", "ACCEPTED", "PREPARING"].includes(order.status)) {
+      return this.handOver(
+        call,
+        ctx,
+        state,
+        `Order ${spokenReference(reference)} has already been made up, so I can't add to it from here. Let me put you through to the shop.`,
+      );
+    }
+
+    this.ai.loadOrderForAmend(state, {
+      id: order.id,
+      reference,
+      fulfillmentType: order.fulfillmentType,
+      items: order.items ?? [],
+    });
+
+    const say = `Right, that's order ${spokenReference(reference)}. What would you like to add?`;
+    state.turns.push({ role: "assistant", text: say });
+    // The ordering brain takes it from here — same tools, same read-back —
+    // and finishes with amend_order instead of place_order.
+    state.stage = "ORDER";
+    await this.save(call.id, state);
+    return { say };
   }
 
   /** The ordering conversation. This is the only path that costs a model call. */

@@ -1665,9 +1665,15 @@ export class OrdersService {
         "This order has already been paid by card. Refund it or take a separate payment for the difference.",
       );
     }
-    if (order.orderSource !== "POS") {
+    // VOICE belongs here with POS. An order this shop took over the phone is
+    // its own order in exactly the same way one keyed at the till is — same
+    // staff, same kitchen, same money — and a customer ringing back to add
+    // chips should not be refused because the first call was answered by the
+    // AI. Online and marketplace orders still have their own correction flows,
+    // which is what this guard was actually protecting.
+    if (order.orderSource !== "POS" && order.orderSource !== "VOICE") {
       throw new BadRequestException(
-        "Only POS orders are editable from this flow",
+        "Only orders taken by the shop (POS or phone) are editable from this flow",
       );
     }
     if (!dto.items.length) {

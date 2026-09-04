@@ -372,3 +372,115 @@ describe("phoneReallyMatches", () => {
     expect(vs().phoneReallyMatches("+447700900123", "")).toBe(false);
   });
 });
+
+describe("amending an existing order", () => {
+  const withExisting = () => {
+    const state = withItem();
+    state.cart.items = [];
+    svc().loadOrderForAmend(state, {
+      id: "order-1",
+      reference: "24kiod",
+      fulfillmentType: "DELIVERY",
+      items: [{ name: "Large Pepperoni", quantity: 2, unitPrice: 12 }],
+    });
+    return state;
+  };
+
+  it("brings the whole existing order across, not just the additions", () => {
+    // editOrder replaces the item list wholesale — send only the new items
+    // and the customer loses the food they actually ordered.
+    const state = withExisting();
+    expect(state.cart.items).toHaveLength(1);
+    expect(state.cart.items[0].name).toBe("Large Pepperoni");
+    expect(state.cart.items[0].quantity).toBe(2);
+    expect(state.amendOrderId).toBe("order-1");
+  });
+
+  it("does not inherit a confirmation from the original order", () => {
+    // The caller has to hear the WHOLE order back again, including what they
+    // just added.
+    expect(withExisting().orderConfirmed).toBe(false);
+  });
+
+  it("refuses to place a new order while changing one", () => {
+    // Placing here would leave the caller with two: the one they rang about
+    // and a duplicate carrying the extras.
+    const state = withExisting();
+    state.orderConfirmed = true;
+    return svc()
+      .runTool(
+        "place_order",
+        { customerName: "Omid", paymentMethod: "CASH" },
+        ctx(),
+        state,
+        "+447700900123",
+      )
+      .then((out: any) => {
+        expect(out.result).toContain("amend_order");
+        expect(out.turn?.orderId).toBeUndefined();
+      });
+  });
+
+  it("refuses to amend without the read-back", async () => {
+    const state = withExisting();
+    const out = await svc().runTool("amend_order", {}, ctx(), state, null);
+    expect(out.result).toContain("read the whole order back");
+  });
+
+  it("refuses to amend when there is no order being changed", async () => {
+    const out = await svc().runTool("amend_order", {}, ctx(), withItem(), null);
+    expect(out.result).toContain("no existing order");
+  });
+
+  it("sends the combined order to editOrder and clears the amendment", async () => {
+    const state = withExisting();
+    state.orderConfirmed = true;
+    state.cart.items.push({
+      lineId: "new1",
+      itemId: "i2",
+      name: "Garlic Bread",
+      quantity: 1,
+      unitBasePrice: 4,
+      modifiers: [],
+    });
+
+    const s = svc();
+    let sent: any;
+    s.orders = {
+      editOrder: jest.fn(async (_id: string, _t: string, dto: any) => {
+        sent = dto;
+        return {};
+      }),
+    };
+    const out = await s.runTool("amend_order", {}, ctx(), state, null);
+
+    expect(sent.items.map((i: any) => i.name)).toEqual([
+      "Large Pepperoni",
+      "Garlic Bread",
+    ]);
+    expect(sent.subtotal).toBe(28);
+    expect(out.turn?.orderId).toBe("order-1");
+    expect(state.amendOrderId).toBeUndefined();
+  });
+
+  it("explains and hands over when the order can no longer be changed", async () => {
+    const state = withExisting();
+    state.orderConfirmed = true;
+    const s = svc();
+    s.logger = { warn: jest.fn(), error: jest.fn() };
+    s.orders = {
+      editOrder: jest.fn(async () => {
+        throw new Error("Order can only be edited before it's marked Ready");
+      }),
+    };
+    const out = await s.runTool(
+      "amend_order",
+      {},
+      ctx({ transferNumber: "+441912312345" }),
+      state,
+      null,
+    );
+    expect(out.result).toContain("marked Ready");
+    expect(out.turn?.transferTo).toBe("+441912312345");
+  });
+});

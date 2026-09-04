@@ -612,3 +612,57 @@ describe("boardReference", () => {
     );
   });
 });
+
+describe("the five options", () => {
+  it("routes every advertised key", () => {
+    expect(digitChoice("1")).toEqual({ kind: "ORDER" });
+    expect(digitChoice("2")).toEqual({ kind: "STATUS" });
+    expect(digitChoice("3")).toEqual({ kind: "AMEND" });
+    expect(digitChoice("4")).toEqual({ kind: "COMPLAINT" });
+    expect(digitChoice("5")).toEqual({ kind: "REPEAT" });
+    expect(digitChoice("0")).toEqual({ kind: "HUMAN" });
+  });
+
+  it("takes each option spoken as well as pressed", () => {
+    expect(interpretMenuChoice("three").kind).toBe("AMEND");
+    expect(interpretMenuChoice("number four please").kind).toBe("COMPLAINT");
+    expect(interpretMenuChoice("five").kind).toBe("REPEAT");
+  });
+
+  it("hears a complaint before anything else", () => {
+    // Someone whose food never turned up must not be routed into placing
+    // another one because they said the word "order".
+    for (const said of [
+      "my order never arrived",
+      "the food was cold",
+      "I want a refund",
+      "I want to complain about my order",
+    ]) {
+      expect(interpretMenuChoice(said).kind).toBe("COMPLAINT");
+    }
+  });
+
+  it("tells changing an order apart from asking about one", () => {
+    // "change my order" contains "my order" and would otherwise read as a
+    // status enquiry.
+    for (const said of [
+      "I want to add to my order",
+      "can I change my order",
+      "I forgot to add something",
+    ]) {
+      expect(interpretMenuChoice(said).kind).toBe("AMEND");
+    }
+    expect(interpretMenuChoice("where's my order").kind).toBe("STATUS");
+  });
+
+  it("still takes an order from someone who ignores the menu", () => {
+    const out = interpretMenuChoice("can I get two large pepperoni");
+    expect(out.kind).toBe("ORDER");
+    expect((out as any).passThrough).toContain("pepperoni");
+  });
+
+  it("asks for the options again when asked", () => {
+    expect(interpretMenuChoice("say that again").kind).toBe("REPEAT");
+    expect(interpretMenuChoice("what are the options").kind).toBe("REPEAT");
+  });
+});

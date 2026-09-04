@@ -25,6 +25,8 @@ export type VoiceStage =
   | "ORDER"
   /** Asked for an order number, waiting to hear one. */
   | "STATUS"
+  /** Asked for an order number so they can CHANGE that order. */
+  | "AMEND"
   /** Said goodbye. */
   | "DONE";
 
@@ -34,6 +36,12 @@ export type MenuChoice =
    *  throwing it away to ask "collection or delivery?" makes us look deaf. */
   | { kind: "ORDER"; passThrough?: string }
   | { kind: "STATUS" }
+  /** Change an order they have already placed. */
+  | { kind: "AMEND" }
+  /** Something is wrong with an order. Always a person. */
+  | { kind: "COMPLAINT" }
+  /** Say the options again. */
+  | { kind: "REPEAT" }
   | { kind: "HUMAN" };
 
 /** A caller who wants a person gets one, at any point, however they ask. */
@@ -92,7 +100,57 @@ const bare = (digits: string) =>
 
 const BARE_ONE = bare("1|one|won");
 const BARE_TWO = bare("2|two|too|to");
+const BARE_THREE = bare("3|three|tree");
+const BARE_FOUR = bare("4|four|for|fore");
+const BARE_FIVE = bare("5|five");
 const BARE_ZERO = bare("0|zero|nought");
+
+/** Changing an order that already exists — not placing a new one. */
+const AMEND_INTENT = [
+  "add to my order",
+  "add something to my order",
+  "add to it",
+  "change my order",
+  "change an order",
+  "amend my order",
+  "amend an order",
+  "update my order",
+  "update an order",
+  "add another",
+  "forgot to add",
+  "forgot something",
+  "add one more",
+];
+
+/** Something is wrong. These always end with a person. */
+const COMPLAINT_INTENT = [
+  "complain",
+  "complaint",
+  "wrong order",
+  "missing",
+  "cold",
+  "never arrived",
+  "didn't arrive",
+  "didnt arrive",
+  "not happy",
+  "unhappy",
+  "refund",
+  "money back",
+  "disgusting",
+  "terrible",
+];
+
+/** Say it all again. */
+const REPEAT_INTENT = [
+  "say that again",
+  "repeat that",
+  "repeat the options",
+  "what are the options",
+  "say the options",
+  "hear the options",
+  "what were they",
+  "didn't catch the options",
+];
 
 const clean = (text: string): string =>
   String(text ?? "")
@@ -112,6 +170,12 @@ export function digitChoice(digit: string): MenuChoice | null {
       return { kind: "ORDER" };
     case "2":
       return { kind: "STATUS" };
+    case "3":
+      return { kind: "AMEND" };
+    case "4":
+      return { kind: "COMPLAINT" };
+    case "5":
+      return { kind: "REPEAT" };
     // 0 is the near-universal "get me a person" key. Nobody has to be told.
     case "0":
       return { kind: "HUMAN" };
@@ -156,8 +220,18 @@ export function interpretMenuChoice(text: string): MenuChoice {
   if (words.length <= 4) {
     if (BARE_ONE.test(t)) return { kind: "ORDER" };
     if (BARE_TWO.test(t)) return { kind: "STATUS" };
+    if (BARE_THREE.test(t)) return { kind: "AMEND" };
+    if (BARE_FOUR.test(t)) return { kind: "COMPLAINT" };
+    if (BARE_FIVE.test(t)) return { kind: "REPEAT" };
   }
 
+  // A complaint outranks everything. Someone whose food never turned up must
+  // not be routed into placing another one because they said the word "order".
+  if (COMPLAINT_INTENT.some((p) => t.includes(p))) return { kind: "COMPLAINT" };
+  // Then amending, before status: "change my order" contains "my order" and
+  // would otherwise read as a status enquiry.
+  if (AMEND_INTENT.some((p) => t.includes(p))) return { kind: "AMEND" };
+  if (REPEAT_INTENT.some((p) => t.includes(p))) return { kind: "REPEAT" };
   if (STATUS_INTENT.some((p) => t.includes(p))) return { kind: "STATUS" };
 
   // Everything else is an order, and the caller's words carry forward. This
