@@ -75,8 +75,20 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
     const items = order.items.map((item: any) => {
       const qty = parseNum(item.quantity, 1);
       const unitPrice = parseMoney(item.price);
+      // The SIZE lives in sku_name.
+      //
+      // A HubRise product with variants sends the product in `product_name`
+      // ("Margherita") and the chosen variant in `sku_name` ("12 inch",
+      // "Large"). sku_name was only a FALLBACK for a missing product_name, so
+      // it was dropped on every sized item — the kitchen got "Margherita" with
+      // no idea which one to make, on the board and on the printed ticket.
+      //
+      // Appended to the name rather than added as an option: a size is part of
+      // what to cook, not a topping, and it has to be on the line a chef reads
+      // first. Skipped when the two are the same, which is what an unsized
+      // product sends.
       return {
-        name: item.product_name ?? item.sku_name ?? "Item",
+        name: hubriseItemName(item),
         quantity: qty,
         unitPrice,
         totalPrice: parseMoney(item.subtotal) || unitPrice * qty,
@@ -458,6 +470,18 @@ function joinNotes(...notes: (string | undefined)[]): string | undefined {
   const kept = notes.filter((n): n is string => !!n);
   const unique = kept.filter((n, i) => kept.indexOf(n) === i);
   return unique.length ? unique.join(" — ") : undefined;
+}
+
+/** "Margherita" + "12 inch" → "Margherita (12 inch)". */
+function hubriseItemName(item: any): string {
+  const product = typeof item?.product_name === "string" ? item.product_name.trim() : "";
+  const sku = typeof item?.sku_name === "string" ? item.sku_name.trim() : "";
+  if (!product) return sku || "Item";
+  if (!sku || sku.toLowerCase() === product.toLowerCase()) return product;
+  // Some catalogues already spell the size into the product name. Don't say it
+  // twice.
+  if (product.toLowerCase().includes(sku.toLowerCase())) return product;
+  return `${product} (${sku})`;
 }
 
 function parseMoney(value: unknown): number {
