@@ -107,7 +107,9 @@ export interface VoiceState {
    * know which question. That makes the next turn answerable in code, and
    * these are the two slowest and most common turns in the whole call.
    */
-  awaiting?: "ADDRESS_CONFIRM" | "ORDER_CONFIRM";
+  awaiting?: "ADDRESS_CONFIRM" | "ORDER_CONFIRM" | "FULFILLMENT" | "PAYMENT" | "NAME";
+  /** How they said they'd pay, held while we ask for a name. */
+  pendingPayment?: "CASH" | "CARD";
 }
 
 export function emptyState(): VoiceState {
@@ -147,11 +149,16 @@ export function coerceState(raw: unknown): VoiceState {
           }
         : undefined,
     knownName: r.knownName ? String(r.knownName) : undefined,
-    callId: r.callId ? String(r.callId) : undefined,
-    awaiting:
-      r.awaiting === "ADDRESS_CONFIRM" || r.awaiting === "ORDER_CONFIRM"
-        ? r.awaiting
+    pendingPayment:
+      r.pendingPayment === "CASH" || r.pendingPayment === "CARD"
+        ? r.pendingPayment
         : undefined,
+    callId: r.callId ? String(r.callId) : undefined,
+    awaiting: (
+      ["ADDRESS_CONFIRM", "ORDER_CONFIRM", "FULFILLMENT", "PAYMENT", "NAME"] as const
+    ).includes(r.awaiting)
+      ? r.awaiting
+      : undefined,
   };
 }
 
@@ -235,6 +242,112 @@ export class VoiceAiService {
   confirmOrderAloud(state: VoiceState): string {
     state.orderConfirmed = true;
     return "How would you like to pay — cash, or card?";
+  }
+
+  /**
+   * "Delivery" or "collection", answered without a model.
+   *
+   * The very first thing a caller says after pressing 1, with exactly two
+   * possible answers. It used to cost a prompt carrying the whole menu, a tool
+   * call to record the choice, and a second round trip to ask the next
+   * question — two to four seconds to understand one word.
+   */
+  fulfillmentAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    choice: "DELIVERY" | "PICKUP",
+  ): { say: string; next?: VoiceState["awaiting"] } {
+    state.cart.fulfillmentType = choice;
+    state.cart.fulfillmentChosen = true;
+
+    if (choice === "PICKUP") {
+      state.cart.deliveryAddress = undefined;
+      state.addressConfirmed = false;
+      return { say: "Lovely, collection it is. What would you like to order?" };
+    }
+
+    // A regular gets one yes instead of reciting where they live.
+    const saved = state.savedAddress;
+    if (saved?.line1) {
+      return {
+        say: `Are you still at ${saved.line1}?`,
+        next: "ADDRESS_CONFIRM",
+      };
+    }
+    return {
+      say: postcodeRequiredFor(ctx.country)
+        ? "No problem. Can I take your address, including the postcode? So for example, 11 Follingsby Drive, N E 10, 8 Y H."
+        : "No problem. Can I take your address, and the area you're in?",
+    };
+  }
+
+  /**
+   * "Cash" or "card", and then the order itself.
+   *
+   * The last turn of the call and the slowest one to sit through, because the
+   * model had to decide to place, place, and then say what happened. Both
+   * locks still apply — placeOrder refuses without them, whoever calls it.
+   */
+  async payAndPlaceAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    method: "CASH" | "CARD",
+    callerNumber?: string | null,
+  ): Promise<{ say: string; turn?: Partial<VoiceTurn>; next?: VoiceState["awaiting"] }> {
+    // We need a name on the ticket, and asking for it is one short turn — far
+    // better than the kitchen getting "Phone order".
+    if (!state.knownName) {
+      state.pendingPayment = method;
+      return { say: "And can I take your name?", next: "NAME" };
+    }
+    return this.placeAloud(ctx, state, method, state.knownName, callerNumber);
+  }
+
+  /** The caller just gave their name at the end of the order. */
+  async namedAndPlaceAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    name: string,
+    callerNumber?: string | null,
+  ): Promise<{ say: string; turn?: Partial<VoiceTurn> }> {
+    const method = state.pendingPayment === "CARD" ? "CARD" : "CASH";
+    return this.placeAloud(ctx, state, method, name, callerNumber);
+  }
+
+  private async placeAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    method: "CASH" | "CARD",
+    customerName: string,
+    callerNumber?: string | null,
+  ): Promise<{ say: string; turn?: Partial<VoiceTurn> }> {
+    const out = await this.placeOrder(
+      { customerName, paymentMethod: method },
+      ctx,
+      state,
+      callerNumber,
+    );
+    // A refusal here is a gate doing its job — the order was never read back,
+    // or the address never confirmed. Hand it to the model rather than
+    // inventing a line for a case that should not happen.
+    if (!state.orderId) {
+      return { say: "", turn: out.turn };
+    }
+
+    const mins =
+      state.cart.fulfillmentType === "DELIVERY"
+        ? ctx.deliveryPrepMinutes
+        : ctx.collectionPrepMinutes;
+    const where =
+      state.cart.fulfillmentType === "DELIVERY" ? "with you" : "ready";
+    const card =
+      method === "CARD"
+        ? " I've sent you a payment link — you can pay on your phone."
+        : "";
+    return {
+      say: `That's all booked in. It'll be about ${mins} minutes ${where}.${card} Thanks for calling, goodbye.`,
+      turn: { ...out.turn, endCall: true },
+    };
   }
 
   /** They said no to a read-back. */

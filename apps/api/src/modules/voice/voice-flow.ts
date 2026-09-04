@@ -467,3 +467,51 @@ export function parseYesNo(text: string): "YES" | "NO" | null {
   }
   return null;
 }
+
+/**
+ * Collection or delivery, when that is the question we just asked.
+ *
+ * This is the very first thing a caller says after pressing 1, and it has
+ * exactly two answers. Sending it to a language model — prompt, menu, tools,
+ * a tool call to record the choice, then a second round trip to say the next
+ * line — is two to four seconds to understand the word "delivery".
+ */
+export function parseFulfillment(text: string): "DELIVERY" | "PICKUP" | null {
+  const t = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z\s']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!t) return null;
+  // Longer than a short answer means they said something else as well, and
+  // that belongs to the model.
+  if (t.split(" ").filter(Boolean).length > 5) return null;
+
+  const delivery = /\b(deliver|delivery|delivered|delivering|to my house|to my home|bring it)\b/.test(t);
+  const pickup = /\b(collect|collection|collecting|pick up|pickup|pick it up|takeaway|take away|come in|coming in|myself)\b/.test(t);
+  // Both, or neither, is genuinely ambiguous — ask properly rather than guess
+  // a delivery charge onto someone who is walking in.
+  if (delivery === pickup) return null;
+  return delivery ? "DELIVERY" : "PICKUP";
+}
+
+/**
+ * Cash or card, when that is the question we just asked.
+ *
+ * The other one-word answer in the call, and the one that gates placing the
+ * order — so it is also the slowest turn to sit through.
+ */
+export function parsePayment(text: string): "CASH" | "CARD" | null {
+  const t = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z\s']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!t) return null;
+  if (t.split(" ").filter(Boolean).length > 5) return null;
+
+  const cash = /\b(cash|money|notes|coins|on delivery|when it arrives|at the shop|in person)\b/.test(t);
+  const card = /\b(card|credit|debit|visa|mastercard|link|online|apple pay|google pay|by phone)\b/.test(t);
+  if (cash === card) return null;
+  return cash ? "CASH" : "CARD";
+}

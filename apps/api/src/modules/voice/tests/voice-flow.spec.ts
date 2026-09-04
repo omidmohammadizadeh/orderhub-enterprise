@@ -3,6 +3,8 @@ import {
   interpretMenuChoice,
   isLikelyHallucination,
   normalisePostcode,
+  parseFulfillment,
+  parsePayment,
   parseYesNo,
   parseSpokenNumber,
   repairPostcode,
@@ -299,5 +301,46 @@ describe("parseYesNo", () => {
     expect(parseYesNo("yes and can I also add chips please")).toBeNull();
     expect(parseYesNo("hmm let me think")).toBeNull();
     expect(parseYesNo("")).toBeNull();
+  });
+});
+
+describe("parseFulfillment", () => {
+  it("understands the two answers without a model", () => {
+    for (const said of ["delivery", "Delivery please", "can you deliver it", "delivered"]) {
+      expect(parseFulfillment(said)).toBe("DELIVERY");
+    }
+    for (const said of ["collection", "I'll collect", "pick up", "takeaway", "collecting"]) {
+      expect(parseFulfillment(said)).toBe("PICKUP");
+    }
+  });
+
+  it("refuses to guess when both or neither are said", () => {
+    // Guessing delivery onto someone walking in adds a charge they never
+    // agreed to; guessing collection sends a driver nowhere.
+    expect(parseFulfillment("do you deliver or is it collection only")).toBeNull();
+    expect(parseFulfillment("erm")).toBeNull();
+    expect(parseFulfillment("")).toBeNull();
+  });
+
+  it("hands a whole sentence to the model", () => {
+    expect(
+      parseFulfillment("delivery please and can I get two large pepperoni"),
+    ).toBeNull();
+  });
+});
+
+describe("parsePayment", () => {
+  it("understands cash and card", () => {
+    for (const said of ["cash", "Cash please", "I'll pay on delivery", "cash at the shop"]) {
+      expect(parsePayment(said)).toBe("CASH");
+    }
+    for (const said of ["card", "by card please", "debit card", "send me a link"]) {
+      expect(parsePayment(said)).toBe("CARD");
+    }
+  });
+
+  it("refuses when it cannot tell", () => {
+    expect(parsePayment("can I pay by cash or card")).toBeNull();
+    expect(parsePayment("what do you take")).toBeNull();
   });
 });

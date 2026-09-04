@@ -12,6 +12,8 @@ import {
 import {
   digitChoice,
   interpretMenuChoice,
+  parseFulfillment,
+  parsePayment,
   parseSpokenNumber,
   parseYesNo,
   spokenDigits,
@@ -173,11 +175,12 @@ export class VoiceService {
         // five seconds on the most common turn in the call, for a question a
         // regular expression answers correctly. Anything ambiguous still goes
         // to the model, which is what it is actually good at.
-        const slot = state.awaiting;
-        if (slot) {
-          const answer = parseYesNo(args.text);
-          if (answer) return this.answerSlot(call, ctx, state, slot, answer, args.text);
-        }
+        // Questions whose answer is one word are answered in code. These are
+        // the most common turns in the call — collection or delivery, yes or
+        // no to a read-back, cash or card — and every one of them used to
+        // cost a prompt carrying the whole menu plus a tool round trip.
+        const fast = await this.answerSlot(call, ctx, state, args.text);
+        if (fast) return fast;
         return this.runBrain(call, ctx, state, args.text, args.onPartial);
       }
     }
@@ -238,6 +241,9 @@ export class VoiceService {
     }
     const say = this.ai.orderOpener(state);
     state.turns.push({ role: "assistant", text: say });
+    // "Collection or delivery?" has two answers. Arm the slot so the reply is
+    // understood in code rather than costing a model call.
+    state.awaiting = "FULFILLMENT";
     await this.save(call.id, state);
     return { say };
   }
@@ -330,30 +336,110 @@ export class VoiceService {
     return { say, outcome: "ORDER_STATUS" };
   }
 
-  /** Yes or no to a read-back, answered without a model. */
+  /**
+   * A question we just asked, whose answer is one word.
+   *
+   * Returns null when the caller said something else — which then goes to the
+   * model, where it belongs. The slot is only ever a shortcut for the answer
+   * we actually asked for; it never swallows a caller who changed the subject.
+   */
   private async answerSlot(
     call: any,
     ctx: any,
     state: VoiceState,
-    slot: "ADDRESS_CONFIRM" | "ORDER_CONFIRM",
-    answer: "YES" | "NO",
     said: string,
-  ): Promise<VoiceTurn> {
-    state.turns.push({ role: "user", text: said });
-    state.awaiting = undefined;
+  ): Promise<VoiceTurn | null> {
+    const slot = state.awaiting;
+    if (!slot) return null;
 
-    let say: string;
-    if (answer === "NO") {
-      say = this.ai.rejectedReadBack(slot);
-    } else if (slot === "ADDRESS_CONFIRM") {
-      say = await this.ai.confirmAddressAloud(ctx, state);
-    } else {
-      say = this.ai.confirmOrderAloud(state);
+    let say = "";
+    let extra: Partial<VoiceTurn> | undefined;
+    let next: VoiceState["awaiting"];
+
+    switch (slot) {
+      case "FULFILLMENT": {
+        const choice = parseFulfillment(said);
+        if (!choice) return null;
+        const out = this.ai.fulfillmentAloud(ctx, state, choice);
+        say = out.say;
+        next = out.next;
+        break;
+      }
+      case "ADDRESS_CONFIRM":
+      case "ORDER_CONFIRM": {
+        const answer = parseYesNo(said);
+        if (!answer) return null;
+        if (answer === "NO") {
+          say = this.ai.rejectedReadBack(slot);
+        } else if (slot === "ADDRESS_CONFIRM") {
+          say = await this.ai.confirmAddressAloud(ctx, state);
+        } else {
+          say = this.ai.confirmOrderAloud(state);
+          next = "PAYMENT";
+        }
+        break;
+      }
+      case "PAYMENT": {
+        const method = parsePayment(said);
+        if (!method) return null;
+        const out = await this.ai.payAndPlaceAloud(ctx, state, method, call.fromNumber);
+        // An empty line means a gate refused the order. That should not
+        // happen here, and the model is better placed to explain it than a
+        // canned sentence would be.
+        if (!out.say) return null;
+        say = out.say;
+        extra = out.turn;
+        next = out.next;
+        break;
+      }
+      case "NAME": {
+        const name = this.nameFrom(said);
+        if (!name) return null;
+        state.knownName = name;
+        const out = await this.ai.namedAndPlaceAloud(ctx, state, name, call.fromNumber);
+        if (!out.say) return null;
+        say = out.say;
+        extra = out.turn;
+        break;
+      }
+      default:
+        return null;
     }
 
+    state.turns.push({ role: "user", text: said });
+    state.awaiting = next;
     state.turns.push({ role: "assistant", text: say });
-    await this.save(call.id, state);
-    return { say };
+    if (extra?.endCall || extra?.transferTo) state.stage = "DONE";
+
+    await this.db().voiceCall.update({
+      where: { id: call.id },
+      data: {
+        transcript: state as any,
+        ...(state.orderId ? { orderId: state.orderId, outcome: "ORDER" } : {}),
+      },
+    });
+    return { say, ...extra };
+  }
+
+  /**
+   * A name out of "it's Omid" / "Omid" / "my name's Omid".
+   *
+   * Refuses anything that does not look like someone answering with a name —
+   * a caller who uses that turn to change their order must reach the model,
+   * not have "actually can I add chips" written on the ticket as their name.
+   */
+  private nameFrom(said: string): string | null {
+    const t = String(said ?? "")
+      .replace(/[^a-zA-Z\s'-]/g, " ")
+      .replace(/\b(it'?s|its|my name'?s?|i'?m|this is|name is|call me|yeah|yes|hi|hello)\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!t) return null;
+    const words = t.split(" ").filter(Boolean);
+    if (words.length === 0 || words.length > 3) return null;
+    const first = words[0];
+    if (!first || first.length < 2 || first.length > 20) return null;
+    return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
   }
 
   /** The ordering conversation. This is the only path that costs a model call. */
