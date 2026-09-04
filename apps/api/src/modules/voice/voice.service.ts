@@ -295,7 +295,7 @@ export class VoiceService {
             orderNumber: true,
             status: true,
             fulfillmentType: true,
-            estimatedReadyTime: true,
+            estimatedReadyAt: true,
             customerPhone: true,
           },
         })
@@ -312,7 +312,7 @@ export class VoiceService {
               orderNumber: true,
               status: true,
               fulfillmentType: true,
-              estimatedReadyTime: true,
+              estimatedReadyAt: true,
               customerPhone: true,
             },
           })
@@ -325,9 +325,9 @@ export class VoiceService {
       return this.handOver(call, ctx, state, say);
     }
 
-    const mins = order.estimatedReadyTime
+    const mins = order.estimatedReadyAt
       ? Math.round(
-          (new Date(order.estimatedReadyTime).getTime() - Date.now()) / 60000,
+          (new Date(order.estimatedReadyAt).getTime() - Date.now()) / 60000,
         )
       : null;
     const spoken = spokenOrderStatus({

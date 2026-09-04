@@ -1284,14 +1284,14 @@ ${menu || "(no items available — apologise and transfer)"}`;
         fulfillmentType: true,
         total: true,
         createdAt: true,
-        estimatedReadyTime: true,
+        estimatedReadyAt: true,
       },
     });
     if (!order) {
       return "No recent order found for this caller. Offer to transfer them to the shop.";
     }
-    const mins = order.estimatedReadyTime
-      ? Math.max(0, Math.round((new Date(order.estimatedReadyTime).getTime() - Date.now()) / 60000))
+    const mins = order.estimatedReadyAt
+      ? Math.max(0, Math.round((new Date(order.estimatedReadyAt).getTime() - Date.now()) / 60000))
       : null;
     return `Order ${order.orderNumber}, status ${order.status}, ${order.fulfillmentType}, total ${money(
       Number(order.total),

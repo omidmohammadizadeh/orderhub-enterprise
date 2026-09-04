@@ -433,6 +433,11 @@ export class VoiceTelnyxController {
       }
     } catch (e: any) {
       this.logger.error(`voice flush failed: ${e?.message ?? e}`);
+      // Never silence. See the same guard on the relay transport.
+      await this.telnyx.speak(
+        ccid,
+        "Sorry, something went wrong at my end there. Could you say that again?",
+      );
     }
   }
 

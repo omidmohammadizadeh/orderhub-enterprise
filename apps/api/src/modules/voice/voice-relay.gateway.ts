@@ -224,6 +224,20 @@ export class VoiceRelayGateway implements OnModuleInit {
       }
     } catch (e: any) {
       this.logger.error(`relay ${ccid.slice(-8)} ${type} failed: ${e?.message ?? e}`);
+      // Say SOMETHING. A thrown turn used to be logged and swallowed, which
+      // from the caller's side is indistinguishable from the line going dead —
+      // they had just read out an order number and heard nothing back, for
+      // ever. An apology and a re-ask keeps the call alive and tells them the
+      // problem is ours.
+      if (ws.readyState === ws.OPEN) {
+        ws.send(
+          JSON.stringify({
+            type: "text",
+            token: "Sorry, something went wrong at my end there. Could you say that again?",
+            last: true,
+          }),
+        );
+      }
     }
   }
 
