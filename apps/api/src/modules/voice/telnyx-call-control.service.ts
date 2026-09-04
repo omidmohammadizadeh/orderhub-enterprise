@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createPublicKey, verify as cryptoVerify } from "crypto";
+import { toE164 } from "../sms/phone";
 
 // Thin client for Telnyx Call Control v2 — the six commands the AI phone line
 // actually issues, and the webhook signature check.
@@ -23,6 +24,7 @@ export class TelnyxCallControlService {
   private readonly voice: string;
   private readonly language: string;
   private readonly engine: string;
+  private readonly sttLanguage: string;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>("TELNYX_API_KEY") || undefined;
@@ -32,6 +34,16 @@ export class TelnyxCallControlService {
     this.voice = this.config.get<string>("TELNYX_VOICE") || "Polly.Amy-Neural";
     this.language = this.config.get<string>("TELNYX_VOICE_LANGUAGE") || "en-GB";
     this.engine = this.config.get<string>("TELNYX_TRANSCRIPTION_ENGINE") || "B";
+    // Speaking and listening do NOT take the same language code. Polly wants
+    // the regional form ("en-GB") and gives us a British voice for it; the
+    // transcription engines take a bare language ("en") and reject "en-GB"
+    // outright with a 422. Sharing one value between them is what silently
+    // killed every call — the STT command failed, nobody was listening, and
+    // the caller heard the "trouble hearing you" apology every time.
+    this.sttLanguage =
+      this.config.get<string>("TELNYX_TRANSCRIPTION_LANGUAGE") ||
+      this.language.split(/[-_]/)[0] ||
+      "en";
   }
 
   configured(): boolean {
@@ -134,15 +146,38 @@ export class TelnyxCallControlService {
    * speech back as if the caller had said it, and the conversation talks
    * itself into a corner within two turns.
    */
-  startTranscription(callControlId: string): Promise<boolean> {
-    return this.command(callControlId, "transcription_start", {
-      language: this.language,
+  async startTranscription(callControlId: string): Promise<boolean> {
+    const base = {
       // B is Telnyx's own engine — more accurate and cheaper than the Google
       // default, which is what the first live call was using at 0.33–0.62
       // confidence.
       transcription_engine: this.engine,
       transcription_tracks: "inbound",
-    });
+    };
+
+    // The language belongs INSIDE the engine config, not at the top level.
+    // Top-level `language` is the legacy Google-engine parameter; sending it
+    // alongside engine B is a 422 ("Invalid value for language", code 90013)
+    // and the call goes deaf. This is the second time this command has been
+    // rejected for putting an engine setting at the top level — the first was
+    // `hints`, and it cost a caller 48 seconds of talking to nobody.
+    if (
+      await this.command(callControlId, "transcription_start", {
+        ...base,
+        transcription_engine_config: { language: this.sttLanguage },
+      })
+    ) {
+      return true;
+    }
+
+    // Last resort: let the engine pick its own default rather than leave the
+    // line deaf. A transcript in the wrong dialect is recoverable; silence is
+    // not. Logged loudly, because it means the configured language is wrong
+    // and somebody should fix it rather than live on this fallback.
+    this.logger.error(
+      `Transcription rejected language "${this.sttLanguage}" on ${this.engine} — retrying with the engine default. Set TELNYX_TRANSCRIPTION_LANGUAGE to a value this engine accepts.`,
+    );
+    return this.command(callControlId, "transcription_start", base);
   }
 
   /**
@@ -164,11 +199,25 @@ export class TelnyxCallControlService {
     );
   }
 
-  /** Hand the caller to a human. */
-  transfer(callControlId: string, to: string, from?: string) {
+  /**
+   * Hand the caller to a human.
+   *
+   * Normalised here rather than at the call sites, because the number comes
+   * from a settings box a person typed into — "0191 231 2345" is what a shop
+   * owner writes, and Telnyx rejects anything that is not +E164 (code 10016).
+   * The transfer failing is the worst possible moment for a formatting bug:
+   * it only ever runs when something has already gone wrong.
+   */
+  transfer(callControlId: string, to: string, from?: string): Promise<boolean> {
+    const dest = toE164(to);
+    if (!dest) {
+      this.logger.error(`Cannot transfer ${callControlId}: "${to}" is not a dialable number`);
+      return Promise.resolve(false);
+    }
+    const fromE164 = from ? toE164(from) : null;
     return this.command(callControlId, "transfer", {
-      to,
-      ...(from ? { from } : {}),
+      to: dest,
+      ...(fromE164 ? { from: fromE164 } : {}),
     });
   }
 

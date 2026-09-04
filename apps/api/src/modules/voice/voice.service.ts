@@ -144,7 +144,10 @@ export class VoiceService {
    */
   async onCallerSaid(args: { callId: string; text: string }): Promise<VoiceTurn> {
     const loaded = await this.load(args.callId);
-    if (!loaded) return { say: "Sorry, something went wrong.", endCall: true };
+    // Silence, not an apology. This is reached when the call has already been
+    // handed to a human or closed — a late transcript arriving on a bridged
+    // leg must not make us talk over the person who just picked up.
+    if (!loaded) return { say: "" };
     const { call, ctx, state } = loaded;
 
     switch (state.stage) {
@@ -364,6 +367,12 @@ export class VoiceService {
   ): Promise<{ call: any; ctx: any; state: VoiceState } | null> {
     const call = await this.db().voiceCall.findUnique({ where: { id: callId } });
     if (!call) return null;
+    // A call we have already handed over or closed takes no further turns. A
+    // keypress arriving after a hand-over used to start a brand new order on a
+    // call nobody was listening to any more.
+    if (["TRANSFERRED", "COMPLETED", "NOT_ANSWERED"].includes(call.status)) {
+      return null;
+    }
     const ctx = await this.contexts.resolve(call.toNumber ?? "");
     if (!ctx) return null;
     return { call, ctx, state: coerceState(call.transcript) };

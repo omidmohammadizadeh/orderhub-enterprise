@@ -186,18 +186,33 @@ export class VoiceTelnyxController {
         ccid,
         "Sorry, I'm having trouble hearing you. Let me put you through to the shop.",
       );
-      if (ctx?.transferNumber) {
-        if (call) {
-          await this.db().voiceCall.update({
-            where: { id: call.id },
-            data: { status: "TRANSFERRED", outcome: "TRANSFERRED" },
-          });
-        }
-        await this.telnyx.transfer(ccid, ctx.transferNumber);
-      } else {
-        setTimeout(() => void this.telnyx.hangup(ccid), 5000);
+      if (call) {
+        // Marked before the transfer is attempted, so a call we have given up
+        // on stops accepting turns even if the transfer itself then fails.
+        await this.db().voiceCall.update({
+          where: { id: call.id },
+          data: { status: "TRANSFERRED", outcome: "TRANSFERRED" },
+        });
       }
+      await this.handOver(ccid, ctx?.transferNumber);
     }
+  }
+
+  /**
+   * Put them through, or say goodbye properly.
+   *
+   * A failed transfer used to end the call in silence: we apologised, told
+   * them we were putting them through, and then Telnyx rejected the number and
+   * nothing else ever happened. Silence after a promise is the worst outcome
+   * on this whole line — worse than never answering.
+   */
+  private async handOver(ccid: string, to?: string | null): Promise<void> {
+    if (to && (await this.telnyx.transfer(ccid, to))) return;
+    await this.telnyx.speak(
+      ccid,
+      "Sorry, I can't put you through right now. Please call the shop back in a moment. Goodbye.",
+    );
+    setTimeout(() => void this.telnyx.hangup(ccid), 6000);
   }
 
   private async onTranscription(ccid: string, p: any): Promise<void> {
@@ -289,7 +304,7 @@ export class VoiceTelnyxController {
         where: { id: call.id },
         data: { status: "TRANSFERRED", outcome: "TRANSFERRED" },
       });
-      await this.telnyx.transfer(ccid, turn.transferTo);
+      await this.handOver(ccid, turn.transferTo);
     }
   }
 
@@ -315,7 +330,7 @@ export class VoiceTelnyxController {
           where: { id: call.id },
           data: { status: "TRANSFERRED", outcome: "TRANSFERRED" },
         });
-        await this.telnyx.transfer(ccid, turn.transferTo);
+        await this.handOver(ccid, turn.transferTo);
         return;
       }
       if (turn.endCall) {
