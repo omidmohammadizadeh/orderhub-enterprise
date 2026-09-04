@@ -171,3 +171,59 @@ describe("coerceState", () => {
     expect(s.orderConfirmed).toBe(false);
   });
 });
+
+describe("read-backs speak themselves", () => {
+  it("returns the address read-back as bare speech, not an instruction", async () => {
+    // Handing the words to the model so it can repeat them costs a SECOND
+    // round trip — about 2.5s of the caller listening to nothing on a real
+    // call — and lets it paraphrase the one sentence that must be verbatim.
+    const state = withItem();
+    const out = await svc().runTool(
+      "propose_delivery_address",
+      { line1: "11 Follingsby Drive", city: "Gateshead", postcode: "NE10 8YH" },
+      ctx(),
+      state,
+      "+447700900123",
+    );
+    expect(out.sayNow).toBe(
+      "So that's 11 Follingsby Drive, Gateshead, N E 1 0, 8 Y H. Is that correct?",
+    );
+    expect(out.sayNow).not.toContain("word for word");
+    expect(state.addressConfirmed).toBe(false);
+  });
+
+  it("repairs a postcode the transcriber clipped, using the shop's zones", async () => {
+    // Live call: the caller said "NE10 8YH", the transcript said "E10, 8YH".
+    const state = withItem();
+    await svc().runTool(
+      "propose_delivery_address",
+      { line1: "11 Follingsby Drive", postcode: "E10 8YH" },
+      ctx(),
+      state,
+      "+447700900123",
+    );
+    expect(state.cart.deliveryAddress.postcode).toBe("NE10 8YH");
+  });
+
+  it("keeps what it heard when no single zone fits", async () => {
+    const state = withItem();
+    await svc().runTool(
+      "propose_delivery_address",
+      { line1: "1 Nowhere Road", postcode: "ZZ99 9ZZ" },
+      ctx(),
+      state,
+      "+447700900123",
+    );
+    // Not invented, not silently corrected — the caller gets asked again.
+    expect(state.cart.deliveryAddress.postcode).toBe("ZZ99 9ZZ");
+  });
+
+  it("returns the order read-back as bare speech", async () => {
+    const state = withItem();
+    state.cart.fulfillmentType = "PICKUP";
+    const out = await svc().runTool("read_back_order", {}, ctx(), state, null);
+    expect(out.sayNow).toContain("2 Large Pepperoni");
+    expect(out.sayNow).toContain("Is that all correct?");
+    expect(out.sayNow).not.toContain("Say this");
+  });
+});

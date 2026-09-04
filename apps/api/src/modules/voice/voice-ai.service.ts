@@ -15,7 +15,7 @@ import { SmsService } from "../sms/sms.service";
 import { PaymentsService } from "../payments/payments.service";
 import type { VoiceContext } from "./voice-context.service";
 import { normaliseNumber } from "./voice-context.service";
-import { spokenDigits, type VoiceStage } from "./voice-flow";
+import { resolveHeardPostcode, spokenDigits, type VoiceStage } from "./voice-flow";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import {
   coerceCart,
@@ -278,10 +278,24 @@ export class VoiceAiService {
 
         messages.push({ role: "assistant", content: response.content });
         const results: Anthropic.ToolResultBlockParam[] = [];
+        let direct: string | undefined;
         for (const tu of toolUses) {
           const out = await this.runTool(tu.name, tu.input as any, ctx, state, args.callerNumber);
           if (out.turn) turn = { ...turn, ...out.turn };
+          if (out.sayNow) direct = out.sayNow;
           results.push({ type: "tool_result", tool_use_id: tu.id, content: out.result });
+        }
+
+        // Some tools compute the exact words to say — the address read-back,
+        // the order read-back. Feeding those to the model so it can repeat
+        // them costs a SECOND round trip, which on a real call was about two
+        // and a half seconds of the caller listening to nothing. Saying them
+        // straight out is both faster and safer: the read-back is now
+        // guaranteed verbatim rather than paraphrased by a model that might
+        // round a price or drop a line.
+        if (direct) {
+          spoken = direct;
+          break;
         }
         messages.push({ role: "user", content: results });
       }
@@ -603,7 +617,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
     ctx: VoiceContext,
     state: VoiceState,
     callerNumber?: string | null,
-  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
     switch (name) {
       case "add_item":
         return { result: this.addItem(input, ctx, state) };
@@ -656,12 +670,25 @@ ${menu || "(no items available — apologise and transfer)"}`;
         if (!line1) {
           return { result: "No street or house number heard — ask again." };
         }
+        // A real call gave us "E10, 8YH" for a caller who said "NE10 8YH" —
+        // the leading letter did not survive the audio. If the shop delivers
+        // to exactly one area whose outward code ends with what we heard, that
+        // is not a guess, it is the only possibility. Two candidates and we
+        // say nothing and let them be asked again.
+        const heard = input?.postcode ? String(input.postcode) : undefined;
+        const postcode = heard
+          ? (resolveHeardPostcode(
+              heard,
+              ctx.deliveryZones.map((z) => z.postcodePrefix),
+            ) ?? undefined)
+          : undefined;
+
         state.cart.fulfillmentType = "DELIVERY";
         state.cart.fulfillmentChosen = true;
         state.cart.deliveryAddress = {
           line1,
           city: String(input?.city ?? ctx.address?.city ?? ""),
-          postcode: input?.postcode ? String(input.postcode) : undefined,
+          postcode,
           area: input?.area ? String(input.area) : undefined,
           country: ctx.country,
         };
@@ -671,7 +698,9 @@ ${menu || "(no items available — apologise and transfer)"}`;
 
         const spoken = this.spokenAddress(state.cart.deliveryAddress);
         return {
-          result: `Say this to the caller, word for word, then wait: "So that's ${spoken}. Is that correct?" Do NOT call confirm_delivery_address until they say yes.`,
+          result:
+            "Address taken and read back to the caller. Wait for their answer. Call confirm_delivery_address only if they say yes; if they say no, take it again.",
+          sayNow: `So that's ${spoken}. Is that correct?`,
         };
       }
 
@@ -738,7 +767,11 @@ ${menu || "(no items available — apologise and transfer)"}`;
         if (state.cart.items.length === 0) {
           return { result: "Nothing on the order yet — there is nothing to read back." };
         }
-        return { result: this.readBackScript(ctx, state) };
+        return {
+          result:
+            "Order read back to the caller. Wait for their answer. Call order_confirmed if they say yes; if they say no, ask what needs changing.",
+          sayNow: this.readBackScript(ctx, state),
+        };
       }
 
       case "order_confirmed": {
@@ -876,10 +909,13 @@ ${menu || "(no items available — apologise and transfer)"}`;
       ? `for delivery to ${this.spokenAddress(state.cart.deliveryAddress)}`
       : "for collection";
 
-    return `Say this, then wait for them to answer: "So that's ${lines}, ${where}.${feeLine} That comes to ${money(
+    // Bare speech: this is spoken to the caller verbatim, not handed to the
+    // model to repeat. That is what makes the read-back trustworthy — the
+    // prices and lines are the cart's, not a paraphrase of it.
+    return `So that's ${lines}, ${where}.${feeLine} That comes to ${money(
       round2(subtotal + fee),
       ctx.currency,
-    )}. Is that all correct?" Then call order_confirmed if they say yes. If they say no, ask what needs changing and fix it before reading it back again.`;
+    )}. Is that all correct?`;
   }
 
   /** Answer "do you deliver to X?" — where X is a postcode or a community,

@@ -1,7 +1,11 @@
 import {
   digitChoice,
   interpretMenuChoice,
+  normalisePostcode,
   parseSpokenNumber,
+  repairPostcode,
+  resolveHeardPostcode,
+  soundsComplete,
   spokenDigits,
   spokenOrderStatus,
 } from "../voice-flow";
@@ -140,5 +144,104 @@ describe("spokenOrderStatus", () => {
     expect(
       spokenOrderStatus({ status: "PREPARING", minutesAway: -5 }).say,
     ).not.toContain("minutes");
+  });
+});
+
+describe("soundsComplete", () => {
+  it("treats a punctuated sentence as finished", () => {
+    // These are real transcripts from a live call. Whisper returns whole
+    // punctuated utterances, so waiting 1.5s to see if more is coming is 1.5s
+    // of silence the caller sits through on every single turn.
+    expect(soundsComplete("delivery.")).toBe(true);
+    expect(soundsComplete("11 Follingsby Drive, NE10 8YH.")).toBe(true);
+    expect(soundsComplete("Can I get two large pepperoni?")).toBe(true);
+  });
+
+  it("waits longer on speech that trails off", () => {
+    expect(soundsComplete("I'd like a pizza and")).toBe(false);
+    expect(soundsComplete("two large pepperoni and.")).toBe(false);
+    expect(soundsComplete("erm")).toBe(false);
+    expect(soundsComplete("")).toBe(false);
+  });
+
+  it("accepts a one-word answer that is genuinely the whole answer", () => {
+    for (const said of ["yes.", "cash.", "collection.", "correct."]) {
+      expect(soundsComplete(said)).toBe(true);
+    }
+    // …but not a punctuated hesitation.
+    expect(soundsComplete("Um.")).toBe(false);
+  });
+});
+
+describe("normalisePostcode", () => {
+  it("spaces a UK postcode correctly however it arrives", () => {
+    expect(normalisePostcode("ne108yh")).toBe("NE10 8YH");
+    expect(normalisePostcode("NE10 8YH")).toBe("NE10 8YH");
+    expect(normalisePostcode("n e 1 0 8 y h")).toBe("NE10 8YH");
+  });
+
+  it("refuses anything that is not a postcode", () => {
+    // A wrong postcode silently prices the wrong delivery zone, which is worse
+    // than having none at all.
+    expect(normalisePostcode("8YH")).toBeNull();
+    expect(normalisePostcode("hello there")).toBeNull();
+    expect(normalisePostcode("")).toBeNull();
+  });
+});
+
+describe("repairPostcode", () => {
+  const zones = ["NE10", "NE9"];
+
+  it("restores a leading letter the transcriber dropped", () => {
+    // The exact failure from a live call: the caller said "NE10 8YH" and it
+    // came back as "E10, 8YH".
+    expect(repairPostcode("E10 8YH", zones)).toBe("NE10 8YH");
+  });
+
+  it("refuses to choose when two zones would fit", () => {
+    // Guessing between two real delivery areas would put a driver in the
+    // wrong part of the city. Better to ask again.
+    expect(repairPostcode("E9 1AA", ["NE9", "SE9"])).toBeNull();
+  });
+
+  it("leaves a postcode that already matches a zone alone", () => {
+    expect(repairPostcode("NE10 8YH", zones)).toBeNull();
+  });
+
+  it("never edits a character the transcriber did hear", () => {
+    // Only ever restores what was clipped from the FRONT.
+    expect(repairPostcode("NX10 8YH", zones)).toBeNull();
+  });
+
+  it("copes with a shop that has no postcode zones at all", () => {
+    expect(repairPostcode("E10 8YH", [])).toBeNull();
+    expect(repairPostcode("E10 8YH", [null, undefined])).toBeNull();
+  });
+});
+
+describe("resolveHeardPostcode", () => {
+  const zones = ["NE10", "NE9"];
+
+  it("repairs a valid-LOOKING postcode the shop cannot possibly serve", () => {
+    // The trap: "E10 8YH" is a real London postcode and parses perfectly, so
+    // asking "did this parse?" never triggers a repair. The question that
+    // works is "could this shop deliver there?".
+    expect(resolveHeardPostcode("E10 8YH", zones)).toBe("NE10 8YH");
+  });
+
+  it("leaves a servable postcode exactly as heard", () => {
+    expect(resolveHeardPostcode("ne108yh", zones)).toBe("NE10 8YH");
+    expect(resolveHeardPostcode("NE9 5AA", zones)).toBe("NE9 5AA");
+  });
+
+  it("keeps an out-of-area postcode so the caller is told, not silently moved", () => {
+    // Someone genuinely in London ordering from Gateshead must hear "we don't
+    // deliver there", not be quietly relocated to a zone we do serve.
+    expect(resolveHeardPostcode("SW1A 1AA", zones)).toBe("SW1A 1AA");
+  });
+
+  it("passes everything through for a shop with no postcode zones", () => {
+    // Area- and distance-priced shops have nothing to check against.
+    expect(resolveHeardPostcode("E10 8YH", [])).toBe("E10 8YH");
   });
 });

@@ -14,6 +14,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { VoiceService } from "./voice.service";
 import { VoiceContextService } from "./voice-context.service";
 import { TelnyxCallControlService } from "./telnyx-call-control.service";
+import { soundsComplete } from "./voice-flow";
 
 // Where a real phone call meets the brain.
 //
@@ -123,8 +124,24 @@ export class VoiceTelnyxController {
     { text: string; timer: NodeJS.Timeout; lowConfidenceRun: number }
   >();
 
-  /** Wait this long after a fragment before deciding the caller has finished. */
-  private static readonly SETTLE_MS = 1500;
+  /**
+   * How long to wait after a fragment before deciding the caller has finished.
+   *
+   * The long wait is for speech that trails off mid-thought, which is what the
+   * original 1500ms was written for: Google's engine returned word-scraps
+   * seconds apart and answering each one made the line feel deaf.
+   *
+   * Whisper returns whole punctuated utterances instead, so on a finished
+   * sentence that wait is a second and a half of silence the caller sits
+   * through on EVERY turn, for nothing. Measured on a real call: 1.5s of
+   * settle on top of a 5s answer.
+   *
+   * Both are env-tunable, because the right numbers depend on how the shop's
+   * customers actually speak and nobody should need a deploy to find out.
+   */
+  private readonly settleMs = Number(process.env.VOICE_SETTLE_MS) || 1500;
+  private readonly settleCompleteMs =
+    Number(process.env.VOICE_SETTLE_COMPLETE_MS) || 400;
 
   /**
    * One turn at a time, per call.
@@ -301,7 +318,7 @@ export class VoiceTelnyxController {
       lowConfidenceRun: 0,
       timer: setTimeout(
         () => void this.flush(ccid),
-        VoiceTelnyxController.SETTLE_MS,
+        soundsComplete(joined) ? this.settleCompleteMs : this.settleMs,
       ),
     });
   }

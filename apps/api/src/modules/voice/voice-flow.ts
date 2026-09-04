@@ -262,3 +262,113 @@ export function spokenOrderStatus(args: {
       };
   }
 }
+
+/**
+ * Does this transcript sound like a finished thought?
+ *
+ * The 1500ms settle exists because Google's engine returned word-scraps
+ * seconds apart, and answering each one made the line feel deaf. Whisper does
+ * not do that — it returns whole punctuated utterances ("delivery.", "11
+ * Follingsby Drive, NE10 8YH.") — so waiting a second and a half to see
+ * whether more is coming is a second and a half the caller spends listening to
+ * nothing, on every single turn.
+ *
+ * A punctuated utterance gets the short wait. Anything that trails off keeps
+ * the long one, because that is the case the long wait was written for.
+ */
+export function soundsComplete(text: string): boolean {
+  const t = String(text ?? "").trim();
+  if (!t) return false;
+  if (!/[.!?]$/.test(t)) return false;
+  // "Um." and "And." are punctuation around a hesitation, not a finished
+  // sentence. Two words is the floor for treating it as one.
+  const words = t.split(/\s+/).filter(Boolean);
+  if (words.length < 2) {
+    // …unless it is a whole answer on its own, which on this line it usually
+    // is: "delivery.", "yes.", "cash.".
+    return /^(yes|no|yeah|nope|delivery|collection|pickup|cash|card|correct|right)[.!?]$/i.test(t);
+  }
+  // A sentence ending in a conjunction is someone drawing breath.
+  return !/\b(and|but|or|so|with|plus|then|also)[.!?]$/i.test(t);
+}
+
+/** UK postcode, normalised to "NE10 8YH". Null when it isn't one. */
+export function normalisePostcode(raw: string | null | undefined): string | null {
+  const compact = String(raw ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+  if (compact.length < 5 || compact.length > 7) return null;
+  const out = `${compact.slice(0, -3)} ${compact.slice(-3)}`;
+  // Standard UK format. Deliberately strict: a "postcode" that is not one is
+  // worse than no postcode, because it silently prices the wrong zone.
+  return /^[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2}$/.test(out) ? out : null;
+}
+
+/**
+ * Repair a postcode the transcriber clipped, using the shop's own zones.
+ *
+ * A real call came back as "E10, 8YH" for what the caller said as "NE10 8YH" —
+ * the leading letter simply did not survive the audio. We cannot invent a
+ * postcode, but we CAN notice that the shop delivers to exactly one area whose
+ * outward code ends with what we heard, and that guessing between two would be
+ * unforgivable so we do not.
+ *
+ * Only ever ADDS characters that were dropped from the front. It will not
+ * change a character the transcriber did hear.
+ */
+export function repairPostcode(
+  heard: string | null | undefined,
+  zonePrefixes: Array<string | null | undefined>,
+): string | null {
+  const compact = String(heard ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+  if (!compact) return null;
+
+  const outward = compact.length > 3 ? compact.slice(0, -3) : compact;
+  const inward = compact.length > 3 ? compact.slice(-3) : "";
+
+  const candidates = zonePrefixes
+    .map((p) => String(p ?? "").toUpperCase().replace(/[^A-Z0-9]/g, ""))
+    .filter(Boolean)
+    .filter((p) => p !== outward && p.endsWith(outward));
+
+  // Exactly one, or we stay quiet and let the caller be asked again.
+  const unique = Array.from(new Set(candidates));
+  if (unique.length !== 1) return null;
+  return normalisePostcode(`${unique[0]}${inward}`);
+}
+
+/**
+ * What postcode did the caller actually give us?
+ *
+ * Repair cannot be a fallback for "that didn't parse", because the failure it
+ * exists for parses perfectly well: "E10 8YH" is a real London postcode, and
+ * the caller in Gateshead said "NE10 8YH". It looked valid, so a
+ * parse-then-fallback order never even tried to fix it.
+ *
+ * So the question is not "is this a postcode" but "is this a postcode this
+ * shop could possibly deliver to". Only when the answer is no do we consider
+ * that the transcriber clipped it.
+ */
+export function resolveHeardPostcode(
+  heard: string | null | undefined,
+  zonePrefixes: Array<string | null | undefined>,
+): string | null {
+  const raw = String(heard ?? "").trim();
+  if (!raw) return null;
+
+  const normalised = normalisePostcode(raw);
+  const prefixes = zonePrefixes
+    .map((p) => String(p ?? "").toUpperCase().replace(/[^A-Z0-9]/g, ""))
+    .filter(Boolean);
+
+  // A shop with no postcode zones (area- or distance-priced) has nothing to
+  // check against, so whatever we heard stands.
+  if (!prefixes.length) return normalised ?? raw;
+
+  const outward = (normalised ?? raw).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, -3);
+  if (prefixes.some((p) => outward.startsWith(p))) return normalised ?? raw;
+
+  return repairPostcode(raw, zonePrefixes) ?? normalised ?? raw;
+}
