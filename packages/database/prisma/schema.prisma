@@ -2824,6 +2824,12 @@ model Driver {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // One driver record per login. Several requests land at once when the app
+  // signs in and each ran the same find-then-create, so one person ended up
+  // with four rows and dispatch could pick the wrong one. NULL userIds are
+  // distinct in Postgres, so operator-created rows with no login are
+  // unaffected.
+  @@unique([tenantId, userId])
   @@index([tenantId])
   @@index([tenantId, isActive])
   @@index([locationId])

@@ -169,17 +169,34 @@ export class DriverAppService {
       );
     }
 
-    return this.prisma.driver.create({
-      data: {
-        tenantId: user.tenantId,
-        userId: user.userId,
-        firstName: account.firstName,
-        lastName: account.lastName,
-        email: account.email,
-        phone: "",
-        isActive: true,
-      },
-    });
+    // Create, but survive losing the race.
+    //
+    // The app fires several requests at once on sign-in — profile, day, chat
+    // count, push token — and each one lands here. All four used to find no
+    // driver and all four created one, which is how a single login ended up
+    // with four driver records, only one of which dispatch would pick. There
+    // is now a unique index on (tenantId, userId); if another request beat us
+    // to it we get P2002 and read back the row it made.
+    try {
+      return await this.prisma.driver.create({
+        data: {
+          tenantId: user.tenantId,
+          userId: user.userId,
+          firstName: account.firstName,
+          lastName: account.lastName,
+          email: account.email,
+          phone: "",
+          isActive: true,
+        },
+      });
+    } catch (err: any) {
+      if (err?.code !== "P2002") throw err;
+      const winner = await this.prisma.driver.findFirst({
+        where: { userId: user.userId, tenantId: user.tenantId },
+      });
+      if (!winner) throw err;
+      return winner;
+    }
   }
 
   private async upsertPresence(
