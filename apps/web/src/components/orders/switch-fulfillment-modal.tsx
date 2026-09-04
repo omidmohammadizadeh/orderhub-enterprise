@@ -18,6 +18,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Bike, ShoppingBag } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { deliveryZonesClient } from "@/lib/api/pos.client";
+import {
+  DeliveryAddressField,
+  type DeliveryAddressValue,
+} from "@/components/pos/delivery-address-field";
 import { useCurrency } from "@/hooks/use-currency";
 import { Button } from "@/components/ui/button";
 
@@ -37,20 +41,14 @@ export function SwitchFulfillmentModal({
 }) {
   const { money } = useCurrency();
   const queryClient = useQueryClient();
-  const [line1, setLine1] = useState("");
-  const [line2, setLine2] = useState("");
-  const [city, setCity] = useState("");
-  const [postcode, setPostcode] = useState("");
+  const [addr, setAddr] = useState<DeliveryAddressValue>({});
   const [fee, setFee] = useState<number>(0);
   const [feeNote, setFeeNote] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setLine1("");
-    setLine2("");
-    setCity("");
-    setPostcode("");
+    setAddr({});
     setFee(0);
     setFeeNote(null);
   }, [open]);
@@ -58,10 +56,15 @@ export function SwitchFulfillmentModal({
   // Postcode → zone fee, debounced, exactly as the POS cart does it. The
   // operator can still overwrite the number: a shop that waives the fee for a
   // regular should not have to argue with the form.
+  // Postcode OR area — the zone rows decide which one prices the order, which
+  // is why both go to the same lookup the till uses. A Gulf shop prices on the
+  // area and has no postcode at all, so keying this on postcode alone left the
+  // fee stuck at zero for every one of them.
+  const postcode = (addr.postcode ?? "").trim();
+  const area = (addr.area ?? "").trim();
   useEffect(() => {
     if (!open || to !== "DELIVERY" || !locationId) return;
-    const pc = postcode.trim();
-    if (!pc) {
+    if (!postcode && !area) {
       setFeeNote(null);
       return;
     }
@@ -69,16 +72,18 @@ export function SwitchFulfillmentModal({
     const handle = window.setTimeout(async () => {
       try {
         const lookup = await deliveryZonesClient.lookup(locationId, {
-          postcode: pc,
+          postcode: postcode || undefined,
+          area: area || undefined,
         });
         if (cancelled) return;
         if (lookup.matched) {
           setFee(Number(lookup.fee ?? 0));
-          setFeeNote(`Zone fee ${money(Number(lookup.fee ?? 0))}`);
+          setFeeNote(`Delivery fee ${money(Number(lookup.fee ?? 0))} from this shop's zones`);
         } else if (lookup.unserviceable) {
-          setFeeNote("This shop doesn't deliver to that postcode.");
+          setFee(0);
+          setFeeNote("This shop doesn't deliver there — add the area first if you want to.");
         } else {
-          setFeeNote("No zone matched — set the fee by hand.");
+          setFeeNote("No zone matched this address — set the fee by hand.");
         }
       } catch {
         if (!cancelled) setFeeNote("Couldn't check the zone — set the fee by hand.");
@@ -88,12 +93,13 @@ export function SwitchFulfillmentModal({
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [open, to, locationId, postcode, money]);
+  }, [open, to, locationId, postcode, area, money]);
 
   if (!open || !orderId) return null;
 
   const toDelivery = to === "DELIVERY";
-  const canSave = !saving && (!toDelivery || line1.trim().length > 0);
+  const canSave =
+    !saving && (!toDelivery || (addr.addressLine1 ?? "").trim().length > 0);
 
   async function save() {
     if (!orderId) return;
@@ -104,10 +110,10 @@ export function SwitchFulfillmentModal({
         ...(toDelivery
           ? {
               deliveryAddress: {
-                line1: line1.trim(),
-                line2: line2.trim() || undefined,
-                city: city.trim() || undefined,
-                postcode: postcode.trim() || undefined,
+                line1: (addr.addressLine1 ?? "").trim(),
+                line2: (addr.addressLine2 ?? "").trim() || undefined,
+                city: (addr.city ?? "").trim() || undefined,
+                postcode: postcode || undefined,
               },
               deliveryFee: fee,
             }
@@ -133,7 +139,7 @@ export function SwitchFulfillmentModal({
       onClick={() => !saving && onClose()}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl"
+        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900">
@@ -148,37 +154,16 @@ export function SwitchFulfillmentModal({
         {toDelivery ? (
           <>
             <p className="mt-1 text-xs text-zinc-500">
-              Add the address you&rsquo;re delivering to. The fee is looked up
-              from this shop&rsquo;s delivery zones and added to the total.
+              Search the address the same way the till does. The fee comes
+              from this shop&rsquo;s delivery zones and is added to the total.
             </p>
-            <div className="mt-4 space-y-2">
-              <input
-                autoFocus
-                value={line1}
-                onChange={(e) => setLine1(e.target.value)}
-                placeholder="Address line 1"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
+            <div className="mt-4 space-y-3">
+              <DeliveryAddressField
+                draft={addr}
+                set={(patch) => setAddr((prev) => ({ ...prev, ...patch }))}
+                locationId={locationId}
+                label="Deliver to"
               />
-              <input
-                value={line2}
-                onChange={(e) => setLine2(e.target.value)}
-                placeholder="Address line 2 (optional)"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Town / city"
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
-                />
-                <input
-                  value={postcode}
-                  onChange={(e) => setPostcode(e.target.value)}
-                  placeholder="Postcode"
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
-                />
-              </div>
               <label className="block text-xs font-medium text-zinc-600">
                 Delivery fee
                 <input
@@ -190,9 +175,7 @@ export function SwitchFulfillmentModal({
                   className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
                 />
               </label>
-              {feeNote && (
-                <p className="text-[11px] text-zinc-500">{feeNote}</p>
-              )}
+              {feeNote && <p className="text-[11px] text-zinc-500">{feeNote}</p>}
             </div>
           </>
         ) : (
