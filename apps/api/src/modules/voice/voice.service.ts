@@ -373,9 +373,15 @@ export class VoiceService {
     if (["TRANSFERRED", "COMPLETED", "NOT_ANSWERED"].includes(call.status)) {
       return null;
     }
+    const state = coerceState(call.transcript);
+    // The status column is written by the telephony layer AFTER the turn that
+    // decided to hand over returns, so it lags by one turn. The stage is
+    // written inside the turn itself and is what actually stops a second
+    // hand-over going out for the same caller.
+    if (state.stage === "DONE") return null;
     const ctx = await this.contexts.resolve(call.toNumber ?? "");
     if (!ctx) return null;
-    return { call, ctx, state: coerceState(call.transcript) };
+    return { call, ctx, state };
   }
 
   private async save(callId: string, state: VoiceState): Promise<void> {

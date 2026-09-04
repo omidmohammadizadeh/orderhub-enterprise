@@ -25,6 +25,7 @@ export class TelnyxCallControlService {
   private readonly language: string;
   private readonly engine: string;
   private readonly sttLanguage: string;
+  private readonly sttModel: string;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>("TELNYX_API_KEY") || undefined;
@@ -44,6 +45,15 @@ export class TelnyxCallControlService {
       this.config.get<string>("TELNYX_TRANSCRIPTION_LANGUAGE") ||
       this.language.split(/[-_]/)[0] ||
       "en";
+    // Engine B defaults to `openai/whisper-tiny`, and tiny is why a caller
+    // ordering food was transcribed as "I like the Salok el-Rab", "enough for
+    // a nap" and "Allah of Egypt" — a model that small hallucinates whole
+    // phrases, in other languages, from ordinary English speech. The turbo
+    // model is the same engine, no extra account setup, and is the single
+    // biggest lever on whether this line works at all.
+    this.sttModel =
+      this.config.get<string>("TELNYX_TRANSCRIPTION_MODEL") ||
+      "openai/whisper-large-v3-turbo";
   }
 
   configured(): boolean {
@@ -164,7 +174,10 @@ export class TelnyxCallControlService {
     if (
       await this.command(callControlId, "transcription_start", {
         ...base,
-        transcription_engine_config: { language: this.sttLanguage },
+        transcription_engine_config: {
+          language: this.sttLanguage,
+          transcription_model: this.sttModel,
+        },
       })
     ) {
       return true;
@@ -221,7 +234,27 @@ export class TelnyxCallControlService {
     });
   }
 
-  hangup(callControlId: string) {
+  async hangup(callControlId: string): Promise<boolean> {
+    // The goodbye timer regularly fires after the caller has already put the
+    // phone down, and "Call has already ended" is the outcome we wanted. It is
+    // logged as an error by `command`, so it is checked here first rather than
+    // filling the log with failures that are actually successes.
+    if (this.ended.has(callControlId)) return true;
     return this.command(callControlId, "hangup");
+  }
+
+  /** Calls we know are over, so we stop issuing commands against them. */
+  private readonly ended = new Set<string>();
+
+  /** Told by the controller on call.hangup. */
+  markEnded(callControlId: string): void {
+    this.ended.add(callControlId);
+    // The set would otherwise grow for the life of the process.
+    if (this.ended.size > 500) {
+      for (const id of this.ended) {
+        this.ended.delete(id);
+        if (this.ended.size <= 250) break;
+      }
+    }
   }
 }

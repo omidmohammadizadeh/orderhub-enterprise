@@ -14,6 +14,8 @@ const svc = (env: Record<string, string> = {}) => {
   s.engine = env.TELNYX_TRANSCRIPTION_ENGINE ?? "B";
   s.sttLanguage =
     env.TELNYX_TRANSCRIPTION_LANGUAGE ?? (s.language.split(/[-_]/)[0] || "en");
+  s.sttModel = env.TELNYX_TRANSCRIPTION_MODEL ?? "openai/whisper-large-v3-turbo";
+  s.ended = new Set();
   s.command = jest.fn().mockResolvedValue(true);
   return s;
 };
@@ -28,7 +30,10 @@ describe("startTranscription", () => {
 
     const body = s.command.mock.calls[0][2];
     expect(body.language).toBeUndefined();
-    expect(body.transcription_engine_config).toEqual({ language: "en" });
+    expect(body.transcription_engine_config).toEqual({
+      language: "en",
+      transcription_model: "openai/whisper-large-v3-turbo",
+    });
     expect(body.transcription_engine).toBe("B");
     expect(body.transcription_tracks).toBe("inbound");
   });
@@ -39,6 +44,18 @@ describe("startTranscription", () => {
     const s = svc({ TELNYX_VOICE_LANGUAGE: "en-GB" });
     await s.startTranscription("cc1");
     expect(s.command.mock.calls[0][2].transcription_engine_config.language).toBe("en");
+  });
+
+  it("never runs on whisper-tiny, which is the engine B default", async () => {
+    // Tiny hallucinated whole phrases in other languages from plain English
+    // speech: a caller ordering food came back as "Allah of Egypt". The engine
+    // default is the trap — the model has to be asked for explicitly.
+    const s = svc();
+    await s.startTranscription("cc1");
+    const model = s.command.mock.calls[0][2].transcription_engine_config
+      .transcription_model;
+    expect(model).toBe("openai/whisper-large-v3-turbo");
+    expect(model).not.toContain("tiny");
   });
 
   it("honours an explicit transcription language override", async () => {

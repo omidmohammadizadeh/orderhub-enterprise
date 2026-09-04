@@ -254,7 +254,11 @@ export class VoiceAiService {
       for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
         const response = await this.anthropic.messages.create({
           model: this.model,
-          max_tokens: 700,
+          // A spoken turn is one or two sentences. The ceiling was 700, and
+          // generation time scales with what the model actually writes — on a
+          // phone call that ceiling is latency the caller sits through, not
+          // headroom.
+          max_tokens: 300,
           system,
           tools,
           messages,

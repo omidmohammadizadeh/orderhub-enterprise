@@ -126,6 +126,32 @@ export class VoiceTelnyxController {
   /** Wait this long after a fragment before deciding the caller has finished. */
   private static readonly SETTLE_MS = 1500;
 
+  /**
+   * One turn at a time, per call.
+   *
+   * Two transcripts arriving five seconds apart both settled while the first
+   * model call was still running, so TWO turns ran concurrently against the
+   * same stored state: two model calls, two answers, and — because each had
+   * read the state before the other wrote it — two transfer commands for one
+   * caller. The second overwrote the first's transcript wholesale.
+   *
+   * Turns are now chained. Nothing is dropped; the second simply waits, and by
+   * the time it runs it can see what the first decided.
+   */
+  private readonly turnChain = new Map<string, Promise<void>>();
+
+  private queue(ccid: string, work: () => Promise<void>): Promise<void> {
+    const next = (this.turnChain.get(ccid) ?? Promise.resolve())
+      .catch(() => undefined)
+      .then(work);
+    this.turnChain.set(ccid, next);
+    void next.finally(() => {
+      // Only clear if nothing else queued behind us.
+      if (this.turnChain.get(ccid) === next) this.turnChain.delete(ccid);
+    });
+    return next;
+  }
+
   /** Below this the engine is guessing, and acting on a guess is how "two
    *  large pepperoni" becomes an order for something else entirely. */
   private static readonly MIN_CONFIDENCE = 0.5;
@@ -196,6 +222,19 @@ export class VoiceTelnyxController {
       }
       await this.handOver(ccid, ctx?.transferNumber);
     }
+  }
+
+  /** A keypress is a turn too, and must not race the one already running. */
+  private async queueDigit(
+    ccid: string,
+    callId: string,
+    digit: string,
+  ): Promise<any> {
+    let out: any = null;
+    await this.queue(ccid, async () => {
+      out = await this.voice.onDigit({ callId, digit });
+    });
+    return out;
   }
 
   /**
@@ -296,7 +335,7 @@ export class VoiceTelnyxController {
     });
     if (!call) return;
 
-    const turn = await this.voice.onDigit({ callId: call.id, digit });
+    const turn = await this.queueDigit(ccid, call.id, digit);
     if (!turn) return;
     if (turn.say) await this.telnyx.speak(ccid, turn.say);
     if (turn.transferTo) {
@@ -309,7 +348,11 @@ export class VoiceTelnyxController {
   }
 
   /** The caller has stopped talking — answer what they actually said. */
-  private async flush(ccid: string): Promise<void> {
+  private flush(ccid: string): Promise<void> {
+    return this.queue(ccid, () => this.runTurn(ccid));
+  }
+
+  private async runTurn(ccid: string): Promise<void> {
     const buf = this.pending.get(ccid);
     this.pending.delete(ccid);
     const text = buf?.text?.trim();
@@ -342,6 +385,8 @@ export class VoiceTelnyxController {
   }
 
   private async onHangup(ccid: string, _p: any): Promise<void> {
+    this.telnyx.markEnded(ccid);
+    this.turnChain.delete(ccid);
     const buf = this.pending.get(ccid);
     if (buf) {
       clearTimeout(buf.timer);
