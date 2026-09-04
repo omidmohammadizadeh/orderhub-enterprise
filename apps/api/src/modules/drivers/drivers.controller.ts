@@ -84,6 +84,18 @@ export class DriversController {
     return this.drivers.setPresence(user.tenantId, driverId, body.online);
   }
 
+  // A driver stuck ON_JOB is invisible to dispatch, so a shop silently loses a
+  // rider. Same roles as the online/offline toggle beside it.
+  @Patch(":driverId/force-online")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER")
+  @ApiOperation({ summary: "Operator: clear a stuck ON_JOB and put the driver back online" })
+  forceOnline(
+    @Param("driverId") driverId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.drivers.forceOnline(user.tenantId, driverId);
+  }
+
   @Post("assign")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)

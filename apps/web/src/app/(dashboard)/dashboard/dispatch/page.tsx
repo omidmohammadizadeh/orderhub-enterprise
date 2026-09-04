@@ -23,6 +23,9 @@ interface FleetDriver {
   // as locationNames.
   locationId?: string | null;
   locationNames?: string[];
+  /** The login this driver record belongs to — how two same-named rows are told apart. */
+  accountEmail?: string | null;
+  hasLogin?: boolean;
   presence?: { status: "OFFLINE" | "ONLINE" | "ON_JOB"; locationId: string | null } | null;
 }
 
@@ -68,6 +71,27 @@ export default function DispatchPage() {
   async function toggleDriver(driverId: string, online: boolean) {
     try {
       await apiClient.patch(`/v1/drivers/${driverId}/presence`, { online });
+      queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
+      queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Clear a presence that got stuck ON_JOB. The order side is deliberately
+  // untouched — see forceOnline on the API — so say what was left behind
+  // rather than letting an operator assume the job went away too.
+  async function forceOnlineDriver(driverId: string) {
+    try {
+      const res = await apiClient.patch<{ liveAssignments: number }>(
+        `/v1/drivers/${driverId}/force-online`,
+      );
+      const live = res.data?.liveAssignments ?? 0;
+      if (live > 0) {
+        window.alert(
+          `Driver is available again. ${live} order${live === 1 ? " is" : "s are"} still assigned to them — unassign from the order if that is stale.`,
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
       queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
     } catch {
@@ -310,6 +334,7 @@ export default function DispatchPage() {
           drivers={fleetQuery.data}
           loading={fleetQuery.isLoading}
           onToggle={toggleDriver}
+          onForceOnline={forceOnlineDriver}
         />
       )}
 
@@ -336,10 +361,12 @@ function FleetTab({
   drivers,
   loading,
   onToggle,
+  onForceOnline,
 }: {
   drivers?: FleetDriver[];
   loading: boolean;
   onToggle: (id: string, online: boolean) => void;
+  onForceOnline: (id: string) => void;
 }) {
   if (loading) {
     return (
@@ -355,6 +382,7 @@ function FleetTab({
         <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
           <tr>
             <th className="px-4 py-2">Driver</th>
+            <th className="px-4 py-2">Email</th>
             <th className="px-4 py-2">Phone</th>
             <th className="px-4 py-2">Vehicle</th>
             <th className="px-4 py-2">Location</th>
@@ -365,7 +393,7 @@ function FleetTab({
         <tbody>
           {list.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+              <td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">
                 No drivers yet. Add your fleet to start dispatching.
               </td>
             </tr>
@@ -378,6 +406,21 @@ function FleetTab({
             return (
               <tr key={d.id} className="border-t">
                 <td className="px-4 py-2">{d.name ?? `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim()}</td>
+                {/* Which login this row is. Two drivers can carry the same
+                    name — one person with two accounts, or a record made here
+                    beside the one the app made on first sign-in — and the name
+                    alone gives no way to tell which is which, or which one is
+                    safe to remove. */}
+                <td className="px-4 py-2 text-xs">
+                  {d.accountEmail ?? (
+                    <span
+                      className="text-amber-600"
+                      title="No login is attached to this driver record, so no phone can sign in as it."
+                    >
+                      No login
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-2">{d.phone ?? "—"}</td>
                 <td className="px-4 py-2">{d.vehicleType ?? "—"}</td>
                 {/* Read-only. This used to be a second place to say where a
@@ -420,6 +463,19 @@ function FleetTab({
                   >
                     {isOnline ? "Set offline" : "Set online"}
                   </button>
+                  {/* A run that never finished cleanly — a dead phone, a
+                      driver who went home — leaves presence ON_JOB for ever,
+                      and dispatch will not offer a driver in that state. The
+                      shop loses a rider with no way to get them back. */}
+                  {status === "ON_JOB" && (
+                    <button
+                      onClick={() => onForceOnline(d.id)}
+                      className="ml-2 rounded-md border border-amber-300 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50"
+                      title="Clear the stuck job and make this driver available again. Any order still assigned to them is left alone — unassign it from the order if it is stale."
+                    >
+                      Force online
+                    </button>
+                  )}
                 </td>
               </tr>
             );

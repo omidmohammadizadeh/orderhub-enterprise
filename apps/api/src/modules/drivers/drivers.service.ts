@@ -7,7 +7,7 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ExpoPushService } from "../driver-app/expo-push.service";
-import { DriverPresenceStatus } from "@orderhub/database";
+import { DriverPresenceStatus, DriverAssignmentStatus } from "@orderhub/database";
 
 export interface CreateDriverDto {
   firstName: string;
@@ -123,6 +123,18 @@ export class DriversService {
           select: { userId: true, location: { select: { name: true } } },
         })
       : [];
+
+    // The LOGIN this driver record belongs to. Two rows can carry the same
+    // name — a person with two accounts, or a record made here beside one the
+    // app made — and a name alone gives an operator no way to tell which is
+    // which, or which one to remove. The email does.
+    const accounts = userIds.length
+      ? await this.prisma.user.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, email: true },
+        })
+      : [];
+    const emailByUser = new Map(accounts.map((u) => [u.id, u.email]));
     const namesByUser = new Map<string, string[]>();
     for (const l of links) {
       const list = namesByUser.get(l.userId) ?? [];
@@ -133,10 +145,72 @@ export class DriversService {
     return rows.map((d) => ({
       ...d,
       locationNames: d.userId ? (namesByUser.get(d.userId) ?? []) : [],
+      // Prefer the account's email over the one typed on the driver record:
+      // the account is what the phone signs in with, so it is the one that
+      // identifies which of two same-named rows is the live one.
+      accountEmail: (d.userId ? emailByUser.get(d.userId) : null) ?? d.email ?? null,
+      hasLogin: !!d.userId,
     }));
   }
 
   /** Operator toggles a driver online/offline from the Fleet tab. */
+  /**
+   * Put a driver who is stuck "On a job" back on the available list.
+   *
+   * Presence goes ON_JOB when a run is dispatched and comes back when the run
+   * finishes. If a job never finishes cleanly — the phone died, the driver
+   * went home, an assignment was tidied up in the database — the driver sits
+   * ON_JOB for ever and dispatch will not offer them, so a shop loses a rider
+   * with no way to get them back.
+   *
+   * This clears the presence flag ONLY. It deliberately does NOT touch the
+   * driver's assignments: an order that still thinks it has a driver is a
+   * different problem with a different fix (unassign it from the order), and
+   * silently cancelling live work from a "force online" button is exactly the
+   * kind of surprise that loses somebody's dinner. The count of still-live
+   * assignments comes back so the operator can see what they are leaving.
+   */
+  async forceOnline(tenantId: string, driverId: string) {
+    const driver = await this.prisma.driver.findFirst({
+      where: { id: driverId, tenantId },
+      select: { id: true },
+    });
+    if (!driver) throw new NotFoundException("Driver not found");
+
+    const liveAssignments = await this.prisma.driverAssignment.count({
+      where: {
+        driverId,
+        status: {
+          in: [
+            DriverAssignmentStatus.ASSIGNED,
+            DriverAssignmentStatus.ACCEPTED,
+            DriverAssignmentStatus.PICKED_UP,
+          ],
+        },
+      },
+    });
+
+    await this.prisma.driverPresence.upsert({
+      where: { driverId },
+      create: {
+        driverId,
+        tenantId,
+        status: DriverPresenceStatus.ONLINE,
+        lastPingAt: new Date(),
+      },
+      update: {
+        status: DriverPresenceStatus.ONLINE,
+        activeAssignmentId: null,
+        lastPingAt: new Date(),
+      },
+    });
+
+    this.logger.log(
+      `Driver ${driverId} forced back online (${liveAssignments} assignment(s) still live)`,
+    );
+    return { ok: true, liveAssignments };
+  }
+
   async setPresence(tenantId: string, driverId: string, online: boolean) {
     const driver = await this.prisma.driver.findFirst({
       where: { id: driverId, tenantId },
