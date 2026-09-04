@@ -167,6 +167,9 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
  *   • CARD PENDING/   → amber "Card unpaid" (shouldn't reach the
  *     FAILED            board — live query filters PENDING out — but
  *                       safety net in case it ever does)
+ *   • PAYMENT_LINK / QR_CODE / CARD_TERMINAL
+ *       unpaid        → amber "Waiting for payment"
+ *       paid          → green "Card paid"
  *   • Marketplace pre-paid → green "Paid"
  */
 export function PaymentBadge({
@@ -215,6 +218,38 @@ export function PaymentBadge({
       </Chip>
     );
   }
+  // Methods where WE are collecting: a payment link, a QR, or a card reader.
+  // These had no branch at all, so an order moved onto a link fell through to
+  // the marketplace case below and, being unpaid, rendered NOTHING — the
+  // Payment column simply went blank. Staff sending a link to a cash customer
+  // could not tell the money was now outstanding online rather than due at
+  // handover.
+  if (
+    method === "PAYMENT_LINK" ||
+    method === "QR_CODE" ||
+    method === "CARD_TERMINAL"
+  ) {
+    if (status === "PAID") {
+      return (
+        <Chip tone="success">
+          <CheckCircle2 className="h-3 w-3" /> Card paid
+        </Chip>
+      );
+    }
+    if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED") {
+      return (
+        <Chip tone="amber">
+          <Undo2 className="h-3 w-3" /> Refunded
+        </Chip>
+      );
+    }
+    return (
+      <Chip tone="amber">
+        <CreditCard className="h-3 w-3" /> Waiting for payment
+      </Chip>
+    );
+  }
+
   // Marketplace platforms come in pre-paid
   if (status === "PAID") {
     return (
