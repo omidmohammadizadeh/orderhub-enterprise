@@ -28,30 +28,10 @@ import {
   Store,
   Phone,
   User,
-  MapPin,
   ArrowRight,
-  Loader2,
   X,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  addressLookupClient,
-  deliveryZonesClient,
-  type AddressSuggestion,
-  type DeliveryZone,
-} from "@/lib/api/pos.client";
-import {
-  zoneMode,
-  areaZoneNames,
-  normaliseAreaName,
-  postcodeRequiredFor,
-} from "@orderhub/shared";
-import { useCurrency } from "@/hooks/use-currency";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-
-/** Same community, allowing for spelling and the Arabic article. */
-const sameArea = (a: string, b: string) =>
-  normaliseAreaName(a) === normaliseAreaName(b);
 import type { PartialDraft } from "./pos-cart-panel";
 import { DeliveryAddressField } from "./delivery-address-field";
 import { cn } from "@/lib/utils";
