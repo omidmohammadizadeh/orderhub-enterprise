@@ -1461,6 +1461,146 @@ export class OrdersService {
   // pipeline reprints the full updated ticket (the printer worker
   // can't tell the difference from a brand-new order, which is
   // exactly what we want for a clean reprint).
+  /**
+   * Turn a collection order into a delivery, or the other way round.
+   *
+   * Customers ring back — "actually, can you bring it?" — and until now the
+   * only answer was to void the order and key the whole thing again, losing
+   * the number the kitchen is already working to.
+   *
+   * Deliberately NOT folded into editOrder. That endpoint is explicit that an
+   * operator may change what is IN an order but not what KIND of order it is,
+   * and the money moves differently here: switching to delivery adds a fee and
+   * demands an address, switching away takes the fee off. Making it its own
+   * endpoint keeps that decision visible instead of hiding it in a general
+   * amend, and the whole change is one transaction so an order can never end
+   * up a delivery with no address.
+   */
+  async switchFulfillment(
+    orderId: string,
+    tenantId: string,
+    dto: {
+      fulfillmentType: "PICKUP" | "DELIVERY";
+      deliveryAddress?: {
+        line1: string;
+        line2?: string;
+        city?: string;
+        postcode?: string;
+        country?: string;
+      };
+      deliveryFee?: number;
+    },
+    userId: string,
+  ): Promise<Order> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+
+    if (order.orderSource !== "POS") {
+      throw new BadRequestException(
+        "Only POS orders can be switched between collection and delivery",
+      );
+    }
+    // Wider than editOrder's window on purpose: a collection order sitting on
+    // the counter marked READY is exactly when a customer rings to ask for it
+    // to be brought instead. Once it is out with a driver or finished, the
+    // question is moot.
+    const SWITCHABLE = new Set<OrderStatus>([
+      "PENDING",
+      "ACCEPTED",
+      "PREPARING",
+      "READY",
+    ]);
+    if (!SWITCHABLE.has(order.status)) {
+      throw new BadRequestException(
+        "This order has already gone out — it can't be switched now",
+      );
+    }
+    if (order.fulfillmentType === dto.fulfillmentType) {
+      throw new BadRequestException(
+        `This order is already ${dto.fulfillmentType === "DELIVERY" ? "a delivery" : "a collection"}`,
+      );
+    }
+    const toDelivery = dto.fulfillmentType === "DELIVERY";
+    if (toDelivery && !dto.deliveryAddress?.line1?.trim()) {
+      throw new BadRequestException(
+        "A delivery needs an address — nobody can deliver to a blank line",
+      );
+    }
+
+    // The fee is the only money that moves. Recompute the total from the
+    // order's own subtotal rather than trusting a client-supplied total: the
+    // caller decides the fee (zone rules live in the browser alongside the
+    // POS), but the arithmetic happens here.
+    const fee = toDelivery ? Math.max(0, Number(dto.deliveryFee ?? 0)) : 0;
+    const subtotal = Number(order.subtotal ?? 0);
+    const tax = Number(order.taxAmount ?? 0);
+    const discount = Number(order.discount ?? 0);
+    const total = round2(subtotal + tax + fee - discount);
+
+    const updated = await this.prisma.order.update({
+      where: { id: order.id },
+      data: {
+        fulfillmentType: dto.fulfillmentType as any,
+        deliveryFee: fee,
+        total,
+        // Cleared, not left behind. A stale address on a collection order is
+        // what puts a driver on the road for something the customer is coming
+        // in to fetch.
+        deliveryAddress: (toDelivery ? dto.deliveryAddress : null) as any,
+        addressLine1: toDelivery ? (dto.deliveryAddress?.line1 ?? null) : null,
+        addressLine2: toDelivery ? (dto.deliveryAddress?.line2 ?? null) : null,
+        city: toDelivery ? (dto.deliveryAddress?.city ?? null) : null,
+        postcode: toDelivery ? (dto.deliveryAddress?.postcode ?? null) : null,
+        ...(toDelivery ? {} : { deliveryLat: null, deliveryLng: null }),
+      },
+    });
+
+    // Reprint and re-broadcast exactly as an edit does: the paper ticket now
+    // says the wrong thing, and whoever is handing the order over needs to
+    // know it is going out rather than being collected.
+    this.socket.emitNewOrder(updated.locationId, {
+      orderId: updated.id,
+      tenantId,
+      locationId: updated.locationId,
+      platform: updated.platform,
+      orderSource: updated.orderSource,
+      fulfillmentType: updated.fulfillmentType,
+      displayId: updated.displayId,
+      status: updated.status,
+      total: Number(updated.total),
+      isEdit: true,
+    } as any);
+    this.socket.emitOrderUpdated(updated.locationId, {
+      orderId: updated.id,
+      status: updated.status,
+      fulfillmentType: updated.fulfillmentType,
+    } as any);
+    this.events.emit("order.items_edited", {
+      orderId: updated.id,
+      locationId: updated.locationId,
+    });
+
+    void this.audit.log({
+      tenantId,
+      userId,
+      event: "order.fulfillment.switched",
+      resource: "order",
+      resourceId: updated.id,
+      meta: {
+        from: order.fulfillmentType,
+        to: dto.fulfillmentType,
+        deliveryFee: fee,
+      },
+    });
+
+    this.logger.log(
+      `Order ${updated.id} switched ${order.fulfillmentType} → ${dto.fulfillmentType} (fee ${fee})`,
+    );
+    return updated;
+  }
+
   async editOrder(
     orderId: string,
     tenantId: string,

@@ -255,6 +255,32 @@ export class OrdersController {
     return this.orders.findOne(id, user.tenantId);
   }
 
+  // ── PATCH /api/v1/orders/:id/fulfillment ─────────────
+  // "Actually, can you bring it?" — the call that used to mean voiding the
+  // order and keying it again. Same till roles as an edit; the service
+  // enforces POS-only and refuses once the order has gone out.
+  @Patch(":id/fulfillment")
+  @Roles(...POS_STAFF)
+  @ApiOperation({ summary: "Switch a POS order between collection and delivery" })
+  async switchFulfillment(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      fulfillmentType: "PICKUP" | "DELIVERY";
+      deliveryAddress?: {
+        line1: string;
+        line2?: string;
+        city?: string;
+        postcode?: string;
+        country?: string;
+      };
+      deliveryFee?: number;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.switchFulfillment(id, user.tenantId, body, user.userId);
+  }
+
   // ── PATCH /api/v1/orders/:id/edit ────────────────────
   // Amending a POS order the customer changed their mind about.
   // Constraints (status, payment, source) are enforced in the service too —

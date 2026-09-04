@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
 import { useRouter } from "next/navigation";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote } from "lucide-react";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag } from "lucide-react";
 import { PaymentLinkModal } from "../pos/payment-link-modal";
+import { SwitchFulfillmentModal } from "./switch-fulfillment-modal";
 import { ChargeReaderModal } from "../pos/charge-reader-modal";
 import { CashPaymentModal } from "../pos/cash-payment-modal";
 import { Button } from "../ui/button";
@@ -84,6 +85,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const [showDispatch, setShowDispatch] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
+  const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [showChargeModal, setShowChargeModal] = useState(false);
   const [showCashModal, setShowCashModal] = useState(false);
 
@@ -117,6 +119,22 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   // payment-link orders use — it shows the QR, the link, and the text-to-
   // customer row — and the API flips the order onto Payment link so the board
   // moves it to Waiting for payment until Stripe says it is paid.
+  // Collection ↔ delivery. POS only, and only while the order is still in the
+  // shop: once it is with a driver or finished, the question is moot.
+  const SWITCHABLE_STATUS = new Set([
+    "PENDING",
+    "ACCEPTED",
+    "PREPARING",
+    "READY",
+  ]);
+  const canSwitchFulfillment =
+    (order as any)?.orderSource === "POS" &&
+    SWITCHABLE_STATUS.has(String((order as any)?.status ?? "")) &&
+    ((order as any)?.fulfillmentType === "DELIVERY" ||
+      (order as any)?.fulfillmentType === "PICKUP");
+  const switchTo =
+    (order as any)?.fulfillmentType === "DELIVERY" ? "PICKUP" : "DELIVERY";
+
   const canSendPaymentLink =
     (order as any)?.orderSource === "POS" &&
     payMethodUpper === "CASH" &&
@@ -594,6 +612,23 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
       {/* Actions footer */}
       {(actions.length > 0 || canEdit) && (
         <div className="border-t border-zinc-200 px-5 py-4 space-y-2">
+          {canSwitchFulfillment && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => setShowSwitchModal(true)}
+            >
+              {switchTo === "DELIVERY" ? (
+                <Bike className="h-3.5 w-3.5 mr-1.5" />
+              ) : (
+                <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
+              )}
+              {switchTo === "DELIVERY"
+                ? "Switch to delivery"
+                : "Switch to collection"}
+            </Button>
+          )}
           {canEdit && (
             <Button
               variant="outline"
@@ -664,6 +699,14 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           // reload — same invalidation the status actions use.
           queryClient.invalidateQueries({ queryKey: ["orders"] });
         }}
+      />
+
+      <SwitchFulfillmentModal
+        open={showSwitchModal}
+        orderId={showSwitchModal ? order.id : null}
+        locationId={(order as any).locationId}
+        to={switchTo as "PICKUP" | "DELIVERY"}
+        onClose={() => setShowSwitchModal(false)}
       />
 
       <PaymentLinkModal
