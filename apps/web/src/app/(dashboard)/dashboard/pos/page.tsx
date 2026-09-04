@@ -43,6 +43,7 @@ import {
 } from "@/components/pos/pos-cart-panel";
 import { PosStartScreen } from "@/components/pos/pos-start-screen";
 import {
+  fillOrderFromCaller,
   PENDING_FILL_KEY,
   type CallerIdFill,
 } from "@/components/pos/caller-id-popup";
@@ -77,6 +78,7 @@ import {
 } from "lucide-react";
 import { ExtraChargeModal } from "@/components/pos/extra-charge-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { usePendingCallerStore } from "@/stores/pending-caller.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
@@ -239,6 +241,19 @@ export default function PosPage() {
 
     return () => window.removeEventListener("pos:callerid-fill", onFill);
   }, []);
+
+  // The caller carried over from another screen. Keyed on the VALUE, not on
+  // this page's mount: "Start order" also switches the selected location, and
+  // if that remounts POS, a mount-only read has already consumed the caller
+  // and the second mount comes up empty — which is why the number only ever
+  // arrived when the operator was already sitting on POS.
+  const pendingCaller = usePendingCallerStore((st) => st.pending);
+  const clearPendingCaller = usePendingCallerStore((st) => st.setPendingCaller);
+  useEffect(() => {
+    if (!pendingCaller?.phone) return;
+    fillOrderFromCaller(pendingCaller);
+    clearPendingCaller(null);
+  }, [pendingCaller, clearPendingCaller]);
   /**
    * Which half of the till we're on.
    *

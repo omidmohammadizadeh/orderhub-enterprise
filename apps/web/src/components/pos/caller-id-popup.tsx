@@ -20,6 +20,7 @@ import {
 } from "@/lib/socket/socket.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { usePendingCallerStore } from "@/stores/pending-caller.store";
 import { apiClient } from "@/lib/api/client";
 import { attachHubLogBridge, hubRecord } from "@/lib/callerid/hub-log";
 
@@ -59,6 +60,7 @@ export function CallerIdPopup({
   const setSelectedLocationId = useSelectedLocationStore(
     (s) => s.setSelectedLocationId,
   );
+  const setPendingCaller = usePendingCallerStore((st) => st.setPendingCaller);
   const router = useRouter();
   const pathname = usePathname();
   const [ring, setRing] = useState<CallerIdRingPayload | null>(null);
@@ -153,8 +155,13 @@ export function CallerIdPopup({
       // Already on POS — fill the open cart directly.
       fillOrderFromCaller(detail);
     } else {
-      // Elsewhere (e.g. the Orders tab) — carry the caller to POS and switch to
-      // the ringing shop, then the POS cart panel applies it on mount.
+      // Elsewhere (e.g. the Orders tab) — carry the caller to POS and switch
+      // to the ringing shop. Held in a store rather than sessionStorage: POS
+      // reacts to the value, so it no longer matters whether the location
+      // change below remounts POS after it has already read the caller.
+      // sessionStorage is written too, purely so a full page reload mid-
+      // navigation still lands the caller.
+      setPendingCaller(detail);
       try {
         sessionStorage.setItem(PENDING_FILL_KEY, JSON.stringify(detail));
       } catch {
