@@ -91,9 +91,16 @@ export class VoiceTelnyxController {
           await this.onAnswered(ccid);
           break;
         case "call.transcription":
+          // Both transports are live on a relay call, and both would answer.
+          // The relay's own frames are the ones with the caller's speech in
+          // them; these webhooks are the same call arriving twice.
+          if (this.relay.isConnected(ccid)) break;
           await this.onTranscription(ccid, p);
           break;
         case "call.dtmf.received":
+          // Same, and worse: this path issues playback_stop for barge-in,
+          // which on a relay call cuts off speech the relay is managing.
+          if (this.relay.isConnected(ccid)) break;
           await this.onDtmf(ccid, p);
           break;
         case "call.hangup":

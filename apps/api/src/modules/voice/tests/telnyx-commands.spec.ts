@@ -109,3 +109,40 @@ describe("transfer", () => {
     expect(s.logger.error).toHaveBeenCalled();
   });
 });
+
+describe("startConversationRelay", () => {
+  it("does NOT send transcription_start's engine alias", async () => {
+    // "B" is the legacy alias for transcription_start. Conversation Relay
+    // names its engines deepgram / google / telnyx, so "B" means nothing —
+    // and sending it started a relay that spoke perfectly and never
+    // transcribed a word. The caller pressed 1, heard the next question,
+    // answered it, and no prompt frame ever arrived.
+    const s = svc({ TELNYX_TRANSCRIPTION_ENGINE: "B" });
+    s.relayEngine = undefined;
+    await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hello" });
+
+    const body = s.command.mock.calls[0][2];
+    expect(body.transcription_engine).toBeUndefined();
+    expect(body.url).toBe("wss://x");
+    expect(body.greeting).toBe("Hello");
+  });
+
+  it("lets the greeting be talked over", async () => {
+    // The whole point of the press-or-say menu: a regular who knows what they
+    // want should never sit through "to place an order, press one".
+    const s = svc();
+    s.relayEngine = undefined;
+    await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" });
+    const body = s.command.mock.calls[0][2];
+    expect(body.interruptible).toBe(true);
+    expect(body.interruptible_greeting).toBe(true);
+    expect(body.dtmf_detection).toBe(true);
+  });
+
+  it("sends an engine only when one was deliberately chosen", async () => {
+    const s = svc();
+    s.relayEngine = "deepgram";
+    await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" });
+    expect(s.command.mock.calls[0][2].transcription_engine).toBe("deepgram");
+  });
+});

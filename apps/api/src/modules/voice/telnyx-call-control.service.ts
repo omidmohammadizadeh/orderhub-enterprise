@@ -26,6 +26,9 @@ export class TelnyxCallControlService {
   private readonly engine: string;
   private readonly sttLanguage: string;
   private readonly sttModel: string;
+  /** Conversation Relay's transcription engine. Unset = Telnyx's default,
+   *  which is Deepgram — the one engine here that does keyterm boosting. */
+  private readonly relayEngine?: string;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>("TELNYX_API_KEY") || undefined;
@@ -54,6 +57,9 @@ export class TelnyxCallControlService {
     this.sttModel =
       this.config.get<string>("TELNYX_TRANSCRIPTION_MODEL") ||
       "openai/whisper-large-v3-turbo";
+    // Deliberately has no default. See startConversationRelay.
+    this.relayEngine =
+      this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_ENGINE") || undefined;
   }
 
   configured(): boolean {
@@ -232,9 +238,25 @@ export class TelnyxCallControlService {
       greeting: args.greeting,
       voice: this.voice,
       language: this.language,
-      transcription_engine: this.engine,
       dtmf_detection: true,
       interruptible: true,
+      // Let the caller talk over the menu. A regular who knows what they want
+      // should never have to sit through "to place an order, press one".
+      interruptible_greeting: true,
+      // NOTE the absence of `transcription_engine: "B"`.
+      //
+      // "B" is the legacy alias used by transcription_start. Conversation
+      // Relay names its engines differently — deepgram (default), google,
+      // telnyx — so "B" means nothing here. Sending it started a relay that
+      // spoke perfectly and never transcribed a word: the caller pressed 1,
+      // heard the next question, answered it, and no prompt frame ever
+      // arrived. Silence, from their side of it.
+      //
+      // This is the THIRD time a value valid for one Telnyx command has been
+      // sent to another that names the same thing differently. So the default
+      // is now to send nothing and let Telnyx pick, and an override has to be
+      // set deliberately, by someone who has checked.
+      ...(this.relayEngine ? { transcription_engine: this.relayEngine } : {}),
     });
   }
 
