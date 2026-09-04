@@ -14,7 +14,10 @@
 // The cart panel owns everything else (customer/address/timing/discount/
 // promo/payment) so the page stays a thin orchestration layer.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+/** How long a caller stays worth re-applying after a location switch. */
+const CALLER_FILL_TTL_MS = 2 * 60_000;
 import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -183,6 +186,11 @@ export default function PosPage() {
   // initialDraft, so clearing `draft` alone doesn't wipe them.
   const [cartResetKey, setCartResetKey] = useState(0);
 
+  /** The last caller applied, so cart hydration can put it back. */
+  const appliedCallerRef = useRef<{ fill: CallerIdFill; at: number } | null>(
+    null,
+  );
+
   // Filling the draft covers both: the start screen renders from it, and the
   // cart panel is seeded from it as initialDraft.
   useEffect(() => {
@@ -221,6 +229,11 @@ export default function PosPage() {
       if (!d?.phone) return;
       apply(d);
       setCartResetKey((k) => k + 1);
+      // Remember it. Cart hydration below re-runs whenever the location
+      // changes and resets the draft — and "Start order" changes the location
+      // on its way here, so the fill lands and is wiped a moment later. This
+      // is what hydration re-applies from.
+      appliedCallerRef.current = { fill: d, at: Date.now() };
     };
 
     const onFill = (e: Event) =>
@@ -420,6 +433,15 @@ export default function PosPage() {
     } else {
       setCart([]);
       setDraft({});
+    }
+    // Put the caller back on top. This effect is keyed on the location, and
+    // answering a call switches to the ringing shop — so it fires immediately
+    // after the fill and would otherwise erase the number the operator is
+    // holding the phone to their ear about. Time-boxed so yesterday's caller
+    // never reappears on tomorrow's first order.
+    const recent = appliedCallerRef.current;
+    if (recent && Date.now() - recent.at < CALLER_FILL_TTL_MS) {
+      fillOrderFromCaller(recent.fill);
     }
   }, [cartScopeKey]);
 
