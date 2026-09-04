@@ -4,6 +4,7 @@ import {
   isLikelyHallucination,
   normalisePostcode,
   parseFulfillment,
+  parseOrderReference,
   parsePayment,
   parseYesNo,
   parseSpokenNumber,
@@ -392,5 +393,44 @@ describe("parseSpokenNumber — spoken cardinals", () => {
     // A mis-parsed digit reads a DIFFERENT customer's order down the line.
     expect(parseSpokenNumber("it's for delivery")).toBeNull();
     expect(parseSpokenNumber("I want to know")).toBeNull();
+  });
+});
+
+describe("parseOrderReference", () => {
+  it("reads the id tail a shop reads off its own screen", () => {
+    // From a live call: the caller said "24kiod", the last characters of
+    // cmtne25lj002dcft06v24kiod — which is what the dashboard shows. The line
+    // only ever looked up the sequential orderNumber, so it found nothing.
+    const out = parseOrderReference("24kiod");
+    expect(out.code).toBe("24kiod");
+  });
+
+  it("still reads a plain order number", () => {
+    expect(parseOrderReference("twenty four").number).toBe("24");
+    expect(parseOrderReference("order 4012").number).toBe("4012");
+  });
+
+  it("gives back both readings so the lookup can try each", () => {
+    // "0133" is a marketplace displayId; "24kiod" is an id suffix. One
+    // utterance can plausibly be either, and they are checked against
+    // different columns.
+    const out = parseOrderReference("133 a b c");
+    expect(out.number).toBe("133");
+  });
+
+  it("does not mistake ordinary words for a reference", () => {
+    // A code needs letters AND digits — otherwise "delivery please" would be
+    // looked up as an order id.
+    expect(parseOrderReference("delivery please").code).toBeNull();
+    expect(parseOrderReference("I don't know").code).toBeNull();
+    expect(parseOrderReference("").code).toBeNull();
+  });
+
+  it("ignores something far too long to be a reference", () => {
+    expect(
+      parseOrderReference(
+        "my order was 2 large pepperoni pizzas and a garlic bread on tuesday the 4th",
+      ).code,
+    ).toBeNull();
   });
 });

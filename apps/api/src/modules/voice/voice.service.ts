@@ -13,8 +13,8 @@ import {
   digitChoice,
   interpretMenuChoice,
   parseFulfillment,
+  parseOrderReference,
   parsePayment,
-  parseSpokenNumber,
   parseYesNo,
   spokenDigits,
   spokenOrderStatus,
@@ -274,7 +274,7 @@ export class VoiceService {
     state: VoiceState,
     text: string,
   ): Promise<VoiceTurn> {
-    const parsed = parseSpokenNumber(text);
+    const { number: parsed, code } = parseOrderReference(text);
     // Order numbers are per-tenant Ints. A caller reciting their phone number
     // by mistake would otherwise overflow the column and 500 the turn.
     const number =
@@ -283,13 +283,27 @@ export class VoiceService {
         : null;
     const caller = normaliseNumber(call.fromNumber);
 
+    // Try every identifier this order could be known by. The sequential
+    // number is what we read out on the phone; displayId is what a
+    // marketplace put on their confirmation; and the id suffix is what is on
+    // screen in the dashboard, which is what a shop reads out when they are
+    // looking at the order rather than holding a receipt.
+    const byReference: any[] = [];
+    if (number) byReference.push({ orderNumber: Number(number) });
+    if (parsed) byReference.push({ displayId: parsed });
+    if (code) {
+      byReference.push({ id: { endsWith: code } });
+      byReference.push({ displayId: { endsWith: code, mode: "insensitive" } });
+      byReference.push({ collectionCode: { endsWith: code, mode: "insensitive" } });
+    }
+
     // Whatever they said belongs on the call record even though no model saw
     // it — the transcript on the dashboard is what settles a dispute.
     state.turns.push({ role: "user", text });
 
-    const order = number
+    let order = byReference.length
       ? await this.db().order.findFirst({
-          where: { locationId: ctx.locationId, orderNumber: Number(number) },
+          where: { locationId: ctx.locationId, OR: byReference },
           orderBy: { createdAt: "desc" },
           select: {
             orderNumber: true,
@@ -318,6 +332,28 @@ export class VoiceService {
           })
         : null;
 
+    // Nothing matched what they read out, but the number they are ringing
+    // from usually knows. Offered rather than assumed — "is it the one from
+    // this number?" is a question a person would ask.
+    const fallback =
+      !order && caller
+        ? await this.db().order.findFirst({
+            where: {
+              locationId: ctx.locationId,
+              customerPhone: { contains: caller.slice(-9) },
+            },
+            orderBy: { createdAt: "desc" },
+            select: {
+              orderNumber: true,
+              status: true,
+              fulfillmentType: true,
+              estimatedReadyAt: true,
+              customerPhone: true,
+            },
+          })
+        : null;
+    if (fallback) order = fallback;
+
     if (!order) {
       // Not finding it first time is not a reason to end the call. A number
       // misheard by one digit is the most likely explanation, and reading it
@@ -327,9 +363,9 @@ export class VoiceService {
       const misses = (state.confusion ?? 0) + 1;
       state.confusion = misses;
       if (misses < 3) {
-        const say = number
-          ? `Sorry, I can't find order number ${spokenDigits(number)}. Could you read it out to me one digit at a time?`
-          : `Sorry, I didn't catch a number there. Could you read it out one digit at a time?`;
+        const say = byReference.length
+          ? `Sorry, I can't find that one. Could you read it out to me one character at a time?`
+          : `Sorry, I didn't catch that. Could you read your order number out one character at a time?`;
         state.turns.push({ role: "user", text });
         state.turns.push({ role: "assistant", text: say });
         state.stage = "STATUS";

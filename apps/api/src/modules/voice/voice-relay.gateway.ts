@@ -201,10 +201,16 @@ export class VoiceRelayGateway implements OnModuleInit {
           // Nothing to do: the greeting is spoken by Telnyx from the start
           // command, and the VoiceCall row already exists from call.initiated.
           return;
-        case "prompt":
+        case "prompt": {
           // Interim transcripts are for showing progress, not for answering.
           if (frame.last === false) return;
-          return await this.onSaid(ws, ccid, String(frame.voicePrompt ?? "").trim());
+          const said = String(frame.voicePrompt ?? "").trim();
+          // EVERY final, not just the first. The first-frame-only log recorded
+          // an interim "Two" and then never showed another prompt, so what the
+          // caller actually said was invisible in the one place anyone looks.
+          this.logger.log(`relay ${ccid.slice(-8)} heard "${said.slice(0, 120)}"`);
+          return await this.onSaid(ws, ccid, said);
+        }
         case "dtmf":
           return await this.onDigit(ws, ccid, String(frame.digit ?? ""));
         case "interrupt":

@@ -593,3 +593,42 @@ export function parsePayment(text: string): "CASH" | "CARD" | null {
   if (cash === card) return null;
   return cash ? "CASH" : "CARD";
 }
+
+/**
+ * Whatever the caller reads out when we ask for their order.
+ *
+ * There is no single "order number" in this system, and pretending there is
+ * was the bug. A caller can hold any of:
+ *
+ *   - the sequential number we read back at the end of the call ("24")
+ *   - a marketplace reference off a confirmation email ("940324216")
+ *   - a collection code
+ *   - the tail of the id shown in the dashboard URL ("…v24kiod"), which is
+ *     what a shop reads out when they are looking at the order on screen
+ *
+ * So this returns both readings and lets the lookup try each. Returning a code
+ * as well as a number is not a guess — they are checked against different
+ * columns, and an id suffix is high-entropy enough that a wrong match is not a
+ * realistic worry.
+ */
+export function parseOrderReference(text: string): {
+  number: string | null;
+  code: string | null;
+} {
+  const number = parseSpokenNumber(text);
+
+  // A run of letters-and-digits long enough to be an identifier rather than a
+  // word. Spaces are stripped first because a caller spelling something out
+  // gives "2 4 k i o d" and a transcriber writes it however it likes.
+  const compact = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  const hasLetter = /[a-z]/.test(compact);
+  const hasDigit = /\d/.test(compact);
+  const code =
+    compact.length >= 4 && compact.length <= 40 && hasLetter && hasDigit
+      ? compact
+      : null;
+
+  return { number, code };
+}
