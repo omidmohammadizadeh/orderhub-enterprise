@@ -110,6 +110,17 @@ export interface VoiceState {
   awaiting?: "ADDRESS_CONFIRM" | "ORDER_CONFIRM" | "FULFILLMENT" | "PAYMENT" | "NAME";
   /** How they said they'd pay, held while we ask for a name. */
   pendingPayment?: "CASH" | "CARD";
+  /**
+   * How many turns running we have failed to understand.
+   *
+   * Kept so that "I didn't catch that" can escalate into a different question
+   * rather than the same one, and so that giving up is a decision made against
+   * a number rather than a feeling.
+   */
+  confusion?: number;
+  /** The caller asked for a human, in words. Distinct from us deciding they
+   *  should have one, which is not the same thing at all. */
+  askedForHuman?: boolean;
 }
 
 export function emptyState(): VoiceState {
@@ -153,6 +164,8 @@ export function coerceState(raw: unknown): VoiceState {
       r.pendingPayment === "CASH" || r.pendingPayment === "CARD"
         ? r.pendingPayment
         : undefined,
+    confusion: Number.isFinite(Number(r.confusion)) ? Number(r.confusion) : 0,
+    askedForHuman: r.askedForHuman === true,
     callId: r.callId ? String(r.callId) : undefined,
     awaiting: (
       ["ADDRESS_CONFIRM", "ORDER_CONFIRM", "FULFILLMENT", "PAYMENT", "NAME"] as const
@@ -230,8 +243,10 @@ export class VoiceAiService {
   async confirmAddressAloud(ctx: VoiceContext, state: VoiceState): Promise<string> {
     await this.runTool("confirm_delivery_address", {}, ctx, state, null);
     if (!state.addressConfirmed) {
-      // Outside the delivery area. Say so rather than pressing on.
-      return "I'm sorry, we don't deliver to that address. I can do it for collection instead if you'd like.";
+      // Outside the delivery area. Say so — but never leave them with nowhere
+      // to go, because "we don't deliver there" with no follow-up is where a
+      // caller hangs up and orders from someone else.
+      return "I'm sorry, we don't deliver that far. I can do it for collection instead, or if there's another address you'd like it sent to, just say.";
     }
     const fee = this.feeForAddress(state.cart.deliveryAddress, ctx);
     const feeLine = fee > 0 ? ` Delivery is ${money(fee, ctx.currency)}.` : "";
@@ -674,14 +689,24 @@ After they confirm the order, ask: "How would you like to pay — cash, or card?
 - CASH: place it and tell them the time. Nothing else to do.
 - CARD: place it with paymentMethod CARD. We text them a payment link. Say "I'm sending you a payment link now" and, once it has gone, "That's sent — you can pay on your phone. Thanks, and goodbye." Never ask for card numbers out loud, ever, no matter what they offer.
 
+WHEN YOU DO NOT UNDERSTAND
+Not understanding is NEVER a reason to hand over or hang up. It is a reason to ask again, differently. A caller who has to repeat themselves is mildly annoyed; a caller who gets cut off has been failed, and they will not ring back.
+Work down this list, changing what you ask each time — never repeat the same words twice:
+1. "Sorry, I didn't catch that — could you say it again?"
+2. Ask for a smaller piece of it. For an address, take the postcode on its own first, then the house number, then the street.
+3. Ask them to spell the difficult part, or to say it slowly.
+4. Offer them a way round it: collection instead of delivery, or the shop ringing them back.
+Only after all of that, and only if they are getting nowhere, offer to put them through. Ask first — "would you like me to put you through to the shop?" — rather than doing it to them.
+
 WHEN TO HAND OVER TO A HUMAN
-Use transfer_to_staff immediately if: they ask for a person, they are upset or complaining, they are asking about an existing order you cannot find, they want something you cannot do, or you have misheard them twice in a row. Handing over is never a failure. Say "let me put you through" and do it.
-If nobody can take the call, use take_message instead so the shop can ring them back.
+Use transfer_to_staff when: they ask for a person, they are upset or complaining, they are asking about an existing order you cannot find, or they want something you genuinely cannot do. Handing over for those is never a failure.
+If nobody can take the call, use take_message instead so the shop can ring them back. Never end a call on an order you have not placed without offering one of those two.
 
 THINGS TO GET RIGHT
 - Confirm the caller's name before placing an order, and spell back anything unusual.
 - If they go quiet, ask once if they are still there.
 - If they say something you did not catch, ask them to repeat it — do not guess an order.
+- If an address is outside the delivery area, say so and immediately offer collection, or ask whether there is another address they would like it sent to. Do not leave them with nowhere to go.
 - Never promise a delivery time faster than the shop's own: about ${ctx.deliveryPrepMinutes} minutes for delivery, ${ctx.collectionPrepMinutes} for collection.
 
 ${savedGuidance}${closedGuidance}
@@ -1055,7 +1080,24 @@ ${menu || "(no items available — apologise and transfer)"}`;
           turn: { outcome: "ENQUIRY" },
         };
       }
-      case "transfer_to_staff":
+      case "transfer_to_staff": {
+        // Handing over because WE could not hear is the failure this line was
+        // built to avoid. The caller rang a shop that did not answer; being
+        // bounced by the thing that did answer, over a word, is worse than
+        // either. A real request for a person always goes through — this only
+        // ever refuses "I keep mishearing them".
+        const why = String(input?.reason ?? "").toLowerCase();
+        const onlyMisheard =
+          /(mishear|misheard|not understand|didn'?t understand|can'?t understand|unclear|couldn'?t catch|didn'?t catch|hard to hear|trouble hearing)/.test(
+            why,
+          );
+        if (onlyMisheard && !state.askedForHuman && (state.confusion ?? 0) < 3) {
+          state.confusion = (state.confusion ?? 0) + 1;
+          return {
+            result:
+              "Not yet. Mishearing is not a reason to hand over — ask again, in DIFFERENT words, and ask for a smaller piece of it than last time. Take a postcode on its own, or ask them to spell it. If you still cannot get there after a few goes, ASK them whether they would like to be put through rather than doing it to them.",
+          };
+        }
         return {
           result: ctx.transferNumber
             ? "Transferring now."
@@ -1064,8 +1106,17 @@ ${menu || "(no items available — apologise and transfer)"}`;
             ? { transferTo: ctx.transferNumber, outcome: "TRANSFERRED" }
             : undefined,
         };
-      case "end_call":
+      }
+      case "end_call": {
+        // Never hang up on a basket. Somebody spent that call choosing food.
+        if (state.cart.items.length > 0 && !state.orderId) {
+          return {
+            result:
+              "There is an unplaced order on this call. Do not hang up. Either finish placing it, or offer to take a message so the shop can ring them back.",
+          };
+        }
         return { result: "Ending call.", turn: { endCall: true } };
+      }
       default:
         return { result: `Unknown tool ${name}` };
     }

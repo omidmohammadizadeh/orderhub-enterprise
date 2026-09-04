@@ -12,6 +12,7 @@ import {
   soundsComplete,
   spokenDigits,
   spokenOrderStatus,
+  wantsHuman,
 } from "../voice-flow";
 
 // The spine of a call. Everything here runs before Claude is involved, so a
@@ -342,5 +343,27 @@ describe("parsePayment", () => {
   it("refuses when it cannot tell", () => {
     expect(parsePayment("can I pay by cash or card")).toBeNull();
     expect(parsePayment("what do you take")).toBeNull();
+  });
+});
+
+describe("wantsHuman", () => {
+  it("is heard at any point in the call, not just at the menu", () => {
+    // "Asking for a human must always work" is one of the four rules this
+    // module was written around, and it was only true on the first turn.
+    for (const said of [
+      "can I speak to someone",
+      "put me through to a human",
+      "I want to talk to a person",
+      "get me a member of staff",
+      "zero",
+    ]) {
+      expect(wantsHuman(said)).toBe(true);
+    }
+  });
+
+  it("does not fire on ordinary ordering talk", () => {
+    expect(wantsHuman("two large pepperoni")).toBe(false);
+    expect(wantsHuman("delivery please")).toBe(false);
+    expect(wantsHuman("")).toBe(false);
   });
 });

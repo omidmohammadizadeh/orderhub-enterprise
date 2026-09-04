@@ -227,3 +227,85 @@ describe("read-backs speak themselves", () => {
     expect(out.sayNow).not.toContain("Say this");
   });
 });
+
+describe("never giving up", () => {
+  it("refuses to hand over just because it misheard", async () => {
+    // The prompt used to say "transfer if you have misheard them twice in a
+    // row", and with transfers failing that became: apologise, hang up. A
+    // caller who rang a shop that did not answer, then got cut off by the
+    // thing that did, has been failed twice.
+    const state = withItem();
+    const out = await svc().runTool(
+      "transfer_to_staff",
+      { reason: "I misheard the address twice" },
+      ctx({ transferNumber: "+441912312345" }),
+      state,
+      null,
+    );
+    expect(out.turn?.transferTo).toBeUndefined();
+    expect(out.result).toContain("DIFFERENT words");
+    expect(state.confusion).toBe(1);
+  });
+
+  it("always hands over when the caller actually asked for a person", async () => {
+    const state = withItem({ askedForHuman: true });
+    const out = await svc().runTool(
+      "transfer_to_staff",
+      { reason: "cannot understand them" },
+      ctx({ transferNumber: "+441912312345" }),
+      state,
+      null,
+    );
+    expect(out.turn?.transferTo).toBe("+441912312345");
+  });
+
+  it("gives up eventually rather than looping forever", async () => {
+    const state = withItem({ confusion: 3 });
+    const out = await svc().runTool(
+      "transfer_to_staff",
+      { reason: "misheard repeatedly" },
+      ctx({ transferNumber: "+441912312345" }),
+      state,
+      null,
+    );
+    expect(out.turn?.transferTo).toBe("+441912312345");
+  });
+
+  it("hands over immediately for a reason that is not mishearing", async () => {
+    const out = await svc().runTool(
+      "transfer_to_staff",
+      { reason: "caller is complaining about a previous order" },
+      ctx({ transferNumber: "+441912312345" }),
+      withItem(),
+      null,
+    );
+    expect(out.turn?.transferTo).toBe("+441912312345");
+  });
+
+  it("will not hang up on a basket nobody has placed", async () => {
+    // Someone spent that call choosing food.
+    const out = await svc().runTool("end_call", {}, ctx(), withItem(), null);
+    expect(out.turn?.endCall).toBeUndefined();
+    expect(out.result).toContain("Do not hang up");
+  });
+
+  it("hangs up happily once the order is in", async () => {
+    const out = await svc().runTool(
+      "end_call",
+      {},
+      ctx(),
+      withItem({ orderId: "placed" }),
+      null,
+    );
+    expect(out.turn?.endCall).toBe(true);
+  });
+
+  it("offers a way out when the address is out of area", async () => {
+    const state = withItem();
+    state.cart.fulfillmentType = "DELIVERY";
+    state.cart.deliveryAddress = { line1: "1 Far Away", postcode: "ZZ99 9ZZ" };
+    const say = await svc().confirmAddressAloud(ctx(), state);
+    expect(say).toContain("collection");
+    expect(say).toContain("another address");
+  });
+});

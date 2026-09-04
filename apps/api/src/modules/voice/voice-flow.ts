@@ -128,12 +128,25 @@ export function digitChoice(digit: string): MenuChoice | null {
  * two large pepperoni" during the greeting goes straight into that order, menu
  * never mentioned again.
  */
+/**
+ * Is the caller asking for a person?
+ *
+ * Checked on EVERY turn, not just at the menu. "Asking for a human must always
+ * work" is one of the four rules this module was written around, and it was
+ * only actually true on the first turn — after that it depended on the model
+ * noticing. That is not "always".
+ */
+export function wantsHuman(text: string): boolean {
+  const t = clean(text);
+  if (!t) return false;
+  return HUMAN.some((p) => t.includes(p)) || BARE_ZERO.test(t);
+}
+
 export function interpretMenuChoice(text: string): MenuChoice {
   const t = clean(text);
   if (!t) return { kind: "ORDER" };
 
-  if (HUMAN.some((p) => t.includes(p))) return { kind: "HUMAN" };
-  if (BARE_ZERO.test(t)) return { kind: "HUMAN" };
+  if (wantsHuman(text)) return { kind: "HUMAN" };
 
   // A short bare utterance is a spoken keypress. Checked before intent so
   // "two" is the menu choice, while "two large pepperoni" is an order — the

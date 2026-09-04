@@ -18,6 +18,7 @@ import {
   parseYesNo,
   spokenDigits,
   spokenOrderStatus,
+  wantsHuman,
   type MenuChoice,
 } from "./voice-flow";
 
@@ -157,6 +158,15 @@ export class VoiceService {
     // leg must not make us talk over the person who just picked up.
     if (!loaded) return { say: "" };
     const { call, ctx, state } = loaded;
+
+    // Before anything else, at any point in the call. "Asking for a human must
+    // always work" was only true on the first turn — after that it depended on
+    // the model noticing, which is not the same thing.
+    if (wantsHuman(args.text)) {
+      state.askedForHuman = true;
+      state.turns.push({ role: "user", text: args.text });
+      return this.handOver(call, ctx, state);
+    }
 
     switch (state.stage) {
       case "MENU":
@@ -408,6 +418,8 @@ export class VoiceService {
 
     state.turns.push({ role: "user", text: said });
     state.awaiting = next;
+    // We understood, so the run of misunderstandings is over.
+    state.confusion = 0;
     state.turns.push({ role: "assistant", text: say });
     if (extra?.endCall || extra?.transferTo) state.stage = "DONE";
 
