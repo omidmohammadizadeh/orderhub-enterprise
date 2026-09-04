@@ -381,15 +381,24 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       ),
       // HubRise `expected_time` is the promised ready/ETA time and is set
       // on EVERY order — including ASAP ones (≈ now + prep). It is NOT a
-      // "scheduled for later" flag. Mapping it straight to scheduledFor
-      // made every HubRise ticket show as Scheduled. Only treat it as a
-      // genuine scheduled pre-order when it's well beyond normal prep
-      // (> 45 min out); otherwise it's an ASAP order and we leave
-      // scheduledFor unset. The raw ETA is kept in metadata for reference.
+      // "scheduled for later" flag. The order's own `asap` boolean is, so
+      // that decides; the time-based guess is only the fallback for channels
+      // that omit it. The raw ETA is kept in metadata for reference.
       scheduledFor: (() => {
         if (!order.expected_time) return undefined;
+        // HubRise says outright whether the customer asked for it now. That
+        // beats guessing from a clock: a busy shop, or a courier the platform
+        // has not assigned yet, pushes expected_time an hour out on an order
+        // the customer wants as soon as possible — and the 45-minute rule
+        // below then marked every one of them Scheduled, on the board and on
+        // the printed ticket. Uber Eats and Just Eat orders were arriving as
+        // pre-orders in the middle of service.
+        if (order.asap === true) return undefined;
         const t = new Date(order.expected_time);
         if (!Number.isFinite(t.getTime())) return undefined;
+        // Still needed where asap is absent or false: some channels don't send
+        // the flag, and an expected_time well beyond any prep time is the only
+        // remaining signal that somebody ordered ahead.
         const SCHEDULE_THRESHOLD_MS = 45 * 60_000;
         return t.getTime() > Date.now() + SCHEDULE_THRESHOLD_MS ? t : undefined;
       })(),
