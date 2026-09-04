@@ -4,10 +4,12 @@ import {
   isLikelyHallucination,
   marketplaceName,
   normalisePostcode,
+  normaliseSpokenReference,
   parseFulfillment,
   parseOrderReference,
   parsePayment,
   parseYesNo,
+  referenceMatches,
   parseSpokenNumber,
   repairPostcode,
   resolveHeardPostcode,
@@ -397,42 +399,67 @@ describe("parseSpokenNumber — spoken cardinals", () => {
   });
 });
 
-describe("parseOrderReference", () => {
-  it("reads the id tail a shop reads off its own screen", () => {
-    // From a live call: the caller said "24kiod", the last characters of
-    // cmtne25lj002dcft06v24kiod — which is what the dashboard shows. The line
-    // only ever looked up the sequential orderNumber, so it found nothing.
-    const out = parseOrderReference("24kiod");
-    expect(out.code).toBe("24kiod");
+describe("parseOrderReference / referenceMatches", () => {
+  const match = (said: string, identifier: string) =>
+    referenceMatches(parseOrderReference(said).forms, identifier);
+
+  it("matches an id spelled out character by character", () => {
+    // Live call: "#Y5BJH" on the orders tab, read out as "y five b j h". The
+    // transcriber writes the NAME of each character, so closing up the spaces
+    // gives "yfivebjh" — which matches nothing.
+    expect(match("y five b j h", "Y5BJH")).toBe(true);
   });
 
-  it("still reads a plain order number", () => {
+  it("matches an id with punctuation the caller cannot say", () => {
+    // "#SIM-I2DC" read as "S i m dash i two d c." No endsWith in Postgres
+    // bridges the hyphen; comparing normalised forms does.
+    expect(match("S i m dash i two d c.", "SIM-I2DC")).toBe(true);
+  });
+
+  it("matches the id tail a shop reads off its own screen", () => {
+    expect(match("24kiod", "cmtne25lj002dcft06v24kiod")).toBe(true);
+  });
+
+  it("matches identifiers from every channel in one rule", () => {
+    // Just Eat ref, Deliveroo collection code, our own sequential number,
+    // an Uber Eats collection code — all read out naturally.
+    expect(match("940324216", "940324216")).toBe(true);
+    expect(match("eight oh four seven", "8047")).toBe(true);
+    expect(match("three m m k c f", "3mmkcf")).toBe(true);
+    expect(match("s h r three p", "SHR3P")).toBe(true);
+  });
+
+  it("still gives a plain number reading for the sequential order number", () => {
     expect(parseOrderReference("twenty four").number).toBe("24");
     expect(parseOrderReference("order 4012").number).toBe("4012");
   });
 
-  it("gives back both readings so the lookup can try each", () => {
-    // "0133" is a marketplace displayId; "24kiod" is an id suffix. One
-    // utterance can plausibly be either, and they are checked against
-    // different columns.
-    const out = parseOrderReference("133 a b c");
-    expect(out.number).toBe("133");
+  it("will not let a short reference match by luck", () => {
+    // "24" must never match every order whose id happens to end in 24. Short
+    // readings are dropped from the fuzzy matcher entirely — a two-digit
+    // order number is found by the EXACT orderNumber lookup instead, which is
+    // the only way it can be matched safely.
+    expect(match("twenty four", "cmtne25lj002dcft06v24")).toBe(false);
+    expect(parseOrderReference("twenty four").number).toBe("24");
+    expect(parseOrderReference("twenty four").forms).not.toContain("24");
   });
 
-  it("does not mistake ordinary words for a reference", () => {
-    // A code needs letters AND digits — otherwise "delivery please" would be
-    // looked up as an order id.
-    expect(parseOrderReference("delivery please").code).toBeNull();
-    expect(parseOrderReference("I don't know").code).toBeNull();
-    expect(parseOrderReference("").code).toBeNull();
+  it("does not match ordinary speech against anything real", () => {
+    expect(match("delivery please", "SIM-I2DC")).toBe(false);
+    expect(match("I don't know", "Y5BJH")).toBe(false);
+    expect(match("", "Y5BJH")).toBe(false);
+  });
+});
+
+describe("normaliseSpokenReference", () => {
+  it("turns spoken character names back into characters", () => {
+    expect(normaliseSpokenReference("S i m dash i two d c.")).toBe("simi2dc");
+    expect(normaliseSpokenReference("y five b j h")).toBe("y5bjh");
   });
 
-  it("ignores something far too long to be a reference", () => {
-    expect(
-      parseOrderReference(
-        "my order was 2 large pepperoni pizzas and a garlic bread on tuesday the 4th",
-      ).code,
-    ).toBeNull();
+  it("leaves something already written as an identifier alone", () => {
+    expect(normaliseSpokenReference("24kiod")).toBe("24kiod");
+    expect(normaliseSpokenReference("SIM-I2DC")).toBe("simi2dc");
   });
 });
 

@@ -15,6 +15,7 @@ import {
   parseFulfillment,
   parseOrderReference,
   parsePayment,
+  referenceMatches,
   parseYesNo,
   spokenDigits,
   marketplaceName,
@@ -287,7 +288,7 @@ export class VoiceService {
     state: VoiceState,
     text: string,
   ): Promise<VoiceTurn> {
-    const { number: parsed, code } = parseOrderReference(text);
+    const { number: parsed, forms } = parseOrderReference(text);
     // Order numbers are per-tenant Ints. A caller reciting their phone number
     // by mistake would otherwise overflow the column and 500 the turn.
     const number =
@@ -296,42 +297,47 @@ export class VoiceService {
         : null;
     const caller = normaliseNumber(call.fromNumber);
 
-    // Try every identifier this order could be known by. The sequential
-    // number is what we read out on the phone; displayId is what a
-    // marketplace put on their confirmation; and the id suffix is what is on
-    // screen in the dashboard, which is what a shop reads out when they are
-    // looking at the order rather than holding a receipt.
-    const byReference: any[] = [];
-    if (number) byReference.push({ orderNumber: Number(number) });
-    if (parsed) byReference.push({ displayId: parsed });
-    if (code) {
-      byReference.push({ id: { endsWith: code } });
-      byReference.push({ displayId: { endsWith: code, mode: "insensitive" } });
-      byReference.push({ collectionCode: { endsWith: code, mode: "insensitive" } });
-    }
-
     // Whatever they said belongs on the call record even though no model saw
     // it — the transcript on the dashboard is what settles a dispute.
     state.turns.push({ role: "user", text });
 
-    let order = byReference.length
-      ? await this.db().order.findFirst({
-          where: { locationId: ctx.locationId, OR: byReference },
+    // Matching happens HERE, not in the query.
+    //
+    // The Order # column shows a different shape per channel — #SIM-I2DC from
+    // Just Eat, #Y5BJH from the till, #24kiod from this line — and a caller
+    // spells them out, so the punctuation in the stored value is not in
+    // anything they could have said. No `endsWith` in Postgres bridges
+    // "SIM-I2DC" to "simi2dc". Comparing normalised forms in code does, and it
+    // covers every channel with one rule instead of a clause each.
+    //
+    // The window is deliberately recent and bounded: nobody rings up about
+    // last month's dinner, and it keeps this to one small indexed read.
+    const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const recent = forms.length
+      ? await this.db().order.findMany({
+          where: { locationId: ctx.locationId, createdAt: { gte: since } },
           orderBy: { createdAt: "desc" },
-          select: STATUS_FIELDS,
+          take: 500,
+          select: { ...STATUS_FIELDS, id: true, displayId: true, collectionCode: true },
         })
-      : // No number heard. Fall back to the number they are ringing from,
-        // which is right far more often than it is wrong.
-        caller
-        ? await this.db().order.findFirst({
-            where: {
-              locationId: ctx.locationId,
-              customerPhone: { contains: caller.slice(-9) },
-            },
-            orderBy: { createdAt: "desc" },
-            select: STATUS_FIELDS,
-          })
-        : null;
+      : [];
+
+    let order =
+      recent.find((o: any) =>
+        [
+          o.displayId,
+          o.collectionCode,
+          o.orderNumber != null ? String(o.orderNumber) : null,
+          o.id,
+        ].some((identifier) => referenceMatches(forms, identifier)),
+      ) ?? null;
+
+    // An exact order number still wins outright — it is the one we read out on
+    // the phone, and it should not lose to a fuzzy suffix hit on something else.
+    if (number) {
+      const exact = recent.find((o: any) => o.orderNumber === Number(number));
+      if (exact) order = exact;
+    }
 
     // Nothing matched what they read out, but the number they are ringing
     // from usually knows. Offered rather than assumed — "is it the one from
@@ -365,7 +371,7 @@ export class VoiceService {
       const misses = (state.confusion ?? 0) + 1;
       state.confusion = misses;
       if (misses < 3) {
-        const say = byReference.length
+        const say = forms.length
           ? `Sorry, I can't find that one. Could you read it out to me one character at a time?`
           : `Sorry, I didn't catch that. Could you read your order number out one character at a time?`;
         state.turns.push({ role: "user", text });

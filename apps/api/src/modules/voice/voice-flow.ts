@@ -674,22 +674,95 @@ export function parsePayment(text: string): "CASH" | "CARD" | null {
  */
 export function parseOrderReference(text: string): {
   number: string | null;
-  code: string | null;
+  forms: string[];
 } {
   const number = parseSpokenNumber(text);
+  const forms = [normaliseSpokenReference(text), compactReference(text), number]
+    .filter((f): f is string => !!f && f.length >= 3);
+  return { number, forms: Array.from(new Set(forms)) };
+}
 
-  // A run of letters-and-digits long enough to be an identifier rather than a
-  // word. Spaces are stripped first because a caller spelling something out
-  // gives "2 4 k i o d" and a transcriber writes it however it likes.
-  const compact = String(text ?? "")
+/** Everything that is not a letter or a digit, thrown away. */
+function compactReference(text: string): string {
+  return String(text ?? "")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
-  const hasLetter = /[a-z]/.test(compact);
-  const hasDigit = /\d/.test(compact);
-  const code =
-    compact.length >= 4 && compact.length <= 40 && hasLetter && hasDigit
-      ? compact
-      : null;
+}
 
-  return { number, code };
+/** Characters spoken by name: "dash", "hyphen", "hash", and the digits. */
+const SPOKEN_CHARS: Record<string, string> = {
+  dash: "",
+  hyphen: "",
+  minus: "",
+  hash: "",
+  slash: "",
+  dot: "",
+  point: "",
+  space: "",
+  zero: "0",
+  oh: "0",
+  nought: "0",
+  one: "1",
+  two: "2",
+  three: "3",
+  four: "4",
+  five: "5",
+  six: "6",
+  seven: "7",
+  eight: "8",
+  nine: "9",
+};
+
+/**
+ * What a caller means when they SPELL an order number out.
+ *
+ * From two real calls: "#Y5BJH" was read as "y five b j h", and "#SIM-I2DC" as
+ * "S i m dash i two d c." The transcriber writes the NAME of each character —
+ * "five", "dash", "two" — so stripping punctuation and closing up the spaces
+ * gives "yfivebjh" and "simdashitwodc", which match nothing.
+ *
+ * Spelling is also the thing we ASK them to do when a reference is not found,
+ * so this is the reading most likely to be on the second attempt.
+ */
+export function normaliseSpokenReference(text: string): string {
+  const tokens = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  let out = "";
+  for (const token of tokens) {
+    if (token in SPOKEN_CHARS) {
+      out += SPOKEN_CHARS[token];
+      continue;
+    }
+    // A lone letter is a spelled character; a longer run is the thing itself
+    // ("sim", "24kiod"), already written the way it looks.
+    out += token;
+  }
+  return out;
+}
+
+/**
+ * Does what the caller said name this order?
+ *
+ * Compared on NORMALISED forms rather than in SQL, because the identifiers
+ * carry punctuation the spoken version cannot ("SIM-I2DC" against "simi2dc")
+ * and no `endsWith` in the database will bridge that.
+ *
+ * `endsWith` rather than equality because someone reading an id off a screen
+ * says the tail of it, and a suffix of four or more characters out of a cuid
+ * is specific enough not to be a coincidence.
+ */
+export function referenceMatches(forms: string[], identifier?: string | null): boolean {
+  const target = compactReference(identifier ?? "");
+  if (!target) return false;
+  return forms.some((form) => {
+    if (form.length < 3) return false;
+    if (target === form) return true;
+    // A short form has to be the WHOLE identifier — "24" must not match every
+    // order whose id happens to end in 24.
+    return form.length >= 4 && target.endsWith(form);
+  });
 }
