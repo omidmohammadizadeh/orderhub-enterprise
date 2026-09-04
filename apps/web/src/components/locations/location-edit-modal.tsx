@@ -252,6 +252,13 @@ function GeneralTab({
   const [voiceTestMode, setVoiceTestMode] = useState<boolean>(
     (location as any)?.settings?.voiceTestMode === true,
   );
+  // Confirmation text on a cash phone order. Default OFF because every send
+  // spends the shop's prepaid SMS balance — a new per-order cost should never
+  // arrive as a surprise. Card orders already get the payment link and are
+  // never texted twice.
+  const [voiceSmsReceipt, setVoiceSmsReceipt] = useState<boolean>(
+    (location as any)?.settings?.voiceSmsReceipt === true,
+  );
 
   // Kiosk payment options. Default ON: every kiosk before this setting
   // existed took both, and a silent default of false would have switched
@@ -390,6 +397,7 @@ function GeneralTab({
           voiceAiEnabled: voiceAiEnabled === true,
           voiceTransferNumber: voiceTransferNumber.trim() || null,
           voiceTestMode: voiceTestMode === true,
+          voiceSmsReceipt: voiceSmsReceipt === true,
           kiosk: {
             acceptCash: kioskAcceptCash,
             acceptCard: kioskAcceptCard,
@@ -1022,6 +1030,22 @@ function GeneralTab({
               Answers as normal but takes nothing from the wallet, and works
               even on an empty balance. For our own testing — turn it off before
               the shop goes live, or their calls are free.
+            </span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
+          <input
+            type="checkbox"
+            checked={voiceSmsReceipt}
+            onChange={(e) => setVoiceSmsReceipt(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="text-xs text-zinc-700">
+            <strong>Text a confirmation on cash phone orders</strong>
+            <span className="mt-0.5 block text-[11px] text-zinc-500">
+              Sends the order number and total after the call. Costs one SMS
+              from the wallet per order. Card orders already get the payment
+              link, so they&apos;re never texted twice.
             </span>
           </span>
         </label>

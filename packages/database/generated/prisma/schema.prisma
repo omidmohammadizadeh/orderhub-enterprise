@@ -3928,6 +3928,10 @@ enum OrderPlatform {
   GRUBHUB
   CAREEM
   WHATSAPP
+  // The AI phone line. The voice module used to write "PHONE" here, which is
+  // not a member of this enum — so Prisma rejected every completed call and
+  // the caller was told their order could not be saved AFTER confirming it.
+  VOICE
 }
 
 enum OrderSource {
@@ -3943,6 +3947,8 @@ enum OrderSource {
   GRUBHUB
   CAREEM
   WHATSAPP
+  // Taken over the phone by the AI voice line. Shown as "AI Voice".
+  VOICE
 }
 
 enum IntegrationSource {

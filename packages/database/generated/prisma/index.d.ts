@@ -889,7 +889,8 @@ export const OrderPlatform: {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
-  WHATSAPP: 'WHATSAPP'
+  WHATSAPP: 'WHATSAPP',
+  VOICE: 'VOICE'
 };
 
 export type OrderPlatform = (typeof OrderPlatform)[keyof typeof OrderPlatform]
@@ -907,7 +908,8 @@ export const OrderSource: {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
-  WHATSAPP: 'WHATSAPP'
+  WHATSAPP: 'WHATSAPP',
+  VOICE: 'VOICE'
 };
 
 export type OrderSource = (typeof OrderSource)[keyof typeof OrderSource]

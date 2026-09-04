@@ -670,6 +670,7 @@ const CHANNEL_OPTIONS = [
   { id: "JUST_EAT", label: "Just Eat" },
   { id: "HUBRISE", label: "HubRise" },
   { id: "WHATSAPP", label: "WhatsApp" },
+  { id: "VOICE", label: "AI Voice" },
 ];
 
 const CHANNEL_LABELS: Record<string, string> = {

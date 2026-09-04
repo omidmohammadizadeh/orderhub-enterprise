@@ -64,6 +64,19 @@ export class VoiceTelnyxController {
     const ccid: string | undefined = p.call_control_id;
     if (!ccid) return { ok: true };
 
+    // One line per event. Both voice bugs we have had were invisible in the
+    // log until someone reproduced them live; a call should be readable end to
+    // end from here without turning anything on.
+    this.logger.log(
+      `call ${ccid.slice(-8)} ${type}${
+        type === "call.transcription"
+          ? ` "${String(p?.transcription_data?.transcript ?? "").slice(0, 80)}" conf=${p?.transcription_data?.confidence ?? "?"} final=${p?.transcription_data?.is_final !== false}`
+          : type === "call.dtmf.received"
+            ? ` digit=${p?.digit ?? "?"}`
+            : ""
+      }`,
+    );
+
     try {
       switch (type) {
         case "call.initiated":
@@ -76,6 +89,9 @@ export class VoiceTelnyxController {
           break;
         case "call.transcription":
           await this.onTranscription(ccid, p);
+          break;
+        case "call.dtmf.received":
+          await this.onDtmf(ccid, p);
           break;
         case "call.hangup":
           await this.onHangup(ccid, p);
@@ -217,8 +233,13 @@ export class VoiceTelnyxController {
       return;
     }
 
-    // Good enough to use. Join it to whatever is waiting and restart the
-    // clock — the caller may not have finished their sentence.
+    // Good enough to use — so the caller is genuinely talking, and we should
+    // stop. Only on a confident final result: cutting our own greeting off for
+    // a cough or a passing bus is worse than talking half a second too long.
+    void this.telnyx.stopSpeaking(ccid);
+
+    // Join it to whatever is waiting and restart the clock — the caller may
+    // not have finished their sentence.
     if (buf) clearTimeout(buf.timer);
     const joined = [buf?.text ?? "", text].filter(Boolean).join(" ").trim();
     this.pending.set(ccid, {
@@ -229,6 +250,47 @@ export class VoiceTelnyxController {
         VoiceTelnyxController.SETTLE_MS,
       ),
     });
+  }
+
+  /**
+   * The caller pressed a key.
+   *
+   * Handled ahead of speech and without any settle delay, because a keypress
+   * is the one input that cannot be misheard. The first thing it does is cut
+   * our own voice off: a caller who presses 1 during the greeting should be
+   * asked "collection or delivery?" immediately, not after we finish reading
+   * out option 2.
+   */
+  private async onDtmf(ccid: string, p: any): Promise<void> {
+    const digit = String(p?.digit ?? p?.digits ?? "").trim();
+    if (!digit) return;
+
+    await this.telnyx.stopSpeaking(ccid);
+
+    // A pending fragment is now stale — they answered with the keypad, so
+    // whatever half-sentence was waiting must not also be replied to.
+    const buf = this.pending.get(ccid);
+    if (buf) {
+      clearTimeout(buf.timer);
+      this.pending.delete(ccid);
+    }
+
+    const call = await this.db().voiceCall.findUnique({
+      where: { providerCallId: ccid },
+      select: { id: true },
+    });
+    if (!call) return;
+
+    const turn = await this.voice.onDigit({ callId: call.id, digit });
+    if (!turn) return;
+    if (turn.say) await this.telnyx.speak(ccid, turn.say);
+    if (turn.transferTo) {
+      await this.db().voiceCall.update({
+        where: { id: call.id },
+        data: { status: "TRANSFERRED", outcome: "TRANSFERRED" },
+      });
+      await this.telnyx.transfer(ccid, turn.transferTo);
+    }
   }
 
   /** The caller has stopped talking — answer what they actually said. */

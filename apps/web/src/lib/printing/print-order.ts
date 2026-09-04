@@ -31,7 +31,7 @@ const QR_EXCLUDED = new Set([
   "ONLINE",
   "DIRECT",
   "POS",
-  "PHONE",
+  "VOICE",
   "WHATSAPP",
   "WHATS_APP",
 ]);

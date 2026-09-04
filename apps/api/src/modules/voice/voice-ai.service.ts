@@ -15,6 +15,8 @@ import { SmsService } from "../sms/sms.service";
 import { PaymentsService } from "../payments/payments.service";
 import type { VoiceContext } from "./voice-context.service";
 import { normaliseNumber } from "./voice-context.service";
+import { spokenDigits, type VoiceStage } from "./voice-flow";
+import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import {
   coerceCart,
   cartSubtotal,
@@ -42,7 +44,11 @@ import {
 // Every design choice below follows from one of those four.
 
 const DEFAULT_MODEL = "claude-sonnet-5";
-const MAX_TOOL_ITERATIONS = 6;
+// Placing an order is now a chain of gated tool calls — read the order back,
+// confirm the address, then place — so a turn that finishes an order needs
+// more hops than one that just adds an item. Six was enough for the old
+// free-for-all and would silently truncate the confirm-then-place sequence.
+const MAX_TOOL_ITERATIONS = 8;
 
 /** What the telephony layer should do after this turn. */
 export interface VoiceTurn {
@@ -65,10 +71,38 @@ export interface VoiceState {
   orderId?: string;
   outcome?: string;
   message?: string;
+  /** Where the call is in the fixed spine — see voice-flow.ts. */
+  stage: VoiceStage;
+  /**
+   * The delivery address has been read back to the caller and they said yes.
+   * A separate flag from "we have an address" on purpose: the whole failure
+   * this guards against is an address we heard wrong, which looks exactly like
+   * an address we heard right until the driver is lost.
+   */
+  addressConfirmed?: boolean;
+  /**
+   * The full order has been read back and confirmed aloud. place_order refuses
+   * without it. The system prompt has always asked for this; a prompt is a
+   * request, and the thing that gets the AI switched off for good deserves a
+   * lock.
+   */
+  orderConfirmed?: boolean;
+  /** Their last delivery address, from caller ID. Lets us ask "still at
+   *  Follingsby Drive?" instead of taking the whole thing again. */
+  savedAddress?: {
+    line1: string;
+    city: string;
+    postcode: string;
+    country?: string;
+  };
+  /** Name from caller ID, so we greet them and don't ask for it twice. */
+  knownName?: string;
+  /** The VoiceCall row id. Only used to key order idempotency to the call. */
+  callId?: string;
 }
 
 export function emptyState(): VoiceState {
-  return { turns: [], cart: emptyCart() };
+  return { turns: [], cart: emptyCart(), stage: "MENU" };
 }
 
 export function coerceState(raw: unknown): VoiceState {
@@ -84,6 +118,27 @@ export function coerceState(raw: unknown): VoiceState {
     orderId: r.orderId ? String(r.orderId) : undefined,
     outcome: r.outcome ? String(r.outcome) : undefined,
     message: r.message ? String(r.message) : undefined,
+    // Calls that were already in flight when this deployed have no stage.
+    // They resume in ORDER rather than being sent back to a menu they have
+    // already answered.
+    stage: (["MENU", "ORDER", "STATUS", "DONE"] as const).includes(r.stage)
+      ? r.stage
+      : "ORDER",
+    addressConfirmed: r.addressConfirmed === true,
+    orderConfirmed: r.orderConfirmed === true,
+    savedAddress:
+      r.savedAddress && typeof r.savedAddress === "object"
+        ? {
+            line1: String(r.savedAddress.line1 ?? ""),
+            city: String(r.savedAddress.city ?? ""),
+            postcode: String(r.savedAddress.postcode ?? ""),
+            country: r.savedAddress.country
+              ? String(r.savedAddress.country)
+              : undefined,
+          }
+        : undefined,
+    knownName: r.knownName ? String(r.knownName) : undefined,
+    callId: r.callId ? String(r.callId) : undefined,
   };
 }
 
@@ -115,11 +170,43 @@ export class VoiceAiService {
     return this.prisma as any;
   }
 
-  /** The greeting. Deliberately code, not model output — the first thing a
-   *  caller hears must be instant and identical every time. */
+  /**
+   * The greeting and the menu, in one breath.
+   *
+   * Deliberately code, not model output: the first thing a caller hears has to
+   * be instant and identical every time. A model-generated greeting costs a
+   * second of dead air on pickup, and a second of silence after "hello" is how
+   * a caller decides the line is broken.
+   *
+   * The menu is spoken as options to PRESS, because that is what a caller
+   * expects and what works on a bad line — but interpretMenuChoice also
+   * accepts them spoken, and a caller who just starts ordering over the top of
+   * this never hears the rest of it. See voice-flow.ts.
+   */
   greeting(ctx: VoiceContext, knownName?: string | null): string {
-    const who = knownName ? `Hi ${knownName}` : "Hi";
-    return `${who}, you're through to ${ctx.locationName}. I can take an order or answer a question — how can I help?`;
+    const who = knownName ? `Hello ${knownName}, welcome back to` : "Hello and welcome to";
+    return `${who} ${ctx.locationName}. To place an order, press 1. For an update on an order you've already placed, press 2.`;
+  }
+
+  /** What the caller hears the moment they choose to order. Fixed, because
+   *  "collection or delivery" is the question that changes the price, the
+   *  time and half the conversation that follows it — it should never be the
+   *  model's decision whether to ask it. */
+  orderOpener(state: VoiceState): string {
+    return state.knownName
+      ? `Lovely. Is that collection or delivery?`
+      : `OK, new order. Is that collection or delivery?`;
+  }
+
+  /** What the caller hears when they want to chase an order. */
+  statusOpener(): string {
+    return `No problem. What's your order number?`;
+  }
+
+  /** When we genuinely could not make out a menu choice twice running. Still
+   *  never a dead end — it falls into taking an order. */
+  menuFallback(): string {
+    return `Sorry, I didn't catch that. I'll take an order — is that collection or delivery?`;
   }
 
   // ── The turn ────────────────────────────────────────────────────────────
@@ -152,7 +239,7 @@ export class VoiceAiService {
       const system: Anthropic.TextBlockParam[] = [
         {
           type: "text",
-          text: this.systemPrompt(ctx),
+          text: this.systemPrompt(ctx, state),
           // The menu is re-sent on every turn of every call and is identical
           // across them. Caching it is the single biggest lever on our cost
           // per call — without it the Claude bill roughly triples.
@@ -231,7 +318,7 @@ export class VoiceAiService {
 
   // ── System prompt ───────────────────────────────────────────────────────
 
-  private systemPrompt(ctx: VoiceContext): string {
+  private systemPrompt(ctx: VoiceContext, state?: VoiceState): string {
     const menu = ctx.items
       .map((it) => {
         const mods = it.modifierGroups
@@ -262,6 +349,23 @@ export class VoiceAiService {
         ? "- For delivery, get the postcode first and run check_delivery_area before taking the rest of the address. Do not take a full address for an area the shop does not deliver to."
         : "- Addresses here do NOT have postcodes. Never ask for one — take the building or street and the city.";
 
+    // Caller ID turns the worst part of a phone order — reciting an address to
+    // a machine — into one yes. Only offered, never assumed: people move, and
+    // people order to their mum's.
+    const saved = state?.savedAddress;
+    const savedGuidance = saved?.line1
+      ? `\nTHIS CALLER HAS ORDERED BEFORE\nTheir name is ${state?.knownName ?? "not recorded"} and their last delivery address was ${[saved.line1, saved.city, saved.postcode].filter(Boolean).join(", ")}.\n- If they want delivery, do NOT ask for the address from scratch. Ask "Are you still at ${saved.line1}?" and wait.\n- If yes: call use_saved_address. It is already confirmed — you do not need to read it back again.\n- If no: take a new address the normal way, with the read-back.\n- Do not use their name more than twice in the call. More than that is unsettling, not friendly.`
+      : "";
+
+    // A line that cheerfully takes an order from a closed shop is worse than
+    // one that doesn't answer: the customer waits for food nobody is cooking.
+    const open = ctx.openingHours
+      ? isCurrentlyOpen(ctx.openingHours, ctx.timezone || "Europe/London")
+      : true;
+    const closedGuidance = open
+      ? ""
+      : `\nTHE SHOP IS CLOSED RIGHT NOW\nSay so in your first reply, plainly and without apology-spiralling. Tell them when it opens using get_opening_hours. Do NOT take an order for now. Offer to take a message instead, and use take_message. If they want to order for later, transfer them to the shop — you cannot schedule orders.`;
+
     return `You are answering the telephone for ${ctx.locationName}, a takeaway. You are speaking out loud to a customer on a phone call. You take orders, answer questions, and hand over to a human when you should.
 
 HOW TO SPEAK
@@ -272,15 +376,36 @@ Everything you write is read aloud by a speech engine, so write it the way a per
 - Never read the whole menu out. If asked what you do, name two or three popular things and ask what they fancy.
 - Keep your turns to a sentence or two. A long speech on the phone is unbearable.
 
+THE ORDER OF THE CALL
+The caller has already chosen to place an order, and has already been asked whether it is collection or delivery. Work through these in order and do not skip one:
+1. Collection or delivery.
+2. If DELIVERY: the address (see below). If COLLECTION: go straight to step 3.
+3. What they would like. Take the whole order.
+4. Read the order back and get a yes.
+5. How they want to pay: cash or card.
+6. Place it.
+Do not ask for anything twice, and do not ask for something you have already been told.
+
+DELIVERY ADDRESSES
+- Ask for it like this: "Can I take your address, including the postcode? So for example, 11 Follingsby Drive, N E 10, 8 Y H."
+- Then call propose_delivery_address with what you heard.
+- Then READ IT BACK to them exactly as you heard it and ask "is that correct?".
+- Only when they say yes, call confirm_delivery_address. That is what sets the delivery charge, and place_order will refuse until you have done it.
+- If they say it is wrong, take it again and repeat the whole loop. Never argue with a caller about their own address.
+${deliveryGuidance}
+
 TAKING AN ORDER
 - Add items as they say them with add_item. Use the exact item id from the menu below.
 - If an item has a REQUIRED option group, ask for that choice before adding it — one group at a time, offering at most three options aloud.
 - Never invent a dish, a price, or an option that is not on the menu below. If they ask for something you do not have, say so plainly and suggest the closest thing you do have.
-- Ask whether it is collection or delivery early, because it changes the price and the time.
-${deliveryGuidance}
 
 BEFORE YOU PLACE ANYTHING
-Read the whole order back — every item, the total, and collection or delivery — and wait for them to confirm. This is not optional. A wrong order that reaches the kitchen is the worst thing you can do.
+Call read_back_order, then say exactly what it gives you back and wait for a yes. This is not optional and there is no version of this call where you skip it. A wrong order that reaches the kitchen is the worst thing you can do, and place_order will refuse until they have confirmed.
+
+PAYING
+After they confirm the order, ask: "How would you like to pay — cash, or card?"
+- CASH: place it and tell them the time. Nothing else to do.
+- CARD: place it with paymentMethod CARD. We text them a payment link. Say "I'm sending you a payment link now" and, once it has gone, "That's sent — you can pay on your phone. Thanks, and goodbye." Never ask for card numbers out loud, ever, no matter what they offer.
 
 WHEN TO HAND OVER TO A HUMAN
 Use transfer_to_staff immediately if: they ask for a person, they are upset or complaining, they are asking about an existing order you cannot find, they want something you cannot do, or you have misheard them twice in a row. Handing over is never a failure. Say "let me put you through" and do it.
@@ -291,6 +416,8 @@ THINGS TO GET RIGHT
 - If they go quiet, ask once if they are still there.
 - If they say something you did not catch, ask them to repeat it — do not guess an order.
 - Never promise a delivery time faster than the shop's own: about ${ctx.deliveryPrepMinutes} minutes for delivery, ${ctx.collectionPrepMinutes} for collection.
+
+${savedGuidance}${closedGuidance}
 
 MENU
 ${menu || "(no items available — apologise and transfer)"}`;
@@ -331,22 +458,57 @@ ${menu || "(no items available — apologise and transfer)"}`;
       {
         name: "set_fulfillment",
         description:
-          "Set collection or delivery. For delivery, include the address once check_delivery_area has confirmed you deliver there.",
+          "Record whether this is collection or delivery. Call it as soon as they tell you. For delivery the address is taken separately, with propose_delivery_address.",
         input_schema: {
           type: "object",
           properties: {
             type: { type: "string", enum: ["DELIVERY", "PICKUP"] },
-            line1: { type: "string" },
+          },
+          required: ["type"],
+        },
+      },
+      {
+        name: "propose_delivery_address",
+        description:
+          "The address you just heard, before you have read it back. Returns the exact words to say to the caller. Say them, then wait for a yes.",
+        input_schema: {
+          type: "object",
+          properties: {
+            line1: { type: "string", description: "House number and street" },
             city: { type: "string" },
             postcode: { type: "string" },
             area: {
               type: "string",
               description:
-                "The named community, e.g. Dubai Marina. Use this instead of postcode where the shop delivers by area.",
+                "The named community, e.g. Dubai Marina. Use instead of postcode where the shop delivers by area.",
             },
           },
-          required: ["type"],
+          required: ["line1"],
         },
+      },
+      {
+        name: "confirm_delivery_address",
+        description:
+          "The caller has heard the address read back and said it is right. ONLY call this after they have confirmed out loud. This sets the delivery charge.",
+        input_schema: { type: "object", properties: {} },
+      },
+      {
+        name: "use_saved_address",
+        description:
+          "The caller confirmed they are still at the address we already have on file for them. Only available when the call notes give you one.",
+        input_schema: { type: "object", properties: {} },
+      },
+      {
+        name: "read_back_order",
+        description:
+          "Get the exact words to read the whole order back. Say them, then wait for a yes. place_order will refuse until they have confirmed.",
+        input_schema: { type: "object", properties: {} },
+      },
+      {
+        name: "order_confirmed",
+        description:
+          "The caller has heard the whole order read back and said yes. Only call this after they have confirmed out loud.",
+        input_schema: { type: "object", properties: {} },
       },
       {
         name: "check_delivery_area",
@@ -379,7 +541,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
       {
         name: "place_order",
         description:
-          "Place the order. ONLY after you have read the full order back and the caller has confirmed it.",
+          "Place the order. Only after order_confirmed, and after asking how they want to pay.",
         input_schema: {
           type: "object",
           properties: {
@@ -387,11 +549,14 @@ ${menu || "(no items available — apologise and transfer)"}`;
             paymentMethod: {
               type: "string",
               enum: ["CASH", "CARD"],
-              description: "CASH = pay at the shop or on delivery. CARD = we text a payment link.",
+              description:
+                "CASH = pay at the shop or on delivery. CARD = we text them a payment link and the order waits for payment.",
             },
             notes: { type: "string", description: "Allergies, door instructions" },
           },
-          required: ["customerName"],
+          // Both required: an order placed without knowing how it is being
+          // paid for is one the shop has to ring the customer back about.
+          required: ["customerName", "paymentMethod"],
         },
       },
       {
@@ -452,19 +617,135 @@ ${menu || "(no items available — apologise and transfer)"}`;
         const type = input?.type === "PICKUP" ? "PICKUP" : "DELIVERY";
         state.cart.fulfillmentType = type;
         state.cart.fulfillmentChosen = true;
+        if (type === "PICKUP") {
+          // Switching to collection drops any address work, so a caller who
+          // changes their mind halfway can't leave a stale confirmed address
+          // behind on the order.
+          state.cart.deliveryAddress = undefined;
+          state.addressConfirmed = false;
+          return {
+            result: `Set to collection. Ask what they would like to order.`,
+          };
+        }
+        if (state.savedAddress?.line1) {
+          return {
+            result: `Set to delivery. This caller has an address on file: ${[
+              state.savedAddress.line1,
+              state.savedAddress.city,
+              state.savedAddress.postcode,
+            ]
+              .filter(Boolean)
+              .join(", ")}. Ask "are you still at ${state.savedAddress.line1}?" — do not read the whole thing out.`,
+          };
+        }
+        return {
+          result:
+            "Set to delivery. Now ask for their address including the postcode, giving the example, then call propose_delivery_address.",
+        };
+      }
+
+      case "propose_delivery_address": {
         // An address needs whatever locates it here — a postcode in the UK, a
         // community in the Gulf. Requiring a postcode meant a Dubai caller
         // could never get past this, and the order was stamped "GB" besides.
-        if (type === "DELIVERY" && (input?.postcode || input?.area)) {
-          state.cart.deliveryAddress = {
-            line1: String(input.line1 ?? ""),
-            city: String(input.city ?? ctx.address?.city ?? ""),
-            postcode: input.postcode ? String(input.postcode) : undefined,
-            area: input.area ? String(input.area) : undefined,
-            country: ctx.country,
+        const line1 = String(input?.line1 ?? "").trim();
+        if (!line1) {
+          return { result: "No street or house number heard — ask again." };
+        }
+        state.cart.fulfillmentType = "DELIVERY";
+        state.cart.fulfillmentChosen = true;
+        state.cart.deliveryAddress = {
+          line1,
+          city: String(input?.city ?? ctx.address?.city ?? ""),
+          postcode: input?.postcode ? String(input.postcode) : undefined,
+          area: input?.area ? String(input.area) : undefined,
+          country: ctx.country,
+        };
+        // Proposing a NEW address always un-confirms — otherwise a correction
+        // inherits the yes the caller gave to the address they just rejected.
+        state.addressConfirmed = false;
+
+        const spoken = this.spokenAddress(state.cart.deliveryAddress);
+        return {
+          result: `Say this to the caller, word for word, then wait: "So that's ${spoken}. Is that correct?" Do NOT call confirm_delivery_address until they say yes.`,
+        };
+      }
+
+      case "confirm_delivery_address": {
+        const addr = state.cart.deliveryAddress;
+        if (!addr?.line1) {
+          return { result: "There is no address to confirm — take one first." };
+        }
+        // The fee is quoted from the same resolver every other surface uses,
+        // at the moment the address is finally agreed — not from whatever was
+        // guessed earlier in the call.
+        const check = this.checkArea(
+          zoneMode(ctx.deliveryZones as any) === "AREA"
+            ? String(addr.area ?? "")
+            : String(addr.postcode ?? ""),
+          ctx,
+        );
+        if (check.startsWith("The shop does NOT deliver")) {
+          state.addressConfirmed = false;
+          return { result: check };
+        }
+        state.addressConfirmed = true;
+        return {
+          result: `Address confirmed. ${check} Tell them the delivery charge, then ask what they would like to order.`,
+        };
+      }
+
+      case "use_saved_address": {
+        const saved = state.savedAddress;
+        if (!saved?.line1) {
+          return {
+            result:
+              "There is no saved address for this caller — take one the normal way.",
           };
         }
-        return { result: `Set to ${type}.` };
+        state.cart.fulfillmentType = "DELIVERY";
+        state.cart.fulfillmentChosen = true;
+        state.cart.deliveryAddress = {
+          line1: saved.line1,
+          city: saved.city,
+          postcode: saved.postcode || undefined,
+          country: saved.country ?? ctx.country,
+        };
+        // Already confirmed: they ordered to it before and have just said they
+        // are still there. Making them hear it read back a second time is the
+        // kind of thing that makes a line feel like a form.
+        state.addressConfirmed = true;
+        // A saved address carries a postcode, not a named community, so in an
+        // area-priced shop there is nothing here to check it against. Ask,
+        // rather than quoting a fee resolved from the wrong field.
+        if (zoneMode(ctx.deliveryZones as any) === "AREA") {
+          return {
+            result:
+              "Using their saved address. Ask which area that is in and run check_delivery_area before quoting a delivery charge.",
+          };
+        }
+        const check = this.checkArea(String(saved.postcode ?? ""), ctx);
+        return {
+          result: `Using their saved address. ${check} Now ask what they would like to order.`,
+        };
+      }
+
+      case "read_back_order": {
+        if (state.cart.items.length === 0) {
+          return { result: "Nothing on the order yet — there is nothing to read back." };
+        }
+        return { result: this.readBackScript(ctx, state) };
+      }
+
+      case "order_confirmed": {
+        if (state.cart.items.length === 0) {
+          return { result: "The order is empty — nothing to confirm." };
+        }
+        state.orderConfirmed = true;
+        return {
+          result:
+            "Confirmed. Now ask how they would like to pay — cash, or card — and then place it.",
+        };
       }
       case "check_delivery_area":
         return {
@@ -541,6 +822,60 @@ ${menu || "(no items available — apologise and transfer)"}`;
       lineUnitPrice(line),
       ctx.currency,
     )} each.\nOrder so far:\n${summarizeCart(state.cart, ctx.currency)}`;
+  }
+
+  /**
+   * An address as it should be SAID back, not as it would be printed.
+   *
+   * The postcode is spaced out — "N E 10, 8 Y H" — because a speech engine
+   * reads "NE10 8YH" as a single mangled word, and the entire point of the
+   * read-back is that the caller can check it.
+   */
+  private spokenAddress(addr?: {
+    line1?: string;
+    city?: string;
+    postcode?: string;
+    area?: string;
+  }): string {
+    if (!addr) return "";
+    const parts = [addr.line1, addr.city, addr.area].filter(Boolean);
+    const pc = String(addr.postcode ?? "").trim();
+    if (pc) parts.push(pc.toUpperCase().split("").join(" ").replace(/\s{2,}/g, ", "));
+    return parts.join(", ");
+  }
+
+  /**
+   * The words to read the order back in.
+   *
+   * Built here rather than left to the model because this is the moment the
+   * whole call is judged on: every line, the delivery charge if there is one,
+   * and the total the caller is actually going to pay. A model paraphrasing
+   * its own cart is how an item quietly goes missing between the conversation
+   * and the kitchen.
+   */
+  private readBackScript(ctx: VoiceContext, state: VoiceState): string {
+    const lines = state.cart.items
+      .map((l) => {
+        const mods = l.modifiers.length
+          ? ` with ${l.modifiers.map((m) => m.name).join(" and ")}`
+          : "";
+        const qty = l.quantity > 1 ? `${l.quantity} ` : "";
+        return `${qty}${l.name}${mods}${l.notes ? `, ${l.notes}` : ""}`;
+      })
+      .join(", then ");
+
+    const isDelivery = state.cart.fulfillmentType === "DELIVERY";
+    const subtotal = cartSubtotal(state.cart);
+    const fee = isDelivery ? this.feeForAddress(state.cart.deliveryAddress, ctx) : 0;
+    const feeLine = fee > 0 ? ` plus ${money(fee, ctx.currency)} delivery` : "";
+    const where = isDelivery
+      ? `for delivery to ${this.spokenAddress(state.cart.deliveryAddress)}`
+      : "for collection";
+
+    return `Say this, then wait for them to answer: "So that's ${lines}, ${where}.${feeLine} That comes to ${money(
+      round2(subtotal + fee),
+      ctx.currency,
+    )}. Is that all correct?" Then call order_confirmed if they say yes. If they say no, ask what needs changing and fix it before reading it back again.`;
   }
 
   /** Answer "do you deliver to X?" — where X is a postcode or a community,
@@ -634,6 +969,17 @@ ${menu || "(no items available — apologise and transfer)"}`;
     if (state.cart.items.length === 0) {
       return { result: "The order is empty — nothing to place." };
     }
+    // The two locks. The system prompt asks for both read-backs; a prompt is a
+    // request, and these are the two failures that get an AI phone line
+    // switched off permanently — food nobody ordered, and a driver at the
+    // wrong door. So they are enforced here, where the model cannot talk its
+    // way past them.
+    if (!state.orderConfirmed) {
+      return {
+        result:
+          "You have not read the order back yet. Call read_back_order, say it, and get a yes before placing anything.",
+      };
+    }
     const isDelivery = state.cart.fulfillmentType === "DELIVERY";
     // What counts as "we have an address" follows the shop, not the UK.
     const located =
@@ -643,6 +989,12 @@ ${menu || "(no items available — apologise and transfer)"}`;
           !postcodeRequiredFor(ctx.country);
     if (isDelivery && !(state.cart.deliveryAddress?.line1 && located)) {
       return { result: "You need a delivery address first. Ask for it." };
+    }
+    if (isDelivery && !state.addressConfirmed) {
+      return {
+        result:
+          "The address has not been read back and confirmed. Read it back, wait for a yes, then call confirm_delivery_address.",
+      };
     }
 
     const items = state.cart.items.map((l) => ({
@@ -667,7 +1019,11 @@ ${menu || "(no items available — apologise and transfer)"}`;
         {
           locationId: ctx.locationId,
           ...(ctx.brandId ? { brandId: ctx.brandId } : {}),
-          orderSource: "PHONE",
+          // VOICE, not "PHONE" — the latter is in neither OrderPlatform nor
+          // OrderSource, so every completed call used to fail at the Prisma
+          // write and the caller was told their order could not be saved
+          // AFTER they had confirmed it.
+          orderSource: "VOICE",
           fulfillmentType: isDelivery ? "DELIVERY" : "PICKUP",
           customerInfo: {
             name: String(input?.customerName ?? "Phone order"),
@@ -684,23 +1040,48 @@ ${menu || "(no items available — apologise and transfer)"}`;
           ]
             .filter(Boolean)
             .join(" · "),
-          paymentMethod: isCard ? "CARD" : "CASH",
+          // PAYMENT_LINK, not CARD. The board's "Waiting for payment" column
+          // matches PAYMENT_LINK / QR_CODE / CARD_TERMINAL, so a card order
+          // marked plain CARD sat in New as though it were paid for, and the
+          // kitchen cooked it before the link had been opened.
+          paymentMethod: isCard ? "PAYMENT_LINK" : "CASH",
           paymentStatus: "PENDING",
-          idempotencyKey: `voice-${state.turns.length}-${ctx.locationId}-${normaliseNumber(
+          // Keyed on the CALL, not the turn count. With turns.length in the
+          // key, a retry one turn later produced a different key and a second
+          // real order for the same food.
+          idempotencyKey: `voice-${state.callId ?? `${ctx.locationId}-${normaliseNumber(
             callerNumber,
-          )}-${Math.round(subtotal * 100)}`,
+          )}`}-${Math.round(subtotal * 100)}`,
         } as any,
         ctx.tenantId,
       );
       state.orderId = order.id;
 
+      // Remember where they live, so the next call is one yes instead of a
+      // recited address. After the order exists, deliberately: an abandoned
+      // call should not leave address rows behind.
+      if (isDelivery) {
+        await this.rememberAddress(ctx, callerNumber, state);
+      }
+
       let extra = "";
       if (isCard && callerNumber) {
         extra = await this.textPaymentLink(ctx, order, callerNumber);
+      } else if (isCard) {
+        extra =
+          " We have no number for this caller, so no payment link could be sent — tell them they can pay at the shop.";
+      } else {
+        extra = await this.textReceipt(ctx, order, callerNumber);
       }
+
       const mins = isDelivery ? ctx.deliveryPrepMinutes : ctx.collectionPrepMinutes;
       return {
-        result: `Order ${order.orderNumber} placed. Total ${money(
+        // The number is spelled out digit by digit because the caller may well
+        // ring back and quote it, and "four thousand and twelve" is not
+        // something they can match to a text message.
+        result: `Order placed. Read the order number back to them as separate digits: ${spokenDigits(
+          order.orderNumber ?? "",
+        )}. Total ${money(
           round2(subtotal + deliveryFee),
           ctx.currency,
         )}. Tell them roughly ${mins} minutes.${extra}`,
@@ -729,6 +1110,93 @@ ${menu || "(no items available — apologise and transfer)"}`;
       postcode: address?.postcode,
       area: address?.area,
     }).fee;
+  }
+
+  /**
+   * Keep the delivery address against the customer, so the next call is one
+   * yes instead of a recited address.
+   *
+   * Never throws into the call. A CRM write failing is not a reason for a
+   * caller who has just successfully ordered to hear an apology — the order is
+   * already in, and this is a convenience for next time.
+   */
+  private async rememberAddress(
+    ctx: VoiceContext,
+    callerNumber: string | null | undefined,
+    state: VoiceState,
+  ): Promise<void> {
+    const addr = state.cart.deliveryAddress;
+    const phone = normaliseNumber(callerNumber);
+    if (!addr?.line1 || !phone) return;
+
+    try {
+      const customer = await this.db().customer.upsert({
+        where: { tenantId_phone: { tenantId: ctx.tenantId, phone: `+${phone}` } },
+        update: {},
+        create: {
+          tenantId: ctx.tenantId,
+          phone: `+${phone}`,
+          firstName: state.knownName ?? null,
+        },
+        select: { id: true },
+      });
+
+      // Don't stack a duplicate row every time they order to the same place.
+      const line1 = String(addr.line1);
+      const postcode = String(addr.postcode ?? "");
+      const existing = await this.db().customerAddress.findFirst({
+        where: { customerId: customer.id, line1, postcode },
+        select: { id: true },
+      });
+      if (existing) return;
+
+      await this.db().customerAddress.create({
+        data: {
+          customerId: customer.id,
+          label: "Phone order",
+          line1,
+          city: String(addr.city ?? ctx.address?.city ?? ""),
+          postcode,
+          country: addr.country ?? ctx.country ?? "GB",
+        },
+      });
+    } catch (e: any) {
+      this.logger.warn(`Voice could not save caller address: ${e?.message ?? e}`);
+    }
+  }
+
+  /**
+   * A text confirming a cash order.
+   *
+   * OFF unless the shop turns it on (`voiceSmsReceipt`), because every one of
+   * these spends real money out of their prepaid SMS wallet and nobody should
+   * discover a new per-order cost by finding their balance empty. Card orders
+   * already get the payment link and never get this as well.
+   */
+  private async textReceipt(
+    ctx: VoiceContext,
+    order: any,
+    to: string | null | undefined,
+  ): Promise<string> {
+    if (!ctx.smsReceipt || !to) return "";
+    try {
+      await this.sms.send({
+        tenantId: ctx.tenantId,
+        to,
+        body: `${ctx.locationName}: order ${order.orderNumber} confirmed, ${money(
+          Number(order.total ?? 0),
+          ctx.currency,
+        )}. Thanks for calling.`,
+        purpose: "OTHER",
+        locationId: ctx.locationId,
+        brandId: ctx.brandId ?? null,
+        orderId: order.id,
+      });
+      return " A confirmation text has been sent.";
+    } catch (e: any) {
+      this.logger.warn(`Voice receipt SMS failed for ${order.id}: ${e?.message}`);
+      return "";
+    }
   }
 
   /** Card orders get a Stripe link by text — nobody should read a card number

@@ -152,6 +152,21 @@ function OnlineLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+/** The AI phone line: a handset with a sound wave coming off it. Reads as
+ *  "a call" at 20px, which is the size it is actually drawn at on the board. */
+function VoiceLogo({ size, rounded = true }: LogoProps) {
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="AI Voice">
+      <rect width="100" height="100" fill="#4f46e5" />
+      <path
+        d="M34 26c-4 0-7 3-7 7 0 22 17 39 39 39 4 0 7-3 7-7v-8c0-3-2-5-5-6l-8-2c-2-1-5 0-6 2l-2 3a30 30 0 0 1-12-12l3-2c2-1 3-4 2-6l-2-8c-1-3-3-5-6-5z"
+        fill="white"
+      />
+      <path d="M74 30a22 22 0 0 1 0 22" stroke="white" strokeWidth="5" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function HubRiseLogo({ size, rounded = true }: LogoProps) {
   return (
     <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="HubRise">
@@ -234,6 +249,10 @@ const PLATFORM_META: Record<
   TALABAT:     { slug: "talabat",    bg: "#FF5A00", svg: (p) => <TalabatLogo {...p} /> },
   // Phase AY — WhatsApp ordering channel.
   WHATSAPP:    { slug: "whatsapp",   bg: "#25D366", svg: (p) => <WhatsAppLogo {...p} /> },
+  // The AI phone line. Its own colour rather than the Order Hub wordmark:
+  // "did this come from the robot?" is the first question a shop asks about
+  // any order it didn't hear taken.
+  VOICE:       { slug: "voice",      bg: "#4f46e5", svg: (p) => <VoiceLogo {...p} /> },
   // Phase AW — brand-level direct online ordering. Same wordmark as
   // DIRECT/POS so the Order Hub identity stays consistent across the
   // three sister channels.
@@ -248,6 +267,7 @@ const LABELS: Record<string, string> = {
   DIRECT: "Direct",
   ONLINE: "Online ordering",
   WHATSAPP: "WhatsApp",
+  VOICE: "AI Voice",
   HUBRISE: "HubRise",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",

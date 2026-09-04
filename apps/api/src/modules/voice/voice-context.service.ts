@@ -30,6 +30,11 @@ export interface VoiceContext extends WaMenuContext {
    *  makes tuning the conversation cost real money, and an empty wallet
    *  would stop the phone answering mid-session. */
   testMode: boolean;
+  /** Text the customer a confirmation on a cash order. Off unless the shop
+   *  asks for it — every send spends their prepaid SMS balance, and a new
+   *  per-order cost should never arrive as a surprise. Card orders get the
+   *  payment link instead and are never double-texted. */
+  smsReceipt: boolean;
   timezone?: string | null;
   openingHours?: unknown;
   address?: {
@@ -155,6 +160,7 @@ export class VoiceContextService {
       // a number got assigned is not a feature.
       enabled: settings.voiceAiEnabled === true,
       testMode: settings.voiceTestMode === true,
+      smsReceipt: settings.voiceSmsReceipt === true,
       timezone: location.timezone ?? null,
       openingHours: location.openingHours ?? null,
       address: {

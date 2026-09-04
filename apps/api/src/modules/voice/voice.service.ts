@@ -9,6 +9,14 @@ import {
   type VoiceState,
   type VoiceTurn,
 } from "./voice-ai.service";
+import {
+  digitChoice,
+  interpretMenuChoice,
+  parseSpokenNumber,
+  spokenDigits,
+  spokenOrderStatus,
+  type MenuChoice,
+} from "./voice-flow";
 
 // The call, start to finish. Everything the telephony layer needs, and nothing
 // about telephony itself — so the same lifecycle works whether the audio comes
@@ -102,14 +110,17 @@ export class VoiceService {
       return { answer: false, callId: call.id, reason: verdict.reason };
     }
 
-    const knownName = await this.knownCallerName(ctx.tenantId, args.from);
-    const greeting = this.ai.greeting(ctx, knownName);
+    const known = await this.knownCaller(ctx.tenantId, args.from);
+    const greeting = this.ai.greeting(ctx, known.name);
     // Seed the greeting as the first assistant turn. It's what the caller
     // actually heard, so the model has to know it already said it — otherwise
     // its first reply introduces the shop a second time. It also saves the
     // telephony layer a column: the greeting to play is simply turn zero.
     const state = emptyState();
     state.turns.push({ role: "assistant", text: greeting });
+    state.callId = call.id;
+    state.knownName = known.name ?? undefined;
+    state.savedAddress = known.address ?? undefined;
 
     await this.db().voiceCall.update({
       where: { id: call.id },
@@ -123,24 +134,196 @@ export class VoiceService {
     return { answer: true, callId: call.id, greeting };
   }
 
-  /** One turn of conversation: what the caller said in, what to say back out. */
-  async onCallerSaid(args: {
-    callId: string;
-    text: string;
-  }): Promise<VoiceTurn> {
-    const call = await this.db().voiceCall.findUnique({ where: { id: args.callId } });
-    if (!call) return { say: "Sorry, something went wrong.", endCall: true };
+  /**
+   * One turn of conversation: what the caller said in, what to say back out.
+   *
+   * The stage decides who answers. The menu and the order-status branch are
+   * plain code — instant, free, and identical every time. Only the ordering
+   * conversation reaches Claude, which is the one part of a call that actually
+   * benefits from a model.
+   */
+  async onCallerSaid(args: { callId: string; text: string }): Promise<VoiceTurn> {
+    const loaded = await this.load(args.callId);
+    if (!loaded) return { say: "Sorry, something went wrong.", endCall: true };
+    const { call, ctx, state } = loaded;
 
-    const ctx = await this.contexts.resolve(call.toNumber ?? "");
-    if (!ctx) return { say: "Sorry, something went wrong.", endCall: true };
+    switch (state.stage) {
+      case "MENU":
+        return this.applyMenuChoice(
+          call,
+          ctx,
+          state,
+          interpretMenuChoice(args.text),
+          args.text,
+        );
+      case "STATUS":
+        return this.answerOrderStatus(call, ctx, state, args.text);
+      default:
+        return this.runBrain(call, ctx, state, args.text);
+    }
+  }
 
-    const state: VoiceState = coerceState(call.transcript);
+  /**
+   * The caller pressed a key.
+   *
+   * Keypresses beat speech everywhere they are both valid: a digit is
+   * unambiguous, arrives instantly, and works on a line too poor to transcribe.
+   * Zero is a person, everywhere, always — the caller does not have to be told.
+   */
+  async onDigit(args: { callId: string; digit: string }): Promise<VoiceTurn | null> {
+    const loaded = await this.load(args.callId);
+    if (!loaded) return null;
+    const { call, ctx, state } = loaded;
+
+    const choice = digitChoice(args.digit);
+    if (!choice) return null;
+
+    // Outside the menu, only "get me a person" still means anything. A stray
+    // keypress mid-order must not restart the call.
+    if (state.stage !== "MENU") {
+      if (choice.kind !== "HUMAN") return null;
+      return this.handOver(call, ctx, state);
+    }
+    return this.applyMenuChoice(call, ctx, state, choice);
+  }
+
+  /** Menu choice → the fixed line the caller hears and the stage they land in. */
+  private async applyMenuChoice(
+    call: any,
+    ctx: any,
+    state: VoiceState,
+    choice: MenuChoice,
+    said?: string,
+  ): Promise<VoiceTurn> {
+    if (said) state.turns.push({ role: "user", text: said });
+    if (choice.kind === "HUMAN") return this.handOver(call, ctx, state);
+
+    if (choice.kind === "STATUS") {
+      state.stage = "STATUS";
+      const say = this.ai.statusOpener();
+      state.turns.push({ role: "assistant", text: say });
+      await this.save(call.id, state);
+      return { say, outcome: "ORDER_STATUS" };
+    }
+
+    state.stage = "ORDER";
+    // They talked over the menu and went straight into ordering. Their words
+    // are the first real turn — asking "collection or delivery?" as if we
+    // hadn't heard them is exactly the deafness this design is trying to fix.
+    if (choice.passThrough) {
+      // runBrain records the turn itself, so drop the one just added rather
+      // than showing the caller's sentence twice on the transcript.
+      if (said) state.turns.pop();
+      return this.runBrain(call, ctx, state, choice.passThrough);
+    }
+    const say = this.ai.orderOpener(state);
+    state.turns.push({ role: "assistant", text: say });
+    await this.save(call.id, state);
+    return { say };
+  }
+
+  /**
+   * "Where's my order?" — answered from the database, not the model.
+   *
+   * Deliberately narrow about what it reads out: the stage and the ETA, and
+   * nothing else. Never the total, the address or the items. Order numbers are
+   * small sequential integers, so anyone can guess one, and a line that reads
+   * a stranger's dinner and doorstep back to whoever dials it is a data breach
+   * with a phone number attached. Someone chasing their own order never
+   * notices the restraint; someone guessing learns nothing worth having.
+   */
+  private async answerOrderStatus(
+    call: any,
+    ctx: any,
+    state: VoiceState,
+    text: string,
+  ): Promise<VoiceTurn> {
+    const parsed = parseSpokenNumber(text);
+    // Order numbers are per-tenant Ints. A caller reciting their phone number
+    // by mistake would otherwise overflow the column and 500 the turn.
+    const number =
+      parsed && parsed.length <= 9 && Number.isSafeInteger(Number(parsed))
+        ? parsed
+        : null;
+    const caller = normaliseNumber(call.fromNumber);
+
+    // Whatever they said belongs on the call record even though no model saw
+    // it — the transcript on the dashboard is what settles a dispute.
+    state.turns.push({ role: "user", text });
+
+    const order = number
+      ? await this.db().order.findFirst({
+          where: { locationId: ctx.locationId, orderNumber: Number(number) },
+          orderBy: { createdAt: "desc" },
+          select: {
+            orderNumber: true,
+            status: true,
+            fulfillmentType: true,
+            estimatedReadyTime: true,
+            customerPhone: true,
+          },
+        })
+      : // No number heard. Fall back to the number they are ringing from,
+        // which is right far more often than it is wrong.
+        caller
+        ? await this.db().order.findFirst({
+            where: {
+              locationId: ctx.locationId,
+              customerPhone: { contains: caller.slice(-9) },
+            },
+            orderBy: { createdAt: "desc" },
+            select: {
+              orderNumber: true,
+              status: true,
+              fulfillmentType: true,
+              estimatedReadyTime: true,
+              customerPhone: true,
+            },
+          })
+        : null;
+
+    if (!order) {
+      const say = number
+        ? `I can't find an order with that number. Let me put you through to the shop.`
+        : `Sorry, I didn't catch a number. Let me put you through to the shop.`;
+      return this.handOver(call, ctx, state, say);
+    }
+
+    const mins = order.estimatedReadyTime
+      ? Math.round(
+          (new Date(order.estimatedReadyTime).getTime() - Date.now()) / 60000,
+        )
+      : null;
+    const spoken = spokenOrderStatus({
+      status: order.status,
+      fulfillmentType: order.fulfillmentType,
+      minutesAway: mins,
+    });
+    if (spoken.transfer) return this.handOver(call, ctx, state, spoken.say);
+
+    const say = `Order ${spokenDigits(order.orderNumber ?? "")}. ${spoken.say} Is there anything else I can help with?`;
+    state.turns.push({ role: "assistant", text: say });
+    // Whatever they say next is ordinary conversation — the brain can take an
+    // order, answer a question, or say goodbye from here.
+    state.stage = "ORDER";
+    await this.save(call.id, state);
+    return { say, outcome: "ORDER_STATUS" };
+  }
+
+  /** The ordering conversation. This is the only path that costs a model call. */
+  private async runBrain(
+    call: any,
+    ctx: any,
+    state: VoiceState,
+    text: string,
+  ): Promise<VoiceTurn> {
     const { turn, state: next } = await this.ai.respond({
       ctx,
       state,
-      userText: args.text,
+      userText: text,
       callerNumber: call.fromNumber,
     });
+    if (turn.endCall || turn.transferTo) next.stage = "DONE";
 
     await this.db().voiceCall.update({
       where: { id: call.id },
@@ -151,6 +334,46 @@ export class VoiceService {
       },
     });
     return turn;
+  }
+
+  /** Hand to a human. Always available, from any stage, however they asked. */
+  private async handOver(
+    call: any,
+    ctx: any,
+    state: VoiceState,
+    say?: string,
+  ): Promise<VoiceTurn> {
+    const line =
+      say ??
+      (ctx.transferNumber
+        ? "No problem, I'll put you through to the shop now."
+        : "Sorry, there's nobody I can put you through to right now. I'll take a message instead — what would you like me to pass on?");
+    state.turns.push({ role: "assistant", text: line });
+    // Without a transfer number there is nobody to hand to, so the call stays
+    // with us and takes a message rather than dropping the caller.
+    state.stage = ctx.transferNumber ? "DONE" : "ORDER";
+    await this.save(call.id, state);
+    return ctx.transferNumber
+      ? { say: line, transferTo: ctx.transferNumber, outcome: "TRANSFERRED" }
+      : { say: line };
+  }
+
+  /** Call row + context + state, or null if any of them has gone. */
+  private async load(
+    callId: string,
+  ): Promise<{ call: any; ctx: any; state: VoiceState } | null> {
+    const call = await this.db().voiceCall.findUnique({ where: { id: callId } });
+    if (!call) return null;
+    const ctx = await this.contexts.resolve(call.toNumber ?? "");
+    if (!ctx) return null;
+    return { call, ctx, state: coerceState(call.transcript) };
+  }
+
+  private async save(callId: string, state: VoiceState): Promise<void> {
+    await this.db().voiceCall.update({
+      where: { id: callId },
+      data: { transcript: state as any },
+    });
   }
 
   /**
@@ -228,23 +451,60 @@ export class VoiceService {
     });
   }
 
-  /** "Hi Sarah" beats "Hi". Uses the caller-ID work that already exists. */
-  private async knownCallerName(
+  /**
+   * Who is calling, and where do they live?
+   *
+   * Both come off the same row, so it is one query. The address is what turns
+   * the worst part of a phone order — reciting it to a machine — into a single
+   * "yes, still there".
+   *
+   * This used to select `name`, which is not a column on Customer (the model
+   * has firstName/lastName). Prisma rejected the query, the catch swallowed
+   * it, and every caller was greeted as a stranger — including the regulars
+   * the feature was written for.
+   */
+  private async knownCaller(
     tenantId: string,
     from?: string | null,
-  ): Promise<string | null> {
+  ): Promise<{
+    name: string | null;
+    address: { line1: string; city: string; postcode: string; country?: string } | null;
+  }> {
     const digits = normaliseNumber(from);
-    if (!digits) return null;
+    if (!digits) return { name: null, address: null };
     try {
       const customer = await this.db().customer.findFirst({
+        // Last nine digits so 07700…, +4477… and 447700… all match.
         where: { tenantId, phone: { contains: digits.slice(-9) } },
-        select: { firstName: true, name: true },
+        select: {
+          firstName: true,
+          lastName: true,
+          addresses: {
+            orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+            take: 1,
+            select: { line1: true, city: true, postcode: true, country: true },
+          },
+        },
         orderBy: { updatedAt: "desc" },
       });
-      const raw = customer?.firstName ?? customer?.name ?? null;
-      return raw ? String(raw).split(" ")[0] ?? null : null;
-    } catch {
-      return null;
+      const raw = customer?.firstName ?? null;
+      const addr = customer?.addresses?.[0] ?? null;
+      return {
+        name: raw ? (String(raw).trim().split(" ")[0] ?? null) : null,
+        address: addr?.line1
+          ? {
+              line1: String(addr.line1),
+              city: String(addr.city ?? ""),
+              postcode: String(addr.postcode ?? ""),
+              country: addr.country ? String(addr.country) : undefined,
+            }
+          : null,
+      };
+    } catch (e: any) {
+      // Never fatal. A caller we cannot identify is greeted as a new one,
+      // which is exactly the old behaviour and perfectly serviceable.
+      this.logger.warn(`Caller lookup failed: ${e?.message ?? e}`);
+      return { name: null, address: null };
     }
   }
 }

@@ -103,6 +103,7 @@ const CHANNEL_CHIP: Record<string, { label: string; cls: string }> = {
   ONLINE: { label: "Online", cls: "bg-sky-950 text-sky-300" },
   POS: { label: "POS", cls: "bg-violet-950 text-violet-300" },
   WHATSAPP: { label: "WhatsApp", cls: "bg-green-950 text-green-300" },
+  VOICE: { label: "AI Voice", cls: "bg-indigo-950 text-indigo-300" },
   HUBRISE: { label: "Marketplace", cls: "bg-zinc-800 text-zinc-300" },
   DIRECT: { label: "Direct", cls: "bg-sky-950 text-sky-300" },
 };

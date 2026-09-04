@@ -369,7 +369,8 @@ export class OrdersService {
         fresh.orderSource === "POS" ||
         fresh.orderSource === "DIRECT" ||
         fresh.orderSource === "ONLINE" ||
-        fresh.orderSource === "WHATSAPP";
+        fresh.orderSource === "WHATSAPP" ||
+        fresh.orderSource === "VOICE";
       const unpaidPaymentLink =
         (payMethod === "PAYMENT_LINK" || payMethod === "QR_CODE") &&
         payStatus !== "PAID";
@@ -989,12 +990,18 @@ export class OrdersService {
     // Orders dashboard renders the "channel" pill from `platform`.
     // Hard-coding platform=DIRECT here meant a POS order showed up as
     // "Direct Online Ordering". Mirror the resolved orderSource into
-    // platform + externalId so POS, DIRECT, and any future PHONE
-    // source each get their own label and traceable ID prefix.
+    // platform + externalId so POS, DIRECT, and VOICE each get their own
+    // label and traceable ID prefix.
+    //
+    // This union said "PHONE", which is not a member of either enum — and the
+    // `as any` casts below hid that from the compiler, so the AI phone line's
+    // orders failed at the Prisma write every single time. The real value is
+    // VOICE. Widening a union here is not enough on its own: a new source must
+    // exist in OrderPlatform AND OrderSource, or the write still throws.
     const resolvedSource = (dto.orderSource ?? "DIRECT") as
       | "POS"
       | "DIRECT"
-      | "PHONE";
+      | "VOICE";
     const idPrefix = resolvedSource.toLowerCase();
 
     // POS display brand: a location can pin a "POS display name" brand in its
@@ -1022,7 +1029,7 @@ export class OrdersService {
       const posBrandId = (loc?.settings as any)?.posBrandId as
         | string
         | undefined;
-      const countertop = resolvedSource === "POS" || resolvedSource === "PHONE";
+      const countertop = resolvedSource === "POS" || resolvedSource === "VOICE";
       if (!effectiveBrandId && countertop && posBrandId) {
         effectiveBrandId = posBrandId;
       }

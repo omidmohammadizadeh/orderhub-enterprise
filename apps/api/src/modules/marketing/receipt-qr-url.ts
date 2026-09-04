@@ -93,7 +93,7 @@ const QR_EXCLUDED_SOURCES = new Set([
   "ONLINE",
   "DIRECT",
   "POS",
-  "PHONE",
+  "VOICE",
   "WHATSAPP",
   "WHATS_APP",
 ]);

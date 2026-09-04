@@ -145,6 +145,25 @@ export class TelnyxCallControlService {
     });
   }
 
+  /**
+   * Cut our own speech off mid-sentence.
+   *
+   * This is barge-in, and it is the single biggest difference between a line
+   * that feels like a person and one that feels like a phone menu: the caller
+   * who already knows what they want should not have to sit through "to place
+   * an order, press one". The moment they press a key or start talking, we
+   * stop.
+   *
+   * Failure is deliberately not propagated. If the speech has already finished
+   * Telnyx has nothing to stop and answers 4xx, which is not a problem worth
+   * telling anyone about — the caller got what they wanted either way.
+   */
+  async stopSpeaking(callControlId: string): Promise<void> {
+    await this.command(callControlId, "playback_stop", { stop: "current" }).catch(
+      () => false,
+    );
+  }
+
   /** Hand the caller to a human. */
   transfer(callControlId: string, to: string, from?: string) {
     return this.command(callControlId, "transfer", {

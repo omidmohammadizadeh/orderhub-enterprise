@@ -197,7 +197,9 @@ describe("receipt QR url — shared by both print paths", () => {
     for (const s of ["UBER_EATS", "DELIVEROO", "JUST_EAT", "HUBRISE"]) {
       expect(isMarketplaceSource(s, null)).toBe(true);
     }
-    for (const s of ["ONLINE", "POS", "PHONE", "WHATSAPP", "DIRECT"]) {
+    // VOICE, not PHONE: the AI phone line's real source value. No order was
+    // ever stamped PHONE — it is in neither OrderPlatform nor OrderSource.
+    for (const s of ["ONLINE", "POS", "VOICE", "WHATSAPP", "DIRECT"]) {
       expect(isMarketplaceSource(s, null)).toBe(false);
     }
     expect(isMarketplaceSource(null, null)).toBe(false);

@@ -62,6 +62,7 @@ const CHANNEL_FILTERS: Array<{ value: string; label: string }> = [
   { value: "ONLINE,DIRECT", label: "Online ordering" },
   { value: "POS", label: "POS" },
   { value: "WHATSAPP", label: "WhatsApp" },
+  { value: "VOICE", label: "AI Voice" },
   { value: "STRIPE", label: "Stripe" },
   { value: "STUART", label: "Stuart" },
   { value: "UBER_DIRECT", label: "Uber Direct" },
