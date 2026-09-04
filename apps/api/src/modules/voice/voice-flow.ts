@@ -372,3 +372,98 @@ export function resolveHeardPostcode(
 
   return repairPostcode(raw, zonePrefixes) ?? normalised ?? raw;
 }
+
+/**
+ * Things Whisper says when nobody is talking.
+ *
+ * Whisper is trained on subtitled video, and on silence or line noise it falls
+ * back to the phrases that pad the end of a subtitle track. "Thank you." is by
+ * far the most common; it arrived on a real call the caller had not spoken
+ * during, and cost a five and a half second model call to answer a sentence
+ * nobody said.
+ *
+ * Matched only as the WHOLE utterance. A caller who really does say "thank
+ * you" at the end of an order says it inside a sentence, and is answered.
+ */
+const WHISPER_GHOSTS = new Set([
+  "thank you",
+  "thanks",
+  "thank you very much",
+  "thank you for watching",
+  "thanks for watching",
+  "thank you for watching!",
+  "please subscribe",
+  "subtitles by the amara.org community",
+  "you",
+  "bye",
+  "bye.",
+  "okay",
+  "oh",
+  "so",
+  "uh",
+  "um",
+  "hmm",
+  "mm",
+  ".",
+  "...",
+]);
+
+/**
+ * Did the engine hear something, or is this silence wearing a sentence?
+ *
+ * Deliberately narrow. Dropping real speech is far worse than answering a
+ * ghost, so this only ever matches a short utterance that is EXACTLY one of
+ * the known stock phrases.
+ */
+export function isLikelyHallucination(text: string): boolean {
+  const t = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9.\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!t) return true;
+  return WHISPER_GHOSTS.has(t) || WHISPER_GHOSTS.has(t.replace(/\.+$/, ""));
+}
+
+/**
+ * Yes or no, when that is genuinely all we asked for.
+ *
+ * After a read-back the only thing that matters is whether they agreed. Asking
+ * a language model to work that out costs two to five seconds on the single
+ * most common turn in the call, for a question a regular expression answers
+ * correctly. Anything ambiguous returns null and goes to the model, which is
+ * what it is actually good at.
+ */
+export function parseYesNo(text: string): "YES" | "NO" | null {
+  const t = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z\s']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!t) return null;
+
+  // Only a short utterance. "No, and can I also add chips as well" is a whole
+  // turn, not a slot answer, and belongs to the model.
+  const words = t.split(" ").filter(Boolean);
+  if (words.length > 4) return null;
+
+  // Checked before anything else: "that's wrong" is an unambiguous no that
+  // does not begin with one.
+  if (/\b(wrong|incorrect|not right|not quite|not correct)\b/.test(t)) return "NO";
+  if (/^(no|nope|nah|negative)\b/.test(t)) return "NO";
+
+  // A correction is never agreement, even when it opens with "yeah" — "yeah
+  // but make it a large" taken as YES sends the wrong order to the kitchen,
+  // which is the exact failure the read-back exists to prevent. Ambiguous, so
+  // it goes to the model rather than being guessed either way.
+  if (/\b(but|except|actually|instead|change|sorry|also|as well)\b/.test(t)) return null;
+
+  if (
+    /^(yes|yeah|yep|yup|yer|aye|correct|thats right|that's right|thats correct|that's correct|right|ok|okay|okey|sure|please do|go ahead|perfect|lovely|spot on|all good|thats it|that's it|sounds good|fine)\b/.test(
+      t,
+    )
+  ) {
+    return "YES";
+  }
+  return null;
+}

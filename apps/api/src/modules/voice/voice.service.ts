@@ -13,6 +13,7 @@ import {
   digitChoice,
   interpretMenuChoice,
   parseSpokenNumber,
+  parseYesNo,
   spokenDigits,
   spokenOrderStatus,
   type MenuChoice,
@@ -161,8 +162,19 @@ export class VoiceService {
         );
       case "STATUS":
         return this.answerOrderStatus(call, ctx, state, args.text);
-      default:
+      default: {
+        // A read-back was just spoken, and the only answer that matters is
+        // whether they agreed. Asking a model to work that out costs two to
+        // five seconds on the most common turn in the call, for a question a
+        // regular expression answers correctly. Anything ambiguous still goes
+        // to the model, which is what it is actually good at.
+        const slot = state.awaiting;
+        if (slot) {
+          const answer = parseYesNo(args.text);
+          if (answer) return this.answerSlot(call, ctx, state, slot, answer, args.text);
+        }
         return this.runBrain(call, ctx, state, args.text);
+      }
     }
   }
 
@@ -311,6 +323,32 @@ export class VoiceService {
     state.stage = "ORDER";
     await this.save(call.id, state);
     return { say, outcome: "ORDER_STATUS" };
+  }
+
+  /** Yes or no to a read-back, answered without a model. */
+  private async answerSlot(
+    call: any,
+    ctx: any,
+    state: VoiceState,
+    slot: "ADDRESS_CONFIRM" | "ORDER_CONFIRM",
+    answer: "YES" | "NO",
+    said: string,
+  ): Promise<VoiceTurn> {
+    state.turns.push({ role: "user", text: said });
+    state.awaiting = undefined;
+
+    let say: string;
+    if (answer === "NO") {
+      say = this.ai.rejectedReadBack(slot);
+    } else if (slot === "ADDRESS_CONFIRM") {
+      say = await this.ai.confirmAddressAloud(ctx, state);
+    } else {
+      say = this.ai.confirmOrderAloud(state);
+    }
+
+    state.turns.push({ role: "assistant", text: say });
+    await this.save(call.id, state);
+    return { say };
   }
 
   /** The ordering conversation. This is the only path that costs a model call. */

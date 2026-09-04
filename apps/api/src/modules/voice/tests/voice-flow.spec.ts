@@ -1,7 +1,9 @@
 import {
   digitChoice,
   interpretMenuChoice,
+  isLikelyHallucination,
   normalisePostcode,
+  parseYesNo,
   parseSpokenNumber,
   repairPostcode,
   resolveHeardPostcode,
@@ -243,5 +245,59 @@ describe("resolveHeardPostcode", () => {
   it("passes everything through for a shop with no postcode zones", () => {
     // Area- and distance-priced shops have nothing to check against.
     expect(resolveHeardPostcode("E10 8YH", [])).toBe("E10 8YH");
+  });
+});
+
+describe("isLikelyHallucination", () => {
+  it("drops the stock phrases Whisper emits on silence", () => {
+    // From a real call: "Thank you." arrived during a stretch the caller had
+    // not spoken in, and cost a 5.5s model call to answer nobody.
+    for (const ghost of [
+      "Thank you.",
+      "Thanks for watching!",
+      "you",
+      "Bye.",
+      "Um",
+      ".",
+      "",
+    ]) {
+      expect(isLikelyHallucination(ghost)).toBe(true);
+    }
+  });
+
+  it("never drops real speech that merely contains one", () => {
+    // Dropping a real sentence is far worse than answering a ghost, so this
+    // only matches the WHOLE utterance.
+    expect(isLikelyHallucination("thank you, that's all")).toBe(false);
+    expect(isLikelyHallucination("yes")).toBe(false);
+    expect(isLikelyHallucination("two large pepperoni")).toBe(false);
+    expect(isLikelyHallucination("okay so I want chips")).toBe(false);
+  });
+});
+
+describe("parseYesNo", () => {
+  it("answers the plain agreements without a model", () => {
+    for (const said of ["yes", "Yeah.", "yep", "that's right", "correct", "spot on"]) {
+      expect(parseYesNo(said)).toBe("YES");
+    }
+  });
+
+  it("answers the plain refusals", () => {
+    for (const said of ["no", "Nope.", "not quite", "that's wrong"]) {
+      expect(parseYesNo(said)).toBe("NO");
+    }
+  });
+
+  it("treats a correction as a no, however it opens", () => {
+    // "yeah but make it a large" agreeing with the read-back would send the
+    // wrong order to the kitchen — the exact failure the read-back exists for.
+    expect(parseYesNo("yeah but make it a large")).not.toBe("YES");
+    expect(parseYesNo("no actually change that")).toBe("NO");
+  });
+
+  it("hands anything longer or ambiguous to the model", () => {
+    expect(parseYesNo("yes and can I also add chips please")).toBeNull();
+    expect(parseYesNo("hmm let me think")).toBeNull();
+    expect(parseYesNo("")).toBeNull();
   });
 });

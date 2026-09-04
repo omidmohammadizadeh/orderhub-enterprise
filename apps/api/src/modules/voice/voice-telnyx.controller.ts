@@ -14,7 +14,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { VoiceService } from "./voice.service";
 import { VoiceContextService } from "./voice-context.service";
 import { TelnyxCallControlService } from "./telnyx-call-control.service";
-import { soundsComplete } from "./voice-flow";
+import { isLikelyHallucination, soundsComplete } from "./voice-flow";
 
 // Where a real phone call meets the brain.
 //
@@ -277,6 +277,16 @@ export class VoiceTelnyxController {
     if (t.is_final === false) return;
     const text = String(t.transcript ?? "").trim();
     if (!text) return;
+
+    // Whisper is trained on subtitled video and, on silence or line noise,
+    // emits the phrases that pad a subtitle track. A real call produced
+    // "Thank you." during a stretch the caller had not spoken in, and it cost
+    // a five and a half second model call to answer something nobody said.
+    // Answering ghosts also talks over a caller who is simply thinking.
+    if (isLikelyHallucination(text)) {
+      this.logger.log(`call ${ccid.slice(-8)} ignoring probable silence "${text}"`);
+      return;
+    }
 
     const confidence = Number(t.confidence);
     const buf = this.pending.get(ccid);

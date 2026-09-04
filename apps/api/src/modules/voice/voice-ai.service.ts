@@ -99,6 +99,12 @@ export interface VoiceState {
   knownName?: string;
   /** The VoiceCall row id. Only used to key order idempotency to the call. */
   callId?: string;
+  /**
+   * We have just asked a question whose only real answer is yes or no, and we
+   * know which question. That makes the next turn answerable in code, and
+   * these are the two slowest and most common turns in the whole call.
+   */
+  awaiting?: "ADDRESS_CONFIRM" | "ORDER_CONFIRM";
 }
 
 export function emptyState(): VoiceState {
@@ -139,6 +145,10 @@ export function coerceState(raw: unknown): VoiceState {
         : undefined,
     knownName: r.knownName ? String(r.knownName) : undefined,
     callId: r.callId ? String(r.callId) : undefined,
+    awaiting:
+      r.awaiting === "ADDRESS_CONFIRM" || r.awaiting === "ORDER_CONFIRM"
+        ? r.awaiting
+        : undefined,
   };
 }
 
@@ -203,6 +213,34 @@ export class VoiceAiService {
     return `No problem. What's your order number?`;
   }
 
+  /**
+   * The caller agreed to the address we read back. Confirms it, prices it from
+   * the shop's own zones, and asks the next question — no model involved.
+   */
+  async confirmAddressAloud(ctx: VoiceContext, state: VoiceState): Promise<string> {
+    await this.runTool("confirm_delivery_address", {}, ctx, state, null);
+    if (!state.addressConfirmed) {
+      // Outside the delivery area. Say so rather than pressing on.
+      return "I'm sorry, we don't deliver to that address. I can do it for collection instead if you'd like.";
+    }
+    const fee = this.feeForAddress(state.cart.deliveryAddress, ctx);
+    const feeLine = fee > 0 ? ` Delivery is ${money(fee, ctx.currency)}.` : "";
+    return `Great.${feeLine} What would you like to order?`;
+  }
+
+  /** The caller agreed to the order we read back. */
+  confirmOrderAloud(state: VoiceState): string {
+    state.orderConfirmed = true;
+    return "How would you like to pay — cash, or card?";
+  }
+
+  /** They said no to a read-back. */
+  rejectedReadBack(what: "ADDRESS_CONFIRM" | "ORDER_CONFIRM"): string {
+    return what === "ADDRESS_CONFIRM"
+      ? "No problem. Could you give me the address again, including the postcode?"
+      : "No problem. What would you like to change?";
+  }
+
   /** When we genuinely could not make out a menu choice twice running. Still
    *  never a dead end — it falls into taking an order. */
   menuFallback(): string {
@@ -219,6 +257,7 @@ export class VoiceAiService {
   }): Promise<{ turn: VoiceTurn; state: VoiceState }> {
     const { ctx } = args;
     const state = args.state;
+    state.awaiting = undefined;
     state.turns.push({ role: "user", text: args.userText });
 
     if (!this.anthropic) {
@@ -697,6 +736,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         state.addressConfirmed = false;
 
         const spoken = this.spokenAddress(state.cart.deliveryAddress);
+        state.awaiting = "ADDRESS_CONFIRM";
         return {
           result:
             "Address taken and read back to the caller. Wait for their answer. Call confirm_delivery_address only if they say yes; if they say no, take it again.",
@@ -767,6 +807,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         if (state.cart.items.length === 0) {
           return { result: "Nothing on the order yet — there is nothing to read back." };
         }
+        state.awaiting = "ORDER_CONFIRM";
         return {
           result:
             "Order read back to the caller. Wait for their answer. Call order_confirmed if they say yes; if they say no, ask what needs changing.",
