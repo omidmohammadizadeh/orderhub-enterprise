@@ -398,6 +398,13 @@ export default function PosPage() {
         setEditOrderNumber(
           order.orderNumber ? `#${order.orderNumber}` : `#${order.id.slice(-6)}`,
         );
+        // Remount the cart panel. It copies fulfillmentType, the address and
+        // the customer out of initialDraft when it MOUNTS, defaulting to
+        // PICKUP — and this hydration is a fetch, so the panel is already on
+        // screen by the time the order arrives. Editing a delivery therefore
+        // opened the collection cart, with the address nowhere and the driver
+        // options missing. Same reason a caller fill has to bump this.
+        setCartResetKey((k) => k + 1);
         setEditHydrated(true);
       } catch (err: any) {
         setSubmitFeedback(

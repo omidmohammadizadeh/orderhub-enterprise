@@ -103,8 +103,23 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   // void and re-key it. Offered for any unpaid POS order regardless of the
   // method it was placed under; the charge modal drives the same readers the
   // POS does, and settles this order on success.
+  // Not on a delivery. Card and Cash here mean "settle it at the counter",
+  // which is a collection or walk-in gesture — a delivery is paid at the door
+  // by the driver, or online before it leaves, and offering the counter
+  // buttons invites staff to mark a delivery paid before anyone has been.
   const canTakeCardPayment =
     (order as any)?.orderSource === "POS" &&
+    ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID" &&
+    (order as any)?.fulfillmentType !== "DELIVERY" &&
+    !!(order as any)?.locationId;
+
+  // A customer who said cash and then changed their mind. Same modal the
+  // payment-link orders use — it shows the QR, the link, and the text-to-
+  // customer row — and the API flips the order onto Payment link so the board
+  // moves it to Waiting for payment until Stripe says it is paid.
+  const canSendPaymentLink =
+    (order as any)?.orderSource === "POS" &&
+    payMethodUpper === "CASH" &&
     ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID" &&
     !!(order as any)?.locationId;
   const queryClient = useQueryClient();
@@ -558,7 +573,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
       {/* Payment link / QR re-show — for unpaid POS Payment-link or QR orders,
           staff can pull the QR + link back up to show or resend to the
           customer. */}
-      {canReshowPayment && (
+      {(canReshowPayment || canSendPaymentLink) && (
         <div className="border-t border-zinc-200 px-5 py-4">
           <Button
             variant="outline"
@@ -567,9 +582,11 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             onClick={() => setShowPayModal(true)}
           >
             <QrCode className="h-3.5 w-3.5 mr-1.5" />
-            {payMethodUpper === "QR_CODE"
-              ? "Show QR code again"
-              : "Resend payment link"}
+            {canSendPaymentLink
+              ? "Send payment link"
+              : payMethodUpper === "QR_CODE"
+                ? "Show QR code again"
+                : "Resend payment link"}
           </Button>
         </div>
       )}

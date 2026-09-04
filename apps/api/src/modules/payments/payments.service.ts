@@ -1587,6 +1587,24 @@ export class PaymentsService {
       throw new BadRequestException("This order is already paid");
     }
 
+    // A cash order the customer changed their mind about. Move it onto Payment
+    // link so the board stops calling it cash and shows it as waiting for
+    // payment — otherwise a link goes out and every screen still says the
+    // driver or the counter is collecting money that is already being paid
+    // online. Stripe's webhook settles it to CARD PAID from there.
+    //
+    // Only from CASH, and only while unpaid: an order already on a link or a
+    // QR keeps the method it was placed under.
+    if (order.paymentMethod === "CASH") {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: { paymentMethod: "PAYMENT_LINK" as any },
+      });
+      this.logger.log(
+        `Order ${order.id} switched from cash to payment link at the operator's request`,
+      );
+    }
+
     const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(
       /\/+$/,
       "",
