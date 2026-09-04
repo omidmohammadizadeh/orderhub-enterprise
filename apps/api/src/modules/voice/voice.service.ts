@@ -18,6 +18,7 @@ import {
   referenceMatches,
   parseYesNo,
   spokenDigits,
+  spokenReference,
   marketplaceName,
   spokenOrderStatus,
   wantsHuman,
@@ -322,21 +323,35 @@ export class VoiceService {
         })
       : [];
 
-    let order =
-      recent.find((o: any) =>
-        [
-          o.displayId,
-          o.collectionCode,
-          o.orderNumber != null ? String(o.orderNumber) : null,
-          o.id,
-        ].some((identifier) => referenceMatches(forms, identifier)),
-      ) ?? null;
+    // Which identifier matched is worth keeping: it is what gets read back, so
+    // the caller hears the reference THEY gave rather than some other number
+    // off the same row.
+    let matched: string | null = null;
+    let order: any = null;
+    for (const candidate of recent as any[]) {
+      const hit = [
+        candidate.displayId,
+        candidate.collectionCode,
+        candidate.orderNumber != null ? String(candidate.orderNumber) : null,
+        // The id is last: the tail on screen is the least specific thing a
+        // caller can give, so a real reference should win over it.
+        candidate.id,
+      ].find((identifier) => referenceMatches(forms, identifier));
+      if (hit) {
+        order = candidate;
+        matched = candidate.displayId ?? candidate.collectionCode ?? String(hit);
+        break;
+      }
+    }
 
     // An exact order number still wins outright — it is the one we read out on
     // the phone, and it should not lose to a fuzzy suffix hit on something else.
     if (number) {
       const exact = recent.find((o: any) => o.orderNumber === Number(number));
-      if (exact) order = exact;
+      if (exact) {
+        order = exact;
+        matched = String(exact.orderNumber);
+      }
     }
 
     // Nothing matched what they read out, but the number they are ringing
@@ -413,7 +428,13 @@ export class VoiceService {
     });
     if (spoken.transfer) return this.handOver(call, ctx, state, spoken.say);
 
-    const say = `Order ${spokenDigits(order.orderNumber ?? "")}. ${spoken.say} Is there anything else I can help with?`;
+    // Read back the reference they gave, spelled out. A suffix match is
+    // forgiving on purpose, so this is what catches it having found the wrong
+    // order — the caller hears it against what is in front of them.
+    const reference =
+      spokenReference(matched ?? order.orderNumber ?? "") ||
+      spokenDigits(order.orderNumber ?? "");
+    const say = `Order ${reference}. ${spoken.say} Is there anything else I can help with?`;
     state.turns.push({ role: "assistant", text: say });
     // Whatever they say next is ordinary conversation — the brain can take an
     // order, answer a question, or say goodbye from here.

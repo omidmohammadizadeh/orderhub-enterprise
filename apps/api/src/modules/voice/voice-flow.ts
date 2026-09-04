@@ -676,9 +676,28 @@ export function parseOrderReference(text: string): {
   number: string | null;
   forms: string[];
 } {
-  const number = parseSpokenNumber(text);
-  const forms = [normaliseSpokenReference(text), compactReference(text), number]
-    .filter((f): f is string => !!f && f.length >= 3);
+  // Is the caller SPELLING, rather than saying a number?
+  //
+  // This matters more than it looks. "S h r three p." — a caller reading out
+  // #SHR3P — has a "three" in it, and reading that as the number 3 finds order
+  // number 3, which belongs to somebody else and gets read out loud. A stray
+  // digit lifted from a spelled reference is not a near miss; it is the wrong
+  // customer's dinner.
+  //
+  // The tell is a lone letter. Nobody says a single letter while giving a
+  // plain number, and everybody says several while spelling one out.
+  const spelling = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .some((t) => /^[a-z]$/.test(t));
+
+  const number = spelling ? null : parseSpokenNumber(text);
+  const forms = [
+    normaliseSpokenReference(text),
+    compactReference(text),
+    number,
+  ].filter((f): f is string => !!f && f.length >= 3);
   return { number, forms: Array.from(new Set(forms)) };
 }
 
@@ -765,4 +784,23 @@ export function referenceMatches(forms: string[], identifier?: string | null): b
     // order whose id happens to end in 24.
     return form.length >= 4 && target.endsWith(form);
   });
+}
+
+/**
+ * An order reference, said so a caller can check it against their screen.
+ *
+ * Letters and digits are separated — "S, H, R, 3, P" — because the whole
+ * point of reading it back is that a wrong match is caught in the second it
+ * takes to hear it, not after the shop has been told the wrong thing about
+ * somebody else's order. Suffix matching is forgiving by design, so the
+ * read-back is what keeps it honest.
+ */
+export function spokenReference(value: string | number | null | undefined): string {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  return raw
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .split("")
+    .join(", ");
 }

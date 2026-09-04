@@ -16,6 +16,7 @@ import {
   soundsComplete,
   spokenDigits,
   spokenOrderStatus,
+  spokenReference,
   wantsHuman,
 } from "../voice-flow";
 
@@ -535,5 +536,48 @@ describe("marketplaceName", () => {
     for (const own of ["ONLINE", "VOICE", "POS", "DIRECT", "WHATSAPP", null, ""]) {
       expect(marketplaceName(own)).toBeNull();
     }
+  });
+});
+
+describe("a spelled reference is not a number", () => {
+  it("does not lift a digit out of a spelled-out id", () => {
+    // Live call: "#SHR3P" read as "S h r three p." The "three" was being read
+    // as the number 3, which found ORDER NUMBER 3 — a different customer's
+    // order — and read it out. A stray digit from a spelled reference is not
+    // a near miss, it is the wrong person's dinner.
+    const out = parseOrderReference("S h r three p.");
+    expect(out.number).toBeNull();
+    expect(out.forms).toContain("shr3p");
+  });
+
+  it("still reads a plain spoken number as a number", () => {
+    // No lone letters, so nobody is spelling.
+    expect(parseOrderReference("twenty four").number).toBe("24");
+    expect(parseOrderReference("four oh one two").number).toBe("4012");
+    expect(parseOrderReference("order 24 please").number).toBe("24");
+  });
+
+  it("keeps matching the spelled form itself", () => {
+    expect(referenceMatches(parseOrderReference("S h r three p.").forms, "SHR3P")).toBe(
+      true,
+    );
+    expect(referenceMatches(parseOrderReference("y five b j h").forms, "Y5BJH")).toBe(
+      true,
+    );
+  });
+});
+
+describe("spokenReference", () => {
+  it("spells a reference out so a wrong match is caught by ear", () => {
+    // Suffix matching is forgiving by design; reading the reference back is
+    // what keeps it honest.
+    expect(spokenReference("SHR3P")).toBe("S, H, R, 3, P");
+    expect(spokenReference("SIM-I2DC")).toBe("S, I, M, I, 2, D, C");
+    expect(spokenReference(24)).toBe("2, 4");
+  });
+
+  it("says nothing rather than something meaningless", () => {
+    expect(spokenReference(null)).toBe("");
+    expect(spokenReference("")).toBe("");
   });
 });
