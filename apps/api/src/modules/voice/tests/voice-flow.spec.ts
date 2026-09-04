@@ -1,4 +1,5 @@
 import {
+  boardReference,
   digitChoice,
   interpretMenuChoice,
   isLikelyHallucination,
@@ -579,5 +580,35 @@ describe("spokenReference", () => {
   it("says nothing rather than something meaningless", () => {
     expect(spokenReference(null)).toBe("");
     expect(spokenReference("")).toBe("");
+  });
+});
+
+describe("boardReference", () => {
+  it("names an order exactly as the orders board does", () => {
+    // The caller is very often staff reading a row off that screen, so
+    // anything else we say back is, to them, a different order.
+    expect(boardReference({ displayId: "SIM-I2DC", id: "cmt...", orderNumber: 4 })).toBe(
+      "SIM-I2DC",
+    );
+    expect(boardReference({ displayId: "Y5BJH", id: "cmt..." })).toBe("Y5BJH");
+    expect(boardReference({ orderNumber: 24, id: "cmtabc" })).toBe("24");
+  });
+
+  it("falls back to the id tail for an order with neither", () => {
+    // Orders taken by this phone line carry no displayId and no sequential
+    // number, so the board shows the last six of the id — and reading the
+    // whole cuid back is what made a correct match sound wrong.
+    expect(boardReference({ id: "cmtne25lj002dcft06v24kiod" })).toBe("24kiod");
+    expect(boardReference({ id: "cmtnf3xyz0003mmkcf" })).toBe("3mmkcf");
+  });
+
+  it("says nothing rather than something wrong when there is nothing", () => {
+    expect(boardReference({})).toBe("");
+  });
+
+  it("is what gets spelled back to the caller", () => {
+    expect(spokenReference(boardReference({ id: "cmtne25lj002dcft06v24kiod" }))).toBe(
+      "2, 4, K, I, O, D",
+    );
   });
 });

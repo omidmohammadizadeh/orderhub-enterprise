@@ -10,6 +10,7 @@ import {
   type VoiceTurn,
 } from "./voice-ai.service";
 import {
+  boardReference,
   digitChoice,
   interpretMenuChoice,
   parseFulfillment,
@@ -36,6 +37,11 @@ import {
 
 /** What answering "where's my order" needs off the row. */
 const STATUS_FIELDS = {
+  // id and displayId are not optional extras: boardReference needs both to
+  // name the order the way the dashboard does, and the caller-ID fallback
+  // reads one back too.
+  id: true,
+  displayId: true,
   orderNumber: true,
   status: true,
   fulfillmentType: true,
@@ -319,7 +325,7 @@ export class VoiceService {
           where: { locationId: ctx.locationId, createdAt: { gte: since } },
           orderBy: { createdAt: "desc" },
           take: 500,
-          select: { ...STATUS_FIELDS, id: true, displayId: true, collectionCode: true },
+          select: { ...STATUS_FIELDS, collectionCode: true },
         })
       : [];
 
@@ -339,7 +345,10 @@ export class VoiceService {
       ].find((identifier) => referenceMatches(forms, identifier));
       if (hit) {
         order = candidate;
-        matched = candidate.displayId ?? candidate.collectionCode ?? String(hit);
+        // What the BOARD calls it, not whichever column happened to match. A
+        // voice order matches on its id, and reading the whole cuid back is
+        // how "found your order" came out sounding like a different one.
+        matched = boardReference(candidate);
         break;
       }
     }
@@ -350,7 +359,7 @@ export class VoiceService {
       const exact = recent.find((o: any) => o.orderNumber === Number(number));
       if (exact) {
         order = exact;
-        matched = String(exact.orderNumber);
+        matched = boardReference(exact);
       }
     }
 
@@ -431,9 +440,7 @@ export class VoiceService {
     // Read back the reference they gave, spelled out. A suffix match is
     // forgiving on purpose, so this is what catches it having found the wrong
     // order — the caller hears it against what is in front of them.
-    const reference =
-      spokenReference(matched ?? order.orderNumber ?? "") ||
-      spokenDigits(order.orderNumber ?? "");
+    const reference = spokenReference(matched ?? boardReference(order));
     const say = `Order ${reference}. ${spoken.say} Is there anything else I can help with?`;
     state.turns.push({ role: "assistant", text: say });
     // Whatever they say next is ordinary conversation — the brain can take an

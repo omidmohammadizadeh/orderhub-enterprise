@@ -804,3 +804,28 @@ export function spokenReference(value: string | number | null | undefined): stri
     .split("")
     .join(", ");
 }
+
+/**
+ * The reference for an order as the ORDERS BOARD shows it.
+ *
+ * Deliberately the same expression the dashboard renders — displayId, else the
+ * sequential number, else the last six of the id — because the caller is very
+ * often a member of staff reading a row off that screen, and anything else we
+ * say back is, to them, a different order.
+ *
+ * The three channels genuinely differ: POS and the marketplaces carry a
+ * displayId, and orders taken by this phone line carry neither a displayId nor
+ * a sequential number, so they show the id tail. Reading the whole cuid back
+ * instead is what made it sound like the wrong order had been found.
+ */
+export function boardReference(order: {
+  displayId?: string | null;
+  orderNumber?: number | string | null;
+  id?: string | null;
+}): string {
+  if (order.displayId) return String(order.displayId);
+  if (order.orderNumber != null && order.orderNumber !== "") {
+    return String(order.orderNumber);
+  }
+  return String(order.id ?? "").slice(-6);
+}
