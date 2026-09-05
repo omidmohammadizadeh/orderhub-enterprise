@@ -263,6 +263,86 @@ export class VoiceService {
   }
 
   /**
+   * Which engine answers this call — read cheaply, at answer time.
+   *
+   * Deliberately two small queries rather than resolving the whole menu
+   * context: this runs before the greeting, and the caller is listening to
+   * silence while it does.
+   */
+  async engineFor(callControlId: string): Promise<"RELAY" | "REALTIME"> {
+    const row = await this.db().voiceCall.findFirst({
+      where: { providerCallId: callControlId },
+      orderBy: { createdAt: "desc" },
+      select: { locationId: true },
+    });
+    if (!row?.locationId) return "RELAY";
+    const loc = await this.db().location.findUnique({
+      where: { id: row.locationId },
+      select: { settings: true },
+    });
+    return (loc?.settings as any)?.voiceEngine === "REALTIME" ? "REALTIME" : "RELAY";
+  }
+
+  /**
+   * Everything the speech-to-speech engine needs to open a session.
+   *
+   * The prompt and the tools are the SAME ones the chained engine uses. That
+   * is the whole design: the two engines differ in how they hear, not in what
+   * they are permitted to do, so place_order still refuses without a read-back
+   * and an address outside the delivery area is still refused.
+   */
+  async realtimeSession(callControlId: string): Promise<{
+    instructions: string;
+    greeting: string;
+    tools: Array<Record<string, unknown>>;
+  } | null> {
+    const loaded = await this.loadByControlId(callControlId);
+    if (!loaded) return null;
+    const { ctx, state } = loaded;
+    return {
+      instructions: this.ai.promptForRealtime(ctx, state),
+      greeting: this.ai.greeting(ctx, state.knownName ?? null),
+      tools: this.ai.toolsForRealtime(ctx),
+    };
+  }
+
+  /**
+   * A tool the speech-to-speech engine asked for, run through our own guards.
+   *
+   * Returns the turn alongside the text so the gateway can act on a transfer
+   * or a hangup — this service deliberately owns no telephony, which is what
+   * lets both engines share it.
+   */
+  async realtimeTool(
+    callControlId: string,
+    name: string,
+    input: any,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+    const loaded = await this.loadByControlId(callControlId);
+    if (!loaded) return { result: "This call has ended." };
+    const { call, ctx, state } = loaded;
+
+    const out = await this.ai.runToolForRealtime(name, input, ctx, state, call.fromNumber);
+    await this.db().voiceCall.update({
+      where: { id: call.id },
+      data: {
+        transcript: state as any,
+        ...(state.orderId ? { orderId: state.orderId, outcome: "ORDER" } : {}),
+      },
+    });
+    return out;
+  }
+
+  /** The VoiceCall row for a Telnyx call id, with its context and state. */
+  private async loadByControlId(callControlId: string) {
+    const row = await this.db().voiceCall.findFirst({
+      where: { providerCallId: callControlId },
+      orderBy: { createdAt: "desc" },
+    });
+    return row ? this.load(row.id) : null;
+  }
+
+  /**
    * "Three cokes and a garlic bread" — added without a model call.
    *
    * Only in free ordering, and only once everything the order depends on has

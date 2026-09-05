@@ -15,6 +15,7 @@ import { VoiceService } from "./voice.service";
 import { VoiceContextService } from "./voice-context.service";
 import { TelnyxCallControlService } from "./telnyx-call-control.service";
 import { VoiceRelayGateway } from "./voice-relay.gateway";
+import { VoiceRealtimeGateway } from "./voice-realtime.gateway";
 import { isLikelyHallucination, soundsComplete } from "./voice-flow";
 
 // Where a real phone call meets the brain.
@@ -40,6 +41,7 @@ export class VoiceTelnyxController {
     private readonly contexts: VoiceContextService,
     private readonly telnyx: TelnyxCallControlService,
     private readonly relay: VoiceRelayGateway,
+    private readonly realtime: VoiceRealtimeGateway,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -227,6 +229,25 @@ export class VoiceTelnyxController {
     // sentence of an answer spoken while the model is still writing the
     // second. The webhook path below is unchanged and stays the default — a
     // shop mid-service is not where a new transport should be proven.
+    // Speech-to-speech, when this shop has asked for it. The audio goes
+    // straight to the model and comes straight back; our tools still gate what
+    // it may actually do. Falls through to the chained engine if it cannot
+    // start, because a shop mid-service must never be the one to discover a
+    // second transport is misconfigured.
+    if ((await this.voice.engineFor(ccid)) === "REALTIME") {
+      const available = this.realtime.available();
+      const streamUrl = available.ok ? this.realtime.streamUrl(ccid) : null;
+      if (streamUrl && (await this.telnyx.startMediaStream(ccid, streamUrl))) {
+        this.logger.log(`call ${ccid.slice(-8)} answering on the speech-to-speech engine`);
+        return;
+      }
+      this.logger.error(
+        `Speech-to-speech selected for this shop but not usable (${
+          available.why ?? "streaming_start refused"
+        }) — falling back to the chained engine`,
+      );
+    }
+
     const relayUrl = this.relay.relayUrl(ccid);
     if (relayUrl) {
       if (await this.telnyx.startConversationRelay(ccid, { url: relayUrl, greeting })) {
@@ -444,6 +465,7 @@ export class VoiceTelnyxController {
   private async onHangup(ccid: string, _p: any): Promise<void> {
     this.telnyx.markEnded(ccid);
     this.relay.stopWatching(ccid);
+    this.realtime.stop(ccid);
     this.turnChain.delete(ccid);
     const buf = this.pending.get(ccid);
     if (buf) {

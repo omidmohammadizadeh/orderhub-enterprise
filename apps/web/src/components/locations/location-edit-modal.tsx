@@ -259,6 +259,12 @@ function GeneralTab({
   const [voiceSmsReceipt, setVoiceSmsReceipt] = useState<boolean>(
     (location as any)?.settings?.voiceSmsReceipt === true,
   );
+  // Which engine answers the phone. Default is the chained pipeline that has
+  // been in service; speech-to-speech is here to be COMPARED with it on the
+  // same menu and the same callers, not to quietly replace it.
+  const [voiceEngine, setVoiceEngine] = useState<string>(
+    (location as any)?.settings?.voiceEngine === "REALTIME" ? "REALTIME" : "RELAY",
+  );
 
   // Kiosk payment options. Default ON: every kiosk before this setting
   // existed took both, and a silent default of false would have switched
@@ -398,6 +404,7 @@ function GeneralTab({
           voiceTransferNumber: voiceTransferNumber.trim() || null,
           voiceTestMode: voiceTestMode === true,
           voiceSmsReceipt: voiceSmsReceipt === true,
+          voiceEngine: voiceEngine === "REALTIME" ? "REALTIME" : "RELAY",
           kiosk: {
             acceptCash: kioskAcceptCash,
             acceptCard: kioskAcceptCard,
@@ -1016,6 +1023,25 @@ function GeneralTab({
           Where the AI sends a caller who asks for a person, complains, or wants
           something it can&apos;t do. Leave blank to use the shop&apos;s own
           number.
+        </p>
+        <Field label="Voice engine">
+          <select
+            value={voiceEngine}
+            onChange={(e) => setVoiceEngine(e.target.value)}
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          >
+            <option value="RELAY">Standard — transcribe, then think (default)</option>
+            <option value="REALTIME">Speech to speech — the model hears the caller</option>
+          </select>
+        </Field>
+        <p className="text-[11px] text-zinc-400">
+          <strong>Standard</strong> turns the caller into text first, which is
+          what lets every word be checked against your menu and written to the
+          call log. <strong>Speech to speech</strong> sends the audio itself, so
+          it can hear a mumbled dish name the way a person would — but there is
+          less to inspect when it gets something wrong. Both take orders through
+          the same checks, so an order still has to be read back before it is
+          placed. Switch one shop over and compare.
         </p>
         <label className="flex cursor-pointer items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5">
           <input

@@ -157,6 +157,14 @@ services:
         sync: false
       - key: VOICE_RELAY_URL
         value: wss://orderhub-api-0re6.onrender.com/voice/relay
+      # The second voice engine: raw call audio to a speech-to-speech model and
+      # back. Only used by a shop whose settings select it, and it needs BOTH
+      # of these — without the key the line falls back to the standard engine
+      # and says so in the log.
+      - key: VOICE_REALTIME_URL
+        value: wss://orderhub-api-0re6.onrender.com/voice/media
+      - key: OPENAI_API_KEY
+        sync: false
       # Signs the per-call token on that URL. Falls back to TELNYX_API_KEY when
       # unset, so it is optional.
       - key: VOICE_RELAY_SECRET

@@ -24,6 +24,8 @@ export interface VoiceContext extends WaMenuContext {
   locationPhone?: string | null;
   /** Where to send a call the AI can't handle. Usually the shop's own line. */
   transferNumber?: string | null;
+  /** Which engine answers: the chained pipeline, or speech-to-speech. */
+  voiceEngine?: "RELAY" | "REALTIME";
   /** Operator kill switch — the AI answers only when this is on. */
   enabled: boolean;
   /** Answer without charging. For our own testing: a £1 debit per attempt
@@ -160,6 +162,14 @@ export class VoiceContextService {
       // Default OFF. An AI that starts answering a restaurant's phone because
       // a number got assigned is not a feature.
       enabled: settings.voiceAiEnabled === true,
+      // Which engine answers this shop's phone. RELAY is the chained pipeline
+      // that has been in service all along — Telnyx transcribes, our code and
+      // Claude decide, Telnyx speaks. REALTIME hands the audio itself to a
+      // speech-to-speech model. Both run the SAME tools, so the read-back
+      // lock, the delivery-area refusal and the menu matching apply either
+      // way: the comparison is between how they HEAR, not what they are
+      // allowed to do.
+      voiceEngine: settings.voiceEngine === "REALTIME" ? "REALTIME" : "RELAY",
       testMode: settings.voiceTestMode === true,
       smsReceipt: settings.voiceSmsReceipt === true,
       timezone: location.timezone ?? null,

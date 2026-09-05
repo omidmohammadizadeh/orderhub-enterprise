@@ -2163,6 +2163,50 @@ ${menu || "(no items available — apologise and transfer)"}`;
     return `Got it — ${qty}${label}${withOpts}. Anything else?`;
   }
 
+  // ── The speech-to-speech engine's view of the same brain ────────────────
+  //
+  // Three thin adapters. They exist so the second engine cannot quietly grow
+  // its own rules: it gets this prompt, these tools and this executor, and
+  // every guard they contain applies to it exactly as written.
+
+  /** The system prompt, plus what a voice-only model needs told differently. */
+  promptForRealtime(ctx: VoiceContext, state: VoiceState): string {
+    return `${this.systemPrompt(ctx, state)}
+
+YOU ARE SPEAKING, NOT WRITING
+- Everything you produce is heard aloud. Never say a bullet, a heading, an
+  emoji, a price written as "£8.00" (say "eight pounds"), or a menu name in
+  brackets — "Margherita (14 inch)" is said "Margherita, fourteen inch".
+- Short turns. A caller cannot skim.
+- If you did not hear something, ask for that one thing again. Never ask them
+  to repeat a whole order.
+- You hear the caller's actual voice, which is the one thing you can do that
+  the other engine cannot. Use it: an unclear word in the middle of a familiar
+  dish is nearly always that dish. But CHECK by reading it back, never by
+  assuming.`;
+  }
+
+  /** Our tools, in the shape the realtime API wants them. */
+  toolsForRealtime(ctx: VoiceContext): Array<Record<string, unknown>> {
+    return this.toolDefs(ctx).map((t) => ({
+      type: "function",
+      name: t.name,
+      description: t.description,
+      parameters: t.input_schema,
+    }));
+  }
+
+  /** The same executor, and therefore the same refusals. */
+  async runToolForRealtime(
+    name: string,
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+    callerNumber?: string | null,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+    return this.runTool(name, input, ctx, state, callerNumber);
+  }
+
   /** What could the caller have meant? Offered to the model before it commits. */
   private findItem(said: string, ctx: VoiceContext): string {
     const { rest } = splitQuantity(said);

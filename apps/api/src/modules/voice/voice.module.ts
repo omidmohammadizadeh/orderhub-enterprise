@@ -10,6 +10,7 @@ import { VoiceService } from "./voice.service";
 import { VoiceAiService } from "./voice-ai.service";
 import { VoiceContextService } from "./voice-context.service";
 import { VoiceRelayGateway } from "./voice-relay.gateway";
+import { VoiceRealtimeGateway } from "./voice-realtime.gateway";
 
 // AI phone line.
 //
@@ -32,6 +33,7 @@ import { VoiceRelayGateway } from "./voice-relay.gateway";
     VoiceContextService,
     TelnyxCallControlService,
     VoiceRelayGateway,
+    VoiceRealtimeGateway,
   ],
   exports: [VoiceService],
 })

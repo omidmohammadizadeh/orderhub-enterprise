@@ -238,6 +238,34 @@ export class TelnyxCallControlService {
    * `interruptible` is what lets a caller talk over us without us having to
    * notice and issue a stop — barge-in stops being something we implement.
    */
+  /**
+   * Raw call audio, both ways, over a WebSocket.
+   *
+   * Conversation Relay hands us TEXT — Telnyx does the listening and the
+   * speaking. A speech-to-speech model needs the audio itself, so this is the
+   * other transport: μ-law at 8kHz in both directions, which is exactly what
+   * the phone line already carries and exactly what OpenAI's realtime API
+   * accepts. No resampling anywhere, which is one fewer thing to get wrong.
+   *
+   * Every parameter here is overridable, because Telnyx naming the same idea
+   * differently between two commands has now cost three live calls.
+   */
+  async startMediaStream(callControlId: string, url: string): Promise<boolean> {
+    const body: Record<string, unknown> = {
+      stream_url: url,
+      stream_track: this.config.get<string>("VOICE_STREAM_TRACK") || "inbound_track",
+      stream_bidirectional_mode:
+        this.config.get<string>("VOICE_STREAM_BIDIRECTIONAL_MODE") || "rtp",
+      stream_bidirectional_codec:
+        this.config.get<string>("VOICE_STREAM_CODEC") || "PCMU",
+    };
+    if (await this.command(callControlId, "streaming_start", body)) return true;
+    this.logger.error(
+      `streaming_start rejected for ${callControlId.slice(-8)} with ${JSON.stringify(body)}`,
+    );
+    return false;
+  }
+
   async startConversationRelay(
     callControlId: string,
     args: { url: string; greeting: string },
