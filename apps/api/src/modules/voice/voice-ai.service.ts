@@ -22,12 +22,16 @@ import {
   houseNumberFrom,
   resolveHeardPostcode,
   spokenDigits,
+  looksLikeStreet,
+  sameStreet,
   streetOf,
   type VoiceStage,
 } from "./voice-flow";
 import {
-  isConfident,
-  matchMenuItems,
+  isConfidentGroup,
+  matchItemGroups,
+  pickVariant,
+  sizesAloud,
   splitQuantity,
 } from "./voice-menu-match";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
@@ -573,6 +577,13 @@ export class VoiceAiService {
             { postcode: { equals: postcode, mode: "insensitive" } },
           ],
           addressLine1: { not: null },
+          // Never learn from ourselves. A caller said "Sunningdale Drive", an
+          // earlier call wrote it down as "Sunnydale Drive", and this query
+          // then read that back to the next caller as fact — with more
+          // confidence than the geocoders, which had it right all along. Only
+          // addresses a HUMAN typed (POS, storefront, marketplace) are
+          // evidence; ours are just a recording of our own mistakes.
+          orderSource: { not: "VOICE" },
         },
         select: { addressLine1: true, city: true },
         orderBy: { receivedAt: "desc" },
@@ -685,12 +696,31 @@ export class VoiceAiService {
     // With a street already agreed, all that is wanted is the number. Without
     // one — the lookup found nothing, or the caller said it was wrong — they
     // are giving the whole line, and "11 Fellside Road" has to survive intact.
-    const line1 = street
+    // If they named a street while giving the number, that is the street.
+    // This used to take only the digits out of "Eleven Sunningdale Drive" and
+    // staple our own guess back on, which is the exact moment a wrong street
+    // became permanent — the caller had just said the right one out loud.
+    const spokenLine = addressLineFrom(said);
+    const spokenStreet = streetOf(spokenLine);
+    // Only when they said a NUMBER and a street. "Rose Cottage" is a house
+    // name, not a correction, and treating it as one produced the immortal
+    // "Rose Cottage Rose Cottage".
+    const namedBoth =
+      !!spokenLine &&
+      !!spokenStreet &&
+      spokenStreet !== spokenLine &&
+      looksLikeStreet(spokenStreet);
+    if (namedBoth && street && spokenStreet && !sameStreet(spokenStreet, street)) {
+      state.addr!.street = spokenStreet;
+    }
+    const agreedStreet = state.addr?.street;
+
+    const line1 = agreedStreet
       ? (() => {
           const house = houseNumberFrom(said);
-          return house ? `${house} ${street}` : null;
+          return house ? `${house} ${agreedStreet}` : null;
         })()
-      : addressLineFrom(said) ?? houseNumberFrom(said);
+      : spokenLine ?? houseNumberFrom(said);
 
     if (!line1) {
       return {
@@ -1532,16 +1562,20 @@ ${menu || "(no items available — apologise and transfer)"}`;
   /** What could the caller have meant? Offered to the model before it commits. */
   private findItem(said: string, ctx: VoiceContext): string {
     const { rest } = splitQuantity(said);
-    const matches = matchMenuItems(rest || said, ctx.items, { limit: 4 });
+    const matches = matchItemGroups(rest || said, ctx.items, { limit: 4 });
     if (!matches.length) {
       return `Nothing on the menu matches "${said}". Tell them plainly that you don't have it and offer the closest thing you DO have.`;
     }
-    if (isConfident(matches)) {
-      const top = matches[0]!.item;
-      return `That's ${top.name} [${top.id}]. Add it with add_item.`;
+    if (isConfidentGroup(matches)) {
+      const { group } = matches[0]!;
+      const chosen = pickVariant(said, group.variants) ?? (group.variants.length === 1 ? group.variants[0]! : null);
+      if (chosen) return `That's ${chosen.name} [${chosen.id}]. Add it with add_item.`;
+      // The dish is certain and only the size is open. Asking "which one" and
+      // reading three near-identical names is the wrong question.
+      return `That's ${group.base}, but it comes in more than one size. Ask: "What size ${group.base} — ${sizesAloud(group.variants)}?"`;
     }
     return `Not sure between: ${matches
-      .map((m) => `${m.item.name} [${m.item.id}]`)
+      .map((m) => m.group.base)
       .join(", ")}. Ask the caller which one — do not choose for them.`;
   }
 
@@ -1555,20 +1589,36 @@ ${menu || "(no items available — apologise and transfer)"}`;
     let quantityFromSpeech: number | undefined;
 
     if (!item && input?.said) {
-      const { quantity, rest } = splitQuantity(String(input.said));
+      const said = String(input.said);
+      const { quantity, rest } = splitQuantity(said);
       quantityFromSpeech = quantity;
-      const matches = matchMenuItems(rest, ctx.items, { limit: 3 });
+      // Dishes, not sizes. Scoring the caller's words against "Margherita
+      // (10\")" put every sized item permanently below the confidence bar AND
+      // tied it with its own siblings, so a plainly-said "large margherita"
+      // could only ever come back as a question.
+      const matches = matchItemGroups(rest, ctx.items, { limit: 3 });
       if (!matches.length) {
-        return `Nothing on the menu matches "${input.said}". Say plainly that you don't have it, and offer the closest thing you do.`;
+        return `Nothing on the menu matches "${said}". Say plainly that you don't have it, and offer the closest thing you do.`;
       }
-      if (!isConfident(matches)) {
+      if (!isConfidentGroup(matches)) {
         // Two plausible dishes is a question for the caller, not a coin toss
         // on their behalf — and getting it wrong here is a wrong meal cooked.
-        return `More than one thing matches "${input.said}": ${matches
-          .map((m) => m.item.name)
+        return `More than one thing matches "${said}": ${matches
+          .map((m) => m.group.base)
           .join(" or ")}. Ask which one they meant, then add it.`;
       }
-      item = matches[0]!.item;
+
+      const { group } = matches[0]!;
+      if (group.variants.length === 1) {
+        item = group.variants[0]!;
+      } else {
+        // "a large margherita" already answered this; only ask when it didn't.
+        const chosen = pickVariant(said, group.variants);
+        if (!chosen) {
+          return `${group.base} comes in more than one size and they haven't said which. Ask: "What size ${group.base} — ${sizesAloud(group.variants)}?" Then add it.`;
+        }
+        item = chosen;
+      }
     }
 
     if (!item) return "That item isn't on the menu — tell the caller and suggest something similar.";

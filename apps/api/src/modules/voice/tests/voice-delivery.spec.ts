@@ -126,3 +126,53 @@ describe("feeForAddress", () => {
     ).toBe(6);
   });
 });
+
+describe("the caller's own street wins", () => {
+  // From a real call: the line proposed "Sunnydale Drive" (wrong), the caller
+  // answered "Eleven Sunningdale Drive" — naming the right street out loud —
+  // and the house-number step took only the digits and stapled the wrong
+  // street back on. That is the moment the mistake became permanent.
+  const ai = () => {
+    const s: any = Object.create(VoiceAiService.prototype);
+    s.logger = { log() {}, warn() {}, error() {} };
+    return s;
+  };
+
+  const ctx: any = { currency: "GBP", address: { city: "Washington" }, deliveryZones: [] };
+
+  it("takes the street they said over the one we proposed", () => {
+    const state: any = {
+      cart: { items: [] },
+      addr: { postcode: "NE37 2LL", street: "Sunnydale Drive", city: "Washington" },
+    };
+
+    const out = ai().houseNumberAloud(ctx, state, "Eleven Sunningdale Drive");
+
+    expect(state.addr.street).toBe("Sunningdale Drive");
+    expect(out.say).toContain("11 Sunningdale Drive");
+    expect(out.say).not.toContain("Sunnydale Drive");
+  });
+
+  it("keeps our spelling when they are plainly saying the same street", () => {
+    // "Sunnyndale" is a transcript of the street we already have, not a
+    // correction — rewriting it would make the receipt worse, not better.
+    const state: any = {
+      cart: { items: [] },
+      addr: { postcode: "NE37 2LL", street: "Sunningdale Drive", city: "Washington" },
+    };
+
+    ai().houseNumberAloud(ctx, state, "Eleven Sunningdale Drive");
+    expect(state.addr.street).toBe("Sunningdale Drive");
+  });
+
+  it("still takes a bare number when that is all they say", () => {
+    const state: any = {
+      cart: { items: [] },
+      addr: { postcode: "NE37 2LL", street: "Fellside Road", city: "Gateshead" },
+    };
+
+    const out = ai().houseNumberAloud(ctx, state, "Twenty two");
+    expect(state.addr.street).toBe("Fellside Road");
+    expect(out.say).toContain("22 Fellside Road");
+  });
+});

@@ -16,6 +16,8 @@
 // that, please press 1 or 2" — which is the single thing people hate most
 // about phone menus, and the reason most of them get abandoned.
 
+import { soundFold } from "./voice-menu-match";
+
 /** Where a call is. Stored on the transcript blob, so it survives the fact
  *  that every webhook is a separate HTTP request to a stateless service. */
 export type VoiceStage =
@@ -151,8 +153,6 @@ const REPEAT_INTENT = [
   "what were they",
   "didn't catch the options",
 ];
-
-import { soundFold } from "./voice-menu-match";
 
 const clean = (text: string): string =>
   String(text ?? "")
@@ -1016,6 +1016,58 @@ export function boardReference(order: {
  * Used to read a street back off a postcode lookup, where every result on the
  * postcode shares the street and only the number differs.
  */
+/**
+ * Are these two the same street, said differently?
+ *
+ * "Sunningdale Drive" and "Sunnyndale Drive" are one street and a transcript;
+ * "Sunningdale Drive" and "Fellside Road" are two streets. The phonetic fold
+ * is the same one the menu matcher uses, for the same reason — the vowels are
+ * the first thing a phone line loses.
+ */
+export function sameStreet(a?: string | null, b?: string | null): boolean {
+  const fold = (s?: string | null) =>
+    String(s ?? "")
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(soundFold)
+      .join(" ");
+  const fa = fold(a);
+  const fb = fold(b);
+  return !!fa && fa === fb;
+}
+
+const STREET_TYPES = new Set([
+  "road", "rd", "street", "st", "drive", "dr", "avenue", "ave", "lane", "ln",
+  "close", "way", "crescent", "court", "gardens", "garden", "place", "terrace",
+  "grove", "walk", "rise", "view", "hill", "park", "square", "row", "mews",
+  "parade", "green", "croft", "vale", "chase", "dene", "bank", "meadows",
+]);
+
+/**
+ * Does this read as a street name, or just as words?
+ *
+ * Used before overwriting a street the caller already agreed to, so the bar is
+ * "plausible street", not "in the gazetteer". "Twenty two" must not qualify —
+ * it is a house number that the line parser leaves as a stray word — while
+ * "Loch Lomond" and "High Croft" must, because real streets near the shop are
+ * named exactly like that with no Road or Drive on the end.
+ */
+export function looksLikeStreet(text?: string | null): boolean {
+  const words = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!words.length) return false;
+  if (words.some((w) => STREET_TYPES.has(w))) return true;
+  // No street type, so it has to at least be more than one real word and not
+  // be a spoken number in disguise.
+  if (words.length < 2) return false;
+  return !words.some((w) => parseSpokenNumber(w) !== null);
+}
+
 export function streetOf(line1?: string | null): string | null {
   const t = String(line1 ?? "").trim();
   if (!t) return null;

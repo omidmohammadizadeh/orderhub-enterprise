@@ -729,6 +729,33 @@ describe("lookup_postcode", () => {
     expect(out).toContain("Sunningdale Drive");
   });
 
+  it("refuses to learn a street from its own earlier mis-hearing", async () => {
+    // This is how "Sunnydale Drive" got read back to a caller as fact: an
+    // earlier call mis-heard "Sunningdale", saved it, and the history lookup
+    // then trusted it over the geocoders — which had it right all along.
+    const state: any = { cart: { items: [] } };
+    const s = svc();
+    let where: any = null;
+    s.prisma = {
+      order: {
+        findMany: async (args: any) => {
+          where = args.where;
+          return [];
+        },
+      },
+    };
+    s.addresses = {
+      searchByPostcode: async () => ({
+        suggestions: [{ line1: "5 Sunningdale Drive", city: "Washington" }],
+      }),
+    };
+
+    const out = await s.lookupPostcode("N E three seven two l l.", ne37(), state);
+
+    expect(where.orderSource).toEqual({ not: "VOICE" });
+    expect(out).toContain("Sunningdale Drive");
+  });
+
   it("does not relocate someone who really is out of area", async () => {
     // A London postcode said clearly must come back as itself, so the caller
     // hears "we don't deliver there" rather than being quietly moved.

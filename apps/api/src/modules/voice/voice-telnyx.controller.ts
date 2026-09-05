@@ -443,6 +443,7 @@ export class VoiceTelnyxController {
 
   private async onHangup(ccid: string, _p: any): Promise<void> {
     this.telnyx.markEnded(ccid);
+    this.relay.stopWatching(ccid);
     this.turnChain.delete(ccid);
     const buf = this.pending.get(ccid);
     if (buf) {

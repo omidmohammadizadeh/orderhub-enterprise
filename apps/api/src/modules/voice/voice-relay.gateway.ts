@@ -61,6 +61,10 @@ export class VoiceRelayGateway implements OnModuleInit {
   private wss?: WebSocketServer;
   /** call_control_id → socket, so a transfer can close the right relay. */
   private readonly sockets = new Map<string, WebSocket>();
+  /** Pending "nothing connected" alarms, so a finished call can cancel one. */
+  private readonly watchdogs = new Map<string, NodeJS.Timeout>();
+  /** Calls whose relay did connect at some point, however briefly. */
+  private readonly everConnected = new Set<string>();
   private readonly seenFrameTypes = new Set<string>();
 
   constructor(
@@ -153,16 +157,32 @@ export class VoiceRelayGateway implements OnModuleInit {
    * will be looking after a test call.
    */
   watchForConnection(callControlId: string): void {
-    setTimeout(() => {
-      if (this.isConnected(callControlId)) return;
+    this.everConnected.delete(callControlId);
+    const timer = setTimeout(() => {
+      this.watchdogs.delete(callControlId);
+      // A caller who hung up after three seconds is not a caller on a broken
+      // line. This fired eight seconds after a call that had already ended,
+      // which is an alarm nobody can act on and everybody learns to ignore.
+      if (this.isConnected(callControlId) || this.everConnected.has(callControlId)) return;
       this.logger.error(
         `Conversation Relay started on ${callControlId.slice(-8)} but nothing connected to ${this.config.get<string>("VOICE_RELAY_URL")} — the caller is on a line that cannot hear them. Unset VOICE_RELAY_URL to fall back to the webhook transport.`,
       );
     }, 8000);
+    (timer as any).unref?.();
+    this.watchdogs.set(callControlId, timer);
+  }
+
+  /** The call is over — nothing left to warn about. */
+  stopWatching(callControlId: string): void {
+    const timer = this.watchdogs.get(callControlId);
+    if (timer) clearTimeout(timer);
+    this.watchdogs.delete(callControlId);
+    this.everConnected.delete(callControlId);
   }
 
   private attach(ws: WebSocket, callControlId: string): void {
     this.sockets.set(callControlId, ws);
+    this.everConnected.add(callControlId);
     this.logger.log(`relay open for call ${callControlId.slice(-8)}`);
 
     ws.on("message", (raw) => {
