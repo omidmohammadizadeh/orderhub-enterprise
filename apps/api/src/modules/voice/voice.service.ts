@@ -14,6 +14,7 @@ import {
   boardReference,
   digitChoice,
   interpretMenuChoice,
+  isUnusableTranscript,
   parseFulfillment,
   parseOrderReference,
   parsePayment,
@@ -185,6 +186,24 @@ export class VoiceService {
     if (!loaded) return { say: "" };
     const { call, ctx, state } = loaded;
 
+    // A transcript that is not English is not an answer to anything. Passing
+    // it on lets the model treat "ग्वालिक नहीं हूं." as an order.
+    if (isUnusableTranscript(args.text)) {
+      const misses = (state.confusion ?? 0) + 1;
+      state.confusion = misses;
+      this.logger.warn(
+        `call ${call.id} unusable transcript (${misses}): ${JSON.stringify(args.text).slice(0, 80)}`,
+      );
+      await this.db().voiceCall.update({
+        where: { id: call.id },
+        data: { transcript: state as any },
+      });
+      if (misses >= 3) return this.handOver(call, ctx, state);
+      return {
+        say: misses === 1 ? "Sorry, I missed that — say that again?" : "Sorry, I still didn't catch that. Could you say it once more?",
+      };
+    }
+
     // Before anything else, at any point in the call. "Asking for a human must
     // always work" was only true on the first turn — after that it depended on
     // the model noticing, which is not the same thing.
@@ -230,9 +249,43 @@ export class VoiceService {
             `→ ${state.awaiting ?? "-"} handled=${fast ? "scripted" : "model"}`,
         );
         if (fast) return fast;
+
+        // Adding food to a cart needs no reasoning, and it is the part of the
+        // call with the most turns in it. When the matcher is certain about
+        // every dish in the burst, say it back in code — five to eight seconds
+        // a turn is what made ordering feel like hard work.
+        const quick = this.quickAdd(call, ctx, state, args.text);
+        if (quick) return quick;
+
         return this.runBrain(call, ctx, state, args.text, args.onPartial);
       }
     }
+  }
+
+  /**
+   * "Three cokes and a garlic bread" — added without a model call.
+   *
+   * Only in free ordering, and only once everything the order depends on has
+   * been settled: mid-address, an utterance that happens to sound like a dish
+   * is not one.
+   */
+  private quickAdd(call: any, ctx: any, state: VoiceState, said: string): VoiceTurn | null {
+    if (state.stage !== "ORDER" || state.awaiting) return null;
+    if (!state.cart.fulfillmentChosen) return null;
+    if (state.cart.fulfillmentType === "DELIVERY" && !state.addressConfirmed) return null;
+    if (state.orderConfirmed || state.orderId) return null;
+
+    const say = this.ai.quickAddAloud(ctx, state, said);
+    if (!say) return null;
+
+    state.turns.push({ role: "user", text: said });
+    state.turns.push({ role: "assistant", text: say });
+    state.confusion = 0;
+    void this.db()
+      .voiceCall.update({ where: { id: call.id }, data: { transcript: state as any } })
+      .catch(() => undefined);
+    this.logger.log(`call ${call.id} quick-added from "${said.slice(0, 60)}"`);
+    return { say };
   }
 
   /**

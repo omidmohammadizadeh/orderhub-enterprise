@@ -113,10 +113,22 @@ const SYNONYMS: Record<string, string[]> = {
   ketchup: ["tomatosauce"],
 };
 
+/** "cokes" -> "coke". Crude on purpose: it only feeds the synonym lookup. */
+function singular(token: string): string {
+  return token.length > 3 && token.endsWith("s") && !token.endsWith("ss")
+    ? token.slice(0, -1)
+    : token;
+}
+
 /** Every word that could stand in for this one, itself included. */
 function withSynonyms(token: string): string[] {
-  const extra = SYNONYMS[token];
-  return extra ? [token, ...extra] : [token];
+  // People order in plurals — "three cokes", "chips", "two wraps" — and the
+  // table is written in the singular. Without this, "three cokes" scored 0.5
+  // against Coca-Cola and went to the model.
+  const forms = new Set([token, singular(token)]);
+  const out = new Set(forms);
+  for (const form of forms) for (const syn of SYNONYMS[form] ?? []) out.add(syn);
+  return [...out];
 }
 
 /** Words that carry no meaning on a menu and only dilute the score. */

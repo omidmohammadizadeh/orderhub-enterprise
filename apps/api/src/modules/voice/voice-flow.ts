@@ -710,6 +710,30 @@ function editDistance(a: string, b: string): number {
   return prev[b.length] ?? 0;
 }
 
+/**
+ * Did the transcriber give us something that is not English at all?
+ *
+ * A real call, from a man in Gateshead ordering chips in English, produced
+ * "ग्वालिक नहीं हूं." and then "Goli que meio." — the engine detecting a
+ * language per utterance and getting it wrong on 8kHz phone audio. The
+ * language is pinned now, but a transcript in another script is worthless
+ * whatever the cause, and handing it to the model as though it were what the
+ * caller said is how a wrong meal gets cooked.
+ *
+ * Latin script only, because that is what everything downstream — the menu
+ * matcher, the postcode parser, the yes/no — is built to read.
+ */
+export function isUnusableTranscript(text: string): boolean {
+  const t = String(text ?? "").trim();
+  if (!t) return true;
+  const letters = t.replace(/[^\p{L}]/gu, "");
+  if (!letters) return false; // digits and punctuation are somebody's postcode
+  const latin = letters.replace(/[^\p{Script=Latin}]/gu, "");
+  // More than a third of the letters outside the Latin alphabet means this is
+  // not a mis-hearing of English, it is a different language.
+  return latin.length / letters.length < 0.67;
+}
+
 export function parseFulfillment(text: string): "DELIVERY" | "PICKUP" | null {
   const t = String(text ?? "")
     .toLowerCase()

@@ -32,6 +32,8 @@ export class TelnyxCallControlService {
   /** The transcription model the relay should use. The default is not good
    *  enough for a phone line, and we had never asked for anything else. */
   private readonly relayModel: string;
+  /** What to listen FOR, as opposed to the voice we speak in. */
+  private readonly transcriptionLanguage: string;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>("TELNYX_API_KEY") || undefined;
@@ -63,6 +65,8 @@ export class TelnyxCallControlService {
     // Deliberately has no default. See startConversationRelay.
     this.relayEngine =
       this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_ENGINE") || undefined;
+    this.transcriptionLanguage =
+      this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_LANGUAGE") || "en";
     this.relayModel =
       this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_MODEL") || "deepgram/nova-3";
   }
@@ -272,8 +276,35 @@ export class TelnyxCallControlService {
     // whatever Telnyx picks, and we have never actually asked for a good one —
     // nova-3 is their current best for telephone audio.
     //
+    // And PIN THE LANGUAGE while we are at it.
+    //
+    // nova-3 can detect language per utterance, and left to itself on 8kHz
+    // phone audio it does. A real call came back "ग्वालिक नहीं हूं." and then
+    // "Goli que meio." from a caller ordering in English in Gateshead — Hindi
+    // and something Portuguese-shaped, from a man asking for chips. Nothing
+    // downstream can recover from that, and the model was being handed it as
+    // though it were what the caller said.
+    //
+    // The top-level `language` is the voice we speak IN. This is the one that
+    // says what to listen FOR, and they are different fields.
+    const engineConfig = {
+      transcription_model: this.relayModel,
+      transcription_language: this.transcriptionLanguage,
+    };
+
     // Tried first, then without. An unknown model must not stop a relay
     // starting, because a call on a worse transcriber still beats no call.
+    if (
+      await this.command(callControlId, "conversation_relay_start", {
+        ...base,
+        transcription_engine_config: engineConfig,
+      })
+    ) {
+      return true;
+    }
+    this.logger.warn(
+      `Conversation Relay rejected ${JSON.stringify(engineConfig)} — retrying with the model alone.`,
+    );
     if (
       await this.command(callControlId, "conversation_relay_start", {
         ...base,

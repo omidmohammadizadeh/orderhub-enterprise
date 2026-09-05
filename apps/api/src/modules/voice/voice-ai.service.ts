@@ -44,6 +44,7 @@ import {
   matchItemGroups,
   pickVariant,
   sizesAloud,
+  splitSize,
   splitQuantity,
 } from "./voice-menu-match";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
@@ -1845,6 +1846,87 @@ ${menu || "(no items available — apologise and transfer)"}`;
       default:
         return { result: `Unknown tool ${name}` };
     }
+  }
+
+  /**
+   * Add what they just asked for, without asking the model.
+   *
+   * Every turn of an order was costing a model round trip — five to eight
+   * seconds each, on the part of the call with the most turns in it. But
+   * "three cokes and a garlic bread" needs no reasoning: the matcher already
+   * decides which dish that is, and it is the same matcher the model's own
+   * add_item calls go through. The model was being paid to relay.
+   *
+   * Deliberately all-or-nothing. If any part of the burst is unclear, or any
+   * dish needs a choice made about it, the WHOLE utterance goes to the model —
+   * half an order added behind the caller's back is worse than a slow turn.
+   * Returns null to mean "not mine".
+   */
+  quickAddAloud(ctx: VoiceContext, state: VoiceState, said: string): string | null {
+    const text = String(said ?? "").trim();
+    if (!text || !ctx.items?.length) return null;
+
+    // Anything that is not plainly "I would like X" belongs to the model:
+    // changing an order, asking a question, or finishing one.
+    if (
+      /\b(remove|cancel|change|instead|actually|without|no |not |swap|delete|take off)\b/i.test(
+        text,
+      ) ||
+      /\b(that'?s (it|all|everything)|nothing else|how much|what'?s|do you|can i get a menu|read.?back|total)\b/i.test(
+        text,
+      ) ||
+      /\?/.test(text)
+    ) {
+      return null;
+    }
+
+    const phrases = text
+      .replace(/\b(and also|as well as|along with)\b/gi, ",")
+      .split(/\s*(?:,|\band\b|\bplus\b|\bwith\b)\s*/i)
+      .map((p) => p.replace(/^(can i (get|have)|could i (get|have)|i'?ll have|i want|please|just)\s+/i, "").trim())
+      .filter((p) => p.length > 1);
+    if (!phrases.length || phrases.length > 6) return null;
+
+    const lines: Array<{ item: any; quantity: number }> = [];
+    for (const phrase of phrases) {
+      const { quantity, rest } = splitQuantity(phrase);
+      const matches = matchItemGroups(rest || phrase, ctx.items, { limit: 3 });
+      if (!isConfidentGroup(matches)) return null;
+
+      const { group } = matches[0]!;
+      const item =
+        group.variants.length === 1 ? group.variants[0]! : pickVariant(phrase, group.variants);
+      if (!item) return null;
+      // A required choice is a question for the caller, and asking it well is
+      // exactly what the model is for.
+      if (item.modifierGroups?.some((g: any) => g.required)) return null;
+      lines.push({ item, quantity });
+    }
+    if (!lines.length) return null;
+
+    for (const { item, quantity } of lines) {
+      state.cart.items.push({
+        lineId: Math.random().toString(36).slice(2, 9),
+        itemId: item.id,
+        name: item.name,
+        quantity,
+        unitBasePrice: item.price,
+        modifiers: [],
+      } as any);
+    }
+
+    // Said, not printed. 'Margherita (14")' is how the menu stores it and
+    // nobody says it out loud that way.
+    const spoken = lines.map(({ item, quantity }) => {
+      const { base, size } = splitSize(item.name);
+      const label = size ? `${base}, ${size.replace(/"/g, " inch").trim()}` : base;
+      return quantity > 1 ? `${quantity} ${label}` : label;
+    });
+    const list =
+      spoken.length > 1
+        ? `${spoken.slice(0, -1).join(", ")} and ${spoken[spoken.length - 1]}`
+        : spoken[0];
+    return `Got it — ${list}. Anything else?`;
   }
 
   /** What could the caller have meant? Offered to the model before it commits. */

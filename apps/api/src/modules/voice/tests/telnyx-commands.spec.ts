@@ -17,6 +17,7 @@ const svc = (env: Record<string, string> = {}) => {
   s.sttModel = env.TELNYX_TRANSCRIPTION_MODEL ?? "openai/whisper-large-v3-turbo";
   s.ended = new Set();
   s.relayModel = env.VOICE_RELAY_TRANSCRIPTION_MODEL ?? "deepgram/nova-3";
+  s.transcriptionLanguage = env.VOICE_RELAY_TRANSCRIPTION_LANGUAGE ?? "en";
   s.command = jest.fn().mockResolvedValue(true);
   return s;
 };
@@ -118,20 +119,43 @@ describe("startConversationRelay", () => {
     const s = svc();
     s.relayEngine = undefined;
     await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" });
+    expect(s.command.mock.calls[0][2].transcription_engine_config.transcription_model).toBe(
+      "deepgram/nova-3",
+    );
+  });
+
+  it("pins the language to listen FOR, not just the voice to speak in", async () => {
+    // A caller ordering in English in Gateshead was transcribed as
+    // "ग्वालिक नहीं हूं." and then "Goli que meio." — nova-3 detecting a
+    // language per utterance and getting it wrong on 8kHz phone audio. The
+    // top-level `language` is the TTS voice; this is a different field.
+    const s = svc();
+    s.relayEngine = undefined;
+    s.command = jest.fn().mockResolvedValue(true);
+    await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" });
     expect(s.command.mock.calls[0][2].transcription_engine_config).toEqual({
-      transcription_model: "deepgram/nova-3",
+      transcription_model: expect.any(String),
+      transcription_language: "en",
     });
   });
 
-  it("still starts the relay if that model is rejected", async () => {
-    // A call on a worse transcriber beats no call at all.
+  it("drops the language before it drops the model, and the model before the call", async () => {
+    // A call on a worse transcriber beats no call at all — but the language is
+    // the cheaper thing to give up, so it goes first.
     const s = svc();
     s.relayEngine = undefined;
-    s.command = jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    s.command = jest
+      .fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
     expect(await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" })).toBe(
       true,
     );
-    expect(s.command.mock.calls[1][2].transcription_engine_config).toBeUndefined();
+    expect(s.command.mock.calls[1][2].transcription_engine_config).toEqual({
+      transcription_model: expect.any(String),
+    });
+    expect(s.command.mock.calls[2][2].transcription_engine_config).toBeUndefined();
     expect(s.logger.error).toHaveBeenCalled();
   });
 
