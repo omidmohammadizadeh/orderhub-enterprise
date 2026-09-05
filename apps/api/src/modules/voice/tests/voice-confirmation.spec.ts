@@ -677,3 +677,43 @@ describe("lookup_postcode", () => {
     expect(out).toMatch(/didn't contain a postcode/i);
   });
 });
+
+describe("a lookup that only knows the town", () => {
+  // The postcode chain's last resort returns the town with an EMPTY line1 —
+  // "NE37 2LL, Washington — add street". Reading position zero blindly treated
+  // that as "no street came back", even when a real street was behind it.
+  const townFirst = [
+    { line1: "", city: "Washington" },
+    { line1: "5 Sunningdale Drive", city: "Washington" },
+  ];
+
+  it("looks past a town-only row to a real street", async () => {
+    const state = withItem();
+    const out = await svc().postcodeAloud(ctx(), state, "NE10 8YH", async () => townFirst);
+    expect(out.say).toContain("Sunningdale Drive");
+    expect(out.next).toBe("ADDR_STREET");
+  });
+
+  it("asks for the street when the town is genuinely all there is", async () => {
+    const state = withItem();
+    const out = await svc().postcodeAloud(ctx(), state, "NE10 8YH", async () => [
+      { line1: "", city: "Washington" },
+    ]);
+    expect(out.say).toMatch(/street/i);
+    expect(out.next).toBe("ADDR_HOUSE");
+  });
+
+  it("does not wait longer than a caller will", async () => {
+    // A live call spent 5.7s here because nothing bounded the geocoders.
+    const state = withItem();
+    const started = Date.now();
+    const out = await svc().postcodeAloud(
+      ctx(),
+      state,
+      "NE10 8YH",
+      () => new Promise(() => {}),
+    );
+    expect(Date.now() - started).toBeLessThan(5000);
+    expect(out.say).toMatch(/street/i);
+  });
+});

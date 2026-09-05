@@ -93,6 +93,10 @@ export class GetAddressProvider implements PostcodeProvider {
 //
 // Disable entirely with ADDRESS_LOOKUP_DISABLE_OSM=true if a tenant doesn't
 // want to depend on OSM endpoints.
+/** How long either free geocoder gets before we move on. */
+const OVERPASS_TIMEOUT_MS = Number(process.env.ADDRESS_OVERPASS_TIMEOUT_MS) || 1500;
+const NOMINATIM_TIMEOUT_MS = Number(process.env.ADDRESS_NOMINATIM_TIMEOUT_MS) || 1500;
+
 export class OsmStreetsProvider implements PostcodeProvider {
   readonly id = "osm" as const;
   private readonly logger = new Logger(OsmStreetsProvider.name);
@@ -215,6 +219,11 @@ export class OsmStreetsProvider implements PostcodeProvider {
       const overpassUrl =
         `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
       const opRes = await fetch(overpassUrl, {
+        // The query asks Overpass for up to 25 seconds. Nothing was limiting
+        // the CLIENT, so a slow day there became a slow day on a phone call —
+        // and the Nominatim fallback below never got its turn inside the
+        // caller's patience. Fail fast and let the fallback run.
+        signal: AbortSignal.timeout(OVERPASS_TIMEOUT_MS),
         headers: { "User-Agent": this.userAgent() },
       });
       if (!opRes.ok) {
@@ -267,6 +276,9 @@ export class OsmStreetsProvider implements PostcodeProvider {
           `?lat=${lat + dLat}&lon=${lng + dLng}` +
           `&format=jsonv2&addressdetails=1&zoom=17`;
         const res = await fetch(url, {
+          // Bounded for the same reason as Overpass: this runs while somebody
+          // is holding a phone, and it walks several jittered points.
+          signal: AbortSignal.timeout(NOMINATIM_TIMEOUT_MS),
           headers: { "User-Agent": this.userAgent() },
         });
         if (!res.ok) continue;

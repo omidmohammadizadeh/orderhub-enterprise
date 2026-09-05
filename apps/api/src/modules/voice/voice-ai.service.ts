@@ -60,7 +60,7 @@ import {
 const DEFAULT_MODEL = "claude-sonnet-5";
 
 /** How long a caller may be left waiting on an address provider. */
-const LOOKUP_TIMEOUT_MS = Number(process.env.VOICE_LOOKUP_TIMEOUT_MS) || 2000;
+const LOOKUP_TIMEOUT_MS = Number(process.env.VOICE_LOOKUP_TIMEOUT_MS) || 3500;
 // Placing an order is now a chain of gated tool calls — read the order back,
 // confirm the address, then place — so a turn that finishes an order needs
 // more hops than one that just adds an item. Six was enough for the old
@@ -527,9 +527,13 @@ export class VoiceAiService {
 
     state.addr = { postcode };
 
-    // Every address on a postcode shares a street, so the first one names it.
-    const street = streetOf(found[0]?.line1) ?? null;
-    const city = found[0]?.city ?? ctx.address?.city ?? undefined;
+    // Every address on a postcode shares a street, so the first REAL one names
+    // it. The lookup's last resort returns the town with an empty line1, and
+    // reading position zero blindly treated that as "no street came back" even
+    // when a street was sitting behind it.
+    const withStreet = found.find((f) => streetOf(f.line1));
+    const street = streetOf(withStreet?.line1) ?? null;
+    const city = withStreet?.city ?? found[0]?.city ?? ctx.address?.city ?? undefined;
     if (!street) {
       return {
         say: `Thanks. And what's the street?`,
@@ -581,8 +585,9 @@ export class VoiceAiService {
       found = [];
     }
 
-    const street = streetOf(found[0]?.line1) ?? null;
-    const city = found[0]?.city ?? ctx.address?.city ?? undefined;
+    const withStreet = found.find((f) => streetOf(f.line1));
+    const street = streetOf(withStreet?.line1) ?? null;
+    const city = withStreet?.city ?? found[0]?.city ?? ctx.address?.city ?? undefined;
     if (!street) {
       return `Postcode ${postcode} is noted, but no street came back for it. Ask them for the street name and house number together — do NOT ask for the postcode again.`;
     }
