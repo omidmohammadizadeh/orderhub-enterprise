@@ -266,6 +266,11 @@ export class TelnyxCallControlService {
     return false;
   }
 
+  /** Stop a media stream, so a second transport can take the call. */
+  async stopMediaStream(callControlId: string): Promise<boolean> {
+    return this.command(callControlId, "streaming_stop", {});
+  }
+
   async startConversationRelay(
     callControlId: string,
     args: { url: string; greeting: string },

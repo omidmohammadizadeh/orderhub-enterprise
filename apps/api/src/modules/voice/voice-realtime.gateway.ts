@@ -166,6 +166,37 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     this.calls.delete(callControlId);
   }
 
+  /**
+   * Hand a call back to the engine that works.
+   *
+   * Reached when speech-to-speech got as far as a socket and no further. The
+   * caller is mid-call and hearing nothing, so this is not the moment to be
+   * proud about which engine was selected.
+   */
+  private async fallbackToRelay(ccid: string): Promise<void> {
+    try {
+      await this.telnyx.stopMediaStream(ccid);
+      const url = this.relayUrlFor(ccid);
+      if (url && (await this.telnyx.startConversationRelay(ccid, {
+        url,
+        greeting: "Sorry about that — I'm with you now. Is this collection or delivery?",
+      }))) {
+        this.logger.log(`call ${ccid.slice(-8)} moved to the standard engine`);
+        return;
+      }
+      this.logger.error(`call ${ccid.slice(-8)} could not be moved to the standard engine`);
+    } catch (e: any) {
+      this.logger.error(`fallback to the standard engine failed: ${e?.message ?? e}`);
+    }
+  }
+
+  /** The relay's own URL builder, without importing the relay gateway. */
+  private relayUrlFor(ccid: string): string | null {
+    const base = this.config.get<string>("VOICE_RELAY_URL");
+    if (!base) return null;
+    return `${base.replace(/\/+$/, "")}?call=${encodeURIComponent(ccid)}&t=${this.tokenFor(ccid)}`;
+  }
+
   private async attach(caller: WebSocket, ccid: string): Promise<void> {
     this.calls.set(ccid, caller);
     this.logger.log(`realtime audio open for call ${ccid.slice(-8)}`);
@@ -228,7 +259,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
                 // A transcript of the caller, PURELY so this engine can be
                 // debugged the way the chained one can. Losing `heard "..."`
                 // was the strongest argument against ever trying this.
-                transcription: { model: "whisper-1" },
+                transcription: {
+                  model:
+                    this.config.get<string>("VOICE_REALTIME_TRANSCRIBE_MODEL") ||
+                    "gpt-4o-mini-transcribe",
+                },
               },
               output: {
                 format,
@@ -265,6 +300,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     (brain as any).__onConfigured = () => {
       if (configured) return;
       configured = true;
+      clearTimeout((brain as any).__readyBy);
       this.logger.log(
         `realtime session ready on ${ccid.slice(-8)} with audio ${JSON.stringify(formats[formatIndex])}`,
       );
@@ -273,6 +309,31 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       greet();
     };
     (brain as any).__retryFormat = retryWithNextFormat;
+
+    // Never leave a caller on a line that cannot speak. If the session is not
+    // accepted within a few seconds — a rejected format we ran out of guesses
+    // for, a model that will not load, an account without realtime access —
+    // give the call back to the engine that works.
+    const readyBy = setTimeout(() => {
+      if (configured) return;
+      this.logger.error(
+        `realtime session never became ready on ${ccid.slice(-8)} — handing the call to the standard engine`,
+      );
+      try {
+        brain.close();
+      } catch {
+        /* already gone */
+      }
+      this.calls.delete(ccid);
+      try {
+        caller.close();
+      } catch {
+        /* already gone */
+      }
+      void this.fallbackToRelay(ccid);
+    }, Number(this.config.get<string>("VOICE_REALTIME_READY_MS")) || 5000);
+    (readyBy as any).unref?.();
+    (brain as any).__readyBy = readyBy;
 
     brain.on("open", () => {
       this.logger.log(
@@ -350,9 +411,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         if (event.delta) sendAudio(event.delta);
         return;
 
-      // The session was accepted — this is the only signal that the audio
-      // format we guessed was the right one, so the greeting waits for it.
+      // session.created arrives the instant the socket opens, carrying the
+      // DEFAULTS — 24kHz PCM. Greeting on it sent 24kHz audio down an 8kHz
+      // μ-law phone line, which is silence with extra steps. Only
+      // session.updated means our settings were accepted.
       case "session.created":
+        return;
       case "session.updated":
         (brain as any).__onConfigured?.();
         return;
