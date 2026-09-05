@@ -440,6 +440,12 @@ export function isConfidentGroup<T>(matches: Array<GroupMatch<T>>): boolean {
   // One dish whose name they said exactly is decisive, whatever else scored
   // well. Only another exact match is a real question.
   if (best.exact) return !second?.exact;
+  // Full coverage of a dish's name beats partial coverage of a longer one.
+  // "chicken gyro wrap as a wrap" scored Chicken Gyros Wrap 1.00 against The
+  // Furry Chicken Gyros Wrap 0.83 — a clear winner, refused because the gap
+  // was 0.17 and the bar was 0.20. A menu with a "Monster" and a "Furry"
+  // version of everything makes that gap permanent.
+  if (best.score >= 1 && (!second || second.score < best.score)) return true;
   return !second || best.score - second.score >= 0.2;
 }
 

@@ -11,6 +11,8 @@ import { VoiceAiService } from "../voice-ai.service";
 
 const MENU = [
   { id: "m10", name: 'Margherita (10")', price: 8, categoryName: "Pizzas", modifierGroups: [] },
+  { id: "p10", name: 'Pepperoni (10")', price: 9, categoryName: "Pizzas", modifierGroups: [] },
+  { id: "p14", name: 'Pepperoni (14")', price: 13, categoryName: "Pizzas", modifierGroups: [] },
   { id: "m14", name: 'Margherita (14")', price: 12, categoryName: "Pizzas", modifierGroups: [] },
   { id: "gb", name: "Garlic Bread", price: 4, modifierGroups: [] },
   { id: "coke", name: "Coca-Cola 330ml", price: 1.5, modifierGroups: [] },
@@ -143,10 +145,23 @@ describe("a dish whose size they did not say", () => {
     expect(st.cart.items[0]).toMatchObject({ itemId: "m14", quantity: 2 });
   });
 
-  it("keeps the size question out of a multi-item burst", () => {
-    // Two open questions at once is a conversation, not a form.
+  it("adds what was certain and asks the size for what wasn't", () => {
+    // Not all-or-nothing any more. A caller who said two things and had one
+    // understood should not have to repeat both.
     const st = state();
-    expect(svc().quickAddAloud(ctxSized(), st, "a margherita and a garlic bread")).toBeNull();
+    const out = svc().quickAddAloud(ctxSized(), st, "a margherita and a garlic bread");
+    expect(st.cart.items.map((i: any) => i.name)).toEqual(["Garlic Bread"]);
+    expect(out.say).toContain("Got it — Garlic Bread");
+    expect(out.say).toMatch(/what size margherita/i);
+    expect(out.next).toBe("ITEM_OPTION");
+  });
+
+  it("still refuses two open size questions at once", () => {
+    // One question per turn. Two is a conversation, and that is the model's.
+    const st = state();
+    expect(
+      svc().quickAddAloud(ctxSized(), st, "a margherita and a pepperoni"),
+    ).toBeNull();
     expect(st.cart.items).toHaveLength(0);
   });
 });
@@ -159,9 +174,33 @@ describe("what it refuses to touch", () => {
     expect(st.cart.items).toHaveLength(0);
   };
 
-  it("adds nothing at all when one item in the burst is unclear", () => {
-    // Half an order added behind the caller's back is worse than a slow turn.
-    refuses("a garlic bread and some chicken");
+  it("adds what it understood and asks about the rest", () => {
+    // From a live call: "solo meat and chicken gyro wrap and always... and
+    // with the garlic sauce and canico". One mangled fragment threw away the
+    // whole order and the caller repeated all of it. Nothing is dropped
+    // silently — the part that didn't land is asked about by itself.
+    const st = state();
+    const out = svc().quickAddAloud(ctx(), st, "a garlic bread and some chicken");
+    expect(st.cart.items.map((i: any) => i.name)).toEqual(["Garlic Bread"]);
+    expect(out.say).toContain("Got it — Garlic Bread");
+    expect(out.say).toMatch(/what was the other one/i);
+  });
+
+  it("treats a single stray word as a hesitation, not an order", () => {
+    // "always..." in the middle of an order is someone drawing breath.
+    const st = state();
+    const out = svc().quickAddAloud(ctx(), st, "a garlic bread and always");
+    expect(st.cart.items.map((i: any) => i.name)).toEqual(["Garlic Bread"]);
+    expect(out.say).not.toMatch(/what was the other one/i);
+  });
+
+  it("keeps a modifier attached to the dish before it", () => {
+    // "and with the garlic sauce on it" is not a dish. Split on "and" it
+    // became an item nobody sells.
+    const st = state();
+    const out = svc().quickAddAloud(ctx(), st, "a garlic bread and with extra cheese on it");
+    expect(st.cart.items.map((i: any) => i.name)).toEqual(["Garlic Bread"]);
+    expect(out.say).not.toMatch(/what was the other one/i);
   });
 
   it("leaves changes, removals and questions alone", () => {
@@ -246,5 +285,68 @@ describe("a dish that needs a choice made about it", () => {
     svc().quickAddAloud(c, st, "a doner kebab");
     expect(svc().answerItemOption(c, st, "erm hang on")).toBeNull();
     expect(st.cart.items).toHaveLength(0);
+  });
+});
+
+describe("the burst from the call that prompted all this", () => {
+  // Verbatim: "I would like to order solo meat and chicken gyro wrap as a
+  // wrap and always... and with the garlic sauce on it". One mangled
+  // fragment ("always...") threw the whole order away, and "with the garlic
+  // sauce" — an answer they had already given — was lost with it, so the line
+  // asked which sauce they wanted.
+  const GREEK: any[] = [
+    { id: "solo", name: "Solo Meal", price: 9, categoryName: "Meal Deals", modifierGroups: [] },
+    { id: "mega", name: "Mega Meal", price: 14, categoryName: "Meal Deals", modifierGroups: [] },
+    {
+      id: "cgw", name: "Chicken Gyros Wrap", price: 8, categoryName: "Wraps",
+      modifierGroups: [{
+        id: "s", name: "Sauce", required: true, min: 1,
+        options: [
+          { id: "s1", name: "Vegan Mayo", price: 0 },
+          { id: "s2", name: "Tzatziki (Dairy)", price: 0 },
+          { id: "s4", name: "Garlic Sauce", price: 0 },
+        ],
+      }],
+    },
+    { id: "furry", name: "The Furry Chicken Gyros Wrap", price: 10, categoryName: "Wraps", modifierGroups: [] },
+    { id: "monster", name: "Monster Gyros Wrap", price: 11, categoryName: "Wraps", modifierGroups: [] },
+  ];
+  const greekCtx = () => {
+    const c: any = { currency: "GBP", items: GREEK };
+    c.itemIndex = new Map(GREEK.map((i: any) => [i.id, i]));
+    c.optionIndex = new Map(
+      GREEK.flatMap((i: any) =>
+        (i.modifierGroups ?? []).flatMap((g: any) =>
+          g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }]),
+        ),
+      ),
+    );
+    return c;
+  };
+
+  it("takes the whole thing, mangled fragment and all", () => {
+    const st = state();
+    const out = svc().quickAddAloud(
+      greekCtx(),
+      st,
+      "I would like to order solo meat and chicken gyro wrap as a wrap and always... and with the garlic sauce on it",
+    );
+
+    expect(st.cart.items.map((i: any) => i.name)).toEqual(["Solo Meal", "Chicken Gyros Wrap"]);
+    // The sauce they already named is not asked for again.
+    expect(out.say).not.toMatch(/which sauce/i);
+    expect(out.say).toContain("Garlic Sauce");
+    expect(st.cart.items[1].modifiers[0]).toMatchObject({ name: "Garlic Sauce" });
+    // And it is said as one sentence, not a machine reading a list to itself.
+    expect(out.say.match(/Got it/g)).toHaveLength(1);
+  });
+
+  it("a full match beats a longer name that merely contains it", () => {
+    // Chicken Gyros Wrap 1.00 vs The Furry Chicken Gyros Wrap 0.83 was
+    // refused, because the gap was 0.17 and the bar was 0.20. A menu with a
+    // "Monster" and a "Furry" version of everything makes that gap permanent.
+    const st = state();
+    svc().quickAddAloud(greekCtx(), st, "chicken gyro wrap as a wrap with garlic sauce");
+    expect(st.cart.items.map((i: any) => i.name)).toEqual(["Chicken Gyros Wrap"]);
   });
 });

@@ -1923,12 +1923,27 @@ ${menu || "(no items available — apologise and transfer)"}`;
       // it turned "a doner kebab with chilli" into a kebab and a mystery
       // second item called chilli, and sent the whole thing to the model.
       .split(/\s*(?:,|\band\b|\bplus\b)\s*/i)
-      .map((p) => p.replace(/^(can i (get|have)|could i (get|have)|i'?ll have|i want|please|just)\s+/i, "").trim())
+      .map((p) => p.replace(/^(can i (get|have)|could i (get|have)|i'?ll have|i want|i would like( to order)?|please|just)\s+/i, "").trim())
       .filter((p) => p.length > 1);
-    if (!phrases.length || phrases.length > 6) return null;
+    if (!phrases.length || phrases.length > 8) return null;
 
-    const needsChoice: Array<{ item: any; quantity: number; phrase: string }> = [];
+    // "and with the garlic sauce on it" is not a dish, it is more about the
+    // dish before it. Split on "and" it became an item nobody sells, and one
+    // unmatched fragment used to abandon the entire order.
+    const merged: string[] = [];
     for (const phrase of phrases) {
+      if (/^(with|extra|on it|on the side)\b/i.test(phrase) && merged.length) {
+        merged[merged.length - 1] += ` ${phrase}`;
+      } else {
+        merged.push(phrase);
+      }
+    }
+
+    const resolved: Array<{ item: any; quantity: number; phrase: string }> = [];
+    let sizeOpen: { group: any; quantity: number } | null = null;
+    const leftovers: string[] = [];
+
+    for (const phrase of merged) {
       const { quantity, rest } = splitQuantity(phrase);
       const matches = matchItemGroups(rest || phrase, ctx.items, { limit: 3, floor: 0.3 });
       if (!isConfidentGroup(matches)) {
@@ -1942,55 +1957,36 @@ ${menu || "(no items available — apologise and transfer)"}`;
               : "nothing above 0.30"
           }`,
         );
-        return null;
+        // A single stray word is a hesitation, not an order. Real transcripts:
+        // "always...", "erm". Anything longer is something they asked for and
+        // we could not place, and it must be asked about rather than dropped.
+        if (phrase.trim().split(/\s+/).length > 1) leftovers.push(phrase);
+        continue;
       }
 
       const { group } = matches[0]!;
       const item =
         group.variants.length === 1 ? group.variants[0]! : pickVariant(phrase, group.variants);
       if (!item) {
-        // The DISH is certain and only the size is open. Handing that to the
-        // model wasted five seconds on a question we can ask better: it reads
-        // "10 or 14 inch", not three near-identical menu rows.
-        if (phrases.length > 1) return null;
-        state.pendingItem = {
-          variantIds: group.variants.map((v: any) => v.id),
-          quantity,
-          chosen: [],
-        };
-        return {
-          say: `What size ${group.base} would you like — ${sizesAloud(group.variants)}?`,
-          next: "ITEM_OPTION",
-        };
+        if (sizeOpen) return null; // two open sizes is a conversation
+        sizeOpen = { group, quantity };
+        continue;
       }
-      needsChoice.push({ item, quantity, phrase });
+      resolved.push({ item, quantity, phrase });
     }
-    if (!needsChoice.length) return null;
 
-    // Most of a real takeaway menu has a required choice on it — which sauce,
-    // which base, which side. Refusing every one of those to the model made
-    // the fast path apply to drinks and little else. Ask the question here
-    // instead: it is a fixed list, it is the same matcher, and it does not
-    // need five seconds of thought.
-    const configurable = needsChoice.filter((n) =>
-      n.item.modifierGroups?.some((g: any) => g.required),
+    // Nothing we could place. The model gets the whole utterance, untouched.
+    if (!resolved.length && !sizeOpen) return null;
+
+    // Add everything that needs no decision made about it, and hold back at
+    // most ONE dish that does — a turn asks one question.
+    const needsChoice = resolved.filter((r) =>
+      r.item.modifierGroups?.some((g: any) => g.required),
     );
-    if (configurable.length) {
-      // One at a time. A burst where several dishes each need a choice is a
-      // conversation, and that is what the model is for.
-      if (needsChoice.length > 1) return null;
-      const { item, quantity, phrase } = configurable[0]!;
-      state.pendingItem = { itemId: item.id, quantity, chosen: [] };
-      // They may have said the option in the same breath — "doner with chilli
-      // sauce" — in which case there is nothing left to ask.
-      this.absorbOptions(item, state, phrase);
-      const ask = this.askNextOption(ctx, state);
-      if (ask) return ask;
-      return { say: this.commitPendingItem(ctx, state) };
-    }
+    if (needsChoice.length > 1) return null;
+    const straight = resolved.filter((r) => !needsChoice.includes(r));
 
-    const lines = needsChoice;
-    for (const { item, quantity } of lines) {
+    for (const { item, quantity } of straight) {
       state.cart.items.push({
         lineId: Math.random().toString(36).slice(2, 9),
         itemId: item.id,
@@ -2001,18 +1997,65 @@ ${menu || "(no items available — apologise and transfer)"}`;
       } as any);
     }
 
-    // Said, not printed. 'Margherita (14")' is how the menu stores it and
-    // nobody says it out loud that way.
-    const spoken = lines.map(({ item, quantity }) => {
-      const { base, size } = splitSize(item.name);
-      const label = size ? `${base}, ${size.replace(/"/g, " inch").trim()}` : base;
-      return quantity > 1 ? `${quantity} ${label}` : label;
-    });
-    const list =
-      spoken.length > 1
-        ? `${spoken.slice(0, -1).join(", ")} and ${spoken[spoken.length - 1]}`
-        : spoken[0];
-    return { say: `Got it — ${list}. Anything else?` };
+    const added = straight.map(({ item, quantity }) => this.spokenLine(item.name, quantity));
+    const opener = added.length ? `Got it — ${this.listAloud(added)}.` : "";
+
+    // One question, and this is the order they matter in.
+    if (needsChoice.length === 1) {
+      const { item, quantity } = needsChoice[0]!;
+      state.pendingItem = { itemId: item.id, quantity, chosen: [] };
+      // The WHOLE utterance, not just this dish's phrase. A caller says "and
+      // with the garlic sauce on it" at the end of a long order, and which
+      // fragment that lands next to depends on where they paused — in a real
+      // call it landed beside a hesitation and the sauce was lost, so we asked
+      // for something they had already told us. Only one dish per burst is
+      // allowed to need a choice, so there is nothing for this to confuse.
+      this.absorbOptions(item, state, text);
+      const ask = this.askNextOption(ctx, state);
+      if (ask) return { say: `${opener} ${ask.say}`.trim(), next: ask.next };
+      // One sentence, not two. "Got it — Solo Meal. Got it — Chicken Gyros
+      // Wrap." is a machine reading a list back to itself.
+      const done = this.commitPendingItem(ctx, state);
+      if (!opener) return { say: done };
+      return {
+        say: `${opener.replace(/\.$/, "")} and ${done.replace(/^Got it — /, "")}`,
+      };
+    }
+
+    if (sizeOpen) {
+      state.pendingItem = {
+        variantIds: sizeOpen.group.variants.map((v: any) => v.id),
+        quantity: sizeOpen.quantity,
+        chosen: [],
+      };
+      return {
+        say: `${opener} What size ${sizeOpen.group.base} would you like — ${sizesAloud(
+          sizeOpen.group.variants,
+        )}?`.trim(),
+        next: "ITEM_OPTION",
+      };
+    }
+
+    if (leftovers.length) {
+      // Say what landed, then ask only for the part that didn't. Repeating one
+      // item is a different experience from repeating the whole order.
+      return { say: `${opener} Sorry, what was the other one?`.trim() };
+    }
+
+    return { say: `${opener} Anything else?`.trim() };
+  }
+
+  /** "A, B and C" — said the way a person lists things. */
+  private listAloud(parts: string[]): string {
+    if (parts.length <= 1) return parts[0] ?? "";
+    return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  }
+
+  /** A menu name as it should be said: 'Margherita (14")' is not speech. */
+  private spokenLine(name: string, quantity: number): string {
+    const { base, size } = splitSize(name);
+    const label = size ? `${base}, ${size.replace(/"/g, " inch").trim()}` : base;
+    return quantity > 1 ? `${quantity} ${label}` : label;
   }
 
   /**
