@@ -16,9 +16,9 @@ import { PaymentsService } from "../payments/payments.service";
 import type { VoiceContext } from "./voice-context.service";
 import { normaliseNumber } from "./voice-context.service";
 import {
+  addressLineFrom,
+  findPostcodeIn,
   houseNumberFrom,
-  normalisePostcode,
-  normaliseSpokenReference,
   resolveHeardPostcode,
   spokenDigits,
   streetOf,
@@ -479,19 +479,14 @@ export class VoiceAiService {
     said: string,
     lookup: (postcode: string) => Promise<Array<{ line1?: string; city?: string }>>,
   ): Promise<{ say: string; next?: VoiceState["awaiting"] }> {
-    // A spoken postcode arrives as "N E 10 8 Y H" — single letters and number
-    // words — which is the same shape as a spelled-out order reference, so it
-    // goes through the same normaliser.
-    const heard = normaliseSpokenReference(said) || said;
-    // resolveHeardPostcode passes through whatever it was given when it cannot
-    // improve on it — that is right for an address the caller dictated, and
-    // wrong here, where "erm hang on" must not become a postcode. So the
-    // result has to survive validation before it counts as one.
-    const resolved = resolveHeardPostcode(
-      heard,
+    // Asked for a postcode, plenty of people give the whole address. The
+    // postcode is the end of it, so that is where this looks — rather than
+    // demanding they say it again on its own, which is the sort of thing that
+    // makes people hang up.
+    const postcode = findPostcodeIn(
+      said,
       ctx.deliveryZones.map((z) => z.postcodePrefix),
     );
-    const postcode = resolved ? normalisePostcode(resolved) : null;
 
     if (!postcode) {
       const misses = (state.confusion ?? 0) + 1;
@@ -540,13 +535,19 @@ export class VoiceAiService {
     return { say: "Great. And the house number or name?", next: "ADDR_HOUSE" };
   }
 
-  /** The looked-up street was wrong — start the postcode again rather than
-   *  arguing with someone about where they live. */
+  /**
+   * The looked-up street was wrong.
+   *
+   * Asking for the postcode again would be asking for the thing they already
+   * got right. They know their own street; the database evidently does not, so
+   * this hands the question back to them — street and number together, because
+   * that is how anyone says it.
+   */
   streetRejectedAloud(state: VoiceState): { say: string; next: VoiceState["awaiting"] } {
-    state.addr = undefined;
+    if (state.addr) state.addr.street = undefined;
     return {
-      say: "No problem. Could you give me the postcode again, one character at a time?",
-      next: "ADDR_POSTCODE",
+      say: "Sorry about that. What's the street name and house number?",
+      next: "ADDR_HOUSE",
     };
   }
 
@@ -561,17 +562,25 @@ export class VoiceAiService {
     state: VoiceState,
     said: string,
   ): { say: string; next: VoiceState["awaiting"] } {
-    const house = houseNumberFrom(said);
     const street = state.addr?.street;
-    if (!house) {
+    // With a street already agreed, all that is wanted is the number. Without
+    // one — the lookup found nothing, or the caller said it was wrong — they
+    // are giving the whole line, and "11 Fellside Road" has to survive intact.
+    const line1 = street
+      ? (() => {
+          const house = houseNumberFrom(said);
+          return house ? `${house} ${street}` : null;
+        })()
+      : addressLineFrom(said) ?? houseNumberFrom(said);
+
+    if (!line1) {
       return {
-        say: "Sorry, what was the house number or name?",
+        say: street
+          ? "Sorry, what was the house number or name?"
+          : "Sorry, what's the street name and house number?",
         next: "ADDR_HOUSE",
       };
     }
-    // No street yet means the postcode lookup found nothing and they were
-    // asked for the street instead — so what they just said IS the line.
-    const line1 = street ? `${house} ${street}` : house;
 
     state.cart.fulfillmentType = "DELIVERY";
     state.cart.fulfillmentChosen = true;

@@ -541,12 +541,17 @@ describe("postcode-first address capture", () => {
     expect(svc().streetAgreedAloud().say).toContain("house number");
   });
 
-  it("starts the postcode over rather than arguing about where they live", () => {
+  it("hands the street back to the caller when the lookup was wrong", () => {
+    // Asking for the postcode again asks for the thing they already got right.
+    // They know their own street; the database evidently does not.
     const state = withItem();
     state.addr = { postcode: "NE10 8YH", street: "Wrong Street" };
     const out = svc().streetRejectedAloud(state);
-    expect(out.next).toBe("ADDR_POSTCODE");
-    expect(state.addr).toBeUndefined();
+    expect(out.next).toBe("ADDR_HOUSE");
+    expect(out.say).toMatch(/street name and house number/i);
+    // The postcode they gave is kept — only the wrong street is dropped.
+    expect(state.addr.postcode).toBe("NE10 8YH");
+    expect(state.addr.street).toBeUndefined();
   });
 
   it("builds the whole address and reads all of it back", async () => {

@@ -283,7 +283,10 @@ export class VoiceRelayGateway implements OnModuleInit {
   /** Speak a chunk now, with more to follow. */
   private sayPartial(ws: WebSocket, token: string): void {
     if (!token || ws.readyState !== ws.OPEN) return;
-    ws.send(JSON.stringify({ type: "text", token, last: false }));
+    // The trailing space matters. Sentences arrive here one at a time and
+    // Telnyx concatenates them exactly as sent — a live call spoke
+    // "Thanks.And what's the street name?" as one run-on word.
+    ws.send(JSON.stringify({ type: "text", token: `${token} `, last: false }));
   }
 
   private async finish(

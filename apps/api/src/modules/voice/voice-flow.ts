@@ -152,6 +152,8 @@ const REPEAT_INTENT = [
   "didn't catch the options",
 ];
 
+import { soundFold } from "./voice-menu-match";
+
 const clean = (text: string): string =>
   String(text ?? "")
     .toLowerCase()
@@ -698,14 +700,98 @@ export function parseFulfillment(text: string): "DELIVERY" | "PICKUP" | null {
   if (!t) return null;
   // Longer than a short answer means they said something else as well, and
   // that belongs to the model.
-  if (t.split(" ").filter(Boolean).length > 5) return null;
+  const tokens = t.split(" ").filter(Boolean);
+  if (tokens.length > 5) return null;
 
   const delivery = /\b(deliver|delivery|delivered|delivering|to my house|to my home|bring it)\b/.test(t);
   const pickup = /\b(collect|collection|collecting|pick up|pickup|pick it up|takeaway|take away|come in|coming in|myself)\b/.test(t);
   // Both, or neither, is genuinely ambiguous — ask properly rather than guess
   // a delivery charge onto someone who is walking in.
-  if (delivery === pickup) return null;
-  return delivery ? "DELIVERY" : "PICKUP";
+  if (delivery !== pickup) return delivery ? "DELIVERY" : "PICKUP";
+  if (delivery && pickup) return null;
+
+  // Nothing matched outright, so try it by sound before giving up. A real
+  // transcript of "delivery" was "Very very" — the front of the word simply
+  // did not survive, and "very" IS the sound of the back half of it.
+  //
+  // Only reached when the plain words found nothing, which is what keeps "for
+  // collection" safe: "for" sounds like the end of "delivery" too, and there
+  // the word "collection" has already decided it.
+  const heardIn = (word: string) => {
+    const target = soundFold(word);
+    return tokens.some((token) => {
+      if (token.length < 3) return false;
+      const fold = soundFold(token);
+      return fold.length >= 2 && target.includes(fold);
+    });
+  };
+  const soundsDelivery = heardIn("delivery");
+  const soundsPickup = heardIn("collection");
+  if (soundsDelivery === soundsPickup) return null;
+  return soundsDelivery ? "DELIVERY" : "PICKUP";
+}
+
+/**
+ * A postcode anywhere in what the caller said.
+ *
+ * Asked for a postcode, plenty of people give the whole address — a real one
+ * was "Five sunny dead arrived, and eight three seven two l l", which is "5
+ * Sunningdale Drive, NE37 2LL" as the transcriber managed it. Making somebody
+ * repeat just the postcode after that is infuriating, and unnecessary: the
+ * postcode is at the end, so the end is where to look.
+ *
+ * Windows are tried longest first and each has to survive full validation, so
+ * a shorter window only wins when the longer ones were not postcodes at all.
+ */
+export function findPostcodeIn(
+  text: string,
+  zonePrefixes: Array<string | null | undefined> = [],
+): string | null {
+  const compact = (normaliseSpokenReference(text) || String(text ?? ""))
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+  if (compact.length < 5) return null;
+
+  for (let len = Math.min(8, compact.length); len >= 5; len--) {
+    const window = compact.slice(-len);
+    const direct = normalisePostcode(window);
+    if (direct) return direct;
+    const repaired = repairPostcode(window, zonePrefixes);
+    if (repaired) return repaired;
+  }
+  return null;
+}
+
+/**
+ * A whole first line — house and street together — out of one utterance.
+ *
+ * Used when the caller is giving the street themselves, which is what happens
+ * after the looked-up one was wrong. "11 Fellside Road" has to survive intact;
+ * taking only the number out of it loses the half that matters.
+ */
+export function addressLineFrom(said: string): string | null {
+  const t = String(said ?? "")
+    .replace(/[^a-zA-Z0-9\s'-]/g, " ")
+    .replace(/\b(it'?s|its|number|no|i'?m at|im at|at|the address is|address is)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!t) return null;
+
+  const words = t.split(" ").filter(Boolean);
+  // A number on its own is a house number, not a line — that is a different
+  // question and has its own parser.
+  if (words.length < 2) return null;
+
+  // Spoken numbers become digits so "eleven Fellside Road" reads properly.
+  const head = words[0] ?? "";
+  const asNumber = parseSpokenNumber(head);
+  const rest = words.slice(1).join(" ");
+  const line =
+    asNumber && asNumber.length <= 4 && !/^\d/.test(head)
+      ? `${asNumber} ${rest}`
+      : words.join(" ");
+
+  return line.replace(/\b[a-z]/g, (c) => c.toUpperCase());
 }
 
 /**
