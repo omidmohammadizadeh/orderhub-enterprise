@@ -183,11 +183,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const model =
       this.config.get<string>("VOICE_REALTIME_MODEL") || "gpt-realtime";
     const model_url = `wss://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`;
+    // No OpenAI-Beta header. The beta shape is switched off server-side now:
+    //   "The Realtime Beta API is no longer supported. Please use /v1/realtime
+    //    for the GA API."
+    // which arrived as a 4000 close one second into a live call.
     const brain = new WebSocket(model_url, {
-      headers: {
-        Authorization: `Bearer ${this.apiKey()}`,
-        "OpenAI-Beta": "realtime=v1",
-      },
+      headers: { Authorization: `Bearer ${this.apiKey()}` },
     });
 
     let streamId: string | undefined;
@@ -196,42 +197,90 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       caller.send(JSON.stringify({ event: "media", stream_id: streamId, media: { payload: b64 } }));
     };
 
-    brain.on("open", () => {
-      this.logger.log(
-        `realtime model connected for ${ccid.slice(-8)} (${model}, key=${
-          this.config.get<string>("VOICE_OPENAI_API_KEY") ? "voice" : "shared"
-        })`,
-      );
+    // μ-law is what the phone line carries, and the GA schema takes a format
+    // OBJECT where the beta took a string. Which spelling it wants is not
+    // written down anywhere I can find, so try them in order of likelihood and
+    // say which one worked — the same ladder that settled the Telnyx
+    // transcription model after three live calls guessing at it.
+    const formats: Array<unknown> = [
+      { type: "audio/pcmu" },
+      { type: "g711_ulaw" },
+      "g711_ulaw",
+    ];
+    let formatIndex = 0;
+    let configured = false;
+
+    const sendSessionUpdate = () => {
+      const format = formats[formatIndex];
       brain.send(
         JSON.stringify({
           type: "session.update",
           session: {
-            // μ-law both ways: exactly what the phone line carries.
-            input_audio_format: "g711_ulaw",
-            output_audio_format: "g711_ulaw",
-            modalities: ["audio", "text"],
-            voice: this.config.get<string>("VOICE_REALTIME_VOICE") || "alloy",
-            // The model decides when the caller has stopped. This is the part
-            // that is meant to feel better than an endpointing timer.
-            turn_detection: { type: "server_vad", silence_duration_ms: 500 },
-            // A transcript of the caller, PURELY so this engine can be
-            // debugged the way the chained one can. Losing `heard "..."` was
-            // the strongest argument against ever trying speech-to-speech.
-            input_audio_transcription: { model: "whisper-1" },
+            type: "realtime",
             instructions: session.instructions,
+            output_modalities: ["audio"],
+            audio: {
+              input: {
+                format,
+                // The model decides when the caller has stopped talking. This
+                // is the part that is meant to feel better than a timer.
+                turn_detection: { type: "server_vad", silence_duration_ms: 500 },
+                // A transcript of the caller, PURELY so this engine can be
+                // debugged the way the chained one can. Losing `heard "..."`
+                // was the strongest argument against ever trying this.
+                transcription: { model: "whisper-1" },
+              },
+              output: {
+                format,
+                voice: this.config.get<string>("VOICE_REALTIME_VOICE") || "alloy",
+              },
+            },
             tools: session.tools,
             tool_choice: "auto",
           },
         }),
       );
-      // Speak first. The caller has just been answered and silence reads as a
-      // dead line.
+    };
+
+    /** The API rejected our session. Try the next audio spelling, once each. */
+    const retryWithNextFormat = (why: string): boolean => {
+      if (configured || formatIndex >= formats.length - 1) return false;
+      formatIndex += 1;
+      this.logger.warn(
+        `realtime rejected audio format ${JSON.stringify(formats[formatIndex - 1])} (${why}) — trying ${JSON.stringify(formats[formatIndex])}`,
+      );
+      sendSessionUpdate();
+      return true;
+    };
+
+    const greet = () => {
       brain.send(
         JSON.stringify({
           type: "response.create",
           response: { instructions: `Greet the caller with exactly: "${session.greeting}"` },
         }),
       );
+    };
+
+    (brain as any).__onConfigured = () => {
+      if (configured) return;
+      configured = true;
+      this.logger.log(
+        `realtime session ready on ${ccid.slice(-8)} with audio ${JSON.stringify(formats[formatIndex])}`,
+      );
+      // Speak first. The caller has just been answered and silence reads as a
+      // dead line.
+      greet();
+    };
+    (brain as any).__retryFormat = retryWithNextFormat;
+
+    brain.on("open", () => {
+      this.logger.log(
+        `realtime model connected for ${ccid.slice(-8)} (${model}, key=${
+          this.config.get<string>("VOICE_OPENAI_API_KEY") ? "voice" : "shared"
+        })`,
+      );
+      sendSessionUpdate();
     });
 
     brain.on("message", (raw) => void this.onModelEvent(raw.toString(), ccid, brain, sendAudio));
@@ -294,8 +343,18 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const type = String(event?.type ?? "");
 
     switch (type) {
+      // GA renamed this. Both spellings are accepted so a rename in either
+      // direction cannot silence the line.
+      case "response.output_audio.delta":
       case "response.audio.delta":
         if (event.delta) sendAudio(event.delta);
+        return;
+
+      // The session was accepted — this is the only signal that the audio
+      // format we guessed was the right one, so the greeting waits for it.
+      case "session.created":
+      case "session.updated":
+        (brain as any).__onConfigured?.();
         return;
 
       // The caller's own words, logged in the same shape the chained engine
@@ -307,25 +366,30 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         );
         return;
 
+      // GA can deliver a finished tool call either way round. Handling only
+      // one of them would look exactly like a model that never calls tools.
+      case "response.output_item.done":
       case "response.function_call_arguments.done": {
+        const item = event.item ?? {};
+        if (type === "response.output_item.done" && item.type !== "function_call") return;
+        const name = String(event.name ?? item.name ?? "");
+        const callId = event.call_id ?? item.call_id;
         let args: any = {};
         try {
-          args = JSON.parse(event.arguments ?? "{}");
+          args = JSON.parse(event.arguments ?? item.arguments ?? "{}");
         } catch {
           /* the model sent something unparseable; the tool decides */
         }
         const out = await this.voice
-          .realtimeTool(ccid, String(event.name ?? ""), args)
+          .realtimeTool(ccid, name, args)
           .catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
-        this.logger.log(
-          `realtime ${ccid.slice(-8)} tool ${event.name} → ${out.result.slice(0, 120)}`,
-        );
+        this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${out.result.slice(0, 120)}`);
         brain.send(
           JSON.stringify({
             type: "conversation.item.create",
             item: {
               type: "function_call_output",
-              call_id: event.call_id,
+              call_id: callId,
               output: out.result,
             },
           }),
@@ -342,11 +406,17 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         return;
       }
 
-      case "error":
-        this.logger.error(
-          `realtime model error on ${ccid.slice(-8)}: ${JSON.stringify(event.error ?? event).slice(0, 400)}`,
-        );
+      case "error": {
+        const err = event.error ?? event;
+        const text = JSON.stringify(err);
+        // A rejected audio format is recoverable — try the next spelling
+        // rather than leaving the caller on a line that cannot speak.
+        if (/format/i.test(text) && (brain as any).__retryFormat?.(String(err?.message ?? "").slice(0, 120))) {
+          return;
+        }
+        this.logger.error(`realtime model error on ${ccid.slice(-8)}: ${text.slice(0, 400)}`);
         return;
+      }
 
       default:
         if (!this.seenEvents.has(`model:${type}`)) {
