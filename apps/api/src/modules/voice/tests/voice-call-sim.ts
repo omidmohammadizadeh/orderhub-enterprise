@@ -26,6 +26,9 @@ export interface SimTurn {
 export interface SimOptions {
   /** Postcode → addresses, standing in for the address service. */
   postcodes?: Record<string, Array<{ line1: string; city?: string }>>;
+  /** Addresses this shop has already delivered to, as its own order history
+   *  holds them. Consulted before any network lookup. */
+  pastDeliveries?: Array<{ addressLine1: string; city?: string }>;
   /** Rows the order lookups should find. */
   orders?: any[];
   /** Delivery zones for the shop. */
@@ -110,6 +113,14 @@ export class VoiceCallSim {
         })),
       }),
     };
+    // The address chain, and the shop's own delivery history in front of it.
+    // Both hang off the AI service because that is where streetsForPostcode
+    // lives — the scripted flow and the model path share one lookup.
+    ai.addresses = svc.addresses;
+    ai.prisma = {
+      order: { findMany: async () => opts.pastDeliveries ?? [] },
+    };
+
     svc.db = () => ({
       voiceCall: {
         findUnique: async () => this.store.row,

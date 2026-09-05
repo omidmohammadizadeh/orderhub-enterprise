@@ -145,6 +145,16 @@ services:
       #
       # Unset this key and the line falls back to the webhook transport, which
       # is still there and still works. That is the off switch.
+      # Postcode -> street name, for the phone line's address step and the POS
+      # address picker. This must be a SERVER key (restrict it by IP/API, not
+      # by HTTP referrer like the browser key the web app uses), with the
+      # Geocoding API enabled.
+      #
+      # Without it we fall back to the free OSM chain — which does not work
+      # from here: Render's outbound IPs cannot connect to overpass-api.de at
+      # all, so a caller gets asked to say a street the shop already knows.
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
       - key: VOICE_RELAY_URL
         value: wss://orderhub-api-0re6.onrender.com/voice/relay
       # Signs the per-call token on that URL. Falls back to TELNYX_API_KEY when

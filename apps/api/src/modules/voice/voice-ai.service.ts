@@ -550,6 +550,61 @@ export class VoiceAiService {
   }
 
   /**
+   * Postcode → street names, our own deliveries first.
+   *
+   * Every external lookup so far has been a bet on somebody else's uptime, and
+   * on a phone call we lose that bet in silence. But a takeaway has already
+   * driven to this postcode: the streets it delivers to are sitting in its own
+   * order history, they cost one indexed query, they cannot go down, and they
+   * get better every week the shop trades. So we ask ourselves first and only
+   * go out to the network for a postcode we've genuinely never seen.
+   */
+  async streetsForPostcode(
+    ctx: VoiceContext,
+    postcode: string,
+  ): Promise<Array<{ line1?: string; city?: string }>> {
+    const pretty = `${postcode.slice(0, -3)} ${postcode.slice(-3)}`;
+    try {
+      const rows = await this.prisma.order.findMany({
+        where: {
+          tenantId: (ctx as any).tenantId,
+          OR: [
+            { postcode: { equals: pretty, mode: "insensitive" } },
+            { postcode: { equals: postcode, mode: "insensitive" } },
+          ],
+          addressLine1: { not: null },
+        },
+        select: { addressLine1: true, city: true },
+        orderBy: { receivedAt: "desc" },
+        take: 25,
+      });
+      // Rank by how often we've actually delivered there — on a postcode that
+      // straddles two streets, the one we know best is the better guess.
+      const tally = new Map<string, { street: string; city?: string; n: number }>();
+      for (const row of rows) {
+        const street = streetOf(row.addressLine1);
+        if (!street) continue;
+        const k = street.toLowerCase();
+        const hit = tally.get(k);
+        if (hit) hit.n += 1;
+        else tally.set(k, { street, city: row.city ?? undefined, n: 1 });
+      }
+      const known = [...tally.values()].sort((a, b) => b.n - a.n);
+      if (known.length) {
+        return known.map((k) => ({ line1: k.street, city: k.city }));
+      }
+    } catch (err: any) {
+      // Our own history is an optimisation, never a dependency. If the query
+      // is unhappy we still have the provider chain below, and the caller
+      // must not hear the difference.
+      this.logger?.warn(`own-orders street lookup failed: ${err?.message ?? err}`);
+    }
+
+    const res: any = await this.addresses.searchByPostcode(postcode);
+    return (res?.suggestions ?? []).map((sg: any) => ({ line1: sg.line1, city: sg.city }));
+  }
+
+  /**
    * The same postcode lookup the scripted flow uses, exposed to the model.
    *
    * The model only drives an address when the scripted path has already been
@@ -574,9 +629,7 @@ export class VoiceAiService {
     let found: Array<{ line1?: string; city?: string }> = [];
     try {
       found = await Promise.race([
-        this.addresses
-          .searchByPostcode(postcode)
-          .then((r: any) => r.suggestions.map((sg: any) => ({ line1: sg.line1, city: sg.city }))),
+        this.streetsForPostcode(ctx, postcode),
         new Promise<Array<{ line1?: string; city?: string }>>((resolve) =>
           setTimeout(() => resolve([]), LOOKUP_TIMEOUT_MS),
         ),

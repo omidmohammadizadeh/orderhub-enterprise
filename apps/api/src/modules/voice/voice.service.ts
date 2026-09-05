@@ -510,10 +510,16 @@ export class VoiceService {
       case "ADDR_POSTCODE": {
         // One short question, one checkable answer. The lookup is injected so
         // the conversation logic stays testable without a Places key.
+        // Our own past deliveries first, the network only for a postcode
+        // we've never driven to. See VoiceAiService.streetsForPostcode.
+        const startedAt = Date.now();
         const out = await this.ai.postcodeAloud(ctx, state, said, (postcode) =>
-          this.addresses
-            .searchByPostcode(postcode)
-            .then((r) => r.suggestions.map((sg) => ({ line1: sg.line1, city: sg.city }))),
+          this.ai.streetsForPostcode(ctx, postcode),
+        );
+        this.logger.log(
+          `postcode lookup for call ${call.id} took ${Date.now() - startedAt}ms → ${
+            state.addr?.street ?? "no street"
+          }`,
         );
         say = out.say;
         next = out.next;

@@ -7,7 +7,12 @@
 // AddressLookupService falls through cleanly.
 
 import { Logger } from "@nestjs/common";
+import { cacheStreets, getCachedStreets, type CachedStreets } from "./postcode-street-cache";
 import type { AddressSuggestion, PostcodeProvider } from "./types";
+
+/** Google is a paid, datacentre-grade endpoint — it either answers fast or is
+ *  misconfigured, so the deadline is short on purpose. */
+const GOOGLE_TIMEOUT_MS = Number(process.env.ADDRESS_GOOGLE_TIMEOUT_MS) || 2500;
 
 // ── getaddress.io (Royal Mail PAF, paid, recommended) ──────────────────────
 export class GetAddressProvider implements PostcodeProvider {
@@ -71,6 +76,138 @@ export class GetAddressProvider implements PostcodeProvider {
   }
 }
 
+// ── Google Geocoding (postcode → street names) ─────────────────────────────
+//
+// The free OSM chain below is the right default for a POS: an operator can
+// wait a second and can read a list. A phone caller can do neither, and the
+// endpoints it depends on are volunteer-run — from Render's outbound IPs
+// overpass-api.de fails to connect outright ("fetch failed", not a timeout),
+// which leaves the voice line asking for a street it should already know.
+//
+// Google is reachable from any datacentre, answers in ~150ms, and the account
+// is already open for the dispatch map. Set GOOGLE_MAPS_API_KEY on the API
+// service (a SERVER key — IP/API restricted, not the referrer-restricted
+// browser key the web app uses) and this takes over from OSM.
+//
+// Two calls at most:
+//   1. Geocode the postcode → centroid, postal_town, and for small postcodes
+//      often the route itself.
+//   2. Only if step 1 named no route: reverse-geocode the centroid, which
+//      does.
+export class GooglePostcodeProvider implements PostcodeProvider {
+  readonly id = "google" as const;
+  private readonly logger = new Logger(GooglePostcodeProvider.name);
+
+  isConfigured(): boolean {
+    return !!process.env.GOOGLE_MAPS_API_KEY;
+  }
+
+  async searchByPostcode(postcode: string): Promise<AddressSuggestion[]> {
+    const pretty = `${postcode.slice(0, -3)} ${postcode.slice(-3)}`;
+
+    const cached = getCachedStreets(postcode);
+    if (cached) return this.toSuggestions(postcode, pretty, cached);
+
+    const key = process.env.GOOGLE_MAPS_API_KEY!;
+    const geo = await this.fetchJson(
+      `https://maps.googleapis.com/maps/api/geocode/json` +
+        `?address=${encodeURIComponent(pretty)}` +
+        `&components=country:GB&key=${key}`,
+    );
+    if (geo?.status === "ZERO_RESULTS") return [];
+    if (geo?.status && geo.status !== "OK") {
+      // Surfacing this matters: a billing-disabled or wrongly-restricted key
+      // fails silently otherwise and the line quietly drops to asking for the
+      // street by voice for weeks.
+      throw new Error(`google geocode ${geo.status}${geo.error_message ? `: ${geo.error_message}` : ""}`);
+    }
+
+    const results: GoogleResult[] = geo?.results ?? [];
+    const first = results[0];
+    const loc = first?.geometry?.location;
+    if (!loc) return [];
+
+    const city = pickComponent(results, ["postal_town", "locality", "administrative_area_level_2"]);
+    let streets = collectRoutes(results);
+
+    if (!streets.length) {
+      const rev = await this.fetchJson(
+        `https://maps.googleapis.com/maps/api/geocode/json` +
+          `?latlng=${loc.lat},${loc.lng}` +
+          `&result_type=street_address|route|premise&key=${key}`,
+      );
+      if (rev?.status && rev.status !== "OK" && rev.status !== "ZERO_RESULTS") {
+        this.logger.warn(`google reverse ${rev.status}`);
+      }
+      streets = collectRoutes(rev?.results ?? []);
+    }
+
+    if (!streets.length) return [];
+
+    const value = { streets, city, latitude: loc.lat, longitude: loc.lng };
+    cacheStreets(postcode, value);
+    return this.toSuggestions(postcode, pretty, value);
+  }
+
+  private async fetchJson(url: string): Promise<any> {
+    const res = await fetch(url, { signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`google geocode HTTP ${res.status} ${res.statusText}`);
+    return res.json();
+  }
+
+  private toSuggestions(
+    postcode: string,
+    pretty: string,
+    value: CachedStreets,
+  ): AddressSuggestion[] {
+    return value.streets.map((street, idx) => ({
+      id: `google:${postcode}:${idx}`,
+      label: `${street}${value.city ? `, ${value.city}` : ""}, ${pretty} — add house/flat`,
+      line1: street,
+      city: value.city || undefined,
+      postcode: pretty,
+      country: "GB",
+      latitude: value.latitude,
+      longitude: value.longitude,
+      provider: "google" as const,
+    }));
+  }
+}
+
+interface GoogleResult {
+  address_components?: Array<{ long_name: string; short_name: string; types: string[] }>;
+  geometry?: { location?: { lat: number; lng: number } };
+}
+
+/** Distinct route (street) names across a Google geocode response, in order. */
+function collectRoutes(results: GoogleResult[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const r of results) {
+    for (const c of r.address_components ?? []) {
+      if (!c.types?.includes("route")) continue;
+      const name = c.long_name?.trim();
+      if (!name) continue;
+      const k = name.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push(name);
+    }
+  }
+  return out;
+}
+
+function pickComponent(results: GoogleResult[], types: string[]): string | undefined {
+  for (const type of types) {
+    for (const r of results) {
+      for (const c of r.address_components ?? []) {
+        if (c.types?.includes(type) && c.long_name?.trim()) return c.long_name.trim();
+      }
+    }
+  }
+  return undefined;
+}
+
 // ── OSM Streets (free, no key, returns street names per postcode) ──────────
 //
 // Two-step OSM chain — Nominatim's /search?postalcode endpoint only returns
@@ -97,10 +234,60 @@ export class GetAddressProvider implements PostcodeProvider {
 const OVERPASS_TIMEOUT_MS = Number(process.env.ADDRESS_OVERPASS_TIMEOUT_MS) || 1500;
 const NOMINATIM_TIMEOUT_MS = Number(process.env.ADDRESS_NOMINATIM_TIMEOUT_MS) || 1500;
 
+/** Overpass is volunteer-run and the main instance is not reachable from every
+ *  network — Render's outbound IPs can't connect to overpass-api.de at all.
+ *  The mirrors run the same API, so ask more than one and take whoever
+ *  answers. Override with a comma-separated ADDRESS_OVERPASS_ENDPOINTS. */
+const OVERPASS_ENDPOINTS: string[] = (
+  process.env.ADDRESS_OVERPASS_ENDPOINTS ??
+  "https://overpass-api.de/api/interpreter,https://overpass.kumi.systems/api/interpreter"
+)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+/**
+ * Run every task at once and resolve with the first NON-EMPTY result.
+ *
+ * Promise.any is the wrong shape here: these tasks signal failure by
+ * resolving empty, not by rejecting, so any() would hand back the first
+ * shrug. Resolves [] if the deadline passes or everything comes back empty.
+ */
+export async function firstNonEmpty<T>(
+  tasks: Array<() => Promise<T[]>>,
+  deadlineMs: number,
+): Promise<T[]> {
+  if (!tasks.length) return [];
+  return new Promise<T[]>((resolve) => {
+    let settled = false;
+    let outstanding = tasks.length;
+    const done = (value: T[]) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = setTimeout(() => done([]), deadlineMs);
+    // Nothing should keep the process alive waiting on a street name.
+    (timer as any).unref?.();
+    for (const task of tasks) {
+      Promise.resolve()
+        .then(task)
+        .then((result) => {
+          if (result?.length) done(result);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          outstanding -= 1;
+          if (outstanding === 0) done([]);
+        });
+    }
+  });
+}
+
 export class OsmStreetsProvider implements PostcodeProvider {
   readonly id = "osm" as const;
   private readonly logger = new Logger(OsmStreetsProvider.name);
-  private lastOverpassCallAt = 0;
 
   isConfigured(): boolean {
     return process.env.ADDRESS_LOOKUP_DISABLE_OSM !== "true";
@@ -113,16 +300,24 @@ export class OsmStreetsProvider implements PostcodeProvider {
     );
   }
 
-  private async throttleOverpass(): Promise<void> {
-    const minGapMs = 500;
-    const wait = this.lastOverpassCallAt + minGapMs - Date.now();
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-    this.lastOverpassCallAt = Date.now();
-  }
-
   async searchByPostcode(postcode: string): Promise<AddressSuggestion[]> {
     // Re-pretty the postcode (postcodes.io is tolerant either way).
     const pretty = `${postcode.slice(0, -3)} ${postcode.slice(-3)}`;
+
+    const cached = getCachedStreets(postcode);
+    if (cached) {
+      return cached.streets.map((street, idx) => ({
+        id: `osm:${postcode}:${idx}`,
+        label: `${street}${cached.city ? `, ${cached.city}` : ""}, ${pretty} — add house/flat`,
+        line1: street,
+        city: cached.city || undefined,
+        postcode: pretty,
+        country: "GB",
+        latitude: cached.latitude,
+        longitude: cached.longitude,
+        provider: "osm" as const,
+      }));
+    }
 
     // Step 1 — postcodes.io for coords + admin district.
     const pioRes = await fetch(
@@ -153,32 +348,28 @@ export class OsmStreetsProvider implements PostcodeProvider {
       "";
     const postcodeOut = pio.result.postcode;
 
-    // Step 2 — Overpass for every named highway within 250m of those
-    // coords. When Overpass times out / 429s / is blocked by the host
-    // network (we've seen this happen on Render's outbound IPs) we
-    // fall back to Nominatim's reverse geocode inside THIS provider
-    // instead of throwing — otherwise the outer chain falls through
-    // to postcodes.io which only knows the town, and the operator's
-    // street picker disappears.
-    const overpassStreets = await this.tryOverpass(latitude, longitude);
-    if (overpassStreets.length > 0) {
-      return overpassStreets.map((street, idx) => ({
+    // Step 2 — name the streets around those coords.
+    //
+    // These used to run one after the other: Overpass, and only once it had
+    // given up, Nominatim. That ordering cannot work on a phone call.
+    // overpass-api.de doesn't merely time out from Render's outbound IPs, it
+    // fails to connect at all, and the Nominatim fallback then started from
+    // zero with the caller's patience already spent — so the fallback never
+    // once reached the caller. Ask all of them at the same time and take the
+    // first real answer instead; the loser costs nothing.
+    const streets = await firstNonEmpty(
+      [
+        ...OVERPASS_ENDPOINTS.map((endpoint) => () =>
+          this.tryOverpass(latitude, longitude, endpoint),
+        ),
+        () => this.tryNominatim(latitude, longitude),
+      ],
+      OVERPASS_TIMEOUT_MS + 400,
+    );
+    if (streets.length > 0) {
+      cacheStreets(postcode, { streets, city: town || undefined, latitude, longitude });
+      return streets.map((street, idx) => ({
         id: `osm:${postcode}:${idx}`,
-        label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
-        line1: street,
-        city: town || undefined,
-        postcode: postcodeOut,
-        country: "GB",
-        latitude,
-        longitude,
-        provider: "osm" as const,
-      }));
-    }
-
-    const nominatimStreets = await this.tryNominatim(latitude, longitude);
-    if (nominatimStreets.length > 0) {
-      return nominatimStreets.map((street, idx) => ({
-        id: `osm:${postcode}:nom:${idx}`,
         label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
         line1: street,
         city: town || undefined,
@@ -209,15 +400,20 @@ export class OsmStreetsProvider implements PostcodeProvider {
 
   /** Overpass query for named highways near the coords. Catches all
    *  errors so the caller can decide to fall back. */
-  private async tryOverpass(lat: number, lng: number): Promise<string[]> {
+  private async tryOverpass(
+    lat: number,
+    lng: number,
+    endpoint: string,
+  ): Promise<string[]> {
     try {
-      await this.throttleOverpass();
+      // The query's own timeout used to be 25s — pointless when the client
+      // gives up in under two, and it makes the mirror hold a worker open on
+      // our behalf after we've stopped listening.
       const query =
-        `[out:json][timeout:25];` +
+        `[out:json][timeout:5];` +
         `way["highway"]["name"](around:250,${lat},${lng});` +
         `out tags;`;
-      const overpassUrl =
-        `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+      const overpassUrl = `${endpoint}?data=${encodeURIComponent(query)}`;
       const opRes = await fetch(overpassUrl, {
         // The query asks Overpass for up to 25 seconds. Nothing was limiting
         // the CLIENT, so a slow day there became a slow day on a phone call —
@@ -227,7 +423,7 @@ export class OsmStreetsProvider implements PostcodeProvider {
         headers: { "User-Agent": this.userAgent() },
       });
       if (!opRes.ok) {
-        this.logger.warn(`Overpass ${opRes.status} ${opRes.statusText}`);
+        this.logger.warn(`Overpass ${endpoint} ${opRes.status} ${opRes.statusText}`);
         return [];
       }
       const data = (await opRes.json()) as {
@@ -248,58 +444,45 @@ export class OsmStreetsProvider implements PostcodeProvider {
       streets.sort((a, b) => a.localeCompare(b, "en-GB"));
       return streets;
     } catch (err: any) {
-      this.logger.warn(`Overpass exception: ${err?.message ?? err}`);
+      this.logger.warn(`Overpass ${endpoint} exception: ${err?.message ?? err}`);
       return [];
     }
   }
 
-  /** Nominatim reverse geocode at coords + a handful of small jitters
-   *  around the postcode centroid so we collect multiple road names
-   *  even when the postcode covers more than one street. Each call is
-   *  rate-limited at 1.1s per the OSM policy. */
+  /**
+   * Nominatim reverse geocode at the postcode centroid.
+   *
+   * This used to walk five jittered points to collect several road names, each
+   * behind a 1.1s policy gap — four and a half seconds of deliberate waiting
+   * before the first word could be spoken. OSM's usage policy caps us at one
+   * request a second, so the honest conclusion is that Nominatim gets ONE
+   * call here and names the likeliest street. The caller confirms it out loud
+   * anyway, which is what the extra four points were really buying.
+   */
   private async tryNominatim(lat: number, lng: number): Promise<string[]> {
-    const seen = new Set<string>();
-    const streets: string[] = [];
-    // 5 sample points within ~80m of the postcode centroid.
-    const jitters: Array<[number, number]> = [
-      [0, 0],
-      [0.0008, 0],
-      [-0.0008, 0],
-      [0, 0.0012],
-      [0, -0.0012],
-    ];
-    for (const [dLat, dLng] of jitters) {
-      try {
-        await this.throttleNominatim();
-        const url =
-          `https://nominatim.openstreetmap.org/reverse` +
-          `?lat=${lat + dLat}&lon=${lng + dLng}` +
-          `&format=jsonv2&addressdetails=1&zoom=17`;
-        const res = await fetch(url, {
-          // Bounded for the same reason as Overpass: this runs while somebody
-          // is holding a phone, and it walks several jittered points.
-          signal: AbortSignal.timeout(NOMINATIM_TIMEOUT_MS),
-          headers: { "User-Agent": this.userAgent() },
-        });
-        if (!res.ok) continue;
-        const data = (await res.json()) as {
-          address?: { road?: string; pedestrian?: string; residential?: string };
-        };
-        const road =
-          data.address?.road ??
-          data.address?.pedestrian ??
-          data.address?.residential;
-        if (!road) continue;
-        const key = road.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        streets.push(road);
-      } catch (err: any) {
-        this.logger.warn(`Nominatim reverse exception: ${err?.message ?? err}`);
+    try {
+      await this.throttleNominatim();
+      const url =
+        `https://nominatim.openstreetmap.org/reverse` +
+        `?lat=${lat}&lon=${lng}&format=jsonv2&addressdetails=1&zoom=17`;
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(NOMINATIM_TIMEOUT_MS),
+        headers: { "User-Agent": this.userAgent() },
+      });
+      if (!res.ok) {
+        this.logger.warn(`Nominatim reverse ${res.status} ${res.statusText}`);
+        return [];
       }
+      const data = (await res.json()) as {
+        address?: { road?: string; pedestrian?: string; residential?: string };
+      };
+      const road =
+        data.address?.road ?? data.address?.pedestrian ?? data.address?.residential;
+      return road ? [road] : [];
+    } catch (err: any) {
+      this.logger.warn(`Nominatim reverse exception: ${err?.message ?? err}`);
+      return [];
     }
-    streets.sort((a, b) => a.localeCompare(b, "en-GB"));
-    return streets;
   }
 
   private lastNominatimCallAt = 0;

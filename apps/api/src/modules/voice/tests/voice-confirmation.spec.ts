@@ -620,9 +620,10 @@ describe("the prompt cannot ask for a whole address", () => {
 });
 
 describe("lookup_postcode", () => {
-  const withLookup = (suggestions: any[]) => {
+  const withLookup = (suggestions: any[], pastDeliveries: any[] = []) => {
     const s = svc();
     s.addresses = { searchByPostcode: async () => ({ suggestions }) };
+    s.prisma = { order: { findMany: async () => pastDeliveries } };
     return s;
   };
 
@@ -653,6 +654,79 @@ describe("lookup_postcode", () => {
 
     expect(out).toContain("Sunningdale Drive");
     expect(state.addr.postcode).toBe("NE37 2LL");
+  });
+
+  it("answers from the shop's own deliveries before it touches the network", async () => {
+    // The failure this exists to prevent: overpass-api.de is not reachable
+    // from Render at all, so on a live call the lookup came back with nothing
+    // and the caller was asked to say a street the shop delivers to weekly.
+    const state: any = { cart: { items: [] } };
+    const s = svc();
+    s.prisma = {
+      order: {
+        findMany: async () => [
+          { addressLine1: "11 Sunningdale Drive", city: "Washington" },
+          { addressLine1: "5 Sunningdale Drive", city: "Washington" },
+          { addressLine1: "2 Ferndale Avenue", city: "Washington" },
+        ],
+      },
+    };
+    // If this is ever reached the point of the test is lost.
+    s.addresses = {
+      searchByPostcode: async () => {
+        throw new Error("the network must not be asked for a postcode we know");
+      },
+    };
+
+    const out = await s.lookupPostcode("N E three seven two l l.", ne37(), state);
+
+    expect(out).toContain("Sunningdale Drive");
+    expect(state.addr.street).toBe("Sunningdale Drive");
+  });
+
+  it("prefers the street it has delivered to most on a split postcode", async () => {
+    const state: any = { cart: { items: [] } };
+    const out = await withLookup(
+      [],
+      [
+        { addressLine1: "2 Ferndale Avenue", city: "Washington" },
+        { addressLine1: "11 Sunningdale Drive", city: "Washington" },
+        { addressLine1: "5 Sunningdale Drive", city: "Washington" },
+      ],
+    ).lookupPostcode("N E three seven two l l.", ne37(), state);
+
+    expect(state.addr.street).toBe("Sunningdale Drive");
+    expect(out).toContain("Sunningdale Drive");
+  });
+
+  it("still goes out to the network for a postcode it has never delivered to", async () => {
+    const state: any = { cart: { items: [] } };
+    const out = await withLookup(
+      [{ line1: "5 Sunningdale Drive", city: "Washington" }],
+      [],
+    ).lookupPostcode("N E three seven two l l.", ne37(), state);
+
+    expect(out).toContain("Sunningdale Drive");
+  });
+
+  it("survives the history query falling over", async () => {
+    const state: any = { cart: { items: [] } };
+    const s = svc();
+    s.prisma = {
+      order: {
+        findMany: async () => {
+          throw new Error("db went away");
+        },
+      },
+    };
+    s.addresses = {
+      searchByPostcode: async () => ({
+        suggestions: [{ line1: "5 Sunningdale Drive", city: "Washington" }],
+      }),
+    };
+
+    const out = await s.lookupPostcode("N E three seven two l l.", ne37(), state);
+    expect(out).toContain("Sunningdale Drive");
   });
 
   it("does not relocate someone who really is out of area", async () => {
