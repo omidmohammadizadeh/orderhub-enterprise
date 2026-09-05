@@ -163,7 +163,12 @@ services:
       # and says so in the log.
       - key: VOICE_REALTIME_URL
         value: wss://orderhub-api-0re6.onrender.com/voice/media
-      - key: OPENAI_API_KEY
+      # Optional, and worth setting. Realtime AUDIO costs an order of magnitude
+      # more per minute than the image generation already using OPENAI_API_KEY,
+      # and OpenAI reports spend per key — so a separate key (ideally its own
+      # project, with a monthly cap) is the only way to see what the voice
+      # experiment actually costs. Unset, the shared key is used.
+      - key: VOICE_OPENAI_API_KEY
         sync: false
       # Signs the per-call token on that URL. Falls back to TELNYX_API_KEY when
       # unset, so it is optional.

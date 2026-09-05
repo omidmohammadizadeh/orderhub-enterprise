@@ -59,10 +59,28 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     return this.prisma as any;
   }
 
+  /**
+   * The OpenAI key this engine uses.
+   *
+   * Falls back to the shared one, so a shop can be switched to
+   * speech-to-speech with no new configuration at all. But a dedicated key is
+   * worth setting: realtime AUDIO is an order of magnitude dearer per minute
+   * than the image generation that already uses the shared key, and the whole
+   * point of running two engines is to find out what this one costs. OpenAI
+   * reports spend per key, so one key per workload is the only way to see it.
+   */
+  private apiKey(): string | undefined {
+    return (
+      this.config.get<string>("VOICE_OPENAI_API_KEY") ||
+      this.config.get<string>("OPENAI_API_KEY") ||
+      undefined
+    );
+  }
+
   /** Where Telnyx should stream this call's audio. Null = engine unavailable. */
   streamUrl(callControlId: string): string | null {
     const base = this.config.get<string>("VOICE_REALTIME_URL");
-    if (!base || !this.config.get<string>("OPENAI_API_KEY")) return null;
+    if (!base || !this.apiKey()) return null;
     return `${base.replace(/\/+$/, "")}?call=${encodeURIComponent(
       callControlId,
     )}&t=${this.tokenFor(callControlId)}`;
@@ -70,8 +88,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
   /** Configured at all? Used to explain a refusal rather than fail silently. */
   available(): { ok: boolean; why?: string } {
-    if (!this.config.get<string>("OPENAI_API_KEY")) {
-      return { ok: false, why: "OPENAI_API_KEY is not set on the API service" };
+    if (!this.apiKey()) {
+      return {
+        ok: false,
+        why: "neither VOICE_OPENAI_API_KEY nor OPENAI_API_KEY is set on the API service",
+      };
     }
     if (!this.config.get<string>("VOICE_REALTIME_URL")) {
       return { ok: false, why: "VOICE_REALTIME_URL is not set on the API service" };
@@ -164,7 +185,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const model_url = `wss://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`;
     const brain = new WebSocket(model_url, {
       headers: {
-        Authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY")}`,
+        Authorization: `Bearer ${this.apiKey()}`,
         "OpenAI-Beta": "realtime=v1",
       },
     });
@@ -176,7 +197,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     };
 
     brain.on("open", () => {
-      this.logger.log(`realtime model connected for ${ccid.slice(-8)} (${model})`);
+      this.logger.log(
+        `realtime model connected for ${ccid.slice(-8)} (${model}, key=${
+          this.config.get<string>("VOICE_OPENAI_API_KEY") ? "voice" : "shared"
+        })`,
+      );
       brain.send(
         JSON.stringify({
           type: "session.update",
