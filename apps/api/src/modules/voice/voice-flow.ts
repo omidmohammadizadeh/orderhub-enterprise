@@ -752,12 +752,31 @@ export function findPostcodeIn(
     .replace(/[^A-Z0-9]/g, "");
   if (compact.length < 5) return null;
 
+  const prefixes = zonePrefixes
+    .map((p) => String(p ?? "").toUpperCase().replace(/[^A-Z0-9]/g, ""))
+    .filter(Boolean);
+  const servable = (pc: string) =>
+    !prefixes.length ||
+    prefixes.some((p) => pc.replace(/\s+/g, "").startsWith(p));
+
+  // Two passes, and the order is the whole point. "N E" came back as "n a",
+  // which makes NA37 2LL — a perfectly valid postcode, in a different county,
+  // that this shop does not deliver to. A mis-heard letter is far likelier
+  // than a caller ringing a takeaway two hundred miles away, so a window that
+  // the shop can actually serve wins over one that merely parses.
   for (let len = Math.min(8, compact.length); len >= 5; len--) {
     const window = compact.slice(-len);
     const direct = normalisePostcode(window);
-    if (direct) return direct;
+    if (direct && servable(direct)) return direct;
     const repaired = repairPostcode(window, zonePrefixes);
     if (repaired) return repaired;
+  }
+
+  // Nothing servable. Someone genuinely outside the area still gets their real
+  // postcode back — and hears "we don't deliver there", which is the truth.
+  for (let len = Math.min(8, compact.length); len >= 5; len--) {
+    const direct = normalisePostcode(compact.slice(-len));
+    if (direct) return direct;
   }
   return null;
 }

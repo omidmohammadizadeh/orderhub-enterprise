@@ -13,6 +13,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { SmsService } from "../sms/sms.service";
 import { PaymentsService } from "../payments/payments.service";
+import { AddressLookupService } from "../address-lookup/address-lookup.service";
 import type { VoiceContext } from "./voice-context.service";
 import { normaliseNumber } from "./voice-context.service";
 import {
@@ -241,6 +242,7 @@ export class VoiceAiService {
     private readonly orders: OrdersService,
     private readonly sms: SmsService,
     private readonly payments: PaymentsService,
+    private readonly addresses: AddressLookupService,
   ) {
     const apiKey = this.config.get<string>("ANTHROPIC_API_KEY");
     this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
@@ -530,6 +532,47 @@ export class VoiceAiService {
     };
   }
 
+  /**
+   * The same postcode lookup the scripted flow uses, exposed to the model.
+   *
+   * The model only drives an address when the scripted path has already been
+   * knocked off course, and that is exactly when it must not fall back to
+   * asking for the whole thing in one breath. Giving it the lookup means the
+   * worst case still follows the same shape as the best case.
+   */
+  private async lookupPostcode(
+    said: string,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<string> {
+    const postcode = findPostcodeIn(
+      said,
+      ctx.deliveryZones.map((z) => z.postcodePrefix),
+    );
+    if (!postcode) {
+      return "That didn't contain a postcode. Ask them for the postcode on its own, one character at a time.";
+    }
+    state.addr = { ...(state.addr ?? {}), postcode };
+
+    let found: Array<{ line1?: string; city?: string }> = [];
+    try {
+      found = await this.addresses.searchByPostcode(postcode).then((r: any) =>
+        r.suggestions.map((sg: any) => ({ line1: sg.line1, city: sg.city })),
+      );
+    } catch {
+      found = [];
+    }
+
+    const street = streetOf(found[0]?.line1) ?? null;
+    const city = found[0]?.city ?? ctx.address?.city ?? undefined;
+    if (!street) {
+      return `Postcode ${postcode} is noted, but no street came back for it. Ask them for the street name and house number together — do NOT ask for the postcode again.`;
+    }
+    state.addr.street = street;
+    state.addr.city = city;
+    return `Postcode ${postcode} is ${street}${city ? `, ${city}` : ""}. Say "That's ${street}${city ? `, ${city}` : ""} — is that right?" and wait. If they say yes, ask only for the house number or name.`;
+  }
+
   /** They confirmed the street. Only the number is left. */
   streetAgreedAloud(): { say: string; next: VoiceState["awaiting"] } {
     return { say: "Great. And the house number or name?", next: "ADDR_HOUSE" };
@@ -601,7 +644,7 @@ export class VoiceAiService {
   /** They said no to a read-back. */
   rejectedReadBack(what: "ADDRESS_CONFIRM" | "ORDER_CONFIRM"): string {
     return what === "ADDRESS_CONFIRM"
-      ? "No problem. Could you give me the address again, including the postcode?"
+      ? "No problem. What's your postcode?"
       : "No problem. What would you like to change?";
   }
 
@@ -901,12 +944,15 @@ The caller has already chosen to place an order, and has already been asked whet
 6. Place it.
 Do not ask for anything twice, and do not ask for something you have already been told.
 
-DELIVERY ADDRESSES
-- Ask for it like this: "Can I take your address, including the postcode? So for example, 11 Follingsby Drive, N E 10, 8 Y H."
-- Then call propose_delivery_address with what you heard.
-- Then READ IT BACK to them exactly as you heard it and ask "is that correct?".
-- Only when they say yes, call confirm_delivery_address. That is what sets the delivery charge, and place_order will refuse until you have done it.
-- If they say it is wrong, take it again and repeat the whole loop. Never argue with a caller about their own address.
+DELIVERY ADDRESSES — POSTCODE FIRST, ALWAYS
+NEVER ask for a whole address in one go. A transcriber has never heard of their street and will mangle it; a postcode is six characters from a fixed alphabet, and their street can be looked up from it. Ask one short question at a time, in this order, and nothing else:
+1. "What's your postcode?" — that alone. Then call lookup_postcode with what they said. If they gave you the whole address anyway, still call lookup_postcode with all of it: it finds the postcode inside the sentence.
+2. lookup_postcode gives you the street. Say "That's <street>, <town> — is that right?" and wait.
+3. Yes: "And the house number or name?" Take just that.
+   No: "Sorry about that. What's the street name and house number?" Take both from them — they know their street, the database evidently does not. Never ask for the postcode a second time; they already gave you that.
+4. Call propose_delivery_address with the house number and street and the postcode from step 1. It reads the whole thing back for you — say exactly what it gives you and wait.
+5. Only when they say yes, call confirm_delivery_address. That is what sets the delivery charge, and place_order refuses until you have.
+Never argue with a caller about their own address.
 ${deliveryGuidance}
 
 TAKING AN ORDER
@@ -1009,6 +1055,18 @@ ${menu || "(no items available — apologise and transfer)"}`;
             type: { type: "string", enum: ["DELIVERY", "PICKUP"] },
           },
           required: ["type"],
+        },
+      },
+      {
+        name: "lookup_postcode",
+        description:
+          "Turn a postcode into a street. ALWAYS use this before taking a delivery address — never ask the caller to say their street. Pass whatever they said, even a whole address; the postcode is found inside it.",
+        input_schema: {
+          type: "object",
+          properties: {
+            said: { type: "string", description: "What the caller said when asked for their postcode" },
+          },
+          required: ["said"],
         },
       },
       {
@@ -1196,6 +1254,8 @@ ${menu || "(no items available — apologise and transfer)"}`;
         };
       }
 
+      case "lookup_postcode":
+        return { result: await this.lookupPostcode(String(input?.said ?? ""), ctx, state) };
       case "propose_delivery_address": {
         // An address needs whatever locates it here — a postcode in the UK, a
         // community in the Gulf. Requiring a postcode meant a Dubai caller

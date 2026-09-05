@@ -583,3 +583,97 @@ describe("postcode-first address capture", () => {
     expect(out.next).toBe("ADDR_HOUSE");
   });
 });
+
+describe("the prompt cannot ask for a whole address", () => {
+  const prompt = () =>
+    svc().systemPrompt(
+      { ...ctx(), items: [], openingHours: null, timezone: "Europe/London" },
+      { turns: [], cart: { items: [] } } as any,
+    );
+
+  it("never tells the model to ask for an address in one go", () => {
+    // This is where it kept coming back from. The scripted flow was changed to
+    // postcode-first, but the prompt still carried the old sentence, so any
+    // turn the model drove asked for the lot — and the caller heard the thing
+    // that was supposed to have been removed.
+    const p = prompt();
+    expect(p).not.toMatch(/address, including the postcode/i);
+    expect(p).not.toMatch(/take your address/i);
+  });
+
+  it("teaches the postcode-first order explicitly", () => {
+    const p = prompt();
+    expect(p).toMatch(/POSTCODE FIRST/i);
+    expect(p).toMatch(/What's your postcode/i);
+    expect(p).toMatch(/lookup_postcode/);
+    // And the rule that follows from it: never ask twice for the one thing
+    // they already got right.
+    expect(p).toMatch(/[Nn]ever ask for the postcode a second time/);
+  });
+
+  it("gives the model the same lookup the scripted flow uses", () => {
+    const names = svc()
+      .toolDefs(ctx())
+      .map((t: any) => t.name);
+    expect(names).toContain("lookup_postcode");
+  });
+});
+
+describe("lookup_postcode", () => {
+  const withLookup = (suggestions: any[]) => {
+    const s = svc();
+    s.addresses = { searchByPostcode: async () => ({ suggestions }) };
+    return s;
+  };
+
+  // This shop delivers to NE37 — which is what lets a mis-heard letter be
+  // repaired rather than accepted.
+  const ne37 = () =>
+    ctx({
+      deliveryZones: [
+        {
+          id: "z1",
+          postcodePrefix: "NE37",
+          areaName: null,
+          maxDistanceMiles: null,
+          fee: 2.5,
+          minOrderValue: null,
+        },
+      ],
+    });
+
+  it("finds the postcode inside a whole spoken address", async () => {
+    // Real transcript: "Five sounding dead drive, n a three seven two l l."
+    // "N E" came back as "n a", which parses as NA37 2LL — a real postcode in
+    // a different county. The shop's own zones are what settle it.
+    const state: any = { cart: { items: [] } };
+    const out = await withLookup([
+      { line1: "5 Sunningdale Drive", city: "Washington" },
+    ]).lookupPostcode("Five sounding dead drive, n a three seven two l l.", ne37(), state);
+
+    expect(out).toContain("Sunningdale Drive");
+    expect(state.addr.postcode).toBe("NE37 2LL");
+  });
+
+  it("does not relocate someone who really is out of area", async () => {
+    // A London postcode said clearly must come back as itself, so the caller
+    // hears "we don't deliver there" rather than being quietly moved.
+    const state: any = { cart: { items: [] } };
+    await withLookup([]).lookupPostcode("S W 1 A 1 A A", ne37(), state);
+    expect(state.addr.postcode).toBe("SW1A 1AA");
+  });
+
+  it("tells the model not to ask for the postcode again when no street comes back", async () => {
+    const state: any = { cart: { items: [] } };
+    const out = await withLookup([]).lookupPostcode("NE37 2LL", ne37(), state);
+    expect(out).toMatch(/street name and house number/i);
+    expect(out).toMatch(/do NOT ask for the postcode again/i);
+    expect(state.addr.postcode).toBe("NE37 2LL");
+  });
+
+  it("asks for the postcode on its own when there wasn't one", async () => {
+    const state: any = { cart: { items: [] } };
+    const out = await withLookup([]).lookupPostcode("erm hang on", ctx(), state);
+    expect(out).toMatch(/didn't contain a postcode/i);
+  });
+});
