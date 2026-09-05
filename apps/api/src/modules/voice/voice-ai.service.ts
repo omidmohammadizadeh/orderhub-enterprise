@@ -58,6 +58,9 @@ import {
 // Every design choice below follows from one of those four.
 
 const DEFAULT_MODEL = "claude-sonnet-5";
+
+/** How long a caller may be left waiting on an address provider. */
+const LOOKUP_TIMEOUT_MS = Number(process.env.VOICE_LOOKUP_TIMEOUT_MS) || 2000;
 // Placing an order is now a chain of gated tool calls — read the order back,
 // confirm the address, then place — so a turn that finishes an order needs
 // more hops than one that just adds an item. Six was enough for the old
@@ -504,9 +507,19 @@ export class VoiceAiService {
     }
     state.confusion = 0;
 
+    // Hard timeout. A live call sat for THIRTEEN SECONDS on this lookup — the
+    // provider chain has no deadline of its own, and a caller does not know
+    // the difference between a slow API and a line that has died. Two seconds
+    // is already longer than anyone wants to wait; past that we get on with
+    // it and ask for the street instead.
     let found: Array<{ line1?: string; city?: string }> = [];
     try {
-      found = await lookup(postcode);
+      found = await Promise.race([
+        lookup(postcode),
+        new Promise<Array<{ line1?: string; city?: string }>>((resolve) =>
+          setTimeout(() => resolve([]), LOOKUP_TIMEOUT_MS),
+        ),
+      ]);
     } catch {
       // A lookup outage must not stop somebody ordering dinner.
       found = [];
@@ -556,9 +569,14 @@ export class VoiceAiService {
 
     let found: Array<{ line1?: string; city?: string }> = [];
     try {
-      found = await this.addresses.searchByPostcode(postcode).then((r: any) =>
-        r.suggestions.map((sg: any) => ({ line1: sg.line1, city: sg.city })),
-      );
+      found = await Promise.race([
+        this.addresses
+          .searchByPostcode(postcode)
+          .then((r: any) => r.suggestions.map((sg: any) => ({ line1: sg.line1, city: sg.city }))),
+        new Promise<Array<{ line1?: string; city?: string }>>((resolve) =>
+          setTimeout(() => resolve([]), LOOKUP_TIMEOUT_MS),
+        ),
+      ]);
     } catch {
       found = [];
     }

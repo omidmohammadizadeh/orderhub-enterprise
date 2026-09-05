@@ -29,6 +29,9 @@ export class TelnyxCallControlService {
   /** Conversation Relay's transcription engine. Unset = Telnyx's default,
    *  which is Deepgram — the one engine here that does keyterm boosting. */
   private readonly relayEngine?: string;
+  /** The transcription model the relay should use. The default is not good
+   *  enough for a phone line, and we had never asked for anything else. */
+  private readonly relayModel: string;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>("TELNYX_API_KEY") || undefined;
@@ -60,6 +63,8 @@ export class TelnyxCallControlService {
     // Deliberately has no default. See startConversationRelay.
     this.relayEngine =
       this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_ENGINE") || undefined;
+    this.relayModel =
+      this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_MODEL") || "deepgram/nova-3";
   }
 
   configured(): boolean {
@@ -233,7 +238,7 @@ export class TelnyxCallControlService {
     callControlId: string,
     args: { url: string; greeting: string },
   ): Promise<boolean> {
-    return this.command(callControlId, "conversation_relay_start", {
+    const base = {
       url: args.url,
       greeting: args.greeting,
       voice: this.voice,
@@ -257,7 +262,30 @@ export class TelnyxCallControlService {
       // is now to send nothing and let Telnyx pick, and an override has to be
       // set deliberately, by someone who has checked.
       ...(this.relayEngine ? { transcription_engine: this.relayEngine } : {}),
-    });
+    };
+
+    // Ask for a named transcription model rather than taking the default.
+    //
+    // Every accuracy problem on this line has been the transcriber, not the
+    // brain: "delivery" came back as "Very very", "N E" as "M e", "three cola"
+    // as "Drie coli". Claude never saw those words. The default engine is
+    // whatever Telnyx picks, and we have never actually asked for a good one —
+    // nova-3 is their current best for telephone audio.
+    //
+    // Tried first, then without. An unknown model must not stop a relay
+    // starting, because a call on a worse transcriber still beats no call.
+    if (
+      await this.command(callControlId, "conversation_relay_start", {
+        ...base,
+        transcription_engine_config: { transcription_model: this.relayModel },
+      })
+    ) {
+      return true;
+    }
+    this.logger.error(
+      `Conversation Relay rejected transcription model "${this.relayModel}" — starting on the default. Set VOICE_RELAY_TRANSCRIPTION_MODEL to one this account accepts.`,
+    );
+    return this.command(callControlId, "conversation_relay_start", base);
   }
 
   /**

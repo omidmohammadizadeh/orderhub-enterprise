@@ -16,6 +16,7 @@ const svc = (env: Record<string, string> = {}) => {
     env.TELNYX_TRANSCRIPTION_LANGUAGE ?? (s.language.split(/[-_]/)[0] || "en");
   s.sttModel = env.TELNYX_TRANSCRIPTION_MODEL ?? "openai/whisper-large-v3-turbo";
   s.ended = new Set();
+  s.relayModel = env.VOICE_RELAY_TRANSCRIPTION_MODEL ?? "deepgram/nova-3";
   s.command = jest.fn().mockResolvedValue(true);
   return s;
 };
@@ -111,6 +112,29 @@ describe("transfer", () => {
 });
 
 describe("startConversationRelay", () => {
+  it("asks for a named transcription model instead of taking the default", async () => {
+    // Every accuracy problem on this line has been the transcriber, not the
+    // brain — and we had never actually asked for a good one.
+    const s = svc();
+    s.relayEngine = undefined;
+    await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" });
+    expect(s.command.mock.calls[0][2].transcription_engine_config).toEqual({
+      transcription_model: "deepgram/nova-3",
+    });
+  });
+
+  it("still starts the relay if that model is rejected", async () => {
+    // A call on a worse transcriber beats no call at all.
+    const s = svc();
+    s.relayEngine = undefined;
+    s.command = jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    expect(await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" })).toBe(
+      true,
+    );
+    expect(s.command.mock.calls[1][2].transcription_engine_config).toBeUndefined();
+    expect(s.logger.error).toHaveBeenCalled();
+  });
+
   it("does NOT send transcription_start's engine alias", async () => {
     // "B" is the legacy alias for transcription_start. Conversation Relay
     // names its engines deepgram / google / telnyx, so "B" means nothing —
