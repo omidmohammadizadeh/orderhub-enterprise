@@ -13,6 +13,7 @@
 
 import {
   groupBySize,
+  scoreItem,
   isConfidentGroup,
   matchItemGroups,
   pickVariant,
@@ -150,5 +151,65 @@ describe("asking about size out loud", () => {
   it("asks the way a person would, not the way the menu is stored", () => {
     const margherita = groupBySize(MENU).find((g) => g.base === "Margherita")!.variants;
     expect(sizesAloud(margherita)).toBe("10 inch, 12 inch or 14 inch");
+  });
+});
+
+describe("the phonetic fold must not turn every short word into every other", () => {
+  // The bug behind "I had to repeat many times". From a live call on a Greek
+  // menu, the caller said the item's name perfectly:
+  //
+  //   heard "Solo meal."
+  //   no confident match — Solo Meal:1.00, Mega Meal:1.00, Duet Meal:0.50
+  //
+  // soundFold crushes short words to two consonants — solo→"sl", meal→"ml",
+  // mega→"mk", duet→"tt" — and one edit of tolerance on THOSE made nearly
+  // every short word a near miss for every other. One edit on a
+  // two-character string is not a near miss, it is a different word.
+  const GREEK = [
+    { id: "solo", name: "Solo Meal", categoryName: "Meal Deals" },
+    { id: "mega", name: "Mega Meal", categoryName: "Meal Deals" },
+    { id: "duet", name: "Duet Meal", categoryName: "Meal Deals" },
+    { id: "cgw", name: "Chicken Gyros Wrap", categoryName: "Wraps" },
+    { id: "csw", name: "Chicken Souvlaki Wrap", categoryName: "Wraps" },
+    { id: "hw", name: "Halloumi Wrap", categoryName: "Wraps" },
+  ];
+  const pick = (said: string) => {
+    const m = matchItemGroups(said, GREEK, { limit: 3 });
+    return isConfidentGroup(m) ? m[0]!.group.base : null;
+  };
+
+  it("takes a dish whose name the caller said exactly", () => {
+    expect(pick("Solo meal.")).toBe("Solo Meal");
+    expect(pick("Mega meal")).toBe("Mega Meal");
+    expect(pick("duet meal")).toBe("Duet Meal");
+  });
+
+  it("keeps short words that merely rhyme apart", () => {
+    // "solo" and "meal" fold one edit apart, and so do "meal" and "mega".
+    expect(scoreItem("solo", "Meal")).toBeLessThan(0.75);
+    expect(scoreItem("meal", "Mega")).toBeLessThan(0.75);
+    expect(scoreItem("duet", "Meal")).toBeLessThan(0.75);
+  });
+
+  it("still forgives a genuine mis-hearing of a long word", () => {
+    // These are the real transcripts the fold exists for.
+    expect(pick("Solo mil.")).toBe("Solo Meal");
+    expect(scoreItem("karlic bret", "Garlic Bread")).toBe(1);
+    expect(scoreItem("coli", "Cola")).toBe(1);
+  });
+
+  it("knows the words a phone line mangles most", () => {
+    // A transcriber has never been trained on the words a Greek takeaway
+    // names its best sellers after.
+    expect(pick("chicken giro wrap")).toBe("Chicken Gyros Wrap");
+    expect(pick("chicken gyro wrap")).toBe("Chicken Gyros Wrap");
+    expect(pick("chicken civlaki wrap")).toBe("Chicken Souvlaki Wrap");
+    expect(pick("haloumi wrap")).toBe("Halloumi Wrap");
+  });
+
+  it("still asks when the transcript is genuinely destroyed", () => {
+    // "Chicken tomatoes up." — everything after "chicken" is gone, and three
+    // chicken dishes are equally plausible. That is a real question.
+    expect(pick("Chicken tomatoes up.")).toBeNull();
   });
 });

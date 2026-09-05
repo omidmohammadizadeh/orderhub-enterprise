@@ -68,10 +68,23 @@ function distance(a: string, b: string): number {
 const near = (a: string, b: string): boolean => {
   if (!a || !b) return false;
   if (a === b) return true;
+  const shortest = Math.min(a.length, b.length);
+  // Under four characters, only an exact match counts.
+  //
+  // This is where "it doesn't understand food" actually lived. The phonetic
+  // fold crushes short words to two or three consonants — solo→"sl",
+  // meal→"ml", mega→"mk", duet→"tt" — and allowing one edit on those made
+  // nearly every short word a near miss for every other one:
+  //
+  //   scoreItem("solo", "Meal") = 1        "sl" vs "ml"
+  //   scoreItem("meal", "Mega") = 1        "ml" vs "mk"
+  //
+  // So "Solo meal", said perfectly, tied 1.00 with Mega Meal and the caller
+  // was asked which they meant — every time. One edit on a two-character
+  // string is not a near miss, it is a different word.
+  if (shortest < 4) return false;
   const d = distance(a, b);
-  // One edit on a short word, two on a long one. Anything looser starts
-  // matching genuinely different dishes to each other.
-  return d <= (Math.min(a.length, b.length) >= 6 ? 2 : 1);
+  return d <= (shortest >= 6 ? 2 : 1);
 };
 
 /**
@@ -110,6 +123,21 @@ const SYNONYMS: Record<string, string[]> = {
   prawn: ["shrimp", "prawns"],
   shrimp: ["prawn", "prawns"],
   aioli: ["garlicmayo"],
+  // The words a transcriber has never been trained on. Each of these has come
+  // back mangled from a real UK takeaway line, and they are exactly the words
+  // the shop's best-selling items are named after.
+  gyros: ["gyro", "giro", "yeeros", "jairos", "heroes"],
+  souvlaki: ["suvlaki", "sovlaki", "souvlakia", "civlaki"],
+  shawarma: ["shwarma", "schwarma", "shawama"],
+  kofte: ["kofta", "kufta", "koftay", "coffee"],
+  halloumi: ["haloumi", "hallumi", "halumi"],
+  tikka: ["tika", "ticka", "teeka"],
+  peri: ["piri", "perry"],
+  falafel: ["felafel", "falafal"],
+  bhaji: ["bhajee", "badgie", "bargy"],
+  pakora: ["pakoda", "packora"],
+  katsu: ["katsuo", "catsu"],
+  chorizo: ["choritso", "chorizzo"],
   ketchup: ["tomatosauce"],
 };
 
@@ -361,6 +389,8 @@ export function groupBySize<T extends { name: string }>(items: T[]): Array<ItemG
 export interface GroupMatch<T> {
   group: ItemGroup<T>;
   score: number;
+  /** They said the dish's name, and nothing else. */
+  exact?: boolean;
 }
 
 /**
@@ -393,10 +423,13 @@ export function matchItemGroups<T extends { name: string; categoryName?: string 
         scoreItem(query, base),
         withCategory ? scoreItem(query, withCategory) : 0,
       );
-      return { group, score };
+      // Said the name, and nothing else. That is not a score to be compared
+      // with other scores — it is an answer, and it must not be able to tie.
+      const exact = plain(query) === plain(base);
+      return { group, score, exact };
     })
     .filter((m) => m.score >= floor)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => (a.exact === b.exact ? b.score - a.score : a.exact ? -1 : 1))
     .slice(0, opts.limit ?? 5);
 }
 
@@ -404,6 +437,9 @@ export function matchItemGroups<T extends { name: string; categoryName?: string 
 export function isConfidentGroup<T>(matches: Array<GroupMatch<T>>): boolean {
   const [best, second] = matches;
   if (!best || best.score < 0.75) return false;
+  // One dish whose name they said exactly is decisive, whatever else scored
+  // well. Only another exact match is a real question.
+  if (best.exact) return !second?.exact;
   return !second || best.score - second.score >= 0.2;
 }
 
