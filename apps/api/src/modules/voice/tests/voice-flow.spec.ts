@@ -1,6 +1,7 @@
 import {
   boardReference,
   digitChoice,
+  findPostcodeIn,
   houseNumberFrom,
   interpretMenuChoice,
   isLikelyHallucination,
@@ -713,5 +714,43 @@ describe("houseNumberFrom", () => {
   it("gives back nothing rather than a guess", () => {
     expect(houseNumberFrom("")).toBeNull();
     expect(houseNumberFrom("erm I'm not sure hang on a second")).toBeNull();
+  });
+});
+
+describe("a postcode said the way people say it", () => {
+  // From a live call: "n e ten eight y h" parsed to NOTHING. The lookup took
+  // 1ms because it never ran, and the caller was asked for their postcode
+  // again — having just said it correctly. The spoken-character table stopped
+  // at "nine", and knew no letter NAMES at all.
+  const zones = ["NE10", "NE37", "NE28", "SR4"];
+
+  it("reads a district said as a number, not as digits", () => {
+    expect(findPostcodeIn("n e ten eight y h", zones)).toBe("NE10 8YH");
+    expect(findPostcodeIn("n e one zero eight y h", zones)).toBe("NE10 8YH");
+  });
+
+  it("reads a compound district", () => {
+    // "twenty eight" is 28, not 20 then 8 — NE208 3AB matches nothing.
+    expect(findPostcodeIn("it's n e twenty eight three a b", zones)).toBe("NE28 3AB");
+    expect(findPostcodeIn("n e thirty seven two l l", zones)).toBe("NE37 2LL");
+  });
+
+  it("reads the NAMES of letters, which is what a transcriber writes down", () => {
+    expect(findPostcodeIn("en ee ten eight why aitch", zones)).toBe("NE10 8YH");
+    expect(findPostcodeIn("n e ten eight why aitch", zones)).toBe("NE10 8YH");
+  });
+
+  it("still finds one inside an ordinary sentence", () => {
+    expect(findPostcodeIn("can you deliver to n e ten eight y h", zones)).toBe("NE10 8YH");
+    expect(findPostcodeIn("five Sunningdale Drive n e three seven two l l", zones)).toBe(
+      "NE37 2LL",
+    );
+  });
+
+  it("does not turn ordinary words into a postcode", () => {
+    // The ambiguous letter names are deliberately absent from the table:
+    // turning "can you see" into "can u c" would do more harm than good.
+    expect(findPostcodeIn("can you see the menu please", zones)).toBeNull();
+    expect(findPostcodeIn("I would like a large pizza", zones)).toBeNull();
   });
 });

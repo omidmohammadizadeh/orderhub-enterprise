@@ -794,7 +794,10 @@ export class VoiceAiService {
     ctx: VoiceContext,
     postcode: string,
   ): Promise<Array<{ line1?: string; city?: string }>> {
-    const pretty = `${postcode.slice(0, -3)} ${postcode.slice(-3)}`;
+    // Compact FIRST. "NE10 8HF" sliced as-is becomes "NE10  8HF" — a double
+    // space that reached the logs and would have reached a receipt.
+    const compact = postcode.replace(/\s+/g, "");
+    const pretty = `${compact.slice(0, -3)} ${compact.slice(-3)}`;
     try {
       const rows = await this.prisma.order.findMany({
         where: {

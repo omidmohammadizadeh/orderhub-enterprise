@@ -979,6 +979,52 @@ const SPOKEN_CHARS: Record<string, string> = {
   seven: "7",
   eight: "8",
   nine: "9",
+  // People say a postcode's district as a NUMBER, not as digits: "N E ten
+  // eight Y H" is NE10 8YH. Stopping at nine meant that turn parsed to
+  // nothing at all — the lookup took 1ms because it never ran.
+  ten: "10",
+  eleven: "11",
+  twelve: "12",
+  thirteen: "13",
+  fourteen: "14",
+  fifteen: "15",
+  sixteen: "16",
+  seventeen: "17",
+  eighteen: "18",
+  nineteen: "19",
+  twenty: "20",
+  thirty: "30",
+  forty: "40",
+  fifty: "50",
+  sixty: "60",
+  seventy: "70",
+  eighty: "80",
+  ninety: "90",
+
+  // The NAMES of letters, as a transcriber writes them down when somebody
+  // spells something out. "N E 10 8 Y H" said aloud comes back "en ee ten
+  // eight why aitch", and none of that is a postcode until this table says so.
+  //
+  // Deliberately NOT the ambiguous ones — "see", "you", "el", "ay", "eye",
+  // "pea", "queue" are all ordinary words, and this runs over whole sentences
+  // where turning "can you" into "can u" would do more harm than good.
+  aitch: "h",
+  bee: "b",
+  dee: "d",
+  eff: "f",
+  gee: "g",
+  jay: "j",
+  kay: "k",
+  em: "m",
+  en: "n",
+  ee: "e",
+  ar: "r",
+  ess: "s",
+  tee: "t",
+  vee: "v",
+  why: "y",
+  ex: "x",
+  zed: "z",
 };
 
 /**
@@ -999,8 +1045,27 @@ export function normaliseSpokenReference(text: string): string {
     .split(/\s+/)
     .filter(Boolean);
 
+  const TENS_WORDS: Record<string, number> = {
+    twenty: 20, thirty: 30, forty: 40, fifty: 50,
+    sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+  };
+  const UNIT_WORDS: Record<string, number> = {
+    one: 1, two: 2, three: 3, four: 4, five: 5,
+    six: 6, seven: 7, eight: 8, nine: 9,
+  };
+
   let out = "";
-  for (const token of tokens) {
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]!;
+    // "twenty eight" is 28, not 20 then 8. NE28 3AB said aloud is otherwise
+    // parsed as NE208 3AB and matches nothing.
+    const tens = TENS_WORDS[token];
+    const unit = tens !== undefined ? UNIT_WORDS[tokens[i + 1] ?? ""] : undefined;
+    if (tens !== undefined && unit !== undefined) {
+      out += String(tens + unit);
+      i++;
+      continue;
+    }
     if (token in SPOKEN_CHARS) {
       out += SPOKEN_CHARS[token];
       continue;
