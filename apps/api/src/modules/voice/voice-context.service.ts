@@ -124,6 +124,7 @@ export class VoiceContextService {
     }
 
     const settings = (location.settings ?? {}) as any;
+    const addressJson = (location.address ?? {}) as any;
     // PHONE channel: falls through to the location's active menu when the shop
     // has never published specifically to phone, which is the common case.
     const menuCtx = await this.menus.resolveContext(undefined, {
@@ -163,10 +164,25 @@ export class VoiceContextService {
       smsReceipt: settings.voiceSmsReceipt === true,
       timezone: location.timezone ?? null,
       openingHours: location.openingHours ?? null,
+      // The shop's own address, and it is load-bearing: every address lookup
+      // is fenced to this shop's part of the country. Without it "Sunningdale
+      // Drive" searched the whole UK and came back Belfast, Bristol, Salford —
+      // there is one in most towns, and a geocoder ranks by fame, not by how
+      // near it is to the caller.
+      //
+      // The structured columns are a Phase AN mirror of the older `address`
+      // JSON and are empty on any shop set up before that, so fall back to the
+      // JSON rather than quietly running unfenced.
       address: {
-        line1: location.addressLine1 ?? null,
-        city: location.city ?? null,
-        postcode: location.postcode ?? null,
+        line1: location.addressLine1 ?? addressJson.line1 ?? addressJson.street ?? null,
+        city:
+          location.city ??
+          addressJson.city ??
+          addressJson.town ??
+          addressJson.locality ??
+          null,
+        postcode:
+          location.postcode ?? addressJson.postcode ?? addressJson.postCode ?? null,
       },
       deliveryZones: zones.map((z: any) => ({
         id: String(z.id),

@@ -45,6 +45,31 @@ export function outwardCode(postcode?: string | null): string {
   return p.length > 3 ? p.slice(0, p.length - 3) : p;
 }
 
+/** The letters at the front, which say which part of the country — "NE". */
+export function postcodeArea(postcode?: string | null): string {
+  return (String(postcode ?? "").toUpperCase().match(/^[A-Z]{1,2}/) ?? [""])[0]!;
+}
+
+/**
+ * The parts of the country this shop could possibly deliver to.
+ *
+ * Its own postcode, and its delivery zones. Empty means we know nothing about
+ * where the shop is, and an unfenced lookup is better than none.
+ */
+export function shopAreas(ctx: {
+  address?: { postcode?: string | null };
+  deliveryZones?: Array<{ postcodePrefix?: string | null }>;
+}): Set<string> {
+  const areas = new Set<string>();
+  const own = postcodeArea(ctx.address?.postcode);
+  if (own) areas.add(own);
+  for (const z of ctx.deliveryZones ?? []) {
+    const a = postcodeArea(z.postcodePrefix);
+    if (a) areas.add(a);
+  }
+  return areas;
+}
+
 /**
  * What to actually send to the geocoder.
  *
@@ -56,19 +81,34 @@ export function outwardCode(postcode?: string | null): string {
  */
 export function addressQuery(
   said: string,
-  ctx: { address?: { city?: string | null } },
+  ctx: { address?: { city?: string | null; postcode?: string | null } },
+  pinnedPostcode?: string | null,
 ): string {
   const line = addressLineFrom(said) ?? String(said ?? "").trim();
+
+  // A postcode the caller already gave beats everything: "Sunningdale Drive,
+  // NE37 2LL" resolves correctly where "Sunningdale Drive, NE37" does not —
+  // a partial outward code buys nothing, a whole postcode buys certainty.
+  const pinned = normalisePostcode(pinnedPostcode ?? "");
+  if (pinned && !foldWords(line).includes(foldWords(pinned.replace(/\s/g, "")))) {
+    return `${line}, ${pinned}`;
+  }
+
   const town = ctx.address?.city ?? "";
-  if (!town) return line;
-  if (foldWords(line).includes(foldWords(town))) return line;
-  // Only when they plainly named no locality at all. "Fellside Road
-  // Gateshead" is already located, and bolting our own town on the end sent
-  // the geocoder looking for a Gateshead street in Washington — which it
-  // correctly failed to find.
+  if (town && foldWords(line).includes(foldWords(town))) return line;
+
   const street = streetOf(line) ?? line;
   const words = street.split(/\s+/).filter(Boolean);
-  return words.length <= 2 ? `${line}, ${town}` : line;
+  // "Fellside Road Gateshead" is already located, and bolting our own town on
+  // the end sent the geocoder looking for a Gateshead street in Washington.
+  if (words.length > 2) return line;
+
+  if (town) return `${line}, ${town}`;
+  // No town on file. Sending the query out unqualified is what produced
+  // "Sunningdale Drive, Salford" for a shop in Washington, so fall back to the
+  // shop's own postcode rather than searching the whole country.
+  const shopPostcode = normalisePostcode(ctx.address?.postcode ?? "");
+  return shopPostcode ? `${line}, ${shopPostcode}` : line;
 }
 
 export interface RankedAddress {
@@ -87,7 +127,12 @@ export interface RankedAddress {
 export function rankAddresses(
   said: string,
   candidates: AddressCandidate[],
-  ctx: { deliveryZones?: Array<{ postcodePrefix?: string | null }>; address?: { city?: string | null } },
+  ctx: {
+    deliveryZones?: Array<{ postcodePrefix?: string | null }>;
+    address?: { city?: string | null; postcode?: string | null };
+  },
+  /** A postcode the caller has already given on this call, if any. */
+  pinnedPostcode?: string | null,
 ): RankedAddress[] {
   const spokenLine = addressLineFrom(said) ?? said;
   const spokenStreet = streetOf(spokenLine) ?? spokenLine;
@@ -108,12 +153,28 @@ export function rankAddresses(
     .map((z) => String(z.postcodePrefix ?? "").toUpperCase().replace(/\s+/g, ""))
     .filter(Boolean);
 
+  // The shop's own part of the country. There is a Sunningdale Drive in
+  // Belfast, in Bristol, in Salford and in Washington, and a geocoder asked for
+  // one without a town returns whichever is most famous. A caller ringing a
+  // takeaway in NE37 is not in Salford, so anything outside the shop's postcode
+  // area is not an answer — it is a different street with the same name.
+  //
+  // Deliberately the AREA and not the district: a neighbouring outward code the
+  // shop doesn't deliver to must still RESOLVE, so we can tell them we don't
+  // deliver there instead of pretending not to understand them.
+  const areas = shopAreas(ctx);
+  const requiredPostcode = normalisePostcode(pinnedPostcode ?? "");
+
   const ranked: RankedAddress[] = [];
   for (const c of candidates) {
     const postcode = normalisePostcode(c.postcode ?? "");
     // No postcode, no use. We need it for the zone, the driver and the
     // receipt, and a half-address read back sounds like understanding.
     if (!postcode) continue;
+    if (areas.size && !areas.has(postcodeArea(postcode))) continue;
+    // They already told us the postcode. It outranks anything a search
+    // engine's idea of importance has to say.
+    if (requiredPostcode && postcode !== requiredPostcode) continue;
 
     const street = streetOf(c.line1) ?? c.line1 ?? "";
     if (!street) continue;

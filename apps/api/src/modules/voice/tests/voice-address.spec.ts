@@ -110,3 +110,99 @@ describe("ranking what came back", () => {
     expect(bestAddress(out)?.line1).toBe("11 Sunningdale Drive");
   });
 });
+
+describe("a shop only ever gets addresses near itself", () => {
+  // The failure this exists to prevent, from a live call: the caller gave
+  // NE37 2LL and the line read back "Sunningdale Drive, Salford". There is a
+  // Sunningdale Drive in Salford, in Belfast, in Bristol and in Washington,
+  // and a geocoder asked for one without a town returns whichever is most
+  // famous — which is never the one the caller lives on.
+  const washington = {
+    address: { city: "Washington", postcode: "NE37 1AA" },
+    deliveryZones: [{ postcodePrefix: "NE37" }],
+  };
+
+  const elsewhere = [
+    { line1: "Sunningdale Drive", city: "Salford", postcode: "M27 5AB" },
+    { line1: "Sunningdale Drive", city: "Belfast", postcode: "BT14 6SA" },
+    { line1: "Sunningdale Drive", city: "Bristol", postcode: "BS30 8GP" },
+  ];
+
+  it("throws out the same street in the wrong part of the country", () => {
+    const out = rankAddresses("Eleven Sunningdale Drive", elsewhere, washington);
+    expect(out).toHaveLength(0);
+    expect(bestAddress(out)).toBeNull();
+  });
+
+  it("finds the right one when it is in the same list as the wrong ones", () => {
+    const out = rankAddresses(
+      "Eleven Sunningdale Drive",
+      [...elsewhere, { line1: "Sunningdale Drive", city: "Washington", postcode: "NE37 2LL" }],
+      washington,
+    );
+    expect(bestAddress(out)?.postcode).toBe("NE37 2LL");
+    expect(bestAddress(out)?.line1).toBe("11 Sunningdale Drive");
+  });
+
+  it("still resolves a nearby address the shop does not deliver to", () => {
+    // Being outside the delivery area is a thing to TELL somebody, not a
+    // reason to pretend we didn't understand them.
+    const out = rankAddresses(
+      "Eleven Fellside Road",
+      [{ line1: "Fellside Road", city: "Gateshead", postcode: "NE16 6AB" }],
+      washington,
+    );
+    expect(bestAddress(out)?.postcode).toBe("NE16 6AB");
+  });
+
+  it("runs unfenced when we know nothing about where the shop is", () => {
+    const out = rankAddresses("Eleven Sunningdale Drive", [elsewhere[0]!], {
+      address: {},
+      deliveryZones: [],
+    });
+    expect(bestAddress(out)?.postcode).toBe("M27 5AB");
+  });
+
+  it("lets a postcode the caller gave beat the search engine outright", () => {
+    const out = rankAddresses(
+      "Eleven Sunningdale Drive",
+      [
+        { line1: "Sunningdale Drive", city: "Washington", postcode: "NE37 9ZZ" },
+        { line1: "Sunningdale Drive", city: "Washington", postcode: "NE37 2LL" },
+      ],
+      washington,
+      "NE37 2LL",
+    );
+    expect(bestAddress(out)?.postcode).toBe("NE37 2LL");
+  });
+});
+
+describe("the query always says where in the country to look", () => {
+  it("uses the shop's town", () => {
+    expect(
+      addressQuery("Eleven Sunningdale Drive", {
+        address: { city: "Washington", postcode: "NE37 1AA" },
+      }),
+    ).toBe("11 Sunningdale Drive, Washington");
+  });
+
+  it("falls back to the shop's postcode when no town is on file", () => {
+    // A shop set up before the structured address columns existed has no city,
+    // and an unqualified query is exactly how Salford happened.
+    expect(
+      addressQuery("Eleven Sunningdale Drive", { address: { postcode: "NE37 1AA" } }),
+    ).toBe("11 Sunningdale Drive, NE37 1AA");
+  });
+
+  it("prefers a postcode the caller themselves gave", () => {
+    // "Sunningdale Drive, NE37" returns Belfast; "Sunningdale Drive, NE37 2LL"
+    // returns Washington. A whole postcode is worth having, half of one is not.
+    expect(
+      addressQuery(
+        "Eleven Sunningdale Drive",
+        { address: { city: "Washington", postcode: "NE37 1AA" } },
+        "NE37 2LL",
+      ),
+    ).toBe("11 Sunningdale Drive, NE37 2LL");
+  });
+});

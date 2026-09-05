@@ -214,7 +214,14 @@ export class VoiceService {
         // the most common turns in the call — collection or delivery, yes or
         // no to a read-back, cash or card — and every one of them used to
         // cost a prompt carrying the whole menu plus a tool round trip.
+        // Which slot answered, or that nothing did. Two calls running have now
+        // been diagnosed by working out whether a turn was scripted or went to
+        // the model, and the log could not say.
         const fast = await this.answerSlot(call, ctx, state, args.text);
+        this.logger.log(
+          `call ${call.id} turn: stage=${state.stage} slot=${state.awaiting ?? "-"} ` +
+            `handled=${fast ? "scripted" : "model"}`,
+        );
         if (fast) return fast;
         return this.runBrain(call, ctx, state, args.text, args.onPartial);
       }
@@ -568,7 +575,16 @@ export class VoiceService {
         const answer = parseYesNo(said);
         if (!answer) return null;
         if (answer === "NO") {
-          say = this.ai.rejectedReadBack(slot);
+          const rejected = this.ai.rejectedReadBack(slot);
+          say = rejected.say;
+          next = rejected.next;
+          // A read-back they rejected is a wrong address, so nothing built on
+          // top of it survives into the second attempt.
+          if (slot === "ADDRESS_CONFIRM") {
+            state.addr = undefined;
+            state.cart.deliveryAddress = undefined;
+            state.addressConfirmed = false;
+          }
         } else if (slot === "ADDRESS_CONFIRM") {
           say = await this.ai.confirmAddressAloud(ctx, state);
         } else {

@@ -502,17 +502,25 @@ export class VoiceAiService {
     said: string,
     resolve: (query: string) => Promise<AddressCandidate[]>,
   ): Promise<{ say: string; next: VoiceState["awaiting"] }> {
+    // A postcode anywhere in what they said, or one they gave earlier in the
+    // call, pins the whole lookup. It is the single most reliable thing a
+    // caller ever says.
+    const pinned =
+      findPostcodeIn(said, ctx.deliveryZones.map((z) => z.postcodePrefix)) ??
+      state.addr?.postcode ??
+      null;
+
     let found: AddressCandidate[] = [];
     try {
       found = await Promise.race([
-        resolve(addressQuery(said, ctx)),
+        resolve(addressQuery(said, ctx, pinned)),
         new Promise<AddressCandidate[]>((r) => setTimeout(() => r([]), LOOKUP_TIMEOUT_MS)),
       ]);
     } catch {
       found = [];
     }
 
-    const best = bestAddress(rankAddresses(said, found, ctx));
+    const best = bestAddress(rankAddresses(said, found, ctx, pinned));
     if (!best) {
       const misses = (state.confusion ?? 0) + 1;
       state.confusion = misses;
@@ -698,11 +706,16 @@ export class VoiceAiService {
     ctx: VoiceContext,
     state: VoiceState,
   ): Promise<string> {
+    const pinned =
+      findPostcodeIn(said, ctx.deliveryZones.map((z) => z.postcodePrefix)) ??
+      state.addr?.postcode ??
+      null;
+
     let found: AddressCandidate[] = [];
     try {
       found = await Promise.race([
         this.addresses
-          .resolveAddress(addressQuery(said, ctx), { country: ctx.country })
+          .resolveAddress(addressQuery(said, ctx, pinned), { country: ctx.country })
           .then((rows) => rows.map((r: any) => ({ line1: r.line1, city: r.city, postcode: r.postcode }))),
         new Promise<AddressCandidate[]>((r) => setTimeout(() => r([]), LOOKUP_TIMEOUT_MS)),
       ]);
@@ -710,7 +723,7 @@ export class VoiceAiService {
       found = [];
     }
 
-    const best = bestAddress(rankAddresses(said, found, ctx));
+    const best = bestAddress(rankAddresses(said, found, ctx, pinned));
     if (!best) {
       return "Could not resolve that into a real address. Ask for the postcode on its own and use lookup_postcode. Do NOT tell them you can't take their address.";
     }
@@ -853,10 +866,17 @@ export class VoiceAiService {
   }
 
   /** They said no to a read-back. */
-  rejectedReadBack(what: "ADDRESS_CONFIRM" | "ORDER_CONFIRM"): string {
+  rejectedReadBack(what: "ADDRESS_CONFIRM" | "ORDER_CONFIRM"): {
+    say: string;
+    next?: VoiceState["awaiting"];
+  } {
+    // Asking for a postcode here made a caller who had just said their whole
+    // address say a different, smaller part of it. Ask for the same thing
+    // again — and if the second attempt misses too, addressAloud's own count
+    // drops into the postcode ladder without anybody having to decide to.
     return what === "ADDRESS_CONFIRM"
-      ? "No problem. What's your postcode?"
-      : "No problem. What would you like to change?";
+      ? { say: "Sorry about that. What's the delivery address?", next: "ADDR_FULL" }
+      : { say: "No problem. What would you like to change?" };
   }
 
   /** When we genuinely could not make out a menu choice twice running. Still
