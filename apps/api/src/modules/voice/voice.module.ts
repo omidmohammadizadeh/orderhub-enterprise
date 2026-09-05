@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { AddressLookupModule } from "../address-lookup/address-lookup.module";
 import { OrdersModule } from "../orders/orders.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { WhatsAppModule } from "../whatsapp/whatsapp.module";
@@ -23,7 +24,7 @@ import { VoiceRelayGateway } from "./voice-relay.gateway";
 // SmsService and WalletService are both @Global — the latter holds the per-call
 // billing and the gate that decides whether we pick up at all.
 @Module({
-  imports: [OrdersModule, PaymentsModule, WhatsAppModule],
+  imports: [OrdersModule, PaymentsModule, WhatsAppModule, AddressLookupModule],
   controllers: [VoiceController, VoiceTelnyxController],
   providers: [
     VoiceService,

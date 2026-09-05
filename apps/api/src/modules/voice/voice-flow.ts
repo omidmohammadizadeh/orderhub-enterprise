@@ -903,3 +903,69 @@ export function boardReference(order: {
   }
   return String(order.id ?? "").slice(-6);
 }
+
+/**
+ * The street out of a full first line — "11 Follingsby Drive" → "Follingsby
+ * Drive".
+ *
+ * Used to read a street back off a postcode lookup, where every result on the
+ * postcode shares the street and only the number differs.
+ */
+export function streetOf(line1?: string | null): string | null {
+  const t = String(line1 ?? "").trim();
+  if (!t) return null;
+  // Drop a leading house number, or a number-with-letter like "11a", or a
+  // flat/unit prefix. What is left is the street.
+  const street = t
+    .replace(/^(flat|apartment|apt|unit|no\.?)\s+\S+\s*,?\s*/i, "")
+    // The optional letter binds to the DIGITS ("11a"), never across the space
+    // — an earlier version matched the "F" of "11 Follingsby" and served up
+    // "ollingsby Drive".
+    .replace(/^\d+[a-z]?(\s*[-–]\s*\d+[a-z]?)?\s*,?\s+/i, "")
+    .trim();
+  return street.length >= 3 ? street : null;
+}
+
+/**
+ * A house number or name out of what the caller said.
+ *
+ * "eleven", "11", "number 11", "11a", "flat 2", "Rose Cottage" — all of them
+ * are the answer to "what's the house number or name?", and the only wrong
+ * move is to insist on a digit.
+ */
+export function houseNumberFrom(said: string): string | null {
+  const raw = String(said ?? "").trim();
+  if (!raw) return null;
+
+  const cleaned = raw
+    .replace(/[^a-zA-Z0-9\s'-]/g, " ")
+    .replace(/\b(number|no|it'?s|its|house|the|my|i'?m at|at)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return null;
+
+  // A spoken number: "eleven" → 11, "twenty four" → 24. Same parser the order
+  // numbers use, so "four" is a 4 here too.
+  const spoken = parseSpokenNumber(cleaned);
+  const words = cleaned.split(" ").filter(Boolean);
+
+  // "11a" and "11" survive as written; a spelled number becomes digits.
+  const first = words[0] ?? "";
+  if (/^\d+[a-z]?$/i.test(first)) {
+    // "11a" or "11". Keep any flat prefix that came with it.
+    return words.length > 1 && /^(flat|apartment|apt|unit)$/i.test(first)
+      ? words.slice(0, 2).join(" ")
+      : first;
+  }
+  if (/^(flat|apartment|apt|unit)$/i.test(first) && words[1]) {
+    return `${first} ${words[1]}`;
+  }
+  if (spoken && spoken.length <= 4) return spoken;
+
+  // A house NAME. Kept as said, capitalised, because "Rose Cottage" is as
+  // valid an answer as "11" and refusing it strands whoever lives there.
+  if (words.length <= 4 && /^[a-z' -]+$/i.test(cleaned)) {
+    return cleaned.replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  }
+  return null;
+}

@@ -484,3 +484,97 @@ describe("amending an existing order", () => {
     expect(out.turn?.transferTo).toBe("+441912312345");
   });
 });
+
+describe("postcode-first address capture", () => {
+  const lookup = async () => [
+    { line1: "11 Follingsby Drive", city: "Gateshead" },
+    { line1: "13 Follingsby Drive", city: "Gateshead" },
+  ];
+  const empty = async () => [];
+
+  it("asks for the postcode alone, not a whole address", async () => {
+    // Asking for the lot in one breath asks the transcriber to spell a street
+    // it has never heard of. A postcode is six characters from a fixed
+    // alphabet, and the street can be looked up from it.
+    const state = withItem();
+    const out = svc().fulfillmentAloud(ctx(), state, "DELIVERY");
+    expect(out.say).toContain("postcode");
+    expect(out.say).not.toContain("Follingsby");
+    expect(out.next).toBe("ADDR_POSTCODE");
+  });
+
+  it("reads the street back off a spelled-out postcode", async () => {
+    // "N E 10 8 Y H" is how a postcode actually arrives.
+    const state = withItem();
+    const out = await svc().postcodeAloud(ctx(), state, "N E 10 8 Y H", lookup);
+    expect(out.say).toContain("Follingsby Drive");
+    expect(out.say).toContain("Gateshead");
+    expect(out.next).toBe("ADDR_STREET");
+    expect(state.addr?.postcode).toBe("NE10 8YH");
+  });
+
+  it("asks again when it did not hear a postcode", async () => {
+    const state = withItem();
+    const out = await svc().postcodeAloud(ctx(), state, "erm hang on", lookup);
+    expect(out.next).toBe("ADDR_POSTCODE");
+    expect(state.confusion).toBe(1);
+  });
+
+  it("falls back to asking for the street when the lookup finds nothing", async () => {
+    // A new build, or an outage. Neither is a reason to stop taking dinner.
+    const state = withItem();
+    const out = await svc().postcodeAloud(ctx(), state, "NE10 8YH", empty);
+    expect(out.say).toContain("street");
+    expect(out.next).toBe("ADDR_HOUSE");
+  });
+
+  it("survives the lookup throwing", async () => {
+    const state = withItem();
+    const out = await svc().postcodeAloud(ctx(), state, "NE10 8YH", async () => {
+      throw new Error("places down");
+    });
+    expect(out.say).toContain("street");
+  });
+
+  it("only asks for the number once the street is agreed", () => {
+    expect(svc().streetAgreedAloud().next).toBe("ADDR_HOUSE");
+    expect(svc().streetAgreedAloud().say).toContain("house number");
+  });
+
+  it("starts the postcode over rather than arguing about where they live", () => {
+    const state = withItem();
+    state.addr = { postcode: "NE10 8YH", street: "Wrong Street" };
+    const out = svc().streetRejectedAloud(state);
+    expect(out.next).toBe("ADDR_POSTCODE");
+    expect(state.addr).toBeUndefined();
+  });
+
+  it("builds the whole address and reads all of it back", async () => {
+    const state = withItem();
+    await svc().postcodeAloud(ctx(), state, "NE10 8YH", lookup);
+    const out = svc().houseNumberAloud(ctx(), state, "eleven");
+
+    expect(state.cart.deliveryAddress.line1).toBe("11 Follingsby Drive");
+    expect(state.cart.deliveryAddress.postcode).toBe("NE10 8YH");
+    // The read-back is the WHOLE thing — it's the only version the caller has
+    // heard end to end.
+    expect(out.say).toContain("11 Follingsby Drive");
+    expect(out.say).toContain("N E 1 0");
+    expect(out.next).toBe("ADDRESS_CONFIRM");
+    expect(state.addressConfirmed).toBe(false);
+  });
+
+  it("takes a house name as readily as a number", async () => {
+    const state = withItem();
+    await svc().postcodeAloud(ctx(), state, "NE10 8YH", lookup);
+    svc().houseNumberAloud(ctx(), state, "Rose Cottage");
+    expect(state.cart.deliveryAddress.line1).toBe("Rose Cottage Follingsby Drive");
+  });
+
+  it("asks again when the house number did not come through", async () => {
+    const state = withItem();
+    await svc().postcodeAloud(ctx(), state, "NE10 8YH", lookup);
+    const out = svc().houseNumberAloud(ctx(), state, "");
+    expect(out.next).toBe("ADDR_HOUSE");
+  });
+});

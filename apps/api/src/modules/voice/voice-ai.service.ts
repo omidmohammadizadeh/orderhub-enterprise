@@ -15,7 +15,20 @@ import { SmsService } from "../sms/sms.service";
 import { PaymentsService } from "../payments/payments.service";
 import type { VoiceContext } from "./voice-context.service";
 import { normaliseNumber } from "./voice-context.service";
-import { resolveHeardPostcode, spokenDigits, type VoiceStage } from "./voice-flow";
+import {
+  houseNumberFrom,
+  normalisePostcode,
+  normaliseSpokenReference,
+  resolveHeardPostcode,
+  spokenDigits,
+  streetOf,
+  type VoiceStage,
+} from "./voice-flow";
+import {
+  isConfident,
+  matchMenuItems,
+  splitQuantity,
+} from "./voice-menu-match";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import {
   coerceCart,
@@ -107,7 +120,20 @@ export interface VoiceState {
    * know which question. That makes the next turn answerable in code, and
    * these are the two slowest and most common turns in the whole call.
    */
-  awaiting?: "ADDRESS_CONFIRM" | "ORDER_CONFIRM" | "FULFILLMENT" | "PAYMENT" | "NAME";
+  awaiting?:
+    | "ADDRESS_CONFIRM"
+    | "ORDER_CONFIRM"
+    | "FULFILLMENT"
+    | "PAYMENT"
+    | "NAME"
+    /** Asked for the postcode, nothing else yet. */
+    | "ADDR_POSTCODE"
+    /** Read the street back off the postcode; waiting for yes or no. */
+    | "ADDR_STREET"
+    /** Street agreed; waiting for the house number or name. */
+    | "ADDR_HOUSE";
+  /** The address being built up, one question at a time. */
+  addr?: { postcode?: string; street?: string; city?: string };
   /** How they said they'd pay, held while we ask for a name. */
   pendingPayment?: "CASH" | "CARD";
   /**
@@ -178,8 +204,25 @@ export function coerceState(raw: unknown): VoiceState {
     confusion: Number.isFinite(Number(r.confusion)) ? Number(r.confusion) : 0,
     askedForHuman: r.askedForHuman === true,
     callId: r.callId ? String(r.callId) : undefined,
+    addr:
+      r.addr && typeof r.addr === "object"
+        ? {
+            postcode: r.addr.postcode ? String(r.addr.postcode) : undefined,
+            street: r.addr.street ? String(r.addr.street) : undefined,
+            city: r.addr.city ? String(r.addr.city) : undefined,
+          }
+        : undefined,
     awaiting: (
-      ["ADDRESS_CONFIRM", "ORDER_CONFIRM", "FULFILLMENT", "PAYMENT", "NAME"] as const
+      [
+        "ADDRESS_CONFIRM",
+        "ORDER_CONFIRM",
+        "FULFILLMENT",
+        "PAYMENT",
+        "NAME",
+        "ADDR_POSTCODE",
+        "ADDR_STREET",
+        "ADDR_HOUSE",
+      ] as const
     ).includes(r.awaiting)
       ? r.awaiting
       : undefined,
@@ -341,11 +384,16 @@ export class VoiceAiService {
         next: "ADDRESS_CONFIRM",
       };
     }
-    return {
-      say: postcodeRequiredFor(ctx.country)
-        ? "No problem. Can I take your address, including the postcode? So for example, 11 Follingsby Drive, N E 10, 8 Y H."
-        : "No problem. Can I take your address, and the area you're in?",
-    };
+    // Postcode first, and on its own.
+    //
+    // Asking for a whole address in one breath asks the transcriber to get a
+    // street name right, and it has never heard of Follingsby Drive. A
+    // postcode is six or seven characters from a fixed alphabet, we can look
+    // the street up from it, and then the caller only has to say a house
+    // number. Every part of that is something speech recognition is good at.
+    return postcodeRequiredFor(ctx.country)
+      ? { say: "No problem. What's your postcode?", next: "ADDR_POSTCODE" }
+      : { say: "No problem. Can I take your address, and the area you're in?" };
   }
 
   /**
@@ -414,6 +462,130 @@ export class VoiceAiService {
     return {
       say: `That's all booked in. It'll be about ${mins} minutes ${where}.${card} Thanks for calling, goodbye.`,
       turn: { ...out.turn, endCall: true },
+    };
+  }
+
+  /**
+   * The postcode, looked up, with the street read back for a yes or no.
+   *
+   * Nothing here reaches the model. The whole point of asking one short
+   * question at a time is that each answer is something we can check
+   * ourselves — and checking it against a real address database is the
+   * difference between "is that Follingsby Drive?" and hoping.
+   */
+  async postcodeAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    said: string,
+    lookup: (postcode: string) => Promise<Array<{ line1?: string; city?: string }>>,
+  ): Promise<{ say: string; next?: VoiceState["awaiting"] }> {
+    // A spoken postcode arrives as "N E 10 8 Y H" — single letters and number
+    // words — which is the same shape as a spelled-out order reference, so it
+    // goes through the same normaliser.
+    const heard = normaliseSpokenReference(said) || said;
+    // resolveHeardPostcode passes through whatever it was given when it cannot
+    // improve on it — that is right for an address the caller dictated, and
+    // wrong here, where "erm hang on" must not become a postcode. So the
+    // result has to survive validation before it counts as one.
+    const resolved = resolveHeardPostcode(
+      heard,
+      ctx.deliveryZones.map((z) => z.postcodePrefix),
+    );
+    const postcode = resolved ? normalisePostcode(resolved) : null;
+
+    if (!postcode) {
+      const misses = (state.confusion ?? 0) + 1;
+      state.confusion = misses;
+      return misses < 3
+        ? {
+            say: "Sorry, that didn't sound like a postcode. Could you say it one character at a time?",
+            next: "ADDR_POSTCODE",
+          }
+        : {
+            say: "Let's do it the other way round — what's the street and house number?",
+          };
+    }
+    state.confusion = 0;
+
+    let found: Array<{ line1?: string; city?: string }> = [];
+    try {
+      found = await lookup(postcode);
+    } catch {
+      // A lookup outage must not stop somebody ordering dinner.
+      found = [];
+    }
+
+    state.addr = { postcode };
+
+    // Every address on a postcode shares a street, so the first one names it.
+    const street = streetOf(found[0]?.line1) ?? null;
+    const city = found[0]?.city ?? ctx.address?.city ?? undefined;
+    if (!street) {
+      return {
+        say: `Thanks. And what's the street?`,
+        next: "ADDR_HOUSE",
+      };
+    }
+
+    state.addr.street = street;
+    state.addr.city = city;
+    return {
+      say: `Thanks. That's ${street}${city ? `, ${city}` : ""} — is that right?`,
+      next: "ADDR_STREET",
+    };
+  }
+
+  /** They confirmed the street. Only the number is left. */
+  streetAgreedAloud(): { say: string; next: VoiceState["awaiting"] } {
+    return { say: "Great. And the house number or name?", next: "ADDR_HOUSE" };
+  }
+
+  /** The looked-up street was wrong — start the postcode again rather than
+   *  arguing with someone about where they live. */
+  streetRejectedAloud(state: VoiceState): { say: string; next: VoiceState["awaiting"] } {
+    state.addr = undefined;
+    return {
+      say: "No problem. Could you give me the postcode again, one character at a time?",
+      next: "ADDR_POSTCODE",
+    };
+  }
+
+  /**
+   * House number in, whole address back out for a final yes.
+   *
+   * The read-back is the whole thing, not the bit they just said, because
+   * that is the only version of it the caller has heard end to end.
+   */
+  houseNumberAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    said: string,
+  ): { say: string; next: VoiceState["awaiting"] } {
+    const house = houseNumberFrom(said);
+    const street = state.addr?.street;
+    if (!house) {
+      return {
+        say: "Sorry, what was the house number or name?",
+        next: "ADDR_HOUSE",
+      };
+    }
+    // No street yet means the postcode lookup found nothing and they were
+    // asked for the street instead — so what they just said IS the line.
+    const line1 = street ? `${house} ${street}` : house;
+
+    state.cart.fulfillmentType = "DELIVERY";
+    state.cart.fulfillmentChosen = true;
+    state.cart.deliveryAddress = {
+      line1,
+      city: state.addr?.city ?? ctx.address?.city ?? "",
+      postcode: state.addr?.postcode,
+      country: ctx.country,
+    };
+    state.addressConfirmed = false;
+
+    return {
+      say: `So that's ${this.spokenAddress(state.cart.deliveryAddress)}. Is that correct?`,
+      next: "ADDRESS_CONFIRM",
     };
   }
 
@@ -729,7 +901,10 @@ DELIVERY ADDRESSES
 ${deliveryGuidance}
 
 TAKING AN ORDER
-- Add items as they say them with add_item. Use the exact item id from the menu below.
+- People order fast and in bursts: "three cokes, a garlic bread and two pepperoni". Take the WHOLE burst in one turn — call add_item once per item, then say back what you have. Asking a question after every single item is what makes a four-item order feel like an interrogation.
+- Pass the caller's own words in the said field, quantity included. They are matched against the menu for you, and that matching is built for exactly the way transcription mangles food names. You do not need the id.
+- The transcript WILL be wrong about food. If what you heard does not obviously match one dish, call find_item before adding anything: it will either tell you which dish it is, or tell you it cannot choose.
+- When it cannot choose, ask the caller which of the two they meant. Never pick for them — a wrong guess here is a wrong meal cooked.
 - If an item has a REQUIRED option group, ask for that choice before adding it — one group at a time, offering at most three options aloud.
 - Never invent a dish, a price, or an option that is not on the menu below. If they ask for something you do not have, say so plainly and suggest the closest thing you do have.
 
@@ -772,13 +947,30 @@ ${menu || "(no items available — apologise and transfer)"}`;
   private toolDefs(ctx: VoiceContext): Anthropic.Tool[] {
     return [
       {
-        name: "add_item",
+        name: "find_item",
         description:
-          "Add one menu item to the order. Ask for any REQUIRED option group before calling this.",
+          "Check what a caller meant before adding it. Use whenever what you heard doesn't obviously match one dish — the transcription is often wrong about food names. Returns the closest menu items.",
         input_schema: {
           type: "object",
           properties: {
-            itemId: { type: "string", description: "Exact item id from the menu" },
+            said: { type: "string", description: "What the caller said, as you heard it" },
+          },
+          required: ["said"],
+        },
+      },
+      {
+        name: "add_item",
+        description:
+          "Add one menu item to the order. Pass `said` with the caller's own words and it will be matched against the menu — you do not need the exact id, and matching handles mis-heard names. Ask for any REQUIRED option group before calling this. Callers list several things at once; call this once per item in the SAME turn rather than asking after each one.",
+        input_schema: {
+          type: "object",
+          properties: {
+            said: {
+              type: "string",
+              description:
+                "The caller's own words for this one item, including any quantity — e.g. 'three cola', 'large pepperoni'. Preferred over itemId.",
+            },
+            itemId: { type: "string", description: "Exact item id from the menu, if you are sure of it" },
             quantity: { type: "integer", minimum: 1, default: 1 },
             modifierOptionIds: {
               type: "array",
@@ -787,7 +979,6 @@ ${menu || "(no items available — apologise and transfer)"}`;
             },
             notes: { type: "string", description: "e.g. no onions" },
           },
-          required: ["itemId"],
         },
       },
       {
@@ -951,6 +1142,8 @@ ${menu || "(no items available — apologise and transfer)"}`;
     callerNumber?: string | null,
   ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
     switch (name) {
+      case "find_item":
+        return { result: this.findItem(String(input?.said ?? ""), ctx) };
       case "add_item":
         return { result: this.addItem(input, ctx, state) };
       case "remove_item": {
@@ -1191,8 +1384,48 @@ ${menu || "(no items available — apologise and transfer)"}`;
     }
   }
 
+  /** What could the caller have meant? Offered to the model before it commits. */
+  private findItem(said: string, ctx: VoiceContext): string {
+    const { rest } = splitQuantity(said);
+    const matches = matchMenuItems(rest || said, ctx.items, { limit: 4 });
+    if (!matches.length) {
+      return `Nothing on the menu matches "${said}". Tell them plainly that you don't have it and offer the closest thing you DO have.`;
+    }
+    if (isConfident(matches)) {
+      const top = matches[0]!.item;
+      return `That's ${top.name} [${top.id}]. Add it with add_item.`;
+    }
+    return `Not sure between: ${matches
+      .map((m) => `${m.item.name} [${m.item.id}]`)
+      .join(", ")}. Ask the caller which one — do not choose for them.`;
+  }
+
   private addItem(input: any, ctx: VoiceContext, state: VoiceState): string {
-    const item = ctx.itemIndex.get(String(input?.itemId ?? ""));
+    // The caller's own words are the better input. A transcriber that has
+    // never seen this menu turns "three cola" into "Drie coli", and asking a
+    // model to pick an exact id out of that leaves it guessing or asking
+    // again — one puts the wrong food in the kitchen, the other is what makes
+    // a four-item order take two minutes.
+    let item = ctx.itemIndex.get(String(input?.itemId ?? ""));
+    let quantityFromSpeech: number | undefined;
+
+    if (!item && input?.said) {
+      const { quantity, rest } = splitQuantity(String(input.said));
+      quantityFromSpeech = quantity;
+      const matches = matchMenuItems(rest, ctx.items, { limit: 3 });
+      if (!matches.length) {
+        return `Nothing on the menu matches "${input.said}". Say plainly that you don't have it, and offer the closest thing you do.`;
+      }
+      if (!isConfident(matches)) {
+        // Two plausible dishes is a question for the caller, not a coin toss
+        // on their behalf — and getting it wrong here is a wrong meal cooked.
+        return `More than one thing matches "${input.said}": ${matches
+          .map((m) => m.item.name)
+          .join(" or ")}. Ask which one they meant, then add it.`;
+      }
+      item = matches[0]!.item;
+    }
+
     if (!item) return "That item isn't on the menu — tell the caller and suggest something similar.";
 
     const chosenIds: string[] = Array.isArray(input?.modifierOptionIds)
@@ -1220,7 +1453,10 @@ ${menu || "(no items available — apologise and transfer)"}`;
       lineId: Math.random().toString(36).slice(2, 9),
       itemId: item.id,
       name: item.name,
-      quantity: Math.max(1, Math.round(Number(input?.quantity) || 1)),
+      quantity: Math.max(
+        1,
+        Math.round(Number(input?.quantity) || quantityFromSpeech || 1),
+      ),
       unitBasePrice: item.price,
       modifiers,
       notes: input?.notes ? String(input.notes) : undefined,

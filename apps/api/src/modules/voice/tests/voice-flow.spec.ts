@@ -1,6 +1,7 @@
 import {
   boardReference,
   digitChoice,
+  houseNumberFrom,
   interpretMenuChoice,
   isLikelyHallucination,
   marketplaceName,
@@ -18,6 +19,7 @@ import {
   spokenDigits,
   spokenOrderStatus,
   spokenReference,
+  streetOf,
   wantsHuman,
 } from "../voice-flow";
 
@@ -664,5 +666,52 @@ describe("the five options", () => {
   it("asks for the options again when asked", () => {
     expect(interpretMenuChoice("say that again").kind).toBe("REPEAT");
     expect(interpretMenuChoice("what are the options").kind).toBe("REPEAT");
+  });
+});
+
+describe("streetOf", () => {
+  it("takes the street off a full first line", () => {
+    expect(streetOf("11 Follingsby Drive")).toBe("Follingsby Drive");
+    expect(streetOf("11a Follingsby Drive")).toBe("Follingsby Drive");
+    expect(streetOf("Flat 2, Rose Court")).toBe("Rose Court");
+  });
+
+  it("does not eat the first letter of the street", () => {
+    // An earlier pattern let the optional house-number letter match across
+    // the space and served up "ollingsby Drive".
+    // "Follingsby Drive" naturally CONTAINS "ollingsby Drive", so the property
+    // worth asserting is that the street still starts with its own letter.
+    expect(streetOf("11 Follingsby Drive")).toMatch(/^F/);
+    expect(streetOf("7 Adelaide Row")).toBe("Adelaide Row");
+    expect(streetOf("2 Elm Grove")).toBe("Elm Grove");
+  });
+
+  it("gives back nothing when there is no street in it", () => {
+    expect(streetOf("11")).toBeNull();
+    expect(streetOf("")).toBeNull();
+  });
+});
+
+describe("houseNumberFrom", () => {
+  it("takes a number however it was said", () => {
+    expect(houseNumberFrom("eleven")).toBe("11");
+    expect(houseNumberFrom("11")).toBe("11");
+    expect(houseNumberFrom("number 11")).toBe("11");
+    expect(houseNumberFrom("11a")).toBe("11a");
+    expect(houseNumberFrom("twenty four")).toBe("24");
+  });
+
+  it("takes a flat number", () => {
+    expect(houseNumberFrom("flat 2")).toBe("flat 2");
+  });
+
+  it("takes a house NAME, because that is where some people live", () => {
+    // Insisting on a digit strands whoever lives at Rose Cottage.
+    expect(houseNumberFrom("Rose Cottage")).toBe("Rose Cottage");
+  });
+
+  it("gives back nothing rather than a guess", () => {
+    expect(houseNumberFrom("")).toBeNull();
+    expect(houseNumberFrom("erm I'm not sure hang on a second")).toBeNull();
   });
 });

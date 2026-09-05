@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { WalletService } from "../wallet/wallet.service";
 import { VoiceContextService, normaliseNumber } from "./voice-context.service";
+import { AddressLookupService } from "../address-lookup/address-lookup.service";
 import {
   VoiceAiService,
   coerceState,
@@ -61,6 +62,7 @@ export class VoiceService {
     private readonly wallet: WalletService,
     private readonly contexts: VoiceContextService,
     private readonly ai: VoiceAiService,
+    private readonly addresses: AddressLookupService,
   ) {}
 
   private db(): any {
@@ -501,6 +503,35 @@ export class VoiceService {
         const choice = parseFulfillment(said);
         if (!choice) return null;
         const out = this.ai.fulfillmentAloud(ctx, state, choice);
+        say = out.say;
+        next = out.next;
+        break;
+      }
+      case "ADDR_POSTCODE": {
+        // One short question, one checkable answer. The lookup is injected so
+        // the conversation logic stays testable without a Places key.
+        const out = await this.ai.postcodeAloud(ctx, state, said, (postcode) =>
+          this.addresses
+            .searchByPostcode(postcode)
+            .then((r) => r.suggestions.map((sg) => ({ line1: sg.line1, city: sg.city }))),
+        );
+        say = out.say;
+        next = out.next;
+        break;
+      }
+      case "ADDR_STREET": {
+        const answer = parseYesNo(said);
+        if (!answer) return null;
+        const out =
+          answer === "YES"
+            ? this.ai.streetAgreedAloud()
+            : this.ai.streetRejectedAloud(state);
+        say = out.say;
+        next = out.next;
+        break;
+      }
+      case "ADDR_HOUSE": {
+        const out = this.ai.houseNumberAloud(ctx, state, said);
         say = out.say;
         next = out.next;
         break;
