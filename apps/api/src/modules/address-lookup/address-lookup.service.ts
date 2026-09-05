@@ -21,6 +21,7 @@ import type {
   SearchProvider,
 } from "./providers/types";
 import type { FreeTextProvider } from "./providers/freetext-providers";
+import { townForPostcode } from "./providers/postcode-town";
 
 export type {
   AddressLookupResult,
@@ -147,6 +148,14 @@ export class AddressLookupService {
       }
     }
     return null;
+  }
+
+  /**
+   * The post town for a postcode — the ONLY thing that should decide what town
+   * is read back to a caller. Null means we cannot say, and that is an answer.
+   */
+  async townForPostcode(postcode: string): Promise<string | null> {
+    return townForPostcode(postcode);
   }
 
   // ── Postcode → addresses ────────────────────────────────────────────────

@@ -18,7 +18,9 @@ import {
   parseOrderReference,
   parsePayment,
   referenceMatches,
+  hasStreetType,
   houseNumberFrom,
+  streetOf,
   parseYesNo,
   spokenDigits,
   spokenReference,
@@ -588,7 +590,27 @@ export class VoiceService {
       case "ADDRESS_CONFIRM":
       case "ORDER_CONFIRM": {
         const answer = parseYesNo(said);
-        if (!answer) return null;
+        if (!answer) {
+          // A bare number answering "is that Sunningdale Drive, NE37 2LL?" is
+          // the caller supplying the one thing that read-back was missing.
+          const line1 = state.cart.deliveryAddress?.line1;
+          const house = houseNumberFrom(said);
+          if (
+            slot === "ADDRESS_CONFIRM" &&
+            line1 &&
+            hasStreetType(line1) &&
+            streetOf(line1) === line1 &&
+            house &&
+            /\d/.test(house)
+          ) {
+            state.addr = { ...(state.addr ?? {}), street: line1 };
+            const out = this.ai.houseNumberAloud(ctx, state, said);
+            say = out.say;
+            next = out.next;
+            break;
+          }
+          return null;
+        }
         if (answer === "NO") {
           const rejected = this.ai.rejectedReadBack(slot);
           say = rejected.say;

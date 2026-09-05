@@ -1100,6 +1100,24 @@ const STREET_TYPES = new Set([
  * "Loch Lomond" and "High Croft" must, because real streets near the shop are
  * named exactly like that with no Road or Drive on the end.
  */
+/**
+ * Does this end in a word that only ever ends a street?
+ *
+ * Stricter than looksLikeStreet on purpose. "Sunningdale Drive" is a street
+ * missing its number; "Rose Cottage" is a house that has one instead of a
+ * number, and confusing the two either strands whoever lives there or
+ * confirms an address a driver cannot find.
+ */
+export function hasStreetType(text?: string | null): boolean {
+  const words = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  const last = words[words.length - 1];
+  return !!last && STREET_TYPES.has(last);
+}
+
 export function looksLikeStreet(text?: string | null): boolean {
   const words = String(text ?? "")
     .toLowerCase()

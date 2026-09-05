@@ -18,7 +18,9 @@ import {
   addressQuery,
   bestAddress,
   matchStreet,
+  postcodeArea,
   rankAddresses,
+  shopAreas,
   uniqueStreets,
   type AddressCandidate,
 } from "./voice-address";
@@ -31,6 +33,7 @@ import {
   houseNumberFrom,
   resolveHeardPostcode,
   spokenDigits,
+  hasStreetType,
   looksLikeStreet,
   sameStreet,
   streetOf,
@@ -530,7 +533,22 @@ export class VoiceAiService {
         : null;
 
     if (pinned) {
-      const known = await this.streetsForPostcodeSafely(ctx, pinned);
+      // Out of the shop's part of the country entirely. Reading it back at all
+      // is how a Washington caller was told Salford; the honest answer is that
+      // we don't deliver there.
+      const areas = shopAreas(ctx);
+      if (areas.size && !areas.has(postcodeArea(pinned))) {
+        state.confusion = 0;
+        return {
+          say: `Sorry — ${pinned} is outside our delivery area. Would you like to collect instead, or is there another address we could deliver to?`,
+          next: "ADDR_FULL",
+        };
+      }
+
+      const [known, town] = await Promise.all([
+        this.streetsForPostcodeSafely(ctx, pinned),
+        this.townForPostcodeSafely(pinned),
+      ]);
       const streets = uniqueStreets(known);
       const chosen = spokenStreet
         ? matchStreet(spokenStreet, streets)
@@ -539,7 +557,11 @@ export class VoiceAiService {
           : null;
 
       if (chosen) {
-        const city = known.find((k) => streetOf(k.line1) === chosen)?.city ?? ctx.address?.city ?? undefined;
+        // The town comes from the POSTCODE. Not from the shop's own record,
+        // not from what somebody typed at a till. If the postcode cannot tell
+        // us, we say the street and the postcode and no town at all — that is
+        // correct, and borrowing one to fill the gap is what caused this.
+        const city = town ?? undefined;
         state.confusion = 0;
         state.addr = { postcode: pinned, street: chosen, city };
         if (!house) {
@@ -565,7 +587,7 @@ export class VoiceAiService {
       state.addr = { ...(state.addr ?? {}), postcode: pinned, house: house ?? undefined };
       if (streets.length) {
         state.addr.street = streets[0]!;
-        state.addr.city = known[0]?.city ?? ctx.address?.city ?? undefined;
+        state.addr.city = town ?? undefined;
         return {
           say: `Thanks. That's ${streets[0]}${state.addr.city ? `, ${state.addr.city}` : ""} — is that right?`,
           next: "ADDR_STREET",
@@ -614,6 +636,18 @@ export class VoiceAiService {
       say: `Thanks. That's ${this.spokenAddress(state.cart.deliveryAddress as any)} — is that right?`,
       next: "ADDRESS_CONFIRM",
     };
+  }
+
+  /** The post town, bounded and never throwing — it runs mid-call. */
+  private async townForPostcodeSafely(postcode: string): Promise<string | null> {
+    try {
+      return await Promise.race([
+        this.addresses.townForPostcode(postcode),
+        new Promise<string | null>((r) => setTimeout(() => r(null), LOOKUP_TIMEOUT_MS)),
+      ]);
+    } catch {
+      return null;
+    }
   }
 
   /** streetsForPostcode, bounded and never throwing — it runs mid-call. */
@@ -696,7 +730,10 @@ export class VoiceAiService {
     // when a street was sitting behind it.
     const withStreet = found.find((f) => streetOf(f.line1));
     const street = streetOf(withStreet?.line1) ?? null;
-    const city = withStreet?.city ?? found[0]?.city ?? ctx.address?.city ?? undefined;
+    // The town comes from the POSTCODE, never from the shop's own record. A
+    // shop delivers to more than one town, so its own city is a guess — and a
+    // guess that reads back as fact is how a Washington caller heard Salford.
+    const city = (await this.townForPostcodeSafely(postcode)) ?? withStreet?.city ?? undefined;
     if (!street) {
       return {
         say: `Thanks. And what's the street?`,
@@ -761,7 +798,12 @@ export class VoiceAiService {
       }
       const known = [...tally.values()].sort((a, b) => b.n - a.n);
       if (known.length) {
-        return known.map((k) => ({ line1: k.street, city: k.city }));
+        this.logger?.log(`streets for ${pretty} from our own orders: ${known.length}`);
+        // Streets only. The CITY on these rows is whatever somebody typed at a
+        // till, and one wrong entry told a caller in Washington they were in
+        // Salford — in 52ms, because the answer never left the building. The
+        // town comes from the postcode and nowhere else.
+        return known.map((k) => ({ line1: k.street }));
       }
     } catch (err: any) {
       // Our own history is an optimisation, never a dependency. If the query
@@ -771,7 +813,10 @@ export class VoiceAiService {
     }
 
     const res: any = await this.addresses.searchByPostcode(postcode);
-    return (res?.suggestions ?? []).map((sg: any) => ({ line1: sg.line1, city: sg.city }));
+    this.logger?.log(
+      `streets for ${pretty} from ${res?.provider ?? "?"}: ${res?.suggestions?.length ?? 0}`,
+    );
+    return (res?.suggestions ?? []).map((sg: any) => ({ line1: sg.line1 }));
   }
 
   /**
@@ -851,7 +896,7 @@ export class VoiceAiService {
 
     const withStreet = found.find((f) => streetOf(f.line1));
     const street = streetOf(withStreet?.line1) ?? null;
-    const city = withStreet?.city ?? found[0]?.city ?? ctx.address?.city ?? undefined;
+    const city = (await this.townForPostcodeSafely(postcode)) ?? withStreet?.city ?? undefined;
     if (!street) {
       return `Postcode ${postcode} is noted, but no street came back for it. Ask them for the street name and house number together — do NOT ask for the postcode again.`;
     }
@@ -930,6 +975,15 @@ export class VoiceAiService {
         })()
       : spokenLine ?? houseNumberFrom(said);
 
+    // A street with no number in front of it is not somewhere a driver can go.
+    // Asked for "the street name and house number", a caller who says only
+    // "Sunningdale Drive" was having that confirmed back to them as a whole
+    // address — and a confident read-back is exactly what stops them noticing.
+    if (!agreedStreet && line1 && hasStreetType(line1) && streetOf(line1) === line1) {
+      state.addr = { ...(state.addr ?? {}), street: line1 };
+      return { say: "Thanks. And the house number or name?", next: "ADDR_HOUSE" };
+    }
+
     if (!line1) {
       return {
         say: street
@@ -943,7 +997,10 @@ export class VoiceAiService {
     state.cart.fulfillmentChosen = true;
     state.cart.deliveryAddress = {
       line1,
-      city: state.addr?.city ?? ctx.address?.city ?? "",
+      // No town rather than the shop's town. "5 Sunningdale Drive, NE37 2LL"
+      // is a correct address; "5 Sunningdale Drive, Salford, NE37 2LL" is a
+      // wrong one, and only the second sounds confident.
+      city: state.addr?.city ?? "",
       postcode: state.addr?.postcode,
       country: ctx.country,
     };
