@@ -4,7 +4,12 @@ import {
   AddressLookupService,
   SEARCH_PROVIDERS,
   POSTCODE_PROVIDERS,
+  FREETEXT_PROVIDERS,
 } from "./address-lookup.service";
+import {
+  GoogleGeocodeProvider,
+  NominatimSearchProvider,
+} from "./providers/freetext-providers";
 import {
   GoogleSearchProvider,
   MapboxSearchProvider,
@@ -40,6 +45,8 @@ import {
     // ── Concrete provider classes (DI'd so unit tests can substitute) ──
     GoogleSearchProvider,
     MapboxSearchProvider,
+    GoogleGeocodeProvider,
+    NominatimSearchProvider,
     GetAddressProvider,
     GooglePostcodeProvider,
     IdealPostcodesProvider,
@@ -76,6 +83,11 @@ import {
         OsmStreetsProvider,
         PostcodesIoProvider,
       ],
+    },
+    {
+      provide: FREETEXT_PROVIDERS,
+      useFactory: (g: GoogleGeocodeProvider, n: NominatimSearchProvider) => [g, n],
+      inject: [GoogleGeocodeProvider, NominatimSearchProvider],
     },
   ],
   exports: [AddressLookupService],

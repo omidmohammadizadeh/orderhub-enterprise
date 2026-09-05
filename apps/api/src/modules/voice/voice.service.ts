@@ -497,12 +497,33 @@ export class VoiceService {
     let say = "";
     let extra: Partial<VoiceTurn> | undefined;
     let next: VoiceState["awaiting"];
+    const confusionBefore = state.confusion ?? 0;
 
     switch (slot) {
       case "FULFILLMENT": {
         const choice = parseFulfillment(said);
         if (!choice) return null;
         const out = this.ai.fulfillmentAloud(ctx, state, choice);
+        say = out.say;
+        next = out.next;
+        break;
+      }
+      case "ADDR_FULL": {
+        // The whole address in one question. Falls through to the postcode
+        // ladder inside addressAloud when it doesn't resolve.
+        const startedAt = Date.now();
+        const out = await this.ai.addressAloud(ctx, state, said, (query) =>
+          this.addresses
+            .resolveAddress(query, { country: ctx.country })
+            .then((rows) =>
+              rows.map((r) => ({ line1: r.line1, city: r.city, postcode: r.postcode })),
+            ),
+        );
+        this.logger.log(
+          `address lookup for call ${call.id} took ${Date.now() - startedAt}ms → ${
+            state.addr?.postcode ?? "unresolved"
+          }`,
+        );
         say = out.say;
         next = out.next;
         break;
@@ -585,8 +606,14 @@ export class VoiceService {
 
     state.turns.push({ role: "user", text: said });
     state.awaiting = next;
-    // We understood, so the run of misunderstandings is over.
-    state.confusion = 0;
+    // Reaching here is not the same as having understood. A slot handler that
+    // could not parse the answer still returns something to SAY — the re-ask —
+    // and it raises the counter on its way past. Zeroing that unconditionally
+    // meant the escalation ladder could never escalate: the line asked for a
+    // postcode in the same words forever, which is the one thing it was built
+    // not to do. So only a handler that did NOT raise the count gets to clear
+    // it.
+    if ((state.confusion ?? 0) <= confusionBefore) state.confusion = 0;
     state.turns.push({ role: "assistant", text: say });
     if (extra?.endCall || extra?.transferTo) state.stage = "DONE";
 

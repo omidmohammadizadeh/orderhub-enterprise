@@ -802,9 +802,23 @@ export function addressLineFrom(said: string): string | null {
   if (words.length < 2) return null;
 
   // Spoken numbers become digits so "eleven Fellside Road" reads properly.
-  const head = words[0] ?? "";
+  //
+  // Greedy over the leading words, because a house number is often two of
+  // them. Taking only the first turned "twenty two Fellside Road" into "20
+  // Two Fellside Road" — a number that doesn't exist on a street that then
+  // couldn't be found.
+  let head = words[0] ?? "";
+  let taken = 1;
+  if (words.length > 2) {
+    const pair = `${words[0]} ${words[1]}`;
+    const asPair = parseSpokenNumber(pair);
+    if (asPair && asPair !== parseSpokenNumber(words[0] ?? "")) {
+      head = pair;
+      taken = 2;
+    }
+  }
   const asNumber = parseSpokenNumber(head);
-  const rest = words.slice(1).join(" ");
+  const rest = words.slice(taken).join(" ");
   const line =
     asNumber && asNumber.length <= 4 && !/^\d/.test(head)
       ? `${asNumber} ${rest}`

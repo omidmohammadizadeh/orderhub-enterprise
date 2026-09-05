@@ -13,55 +13,127 @@ const POSTCODES = {
   ],
 };
 
+// What a geocoder gives back for a whole spoken address — the postcode
+// included, which is the part the caller never says and the driver needs.
+const GEOCODED = {
+  sunningdale: [
+    { line1: "Sunningdale Drive", city: "Washington", postcode: "NE37 2LL" },
+  ],
+};
+
 describe("a delivery order, start to address confirmed", () => {
-  it("asks postcode, street, house number — in that order, no model", async () => {
-    const call = new VoiceCallSim({ postcodes: POSTCODES });
+  it("takes the whole address in one question, postcode included", async () => {
+    // The caller says what a person says. They never say the postcode, and
+    // they should not have to — the geocoder knows it.
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: GEOCODED });
 
     expect(call.greeting()).toContain("press 1");
     expect(await call.press("1")).toContain("collection or delivery");
-    expect(await call.say("Delivery.")).toContain("postcode");
+    expect(await call.say("Delivery.")).toMatch(/delivery address/i);
 
-    // The street comes back off the postcode — the caller never says it.
-    const street = await call.say("N E 3 7 2 L L");
-    expect(street).toContain("Sunningdale Drive");
-    expect(street).toMatch(/is that right/i);
-
-    expect(await call.say("Yes.")).toMatch(/house number/i);
-
-    const readback = await call.say("Eleven.");
+    const readback = await call.say("Eleven Sunningdale Drive, Washington.");
     expect(readback).toContain("11 Sunningdale Drive");
-    expect(readback).toMatch(/is that correct/i);
+    expect(readback).toMatch(/is that right/i);
 
     const done = await call.say("Yes.");
     expect(done).toMatch(/what would you like to order/i);
 
-    // The whole address exchange must not touch the model — that is the
-    // difference between four seconds a question and half of one.
+    // One question, not three — and still no model call anywhere in it.
     expect(call.modelTurns).toBe(0);
     expect(call.state.cart.deliveryAddress.line1).toBe("11 Sunningdale Drive");
     expect(call.state.cart.deliveryAddress.postcode).toBe("NE37 2LL");
     expect(call.state.addressConfirmed).toBe(true);
   });
 
-  it("takes the postcode out of a caller who gives the whole address", async () => {
-    // Real transcript: "Five sunny dead arrived, and eight three seven two l l"
-    // — someone reeling off "5 Sunningdale Drive, NE37 2LL" in one go. Asking
-    // them to repeat just the postcode after that is infuriating.
-    const call = new VoiceCallSim({ postcodes: POSTCODES });
+  it("keeps the house number the caller gave, not the geocoder's idea of one", async () => {
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: GEOCODED });
     call.greeting();
     await call.press("1");
     await call.say("Delivery.");
 
-    const out = await call.say("Five sunny dead arrived, and eight three seven two l l.");
-    expect(out).toContain("Sunningdale Drive");
+    const out = await call.say("Twenty two Sunningdale Drive Washington");
+    expect(out).toContain("22 Sunningdale Drive");
+  });
+
+  it("will not read back an address whose street is not the one they said", async () => {
+    // Real Nominatim behaviour: asked for "22 Fellside Road Gateshead" its top
+    // hit was a takeaway on Whitewell Road. Position zero is not an answer.
+    const call = new VoiceCallSim({
+      postcodes: POSTCODES,
+      geocoded: {
+        "fellside": [
+          { line1: "22 Whitewell Road", city: "Blaydon on Tyne", postcode: "NE21 5HH" },
+        ],
+      },
+    });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+
+    const out = await call.say("Twenty two Fellside Road, Gateshead.");
+    expect(out).not.toContain("Whitewell");
+    expect(out).toMatch(/postcode/i);
+  });
+
+  it("drops to the postcode ladder when the address will not resolve", async () => {
+    // The ladder is slower but nearly unbreakable, and it is the reason the
+    // line never has to tell somebody it cannot take their address.
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: {} });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+
+    expect(await call.say("Eleven Sunningdale Drive.")).toMatch(/postcode/i);
+
+    const street = await call.say("N E 3 7 2 L L");
+    expect(street).toContain("Sunningdale Drive");
+    expect(street).toMatch(/is that right/i);
+
+    expect(await call.say("Yes.")).toMatch(/house number/i);
+    const readback = await call.say("Eleven.");
+    expect(readback).toContain("11 Sunningdale Drive");
+    expect(call.modelTurns).toBe(0);
+  });
+
+  it("does not ask for a postcode twice when it cannot resolve either", async () => {
+    const call = new VoiceCallSim({ postcodes: {}, geocoded: {} });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+    const first = await call.say("Somewhere it has never heard of.");
+    expect(first).toMatch(/postcode/i);
+
+    // The ladder escalates rather than repeating itself. Asking the identical
+    // question again is how a caller decides the line is broken — so each miss
+    // asks for the same thing a different way, and then for something else
+    // entirely. What it must never do is give up.
+    const second = await call.say("Still nowhere.");
+    expect(second).toMatch(/one character at a time/i);
+
+    const third = await call.say("Nope.");
+    expect(third).toMatch(/street and house number/i);
+    expect(call.modelTurns).toBe(0);
+  });
+
+  it("takes a postcode said inside the address, when that is all that resolves", async () => {
+    // "Five sunny dead arrived, and eight three seven two l l" — someone
+    // reeling off the whole thing at once. If the sentence doesn't geocode,
+    // the postcode inside it must not be thrown away.
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: {} });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+
+    await call.say("Five sunny dead arrived, and eight three seven two l l.");
     expect(call.state.addr?.postcode).toBe("NE37 2LL");
   });
 
-  it("lets the caller give the street themselves when the lookup is wrong", async () => {
-    const call = new VoiceCallSim({ postcodes: POSTCODES });
+  it("lets the caller give the street themselves when the ladder's lookup is wrong", async () => {
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: {} });
     call.greeting();
     await call.press("1");
     await call.say("Delivery.");
+    await call.say("No idea.");
     await call.say("N E 3 7 2 L L");
 
     // Saying no must not restart from the postcode — they already gave it.
@@ -71,26 +143,16 @@ describe("a delivery order, start to address confirmed", () => {
 
     const readback = await call.say("11 Fellside Road");
     expect(readback).toContain("11 Fellside Road");
-    expect(readback).toMatch(/is that correct/i);
     expect(call.modelTurns).toBe(0);
-  });
-
-  it("asks for the street when the postcode is not in the database", async () => {
-    const call = new VoiceCallSim({ postcodes: {} });
-    call.greeting();
-    await call.press("1");
-    await call.say("Delivery.");
-    const out = await call.say("N E 3 7 2 L L");
-    expect(out).toMatch(/street/i);
   });
 
   it("understands 'delivery' even when the transcript mangles it", async () => {
     // Real transcript: "Very very." for "delivery".
-    const call = new VoiceCallSim({ postcodes: POSTCODES });
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: GEOCODED });
     call.greeting();
     await call.press("1");
     const out = await call.say("Very very.");
-    expect(out).toContain("postcode");
+    expect(out).toMatch(/delivery address/i);
     expect(call.modelTurns).toBe(0);
   });
 

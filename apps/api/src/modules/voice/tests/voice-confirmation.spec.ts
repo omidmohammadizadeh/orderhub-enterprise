@@ -492,15 +492,18 @@ describe("postcode-first address capture", () => {
   ];
   const empty = async () => [];
 
-  it("asks for the postcode alone, not a whole address", async () => {
-    // Asking for the lot in one breath asks the transcriber to spell a street
-    // it has never heard of. A postcode is six characters from a fixed
-    // alphabet, and the street can be looked up from it.
+  it("asks for the address once, and asks for it like a person would", async () => {
+    // Most callers answer the postcode, the street and the house number in one
+    // breath. Making them spell a postcode first to arrive at what they just
+    // said is a machine handing a person its filing.
     const state = withItem();
     const out = svc().fulfillmentAloud(ctx(), state, "DELIVERY");
-    expect(out.say).toContain("postcode");
+    expect(out.say).toMatch(/delivery address/i);
+    expect(out.next).toBe("ADDR_FULL");
+    // Not the old sentence, which asked the transcriber to spell a street it
+    // has never heard of AND a postcode in the same breath.
+    expect(out.say).not.toMatch(/including the postcode/i);
     expect(out.say).not.toContain("Follingsby");
-    expect(out.next).toBe("ADDR_POSTCODE");
   });
 
   it("reads the street back off a spelled-out postcode", async () => {
@@ -601,20 +604,24 @@ describe("the prompt cannot ask for a whole address", () => {
     expect(p).not.toMatch(/take your address/i);
   });
 
-  it("teaches the postcode-first order explicitly", () => {
+  it("teaches one question first, and the ladder underneath it", () => {
     const p = prompt();
-    expect(p).toMatch(/POSTCODE FIRST/i);
-    expect(p).toMatch(/What's your postcode/i);
+    expect(p).toMatch(/What's the delivery address/i);
+    expect(p).toMatch(/resolve_address/);
+    // The ladder is the fallback, not the opening — but it must still be
+    // taught, because it is the reason the line never has to tell somebody it
+    // cannot take their address.
     expect(p).toMatch(/lookup_postcode/);
-    // And the rule that follows from it: never ask twice for the one thing
-    // they already got right.
-    expect(p).toMatch(/[Nn]ever ask for the postcode a second time/);
+    expect(p).toMatch(/What's your postcode/i);
+    expect(p).toMatch(/never ask for the postcode a second time/i);
+    expect(p).toMatch(/never end a call because an address would not resolve/i);
   });
 
-  it("gives the model the same lookup the scripted flow uses", () => {
+  it("gives the model both lookups the scripted flow uses", () => {
     const names = svc()
       .toolDefs(ctx())
       .map((t: any) => t.name);
+    expect(names).toContain("resolve_address");
     expect(names).toContain("lookup_postcode");
   });
 });

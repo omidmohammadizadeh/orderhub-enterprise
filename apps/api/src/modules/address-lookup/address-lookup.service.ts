@@ -20,6 +20,7 @@ import type {
   ProviderStatus,
   SearchProvider,
 } from "./providers/types";
+import type { FreeTextProvider } from "./providers/freetext-providers";
 
 export type {
   AddressLookupResult,
@@ -31,6 +32,7 @@ export type {
 export type AddressProvider = AddressProviderId;
 
 export const SEARCH_PROVIDERS = Symbol("ADDRESS_LOOKUP_SEARCH_PROVIDERS");
+export const FREETEXT_PROVIDERS = Symbol("ADDRESS_LOOKUP_FREETEXT_PROVIDERS");
 export const POSTCODE_PROVIDERS = Symbol("ADDRESS_LOOKUP_POSTCODE_PROVIDERS");
 
 @Injectable()
@@ -40,7 +42,40 @@ export class AddressLookupService {
   constructor(
     @Inject(SEARCH_PROVIDERS) private readonly searchChain: SearchProvider[],
     @Inject(POSTCODE_PROVIDERS) private readonly postcodeChain: PostcodeProvider[],
+    @Inject(FREETEXT_PROVIDERS) private readonly freeTextChain: FreeTextProvider[],
   ) {}
+
+  /**
+   * A whole spoken address in, addresses with postcodes out.
+   *
+   * Distinct from search(), which serves an operator typing into a picker and
+   * returns predictions to choose between. This one is for a phone call: one
+   * call, complete addresses, and every provider that can answer is asked at
+   * once rather than in turn, because the caller is holding the line.
+   */
+  async resolveAddress(
+    query: string,
+    opts: { country?: string; limit?: number } = {},
+  ): Promise<AddressSuggestion[]> {
+    const trimmed = (query ?? "").trim();
+    if (trimmed.length < 3) return [];
+    const configured = this.freeTextChain.filter((p) => p.isConfigured());
+    if (!configured.length) return [];
+
+    const results = await Promise.all(
+      configured.map((p) =>
+        p
+          .resolve(trimmed, { country: opts.country ?? "GB", limit: opts.limit ?? 5 })
+          .catch((err: any) => {
+            this.logger.warn(`Free-text provider ${p.id} failed: ${err?.message ?? err}`);
+            return [] as AddressSuggestion[];
+          }),
+      ),
+    );
+    // Pooled, not first-wins: two geocoders disagreeing about which Fellside
+    // Road this is is information, and the ranker upstream uses it.
+    return results.flat();
+  }
 
   // ── Diagnostics ──────────────────────────────────────────────────────────
 

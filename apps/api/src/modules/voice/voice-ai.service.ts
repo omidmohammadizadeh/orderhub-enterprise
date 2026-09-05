@@ -14,6 +14,12 @@ import { OrdersService } from "../orders/orders.service";
 import { SmsService } from "../sms/sms.service";
 import { PaymentsService } from "../payments/payments.service";
 import { AddressLookupService } from "../address-lookup/address-lookup.service";
+import {
+  addressQuery,
+  bestAddress,
+  rankAddresses,
+  type AddressCandidate,
+} from "./voice-address";
 import type { VoiceContext } from "./voice-context.service";
 import { normaliseNumber } from "./voice-context.service";
 import {
@@ -134,6 +140,8 @@ export interface VoiceState {
     | "FULFILLMENT"
     | "PAYMENT"
     | "NAME"
+    /** Asked for the whole address in one go — the default opening. */
+    | "ADDR_FULL"
     /** Asked for the postcode, nothing else yet. */
     | "ADDR_POSTCODE"
     /** Read the street back off the postcode; waiting for yes or no. */
@@ -227,6 +235,7 @@ export function coerceState(raw: unknown): VoiceState {
         "FULFILLMENT",
         "PAYMENT",
         "NAME",
+        "ADDR_FULL",
         "ADDR_POSTCODE",
         "ADDR_STREET",
         "ADDR_HOUSE",
@@ -393,15 +402,14 @@ export class VoiceAiService {
         next: "ADDRESS_CONFIRM",
       };
     }
-    // Postcode first, and on its own.
+    // One question. Most callers answer all of it in one breath — "eleven
+    // Sunningdale Drive, Washington" — and making them spell a postcode first
+    // to arrive at what they already said is three turns of nobody's time.
     //
-    // Asking for a whole address in one breath asks the transcriber to get a
-    // street name right, and it has never heard of Follingsby Drive. A
-    // postcode is six or seven characters from a fixed alphabet, we can look
-    // the street up from it, and then the caller only has to say a house
-    // number. Every part of that is something speech recognition is good at.
+    // The postcode ladder underneath is not gone; it is what happens when this
+    // doesn't land. See addressAloud.
     return postcodeRequiredFor(ctx.country)
-      ? { say: "No problem. What's your postcode?", next: "ADDR_POSTCODE" }
+      ? { say: "No problem. What's the delivery address?", next: "ADDR_FULL" }
       : { say: "No problem. Can I take your address, and the area you're in?" };
   }
 
@@ -471,6 +479,67 @@ export class VoiceAiService {
     return {
       say: `That's all booked in. It'll be about ${mins} minutes ${where}.${card} Thanks for calling, goodbye.`,
       turn: { ...out.turn, endCall: true },
+    };
+  }
+
+  /**
+   * The whole address, taken in one breath.
+   *
+   * A caller saying "eleven Sunningdale Drive, Washington" has already given
+   * the postcode question, the street question and the house-number question
+   * their answers; asking all three anyway is a machine making a person do its
+   * filing. So this sends what they said to a geocoder and reads the WHOLE
+   * address back — postcode included, which is the part they didn't say and
+   * the part the driver needs.
+   *
+   * When it doesn't land, nothing is lost: we drop into the postcode ladder,
+   * which is slower but nearly unbreakable. That is the order these belong in.
+   * Never the other way round, and never give up on the caller.
+   */
+  async addressAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    said: string,
+    resolve: (query: string) => Promise<AddressCandidate[]>,
+  ): Promise<{ say: string; next: VoiceState["awaiting"] }> {
+    let found: AddressCandidate[] = [];
+    try {
+      found = await Promise.race([
+        resolve(addressQuery(said, ctx)),
+        new Promise<AddressCandidate[]>((r) => setTimeout(() => r([]), LOOKUP_TIMEOUT_MS)),
+      ]);
+    } catch {
+      found = [];
+    }
+
+    const best = bestAddress(rankAddresses(said, found, ctx));
+    if (!best) {
+      const misses = (state.confusion ?? 0) + 1;
+      state.confusion = misses;
+      // The postcode is where we go when the sentence didn't resolve — it is
+      // seven characters from a fixed alphabet and it always works. But only
+      // once: asking again for something we've already failed at twice is how
+      // a caller decides the line is broken.
+      const heard = findPostcodeIn(said, ctx.deliveryZones.map((z) => z.postcodePrefix));
+      if (heard) {
+        state.addr = { ...(state.addr ?? {}), postcode: heard };
+      }
+      return misses < 2
+        ? { say: "Sorry, I didn't get that. What's your postcode?", next: "ADDR_POSTCODE" }
+        : { say: "Let's try it differently — what's the street name and house number?", next: "ADDR_HOUSE" };
+    }
+
+    state.confusion = 0;
+    state.addr = { postcode: best.postcode, street: streetOf(best.line1) ?? undefined, city: best.city };
+    state.cart.deliveryAddress = {
+      line1: best.line1,
+      city: best.city ?? "",
+      postcode: best.postcode,
+      country: ctx.country,
+    } as any;
+    return {
+      say: `Thanks. That's ${this.spokenAddress(state.cart.deliveryAddress as any)} — is that right?`,
+      next: "ADDRESS_CONFIRM",
     };
   }
 
@@ -623,6 +692,42 @@ export class VoiceAiService {
    * asking for the whole thing in one breath. Giving it the lookup means the
    * worst case still follows the same shape as the best case.
    */
+  /** resolve_address, for when the scripted path has been knocked sideways. */
+  private async resolveAddressTool(
+    said: string,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<string> {
+    let found: AddressCandidate[] = [];
+    try {
+      found = await Promise.race([
+        this.addresses
+          .resolveAddress(addressQuery(said, ctx), { country: ctx.country })
+          .then((rows) => rows.map((r: any) => ({ line1: r.line1, city: r.city, postcode: r.postcode }))),
+        new Promise<AddressCandidate[]>((r) => setTimeout(() => r([]), LOOKUP_TIMEOUT_MS)),
+      ]);
+    } catch {
+      found = [];
+    }
+
+    const best = bestAddress(rankAddresses(said, found, ctx));
+    if (!best) {
+      return "Could not resolve that into a real address. Ask for the postcode on its own and use lookup_postcode. Do NOT tell them you can't take their address.";
+    }
+    state.addr = {
+      postcode: best.postcode,
+      street: streetOf(best.line1) ?? undefined,
+      city: best.city,
+    };
+    state.cart.deliveryAddress = {
+      line1: best.line1,
+      city: best.city ?? "",
+      postcode: best.postcode,
+      country: ctx.country,
+    } as any;
+    return `That resolves to ${this.spokenAddress(state.cart.deliveryAddress as any)}. Say exactly that followed by "— is that right?" and wait. If they say yes, call confirm_delivery_address.`;
+  }
+
   private async lookupPostcode(
     said: string,
     ctx: VoiceContext,
@@ -1050,15 +1155,17 @@ The caller has already chosen to place an order, and has already been asked whet
 6. Place it.
 Do not ask for anything twice, and do not ask for something you have already been told.
 
-DELIVERY ADDRESSES — POSTCODE FIRST, ALWAYS
-NEVER ask for a whole address in one go. A transcriber has never heard of their street and will mangle it; a postcode is six characters from a fixed alphabet, and their street can be looked up from it. Ask one short question at a time, in this order, and nothing else:
-1. "What's your postcode?" — that alone. Then call lookup_postcode with what they said. If they gave you the whole address anyway, still call lookup_postcode with all of it: it finds the postcode inside the sentence.
-2. lookup_postcode gives you the street. Say "That's <street>, <town> — is that right?" and wait.
-3. Yes: "And the house number or name?" Take just that.
-   No: "Sorry about that. What's the street name and house number?" Take both from them — they know their street, the database evidently does not. Never ask for the postcode a second time; they already gave you that.
-4. Call propose_delivery_address with the house number and street and the postcode from step 1. It reads the whole thing back for you — say exactly what it gives you and wait.
-5. Only when they say yes, call confirm_delivery_address. That is what sets the delivery charge, and place_order refuses until you have.
-Never argue with a caller about their own address.
+DELIVERY ADDRESSES — ASK ONCE, THEN FALL BACK
+Ask for the whole address in ONE question: "What's the delivery address?" Most people answer all of it in one breath, and making them spell a postcode first to arrive at what they just said is a machine giving a person filing to do.
+1. Call resolve_address with exactly what they said. It geocodes the sentence and comes back with the full address INCLUDING the postcode — which is the part they didn't say and the driver needs.
+2. It hands you the address to read back. Say exactly that and wait for a yes.
+3. If it says it could not resolve it, drop to the postcode ladder — it is slower but it nearly always works, and it is why you must never tell a caller you can't take their address:
+   a. "What's your postcode?" — that alone, then call lookup_postcode with what they said.
+   b. It gives you the street. Say "That's <street>, <town> — is that right?" and wait.
+   c. Yes: "And the house number or name?" No: "What's the street name and house number?" — they know their street, the database evidently does not. NEVER ask for the postcode a second time.
+   d. Call propose_delivery_address with the house number, street and postcode, and read back what it gives you.
+4. Only once they have said yes to a read-back, call confirm_delivery_address. That is what sets the delivery charge, and place_order refuses until you have.
+Never argue with a caller about their own address, and never end a call because an address would not resolve.
 ${deliveryGuidance}
 
 TAKING AN ORDER
@@ -1161,6 +1268,18 @@ ${menu || "(no items available — apologise and transfer)"}`;
             type: { type: "string", enum: ["DELIVERY", "PICKUP"] },
           },
           required: ["type"],
+        },
+      },
+      {
+        name: "resolve_address",
+        description:
+          "Turn a whole spoken address into a real one with a postcode. Pass exactly what the caller said. Use this FIRST for any delivery address; only fall back to lookup_postcode if this says it could not resolve it.",
+        input_schema: {
+          type: "object",
+          properties: {
+            said: { type: "string", description: "The caller's own words, verbatim." },
+          },
+          required: ["said"],
         },
       },
       {
@@ -1360,6 +1479,8 @@ ${menu || "(no items available — apologise and transfer)"}`;
         };
       }
 
+      case "resolve_address":
+        return { result: await this.resolveAddressTool(String(input?.said ?? ""), ctx, state) };
       case "lookup_postcode":
         return { result: await this.lookupPostcode(String(input?.said ?? ""), ctx, state) };
       case "propose_delivery_address": {

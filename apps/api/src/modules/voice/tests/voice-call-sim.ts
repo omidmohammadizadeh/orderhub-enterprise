@@ -26,6 +26,9 @@ export interface SimTurn {
 export interface SimOptions {
   /** Postcode → addresses, standing in for the address service. */
   postcodes?: Record<string, Array<{ line1: string; city?: string }>>;
+  /** What the geocoder returns for a whole spoken address. Keyed loosely —
+   *  the first key the query contains wins. */
+  geocoded?: Record<string, Array<{ line1: string; city?: string; postcode: string }>>;
   /** Addresses this shop has already delivered to, as its own order history
    *  holds them. Consulted before any network lookup. */
   pastDeliveries?: Array<{ addressLine1: string; city?: string }>;
@@ -103,6 +106,12 @@ export class VoiceCallSim {
     svc.ai = ai;
     svc.contexts = { resolve: async () => ctx };
     svc.addresses = {
+      resolveAddress: async (query: string) => {
+        const key = Object.keys(opts.geocoded ?? {}).find((k) =>
+          query.toLowerCase().includes(k.toLowerCase()),
+        );
+        return key ? opts.geocoded![key]! : [];
+      },
       searchByPostcode: async (postcode: string) => ({
         provider: "sim",
         suggestions: (opts.postcodes?.[postcode.replace(/\s+/g, "")] ?? []).map((a) => ({
