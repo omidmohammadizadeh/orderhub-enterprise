@@ -164,6 +164,10 @@ export function scoreItem(said: string, itemName: string): number {
     const hit = q.some(
       (queryToken) =>
         queryToken === nameToken ||
+        // People shorten what they order — "a large marg", "two pepp". Four
+        // characters is the floor: shorter than that and "gar" starts matching
+        // garlic bread, garlic mayo and gammon at once.
+        (queryToken.length >= 4 && nameToken.startsWith(queryToken)) ||
         near(queryToken, nameToken) ||
         soundFold(queryToken) === fold ||
         near(soundFold(queryToken), fold) ||
@@ -365,7 +369,7 @@ export interface GroupMatch<T> {
  * This is the version the ordering flow should use. matchMenuItems still
  * exists for callers that genuinely want one entry per size.
  */
-export function matchItemGroups<T extends { name: string }>(
+export function matchItemGroups<T extends { name: string; categoryName?: string }>(
   said: string,
   items: T[],
   opts: { limit?: number; floor?: number } = {},
@@ -373,12 +377,24 @@ export function matchItemGroups<T extends { name: string }>(
   const floor = opts.floor ?? 0.5;
   const query = stripSizeWords(said) || plain(said);
   return groupBySize(items)
-    .map((group) => ({
-      group,
+    .map((group) => {
       // "Coca-Cola 330ml" is two words of name and one of packaging; scoring
       // the packaging as a third of the dish is what kept "a coke" at 0.67.
-      score: scoreItem(query, stripSizeWords(group.base) || group.base),
-    }))
+      const base = stripSizeWords(group.base) || group.base;
+      // People say the category out loud — "a pepperoni PIZZA" for an item the
+      // menu just calls "Pepperoni", "a coke" for something filed under
+      // Drinks. Scoring the name WITH its category lets that extra word help
+      // instead of counting against them. It cannot inflate a tie: a query
+      // that only matches the category word scores 0.5 and stays unconfident.
+      const withCategory = group.variants[0]?.categoryName
+        ? `${base} ${group.variants[0]!.categoryName}`
+        : null;
+      const score = Math.max(
+        scoreItem(query, base),
+        withCategory ? scoreItem(query, withCategory) : 0,
+      );
+      return { group, score };
+    })
     .filter((m) => m.score >= floor)
     .sort((a, b) => b.score - a.score)
     .slice(0, opts.limit ?? 5);

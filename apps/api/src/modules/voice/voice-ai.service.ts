@@ -40,8 +40,10 @@ import {
   type VoiceStage,
 } from "./voice-flow";
 import {
+  isConfident,
   isConfidentGroup,
   matchItemGroups,
+  matchMenuItems,
   pickVariant,
   sizesAloud,
   splitSize,
@@ -154,11 +156,23 @@ export interface VoiceState {
     /** Read the street back off the postcode; waiting for yes or no. */
     | "ADDR_STREET"
     /** Street agreed; waiting for the house number or name. */
-    | "ADDR_HOUSE";
+    | "ADDR_HOUSE"
+    /** A dish is chosen and one of its required choices is outstanding. */
+    | "ITEM_OPTION";
   /** The address being built up, one question at a time. `house` holds a
    *  number they gave BEFORE we could name the street, so it isn't asked for
    *  twice — "five signing their drive" is a five we already have. */
   addr?: { postcode?: string; street?: string; city?: string; house?: string };
+  /** A dish chosen but not yet added, because it still needs a choice made
+   *  about it. Most of a real takeaway menu has one. */
+  pendingItem?: {
+    /** Set once the exact variant is known. */
+    itemId?: string;
+    /** Set while the dish is certain but the size is not. */
+    variantIds?: string[];
+    quantity: number;
+    chosen: string[];
+  };
   /** How they said they'd pay, held while we ask for a name. */
   pendingPayment?: "CASH" | "CARD";
   /**
@@ -220,6 +234,21 @@ export function coerceState(raw: unknown): VoiceState {
           }
         : undefined,
     knownName: r.knownName ? String(r.knownName) : undefined,
+    pendingItem:
+      r.pendingItem &&
+      typeof r.pendingItem === "object" &&
+      (r.pendingItem.itemId || Array.isArray(r.pendingItem.variantIds))
+        ? {
+            itemId: r.pendingItem.itemId ? String(r.pendingItem.itemId) : undefined,
+            variantIds: Array.isArray(r.pendingItem.variantIds)
+              ? r.pendingItem.variantIds.map(String)
+              : undefined,
+            quantity: Number(r.pendingItem.quantity) || 1,
+            chosen: Array.isArray(r.pendingItem.chosen)
+              ? r.pendingItem.chosen.map(String)
+              : [],
+          }
+        : undefined,
     pendingPayment:
       r.pendingPayment === "CASH" || r.pendingPayment === "CARD"
         ? r.pendingPayment
@@ -249,6 +278,7 @@ export function coerceState(raw: unknown): VoiceState {
         "ADDR_POSTCODE",
         "ADDR_STREET",
         "ADDR_HOUSE",
+        "ITEM_OPTION",
       ] as const
     ).includes(r.awaiting)
       ? r.awaiting
@@ -1862,7 +1892,11 @@ ${menu || "(no items available — apologise and transfer)"}`;
    * half an order added behind the caller's back is worse than a slow turn.
    * Returns null to mean "not mine".
    */
-  quickAddAloud(ctx: VoiceContext, state: VoiceState, said: string): string | null {
+  quickAddAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    said: string,
+  ): { say: string; next?: VoiceState["awaiting"] } | null {
     const text = String(said ?? "").trim();
     if (!text || !ctx.items?.length) return null;
 
@@ -1882,28 +1916,77 @@ ${menu || "(no items available — apologise and transfer)"}`;
 
     const phrases = text
       .replace(/\b(and also|as well as|along with)\b/gi, ",")
-      .split(/\s*(?:,|\band\b|\bplus\b|\bwith\b)\s*/i)
+      // NOT "with" — that introduces an option, not another dish. Splitting on
+      // it turned "a doner kebab with chilli" into a kebab and a mystery
+      // second item called chilli, and sent the whole thing to the model.
+      .split(/\s*(?:,|\band\b|\bplus\b)\s*/i)
       .map((p) => p.replace(/^(can i (get|have)|could i (get|have)|i'?ll have|i want|please|just)\s+/i, "").trim())
       .filter((p) => p.length > 1);
     if (!phrases.length || phrases.length > 6) return null;
 
-    const lines: Array<{ item: any; quantity: number }> = [];
+    const needsChoice: Array<{ item: any; quantity: number; phrase: string }> = [];
     for (const phrase of phrases) {
       const { quantity, rest } = splitQuantity(phrase);
-      const matches = matchItemGroups(rest || phrase, ctx.items, { limit: 3 });
-      if (!isConfidentGroup(matches)) return null;
+      const matches = matchItemGroups(rest || phrase, ctx.items, { limit: 3, floor: 0.3 });
+      if (!isConfidentGroup(matches)) {
+        // The one log line that makes a weak match diagnosable. Without it,
+        // "it doesn't understand food" is a report nobody can act on: this
+        // says which dishes it weighed and how close each one came.
+        this.logger?.log(
+          `no confident match for "${phrase}" — ${
+            matches.length
+              ? matches.map((m) => `${m.group.base}:${m.score.toFixed(2)}`).join(", ")
+              : "nothing above 0.30"
+          }`,
+        );
+        return null;
+      }
 
       const { group } = matches[0]!;
       const item =
         group.variants.length === 1 ? group.variants[0]! : pickVariant(phrase, group.variants);
-      if (!item) return null;
-      // A required choice is a question for the caller, and asking it well is
-      // exactly what the model is for.
-      if (item.modifierGroups?.some((g: any) => g.required)) return null;
-      lines.push({ item, quantity });
+      if (!item) {
+        // The DISH is certain and only the size is open. Handing that to the
+        // model wasted five seconds on a question we can ask better: it reads
+        // "10 or 14 inch", not three near-identical menu rows.
+        if (phrases.length > 1) return null;
+        state.pendingItem = {
+          variantIds: group.variants.map((v: any) => v.id),
+          quantity,
+          chosen: [],
+        };
+        return {
+          say: `What size ${group.base} would you like — ${sizesAloud(group.variants)}?`,
+          next: "ITEM_OPTION",
+        };
+      }
+      needsChoice.push({ item, quantity, phrase });
     }
-    if (!lines.length) return null;
+    if (!needsChoice.length) return null;
 
+    // Most of a real takeaway menu has a required choice on it — which sauce,
+    // which base, which side. Refusing every one of those to the model made
+    // the fast path apply to drinks and little else. Ask the question here
+    // instead: it is a fixed list, it is the same matcher, and it does not
+    // need five seconds of thought.
+    const configurable = needsChoice.filter((n) =>
+      n.item.modifierGroups?.some((g: any) => g.required),
+    );
+    if (configurable.length) {
+      // One at a time. A burst where several dishes each need a choice is a
+      // conversation, and that is what the model is for.
+      if (needsChoice.length > 1) return null;
+      const { item, quantity, phrase } = configurable[0]!;
+      state.pendingItem = { itemId: item.id, quantity, chosen: [] };
+      // They may have said the option in the same breath — "doner with chilli
+      // sauce" — in which case there is nothing left to ask.
+      this.absorbOptions(item, state, phrase);
+      const ask = this.askNextOption(ctx, state);
+      if (ask) return ask;
+      return { say: this.commitPendingItem(ctx, state) };
+    }
+
+    const lines = needsChoice;
     for (const { item, quantity } of lines) {
       state.cart.items.push({
         lineId: Math.random().toString(36).slice(2, 9),
@@ -1926,7 +2009,112 @@ ${menu || "(no items available — apologise and transfer)"}`;
       spoken.length > 1
         ? `${spoken.slice(0, -1).join(", ")} and ${spoken[spoken.length - 1]}`
         : spoken[0];
-    return `Got it — ${list}. Anything else?`;
+    return { say: `Got it — ${list}. Anything else?` };
+  }
+
+  /**
+   * Anything they already said that answers a required choice.
+   *
+   * "A doner with chilli sauce" answers the sauce question in the same breath
+   * it asks for the dish, and asking it back is how a line feels like a form.
+   */
+  private absorbOptions(item: any, state: VoiceState, phrase: string): void {
+    if (!state.pendingItem) return;
+    for (const group of item.modifierGroups ?? []) {
+      if (!group.required) continue;
+      if (group.options.some((o: any) => state.pendingItem!.chosen.includes(o.id))) continue;
+      const matches = matchMenuItems<any>(phrase, group.options, { limit: 2, floor: 0.75 });
+      if (isConfident(matches)) state.pendingItem.chosen.push(matches[0]!.item.id);
+    }
+  }
+
+  /** The first required choice still outstanding, asked out loud. */
+  private askNextOption(
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): { say: string; next: VoiceState["awaiting"] } | null {
+    const pending = state.pendingItem;
+    const item = pending?.itemId ? ctx.itemIndex.get(pending.itemId) : undefined;
+    if (!pending || !item) return null;
+
+    for (const group of item.modifierGroups ?? []) {
+      if (!group.required) continue;
+      const picked = group.options.filter((o: any) => pending.chosen.includes(o.id));
+      if (picked.length >= Math.max(1, group.min)) continue;
+      // At most three read aloud. A caller cannot hold a list of nine, and the
+      // ones they want are nearly always near the top of the shop's own order.
+      const names = group.options.slice(0, 3).map((o: any) => o.name);
+      const more = group.options.length > 3 ? ", or something else" : "";
+      return {
+        say: `Which ${group.name.toLowerCase()} would you like — ${names.slice(0, -1).join(", ")}${
+          names.length > 1 ? ` or ${names[names.length - 1]}` : names[0]
+        }${more}?`,
+        next: "ITEM_OPTION",
+      };
+    }
+    return null;
+  }
+
+  /** Their answer to a required choice. Null means we could not tell. */
+  answerItemOption(ctx: VoiceContext, state: VoiceState, said: string): string | null {
+    const pending = state.pendingItem;
+    if (!pending) return null;
+
+    // The outstanding question is the size.
+    if (!pending.itemId && pending.variantIds?.length) {
+      const variants = pending.variantIds
+        .map((id) => ctx.itemIndex.get(id))
+        .filter(Boolean) as any[];
+      const chosen = pickVariant(said, variants);
+      if (!chosen) return null;
+      pending.itemId = chosen.id;
+      pending.variantIds = undefined;
+      this.absorbOptions(chosen, state, said);
+      const next = this.askNextOption(ctx, state);
+      return next ? next.say : this.commitPendingItem(ctx, state);
+    }
+
+    const item = pending.itemId ? ctx.itemIndex.get(pending.itemId) : undefined;
+    if (!item) return null;
+
+    for (const group of item.modifierGroups ?? []) {
+      if (!group.required) continue;
+      const picked = group.options.filter((o: any) => pending.chosen.includes(o.id));
+      if (picked.length >= Math.max(1, group.min)) continue;
+
+      const matches = matchMenuItems<any>(said, group.options, { limit: 3, floor: 0.6 });
+      if (!isConfident(matches)) return null;
+      pending.chosen.push(matches[0]!.item.id);
+      const next = this.askNextOption(ctx, state);
+      return next ? next.say : this.commitPendingItem(ctx, state);
+    }
+    return this.commitPendingItem(ctx, state);
+  }
+
+  /** Every required choice made — put it in the cart. */
+  private commitPendingItem(ctx: VoiceContext, state: VoiceState): string {
+    const pending = state.pendingItem!;
+    const item = ctx.itemIndex.get(pending.itemId!)!;
+    const modifiers = pending.chosen
+      .map((id) => ctx.optionIndex.get(id))
+      .filter(Boolean)
+      .map((m: any) => ({ optionId: m.option.id, name: m.option.name, price: m.option.price }));
+
+    state.cart.items.push({
+      lineId: Math.random().toString(36).slice(2, 9),
+      itemId: item.id,
+      name: item.name,
+      quantity: pending.quantity,
+      unitBasePrice: item.price,
+      modifiers,
+    } as any);
+    state.pendingItem = undefined;
+
+    const { base, size } = splitSize(item.name);
+    const label = size ? `${base}, ${size.replace(/"/g, " inch").trim()}` : base;
+    const withOpts = modifiers.length ? ` with ${modifiers.map((m) => m.name).join(" and ")}` : "";
+    const qty = pending.quantity > 1 ? `${pending.quantity} ` : "";
+    return `Got it — ${qty}${label}${withOpts}. Anything else?`;
   }
 
   /** What could the caller have meant? Offered to the model before it commits. */

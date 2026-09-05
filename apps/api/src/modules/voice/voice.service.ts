@@ -275,8 +275,10 @@ export class VoiceService {
     if (state.cart.fulfillmentType === "DELIVERY" && !state.addressConfirmed) return null;
     if (state.orderConfirmed || state.orderId) return null;
 
-    const say = this.ai.quickAddAloud(ctx, state, said);
-    if (!say) return null;
+    const out = this.ai.quickAddAloud(ctx, state, said);
+    if (!out) return null;
+    const say = out.say;
+    state.awaiting = out.next;
 
     state.turns.push({ role: "user", text: said });
     state.turns.push({ role: "assistant", text: say });
@@ -284,7 +286,11 @@ export class VoiceService {
     void this.db()
       .voiceCall.update({ where: { id: call.id }, data: { transcript: state as any } })
       .catch(() => undefined);
-    this.logger.log(`call ${call.id} quick-added from "${said.slice(0, 60)}"`);
+    this.logger.log(
+      `call ${call.id} quick-added from "${said.slice(0, 60)}" → ${
+        state.pendingItem ? "asking for a required choice" : `${state.cart.items.length} line(s)`
+      }`,
+    );
     return { say };
   }
 
@@ -632,6 +638,16 @@ export class VoiceService {
             : this.ai.streetRejectedAloud(state);
         say = out.say;
         next = out.next;
+        break;
+      }
+      case "ITEM_OPTION": {
+        // "Which sauce?" is a fixed list and a matcher's job, not five seconds
+        // of a model's. Anything it cannot read still goes to the model, which
+        // is where a caller changing their mind mid-choice belongs.
+        const answer = this.ai.answerItemOption(ctx, state, said);
+        if (!answer) return null;
+        say = answer;
+        next = state.pendingItem ? "ITEM_OPTION" : undefined;
         break;
       }
       case "ADDR_HOUSE": {
