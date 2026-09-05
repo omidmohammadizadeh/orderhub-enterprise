@@ -17,13 +17,16 @@ import { AddressLookupService } from "../address-lookup/address-lookup.service";
 import {
   addressQuery,
   bestAddress,
+  matchStreet,
   rankAddresses,
+  uniqueStreets,
   type AddressCandidate,
 } from "./voice-address";
 import type { VoiceContext } from "./voice-context.service";
 import { normaliseNumber } from "./voice-context.service";
 import {
   addressLineFrom,
+  stripPostcode,
   findPostcodeIn,
   houseNumberFrom,
   resolveHeardPostcode,
@@ -148,8 +151,10 @@ export interface VoiceState {
     | "ADDR_STREET"
     /** Street agreed; waiting for the house number or name. */
     | "ADDR_HOUSE";
-  /** The address being built up, one question at a time. */
-  addr?: { postcode?: string; street?: string; city?: string };
+  /** The address being built up, one question at a time. `house` holds a
+   *  number they gave BEFORE we could name the street, so it isn't asked for
+   *  twice — "five signing their drive" is a five we already have. */
+  addr?: { postcode?: string; street?: string; city?: string; house?: string };
   /** How they said they'd pay, held while we ask for a name. */
   pendingPayment?: "CASH" | "CARD";
   /**
@@ -226,6 +231,7 @@ export function coerceState(raw: unknown): VoiceState {
             postcode: r.addr.postcode ? String(r.addr.postcode) : undefined,
             street: r.addr.street ? String(r.addr.street) : undefined,
             city: r.addr.city ? String(r.addr.city) : undefined,
+            house: r.addr.house ? String(r.addr.house) : undefined,
           }
         : undefined,
     awaiting: (
@@ -502,43 +508,102 @@ export class VoiceAiService {
     said: string,
     resolve: (query: string) => Promise<AddressCandidate[]>,
   ): Promise<{ say: string; next: VoiceState["awaiting"] }> {
-    // A postcode anywhere in what they said, or one they gave earlier in the
-    // call, pins the whole lookup. It is the single most reliable thing a
-    // caller ever says.
+    // A postcode is a UNIQUE key. A street name is not — there is a
+    // Sunningdale Drive in Salford, Belfast, Bristol and Washington, and a
+    // free-text search asked for one returns whichever is most famous. So
+    // whenever the caller has given a postcode, the postcode decides where
+    // they are and the search engine is never consulted about it at all.
+    // Free-text is for the callers who didn't give one.
     const pinned =
-      findPostcodeIn(said, ctx.deliveryZones.map((z) => z.postcodePrefix)) ??
-      state.addr?.postcode ??
-      null;
+      findPostcodeIn(
+        said,
+        ctx.deliveryZones.map((z) => z.postcodePrefix),
+      ) ?? state.addr?.postcode ?? null;
 
+    const rest = stripPostcode(said);
+    const spokenLine = addressLineFrom(rest);
+    const spokenStreet = streetOf(spokenLine);
+    const house =
+      spokenLine && spokenStreet && spokenLine.endsWith(spokenStreet)
+        ? spokenLine.slice(0, spokenLine.length - spokenStreet.length).trim().replace(/,$/, "").trim() ||
+          null
+        : null;
+
+    if (pinned) {
+      const known = await this.streetsForPostcodeSafely(ctx, pinned);
+      const streets = uniqueStreets(known);
+      const chosen = spokenStreet
+        ? matchStreet(spokenStreet, streets)
+        : streets.length === 1
+          ? streets[0]!
+          : null;
+
+      if (chosen) {
+        const city = known.find((k) => streetOf(k.line1) === chosen)?.city ?? ctx.address?.city ?? undefined;
+        state.confusion = 0;
+        state.addr = { postcode: pinned, street: chosen, city };
+        if (!house) {
+          // Everything but the number, which is the one thing neither the
+          // postcode nor the search can ever know.
+          return { say: `Thanks — ${chosen}, ${city ?? ""}. And the house number or name?`.replace(/, \./, "."), next: "ADDR_HOUSE" };
+        }
+        state.cart.deliveryAddress = {
+          line1: `${house} ${chosen}`,
+          city: city ?? "",
+          postcode: pinned,
+          country: ctx.country,
+        } as any;
+        return {
+          say: `Thanks. That's ${this.spokenAddress(state.cart.deliveryAddress as any)} — is that right?`,
+          next: "ADDRESS_CONFIRM",
+        };
+      }
+
+      // We have the postcode but not the street — either nothing came back for
+      // it, or what they said doesn't match anything in it. The ladder's own
+      // street step handles both, and it must not ask for the postcode again.
+      state.addr = { ...(state.addr ?? {}), postcode: pinned, house: house ?? undefined };
+      if (streets.length) {
+        state.addr.street = streets[0]!;
+        state.addr.city = known[0]?.city ?? ctx.address?.city ?? undefined;
+        return {
+          say: `Thanks. That's ${streets[0]}${state.addr.city ? `, ${state.addr.city}` : ""} — is that right?`,
+          next: "ADDR_STREET",
+        };
+      }
+      return { say: "Thanks. And what's the street name and house number?", next: "ADDR_HOUSE" };
+    }
+
+    // No postcode anywhere in it, so this is a genuine free-text lookup —
+    // fenced to the shop's own part of the country by rankAddresses.
     let found: AddressCandidate[] = [];
     try {
       found = await Promise.race([
-        resolve(addressQuery(said, ctx, pinned)),
+        resolve(addressQuery(said, ctx, null)),
         new Promise<AddressCandidate[]>((r) => setTimeout(() => r([]), LOOKUP_TIMEOUT_MS)),
       ]);
     } catch {
       found = [];
     }
 
-    const best = bestAddress(rankAddresses(said, found, ctx, pinned));
+    const best = bestAddress(rankAddresses(said, found, ctx, null));
     if (!best) {
       const misses = (state.confusion ?? 0) + 1;
       state.confusion = misses;
-      // The postcode is where we go when the sentence didn't resolve — it is
-      // seven characters from a fixed alphabet and it always works. But only
-      // once: asking again for something we've already failed at twice is how
-      // a caller decides the line is broken.
-      const heard = findPostcodeIn(said, ctx.deliveryZones.map((z) => z.postcodePrefix));
-      if (heard) {
-        state.addr = { ...(state.addr ?? {}), postcode: heard };
-      }
       return misses < 2
         ? { say: "Sorry, I didn't get that. What's your postcode?", next: "ADDR_POSTCODE" }
-        : { say: "Let's try it differently — what's the street name and house number?", next: "ADDR_HOUSE" };
+        : {
+            say: "Let's try it differently — what's the street name and house number?",
+            next: "ADDR_HOUSE",
+          };
     }
 
     state.confusion = 0;
-    state.addr = { postcode: best.postcode, street: streetOf(best.line1) ?? undefined, city: best.city };
+    state.addr = {
+      postcode: best.postcode,
+      street: streetOf(best.line1) ?? undefined,
+      city: best.city,
+    };
     state.cart.deliveryAddress = {
       line1: best.line1,
       city: best.city ?? "",
@@ -549,6 +614,23 @@ export class VoiceAiService {
       say: `Thanks. That's ${this.spokenAddress(state.cart.deliveryAddress as any)} — is that right?`,
       next: "ADDRESS_CONFIRM",
     };
+  }
+
+  /** streetsForPostcode, bounded and never throwing — it runs mid-call. */
+  private async streetsForPostcodeSafely(
+    ctx: VoiceContext,
+    postcode: string,
+  ): Promise<Array<{ line1?: string; city?: string }>> {
+    try {
+      return await Promise.race([
+        this.streetsForPostcode(ctx, postcode),
+        new Promise<Array<{ line1?: string; city?: string }>>((r) =>
+          setTimeout(() => r([]), LOOKUP_TIMEOUT_MS),
+        ),
+      ]);
+    } catch {
+      return [];
+    }
   }
 
   /**
@@ -778,8 +860,16 @@ export class VoiceAiService {
     return `Postcode ${postcode} is ${street}${city ? `, ${city}` : ""}. Say "That's ${street}${city ? `, ${city}` : ""} — is that right?" and wait. If they say yes, ask only for the house number or name.`;
   }
 
-  /** They confirmed the street. Only the number is left. */
-  streetAgreedAloud(): { say: string; next: VoiceState["awaiting"] } {
+  /** They confirmed the street. Only the number is left — unless they already
+   *  gave it, which is what "five signing their drive" was. */
+  streetAgreedAloud(
+    ctx?: VoiceContext,
+    state?: VoiceState,
+  ): { say: string; next: VoiceState["awaiting"] } {
+    const house = state?.addr?.house;
+    if (ctx && state && house && state.addr?.street) {
+      return this.houseNumberAloud(ctx, state, house);
+    }
     return { say: "Great. And the house number or name?", next: "ADDR_HOUSE" };
   }
 

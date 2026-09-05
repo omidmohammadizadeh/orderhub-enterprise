@@ -691,6 +691,25 @@ export function parseYesNo(text: string): "YES" | "NO" | null {
  * a tool call to record the choice, then a second round trip to say the next
  * line — is two to four seconds to understand the word "delivery".
  */
+/** Levenshtein. Small and local — the menu matcher has its own. */
+function editDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length || !b.length) return Math.max(a.length, b.length);
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(
+        (prev[j] ?? 0) + 1,
+        (row[j - 1] ?? 0) + 1,
+        (prev[j - 1] ?? 0) + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+    prev = row;
+  }
+  return prev[b.length] ?? 0;
+}
+
 export function parseFulfillment(text: string): "DELIVERY" | "PICKUP" | null {
   const t = String(text ?? "")
     .toLowerCase()
@@ -727,8 +746,21 @@ export function parseFulfillment(text: string): "DELIVERY" | "PICKUP" | null {
   };
   const soundsDelivery = heardIn("delivery");
   const soundsPickup = heardIn("collection");
-  if (soundsDelivery === soundsPickup) return null;
-  return soundsDelivery ? "DELIVERY" : "PICKUP";
+  if (soundsDelivery !== soundsPickup) return soundsDelivery ? "DELIVERY" : "PICKUP";
+
+  // Last resort: the whole utterance against the whole word. A real transcript
+  // was "De livello." — the word survived nearly intact but arrived split in
+  // two, so nothing token-shaped could see it, and the turn went to the model
+  // along with every turn after it.
+  const joined = tokens.join("");
+  const closeTo = (word: string) => {
+    const d = editDistance(joined, word);
+    return d / Math.max(joined.length, word.length) <= 0.35;
+  };
+  const nearDelivery = closeTo("delivery");
+  const nearPickup = closeTo("collection") || closeTo("pickup");
+  if (nearDelivery === nearPickup) return null;
+  return nearDelivery ? "DELIVERY" : "PICKUP";
 }
 
 /**
@@ -1080,6 +1112,38 @@ export function looksLikeStreet(text?: string | null): boolean {
   // be a spoken number in disguise.
   if (words.length < 2) return false;
   return !words.some((w) => parseSpokenNumber(w) !== null);
+}
+
+/**
+ * What they said, with the postcode taken out.
+ *
+ * A postcode is a unique key and a street name is not, so the two halves of
+ * "five Sunningdale Drive, NE37 2LL" want completely different treatment. This
+ * separates them.
+ */
+export function stripPostcode(said: string): string {
+  const found = findPostcodeIn(said);
+  const text = String(said ?? "");
+  if (!found) return text.trim();
+  // Take out whatever spelled or spoken form actually carried it, rather than
+  // the tidy version — "n e three seven two l l" is not in the string as
+  // "NE37 2LL".
+  const compact = found.replace(/\s+/g, "");
+  const letters = compact.slice(0, 2);
+  const pattern = new RegExp(
+    `[,\\s]*\\b${letters.split("").join("[\\s.]*")}[\\s.]*` +
+      `(?:[a-z0-9][\\s.]*){3,9}$`,
+    "i",
+  );
+  const trimmed = text.replace(pattern, "");
+  // An EMPTY remainder is the right answer, not a failed one: it means the
+  // caller said a postcode and nothing else, which is a thing people do.
+  if (trimmed.length < text.length) return trimmed.trim();
+  // Fall back to removing the tidy form if it is literally present.
+  return text
+    .replace(new RegExp(found.replace(/\s/g, "\\s*"), "i"), "")
+    .replace(/[,\s]+$/, "")
+    .trim();
 }
 
 export function streetOf(line1?: string | null): string | null {

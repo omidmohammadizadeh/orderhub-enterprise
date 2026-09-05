@@ -341,10 +341,20 @@ export class OsmStreetsProvider implements PostcodeProvider {
     if (!pio.result?.latitude || !pio.result?.longitude) return [];
 
     const { latitude, longitude } = pio.result;
+    // postcodes.io knows the local AUTHORITY, not the post town: NE37 2LL comes
+    // back "Sunderland", and everybody who lives there calls it Washington.
+    // A ward named "<Town> North/South/East/West/Central" is naming its town,
+    // which recovers the post town for free and often enough to be worth it.
+    const wardTown = (() => {
+      const ward = pio.result.admin_ward ?? "";
+      const m = ward.match(/^(.+?)\s+(north|south|east|west|central)(?:\s+\w+)?$/i);
+      return m?.[1]?.trim() ?? "";
+    })();
     const town =
-      pio.result.admin_district ??
-      pio.result.admin_ward ??
-      pio.result.parish ??
+      wardTown ||
+      pio.result.admin_district ||
+      pio.result.admin_ward ||
+      pio.result.parish ||
       "";
     const postcodeOut = pio.result.postcode;
 
@@ -357,7 +367,7 @@ export class OsmStreetsProvider implements PostcodeProvider {
     // zero with the caller's patience already spent — so the fallback never
     // once reached the caller. Ask all of them at the same time and take the
     // first real answer instead; the loser costs nothing.
-    const streets = await firstNonEmpty(
+    const found = await firstNonEmpty<{ street: string; town?: string }>(
       [
         ...OVERPASS_ENDPOINTS.map((endpoint) => () =>
           this.tryOverpass(latitude, longitude, endpoint),
@@ -366,13 +376,18 @@ export class OsmStreetsProvider implements PostcodeProvider {
       ],
       OVERPASS_TIMEOUT_MS + 400,
     );
+    const streets = found.map((f) => f.street);
+    // postcodes.io gives the local AUTHORITY — "Sunderland" for a postcode
+    // everybody who lives there calls Washington. When a geocoder knows the
+    // actual post town, it is the one to read back to a caller.
+    const postTown = found.find((f) => f.town)?.town ?? town;
     if (streets.length > 0) {
-      cacheStreets(postcode, { streets, city: town || undefined, latitude, longitude });
+      cacheStreets(postcode, { streets, city: postTown || undefined, latitude, longitude });
       return streets.map((street, idx) => ({
         id: `osm:${postcode}:${idx}`,
-        label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
+        label: `${street}${postTown ? `, ${postTown}` : ""}, ${postcodeOut} — add house/flat`,
         line1: street,
-        city: town || undefined,
+        city: postTown || undefined,
         postcode: postcodeOut,
         country: "GB",
         latitude,
@@ -404,7 +419,7 @@ export class OsmStreetsProvider implements PostcodeProvider {
     lat: number,
     lng: number,
     endpoint: string,
-  ): Promise<string[]> {
+  ): Promise<Array<{ street: string }>> {
     try {
       // The query's own timeout used to be 25s — pointless when the client
       // gives up in under two, and it makes the mirror hold a worker open on
@@ -442,7 +457,7 @@ export class OsmStreetsProvider implements PostcodeProvider {
         streets.push(name);
       }
       streets.sort((a, b) => a.localeCompare(b, "en-GB"));
-      return streets;
+      return streets.map((street) => ({ street }));
     } catch (err: any) {
       this.logger.warn(`Overpass ${endpoint} exception: ${err?.message ?? err}`);
       return [];
@@ -459,7 +474,10 @@ export class OsmStreetsProvider implements PostcodeProvider {
    * call here and names the likeliest street. The caller confirms it out loud
    * anyway, which is what the extra four points were really buying.
    */
-  private async tryNominatim(lat: number, lng: number): Promise<string[]> {
+  private async tryNominatim(
+    lat: number,
+    lng: number,
+  ): Promise<Array<{ street: string; town?: string }>> {
     try {
       await this.throttleNominatim();
       const url =
@@ -474,11 +492,20 @@ export class OsmStreetsProvider implements PostcodeProvider {
         return [];
       }
       const data = (await res.json()) as {
-        address?: { road?: string; pedestrian?: string; residential?: string };
+        address?: {
+          road?: string;
+          pedestrian?: string;
+          residential?: string;
+          town?: string;
+          village?: string;
+          city?: string;
+          suburb?: string;
+        };
       };
-      const road =
-        data.address?.road ?? data.address?.pedestrian ?? data.address?.residential;
-      return road ? [road] : [];
+      const a = data.address ?? {};
+      const road = a.road ?? a.pedestrian ?? a.residential;
+      const town = a.town ?? a.village ?? a.suburb ?? a.city;
+      return road ? [{ street: road, town }] : [];
     } catch (err: any) {
       this.logger.warn(`Nominatim reverse exception: ${err?.message ?? err}`);
       return [];

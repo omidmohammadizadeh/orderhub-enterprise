@@ -21,6 +21,16 @@ const GEOCODED = {
   ],
 };
 
+// A real postcode covers more than one street — NE37 2LL's Overpass answer
+// lists nineteen. Which one is a question, not a guess.
+const MANY_STREETS = {
+  NE372LL: [
+    { line1: "Sunningdale Drive", city: "Washington" },
+    { line1: "Birkdale Close", city: "Washington" },
+    { line1: "Gleneagles Drive", city: "Washington" },
+  ],
+};
+
 describe("a delivery order, start to address confirmed", () => {
   it("takes the whole address in one question, postcode included", async () => {
     // The caller says what a person says. They never say the postcode, and
@@ -146,6 +156,57 @@ describe("a delivery order, start to address confirmed", () => {
     expect(call.modelTurns).toBe(0);
   });
 
+  it("uses the postcode as the answer, never as a search term", async () => {
+    // From a live call: asked for the delivery address, the caller said only
+    // "n e three seven two l l". That was sent to a free-text geocoder as
+    // though it were a street name, found nothing, and dropped to the ladder.
+    // A postcode is a unique key — it does not need searching for.
+    const call = new VoiceCallSim({
+      postcodes: POSTCODES,
+      geocoded: {
+        // If this is ever consulted the point of the test is lost: a
+        // free-text search for a street name is what produced Salford.
+        sunningdale: [{ line1: "Sunningdale Drive", city: "Salford", postcode: "M27 5AB" }],
+      },
+    });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+
+    const out = await call.say("Five Sunningdale Drive, N E 3 7 2 L L");
+    expect(out).toContain("5 Sunningdale Drive");
+    expect(out).not.toContain("Salford");
+    expect(call.state.cart.deliveryAddress.postcode).toBe("NE37 2LL");
+    expect(call.modelTurns).toBe(0);
+  });
+
+  it("asks only for the number when the postcode gave the street", async () => {
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: {} });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+
+    const out = await call.say("N E 3 7 2 L L");
+    expect(out).toContain("Sunningdale Drive");
+    expect(out).toMatch(/house number/i);
+
+    const readback = await call.say("Eleven.");
+    expect(readback).toContain("11 Sunningdale Drive");
+    expect(call.modelTurns).toBe(0);
+  });
+
+  it("understands 'delivery' even when the transcript arrives split in two", async () => {
+    // Real transcript: "De livello." Nothing token-shaped could see the word,
+    // so this turn went to the model — and so did every turn after it, which
+    // is how the address ended up being driven unfenced.
+    const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: GEOCODED });
+    call.greeting();
+    await call.press("1");
+    const out = await call.say("De livello.");
+    expect(out).toMatch(/delivery address/i);
+    expect(call.modelTurns).toBe(0);
+  });
+
   it("understands 'delivery' even when the transcript mangles it", async () => {
     // Real transcript: "Very very." for "delivery".
     const call = new VoiceCallSim({ postcodes: POSTCODES, geocoded: GEOCODED });
@@ -153,6 +214,36 @@ describe("a delivery order, start to address confirmed", () => {
     await call.press("1");
     const out = await call.say("Very very.");
     expect(out).toMatch(/delivery address/i);
+    expect(call.modelTurns).toBe(0);
+  });
+
+  it("takes a house number offered at the street check", async () => {
+    // "Eleven." answering "is that Sunningdale Drive?" is a yes with the next
+    // answer already attached. Treating it as neither sent the turn to the
+    // model and then asked for the number all over again.
+    const call = new VoiceCallSim({ postcodes: MANY_STREETS, geocoded: {} });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+    await call.say("N E 3 7 2 L L");
+
+    const readback = await call.say("Eleven.");
+    expect(readback).toContain("11 Sunningdale Drive");
+    expect(call.modelTurns).toBe(0);
+  });
+
+  it("does not ask twice for a number they already said", async () => {
+    // "Five signing their drive" — the street was too mangled to match, so we
+    // fall back to confirming it, but the five was never in doubt.
+    const call = new VoiceCallSim({ postcodes: MANY_STREETS, geocoded: {} });
+    call.greeting();
+    await call.press("1");
+    await call.say("Delivery.");
+    await call.say("Five signing their drive, n e three seven two l l.");
+
+    const readback = await call.say("Yes.");
+    expect(readback).toContain("5 Sunningdale Drive");
+    expect(readback).not.toMatch(/house number/i);
     expect(call.modelTurns).toBe(0);
   });
 

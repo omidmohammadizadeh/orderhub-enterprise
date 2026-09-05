@@ -18,6 +18,7 @@ import {
   parseOrderReference,
   parsePayment,
   referenceMatches,
+  houseNumberFrom,
   parseYesNo,
   spokenDigits,
   spokenReference,
@@ -217,10 +218,14 @@ export class VoiceService {
         // Which slot answered, or that nothing did. Two calls running have now
         // been diagnosed by working out whether a turn was scripted or went to
         // the model, and the log could not say.
+        // The slot BEFORE the turn — answerSlot advances it on the way out, so
+        // logging it afterwards named the question we were about to ask rather
+        // than the one being answered.
+        const slotBefore = state.awaiting ?? "-";
         const fast = await this.answerSlot(call, ctx, state, args.text);
         this.logger.log(
-          `call ${call.id} turn: stage=${state.stage} slot=${state.awaiting ?? "-"} ` +
-            `handled=${fast ? "scripted" : "model"}`,
+          `call ${call.id} turn: stage=${state.stage} slot=${slotBefore} ` +
+            `→ ${state.awaiting ?? "-"} handled=${fast ? "scripted" : "model"}`,
         );
         if (fast) return fast;
         return this.runBrain(call, ctx, state, args.text, args.onPartial);
@@ -527,9 +532,9 @@ export class VoiceService {
             ),
         );
         this.logger.log(
-          `address lookup for call ${call.id} took ${Date.now() - startedAt}ms → ${
-            state.addr?.postcode ?? "unresolved"
-          }`,
+          `address for call ${call.id}: ${Date.now() - startedAt}ms, ` +
+            `${state.cart.deliveryAddress?.line1 ? `resolved "${state.cart.deliveryAddress.line1}"` : "not resolved"}` +
+            `${state.addr?.postcode ? ` (${state.addr.postcode})` : ""}`,
         );
         say = out.say;
         next = out.next;
@@ -555,10 +560,20 @@ export class VoiceService {
       }
       case "ADDR_STREET": {
         const answer = parseYesNo(said);
-        if (!answer) return null;
+        if (!answer) {
+          // "Eleven." to "is that Sunningdale Drive?" is a yes with the answer
+          // to the NEXT question already attached. Treating it as neither sent
+          // the turn to the model and asked for the number again.
+          const house = houseNumberFrom(said);
+          if (!house || !/\d/.test(house)) return null;
+          const out = this.ai.houseNumberAloud(ctx, state, said);
+          say = out.say;
+          next = out.next;
+          break;
+        }
         const out =
           answer === "YES"
-            ? this.ai.streetAgreedAloud()
+            ? this.ai.streetAgreedAloud(ctx, state)
             : this.ai.streetRejectedAloud(state);
         say = out.say;
         next = out.next;

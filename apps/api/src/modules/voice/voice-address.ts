@@ -226,3 +226,40 @@ export function bestAddress(ranked: RankedAddress[]): ResolvedAddress | null {
   if (second && best.score - second.score < 0.3) return null;
   return best.address;
 }
+
+/** The distinct streets in a set of lookup rows, best-known first. */
+export function uniqueStreets(rows: Array<{ line1?: string }>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const r of rows) {
+    const street = streetOf(r.line1);
+    if (!street) continue;
+    const k = street.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(street);
+  }
+  return out;
+}
+
+/**
+ * Which of a postcode's streets did they say?
+ *
+ * The candidate list here comes from the postcode itself, so it is short,
+ * real, and local — which makes this a far easier problem than searching the
+ * country. "Sunnyndale Drive" against the streets actually in NE37 2LL has one
+ * plausible answer; against the whole of Britain it has dozens.
+ */
+export function matchStreet(spoken: string, streets: string[]): string | null {
+  if (!streets.length) return null;
+  const ranked = streets
+    .map((street) => ({
+      street,
+      score: Math.max(scoreItem(spoken, street), scoreItem(street, spoken)),
+    }))
+    .sort((a, b) => b.score - a.score);
+  const [best, second] = ranked;
+  if (!best || best.score < 0.75) return null;
+  if (second && best.score - second.score < 0.2) return null;
+  return best.street;
+}
