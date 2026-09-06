@@ -507,3 +507,63 @@ export function sizesAloud<T extends { name: string }>(variants: T[]): string {
   if (labels.length <= 1) return labels[0] ?? "";
   return `${labels.slice(0, -1).join(", ")} or ${labels[labels.length - 1]}`;
 }
+
+/**
+ * The caller's answer to a question with a known, short list of answers.
+ *
+ * This is a different problem from finding a dish on a menu, and the general
+ * matcher gets it wrong in both directions. Asked "which wrap — gyros,
+ * halloumi or souvlaki?", a caller says "gyros", never "gyros wrap" — but the
+ * option is CALLED "Gyros Wrap", so half its words are missing and it scored
+ * 0.50, under the bar, and the line asked again. The caller then repeats
+ * themselves, is misheard identically, and concludes the thing is stupid.
+ *
+ * Two corrections, both only safe because the list is closed:
+ *
+ *   - The group's own name is not information. "Wrap" in "Gyros Wrap" is the
+ *     question, not the answer, so it is not held against them for omitting it.
+ *   - Half of a name nobody else shares is an answer. Across three options,
+ *     "halloumi" can only mean one of them; it is only ambiguity that has to
+ *     be asked about, and that is measured directly rather than guessed at
+ *     with a threshold.
+ *
+ * "Diet Coke" against "Coke" is why the tie-break exists: both score a perfect
+ * 1 for "diet coke" — one by covering its whole name — and the answer is the
+ * one that accounts for more of what the caller actually said.
+ */
+export function matchOption<T extends { name: string }>(
+  said: string,
+  options: T[],
+  groupName: string,
+): { item: T; score: number } | null {
+  const groupWords = new Set(plain(groupName).split(" ").filter(Boolean));
+  const heard = plain(said).split(" ").filter(Boolean);
+  if (!heard.length || !options.length) return null;
+
+  const scored = options
+    .map((item) => {
+      // Scored both ways round: stripping helps "gyros" and would hurt a
+      // caller who did say "gyros wrap", so neither reading is imposed.
+      const stripped = plain(item.name)
+        .split(" ")
+        .filter((t) => t && !groupWords.has(t))
+        .join(" ");
+      const score = Math.max(
+        scoreItem(said, item.name),
+        stripped ? scoreItem(said, stripped) : 0,
+      );
+      // How much of what they SAID this accounts for — the general matcher
+      // ignores this on purpose, and inside a closed list it is the tie-break.
+      const covered =
+        heard.filter((t) => scoreItem(t, item.name) > 0).length / heard.length;
+      return { item, score, covered };
+    })
+    .sort((a, b) => b.score - a.score || b.covered - a.covered);
+
+  const [best, second] = scored;
+  if (!best || best.score < 0.5) return null;
+  if (second && best.score - second.score < 0.2 && best.covered - second.covered < 0.3) {
+    return null;
+  }
+  return { item: best.item, score: best.score };
+}

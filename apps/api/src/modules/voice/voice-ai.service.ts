@@ -38,6 +38,7 @@ import {
   sameStreet,
   streetOf,
   type VoiceStage,
+  numberedAsk,
 } from "./voice-flow";
 import {
   isConfident,
@@ -48,6 +49,7 @@ import {
   sizesAloud,
   splitSize,
   splitQuantity,
+  matchOption,
 } from "./voice-menu-match";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import {
@@ -172,7 +174,24 @@ export interface VoiceState {
     variantIds?: string[];
     quantity: number;
     chosen: string[];
+    /** Answers to this dish's questions we could not read. */
+    misses?: number;
   };
+  /**
+   * What is on offer right now, in the order it was read out.
+   *
+   * Reading "press 1 for gyros, press 2 for halloumi" out loud costs about
+   * seven seconds a question, against two and a half for asking the question
+   * like a person — three questions on one meal is the difference between a
+   * twelve-second order and a twenty-seven-second one, and a regular pays it
+   * every single time. So the numbers are never read out, but they are always
+   * live: the third option is always 3, whether or not anybody said so. A
+   * caller in a noisy car presses it, everyone else just answers, and nobody
+   * waits through a phone tree to order chips.
+   */
+  choices?: string[];
+  /** Whether this caller has been told the keypad works. Once is enough. */
+  toldAboutKeypad?: boolean;
   /** How they said they'd pay, held while we ask for a name. */
   pendingPayment?: "CASH" | "CARD";
   /**
@@ -247,8 +266,11 @@ export function coerceState(raw: unknown): VoiceState {
             chosen: Array.isArray(r.pendingItem.chosen)
               ? r.pendingItem.chosen.map(String)
               : [],
+            misses: Number(r.pendingItem.misses) || 0,
           }
         : undefined,
+    choices: Array.isArray(r.choices) ? r.choices.map(String) : undefined,
+    toldAboutKeypad: r.toldAboutKeypad === true,
     pendingPayment:
       r.pendingPayment === "CASH" || r.pendingPayment === "CARD"
         ? r.pendingPayment
@@ -2028,6 +2050,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         quantity: sizeOpen.quantity,
         chosen: [],
       };
+      state.choices = sizeOpen.group.variants.map((v: any) => v.id);
       return {
         say: `${opener} What size ${sizeOpen.group.base} would you like — ${sizesAloud(
           sizeOpen.group.variants,
@@ -2089,14 +2112,32 @@ ${menu || "(no items available — apologise and transfer)"}`;
       if (picked.length >= Math.max(1, group.min)) continue;
       // At most three read aloud. A caller cannot hold a list of nine, and the
       // ones they want are nearly always near the top of the shop's own order.
-      const names = group.options.slice(0, 3).map((o: any) => o.name);
+      const offered = group.options.slice(0, 3);
+      state.choices = offered.map((o: any) => o.id);
+      const names = offered.map((o: any) => o.name);
       const more = group.options.length > 3 ? ", or something else" : "";
-      return {
-        say: `Which ${group.name.toLowerCase()} would you like — ${names.slice(0, -1).join(", ")}${
-          names.length > 1 ? ` or ${names[names.length - 1]}` : names[0]
-        }${more}?`,
-        next: "ITEM_OPTION",
-      };
+
+      // Twice on one dish means the matcher is not going to get there, and a
+      // third natural asking is just the same failure again in a friendlier
+      // voice. Numbers cannot be misheard.
+      if ((pending.misses ?? 0) >= 2) {
+        return { say: numberedAsk(group.name, names), next: "ITEM_OPTION" };
+      }
+
+      const ask = `Which ${group.name.toLowerCase()} would you like — ${names.slice(0, -1).join(", ")}${
+        names.length > 1 ? ` or ${names[names.length - 1]}` : names[0]
+      }${more}?`;
+      // The one sentence that makes the keypad exist for this caller. Said at
+      // the first question of the call and never again, because a line that
+      // explains itself twice is a phone tree.
+      if (!state.toldAboutKeypad && names.length > 1) {
+        state.toldAboutKeypad = true;
+        return {
+          say: `${ask} Say it, or press ${names.map((_: string, i: number) => i + 1).join(", ")}.`,
+          next: "ITEM_OPTION",
+        };
+      }
+      return { say: ask, next: "ITEM_OPTION" };
     }
     return null;
   }
@@ -2112,7 +2153,10 @@ ${menu || "(no items available — apologise and transfer)"}`;
         .map((id) => ctx.itemIndex.get(id))
         .filter(Boolean) as any[];
       const chosen = pickVariant(said, variants);
-      if (!chosen) return null;
+      if (!chosen) {
+        pending.misses = (pending.misses ?? 0) + 1;
+        return null;
+      }
       pending.itemId = chosen.id;
       pending.variantIds = undefined;
       this.absorbOptions(chosen, state, said);
@@ -2128,13 +2172,58 @@ ${menu || "(no items available — apologise and transfer)"}`;
       const picked = group.options.filter((o: any) => pending.chosen.includes(o.id));
       if (picked.length >= Math.max(1, group.min)) continue;
 
-      const matches = matchMenuItems<any>(said, group.options, { limit: 3, floor: 0.6 });
-      if (!isConfident(matches)) return null;
-      pending.chosen.push(matches[0]!.item.id);
+      // A closed list of three, not a menu of two hundred: "gyros" answers
+      // "which wrap?" and must not be sent to a model to think about.
+      const answer = matchOption<any>(said, group.options, group.name);
+      if (!answer) {
+        pending.misses = (pending.misses ?? 0) + 1;
+        return null;
+      }
+      pending.chosen.push(answer.item.id);
       const next = this.askNextOption(ctx, state);
       return next ? next.say : this.commitPendingItem(ctx, state);
     }
     return this.commitPendingItem(ctx, state);
+  }
+
+  /**
+   * They pressed a number instead of saying it.
+   *
+   * Nothing was read out as "press 1 for…", so this is not a phone tree — the
+   * numbers simply follow the order the options were spoken in, and are there
+   * for the caller on a bad line, in a car, or with a toddler shouting. Null
+   * means that key means nothing here, which must leave the call exactly where
+   * it was rather than guessing.
+   */
+  chooseByNumber(ctx: VoiceContext, state: VoiceState, digit: string): string | null {
+    const pending = state.pendingItem;
+    const n = Number(String(digit ?? "").trim());
+    if (!pending || !state.choices?.length) return null;
+    if (!Number.isInteger(n) || n < 1 || n > state.choices.length) return null;
+    const id = state.choices[n - 1]!;
+
+    // The outstanding question is the size, so the number picks the variant.
+    if (!pending.itemId && pending.variantIds?.length) {
+      const chosen = ctx.itemIndex.get(id);
+      if (!chosen || !pending.variantIds.includes(id)) return null;
+      pending.itemId = chosen.id;
+      pending.variantIds = undefined;
+      pending.misses = 0;
+      state.choices = undefined;
+      const next = this.askNextOption(ctx, state);
+      return next ? next.say : this.commitPendingItem(ctx, state);
+    }
+
+    const item = pending.itemId ? ctx.itemIndex.get(pending.itemId) : undefined;
+    const group = (item?.modifierGroups ?? []).find((g: any) =>
+      g.options?.some((o: any) => o.id === id),
+    );
+    if (!group) return null;
+    pending.chosen.push(id);
+    pending.misses = 0;
+    state.choices = undefined;
+    const next = this.askNextOption(ctx, state);
+    return next ? next.say : this.commitPendingItem(ctx, state);
   }
 
   /** Every required choice made — put it in the cart. */
@@ -2155,6 +2244,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
       modifiers,
     } as any);
     state.pendingItem = undefined;
+    state.choices = undefined;
 
     const { base, size } = splitSize(item.name);
     const label = size ? `${base}, ${size.replace(/"/g, " inch").trim()}` : base;

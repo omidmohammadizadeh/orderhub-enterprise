@@ -394,6 +394,30 @@ export class VoiceService {
     if (!loaded) return null;
     const { call, ctx, state } = loaded;
 
+    // Zero is a person wherever it is pressed, and it outranks everything
+    // below — a caller reaching for help must not have it read as a choice.
+    if (String(args.digit).trim() === "0") return this.handOver(call, ctx, state);
+
+    // A number pressed while a question is on the table answers that question.
+    // The options were never read out as "press 1 for…" — they follow the
+    // order they were spoken in — so this costs the caller who speaks nothing
+    // at all, and saves the one on a bad line from repeating themselves.
+    if (state.awaiting === "ITEM_OPTION" && state.choices?.length) {
+      const say = this.ai.chooseByNumber(ctx, state, args.digit);
+      if (say) {
+        state.turns.push({ role: "user", text: `[pressed ${args.digit}]` });
+        state.turns.push({ role: "assistant", text: say });
+        state.confusion = 0;
+        state.awaiting = state.pendingItem ? "ITEM_OPTION" : undefined;
+        await this.save(call.id, state);
+        this.logger.log(`call ${call.id} answered a choice with key ${args.digit}`);
+        return { say };
+      }
+      // A key that means nothing here leaves the call where it was. Guessing
+      // is worse than ignoring: the caller can simply say it instead.
+      return null;
+    }
+
     const choice = digitChoice(args.digit);
     if (!choice) return null;
 

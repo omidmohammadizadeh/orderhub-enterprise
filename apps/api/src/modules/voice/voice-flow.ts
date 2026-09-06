@@ -1311,3 +1311,14 @@ export function houseNumberFrom(said: string): string | null {
   }
   return null;
 }
+
+/**
+ * The slow, certain version of a choice, for when the quick one has failed.
+ *
+ * Only ever heard by a caller the matcher has already let down twice, which is
+ * the one moment the seven seconds this costs are worth paying.
+ */
+export function numberedAsk(groupName: string, names: string[]): string {
+  const parts = names.map((n, i) => `for ${n} press ${i + 1}`);
+  return `Sorry — let's do it by keypad. Which ${groupName.toLowerCase()}: ${parts.join(", ")}.`;
+}
