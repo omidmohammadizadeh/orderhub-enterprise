@@ -262,6 +262,12 @@ function GeneralTab({
   // Which engine answers the phone. Default is the chained pipeline that has
   // been in service; speech-to-speech is here to be COMPARED with it on the
   // same menu and the same callers, not to quietly replace it.
+  // Which brand the AI answers as. A kitchen trading under three brands has
+  // one phone number, and only the operator knows which name a caller who
+  // dialled it expects to hear.
+  const [voiceBrandId, setVoiceBrandId] = useState<string>(
+    (location as any)?.settings?.voiceBrandId ?? "",
+  );
   const [voiceEngine, setVoiceEngine] = useState<string>(
     (location as any)?.settings?.voiceEngine === "REALTIME" ? "REALTIME" : "RELAY",
   );
@@ -404,6 +410,7 @@ function GeneralTab({
           voiceTransferNumber: voiceTransferNumber.trim() || null,
           voiceTestMode: voiceTestMode === true,
           voiceSmsReceipt: voiceSmsReceipt === true,
+          voiceBrandId: voiceBrandId || null,
           voiceEngine: voiceEngine === "REALTIME" ? "REALTIME" : "RELAY",
           kiosk: {
             acceptCash: kioskAcceptCash,
@@ -1023,6 +1030,30 @@ function GeneralTab({
           Where the AI sends a caller who asks for a person, complains, or wants
           something it can&apos;t do. Leave blank to use the shop&apos;s own
           number.
+        </p>
+        <Field label="Answers as">
+          <select
+            value={voiceBrandId}
+            onChange={(e) => setVoiceBrandId(e.target.value)}
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          >
+            <option value="">This location&rsquo;s own brand (default)</option>
+            {posBrands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <p className="text-[11px] text-zinc-400">
+          The name the AI greets callers with, and whose menu it reads from. Set
+          this when one kitchen trades under more than one brand — a caller who
+          dialled this number should hear the brand they think they rang.
+        </p>
+        <p className="text-[11px] text-zinc-400">
+          Prices, choices and 86&rsquo;d items always come from the{" "}
+          <strong>POS menu</strong>, so the phone offers exactly what the till
+          does. Nothing to publish separately.
         </p>
         <Field label="Voice engine">
           <select

@@ -45,6 +45,8 @@ export interface WaMenuContext {
   tenantId: string;
   locationId: string;
   brandId?: string;
+  /** What this menu trades as — the name a customer would recognise. */
+  brandName?: string;
   locationName: string;
   /** The shop's country and trading currency. Everything the bot says about
    *  money or addresses keys off these — it used to say "£" and ask for a
@@ -134,6 +136,14 @@ export class WhatsAppMenuService {
        *  storefront — so a shop that has never published to PHONE still gets
        *  the right menu. */
       channel?: string;
+      /**
+       * Serve a specific brand's menu rather than the location's own.
+       *
+       * A site can trade under several brands from one kitchen and one phone
+       * number, and which of them the caller believes they have rung is the
+       * operator's decision, not something derivable from the location row.
+       */
+      brandIdOverride?: string | null;
     },
   ): Promise<WaMenuContext | null> {
     const channel = opts?.channel ?? "WHATSAPP";
@@ -148,7 +158,7 @@ export class WhatsAppMenuService {
       return null;
     }
 
-    const location = await this.prisma.location.findUnique({
+    const found = await this.prisma.location.findUnique({
       where: { id: locationId },
       select: {
         id: true,
@@ -156,13 +166,33 @@ export class WhatsAppMenuService {
         name: true,
         country: true,
         currency: true,
-        brand: { select: { tenantId: true } },
+        brand: { select: { tenantId: true, name: true } },
       },
     });
-    if (!location) {
+    if (!found) {
       this.logger.warn(`WhatsApp location ${locationId} not found`);
       return null;
     }
+
+    // The chosen brand has to belong to the same tenant. A brand id from a
+    // settings blob is operator input, and serving another tenant's menu
+    // because one was mistyped is not a failure anybody would notice from the
+    // outside — the caller would simply be read a menu from a different shop.
+    const chosenBrand =
+      opts?.brandIdOverride && opts.brandIdOverride !== found.brandId
+        ? await this.prisma.brand.findFirst({
+            where: { id: opts.brandIdOverride, tenantId: found.brand?.tenantId },
+            select: { id: true, name: true },
+          })
+        : null;
+    if (opts?.brandIdOverride && !chosenBrand && opts.brandIdOverride !== found.brandId) {
+      this.logger.warn(
+        `Brand ${opts.brandIdOverride} is not on location ${locationId}'s tenant — using the location's own brand`,
+      );
+    }
+    const location = chosenBrand
+      ? { ...found, brandId: chosenBrand.id, brand: { ...found.brand, name: chosenBrand.name } }
+      : found;
 
     // Phase BF — variant-menu publish. Only set when the brand's Channels
     // settings name a source menu for WHATSAPP; null otherwise, in which
@@ -379,6 +409,7 @@ export class WhatsAppMenuService {
       tenantId: location.brand.tenantId,
       locationId: location.id,
       brandId: location.brandId ?? undefined,
+      brandName: location.brand?.name ?? undefined,
       locationName: location.name,
       country: location.country ?? "GB",
       currency:

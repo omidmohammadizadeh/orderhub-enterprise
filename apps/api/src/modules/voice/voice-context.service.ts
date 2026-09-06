@@ -127,11 +127,19 @@ export class VoiceContextService {
 
     const settings = (location.settings ?? {}) as any;
     const addressJson = (location.address ?? {}) as any;
-    // PHONE channel: falls through to the location's active menu when the shop
-    // has never published specifically to phone, which is the common case.
+    // The POS menu, deliberately, and not a PHONE one.
+    //
+    // A phone order is taken by someone standing at the till in every way that
+    // matters: same prices, same 86'd items, same choices. Resolving PHONE
+    // separately meant a shop had to remember to publish to a channel they
+    // never think about, and a menu nobody had published to PHONE fell through
+    // to whatever was merely active — which is how the line could offer food
+    // the till would not.
     const menuCtx = await this.menus.resolveContext(undefined, {
       locationIdOverride: location.id,
-      channel: "PHONE",
+      channel: "POS",
+      // Which brand this number answers as. Unset means the location's own.
+      brandIdOverride: settings.voiceBrandId ?? null,
     });
     if (!menuCtx) {
       this.logger.warn(`No active menu for location ${location.id} — AI cannot take orders`);
@@ -152,8 +160,19 @@ export class VoiceContextService {
 
     const direct = (location.directOrderingConfig ?? {}) as any;
 
+    if (settings.voiceBrandId && menuCtx.brandId !== settings.voiceBrandId) {
+      this.logger.warn(
+        `Voice brand ${settings.voiceBrandId} did not resolve for location ${location.id} — answering as ${menuCtx.brandName ?? menuCtx.locationName}`,
+      );
+    }
+
     return {
       ...menuCtx,
+      // What the caller hears. A site trading as several brands answers as the
+      // one the operator chose, not as whatever the location row is called —
+      // "KINGSTON PIZZA" and "Pizza Uno" can be the same kitchen, and only one
+      // of them is the number the customer dialled.
+      locationName: menuCtx.brandName || menuCtx.locationName,
       voiceNumber: dialled,
       locationPhone: location.phone ?? null,
       // Where an escalation goes. Falls back to the shop's own published
