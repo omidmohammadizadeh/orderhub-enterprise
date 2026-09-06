@@ -166,7 +166,9 @@ export interface VoiceState {
     /** A dish is chosen and one of its required choices is outstanding. */
     | "ITEM_OPTION"
     /** Every choice made; offering them a note before it goes in the cart. */
-    | "ITEM_NOTE";
+    | "ITEM_NOTE"
+    /** Offered them last time's order; waiting on yes or no. */
+    | "USUAL";
   /** The address being built up, one question at a time. `house` holds a
    *  number they gave BEFORE we could name the street, so it isn't asked for
    *  twice — "five signing their drive" is a five we already have. */
@@ -317,6 +319,7 @@ export function coerceState(raw: unknown): VoiceState {
         "ADDR_HOUSE",
         "ITEM_OPTION",
         "ITEM_NOTE",
+        "USUAL",
       ] as const
     ).includes(r.awaiting)
       ? r.awaiting
@@ -463,6 +466,89 @@ export class VoiceAiService {
     return state.knownName
       ? `Lovely. Is that collection or delivery?`
       : `OK, new order. Is that collection or delivery?`;
+  }
+
+  /**
+   * "Same as last time?" — the whole order, in one sentence, answered with one
+   * word.
+   *
+   * Resolved against TODAY's menu, not repeated from the old ticket. A shop
+   * changes its prices, renames things and runs out; offering food it no
+   * longer sells, at last month's price, is worse than not offering at all.
+   * Anything that cannot be found now is simply left out and said aloud, so
+   * the caller hears exactly what they are agreeing to.
+   */
+  usualAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    last: {
+      fulfillmentType: string;
+      items: Array<{ menuItemId?: string | null; name: string; quantity: number; notes?: string | null }>;
+      deliveryAddress?: any;
+    },
+  ): { say: string; next: VoiceState["awaiting"] } | null {
+    const lines: Array<{ item: any; quantity: number; notes?: string | null }> = [];
+    const gone: string[] = [];
+
+    for (const it of last.items) {
+      // By id first — a rename should not lose the line — then by name, which
+      // is how an order taken on the till or the website will match.
+      const byId = it.menuItemId ? ctx.itemIndex.get(String(it.menuItemId)) : undefined;
+      const matched =
+        byId ??
+        (() => {
+          const m = matchItemGroups(String(it.name ?? ""), ctx.items, { limit: 2, floor: 0.6 });
+          if (!isConfidentGroup(m)) return undefined;
+          const g = m[0]!.group;
+          return g.variants.length === 1 ? g.variants[0] : pickVariant(String(it.name), g.variants);
+        })();
+      if (!matched) {
+        gone.push(String(it.name ?? "").trim());
+        continue;
+      }
+      lines.push({
+        item: matched,
+        quantity: Math.max(1, Math.round(Number(it.quantity) || 1)),
+        notes: it.notes ?? null,
+      });
+    }
+
+    // One item off a two-item order is not "the usual" any more, and reading a
+    // half-order back invites a yes to something they did not have.
+    if (!lines.length || gone.length > lines.length) return null;
+
+    state.cart.items = lines.map((l) => ({
+      lineId: Math.random().toString(36).slice(2, 9),
+      itemId: l.item.id,
+      name: l.item.name,
+      quantity: l.quantity,
+      unitBasePrice: l.item.price,
+      modifiers: [],
+      ...(l.notes ? { notes: l.notes } : {}),
+    })) as any;
+    state.cart.fulfillmentType = last.fulfillmentType === "DELIVERY" ? "DELIVERY" : "PICKUP";
+    state.cart.fulfillmentChosen = true;
+    if (state.cart.fulfillmentType === "DELIVERY" && last.deliveryAddress) {
+      state.cart.deliveryAddress = last.deliveryAddress;
+    }
+
+    const spoken = this.listAloud(
+      lines.map(({ item, quantity }) => this.spokenLine(item.name, quantity)),
+    );
+    const where =
+      state.cart.fulfillmentType === "DELIVERY"
+        ? state.cart.deliveryAddress?.line1
+          ? `, delivered to ${state.cart.deliveryAddress.line1}`
+          : ", for delivery"
+        : ", for collection";
+    const missing = gone.length
+      ? ` We're not doing ${this.listAloud(gone)} any more, so that's off.`
+      : "";
+
+    return {
+      say: `Would you like the same as last time — ${spoken}${where}?${missing}`,
+      next: "USUAL",
+    };
   }
 
   /** What the caller hears when they want to chase an order. */
@@ -2677,6 +2763,19 @@ NO MEANS NO
    * its own cart is how an item quietly goes missing between the conversation
    * and the kitchen.
    */
+  /**
+   * The read-back, as a turn. Same words the model's tool speaks, so a caller
+   * who took their usual hears exactly what a caller who ordered item by item
+   * hears — including the price, which is the part they have not heard yet.
+   */
+  readBackAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): { say: string; next: VoiceState["awaiting"] } {
+    state.orderConfirmed = false;
+    return { say: this.readBackScript(ctx, state), next: "ORDER_CONFIRM" };
+  }
+
   private readBackScript(ctx: VoiceContext, state: VoiceState): string {
     const lines = state.cart.items
       .map((l) => {

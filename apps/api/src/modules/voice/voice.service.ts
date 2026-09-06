@@ -577,6 +577,21 @@ export class VoiceService {
       if (said) state.turns.pop();
       return this.runBrain(call, ctx, state, choice.passThrough);
     }
+    // A regular ordering the same thing again is most of a takeaway's phone
+    // traffic, and every one of those calls is a conversation the transcriber
+    // can lose. One question, one word back, nothing to mishear.
+    const last = await this.lastOrderFor(ctx, call.fromNumber);
+    const usual = last ? this.ai.usualAloud(ctx, state, last) : null;
+    if (usual) {
+      state.turns.push({ role: "assistant", text: usual.say });
+      state.awaiting = usual.next;
+      await this.save(call.id, state);
+      this.logger.log(
+        `call ${call.id} offering their usual (${state.cart.items.length} line(s) from ${last!.reference})`,
+      );
+      return { say: usual.say };
+    }
+
     const say = this.ai.orderOpener(state);
     state.turns.push({ role: "assistant", text: say });
     // "Collection or delivery?" has two answers. Arm the slot so the reply is
@@ -857,6 +872,27 @@ export class VoiceService {
         if (!answer) return null;
         say = answer;
         next = this.pendingSlot(state);
+        break;
+      }
+
+      case "USUAL": {
+        const answer = parseYesNo(said);
+        if (!answer) return null;
+        if (answer === "NO") {
+          // Everything loaded on their behalf goes back, or a caller who said
+          // no ends up with last week's dinner attached to this one.
+          state.cart.items = [];
+          state.cart.fulfillmentChosen = false;
+          state.cart.deliveryAddress = undefined;
+          say = "No problem — is that collection or delivery?";
+          next = "FULFILLMENT";
+          break;
+        }
+        // Straight to the read-back. They have already heard the order; what
+        // they have not heard is the price, and nothing is placed without it.
+        const out = this.ai.readBackAloud(ctx, state);
+        say = out.say;
+        next = out.next;
         break;
       }
 
@@ -1323,6 +1359,75 @@ export class VoiceService {
    * it, and every caller was greeted as a stranger — including the regulars
    * the feature was written for.
    */
+  /**
+   * What this caller had last time, if it is safe and sensible to offer.
+   *
+   * Most takeaway calls are a regular ordering the same thing, and every one
+   * of those is a conversation the transcriber can lose. "Same as last time?"
+   * costs one yes and cannot be misheard — it is the single biggest thing this
+   * line can do for the people who ring it most.
+   *
+   * Marketplace orders are excluded, and not as a nicety: they store a SHARED
+   * proxy number. One Deliveroo line was two different customers in an
+   * evening, so offering "your usual" off one would read a stranger's dinner
+   * — and their address — to whoever rang.
+   */
+  private async lastOrderFor(
+    ctx: any,
+    from?: string | null,
+  ): Promise<{
+    reference: string;
+    fulfillmentType: string;
+    items: Array<{ menuItemId: string | null; name: string; quantity: number; notes?: string | null }>;
+    deliveryAddress: any;
+  } | null> {
+    const caller = normaliseNumber(from);
+    if (!caller) return null;
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    try {
+      const rows = await this.db().order.findMany({
+        where: {
+          locationId: ctx.locationId,
+          createdAt: { gte: since },
+          customerPhone: { contains: caller.slice(-9) },
+          // Only what they ordered FROM THIS SHOP, by phone or at the till or
+          // on its own site. Never a marketplace.
+          orderSource: { in: ["VOICE", "POS", "ONLINE", "DIRECT"] },
+          status: { notIn: ["CANCELLED", "REJECTED", "FAILED"] },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          displayId: true,
+          orderNumber: true,
+          orderSource: true,
+          customerPhone: true,
+          fulfillmentType: true,
+          deliveryAddress: true,
+          items: { select: { menuItemId: true, name: true, quantity: true, notes: true } },
+        },
+      });
+      const hit = rows.find(
+        (o: any) =>
+          !marketplaceName(o.orderSource) &&
+          this.phoneReallyMatches(o.customerPhone, caller) &&
+          (o.items?.length ?? 0) > 0,
+      );
+      if (!hit) return null;
+      return {
+        reference: boardReference(hit),
+        fulfillmentType: hit.fulfillmentType,
+        items: hit.items,
+        deliveryAddress: hit.deliveryAddress ?? null,
+      };
+    } catch (e: any) {
+      // Never let a nicety cost a call.
+      this.logger.warn(`usual-order lookup failed: ${e?.message ?? e}`);
+      return null;
+    }
+  }
+
   private async knownCaller(
     tenantId: string,
     from?: string | null,
