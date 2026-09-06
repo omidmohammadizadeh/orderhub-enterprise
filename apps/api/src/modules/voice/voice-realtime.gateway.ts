@@ -568,13 +568,39 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       ? `The caller pressed ${digit} on their keypad, which means they ${meaning[digit]}. Carry on from there without reading the options out again.`
       : `The caller pressed ${digit} on their keypad.`;
 
-    brain.send(
-      JSON.stringify({
-        type: "conversation.item.create",
-        item: { type: "message", role: "user", content: [{ type: "input_text", text: said }] },
-      }),
-    );
+    // Stop talking first.
+    //
+    // Pressing 1 while the options are being read has to END the options —
+    // that is the entire point of a keypad. The model is happily generating
+    // the rest of the list and every frame of it is already on its way to the
+    // caller's ear, so the reply has to be cancelled, not merely followed.
+    this.interrupt(brain);
+
+    this.send(brain, {
+      type: "conversation.item.create",
+      item: { type: "message", role: "user", content: [{ type: "input_text", text: said }] },
+    });
     this.send(brain, { type: "response.create" });
+  }
+
+  /**
+   * Stop whatever the line is saying, now.
+   *
+   * A caller who presses a key or starts talking has stopped listening, and
+   * carrying on to the end of a sentence they have already answered is the
+   * thing that makes a phone system feel like a phone system. Audio already
+   * generated for the cancelled reply is dropped rather than played, or the
+   * caller hears the tail of an answer to a question they interrupted.
+   */
+  private interrupt(brain: WebSocket): void {
+    if (this.responsesOf(brain).size === 0) return;
+    this.send(brain, { type: "response.cancel" });
+    (brain as any).__responses = new Set<string>();
+    (brain as any).__responsePending = false;
+    (brain as any).__pendingScript = undefined;
+    // Until the next response starts, anything still arriving belongs to the
+    // one that was cancelled.
+    (brain as any).__dropAudio = true;
   }
 
   /**
@@ -675,11 +701,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private watchForSilence(brain: WebSocket, ccid: string): void {
     // Optional chaining because this runs on the tool path: a throw here
     // would skip the reply, which is the very silence it exists to prevent.
-    // Five, not seven: a caller who has just answered a question and hears
-    // nothing gives it about that long before deciding the line is broken, and
-    // two rounds of seven is fourteen seconds of dead air — which is a hang-up,
-    // not a recovery.
-    const quiet = Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 5000) || 5000;
+    // Three seconds.
+    //
+    // In a conversation that is already a long pause — say nothing for three
+    // seconds to somebody on a phone and they say "hello? hello?". Five was
+    // chosen when the recovery was a silent retry that might not work; now the
+    // recovery is a sentence the caller can answer, so it can afford to be
+    // early. Two rounds is six seconds before the call moves engine, which is
+    // about as long as anyone will hold.
+    const quiet = Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 3000) || 3000;
     const timer = (brain as any).__quiet;
     if (timer) clearTimeout(timer);
     (brain as any).__quiet = setTimeout(() => {
@@ -706,7 +736,17 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           );
           (brain as any).__responses = new Set<string>();
         }
-        this.send(brain, { type: "response.create" });
+        // WORDS, not another request for a reply.
+        //
+        // Asking a model that has just produced nothing to produce something
+        // is asking the same question that already failed. A caller sitting in
+        // silence needs to hear a human-sounding sentence and be given
+        // something to answer — from their side, silence on a phone line is
+        // indistinguishable from being hung up on.
+        this.speakExactly(
+          brain,
+          "Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?",
+        );
         this.watchForSilence(brain, ccid);
         return;
       }
@@ -742,7 +782,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // direction cannot silence the line.
       case "response.output_audio.delta":
       case "response.audio.delta":
-        if (event.delta) {
+        if (event.delta && !(brain as any).__dropAudio) {
           this.statsOf(brain).audioIn += 1;
           this.heardFromModel(brain);
           sendAudio(event.delta);
@@ -766,6 +806,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // tool asked for a reply mid-reply, was refused, and the line stopped
       // talking. Count them.
       case "response.created":
+        (brain as any).__dropAudio = false;
         this.responsesOf(brain).add(String(event.response?.id ?? `r${Date.now()}`));
         return;
 

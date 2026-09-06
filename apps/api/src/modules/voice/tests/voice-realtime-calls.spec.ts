@@ -551,3 +551,83 @@ describe("words the model is not allowed to rephrase", () => {
     expect(ask.response).toBeUndefined();
   });
 });
+
+describe("the line never just goes quiet", () => {
+  // The operator's rule, in their words: "never stay on silent, always ask or
+  // say start over". From the caller's side, silence on a phone is
+  // indistinguishable from having been hung up on — and they said no to
+  // something and heard nothing at all.
+
+  it("says a sentence they can answer, rather than trying the model again", async () => {
+    // Asking a model that has just produced nothing to produce something is
+    // asking the question that already failed.
+    const sim = new VoiceRealtimeSim({ quietMs: 40 });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    await sim.say("No.");
+    await new Promise((r) => setTimeout(r, 90));
+
+    const ask = sim.toModel.find((m) => m.type === "response.create");
+    expect(ask.response.instructions).toMatch(/Sorry, I lost you there/);
+    expect(ask.response.instructions).toMatch(/take the order from the top/);
+  });
+
+  it("does not wait long enough for it to feel like a dead line", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    await sim.say("Delivery.");
+    await new Promise((r) => setTimeout(r, 3400));
+    expect(sim.log.join(" ")).toMatch(/nothing came back/);
+  }, 10000);
+});
+
+describe("pressing a key stops the line talking", () => {
+  // "When I press option 1 it still continues reading the options to the end."
+  // The whole point of a keypad is that it ends the menu.
+
+  it("cancels the reply that is being spoken", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    // The greeting is playing.
+    sim.brain.deliver({ type: "response.created", response: { id: "greeting" } });
+    sim.brain.sent.length = 0;
+
+    await sim.press("1");
+
+    const types = sim.toModel.map((m) => m.type);
+    expect(types[0]).toBe("response.cancel");
+    expect(types).toContain("conversation.item.create");
+    expect(types).toContain("response.create");
+  });
+
+  it("throws away audio still arriving from the cancelled reply", async () => {
+    // Cancelling stops the model generating, but whatever it already produced
+    // is still on its way — and playing the rest of a menu the caller has
+    // answered is the thing that makes a phone system feel like a phone
+    // system.
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "greeting" } });
+    await sim.press("1");
+    sim.caller.sent.length = 0;
+
+    sim.brain.deliver({ type: "response.output_audio.delta", delta: "TAIL" });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(sim.audioOut).toHaveLength(0);
+
+    // ...and the NEXT reply plays normally.
+    sim.brain.deliver({ type: "response.created", response: { id: "answer" } });
+    sim.brain.deliver({ type: "response.output_audio.delta", delta: "NEW" });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(sim.audioOut).toHaveLength(1);
+  });
+
+  it("does not cancel when nothing is being said", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    await sim.press("2");
+    expect(sim.toModel.map((m) => m.type)).not.toContain("response.cancel");
+  });
+});
