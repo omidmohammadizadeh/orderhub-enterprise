@@ -387,6 +387,8 @@ export function spokenOrderStatus(args: {
   /** Courier fields, when the platform has told us. */
   courierName?: string | null;
   courierMinutesAway?: number | null;
+  /** Nobody has paid for it yet, and it is waiting on them to. */
+  awaitingPayment?: boolean;
 }): { say: string; transfer?: boolean } {
   const delivery = args.fulfillmentType === "DELIVERY";
   const via = marketplaceName(args.source);
@@ -432,6 +434,19 @@ export function spokenOrderStatus(args: {
     args.minutesAway != null && args.minutesAway > 0
       ? ` It should be about ${args.minutesAway} minutes.`
       : "";
+
+  // Nothing is happening, and the reason is the caller's to fix.
+  //
+  // A card order sits at PENDING until Stripe says it has been paid — that is
+  // deliberate, so a kitchen never cooks food nobody has paid for. But telling
+  // that caller "the shop hasn't confirmed it yet" points them at the shop,
+  // who can do nothing, when the answer is a link already on their phone. It
+  // is the difference between a five-second call and a complaint.
+  if (args.awaitingPayment && args.status === "PENDING") {
+    return {
+      say: "We've got that one, but it hasn't been paid for yet — there's a payment link in the text we sent you. As soon as that goes through the kitchen will start it.",
+    };
+  }
 
   switch (args.status) {
     case "PENDING":

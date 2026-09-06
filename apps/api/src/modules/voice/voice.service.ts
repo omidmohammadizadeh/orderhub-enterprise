@@ -56,6 +56,10 @@ const STATUS_FIELDS = {
   orderSource: true,
   courierName: true,
   courierEtaAt: true,
+  // Why a PENDING order is pending: waiting on the shop, or waiting on the
+  // caller to pay. Those are different answers to the same question.
+  paymentMethod: true,
+  paymentStatus: true,
 } as const;
 
 @Injectable()
@@ -737,6 +741,9 @@ export class VoiceService {
           ? order.courierName
           : null,
       courierMinutesAway: courierMins,
+      awaitingPayment:
+        (order.paymentMethod === "PAYMENT_LINK" || order.paymentMethod === "QR_CODE") &&
+        order.paymentStatus !== "PAID",
     });
     if (spoken.transfer) return this.handOver(call, ctx, state, spoken.say);
 
