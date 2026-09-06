@@ -2302,6 +2302,31 @@ ${menu || "(no items available — apologise and transfer)"}`;
     return this.afterOption(ctx, state);
   }
 
+  /**
+   * A turn that hands the caller to a person — or admits that it cannot.
+   *
+   * A shop with no transfer number and no published phone number has nobody to
+   * hand to. Saying "let me put you through" and then not doing it leaves the
+   * caller waiting on a line that has stopped talking to them, and marks the
+   * call TRANSFERRED on the dashboard, so nobody ever finds out. Everything
+   * that gives up on a call goes through here.
+   */
+  private handoverTurn(ctx: VoiceContext, why: string): { result: string; turn: Partial<VoiceTurn> } {
+    if (ctx.transferNumber) {
+      return {
+        result: `${why} Tell them plainly and offer to put them through to the shop.`,
+        turn: { transferTo: ctx.transferNumber, outcome: "TRANSFERRED" },
+      };
+    }
+    // No outcome, deliberately: the same shape the transfer tool already uses
+    // when there is no number. Marking it TRANSFERRED would be a lie told to
+    // the dashboard as well as to the caller.
+    return {
+      result: `${why} There is nobody to put them through to, so do NOT offer to — apologise, and ask if they would like to leave a message for the shop instead.`,
+      turn: {},
+    };
+  }
+
   /** Every required choice made — put it in the cart. */
   private commitPendingItem(ctx: VoiceContext, state: VoiceState): string {
     const pending = state.pendingItem!;
@@ -2826,11 +2851,10 @@ NO MEANS NO
       };
     } catch (e: any) {
       this.logger.error(`Voice order create failed: ${e?.message ?? e}`);
-      return {
-        result:
-          "The order could not be saved. Apologise and transfer them to the shop — do not tell them it is confirmed.",
-        turn: { transferTo: ctx.transferNumber ?? undefined, outcome: "TRANSFERRED" },
-      };
+      return this.handoverTurn(
+        ctx,
+        "The order could not be saved, and it is NOT confirmed — do not tell them it is.",
+      );
     }
   }
 
@@ -2898,12 +2922,12 @@ NO MEANS NO
       // Say what it said rather than inventing an explanation, and get them a
       // person, because from here only a human can help.
       this.logger.warn(`Voice amend failed for ${state.amendOrderId}: ${e?.message}`);
-      return {
-        result: `That order can't be changed now: ${
+      return this.handoverTurn(
+        ctx,
+        `That order can't be changed now: ${
           e?.message ?? "it has gone too far through the kitchen"
-        }. Tell them plainly and offer to put them through to the shop.`,
-        turn: { transferTo: ctx.transferNumber ?? undefined, outcome: "TRANSFERRED" },
-      };
+        }.`,
+      );
     }
   }
 
