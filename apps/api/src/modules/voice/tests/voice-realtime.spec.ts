@@ -188,3 +188,81 @@ describe("keypresses on the speech-to-speech engine", () => {
     expect(b.sent).toHaveLength(0);
   });
 });
+
+describe("a tool call announced twice is still one tool call", () => {
+  // GA emits BOTH response.function_call_arguments.done AND
+  // response.output_item.done for the same call. Handling both on the
+  // assumption one had replaced the other ran every tool twice, sent two
+  // outputs under one call_id, and asked for two responses at once — the
+  // second collided with the first and the line went silent mid-order.
+  const { VoiceRealtimeGateway } = require("../voice-realtime.gateway");
+
+  const setup = () => {
+    const g: any = Object.create(VoiceRealtimeGateway.prototype);
+    g.logger = { log() {}, warn() {}, error() {} };
+    g.seenEvents = new Set();
+    g.telnyx = { transfer: jest.fn(), hangup: jest.fn() };
+    g.voice = { realtimeTool: jest.fn(async () => ({ result: "Got it — Garlic Bread." })) };
+    const sent: any[] = [];
+    const brain: any = { readyState: 1, send: (raw: string) => sent.push(JSON.parse(raw)) };
+    return { g, brain, sent };
+  };
+
+  const argsDone = (callId: string) =>
+    JSON.stringify({
+      type: "response.function_call_arguments.done",
+      name: "add_item",
+      call_id: callId,
+      arguments: JSON.stringify({ said: "garlic bread" }),
+    });
+  const itemDone = (callId: string) =>
+    JSON.stringify({
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        name: "add_item",
+        call_id: callId,
+        arguments: JSON.stringify({ said: "garlic bread" }),
+      },
+    });
+
+  it("runs the tool once, whichever event announces it first", async () => {
+    const { g, brain, sent } = setup();
+    await g.onModelEvent(argsDone("call_1"), "cc1", brain, () => {});
+    await g.onModelEvent(itemDone("call_1"), "cc1", brain, () => {});
+
+    expect(g.voice.realtimeTool).toHaveBeenCalledTimes(1);
+    // One output, one request for a reply. Two of either is the silence.
+    expect(sent.filter((m) => m.type === "conversation.item.create")).toHaveLength(1);
+    expect(sent.filter((m) => m.type === "response.create")).toHaveLength(1);
+  });
+
+  it("works the same way round", async () => {
+    const { g, brain, sent } = setup();
+    await g.onModelEvent(itemDone("call_2"), "cc1", brain, () => {});
+    await g.onModelEvent(argsDone("call_2"), "cc1", brain, () => {});
+    expect(g.voice.realtimeTool).toHaveBeenCalledTimes(1);
+    expect(sent.filter((m) => m.type === "response.create")).toHaveLength(1);
+  });
+
+  it("still runs a genuinely different call", async () => {
+    const { g } = setup();
+    const brain: any = { readyState: 1, send: () => {} };
+    await g.onModelEvent(argsDone("call_a"), "cc1", brain, () => {});
+    await g.onModelEvent(argsDone("call_b"), "cc1", brain, () => {});
+    expect(g.voice.realtimeTool).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores a finished output item that is not a tool call", async () => {
+    const { g, sent } = setup();
+    const brain: any = { readyState: 1, send: (raw: string) => sent.push(JSON.parse(raw)) };
+    await g.onModelEvent(
+      JSON.stringify({ type: "response.output_item.done", item: { type: "message" } }),
+      "cc1",
+      brain,
+      () => {},
+    );
+    expect(g.voice.realtimeTool).not.toHaveBeenCalled();
+    expect(sent).toHaveLength(0);
+  });
+});

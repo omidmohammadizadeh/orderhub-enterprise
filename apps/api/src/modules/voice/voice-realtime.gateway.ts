@@ -264,6 +264,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
                   model:
                     this.config.get<string>("VOICE_REALTIME_TRANSCRIBE_MODEL") ||
                     "gpt-4o-mini-transcribe",
+                  // "delivery" came back as "डिलिवरी". The model itself heard
+                  // it correctly and carried on, so this only corrupts the log
+                  // — but the log is the only way to tell the two engines
+                  // apart, so it has to be readable.
+                  language: this.config.get<string>("VOICE_REALTIME_LANGUAGE") || "en",
                 },
               },
               output: {
@@ -486,12 +491,24 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
       // GA can deliver a finished tool call either way round. Handling only
       // one of them would look exactly like a model that never calls tools.
+      // GA emits BOTH of these for the SAME tool call — I handled both on the
+      // assumption one had replaced the other, so every tool ran twice, two
+      // outputs came back under one call_id, and two responses were asked for
+      // at once. The second collided with the first and the line went silent
+      // mid-order. Once per call_id, whichever event announces it first.
       case "response.output_item.done":
       case "response.function_call_arguments.done": {
         const item = event.item ?? {};
         if (type === "response.output_item.done" && item.type !== "function_call") return;
         const name = String(event.name ?? item.name ?? "");
-        const callId = event.call_id ?? item.call_id;
+        const callId = String(event.call_id ?? item.call_id ?? "");
+        const handled: Set<string> =
+          ((brain as any).__handledTools ??= new Set<string>());
+        if (!callId || handled.has(callId)) {
+          if (callId) this.logger.log(`realtime ${ccid.slice(-8)} ignored a repeat of ${name}`);
+          return;
+        }
+        handled.add(callId);
         let args: any = {};
         try {
           args = JSON.parse(event.arguments ?? item.arguments ?? "{}");
