@@ -363,6 +363,7 @@ export class VoiceService {
     if (state.cart.fulfillmentType === "DELIVERY" && !state.addressConfirmed) return null;
     if (state.orderConfirmed || state.orderId) return null;
 
+    const before = state.cart.items.length;
     const out = this.ai.quickAddAloud(ctx, state, said);
     if (!out) return null;
     const say = out.say;
@@ -375,9 +376,18 @@ export class VoiceService {
       .voiceCall.update({ where: { id: call.id }, data: { transcript: state as any } })
       .catch(() => undefined);
     this.logger.log(
+      // What this utterance ADDED, and what the cart holds now. Reporting only
+      // the total made "twelve inch pepperoni → 4 line(s)" unreadable: three
+      // of those were already there, or they were not, and the log could not
+      // say which.
       `call ${call.id} quick-added from "${said.slice(0, 60)}" → ${
-        state.pendingItem ? "asking for a required choice" : `${state.cart.items.length} line(s)`
-      }`,
+        state.cart.items.length - before
+      } new (cart now ${state.cart.items.length})${
+        state.pendingItem ? ", asking for a required choice" : ""
+      }: ${state.cart.items
+        .slice(before)
+        .map((l) => `${l.quantity}× ${l.name}`)
+        .join(", ") || "-"}`,
     );
     return { say };
   }
