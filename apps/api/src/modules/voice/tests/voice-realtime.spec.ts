@@ -124,6 +124,8 @@ describe("keypresses on the speech-to-speech engine", () => {
   const gw = (over: Record<string, any> = {}) => {
     const g: any = Object.create(VoiceRealtimeGateway.prototype);
     g.logger = { log() {}, warn() {}, error() {} };
+    g.config = { get: () => undefined };
+    g.calls = new Map();
     g.voice = { realtimeTool: jest.fn(async () => ({ result: "ok" })) };
     g.telnyx = { transfer: jest.fn(async () => true) };
     Object.assign(g, over);
@@ -211,6 +213,8 @@ describe("a tool call announced twice is still one tool call", () => {
     const g: any = Object.create(VoiceRealtimeGateway.prototype);
     g.logger = { log() {}, warn() {}, error() {} };
     g.seenEvents = new Set();
+    g.config = { get: () => undefined };
+    g.calls = new Map();
     g.telnyx = { transfer: jest.fn(), hangup: jest.fn() };
     g.voice = { realtimeTool: jest.fn(async () => ({ result: "Got it — Garlic Bread." })) };
     const sent: any[] = [];
@@ -287,6 +291,8 @@ describe("asking for a reply while one is still being spoken", () => {
     const g: any = Object.create(VoiceRealtimeGateway.prototype);
     g.logger = { log() {}, warn() {}, error() {} };
     g.seenEvents = new Set();
+    g.config = { get: () => undefined };
+    g.calls = new Map();
     g.telnyx = { transfer: jest.fn(), hangup: jest.fn() };
     g.voice = { realtimeTool: jest.fn(async () => ({ result: "Using their saved address." })) };
     const sent: any[] = [];

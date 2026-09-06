@@ -198,6 +198,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     return `${base.replace(/\/+$/, "")}?call=${encodeURIComponent(ccid)}&t=${this.tokenFor(ccid)}`;
   }
 
+  /**
+   * The socket to the model.
+   *
+   * A seam, and the reason there is one: every fault on this engine so far has
+   * been in the PROTOCOL, not the model — a greeting sent before the session
+   * was accepted, a keypress nobody handled, one tool call announced twice, a
+   * reply asked for while one was still being spoken. All four are testable
+   * without OpenAI in the loop, and none of them were caught by asking
+   * somebody to ring the shop again.
+   */
+  protected connectToModel(url: string): WebSocket {
+    return new WebSocket(url, { headers: { Authorization: `Bearer ${this.apiKey()}` } });
+  }
+
   private async attach(caller: WebSocket, ccid: string): Promise<void> {
     this.calls.set(ccid, caller);
     this.logger.log(`realtime audio open for call ${ccid.slice(-8)}`);
@@ -219,9 +233,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     //   "The Realtime Beta API is no longer supported. Please use /v1/realtime
     //    for the GA API."
     // which arrived as a 4000 close one second into a live call.
-    const brain = new WebSocket(model_url, {
-      headers: { Authorization: `Bearer ${this.apiKey()}` },
-    });
+    const brain = this.connectToModel(model_url);
 
     let streamId: string | undefined;
     const sendAudio = (b64: string) => {
@@ -358,6 +370,21 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       this.logger.log(
         `realtime model closed for ${ccid.slice(-8)} (${code} ${reason?.toString() ?? ""})`,
       );
+      // The caller is still on the line and the thing that was talking to them
+      // has gone. A deploy does this — the old instance shuts down mid-call and
+      // both sockets go with it — and so does any dropped connection. Silence
+      // is the one outcome that is never acceptable.
+      if (!this.calls.has(ccid)) return;
+      this.calls.delete(ccid);
+      this.logger.error(
+        `realtime model dropped mid-call on ${ccid.slice(-8)} — handing to the standard engine`,
+      );
+      try {
+        caller.close();
+      } catch {
+        /* already gone */
+      }
+      void this.fallbackToRelay(ccid);
     });
 
     caller.on("message", (raw) => {
@@ -448,6 +475,60 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     brain.send(JSON.stringify({ type: "response.create" }));
   }
 
+  /** The responses currently being spoken, by id. */
+  private responsesOf(brain: WebSocket): Set<string> {
+    return ((brain as any).__responses ??= new Set<string>());
+  }
+
+  /** A reply that was queued behind another one. */
+  private flushPending(brain: WebSocket): void {
+    if (!(brain as any).__responsePending) return;
+    (brain as any).__responsePending = false;
+    brain.send(JSON.stringify({ type: "response.create" }));
+  }
+
+  /** The model produced audio, so the line is alive. */
+  private heardFromModel(brain: WebSocket): void {
+    const timer = (brain as any).__quiet;
+    if (timer) clearTimeout(timer);
+    (brain as any).__quiet = undefined;
+    (brain as any).__nudged = false;
+  }
+
+  /**
+   * The caller is waiting. Nothing above this line can promise they get an
+   * answer — a refused reply, a tool that returns nothing the model acts on, a
+   * socket that is open but idle all end the same way, with somebody holding a
+   * phone to their ear hearing nothing and hanging up.
+   *
+   * So: ask once, and if that also produces nothing, give the call to the
+   * engine that has been answering this phone for months.
+   */
+  private watchForSilence(brain: WebSocket, ccid: string): void {
+    // Optional chaining because this runs on the tool path: a throw here
+    // would skip the reply, which is the very silence it exists to prevent.
+    const quiet = Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 7000) || 7000;
+    const timer = (brain as any).__quiet;
+    if (timer) clearTimeout(timer);
+    (brain as any).__quiet = setTimeout(() => {
+      (brain as any).__quiet = undefined;
+      if (brain.readyState !== WebSocket.OPEN) return;
+      if (!(brain as any).__nudged) {
+        (brain as any).__nudged = true;
+        this.logger.warn(`realtime ${ccid.slice(-8)} nothing came back — asking again`);
+        (brain as any).__responses = new Set<string>();
+        brain.send(JSON.stringify({ type: "response.create" }));
+        this.watchForSilence(brain, ccid);
+        return;
+      }
+      this.logger.error(
+        `realtime ${ccid.slice(-8)} silent twice over — handing to the standard engine`,
+      );
+      this.calls.delete(ccid);
+      void this.fallbackToRelay(ccid);
+    }, quiet);
+  }
+
   private async onModelEvent(
     raw: string,
     ccid: string,
@@ -467,7 +548,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // direction cannot silence the line.
       case "response.output_audio.delta":
       case "response.audio.delta":
-        if (event.delta) sendAudio(event.delta);
+        if (event.delta) {
+          this.heardFromModel(brain);
+          sendAudio(event.delta);
+        }
         return;
 
       // session.created arrives the instant the socket opens, carrying the
@@ -477,17 +561,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       case "session.created":
         return;
 
+      // A yes/no flag was wrong here: two responses can be in flight at once,
+      // and one of them finishing then read as "nothing is running". The next
+      // tool asked for a reply mid-reply, was refused, and the line stopped
+      // talking. Count them.
       case "response.created":
-        (brain as any).__responseActive = true;
+        this.responsesOf(brain).add(String(event.response?.id ?? `r${Date.now()}`));
         return;
 
       case "response.done": {
-        (brain as any).__responseActive = false;
-        // A tool finished while this one was still speaking. Now is the moment.
-        if ((brain as any).__responsePending) {
-          (brain as any).__responsePending = false;
-          brain.send(JSON.stringify({ type: "response.create" }));
-        }
+        const running = this.responsesOf(brain);
+        const id = String(event.response?.id ?? "");
+        if (id && running.has(id)) running.delete(id);
+        else running.delete(running.values().next().value ?? "");
+        if (running.size === 0) this.flushPending(brain);
         return;
       }
 
@@ -512,6 +599,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.logger.log(
           `realtime ${ccid.slice(-8)} heard ${JSON.stringify(String(event.transcript ?? "").trim())}`,
         );
+        // The caller has finished a sentence and is now waiting. Everything
+        // after this point is on a clock: whatever goes wrong upstream, a
+        // person holding a phone gets an answer.
+        this.watchForSilence(brain, ccid);
         return;
 
       // GA can deliver a finished tool call either way round. Handling only
@@ -544,14 +635,18 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const out = await this.voice
           .realtimeTool(ccid, name, args)
           .catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
-        this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${out.result.slice(0, 120)}`);
+        // Everything below this point must survive a tool that answered oddly.
+        // A thrown TypeError here would skip the output AND the reply, which
+        // the caller experiences as the line simply stopping.
+        const said = typeof out?.result === "string" && out.result ? out.result : "Done.";
+        this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${said.slice(0, 120)}`);
         brain.send(
           JSON.stringify({
             type: "conversation.item.create",
             item: {
               type: "function_call_output",
               call_id: callId,
-              output: out.result,
+              output: said,
             },
           }),
         );
@@ -559,17 +654,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // running. Asking for a new response then is asking for two at once,
         // and the second is refused — which is a line that stops talking in
         // the middle of taking an address. Wait for the current one to finish.
-        if ((brain as any).__responseActive) {
+        if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
         } else {
           brain.send(JSON.stringify({ type: "response.create" }));
         }
+        // A tool answer that produces no speech is the same silence by another
+        // route, so the clock runs on this too.
+        this.watchForSilence(brain, ccid);
 
         // Telephony stays out of VoiceService — that is what lets both engines
         // share it — so the two side effects a tool can have are done here.
-        if (out.turn?.transferTo) {
+        if (out?.turn?.transferTo) {
           setTimeout(() => void this.telnyx.transfer(ccid, out.turn!.transferTo!), 3000);
-        } else if (out.turn?.endCall) {
+        } else if (out?.turn?.endCall) {
           setTimeout(() => void this.telnyx.hangup(ccid), 6000);
         }
         return;
@@ -581,6 +679,18 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // A rejected audio format is recoverable — try the next spelling
         // rather than leaving the caller on a line that cannot speak.
         if (/format/i.test(text) && (brain as any).__retryFormat?.(String(err?.message ?? "").slice(0, 120))) {
+          return;
+        }
+        // "Conversation already has an active response." Nothing acted on
+        // this, and because the line only ever speaks when asked to, the one
+        // refusal was the end of the call. Ask again the moment the response
+        // that was in the way finishes.
+        if (/active_response|already has an active/i.test(text)) {
+          this.logger.warn(
+            `realtime ${ccid.slice(-8)} reply refused as one was already running — queued`,
+          );
+          if (this.responsesOf(brain).size > 0) (brain as any).__responsePending = true;
+          else brain.send(JSON.stringify({ type: "response.create" }));
           return;
         }
         this.logger.error(`realtime model error on ${ccid.slice(-8)}: ${text.slice(0, 400)}`);
